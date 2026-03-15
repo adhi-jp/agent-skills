@@ -1,0 +1,14 @@
+# Local agent and planning state
+.agents/
+.claude/
+.plans/
+.reviews/
+
+# Local development artifacts
+.local-workspaces/
+skills-lock.json
+
+# Editor and OS noise
+.DS_Store
+.idea/
+.vscode/
