@@ -57,3 +57,4 @@ Before finalizing the plan, ask:
 - Are blockers visible next to the recommendation?
 - Did I keep the plan bounded to the current phase?
 - Do the proof checks and tests line up with the chosen option or proof path?
+- If this plan touches existing behavior, did I classify every equivalence dimension explicitly? Did I separate `in scope for change` from `must preserve` dimensions? Is the comparison visible in the output? Does each relevant dimension have a corresponding test or proof check? If a `must preserve` dimension turned out to be non-equivalent, did I stop and consult the user?

@@ -15,6 +15,7 @@ Use this file when the correct evidence label is unclear or when you need to dec
 - Label the specific claim, not the whole task. A single plan may contain multiple evidence classes.
 - Prefer the narrowest honest label. If only part of a statement is verified, split the statement.
 - Treat feasibility as proven only when the exact version, variant, or environment has been covered by `Primary source` or `Local reproduction`.
+- Treat behavioral equivalence between old and new code as proven only when every dimension defined in `references/behavioral-equivalence-analysis.md` has been individually classified and verified. Matching immediate output alone does not prove equivalence across other dimensions. Discovering that a `must preserve` dimension is not equivalent is a stop signal, not a classification decision.
 - If a historical implementation is used as evidence, confirm that it was actually known-good. A random old commit is not enough.
 - If the only support is indirect or secondhand, the item remains `Unproven`.
 
@@ -84,3 +85,4 @@ Apply the guide in context:
 - "This workspace already has a feature flag for the flow" is `Local reproduction` only if the config or code was actually inspected.
 - "We can probably restore the old behavior by reverting the service layer" is `Unproven` until a known-good commit and its tests are checked.
 - "A senior engineer expects this caching pattern to work here" stays `Unproven` until the relevant docs or a local reproduction back it.
+- "The new API produces the same visible result as the old one" is `Unproven` for full behavioral equivalence until ownership semantics, persistence behavior, lifecycle behavior, and external contract guarantees have been separately verified against `Primary source` or `Local reproduction`.

@@ -26,6 +26,9 @@ Recover or replace behavior without discarding evidence that already exists in t
 6. Plan from verified evidence only.
    - Reuse proven behavior when possible.
    - If the historical implementation cannot be verified or no longer fits the current environment, stop and convert the gap into a proof task.
+7. Perform the behavioral equivalence analysis.
+   - Read `references/behavioral-equivalence-analysis.md` and classify every comparison dimension for the replacement.
+   - This step applies to all replacement and restoration tasks, regardless of whether the new implementation uses a different API.
 
 ## If Git History Is Incomplete
 

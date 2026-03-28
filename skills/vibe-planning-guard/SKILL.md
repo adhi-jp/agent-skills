@@ -1,5 +1,5 @@
 ---
-version: 1.0.0
+version: 1.1.0
 name: vibe-planning-guard
 description: Create verified requirements definitions, design comparisons, and implementation plans for vibe coding with strict stop conditions and risk-scaled output. Use when the user wants a spec, implementation plan, design outline, rewrite plan, replacement plan, restoration plan, or help comparing implementation approaches or structuring a concrete change before coding. Trigger when requirements are ambiguous, contradictory, or underspecified; when feasibility is unclear; when a real design branch needs tradeoff analysis; when existing behavior must be replaced or restored safely; or when the task is large enough that a structured plan is warranted. Do not trigger by default for tiny, already-clear edits, simple API-usage questions, or narrow code explanations unless the user explicitly asks for planning or risk review.
 ---
@@ -32,6 +32,7 @@ Use the lightest safe mode for the task size and risk.
 - `light`: Localized or low-blast-radius work such as a small refactor, a focused bug fix, a single integration touchpoint, or a narrow UI change in a known stack. Use a compact report, ask only 0-2 plan-changing questions after workspace scan, and compare options only when a real design branch remains. Still label every implementation-relevant assumption with an evidence class.
 - `strict`: Multi-file or high-blast-radius work such as migrations, rewrites, replacement or restoration of behavior, external integrations, auth, billing, data model changes, performance work, security-sensitive flows, or anything with unclear feasibility. Use the full report, ask only questions that resolve a blocker, and use structured comparison when ambiguity affects behavior, tests, data, or external contracts.
 - Choose `strict` immediately when auth, billing, security, migrations, external contracts, restoration work, or any `high` or `critical` `Unproven` item is involved.
+- Choose `strict` immediately when a behavioral equivalence analysis contains any `Unknown` dimension or when a `must preserve` dimension has been reclassified to `in scope for change` during analysis.
 - Stay in `light` only when the slice is localized, the main behavior contract is already mostly clear, and any remaining uncertainty is deferred or non-blocking for the current phase.
 - If the choice feels borderline, choose `strict` and keep the report concise rather than weakening the safety bar.
 
@@ -45,6 +46,7 @@ Do not use `light` mode as an excuse to skip verification. It only reduces repor
 - State something as fact only when it is backed by `Primary source` or `Local reproduction`.
 - When recommending an option, keep verified facts, `Unproven` blockers, and expert judgment visibly separate.
 - When a request replaces, restores, rolls back, or rewrites existing behavior, inspect a previously-good commit before planning the change. If no known-good commit can be verified, mark that gap as `Unproven` and stop.
+- When a change touches existing behavior — whether through replacement, refactoring, migration, internal implementation change, or explicit specification change — perform the behavioral equivalence analysis from `references/behavioral-equivalence-analysis.md`. Separate each comparison dimension into `in scope for change` or `must preserve`, classify every dimension explicitly, and include the analysis in the plan output. If any `must preserve` dimension is found to be non-equivalent, stop and report to the user before continuing. If any dimension is classified `Unknown`, the change is blocked until proof is provided.
 - Define tests before implementation steps. For discovery-only phases, define proof checks and exit criteria before any spike or experiment.
 - If even one implementation-relevant item remains `Unproven` for the current phase, stop after the plan. Do not authorize implementation. Shrink the current slice if needed until the current phase has zero `Unproven` implementation assumptions.
 
@@ -85,6 +87,8 @@ Do not use `light` mode as an excuse to skip verification. It only reduces repor
    - In discovery phases, define proof checks, spike exit criteria, and the evidence needed to clear each blocker.
    - In implementation phases, define acceptance tests, regression tests, and important failure cases before implementation steps.
    - Align the proof checks and tests with the chosen option or proof path.
+   - When a behavioral equivalence analysis has been performed, include test scenarios for every dimension classified as `Equivalent` or `Changed (in scope)`. A test plan that only verifies the immediate observable result is incomplete. Persistence round-trips, lifecycle events, external contract guarantees, and resource cleanup must be covered when those dimensions are relevant.
+   - If any dimension from the behavioral equivalence analysis is classified `Unknown`, add a proof check specifically for that dimension before implementation.
    - If the behavior is not yet clear enough to test, stay in discovery. Do not smuggle implementation into the discovery phase.
 8. Apply the verification gate.
    - Use `references/design-exploration-rules.md` as a final self-check for comparison discipline, scope control, recommendation framing, and blocker visibility.
@@ -226,6 +230,36 @@ Use this full structure for `strict` mode:
 - State explicitly whether implementation is blocked or allowed.
 ```
 
+Include the following section in both modes when the change touches existing behavior. Once this analysis has been performed, the section must remain in the output regardless of subsequent mode changes, scope reclassification, or any other plan updates.
+
+Use this compact equivalence section for `light` mode:
+
+```markdown
+## Behavioral equivalence (include when the change touches existing behavior)
+| Dimension | Scope | Classification | Evidence | Rationale (if Not applicable or Changed) | Test or proof check |
+
+For `Changed (in scope)` dimensions (required in both modes):
+- Requirement or user approval reference:
+- Changed success criteria:
+- Impact explanation:
+- Corresponding test:
+```
+
+Use this full equivalence section for `strict` mode:
+
+```markdown
+## Behavioral equivalence analysis (include when the change touches existing behavior)
+| Dimension | Scope (in scope for change / must preserve) | Classification | Evidence or source | Rationale (for Not applicable / Changed) |
+
+For `Changed (in scope)` dimensions (required in both modes):
+- Requirement or user approval reference:
+- Changed success criteria:
+- Impact explanation:
+- Corresponding test:
+```
+
+The `Changed (in scope)` metadata (requirement or user approval reference, changed success criteria, impact explanation, corresponding test) is required regardless of mode. Do not omit it in `light` mode.
+
 If any `Unproven` item exists, the `Implementation plan` section may contain only proof-gathering and test-preparation work. Do not include production changes that assume the missing proof will succeed.
 
 If the user explicitly accepts a remaining blocker, append this optional section in either mode:
@@ -258,3 +292,4 @@ This section documents the exception request; it does not change the stop condit
 - Evidence classes and allowed phrasing: `references/evidence-rubric.md`
 - Replacement, restoration, and rollback checks: `references/change-recovery-checklist.md`
 - Design comparison rules, recommendation framing, and self-checks: `references/design-exploration-rules.md`
+- Behavioral equivalence analysis for changes touching existing behavior: `references/behavioral-equivalence-analysis.md`
