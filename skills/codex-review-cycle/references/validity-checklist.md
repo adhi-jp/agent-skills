@@ -9,7 +9,7 @@ Claude evaluates every finding codex returns against these six items before the 
 `finding.file` must be present in the output of `review_target.diff_command` (plus `git ls-files --others --exclude-standard` when `review_target.scope == working-tree`). Concretely:
 
 - `working-tree`: `git diff HEAD --name-only` or `git ls-files --others --exclude-standard`.
-- `branch` / `base-ref`: `git diff --name-only <base_ref>...HEAD`.
+- `branch` / `base-ref`: `git diff --name-only <base_sha>...HEAD` (use the frozen SHA from Phase 0 step 2; NOT the mutable `base_ref`).
 
 If codex cites a file that is not part of the current diff:
 
@@ -37,7 +37,7 @@ The finding's `body` typically asserts that the code or plan "does X" or "fails 
 Even when `finding.file` is in the diff, the specific `line_start..line_end` range must overlap with a changed hunk. Confirm with the scope-appropriate diff command:
 
 - `working-tree`: `git diff HEAD -- <file>` (staged + unstaged). Untracked files are entirely "changed" — any line range inside them overlaps by definition.
-- `branch` / `base-ref`: `git diff <base_ref>...HEAD -- <file>`.
+- `branch` / `base-ref`: `git diff <base_sha>...HEAD -- <file>` (frozen SHA; NOT `base_ref`).
 
 A finding about unchanged code elsewhere in a modified file is:
 

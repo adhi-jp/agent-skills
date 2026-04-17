@@ -33,6 +33,9 @@ Do NOT use this skill when:
 - **`rejected_ledger`** (optional) — a prior ledger from earlier cycles. If absent, starts from empty.
 - **`metrics`** (optional, used by stop signals) — per-target `size_initial` / `size_now` line counts, `tests_total`, `required_features_count`. Missing metrics mean the corresponding stop signals report `not evaluated`.
 - **`history`** (optional) — per-cycle list of applied finding IDs with their triage categories. Needed for `hygiene-only-stretch` and `out-of-scope-streak`.
+- **`review_target`** (optional overall, **required when DoD is collected in `proposal` mode**) — the caller's resolved review target, shaped as `{scope, base_ref, base_sha, diff_command, diff_files, diff_numstat, commit_range, commit_messages[], diff_patch_excerpts}`. `scope` ∈ `working-tree|branch|base-ref`; `base_sha` is the frozen SHA (`base_ref` is display-only); `diff_files` is `git diff --name-only` output; `commit_messages[]` is the subject+body list of commits in the range (empty for working-tree); `diff_patch_excerpts` is bounded content-bearing evidence (first ~200 lines of tracked-modified diff + first ~50 lines of each untracked file for working-tree; **also populated for branch/base-ref when commit messages are templated/vague** — see proposal-mode evidence gate below). Without `review_target`, `proposal` mode is disabled and the skill falls back to `interview` mode for all six DoD items — proposal mode MUST NOT draft from ambient git state, because drafting from the wrong scope would make the scope classifier circular (DoD derived from the diff then used to judge the diff). **Proposal-mode evidence gate**: proposal mode requires content-bearing evidence regardless of scope:
+  - **Working-tree**: requires non-empty `diff_patch_excerpts`; filename+numstat alone is insufficient. If commit_messages is empty AND diff_patch_excerpts is empty/blank, fall back to interview.
+  - **Branch / base-ref**: commit messages alone are not automatically sufficient. At least one commit must have a subject of ≥20 characters AND a non-empty body, OR `diff_patch_excerpts` must be populated (same budget-based heuristic as working-tree). If all commits are short/templated (e.g. `"fix review comments"`, `"wip"`, `"update tests"`) AND no patch excerpts are supplied, fall back to interview. A DoD drafted from a vague squash commit subject would anchor `must-fix` and `reject-out-of-scope` decisions for the whole run against a weak inferred scope — that is the failure mode this gate blocks.
 
 ## Outputs
 
@@ -45,15 +48,27 @@ Do NOT use this skill when:
 
 ### Phase 0 — DoD Resolution
 
-1. **Check for pre-loaded DoD.** If the caller passed a DoD object or file path, read it and skip to step 3. Otherwise run step 2.
-2. **Interview the user.** Collect the six DoD items in order via `AskUserQuestion`, one question per item. See `references/dod-template.md` for the question wording and expected answer shapes:
-   1. Intent (one sentence)
-   2. Supported inputs
-   3. Required features
-   4. **Explicit out-of-scope** (most important for triage)
-   5. Quality bars
-   6. Accepted divergences
-   If the user declines an item, record `(not specified)` and continue. Warn once if ≥2 items are blank.
+1. **Check for pre-loaded DoD.** If the caller passed a DoD object or file path, read it and skip to step 2b (the item-4 completeness gate below) — **not** step 3. The gate MUST run for every DoD source (interactive interview, proposal mode, free-text paste, AND preloaded/cached DoD from a previous cycle). Otherwise caching across cycles would skip the gate on cycle 2+ and `reject-out-of-scope` classifications would run against an unvalidated item 4. Persist the gate result on the returned DoD object (e.g. `dod.item4_gate: "pass" | "degraded"`) so the caller can re-apply the degraded-mode footer every cycle without re-running the check when evidence is stable.
+2. **Collect the six DoD items.** Four collection modes are available; see `references/dod-template.md` §Collection Modes for full descriptions and selection criteria. Brief summary:
+
+   - **`interview`** — default. One `AskUserQuestion` per item. Safest for unfamiliar or large diffs.
+   - **`proposal`** — Claude drafts all six from `review_target` evidence; user confirms. Gated on LOC threshold + evidence quality.
+   - **`free-text`** — user pastes a pre-written DoD; Claude splits and confirms item 4.
+   - **`quick`** — single `AskUserQuestion` for item 4 only; other items default to `(not specified)`. Trivial changes.
+
+   If the user declines an item, record `(not specified)` and continue. Warn once if ≥2 items are blank. Regardless of mode, the step 2b item-4 completeness gate below runs against the final DoD. Proposal mode MUST NOT silently fill item 4 — if Claude cannot derive 3+ sibling-framed out-of-scope items from the diff alone, fall back to `interview` mode for item 4 only.
+
+2b. **Item-4 completeness pre-triage gate (runs for every DoD source — interview/proposal/free-text/preloaded).** Because `reject-out-of-scope` decisions anchor directly on DoD item 4, an incomplete item 4 silently converts would-be rejections into `minimal-hygiene` fall-through. Count item 4's sibling-framed entries regardless of how the DoD was sourced:
+   - If item 4 has **≥3 items AND each item names an `in-scope` sibling feature** (per `references/dod-template.md` §4 Strong requirement), the full triage pipeline runs normally.
+   - Otherwise — item 4 is `(not specified)`, has <3 items, or any item lacks sibling framing — enter **reject-out-of-scope degraded mode** for this session: Phase 2 step 7 step-3 (out-of-scope check) is **disabled**; any finding that would have been `reject-out-of-scope` instead falls to the step-4 noise check (and then to `minimal-hygiene` if still unmatched). The summary footer MUST render `⚠️ DoD item 4 incomplete (<N> items, sibling-framing: <yes/no>) — reject-out-of-scope classifications are suppressed this session. Complete item 4 per dod-template.md §4 to restore the full scope guard.` on every cycle until item 4 is completed.
+   - The degraded mode is deliberately loud rather than silent: the failure mode this skill exists to prevent is exactly "scope creep slipping through when the author did not think hard enough about out-of-scope boundaries". The footer text makes the gap visible to the user on every cycle.
+   - **Override (intentional <3 items)**: if the user genuinely has <3 out-of-scope items and item 4's brevity is not an oversight (e.g. a tightly-scoped one-line bugfix), offer an explicit override. When the gate would fire degraded mode, first issue a single `AskUserQuestion` before enabling it:
+     - `question`: "DoD item 4 has <N> sibling-framed items (<3 is the strong requirement). Is this intentional for a narrowly-scoped change, or would you like to add more?"
+     - options:
+       - `Intentional — accept <N> items, keep reject-out-of-scope active` — bypass degraded mode for this session. Store `dod.item4_gate: "override"` so later cycles do NOT re-prompt and the footer is suppressed. Record the user's rationale (free-text follow-up) in `dod.item4_override_reason`.
+       - `Add more items now` — re-open interview mode for item 4 only; append the new items and re-run the gate.
+       - `Enter degraded mode anyway` — proceed as previously specified (reject-out-of-scope disabled, footer warning every cycle). `dod.item4_gate: "degraded"`.
+     The override path exists because "scope creep prevention" and "trivially-scoped change" are both legitimate states; the gate should distinguish them via user input, not silently punish the second case.
 3. **Echo the DoD.** Print the collected DoD back as a numbered markdown list so the user can confirm it before triage runs. Do not persist to disk unless the user explicitly asks.
 
 ### Phase 1 — Findings Normalization
@@ -214,7 +229,8 @@ The skill is equally callable standalone: the user runs `review-scope-guard` aft
 
 ## Failure Modes
 
-- **User declines all DoD questions** — warn once, proceed with `(not specified)` values. Triage still runs; `reject-out-of-scope` decisions degrade to best-effort because there is no explicit out-of-scope list to match. The verdict table notes `DoD anchor: none (DoD not collected)` on every row.
+- **User declines all DoD questions** — warn once, proceed with `(not specified)` values. Triage still runs; `reject-out-of-scope` decisions degrade to best-effort because there is no explicit out-of-scope list to match. The verdict table notes `DoD anchor: none (DoD not collected)` on every row. **Additionally**, the Phase 0 step 2 item-4 completeness gate fires: `reject-out-of-scope` classification is disabled this session and the summary footer renders the degraded-mode warning described there.
+- **DoD item 4 has <3 items or lacks sibling framing** — same degraded mode as "user declines all DoD questions" above, but scoped to item 4 only (other DoD items may still anchor `must-fix` / quality-bar decisions). The footer warning explicitly names the item-4 shortfall so the user can fix it mid-session.
 - **Empty `findings[]`** — emit an empty verdict table and `No findings to triage.`, preserve any prior ledger unchanged, and exit.
 - **Malformed finding (missing `title`)** — skip the finding, log `F<n>: dropped (missing title)` in the output, and continue with the remainder.
 - **Ledger fingerprint collision (two different titles normalized to the same key)** — treat the second occurrence as a distinct entry with a disambiguating suffix appended to the fingerprint. Do not merge silently.

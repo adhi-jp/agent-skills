@@ -78,6 +78,7 @@ specific to the skill.
   soft-resets the temporary per-cycle commits and leaves all applied changes
   staged for the user to create a single final commit.
 - `review-scope-guard` needs a Definition of Done to triage against. On
-  first invocation it interviews the user for the six DoD items. The skill
-  never applies fixes itself — it only classifies findings and updates the
-  ledger.
+  first invocation it collects the six DoD items via an interview, a
+  Claude-drafted proposal the user confirms, or a pasted block the user
+  confirms (three modes). The skill never applies fixes itself — it only
+  classifies findings and updates the ledger.
