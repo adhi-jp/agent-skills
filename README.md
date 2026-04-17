@@ -75,8 +75,12 @@ specific to the skill.
   resolves to a non-empty diff. It does not commit files on behalf of the
   user; for `branch` / `base-ref` scopes the skill pauses between cycles
   for the user to manually commit applied fixes. At termination, the skill
-  soft-resets the temporary per-cycle commits and leaves all applied changes
-  staged for the user to create a single final commit.
+  previews the accumulated cycle commits (via `git log --oneline` and
+  `git diff --stat`) and asks the user to confirm. On approval it
+  collapses the per-cycle commits via soft-reset and leaves all applied
+  changes staged for the user to create a single final commit. If the
+  user declines, the cycle commits remain in place and the user can
+  squash them manually later.
 - `review-scope-guard` needs a Definition of Done to triage against. On
   first invocation it collects the six DoD items via an interview, a
   Claude-drafted proposal the user confirms, or a pasted block the user

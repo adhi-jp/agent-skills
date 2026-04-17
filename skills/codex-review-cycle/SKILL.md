@@ -210,6 +210,7 @@ The choice is fixed for the whole loop. If the user wants to switch variants, th
     - `skipped_for_scope[]` — each entry records `{fingerprint, title, file, line_start, scope_category, reason}` for findings the user selected but Claude skipped because their fix required an out-of-diff write (see step 14 Write-scope boundary). These count as unresolved at termination time — Case A lists them alongside user-declined carry-overs and must not claim clean resolution while the bucket is non-empty.
     - `claude_invalid[]` — each entry records `{fingerprint, title, file, line_start, rejection_reason}` for `invalid` findings from the validity check.
     - `not_evaluated_signal_names[]` — the ordered string array returned by `review-scope-guard` step 11. Stored verbatim, no mutation. Used by step 11's footer rendering in cycle N+1 to decide whether to suppress the `not evaluated` footnote.
+    - `unrelated_commit_paths[]` — optional, populated only when the user chose `Keep` at the cycle-N>1 ownership gate. Lists paths from the cycle commit that were NOT in `applied_fixes[*].touched_files[]`. The step-20 Part B terminal audit consumes this list to display the unrelated paths one more time before the final squash, so the user can decide anew whether to include them in the final commit.
 
     All four buckets carry fingerprints so step 17's residual accounting matches on the stable `{normalized_title, file, line_start, scope_category}` tuple, not on title alone.
 
@@ -418,6 +419,54 @@ The skill never advances to a fourth cycle. The user must invoke the skill again
     - If `review_target.scope == working-tree` or no cycle commits were created, skip this step silently.
     - **Terminal-cycle verification**: before resetting, verify the final cycle's applied fixes were actually committed. Run `git status --porcelain -- <final cycle's touched_files>`. If any files have uncommitted changes, print `⚠️ Final cycle has uncommitted applied fixes (<file list>). Soft-reset will NOT stage these — only committed changes become staged after reset. Commit them first, or they will be lost from the staged state.` and skip the reset with a manual-squash fallback: `git reset --soft <pre_cycle_1_head>`.
     - Retrieve `pre_cycle_1_head` from Phase 0 step 7 and record the current `HEAD` as `final_head`.
+    - **Dirty-state audit (pre-preview)**: before preview, confirm no non-cycle-owned state would be staged by the reset. Compute `cycle_owned_files` = union of `cycle_history[*].applied_fixes[*].touched_files[]`, then:
+      - **Part A (uncommitted)**: run `git status --porcelain` and inspect every entry:
+        - Entries that refer to files **outside** `cycle_owned_files` are **unrelated uncommitted state** that would survive `git reset --soft`.
+        - Entries that refer to files **inside** `cycle_owned_files` are also **blocking** unless they are the final cycle's applied-fix files that the Terminal-cycle verification above already cleared. Any staged/unstaged edit on an **earlier-cycle** cycle-owned file (or on a final-cycle file that the Terminal verification failed on) bypasses `git reset --soft` — soft-reset preserves the index and working tree but will NOT stage an unstaged edit, so the workflow's "all applied fixes are staged" claim becomes false. Surface every such entry in the abort output below, including staged vs unstaged status, so the user can commit/stash before re-running.
+      - **Part B (committed-range ownership)**: run `git diff --name-only <pre_cycle_1_head>..<final_head>` and compare against `cycle_owned_files`. Any path in the committed delta that is **NOT** in `cycle_owned_files` is an unrelated file the user accidentally included in a cycle commit; `git reset --soft` will stage it into the final squash without the preview flagging it (the preview only shows `--stat`, which lists filenames but does not cross-check ownership). Part B catches what Part A cannot: unrelated work already committed into the cycle range (cycle 3 found this gap — Part A alone is insufficient). Paths present in `cycle_history[*].unrelated_commit_paths[]` (user-approved during cycle-N>1 ownership gate) are NOT treated as abort-worthy at Part B — they already got a user decision. Part B surfaces them in the preview output with a `(user-approved unrelated)` tag so the final squash commit accurately reflects what is being shipped.
+      - If either Part A or Part B reports entries outside `cycle_owned_files`, print the following and abort the soft-reset entirely:
+        ```
+        ⚠️ State outside the cycle-owned files detected. `git reset --soft <pre_cycle_1_head>` would preserve this into the final staged index, mixing unrelated work into what looks like a "cycle-only" squash.
+
+        State leaking into the soft-reset target:
+        <list every entry with its source tag: [A-uncommitted] / [A-dirty-owned] / [B-committed] — one per line; if all three categories are empty this entire abort block is not printed>
+
+        Resolve before continuing:
+         - [A-uncommitted] paths: commit, stash, or clean them.
+         - [A-dirty-owned] paths: commit or clean the staged/unstaged remnants on cycle-owned files.
+         - [B-committed] paths: amend the offending cycle commit to drop the unrelated file, OR rewrite the commit range to exclude it, OR explicitly include them in a manual post-reset commit by running `git reset --soft <pre_cycle_1_head>` yourself after clearing [A-*].
+        Re-invoke the skill after the range is cycle-clean.
+        ```
+      - Stop the skill here (do NOT proceed to preview or reset) until the user fixes the state and re-invokes. The soft-reset preview gate gives false confidence if the preview shows only the cycle diff while the actual post-reset staged index would contain unrelated work (uncommitted OR committed).
+    - **Soft-reset preview (confirmation gate)**: only reached when the dirty-state audit passes. Before running `git reset --soft`, show the user what will be squashed. Run `git log --oneline <pre_cycle_1_head>..<final_head>` to list the cycle commits, and `git diff --stat <pre_cycle_1_head>..<final_head>` to show the cumulative change. Print:
+      ```
+      About to soft-reset <N> cycle commit(s) onto <pre_cycle_1_head>.
+
+      Why squash: the cycle commits (`review cycle 1 fixes`, `review cycle 2 fixes`, ...) are intermediate artifacts of the review loop. Most users want a single final commit that represents the applied change; soft-reset preserves every line of every cycle fix in the staged index, so you can write the final commit message yourself. Declining keeps the cycle commits in place if you prefer their granular history.
+
+      After reset, all changes below are staged in the index (working tree unchanged). You create your own commit message.
+
+      Commits to be collapsed:
+      <output of git log --oneline ...>
+
+      Cumulative change (will be staged):
+      <output of git diff --stat ...>
+      ```
+
+      **Approved-unrelated paths notice** (only when `cycle_history[*].unrelated_commit_paths[]` is non-empty): before the main reset prompt, display an informational section:
+      ```
+      Approved unrelated paths from earlier cycles (user-tagged during cycle-N>1 ownership gate):
+        - <path> (approved in cycle N)
+        - ...
+      These files are NOT in any applied fix's touched_files. They were bundled into cycle commits and will be preserved by the soft-reset into the final staged index. If you changed your mind about including them, decline the next prompt and amend the cycle commits manually.
+      ```
+      This is a display-only notice, not an AskUserQuestion — the user already tagged these paths as approved during the cycle-N>1 ownership gate. The main reset prompt below is the opportunity to back out.
+
+      Then issue the main reset `AskUserQuestion`:
+      - `question`: "Collapse these N cycle commit(s) into a staged index, ready for your commit?"
+      - options:
+        - `Yes, soft-reset now` — proceed to the next bullet.
+        - `No, leave cycle commits as-is` — skip the reset; print `Cycle commits left in place. Squash manually with `git reset --soft <pre_cycle_1_head>` if desired.` and end the skill.
     - Run `git reset --soft <pre_cycle_1_head>`. This removes all intermediate cycle commits from HEAD but leaves the accumulated changes staged in the index. The user's working tree is unchanged.
     - Print:
       ```
