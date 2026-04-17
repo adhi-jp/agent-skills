@@ -42,6 +42,8 @@ Do NOT use this skill when:
 - **Triage verdict table** — one row per input finding with category, rationale, DoD anchor, and recommended action. Every finding is represented, including `reject-*` ones (for audit trail).
 - **Updated rejected ledger** — YAML-style structure carrying fingerprint, title, file, category, reason, first/last cycle seen, and count.
 - **Active stop signals** — only the signals that tripped this cycle, with evidence.
+- **`not_evaluated_signal_names`** — ordered `string[]` of stop-signal names whose status is `not evaluated: metrics missing`, in the 5-signal canonical order (see `references/stop-signals.md` §Per-cycle suppression). Callers persist this per cycle to decide whether to suppress repeated `not evaluated` footnotes in later cycles; standalone callers may ignore it.
+- **`structurally_unevaluable_signal_names`** — ordered `string[]` of signals that are deterministically `not evaluated` for the current caller shape (e.g. `codex-review-cycle` always lacks `file-bloat` and `reactive-testing` metrics). Separate from `not_evaluated_signal_names` so callers can compact the footer: structurally-unevaluable signals are mentioned once per run (cycle 1), not per cycle. Standalone callers that supply metrics receive an empty list.
 - **Next-action hint** — one-line recommendation when any stop signal is `ACTIVE` or `WARNING`.
 
 ## Workflow
@@ -100,13 +102,15 @@ Do NOT use this skill when:
 ### Phase 4 — Stop Signal Evaluation
 
 11. **Evaluate the five stop signals** using `references/stop-signals.md`. Each signal returns `ACTIVE`, `ADVISORY`, `WARNING`, `silent`, or `not evaluated: metrics missing`.
-12. **Render the signal table.** Print only tripped signals. Print `not evaluated` signals under a separate footnote so the user knows they were considered.
+
+    After evaluating all five signals, construct `not_evaluated_signal_names: string[]` — the filtered list of signals whose status is `not evaluated: metrics missing`, in the canonical 5-signal order (`hygiene-only-stretch`, `repeat-finding`, `out-of-scope-streak`, `file-bloat`, `reactive-testing`). Attach this field to the skill's return value so the caller can suppress repeated footnotes on later cycles (see `references/stop-signals.md` §Per-cycle suppression).
+12. **Render the signal table.** Print only tripped signals. Print `not evaluated` signals under a separate footnote so the user knows they were considered. When invoked across multiple cycles with an unchanged `not evaluated` set — compared by the comparison semantics in `references/stop-signals.md` §Per-cycle suppression — the caller replaces the footnote with the suppression line. This skill never renders the suppression line itself; it always produces the full footnote so standalone callers see complete output. The caller owns the decision.
 13. **Emit the next-action hint.** If any signal is `ACTIVE` or `WARNING`, print `Recommended: stop the review loop and ship / audit scope before the next cycle.` No hint for `ADVISORY`-only runs.
 
 ### Phase 5 — Output
 
 14. **Render the triage verdict table** in the format in §Output Template. Every input finding appears in the table. Titles and recommendations are verbatim from codex.
-15. **Hand control back to the caller.** If invoked by `codex-review-cycle`, return the triage verdict table, updated ledger, and active signals. If invoked standalone, print everything to the user and stop.
+15. **Hand control back to the caller.** If invoked by `codex-review-cycle`, return the triage verdict table, updated ledger, active signals, and `not_evaluated_signal_names` (see §Outputs). If invoked standalone, print everything to the user and stop.
 
 ## 4 Triage Categories (summary)
 
