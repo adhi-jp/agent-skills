@@ -1,6 +1,8 @@
 # Validity Checklist
 
-Claude evaluates every finding codex returns against these six items before the summary table is rendered. The checklist is the filter that prevents Claude from surfacing misread, out-of-scope, or target-mismatched findings to the user. **Every item requires Claude to read the cited file with the `Read` tool** — do not judge validity from codex's `body` alone.
+Claude evaluates every finding codex returns against these six items before the summary table is rendered. The checklist is the filter that prevents Claude from surfacing misread, out-of-scope, or target-mismatched findings to the user.
+
+**Items 1, 2, 4, 5, 6 are mechanical checks from git metadata and the finding text — no file Read required. Item 3 (premise) is the only item that requires Claude to Read the cited file, and it is mandatory for every finding that could become selectable.** Severity-based Read tiering was considered (skip item 3 on medium/low) and rejected: self-consistency between title and recommendation does not prove the artifact actually has the claimed behavior, so skipping item 3 would let invalid findings through. The Read cost (1 per unique cited file, shared via the union rule in SKILL.md step 10) is accepted.
 
 ## The Six Items
 
@@ -31,6 +33,8 @@ The finding's `body` typically asserts that the code or plan "does X" or "fails 
 - Rationale: adversarial-review sometimes hallucinates a failure mode the code does not have. Silent skipping these is the exact failure mode this checklist exists to catch.
 
 **Note on design-intent reversals**: a finding whose premise is "the artifact should have X" while the artifact explicitly states "we deliberately do not have X" is NOT `invalid` at item 3 — the premise matches what the artifact says, modulo an "ought" vs. "is". Route design-intent reversals through scope triage: `review-scope-guard` will classify them as `reject-out-of-scope` when DoD agrees with the exclusion, or as `must-fix` when DoD required features ask for the excluded capability (indicating the DoD and the Overview disagree, which the user must adjudicate). Classifying them `invalid` at validity would silently remove a scope-decision finding from the user-selection UI.
+
+**External-source rule (warning-only)**: external reads (dependency sources, standard library docs, upstream README) are allowed as background evidence during Claude's internal reasoning, but they MUST NOT flip the validity verdict. The verdict always derives from the review diff + finding text. Record external reads as `Claude's note: background — <source>: <finding>` — the user can audit what Claude consulted, without the verdict hinging on an unpinnable external state. Reads inside the review diff remain silent (no annotation). This replaces an earlier "External-source verification" mechanism that allowed verdict-flipping under a version-pinning rule; in practice Claude cannot reliably pin dependency versions, so the safe simplification is to forbid verdict-flipping on external sources entirely.
 
 ### 4. Scope — finding touches changed lines
 
