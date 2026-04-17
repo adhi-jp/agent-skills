@@ -2,6 +2,29 @@
 
 All notable changes to this repository will be documented in this file.
 
+## 2026-04-17
+
+### Changed
+
+- `codex-review-cycle` v1.1.0 — DoD collection modes, V=0 override, validity external-source exception, soft-reset preview, and Japanese rendering examples.
+  - DoD can be collected in `interview` / `proposal` / `free-text` modes instead of the single-question-per-item flow (Task 2).
+  - `cycle_history[N].not_evaluated_signal_names` carries the stop-signal not-evaluated set so cycle 2+ can suppress repeated footnotes deterministically (Task 3).
+  - validity item 3 gains an external-source verification exception that surfaces reads outside the review diff as `Claude's note` when such reads changed the verdict (Task 4).
+  - when V=0 fires before cycle 3, the user can opt into cycle N+1 with an `<angle_request>` element in `<review_context>`; a `no_fix_cycle: true` marker exempts the cycle-N>1 preflight from the HEAD-advance check to avoid deadlocking branch/base-ref scopes (Task 5).
+  - optional `cluster_id` in the rejected-findings ledger groups findings by shared root cause; surfaced in the termination assessment (rejected-ledger scope only) (Task 7).
+  - soft-reset previews the accumulated cycle commits (`git log --oneline` + `git diff --stat`) and asks the user to confirm before running `git reset --soft`; README public contract updated to match (Task 8).
+  - new reference `summary-samples.ja.md` shows Japanese rendering of summary table, stop-signal footer, and termination messages (Task 9).
+- `review-scope-guard` v1.1.0 — DoD out-of-scope requirement, DoD collection modes, state carrier for stop-signal suppression, cluster_id, and Japanese rendering examples.
+  - `dod-template.md` now requires ≥3 sibling-framed out-of-scope items in DoD item 4 (Task 1).
+  - DoD collection modes — see `codex-review-cycle` entry above (Task 2).
+  - `not_evaluated_signal_names` return-value field — see `codex-review-cycle` entry above (Task 3).
+  - `cluster_id` field — see `codex-review-cycle` entry above (Task 7).
+  - new reference `output-samples.ja.md` shows Japanese rendering of triage table, ledger, and stop-signal footer with a verbatim recommendation block (Task 9).
+
+### Deferred
+
+- G1 (straddle adjudication for DoD-endorsed security-adjacent designs) is intentionally NOT included in this release. Three rounds of adversarial-review surfaced state-ordering and classifier-input-surface concerns that need further design work. Will be re-proposed as a separate plan with explicit `rationale` timing and classifier-lexicon tests.
+
 ## 2026-04-15
 
 ### Added

@@ -1,5 +1,5 @@
 ---
-version: 1.0.0
+version: 1.1.0
 name: review-scope-guard
 description: Triage code/plan review findings against an explicit Definition of Done so must-fix bugs are separated from scope creep, out-of-scope semantic implementations, and noise. Collects the six-item Definition of Done interactively on first invocation, classifies every finding into one of four categories (`must-fix`, `minimal-hygiene`, `reject-out-of-scope`, `reject-noise`), maintains a rejected-findings ledger so repeated complaints are not re-litigated across cycles, and evaluates five stop signals for scope drift. Output is a triage verdict table plus an updated ledger usable by `codex-review-cycle`. Use when a codex review returned findings that may drift beyond the stated scope, when the user explicitly asks to triage or scope-check review findings, or when invoked by `codex-review-cycle` between its validity check and summary render. Do NOT trigger for single-shot lint reviews, unrelated code changes, or when the user has not yet run a review.
 ---
@@ -11,6 +11,29 @@ description: Triage code/plan review findings against an explicit Definition of 
 A scope-aware triage skill that sits between a review tool and a user-facing summary. It takes a list of review findings and a Definition of Done (DoD), classifies each finding into one of four action categories, and maintains a rejected-findings ledger so the same complaint is never re-litigated across cycles. The skill never applies fixes itself — it only decides which findings are worth escalating and which should be suppressed.
 
 This skill exists because adversarial review tools (including codex's `adversarial-review`) are calibrated for "correctness gaps from a theoretical ideal", not "impact on the stated scope". Without a scope filter the implementer chases edge cases and semantic implementations that were never in scope, then reverts them. A 19-cycle curl-import session that reverted ~50% of its Phase 2-3 additions is the empirical baseline this skill is designed to prevent.
+
+## Language
+
+All user-facing output is rendered in the user's language (the language the user has been using in the conversation, or as configured in the Claude Code system-level language setting). This section is the **authoritative translation contract** — any per-language sample reference (e.g. `references/output-samples.ja.md`) is illustrative only and MUST NOT contradict these rules.
+
+**Translate into the user's language:**
+
+- Section headings and column labels (`カテゴリ` / `判定理由` / `アクション` equivalents in the target language)
+- Free-text fields Claude authors: `rationale` body, `recommended_action` values, stop-signal evidence prose, next-action hints, degraded-mode warnings
+- `AskUserQuestion` `question`, `header`, and option `label` / `description` fields (e.g. during DoD interview)
+
+**Keep verbatim (do NOT translate), regardless of user language:**
+
+- Codex `title` field (surfaced in the `Title (verbatim)` column)
+- Codex `recommendation` field (quoted per-finding below the triage table)
+- Severity values (`high` / `medium` / `low`) — codex output
+- Category names (`must-fix` / `minimal-hygiene` / `reject-out-of-scope` / `reject-noise`)
+- Stop-signal names (`hygiene-only-stretch` / `repeat-finding` / `out-of-scope-streak` / `file-bloat` / `reactive-testing`) and `Status` keywords (`ACTIVE` / `ADVISORY` / `WARNING` / `silent`)
+- DoD anchor fixed labels (`Required features` / `Out-of-scope` / `Quality bars` / `Supported inputs` / `Accepted divergences` / `none`)
+- Technical identifiers: file paths, `fingerprint`, `cluster_id`, field names like `first_seen_cycle`, `last_seen_cycle`, `count`, `not_evaluated_signal_names`
+- Cycle indices (`cycle N`)
+
+For a Japanese rendering example that applies these rules, see `references/output-samples.ja.md`. For German, Korean, or other languages, apply the same rules directly — the Japanese sample is an illustration, not a template to translate.
 
 ## When to Use
 
@@ -25,6 +48,8 @@ Do NOT use this skill when:
 - The user wants a single-shot lint cleanup — no DoD is needed for a single-pass suggestion list.
 - No review has been run yet — there are no findings to triage. Run the review first.
 - The change is so small the DoD is obvious from the diff itself.
+
+If `review-scope-guard` is not registered with the harness (Skill() invocation fails), run its workflow manually by reading this SKILL.md.
 
 ## Inputs
 
@@ -250,3 +275,4 @@ The skill is equally callable standalone: the user runs `review-scope-guard` aft
 - `references/dod-template.md` — the six-item Definition of Done interview.
 - `references/triage-categories.md` — full definitions of the four categories with curl-retrospective examples.
 - `references/stop-signals.md` — the five stop signals, thresholds, required inputs, and output format.
+- `references/output-samples.ja.md` — 日本語で render する場合の triage table / ledger / stop signal footer 例。

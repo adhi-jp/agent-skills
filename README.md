@@ -81,6 +81,11 @@ specific to the skill.
   changes staged for the user to create a single final commit. If the
   user declines, the cycle commits remain in place and the user can
   squash them manually later.
+  Both `codex-review-cycle` and `review-scope-guard` must be registered
+  with the Claude Code harness (as marketplace plugins or in the user's
+  skill set) for `Skill()` invocation to work. If either skill is not
+  registered, open the SKILL.md file and follow the workflow manually —
+  the spec is self-contained enough for direct execution.
 - `review-scope-guard` needs a Definition of Done to triage against. On
   first invocation it collects the six DoD items via an interview, a
   Claude-drafted proposal the user confirms, or a pasted block the user
