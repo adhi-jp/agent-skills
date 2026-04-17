@@ -97,6 +97,8 @@ Do NOT use this skill when:
    - New fingerprint → append a new entry with `first_seen_cycle = current`, `last_seen_cycle = current`, `count = 1`.
    - Existing fingerprint → increment `count`, set `last_seen_cycle = current`, leave `first_seen_cycle` unchanged. Preserve the original `reason`; do not overwrite with the new cycle's rationale unless the user explicitly asks (this keeps the history stable).
    - Findings classified `must-fix` or `minimal-hygiene` do NOT enter the ledger — they are about to be applied, not rejected.
+
+   **Cluster assignment**: when writing or incrementing a ledger entry, inspect the finding's `rationale` text for explicit phrases like "same root cause as L<n>", "same <concept> boundary", "same <subsystem> invariant". When such a phrase refers to an existing ledger entry, copy that entry's `cluster_id` to the new entry (creating the `cluster_id` on the referenced entry first if absent — use a kebab-case summary of the shared concept). Do not auto-cluster findings without an explicit rationale phrase: false clustering silently hides distinct concerns under a shared label.
 10. **Emit the updated ledger** in the format described in §Rejected Ledger Format.
 
 ### Phase 4 — Stop Signal Evaluation
@@ -144,6 +146,7 @@ DoD lives in-session only. The skill does not write it to disk.
 rejected_findings_ledger:
   - id: L1
     fingerprint: "<severity>|<normalized_title>|<file>"
+    cluster_id: "reqwest-jar-isolation"   # optional; shared across findings touching the same root cause
     title: "<finding title verbatim>"
     file: "<path or null>"
     category: "reject-out-of-scope"
@@ -153,6 +156,7 @@ rejected_findings_ledger:
     count: 3
   - id: L2
     fingerprint: "<severity>|<normalized_title>|<file>"
+    cluster_id: "reqwest-jar-isolation"
     title: "<another title verbatim>"
     file: "<path or null>"
     category: "reject-noise"
@@ -163,6 +167,7 @@ rejected_findings_ledger:
 ```
 
 - `fingerprint` — `<severity>|<normalized_title>|<file>`. Used for O(1) re-detection.
+- `cluster_id` — optional short kebab-case string grouping findings that share a root cause even when titles, files, or severities differ. Populated by Claude at Phase 2 classification time when the rationale explicitly names a shared concept (e.g. "same jar-isolation boundary as L1"). Leave unset when no shared cause is evident; never auto-generate to avoid false clustering. `cluster_id` never suppresses findings — it only groups them for the termination-time assessment in `codex-review-cycle` step 19.
 - `title` — codex verbatim. Never paraphrase.
 - `reason` — the rationale assigned at first triage. Stable across re-occurrences so history stays coherent.
 - Projecting into `codex-review-cycle`'s `<rejected_findings>` block:

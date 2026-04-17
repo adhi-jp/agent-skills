@@ -401,6 +401,8 @@ The skill never advances to a fourth cycle. The user must invoke the skill again
 
     **Character**: <1 sentence — e.g. "mostly state-model gaps", "edge cases and design-philosophy arguments", "doc/wording consistency issues">
 
+    **Clusters** (optional — render only when ≥2 **rejected-ledger** entries share a `cluster_id`): `<cluster_id>`: <N> ledger entries across <M> cycle(s) (see ledger entries L<i>, L<j>, ...). Emit at most 3 cluster lines, sorted by finding count descending. If no cluster has ≥2 members, omit the line entirely. **Scope limitation**: cluster accounting is intentionally limited to rejected-ledger entries because only those carry `cluster_id` (see `review-scope-guard` Phase 3 step 9 assignment rule). Applied-fix findings do not participate in cluster summary; extending the carrier to applied fixes is deliberately deferred to avoid inconsistent partial counts.
+
     **Recommendation**: <"continue reviewing" | "stop and audit scope" | "move to next work" with 1-sentence rationale. Determined from recorded state only:
     - If any `must-fix` or `minimal-hygiene` residual was carried to termination → "address residuals before shipping"
     - If any stop signal is `ACTIVE` or `WARNING` → "stop and audit scope" (aligns with review-scope-guard's stop-signal contract: ACTIVE/WARNING means diminishing returns or scope drift, not a reason to run more cycles)
