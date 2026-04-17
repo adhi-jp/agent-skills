@@ -47,7 +47,11 @@ Expected form: a bulleted list. For feature work on an existing surface, include
 
 **Question**: `Which features, flags, or behaviors are explicitly out of scope? List the tempting extensions you want to rule out.`
 
-Expected form: a bulleted list of named items. The explicit out-of-scope list is the single most important item for the triage step. It is the list against which `reject-out-of-scope` decisions are made. Example:
+Expected form: a bulleted list of named items.
+
+**Strong requirement**: list at least 3 items, and for each item, name a *sibling* feature that sits next to it in the code path but is **in scope**. A vague out-of-scope list is the single most common reason `reject-out-of-scope` decisions collapse to `minimal-hygiene` fall-through. If you cannot name 3 tempting extensions, the change is either too small to need this skill (use the codex plugin directly) or the scope has not been thought through yet. Examples of sibling-framing: "cookie_store crate migration (out) — sits next to reqwest::cookie::Jar basic use (in)"; "env/session-scoped Jar partitioning (out) — sits next to single-process Jar sharing (in)".
+
+The explicit out-of-scope list is the single most important item for the triage step. It is the list against which `reject-out-of-scope` decisions are made. Example:
 
 - cURL 7.80+ new features (`--json`, `--url-query`, `--aws-sigv4`) — semantic implementation
 - WebDAV methods (`PROPFIND`, etc.) — priority resolution
