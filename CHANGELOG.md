@@ -2,6 +2,30 @@
 
 All notable changes to this repository will be documented in this file.
 
+## 2026-04-18
+
+### Added
+
+- `writing-style-guide` v1.0.0 — principles-first prose-quality skill for
+  durable user-facing artifacts: source-code documentation, README,
+  CHANGELOG, commit messages, PR descriptions, and chat replies the reader
+  keeps. Covers concision, audience fit, meta-acknowledgment removal,
+  language precedence (explicit user request > existing artifact language
+  > filename locale marker > project convention > English default), and
+  artifact self-containment with a durable-traceability carve-out for issue
+  IDs, RFC numbers, commit SHAs, and other rename-stable citations. The
+  anti-pattern set names the AI-tell vocabulary (marketing language, hollow
+  transitions, groundless future claims, forced symmetry, em-dash
+  abundance) and name-echoing doc comments; required safety, security,
+  data-loss, compliance, and irreversible-action warnings are exempt from
+  the unrequested-additions rule. Scope discipline keeps the guide off
+  machine-readable output, verbatim relays, transient status lines, and
+  bare acknowledgments, and explicit depth requests (rationale, verification
+  results, limitations, recovery plans, comparisons) override the concision
+  default. Coexistence section defers to project conventions and active
+  workflows for procedure; the guide only shapes the words those workflows
+  produce.
+
 ## 2026-04-17
 
 ### Changed

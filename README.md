@@ -44,12 +44,29 @@ ledger, and surfaces five stop signals, though not all are evaluable in
 every usage context. Invoked automatically by
 `codex-review-cycle` and also usable standalone after any review tool.
 
+### `writing-style-guide`
+
+Principles-first prose-quality skill for durable user-facing artifacts:
+source-code documentation, README, CHANGELOG, commit messages, PR
+descriptions, and chat replies the reader keeps. Covers concision,
+audience fit, language precedence, artifact self-containment with a
+durable-citation carve-out, and the AI-tell anti-patterns (marketing
+vocabulary, hollow transitions, groundless future claims, forced
+symmetry, em-dash abundance). Required safety, compliance, and
+irreversible-action warnings are exempt from the "unrequested
+additions" rule; machine-readable output, verbatim relays, transient
+status lines, and bare acknowledgments are skipped so the guide stays
+out of where prose style is not the deliverable. Defers to project
+conventions and active workflows for procedure; only the word choice
+is this skill's territory.
+
 ## Repository Layout
 
 - `skills/minecraft-modding-workbench/`: Minecraft modding skill package
 - `skills/vibe-planning-guard/`: planning and design-review skill package
 - `skills/codex-review-cycle/`: codex-driven interactive 3-cycle review-and-fix workflow
 - `skills/review-scope-guard/`: Definition-of-Done-aware review finding triage, invoked by codex-review-cycle
+- `skills/writing-style-guide/`: principles-first prose-quality skill for durable artifacts
 - `CHANGELOG.md`: repository-level change history
 
 ## Package Contents
