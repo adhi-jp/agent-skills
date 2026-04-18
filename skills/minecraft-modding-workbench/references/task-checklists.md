@@ -7,10 +7,11 @@ Start with the matching high-level recipe in `references/mcp-recipes.md`, then u
 1. [Simple Block or Item](#simple-block-or-item)
 2. [Container Block or Block Entity](#container-block-or-block-entity)
 3. [Entity or Mob](#entity-or-mob)
-4. [Mixin or Access Widener](#mixin-or-access-widener)
+4. [Mixin, Access Widener, or Access Transformer](#mixin-access-widener-or-access-transformer)
 5. [Worldgen or Data-Driven Content](#worldgen-or-data-driven-content)
 6. [Porting or Compatibility Fixes](#porting-or-compatibility-fixes)
 7. [Mod JAR Analysis](#mod-jar-analysis)
+8. [NBT or Save Data](#nbt-or-save-data)
 
 ## Simple Block or Item
 
@@ -88,20 +89,22 @@ Common misses:
 - Spawn egg created without a registered entity type
 - Goals added but navigation or target selectors left unconfigured
 
-## Mixin or Access Widener
+## Mixin, Access Widener, or Access Transformer
 
 Recipe:
 
-- Start with `validate-project`.
-- Drop to `validate-mixin` or `validate-access-widener` only when you need exact issue detail.
+- Start with `validate-project`. Pass `discover: ["mixins", "access-wideners", "access-transformers"]` when you want a whole-workspace read, and drop entries that do not apply to the loader.
+- For Fabric workspaces, drop to `validate-mixin` or `validate-access-widener` only when you need exact issue detail.
+- For NeoForge workspaces, drop to `validate-access-transformer` with an explicit `atNamespace` when the project-level summary flags an AT entry.
 
 Checklist:
 
 - Prefer a loader event or API hook over a Mixin when one exists.
 - Prefer accessor or invoker Mixins when field or method access is the only goal.
 - Record the exact owner, method name, descriptor, and mapping namespace before writing the change.
-- Update the mixin config or access widener file together with the code change.
+- Update the mixin config, access widener, or `neoforge.mods.toml` access transformer declaration together with the code change.
 - Read the target class source to confirm the injection point or member still exists in this Minecraft version.
+- For access transformers, match `atNamespace` to the actual file (`mojang` on modern NeoForge, `srg` on legacy Forge projects). Mixed-namespace files are a frequent cause of silent AT no-ops.
 
 Common misses:
 
@@ -109,6 +112,8 @@ Common misses:
 - Wrong descriptor
 - Injection point moved in the target version
 - Client-only targets referenced from common code
+- Access transformer entry using `srg` names on a modern NeoForge (mojmap) workspace, or vice versa
+- NeoForge AT file added but not declared in `neoforge.mods.toml`
 
 ## Worldgen or Data-Driven Content
 
@@ -171,3 +176,32 @@ Common misses:
 - Looking at the wrong loader build of the same mod
 - Comparing against a different Minecraft version
 - Assuming a dependency is optional when the metadata marks it required
+
+## NBT or Save Data
+
+Recipe:
+
+- Decode with `nbt-to-json` (`compression: "auto"`) to get typed JSON.
+- Edit in typed JSON directly, or apply `nbt-apply-json-patch` with RFC6902 operations for structural changes.
+- Re-encode once with `json-to-nbt`, matching the original compression format.
+
+Checklist:
+
+- Identify the source (level.dat, chunk region, playerdata, `/data` command output, datapack fixture, datagen artifact) before editing, since compression and expected fields differ per source.
+- **Back up the original binary before editing live save data.** Minecraft does not version these files; a bad re-encode is not recoverable, so always work against a copy and keep the original untouched until the edited output has been re-decoded and verified.
+- **Stop on `.mca` region containers.** These helpers operate on raw NBT payloads, not Anvil region files. If the target is an `.mca`, extract the chunk payload with a region tool first, or abort and say the input is unsupported.
+- Preserve `DataVersion` unless the edit is a deliberate upgrade. A mismatched `DataVersion` triggers Minecraft's auto-upgrade path, which may rewrite nearby fields.
+- For level.dat and playerdata, expect `gzip` compression. For `/data` command output, expect plain (no compression).
+- Preserve the typed-JSON envelope `{ "rootName", "root": { "type", "value" } }` returned by `nbt-to-json`. `json-to-nbt` rejects a bare `{ type, value }` document, and `nbt-apply-json-patch` paths must start at `/root/...`.
+- When building test fixtures, check in the typed JSON form and re-encode at runtime or build time instead of committing binary NBT blobs.
+- For registry-shaped data (items, blocks, biome feature keys), cross-check against `get-registry-data` for the same version before writing non-trivial values.
+
+Common misses:
+
+- Editing the raw NBT binary by hand instead of round-tripping through typed JSON
+- Re-encoding without matching the source compression
+- Dropping the `rootName` / `root` envelope when editing typed JSON
+- Running helpers directly on `.mca` region files
+- Editing live save data without a pre-edit backup
+- Bumping `DataVersion` silently during an unrelated edit
+- Hardcoding registry IDs that have been renamed in the target version

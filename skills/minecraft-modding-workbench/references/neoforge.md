@@ -9,7 +9,8 @@
 5. [Data Generation](#data-generation)
 6. [Networking](#networking)
 7. [Sided Access](#sided-access)
-8. [Common Pitfalls](#common-pitfalls)
+8. [Access Transformers](#access-transformers)
+9. [Common Pitfalls](#common-pitfalls)
 
 ---
 
@@ -310,6 +311,38 @@ public class ClientSetup {
     }
 }
 ```
+
+## Access Transformers
+
+NeoForge uses Access Transformers (ATs) to widen access on vanilla classes, fields, and methods. They play the same role that access wideners play on Fabric, but the file format and namespace expectations differ.
+
+File location: `src/main/resources/META-INF/accesstransformer.cfg`. Declare it in `neoforge.mods.toml`:
+
+```toml
+[[accessTransformers]]
+file = "META-INF/accesstransformer.cfg"
+```
+
+Example entries (mojmap namespace, typical for modern NeoForge):
+
+```
+public net.minecraft.world.entity.LivingEntity lastHurtByMob
+public net.minecraft.server.level.ServerLevel isPositionEntityTicking(Lnet/minecraft/core/BlockPos;)Z
+public-f net.minecraft.world.level.block.state.BlockBehaviour$Properties
+```
+
+Key rules:
+
+- Modern NeoForge projects on current MC versions expect **mojmap** entries. Older Forge ports may still use **SRG** names. Always match the file to one namespace.
+- Validate every edit with `validate-project` (task `access-transformer`) or `validate-access-transformer` with a matching `atNamespace`. Mismatched namespace is the top source of silent AT failures.
+- Keep ATs minimal. Every widened symbol is a potential incompatibility the next time the target field or method is renamed upstream.
+- Prefer a capability, event, or Mixin accessor when one already covers the case. Use ATs when the loader cannot reach the target any other way.
+
+Common AT mistakes:
+
+- Mixing SRG and mojmap entries in the same file
+- Stale entries referencing fields removed in a newer MC version
+- Forgetting to declare the AT file in `neoforge.mods.toml`
 
 ## Common Pitfalls
 

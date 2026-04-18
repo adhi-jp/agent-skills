@@ -1,13 +1,14 @@
 ---
-version: 1.0.0
+version: 1.1.0
 name: minecraft-modding-workbench
 description: >
   Build, debug, port, or inspect Minecraft Java Edition mods for Fabric,
   NeoForge, and Architectury with the `minecraft-modding` MCP server. Use for
   Minecraft mod work involving supported loader workspaces, Mixins, access
-  wideners, Yarn/intermediary/Mojang mappings, common-vs-platform module
-  splits, version migration, registry or resource debugging, and mod JAR
-  inspection or remapping.
+  wideners, access transformers, Yarn/intermediary/Mojang mappings,
+  common-vs-platform module splits, version migration, registry or resource
+  debugging, NBT payload round-trip and patching, and mod JAR inspection or
+  remapping.
 ---
 
 # Minecraft Modding Workbench
@@ -22,6 +23,8 @@ working code and assets.
 - Requires the `minecraft-modding` MCP server from `@adhisang/minecraft-modding-mcp`.
 - Prefer project-aware MCP calls when a workspace exists. Reuse the repository root as `projectPath`.
 - Use the high-level v3 entry tools first: `inspect-minecraft`, `analyze-symbol`, `compare-minecraft`, `validate-project`, `analyze-mod`, and `manage-cache`.
+- Covers Forge-style access transformers through `validate-project` (task `access-transformer`) for NeoForge, in addition to Fabric-style access wideners.
+- Use the NBT helpers (`nbt-to-json`, `json-to-nbt`, `nbt-apply-json-patch`) when working with level.dat, chunk, playerdata, or command-driven NBT. Stay in typed JSON while editing and re-encode once at the end.
 
 ## Default Behavior
 
@@ -60,11 +63,15 @@ If the task depends on an external generator or template that is not present, sa
 
 - Start with the highest-level read-only MCP call that can answer the question.
   - `inspect-minecraft`: versions, artifacts, vanilla classes, source search, raw files.
-  - `analyze-symbol`: existence, mappings, lifecycle, workspace compile-time names.
+  - `analyze-symbol`: existence, mappings, lifecycle, workspace compile-time names, API overview.
   - `compare-minecraft`: migration and registry/class diffs.
-  - `validate-project`: workspace, Mixin, and access widener validation.
+  - `validate-project`: workspace, Mixin, access widener, and Forge-style access transformer validation.
   - `analyze-mod`: mod JAR summary, search, decompile, remap preview/apply.
-  - `manage-cache`: stale cache or index diagnosis.
+  - `manage-cache`: stale cache or index diagnosis, including the `verify` action and preview-then-apply maintenance.
+- Reach for these supporting utilities directly when the entry tools do not cover the job:
+  - `get-registry-data`: structured registry bodies (blocks, items, biomes, …) via the server data generator for one version.
+  - `get-runtime-metrics`: service counters and latency snapshots when cache, search, or index behaviour looks off.
+  - `nbt-to-json`, `json-to-nbt`, `nbt-apply-json-patch`: typed-JSON round-trip and RFC6902-style in-place edits for Java Edition NBT payloads.
 - Drop to low-level tools only for exact code, exact descriptors, raw registry bodies, detailed validator output, or direct JAR/remap control.
 - Keep version and mapping discipline.
   - Pass `projectPath`, `preferProjectVersion=true`, and `preferProjectMapping=true` when supported.
@@ -79,7 +86,7 @@ If the task depends on an external generator or template that is not present, sa
 
 - Do not silently treat Quilt or legacy Forge as Fabric, NeoForge, or Architectury.
 - For legacy Forge-only or other unsupported loaders, limit help to verified workspace facts, logs, and migration boundaries. Say that full guidance is outside this skill.
-- If MCP is unavailable, misconfigured, or stale, say so immediately, fall back to workspace and log inspection, and keep any fix narrow.
+- If MCP is unavailable, misconfigured, or stale, say so immediately, fall back to workspace and log inspection, and keep any fix narrow. The same rule covers version skew: if a tool, task, or argument this skill names (for example, `manage-cache` `action: "verify"`, `validate-project` task `access-transformer`, `analyze-symbol` `api-overview` / `exact-map`, the nested `inspect-minecraft subject.kind: "artifact"` shape, or the NBT helpers) is rejected as unknown, treat it as evidence that the installed MCP is older than what this skill's recipes target, say so explicitly, and route the request through the nearest older-compatible tool or a workspace-only fallback rather than fabricating a different payload shape.
 - If workspace files contradict the prompt, call out the contradiction and resolve it from checked files before coding.
 - If the request depends on a symbol, event, registry entry, or vanilla hook you cannot verify, say that it is unverified or unsupported instead of inventing it. Offer the closest verified alternative.
 
@@ -136,8 +143,11 @@ At minimum, aim to leave the project in a state that passes `build` or has a con
 ## Fast Debugging Order
 
 - Mixin crash: start with `validate-project`, then `validate-mixin` if you need exact issue detail. Confirm the owner, method name, descriptor, and mapping namespace before patching code.
-- Access widener failure: start with `validate-project`, then `validate-access-widener` with an explicit `version`. Confirm that the header namespace matches the entry names.
-- Registry or missing-content issue: inspect the existing registration flow, confirm registry IDs, then check required resource files.
+- Access widener failure (Fabric): start with `validate-project`, then `validate-access-widener` with an explicit `version`. Confirm that the header namespace matches the entry names.
+- Access transformer failure (NeoForge): start with `validate-project` (task `access-transformer`), then `validate-access-transformer` with an explicit `version` and `atNamespace`. Confirm the file's entry namespace matches what the workspace expects (usually `mojang` on modern NeoForge, `srg` on legacy projects).
+- Registry or missing-content issue: inspect the existing registration flow, confirm registry IDs, then check required resource files. `get-registry-data` returns the vanilla-version entry list only; absence from its output is not evidence of a missing modded, dependency, or datapack entry, so fall back to workspace registration code, dependency metadata, and datagen output for those cases.
+- NBT payload corruption or schema drift: decode with `nbt-to-json`, edit in typed JSON (or `nbt-apply-json-patch`), preserve `DataVersion`, then re-encode with `json-to-nbt` using matching compression.
+- Cache or index anomalies: read `get-runtime-metrics` before mutating anything, then run `manage-cache` with `action: "verify"` in preview mode before `prune`, `rebuild`, or `delete`.
 - Texture or model issue: verify resource location casing, JSON paths, generated assets, and item-block model linkage.
 - Side-only crash: inspect client init, renderer registration, and `level.isClientSide()` or equivalent boundaries.
 - Porting failure: start with `compare-minecraft`, then diff the affected class signatures, then update mappings and loader-specific APIs.
