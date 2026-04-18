@@ -4,6 +4,16 @@ All notable changes to this repository will be documented in this file.
 
 ## 2026-04-18
 
+### Changed
+
+- `minecraft-modding-workbench` v1.1.0 — align the skill with the current `minecraft-modding` MCP entry-tool surface.
+  - `SKILL.md` scope covers Forge-style access transformers (via `validate-project` task `access-transformer`) and the NBT helper family (`nbt-to-json`, `json-to-nbt`, `nbt-apply-json-patch`).
+  - MCP Guardrails lists supporting utilities alongside the entry tools: `get-registry-data` for server-generated vanilla registry bodies, `get-runtime-metrics` for cache/search/index diagnostics, and the NBT helpers for typed-JSON round-trip and RFC6902-style in-place edits. `manage-cache` entry now mentions `action: "verify"`. The MCP-unavailable fallback guidance now also covers version skew: when a named tool/task/argument is rejected as unknown, the skill treats it as an older MCP install and falls back to v1.0-compatible paths instead of guessing alternative payload shapes.
+  - Fast Debugging Order gains entries for NeoForge access transformer failures (with `atNamespace` discipline), NBT payload schema drift, and cache/index anomalies that start with `get-runtime-metrics` before any mutating `manage-cache` call. The registry/missing-content entry now states that `get-registry-data` returns the vanilla-version entry list only, so absence from its output is not evidence that a modded, dependency, or datapack entry is missing.
+  - `references/mcp-recipes.md` adds sections for `get-registry-data`, `get-runtime-metrics`, NBT helpers (decode / re-encode / patch), and a `manage-cache` section covering summary, preview prune, and the `verify` action. The `get-registry-data` section is explicitly scoped to vanilla-version data (no `projectPath`/loader/datapack awareness). The NBT helpers section leads with a `.mca` Anvil-container stop and a live-save-data backup note before the first decode, and narrows the in-scope list from "chunk region" to "extracted chunk payloads". NBT examples preserve the live `{rootName, root: {type, value}}` envelope and use `/root/...` RFC6902 paths with a leading `test` op, matching what `nbt-to-json` actually emits. `inspect-minecraft` gains recipes for the v3 `subject.kind: "artifact"` form (the nested `artifact: { type: "resolved-id" | "resolve-target", ... }` shape), `analyze-symbol` documents `api-overview` and `exact-map`, and `validate-project` gains a workspace summary with `access-transformers` discovery plus a direct access-transformer recipe.
+  - `references/task-checklists.md` renames the Mixin checklist to cover access transformers alongside access wideners, clarifies the mapping/namespace discipline for NeoForge ATs, and adds an "NBT or Save Data" checklist. The NBT checklist covers source identification, compression matching, `DataVersion` preservation, typed-JSON envelope discipline, a pre-edit backup requirement for live save data, and an explicit stop on `.mca` region containers.
+  - `references/neoforge.md` adds an Access Transformers section covering file location, mod declaration, mojmap/SRG discipline, and minimal-widening guidance.
+
 ### Added
 
 - `writing-style-guide` v1.0.0 — principles-first prose-quality skill for
