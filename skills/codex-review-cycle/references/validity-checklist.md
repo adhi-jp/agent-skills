@@ -1,6 +1,6 @@
 # Validity Checklist
 
-Claude evaluates every finding codex returns against these six items before the summary table is rendered. The checklist is the filter that prevents Claude from surfacing misread, out-of-scope, or target-mismatched findings to the user.
+Claude evaluates every finding codex returns against these six items before the summary blocks are rendered. The checklist is the filter that prevents Claude from surfacing misread, out-of-scope, or target-mismatched findings to the user.
 
 **Items 1, 2, 4, 5, 6 are mechanical checks from git metadata and the finding text — no file Read required. Item 3 (premise) is the only item that requires Claude to Read the cited file, and it is mandatory for every finding that could become selectable.** Severity-based Read tiering was considered (skip item 3 on medium/low) and rejected: self-consistency between title and recommendation does not prove the artifact actually has the claimed behavior, so skipping item 3 would let invalid findings through. The Read cost (1 per unique cited file, shared via the union rule in SKILL.md step 10) is accepted.
 
@@ -70,11 +70,11 @@ After running all six items, map to one of:
 
 - **`valid`** — every item passed. The finding is grounded, in-scope, concrete, and target-appropriate. Surface to the user with `Apply fix` as the recommended action.
 - **`partially-valid`** — at least one item returned a `partially-valid` outcome (items 2 and 5) but no item returned `invalid`. The finding is real enough to surface but the user must decide. Recommended action: `User decides`.
-- **`invalid`** — at least one item returned `invalid` (items 1, 3, 4, 6). The finding is excluded from the user selection UI. Still list it in the summary table so the user sees the rejection rationale and can override by typing a custom response.
+- **`invalid`** — at least one item returned `invalid` (items 1, 3, 4, 6). The finding is excluded from the user selection UI. Still render it as a block in the summary so the user sees the rejection rationale and can override by typing a custom response.
 
 ## What Claude Must Not Do
 
-- **Do not paraphrase the finding title or recommendation** while evaluating validity. Keep codex's words verbatim in the summary table; put your verdict in a separate `Claude's note` column.
+- **Do not paraphrase the finding title or recommendation** while evaluating validity. Keep codex's words verbatim in the summary block's heading and `codex recommendation (verbatim)` bullet; put your verdict in the separate `Claude's note` bullet.
 - **Do not silently drop findings.** Every finding codex returned appears in the summary, even `invalid` ones. The user must be able to see what was rejected.
 - **Do not escalate `partially-valid` to `valid` based on severity.** A vague `high` finding is still vague; severity does not compensate for missing ground truth.
 - **Do not downgrade `valid` to `partially-valid` because the fix looks hard.** Hardness is a fix-phase concern, not a validity concern.
