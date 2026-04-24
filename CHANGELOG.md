@@ -2,6 +2,14 @@
 
 All notable changes to this repository will be documented in this file.
 
+## Unreleased
+
+### Changed
+
+- `codex-review-cycle` — self-collect review mode documentation and `focus-text.md` `base_sha` terminology drift fix.
+  - §Review Target Modes gains a new paragraph describing codex plugin 1.0.4's self-collect mode. Diffs exceeding roughly 2 files or 256KB drop the inline patch, and codex self-collects with read-only `git` commands. Summary shape is documented per target — `working-tree` carries `git status` + staged/unstaged `--shortstat` + bounded untracked content; `branch` / `base-ref` carries commit log + `--stat` over `<base_sha>..HEAD`. Target stability is mode-specific: `branch` / `base-ref` pin to the immutable `base_sha` via `--base`, while `working-tree` is a live snapshot-at-invocation without a `base_sha` anchor. Validity items 1 and 4 re-check findings regardless of collection mode, so the skill contract is unchanged.
+  - `references/focus-text.md` §Scope switches the `--base` argument placeholder to `base_sha`, matching SKILL.md step 8's frozen-SHA terminology (drift carried since v1.2.0).
+
 ## 2026-04-19
 
 ### Changed
