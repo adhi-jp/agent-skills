@@ -1,5 +1,5 @@
 ---
-version: 1.2.0
+version: 1.3.0
 name: codex-review-cycle
 description: Run a bounded 3-cycle interactive review-and-fix workflow against a user-chosen git review target (working-tree diff, current branch vs. auto-detected base, or an explicit commit/tag/branch ref) using the codex plugin. Each cycle invokes codex `review` or `adversarial-review --json`; Claude verifies each finding against a six-item validity checklist, calls `review-scope-guard` for Definition-of-Done triage, and the user picks which findings to fix before the next cycle. Covers both code diffs and markdown planning documents. Hard cap at 3 cycles. Use ONLY when the user explicitly asks to run the codex review cycle on working-tree changes, a committed branch diff, or an explicit base ref. Do NOT trigger for single-shot review requests, auto-hardening, background reviews, plan drafting, or when the chosen target would produce an empty diff.
 ---
@@ -21,16 +21,16 @@ All user-facing output is rendered in the user's language (the language the user
 - Section headings (e.g. `Cycle N review summary`, `Active stop signals`, `Review assessment`)
 - Per-finding bullet labels (`File`, `Claude's note`, `Recommended action`, `codex recommendation (verbatim)`) and stop-signal table column headers (`Signal`, `Status`, `Evidence`)
 - Free-text fields Claude authors: `Claude's note` body, `Recommended action` values, fleet-rate warnings, stop-signal footer prose, termination messages, post-cycle review assessment
-- Verdict headline free-text (see §Verdict Headline): the three verdict keyword labels (`Clean termination`, `Terminated with residuals`, `Cap reached`), the segment wordlets (`cycles`, `fix(es) applied`, `applied`, `residual`, `unresolved`, `trend`), and the three trend keyword values (`converging`, `stable`, `cascading`)
-- Verification disclaimer heading and body (see §Verification Disclaimer) — rendered as fixed boilerplate, but the canonical English text is translated; the parenthetical verification-type enumeration (`test suite, type check, lint, build, manual smoke`) is translated as a fixed generic list, not substituted with run-specific content
-- Applied-fixes list labels (see §Applied-Fixes List): the `Applied fixes by cycle` heading, the per-cycle `Cycle <N>:` prefix, and the no-fix label (canonical English: `none`). Residual-list headings in the residuals variant (`User-declined valid findings carried to termination`, `Out-of-diff skipped findings carried to termination`) also translate
+- Verdict headline free-text (see `references/termination.md` §Verdict Headline): the three verdict keyword labels (`Clean termination`, `Terminated with residuals`, `Cap reached`), the segment wordlets (`cycles`, `fix(es) applied`, `applied`, `residual`, `unresolved`, `trend`), and the three trend keyword values (`converging`, `stable`, `cascading`)
+- Verification disclaimer heading and body (see `references/termination.md` §Verification Disclaimer) — rendered as fixed boilerplate, but the canonical English text is translated; the parenthetical verification-type enumeration (`test suite, type check, lint, build, manual smoke`) is translated as a fixed generic list, not substituted with run-specific content
+- Applied-fixes list labels (see `references/termination.md` §Applied-Fixes List): the `Applied fixes by cycle` heading, the per-cycle `Cycle <N>:` prefix, and the no-fix label (canonical English: `none`). Residual-list headings in the residuals variant (`User-declined valid findings carried to termination`, `Out-of-diff skipped findings carried to termination`) also translate
 - Case B cap-reached body labels: `Cycles run`, `Findings applied`, `Findings still valid and unresolved at cap`, `Unresolved valid findings`, `Next steps`, the three `Next steps` option lines, and the `No unresolved findings.` one-liner that replaces the Summary blocks when `<U> == 0`
 - `AskUserQuestion` `question`, `header`, and option `label` / `description` fields
 
 **Keep verbatim (do NOT translate), regardless of user language:**
 
-- Codex `title` field (appears unquoted in each finding's heading per §Summary Output Template, AND inside each applied-fix entry / residual-list entry per §Applied-Fixes List)
-- Codex `recommendation` field (quoted inside each finding's last bullet per §Summary Output Template)
+- Codex `title` field (appears unquoted in each finding's heading per `references/summary-template.md`, AND inside each applied-fix entry / residual-list entry per `references/termination.md` §Applied-Fixes List)
+- Codex `recommendation` field (quoted inside each finding's last bullet per `references/summary-template.md`)
 - Severity values (`high` / `medium` / `low`) — codex output
 - Validity outcome keywords (`valid` / `partially-valid` / `invalid`)
 - Scope category names (`must-fix` / `minimal-hygiene` / `reject-out-of-scope` / `reject-noise`) — applies both inside Summary blocks and inside the Applied-Fixes List's `F<n> (<scope_category>)` prefix
@@ -80,7 +80,7 @@ The skill auto-detects `code` vs `plan` from the diff file extensions. See `refe
 At Phase 0, ask the user once which codex review variant to use for all three cycles:
 
 - **`review`** — codex's native review command. Output is free-form text. Claude manually structures each finding section into `title` / `recommendation` / `body` before running the validity check.
-- **`adversarial-review`** — codex's adversarial review with `--json`. Output is structured `findings[]`. Each element has `severity`, `file`, `line_start`, `title`, `recommendation`, `body`. Adversarial cycles also carry a `<review_context>` block (see §Review Context Format) so codex keeps the same angle across cycles.
+- **`adversarial-review`** — codex's adversarial review with `--json`. Output is structured `findings[]`. Each element has `severity`, `file`, `line_start`, `title`, `recommendation`, `body`. Adversarial cycles also carry a `<review_context>` block (see `references/review-context.md`) so codex keeps the same angle across cycles.
 
 The choice is fixed for the whole loop. If the user wants to switch variants, they must restart the skill.
 
@@ -180,7 +180,7 @@ The choice is fixed for the whole loop. If the user wants to switch variants, th
      ```
      node "${CLAUDE_PLUGIN_ROOT}/scripts/codex-companion.mjs" adversarial-review --wait --json <codex_scope_args> "<focus_text_with_context>"
      ```
-     `<focus_text_with_context>` is the target-kind focus text from `references/focus-text.md` followed by the `<review_context>` block (see §Review Context Format). Parse stdout as JSON.
+     `<focus_text_with_context>` is the target-kind focus text from `references/focus-text.md` followed by the `<review_context>` block (see `references/review-context.md`). Parse stdout as JSON.
    - **Parse-retry policy** (adversarial only): if JSON parsing fails or any required field is missing (`findings[]`, `severity`, `file`, `line_start`, `title`, `recommendation`), retry the exact same call **once**. A second failure aborts the cycle, surfaces codex's raw stdout verbatim to the user, and ends the skill.
 9. **Extract findings and assign IDs `F1..Fn`.**
    - `adversarial-review`: use `findings[]` as-is.
@@ -191,7 +191,7 @@ The choice is fixed for the whole loop. If the user wants to switch variants, th
 
     **No severity-based tiering**: item 3 (premise matches artifact) is mandatory for every finding that could become selectable. Read tiering was considered (skip item 3 on medium/low) but rejected: self-consistency between title and recommendation does not prove the artifact actually has the claimed behavior. Skipping item 3 would let invalid medium/low findings reach the user-selection UI, which is exactly the silent-hallucination failure mode the validity check exists to catch. The Read cost (1 Read per unique cited file, shared across findings in that file via the union rule above) is acceptable; tiering's savings do not justify the safety weakening.
 10a. **Run scope triage via `review-scope-guard`.** Invoke `Skill(review-scope-guard)` passing `findings[]` (with the validity outcomes already attached), the cached `dod` (pre-collected in step 7 when variant is adversarial; null on cycle 1 for review variant — the skill will collect it interactively then), the running `rejected_ledger`, `cycle_history` (for stop-signal evaluation), **and `review_target` (already fully constructed in Phase 0 step 2 — pass it verbatim without re-deriving any field)**. Phase 0 step 2 guarantees `review_target` carries the full `{scope, base_ref, base_sha, diff_command, diff_files, diff_numstat, commit_range, commit_messages[], diff_patch_excerpts}` tuple; step 10a simply forwards it. **Do not drop `diff_patch_excerpts`** — scope-guard's proposal-mode evidence gate consumes it for working-tree targets where `commit_messages[]` is empty. The caller MUST pass `review_target` so scope-guard's `proposal` DoD mode has an authoritative source; without it, scope-guard falls back to `interview` mode (see scope-guard §Inputs). The skill returns a triage verdict per finding (`must-fix` / `minimal-hygiene` / `reject-out-of-scope` / `reject-noise`), an updated `rejected_ledger`, a set of active stop signals, and the collected `dod` (on cycle 1). Cache the DoD for later cycles. Store the triage verdicts alongside each finding for step 11. When DoD is missing, the skill still returns classifications inside the 4-category invariant (fall-through lands in `minimal-hygiene`); render the degraded-mode warning as documented in Failure Modes.
-11. **Render the summary.** First apply the Language pre-render gate in §Summary Output Template: determine the user's output language and translate all non-verbatim elements (heading text, bullet labels, action values, footer prose) before writing any output. Then render using the **per-finding block format** in §Summary Output Template. Every finding appears as its own block, including `invalid` and `reject-*` ones. Each finding's `recommendation` field is quoted verbatim inside that finding's last bullet (per §Summary Output Template body-bullet rules). The active stop signals footer is rendered when (a) any signal has status `ADVISORY`/`ACTIVE`/`WARNING`, OR (b) any signal is `not evaluated: metrics missing`. Omit the footer only when every signal is truly `silent`. When the footer renders solely due to `not evaluated` rows, print a compact one-line notice — `<Not-evaluated-metrics-missing label translated>: <comma-separated signal names>` — instead of the full signal table.
+11. **Render the summary.** First apply the Language pre-render gate in `references/summary-template.md`: determine the user's output language and translate all non-verbatim elements (heading text, bullet labels, action values, footer prose) before writing any output. Then render using the **per-finding block format** in `references/summary-template.md`. Every finding appears as its own block, including `invalid` and `reject-*` ones. Each finding's `recommendation` field is quoted verbatim inside that finding's last bullet (per `references/summary-template.md` body-bullet rules). The active stop signals footer is rendered when (a) any signal has status `ADVISORY`/`ACTIVE`/`WARNING`, OR (b) any signal is `not evaluated: metrics missing`. Omit the footer only when every signal is truly `silent`. When the footer renders solely due to `not evaluated` rows, print a compact one-line notice — `<Not-evaluated-metrics-missing label translated>: <comma-separated signal names>` — instead of the full signal table.
 
     **Structurally-unevaluable compaction**: subtract `structurally_unevaluable_signal_names` from the `not_evaluated_signal_names` set before rendering. The structurally-unevaluable names are shown once in cycle 1's footer as `_Stop signals unavailable in codex-review-cycle integration: <names> (standalone invocation required for full 5-signal surface)._` and omitted from cycle 2+ footers entirely. This replaces the previous behavior where `file-bloat` / `reactive-testing` appeared in every cycle's `Not evaluated` list.
 
@@ -243,13 +243,13 @@ The choice is fixed for the whole loop. If the user wants to switch variants, th
 
     **Sibling-doc cascade check**: when a fix changes a user-facing contract of the skill (adds a new side effect the skill did not previously have, changes a stated invariant, introduces a step that sibling docs describe as absent), Claude must **in the same edit pass** grep sibling docs (`README.md`, other SKILL.md sections, CHANGELOG entries for the current release) for claims describing the OLD behavior, and update every match. Specifically run `rg -n '<characteristic phrase from old behavior>' .` for at least one phrase, and either edit every hit or leave an explicit NOTE comment explaining why a mismatch is acceptable. Rationale: catching contract-breaking fixes in the same edit pass prevents silent contract breaks that would only surface in a later cycle.
 15. **Update cycle history and ledger.** Append to `cycle_history` an entry for this cycle recording:
-    - `applied_fixes[]` — each entry records `{display_id, fingerprint, title, file, line_start, scope_category, touched_files[]}`. `display_id` is the cycle-local label assigned in step 9 (`F1`, `F2`, …); persisted here as the authoritative source for §Applied-Fixes List rendering. `fingerprint` is the stable `{normalized_title, file, line_start, scope_category}` tuple used by step 17's residual matcher. `touched_files[]` is the exact list of files Claude edited while applying the finding — the preflight in step 8 consumes this list to verify those files are visible in cycle N+1's branch diff.
+    - `applied_fixes[]` — each entry records `{display_id, fingerprint, title, file, line_start, scope_category, touched_files[]}`. `display_id` is the cycle-local label assigned in step 9 (`F1`, `F2`, …); persisted here as the authoritative source for `references/termination.md` §Applied-Fixes List rendering. `fingerprint` is the stable `{normalized_title, file, line_start, scope_category}` tuple used by step 17's residual matcher. `touched_files[]` is the exact list of files Claude edited while applying the finding — the preflight in step 8 consumes this list to verify those files are visible in cycle N+1's branch diff.
     - `user_declined[]` — each entry records `{display_id, fingerprint, title, file, line_start, scope_category, cycle_index}` for `must-fix`/`minimal-hygiene` findings the user did not select (including the `None — skip all` case). `display_id` is the step 9 label from the declining cycle; `cycle_index` is the declining-cycle integer (1, 2, or 3). Both feed the residual-line `F<n> … — <file>:<line_start>, declined in cycle N` rendering in step 17.
     - `skipped_for_scope[]` — each entry records `{display_id, fingerprint, title, file, line_start, scope_category, cycle_index, reason}` for findings the user selected but Claude skipped because their fix required an out-of-diff write (see step 14 Write-scope boundary). These count as unresolved at termination time — Case A lists them alongside user-declined carry-overs and must not claim clean resolution while the bucket is non-empty. `display_id` and `cycle_index` behave as in `user_declined[]`.
     - `claude_invalid[]` — each entry records `{fingerprint, title, file, line_start, rejection_reason}` for `invalid` findings from the validity check. These findings are not rendered in Phase 2 termination output, so `display_id` and `cycle_index` are not tracked here.
     - `not_evaluated_signal_names[]` — the ordered string array returned by `review-scope-guard` step 11. Stored verbatim, no mutation. Used by step 11's footer rendering in cycle N+1 to decide whether to suppress the `not evaluated` footnote.
     - `unrelated_commit_paths[]` — optional, populated only when the user chose `Keep` at the cycle-N>1 ownership gate. Lists paths from the cycle commit that were NOT in `applied_fixes[*].touched_files[]`. The step-20 Part B terminal audit consumes this list to display the unrelated paths one more time before the final squash, so the user can decide anew whether to include them in the final commit.
-    - `selectable_count` — the integer V computed at step 12 for this cycle (count of findings with validity `valid`/`partially-valid` AND scope `must-fix`/`minimal-hygiene`). Persisted uniformly across fix cycles and no-fix cycles so §Verdict Headline trend classification reads a single field from every `cycle_history` entry. Normal fix cycles record the current cycle's V; no-fix persists (both terminal and N+1 variants above) record 0.
+    - `selectable_count` — the integer V computed at step 12 for this cycle (count of findings with validity `valid`/`partially-valid` AND scope `must-fix`/`minimal-hygiene`). Persisted uniformly across fix cycles and no-fix cycles so `references/termination.md` §Verdict Headline trend classification reads a single field from every `cycle_history` entry. Normal fix cycles record the current cycle's V; no-fix persists (both terminal and N+1 variants above) record 0.
 
     All four buckets carry fingerprints so step 17's residual accounting matches on the stable `{normalized_title, file, line_start, scope_category}` tuple, not on title alone.
 
@@ -257,44 +257,17 @@ The choice is fixed for the whole loop. If the user wants to switch variants, th
 16. **Loop check.**
     - `N < 3`: set `N = N + 1`, return to step 8.
     - `N == 3`: jump to Phase 2 **Case B**. The cap fires after cycle 3's fix phase completed (V[3] > 0; V == 0 already routed to Case A via step 12). Case B's `<U>` count distinguishes two sub-states under the Cap-reached verdict: `<U> > 0` (unapplied findings remain) and `<U> == 0` (every cycle-3 finding applied, no cycle 4 to re-review).
-    - **Case A vs Case B**: Case A is reached only via step 12's V == 0 path — `cycle_history[M].selectable_count == 0` in every Case A run. Case B is reached only from this `N == 3` branch — `V[3] > 0` by construction. Routing N == 3 with V > 0 to Case A would render `Clean termination` over a non-zero terminal selectable count, violating §Verdict Headline's clean predicate.
+    - **Case A vs Case B**: Case A is reached only via step 12's V == 0 path — `cycle_history[M].selectable_count == 0` in every Case A run. Case B is reached only from this `N == 3` branch — `V[3] > 0` by construction. Routing N == 3 with V > 0 to Case A would render `Clean termination` over a non-zero terminal selectable count, violating `references/termination.md` §Verdict Headline's clean predicate.
     - **Mid-cycle interruption is not Case B**: overflow-paging cancellation, AskUserQuestion cancellation, or abort before step 15 is a run-abort failure. The skill exits with the `User wants to cancel the skill mid-cycle` behavior from §Failure Modes; Phase 2 does not render because neither variant's state contract (`display_id`, `selectable_count`, `applied_fixes`) is satisfied.
 
 ### Phase 2 — Termination
 
-17. **Case A — V == 0 termination.** Reached only via step 12's No-fix cycle-history persist (terminal path), so `cycle_history[M].selectable_count == 0` holds. Assert that invariant before rendering; if it fails, print `⚠️ Case A reached with V[M] > 0; routing error. Falling back to Case B render.` and render as Case B instead. Then compute the residual set: scan `cycle_history[*].user_declined[]` and `cycle_history[*].skipped_for_scope[]` across all cycles, fingerprint each as `{normalized_title, file, line_start, scope_category}` (same rule as `review-scope-guard`'s ledger), and mark an entry "carried" when no later cycle's `applied_fixes[]` holds a matching fingerprint. Matching on title alone is forbidden — generic adversarial titles collide across unrelated findings. Render per §Termination Criteria: (1) verdict headline (`Clean termination` when the carried residual set is empty; `Terminated with residuals` otherwise); (2) variant body; (3) §Verification Disclaimer; (4) §Applied-Fixes List; (5) residual lists when non-empty, one entry per residual in the format `F<n> (<scope_category>) <codex title verbatim> — <file>:<line_start>, <declined-in-cycle label translated> N`, reading `F<n>` from `display_id` and N from `cycle_index`; (6) §19 Review Assessment. Do not emit the legacy `All findings resolved after N cycle(s).` / `Review cycle terminated after N cycle(s) with residuals carried forward.` opening — the verdict headline replaces both.
-18. **Case B — cap reached (V[3] > 0).** Reached only from step 16's `N == 3` branch, after cycle 3's fix phase. `<A>` is the applied total across all cycles; `<U>` is the count of valid/partially-valid findings unapplied at termination (user-declined + out-of-diff skipped + carry-overs never cleared). `<U> == 0` is a valid sub-state — every finding was applied but the cap fired before another codex pass could re-review the fixes. Render per §Termination Criteria Case B: verdict headline, §Verification Disclaimer, §Applied-Fixes List (all three cycles), the three count lines, the `### Unresolved valid findings` section, the `### Next steps` options, then §19 Review Assessment. Do not start a fourth cycle. The user re-invokes the skill to run another 3-cycle pass.
+17. **Case A — V == 0 termination.** Reached only via step 12's No-fix cycle-history persist (terminal path), so `cycle_history[M].selectable_count == 0` holds. Assert that invariant before rendering; if it fails, print `⚠️ Case A reached with V[M] > 0; routing error. Falling back to Case B render.` and render as Case B instead. Then compute the residual set: scan `cycle_history[*].user_declined[]` and `cycle_history[*].skipped_for_scope[]` across all cycles, fingerprint each as `{normalized_title, file, line_start, scope_category}` (same rule as `review-scope-guard`'s ledger), and mark an entry "carried" when no later cycle's `applied_fixes[]` holds a matching fingerprint. Matching on title alone is forbidden — generic adversarial titles collide across unrelated findings. Render per `references/termination.md`: (1) verdict headline (`Clean termination` when the carried residual set is empty; `Terminated with residuals` otherwise); (2) variant body; (3) `references/termination.md` §Verification Disclaimer; (4) `references/termination.md` §Applied-Fixes List; (5) residual lists when non-empty, one entry per residual in the format `F<n> (<scope_category>) <codex title verbatim> — <file>:<line_start>, <declined-in-cycle label translated> N`, reading `F<n>` from `display_id` and N from `cycle_index`; (6) `references/termination.md` §Step 19 — Review assessment. Do not emit the legacy `All findings resolved after N cycle(s).` / `Review cycle terminated after N cycle(s) with residuals carried forward.` opening — the verdict headline replaces both.
+18. **Case B — cap reached (V[3] > 0).** Reached only from step 16's `N == 3` branch, after cycle 3's fix phase. `<A>` is the applied total across all cycles; `<U>` is the count of valid/partially-valid findings unapplied at termination (user-declined + out-of-diff skipped + carry-overs never cleared). `<U> == 0` is a valid sub-state — every finding was applied but the cap fired before another codex pass could re-review the fixes. Render per `references/termination.md` §Case B: verdict headline, `references/termination.md` §Verification Disclaimer, `references/termination.md` §Applied-Fixes List (all three cycles), the three count lines, the `### Unresolved valid findings` section, the `### Next steps` options, then `references/termination.md` §Step 19 — Review assessment. Do not start a fourth cycle. The user re-invokes the skill to run another 3-cycle pass.
 
 ## Review Context Format
 
-Used only when `variant == adversarial-review`. The block is appended to the focus text argument with a single blank line between the two sections:
-
-```xml
-<review_context cycle="N">
-  <intent><![CDATA[<one-sentence change intent from Phase 0 step 7 DoD item 1>]]></intent>
-  <previous_fixes>
-    <fix cycle="N-1"><![CDATA[<applied finding title + one-line change summary>]]></fix>
-  </previous_fixes>
-  <angle_request><![CDATA[<one sentence; present only when V=0 override fired in the previous cycle>]]></angle_request>
-  <rejected_findings>
-    <rejected cycle="N-1" reason="invalid: file not in diff"><![CDATA[<finding title>]]></rejected>
-    <rejected cycle="N-1" reason="reject-out-of-scope: DoD explicit out-of-scope"><![CDATA[<finding title>]]></rejected>
-  </rejected_findings>
-</review_context>
-```
-
-- **`<angle_request>` element (optional)**: present only when the previous cycle terminated at step 12 V=0 and the user chose `Run cycle N+1`. Contains a single sentence asking codex to try a different angle. Omit the element entirely when absent.
-
-**Template note**: this block never carries user-declined findings. A user decline is a deferral — codex should remain free to re-raise the same finding next cycle so the user can reconsider. If a template reader is tempted to add a `<rejected reason="user declined">` element, stop: that would let declined valid findings disappear from subsequent cycles and make Case A falsely claim resolution.
-
-Rules:
-
-- Cycle 1 carries `<intent>` (populated from Phase 0 step 7 DoD item 1 pre-collection); `<previous_fixes>` and `<rejected_findings>` are empty.
-- `<review_context>` is preceded by this literal instruction, on its own line: `Do not re-report findings in <rejected_findings> unless you have a materially different angle.`
-- Every user-facing string inside `<!-- CDATA -->` is quoted as-is. No JSON encoding. No HTML entity escaping. The CDATA wrapper keeps any `<`, `>`, `&` in codex output from terminating the block.
-- This skill does not use a separate skip ledger. `<review_context>` is the only cross-cycle carry.
-- **`<previous_fixes>` window**: the block carries **only the immediately prior cycle (N-1)**, not a cumulative history. Cycle 3's `<review_context>` contains the 5 fixes from cycle 2; it does NOT also enumerate cycle 1's fixes. Each `<fix>` element uses the compact form `<fix cycle="N-1" category="must-fix|minimal-hygiene"><![CDATA[<title>: <≤40 word summary>]]></fix>` — summaries longer than 40 words are forbidden. Codex only needs the latest ground truth for cross-cycle suppression; older history would inflate the context block without improving review quality. **V=0 exception**: when `cycle_history[N-1].no_fix_cycle == true` (prior cycle was a V=0 override retry and emitted no fixes), cycle N's `<previous_fixes>` skips the empty cycle N-1 and carries fixes from cycle N-2 instead. Without this exception, codex would lose context of cycle 1's applied fixes when cycle 2 was V=0 no-fix, causing re-surfacing of already-fixed findings in cycle 3.
-- **`<rejected_findings>` sources**: the block aggregates two kinds of prior-cycle rejections — (1) entries in the `rejected_ledger` returned by `review-scope-guard` (scope-triage rejections: `reject-out-of-scope` / `reject-noise`), and (2) `claude_invalid[]` from the prior cycle's validity check. Each rejection renders as its own `<rejected>` element with the `reason` attribute carrying the original category and rationale (e.g. `reason="reject-out-of-scope: DoD explicit out-of-scope"`, `reason="invalid: file not in diff"`). Ledger entries with `count >= 2` render with an extra hint: `reason="reject-noise: already-rejected (count=N)"` so codex sees how persistent the complaint is. **User-declined findings are NOT included** — a decline is a deferral, not a rejection, and codex is free to re-raise the same finding in the next cycle so the user can reconsider it.
+The `<review_context>` XML block structure, `<previous_fixes>` window rules, and `<rejected_findings>` source rules all live in `references/review-context.md`. Phase 1 step 8 appends it to the focus text for the adversarial-review variant.
 
 ## Validity Check Summary
 
@@ -311,108 +284,7 @@ Outcome: `valid` (all pass), `partially-valid` (items 2 or 5 returned partially-
 
 ## Summary Output Template
 
-**Language pre-render gate (mandatory first step)**: before writing any of the summary output, determine the user's output language (conversation language or system configuration) and apply the translation contract in §Language. Every non-verbatim element below — heading text, bullet labels, `Recommended action` values, stop-signal footer prose, fleet-rate warnings — MUST render in that language. The English labels in the template below (`Claude's note`, `Recommended action`, `Cycle N review summary`, etc.) are **placeholders for spec readability only**; rendering them verbatim into a non-English conversation is a Language section violation. See `references/summary-samples.ja.md` for a Japanese example that applies this contract end to end.
-
-**Finding-block format is mandatory.** Do NOT fall back to (a) a wide multi-column Markdown table — it wraps badly when titles are long — nor (b) a label-per-line vertical block with `──────` separators — it has no visual hierarchy and inflates each finding to 8+ lines.
-
-Render after every cycle, before the user selection prompt:
-
-```markdown
-### <Cycle-N-review-summary translated> (variant: <review|adversarial-review>, target: <code|plan>)
-
-#### F1 · high · must-fix · valid — <codex title verbatim>
-- **<File label translated>**: `src/auth/login.ts:42`
-- **<Claude-note label translated>**: <Claude's note body translated; ≤20 words>
-- **<Recommended-action label translated>**: <Apply fix translated>
-- **<codex-recommendation label translated> (verbatim)**: <codex recommendation field verbatim>
-
-#### F2 · medium · reject-noise · partially-valid — <codex title verbatim>
-- **<File label>**: `src/api/user.ts:88`
-- **<Claude-note label>**: <translated: vague, no concrete failure mode>
-- **<Recommended-action label>**: <Skip translated>
-- **<codex-recommendation label> (verbatim)**: <codex recommendation field verbatim>
-
-#### F3 · low · reject-noise · invalid — <codex title verbatim>
-- **<File label>**: `docs/plan.md:15`
-- **<Claude-note label>**: <translated: detailed-design on plan target>
-- **<Recommended-action label>**: <Skip translated>
-- **<codex-recommendation label> (verbatim)**: <codex recommendation field verbatim>
-
-**<Active-stop-signals heading translated>** (footer rendered when ≥1 signal is `ADVISORY`/`ACTIVE`/`WARNING` **or** `not evaluated: metrics missing`; omit entirely only when all signals are truly `silent`. When only `not evaluated` rows exist, replace the full table with a compact one-liner `<Not-evaluated-metrics-missing label translated>: <names>`):
-
-| <Signal label> | <Status label> | <Evidence label> |
-|----------------|----------------|------------------|
-| ...            | ...            | ...              |
-```
-
-### Heading-line anatomy
-
-Each finding heading encodes four identifiers plus the verbatim title in a single line so the user can scan findings without reading each body:
-
-```
-#### F<n> · <severity> · <scope> · <validity> — <codex title verbatim>
-```
-
-- **`F<n>`** — cycle-local finding ID.
-- **`<severity>`** — codex severity keyword (`high` / `medium` / `low`). Verbatim.
-- **`<scope>`** — `review-scope-guard` triage category (`must-fix` / `minimal-hygiene` / `reject-out-of-scope` / `reject-noise`). Verbatim.
-- **`<validity>`** — validity check outcome (`valid` / `partially-valid` / `invalid`). Verbatim.
-- **`<codex title verbatim>`** — codex `title` field. Never translated, paraphrased, or shortened.
-
-The middle dot (`·`, U+00B7) is a visual separator only; do not replace with `|`, `,`, or `-`.
-
-### Body-bullet rules
-
-Every finding body contains exactly four bullets in this order:
-
-1. **File:Line** — always first. Format as ` `` `-wrapped `<file>:<line_start>` so the path renders in a monospace font. When codex did not cite a line, render as `<file> (line: n/a)`.
-2. **Claude's note** — ≤20-word sentence in the user's language, anchored on the validity check's rationale. Required for every finding, including `invalid` and `reject-*`.
-3. **Recommended action** — short translated phrase. Canonical values (illustrative in English): `Apply fix`, `Apply 1-line hygiene`, `Skip`, `Skip (ledger fwd)`.
-4. **Codex recommendation (verbatim)** — codex's `recommendation` field, quoted verbatim below the bullet label. The bullet label text is translated, but the quoted recommendation body is never translated, paraphrased, or truncated. This replaces the old bottom-of-summary `Recommendation (per finding)` block — embedding the recommendation inside each finding removes cross-referencing and keeps findings self-contained.
-
-#### Verbatim recommendation containment
-
-The fourth bullet's quoted body is arbitrary codex output. It may span multiple paragraphs, contain Markdown list markers (`-`, `*`, `1.`), embedded code fences, nested backticks of arbitrary length, or headings. Leaked Markdown inside the recommendation would render as extra visual bullets or new headings, breaking both human scanning and golden-output parsing. The containment rule below keeps the 4-bullet structural invariant intact regardless of recommendation shape:
-
-- **Single-line recommendation (no leading Markdown marker, no backticks)** — quote inline after the label:
-
-  ```markdown
-  - **codex recommendation (verbatim)**: <recommendation on one line>
-  ```
-- **Multi-line recommendation, OR any line that would start with `-`, `*`, `>`, `#`, ` `, or a numbered-list marker, OR any recommendation containing backticks** — drop into a **fenced code block with an escape-safe fence length**. Compute the longest consecutive backtick run anywhere in the recommendation body; call this `maxRun` (minimum 2 — never emit a shorter fence than 3). The opening and closing fence MUST be `(maxRun + 1)` backticks, so no line inside the recommendation can close the wrapper early. A fixed 3-backtick fence is forbidden: any ```` ``` ```` inside the recommendation would close the wrapper on the inner fence, and later text would render as real headings or bullets.
-
-  Language hint is optional; use `text` when omitted. Example with an embedded 3-backtick code fence inside the recommendation (maxRun = 3, wrapper uses 4 backticks):
-
-  `````markdown
-  - **codex recommendation (verbatim)**:
-    ````text
-    Paragraph 1.
-    - list item inside codex output
-    Example CLI:
-    ```
-    codex review --base HEAD~1
-    ```
-    - another list item
-    ````
-  `````
-
-The escape-safe fenced block preserves the recommendation byte-for-byte, keeps every Markdown marker — including deeper-nested fences — inside the wrapper, and keeps the "exactly 4 bullets" invariant scannable. When in doubt, use the fenced form with `(maxRun + 1)` backticks.
-
-**Golden cases**: (a) no backticks — 3-backtick fence or longer is fine; (b) a `` ` `` run of 3 in the body — wrapper MUST be 4; (c) a `` ` `` run of 5 — wrapper MUST be 6; (d) `##` headings or `- ` at line start — wrapper required regardless of backtick content.
-
-### Finding order
-
-Group findings by `<scope>` in this order: `must-fix` → `minimal-hygiene` → `reject-out-of-scope` → `reject-noise`. Within a scope, sort by severity (`high` → `medium` → `low`). Within a severity, preserve codex's original ordering. Grouping puts selectable findings at the top so the user does not scroll past rejections to find actionable items.
-
-### Format rules that protect finding intent
-
-- The codex `title` in every heading is verbatim — no paraphrase, no shortening, no translation.
-- The codex `recommendation` inside each finding's last bullet is verbatim, regardless of length. Never truncate, summarize, or abbreviate.
-- Claude's interpretation lives only in the `Claude's note` and `Recommended action` bullets. Do not edit the heading title or the verbatim recommendation based on what Claude thinks the finding "really means".
-- If Claude judges a finding `invalid`, the block still renders with the original heading and recommendation. The `Claude's note` bullet carries `invalid because <reason>` (translated).
-- If `review-scope-guard` classifies a finding as `reject-out-of-scope` or `reject-noise`, the block still renders for audit. The heading's `<scope>` segment carries the category; the `Claude's note` carries the triage rationale from the skill's output.
-- Severity values come from codex. Do not upgrade or downgrade based on Claude's validity or scope verdict.
-- Fleet-rate warnings (see step 11) render AFTER the last finding block, not inside any finding.
+The finding-block format, heading-line anatomy, body-bullet rules, verbatim recommendation containment, finding order, and format rules all live in `references/summary-template.md`. Phase 1 step 11's render routine consumes it.
 
 ## User Selection UI
 
@@ -440,255 +312,23 @@ options:
 
 ## Termination Criteria
 
-**Language reinforcement**: the templates below are in English for spec readability. Actual output must be in the user's language per §Language. Translate all headings, messages, and labels; keep codex verbatim titles and technical identifiers (`must-fix`, `minimal-hygiene`, file paths) as-is.
-
-**Render order for every termination variant (Case A clean, Case A residuals, Case B)**: (1) verdict headline (see §Verdict Headline), (2) variant-specific body block, (3) §Verification Disclaimer, (4) §Applied-Fixes List, (5) residual / unresolved lines when applicable, (6) step 19 §Review Assessment, (7) step 20 soft-reset.
-
-**Step 20 visibility**: for `branch` / `base-ref` scopes, step 20 renders its user-facing output — Terminal-cycle verification warning, Dirty-state audit abort, Approved-unrelated paths notice, Soft-reset preview and confirmation `AskUserQuestion`, post-reset summary. Silent-skip (zero output) applies only when `review_target.scope == working-tree` OR no cycle commits were created. Hiding step 20 under other conditions strands cycle commits or reset prompts.
-
-**Trailing-prose prohibition**: do not append free-text summary, recap, or narrative after the sequence. No "Summary" paragraph, no "what I did" recap, no commentary that duplicates §Applied-Fixes List, §19 Review Assessment, or Suggested next action. This prohibition does not silence step 20 under the visibility rule above.
-
-**Case A — V == 0 (normal termination)**:
-
-When the residual set (carried user-declined + carried out-of-diff skipped) is empty:
-
-```
-✅ <Clean-termination label translated> · <cycles label translated> <M>/3 · <F> <fixes-applied label translated> · <trend label translated>: <trend_keyword translated>
-
-<Verification Disclaimer rendered verbatim per subsection below>
-
-<Applied-fixes heading translated>:
-- <Cycle label translated> 1:
-  - F<n> (<scope_category>) <codex title verbatim>
-  - F<m> (<scope_category>) <codex title verbatim>
-- <Cycle label translated> 2: <no-fix label translated>
-- <Cycle label translated> 3: <one entry per cycle — sub-bullets OR the no-fix label, per §Applied-Fixes List>
-```
-
-When any residuals exist (declined carry-overs, out-of-diff skips, or final-cycle declines), swap the verdict keyword and list the residuals — do NOT use the clean-termination keyword:
-
-```
-⚠️ <Terminated-with-residuals label translated> · <cycles label> <M>/3 · <F> <applied label translated> / <R> <residual label translated> · <trend label>: <trend_keyword translated>
-
-<Verification Disclaimer rendered verbatim>
-
-<Applied-fixes heading>:
-- <Cycle label> 1: <sub-bullets or no-fix label per §Applied-Fixes List>
-- <Cycle label> 2: <...>
-- <Cycle label> 3: <...>
-
-<User-declined-residuals heading translated>:
-- F<n> (<scope_category>) <codex title verbatim> — <file>:<line_start>, <declined-in-cycle label translated> <N>
-- <... one nested sub-bullet per user-declined residual that never reappeared in a later cycle's applied_fixes[]; render the no-fix label as a single-line bullet when the set is empty>
-<Out-of-diff-skipped-residuals heading translated>:
-- <same per-entry sub-bullet format, sourced from cycle_history[*].skipped_for_scope[] that never reappear in applied_fixes[], or the no-fix label when empty>
-```
-
-**Case B — 3 cycles complete with unresolved valid findings**:
-
-```markdown
-⚠️ <Cap-reached label translated> · <cycles label> 3/3 · <A> <applied label> / <U> <unresolved label> · <trend label>: <trend_keyword translated>
-
-<Verification Disclaimer rendered verbatim>
-
-<Applied-fixes heading translated>:
-- <Cycle label translated> 1: <sub-bullets or no-fix label per §Applied-Fixes List>
-- <Cycle label translated> 2: <...>
-- <Cycle label translated> 3: <...>
-
-- <Cycles-run label translated>: 3 / 3
-- <Findings-applied label translated>: <A>
-- <Findings-still-valid-and-unresolved label translated>: <U>
-
-### <Unresolved-valid-findings heading translated>
-
-<When <U> >= 1: render Summary Output Template blocks for the unapplied valid/partially-valid findings. When <U> == 0: render a single line `<No-unresolved label translated>` (canonical English: `No unresolved findings.`). The heading renders in both cases.>
-
-### <Next-steps heading translated>
-
-- <Re-run label translated>, or
-- <Address-manually label translated>, or
-- <Accept-as-residuals label translated>.
-```
-
-The skill never advances to a fourth cycle. The user must invoke the skill again to continue.
+The Case A / Case B render templates, verdict headline trend classification, verification disclaimer boilerplate, applied-fixes list, step 19 review assessment, and step 20 soft-reset all live in `references/termination.md`. Rendered from Phase 1 step 16's `N == 3` branch and Phase 2 step 17 / step 18.
 
 ### Verdict Headline
 
-Every termination variant opens with a single-line verdict headline, computed before any body block renders. The reader gets the run outcome at a glance.
-
-Three verdict keywords; exactly one applies per run. `V[M]` is the step-12 V on the terminal cycle, persisted as `cycle_history[M].selectable_count`:
-
-| Condition | Verdict keyword | Emoji |
-|-----------|-----------------|-------|
-| `V[M] == 0` AND residual set empty (step 12 → Case A) | `Clean termination` | ✅ |
-| `V[M] == 0` AND residual set non-empty (user-declined or out-of-diff skipped carry-overs; step 12 → Case A) | `Terminated with residuals` | ⚠️ |
-| `M == 3` AND `V[3] > 0` (step 16 `N == 3` → Case B). Sub-states: `<U> > 0` (some terminal findings unresolved) or `<U> == 0` (every terminal finding applied, no cycle 4 to re-review). | `Cap reached` | ⚠️ |
-
-The rows are mutually exclusive by construction: step 12 only routes to Case A when V == 0; step 16 only routes to Case B when V[3] > 0.
-
-Headline fields:
-
-- **Emoji** — ✅ or ⚠️ per the table. Literal; never translated, never dropped.
-- **Verdict keyword** — translated per §Language.
-- **`cycles <M>/3`** — `<M>` is the executed-cycle count (1, 2, or 3). `cycles` translates; `<M>/3` stays literal.
-- **Counts segment** — varies by verdict:
-  - Clean termination: `<F> fix(es) applied`. `<F>` = `sum(len(cycle_history[i].applied_fixes))`.
-  - Residuals: `<F> applied / <R> residual`. `<R>` = carried user-declined + carried out-of-diff skipped.
-  - Cap reached: `<A> applied / <U> unresolved`. `<A>` = applied total; `<U>` = unapplied valid/partially-valid at termination.
-  - Numeric values stay literal; the surrounding words (`applied`, `fix(es) applied`, `residual`, `unresolved`) translate.
-- **Trend segment** — `trend: <trend_keyword>`. Both the label and the keyword translate.
-
-**Trend keyword pre-computation** (runs before the headline renders; the Trend sentence in §19 Review Assessment reuses this keyword):
-
-Trend is disposition-aware — a decrease driven by applied fixes differs from a decrease driven by user declines or out-of-diff skips. Inputs from `cycle_history`:
-
-- `C[i]` = `cycle_history[i].selectable_count` for `i` in `1..M`.
-- `R_final` = residual count at termination (`<R>` for Case A residuals, `<U>` for Case B, `0` for Case A clean).
-- `M` = number of executed cycles.
-
-Classify:
-
-- `cascading` — `M >= 2` AND some `i` in `2..M` has `C[i] > C[i-1]`. Fixes introduced regressions, or codex surfaced progressively wider issues.
-- `converging` — `R_final == 0` AND not `cascading`. Residuals cleared. Covers applied-fix convergence (`3 → 2 → 1`), single-cycle all-applied, and first-pass V=0 (no selectable findings, nothing deferred).
-- `stable` — otherwise. Decline-driven disappearance (`R_final > 0`), flat counts, or any non-resolving trajectory.
-
-Tie-break: `cascading` > `converging` > `stable`.
-
-Golden cases:
-
-| Trajectory | `M` | `C[i]` | `R_final` | Trend |
-|-----------|-----|--------|-----------|-------|
-| All applied, decreasing | 3 | 3 → 2 → 1 | 0 | `converging` |
-| Single-cycle all applied | 1 | 3 | 0 | `converging` |
-| First-pass V=0 | 1 | 0 | 0 | `converging` |
-| Decline-driven drop | 3 | 1 → 1 → 0 (decline) | 1 | `stable` |
-| Cycle-2 regression | 3 | 2 → 3 → 2 | 0 | `cascading` |
-| Flat, no apply | 3 | 2 → 2 → 2 | 2 | `stable` |
+See `references/termination.md` §Verdict Headline. Stub kept so the §-anchor stays resolvable from downstream docs.
 
 ### Verification Disclaimer
 
-Fixed, variant-neutral boilerplate. The canonical text must hold under every termination variant — a body fitting only Clean termination would be false under Terminated with residuals and Cap reached, and readers stop treating it as a warning.
-
-Render the canonical text verbatim (translated per §Language, no content substitution):
-
-```
-⚠️ <Verification-disclaimer heading translated>. <Disclaimer body translated: the skill never executes tests, lints, builds, or any verification command on behalf of the user. Reaching any termination variant (clean, with residuals, or at cap) means only that codex's finding sequence reached its stopping condition — it does NOT imply the code is correct, the diff is safe to ship, or the residual / unresolved findings listed above are immaterial. Before shipping, review the applied diff and run your own verification (test suite, type check, lint, build, manual smoke) as appropriate for the change.>
-```
-
-Prohibited inside the disclaimer:
-
-- Run-specific manual-test scenarios (e.g. "consider manual smoke testing against …").
-- Build / test / lint result claims from the current run.
-- Next-step suggestions, user-facing commands, or scope-specific hints.
-- Variant-specific framing (`"resolved" claim`, `all findings resolved`, `no residuals were carried`, `cap reached`) — the body must remain true for all three variants.
-- Substitution of the generic parenthetical `(test suite, type check, lint, build, manual smoke)`.
-
-Run-specific recommendations go to §19 Suggested next action. Every termination variant renders the full disclaimer; do not compress a later rendering to a `see Case A for rationale` stub.
+See `references/termination.md` §Verification Disclaimer. Stub kept so the §-anchor stays resolvable from downstream docs.
 
 ### Applied-Fixes List
 
-An index of applied findings across cycles, not a re-summary. The codex title is already visible in each cycle's Summary block; this list enumerates which findings went Summary → applied.
+See `references/termination.md` §Applied-Fixes List. Stub kept so the §-anchor stays resolvable from downstream docs.
 
-Format, one outer bullet per cycle in order 1 → 2 → 3:
+### Review Assessment
 
-- Cycle with ≥1 applied fixes — `<Cycle label translated> <N>:`, followed by one sub-bullet per applied fix:
-  - `F<n> (<scope_category>) <codex title verbatim>`
-  - `F<n>` — cycle-local ID from that cycle's Summary block. Read from `cycle_history[N].applied_fixes[*].display_id`. Do not reconstruct or renumber. The `F` prefix stays literal.
-  - `<scope_category>` — verbatim; always `must-fix` or `minimal-hygiene` (applied fixes come from these two only).
-  - `<codex title verbatim>` — the codex `title` field; never paraphrased, shortened, or translated.
-- Cycle with 0 applied fixes — `<Cycle label translated> <N>: <no-fix label translated>` (canonical English: `none`).
-
-Prohibited inside the list:
-
-- Implementation prose (e.g. `added BaseName to CachedIdentifier …`).
-- Rationale (`because A-5's cache invalidation was weaker …`).
-- Code snippets, identifiers, diff excerpts.
-- `to fix X` / `because Y` / `the fix …` expansions.
-
-Implementation detail lives in `git log`; run-specific guidance lives in §19 Suggested next action.
-
-19. **Review assessment.** After printing Case A or Case B output, render a concise review assessment block **in the user's language** (per §Language) to help the user decide whether to re-invoke the skill or move on:
-
-    ```
-    ## Review assessment
-
-    **Trend**: <1 sentence that leads with the trend_keyword classified in §Verdict Headline — e.g. "converging (5 → 4 → 3, severity shift from high to medium)", "stable (structural gaps in each cycle)", "cascading (cycle N fixes created cycle N+1 findings)". The leading keyword MUST match the headline's trend_keyword; the parenthetical evidence is the additional detail this sentence adds over the headline.>
-
-    **Character**: <1 sentence — e.g. "mostly state-model gaps", "edge cases and design-philosophy arguments", "doc/wording consistency issues">
-
-    **Clusters** (optional — render only when ≥2 **rejected-ledger** entries share a `cluster_id`): `<cluster_id>`: <N> ledger entries across <M> cycle(s) (see ledger entries L<i>, L<j>, ...). Emit at most 3 cluster lines, sorted by finding count descending. If no cluster has ≥2 members, omit the line entirely. **Scope limitation**: cluster accounting is intentionally limited to rejected-ledger entries because only those carry `cluster_id` (see `review-scope-guard` Phase 3 step 9 assignment rule). Applied-fix findings do not participate in cluster summary; extending the carrier to applied fixes is deliberately deferred to avoid inconsistent partial counts.
-
-    **Recommendation**: <"continue reviewing" | "stop and audit scope" | "move to next work" with 1-sentence rationale. Determined from recorded state only:
-    - If any `must-fix` or `minimal-hygiene` residual was carried to termination → "address residuals before shipping"
-    - If any stop signal is `ACTIVE` or `WARNING` → "stop and audit scope" (aligns with review-scope-guard's stop-signal contract: ACTIVE/WARNING means diminishing returns or scope drift, not a reason to run more cycles)
-    - If clean termination (no residuals) AND finding count decreased across cycles AND no stop signal tripped → "move to next work"
-    - Otherwise → "continue reviewing" (default-safe)>
-
-    **Suggested next action**: <concrete 1-line action — e.g. "squash and merge to main", "run 1-cycle working-tree dogfood on the applied fixes", "address the 2 carried residuals manually before merging">
-    ```
-
-    This block is advisory — it does not gate any action. Keep each part to one sentence; do not re-list findings or repeat the termination summary.
-
-20. **Soft-reset temporary cycle commits** (`branch` / `base-ref` only). During the review run, the user created one commit per cycle at Claude's request (step 14 manual-commit pause). These are intermediate review-cycle artifacts, not the user's intended final commit. To keep the applied code changes while removing the intermediate commit history:
-    - If `review_target.scope == working-tree` or no cycle commits were created, skip this step silently. "Silently" means **produce zero output for this step** — do NOT print `Soft-reset step skipped`, `Soft-reset skipped (scope == working-tree)`, a `(skipped)` tag, or any other acknowledgment that the step existed. The surrounding termination output must flow from §19 Review Assessment directly to the end of the skill with no trace of this step. Silent-skip applies only to the scope / no-cycle-commits preconditions above; the Terminal-cycle verification warning, the Dirty-state audit abort, and the Soft-reset preview gate below remain user-visible in their own triggering cases.
-    - **Terminal-cycle verification**: before resetting, verify the final cycle's applied fixes were actually committed. Run `git status --porcelain -- <final cycle's touched_files>`. If any files have uncommitted changes, print `⚠️ Final cycle has uncommitted applied fixes (<file list>). Soft-reset will NOT stage these — only committed changes become staged after reset. Commit them first, or they will be lost from the staged state.` and skip the reset with a manual-squash fallback: `git reset --soft <pre_cycle_1_head>`.
-    - Retrieve `pre_cycle_1_head` from Phase 0 step 7 and record the current `HEAD` as `final_head`.
-    - **Dirty-state audit (pre-preview)**: before preview, confirm no non-cycle-owned state would be staged by the reset. Compute `cycle_owned_files` = union of `cycle_history[*].applied_fixes[*].touched_files[]`, then:
-      - **Part A (uncommitted)**: run `git status --porcelain` and inspect every entry:
-        - Entries that refer to files **outside** `cycle_owned_files` are **unrelated uncommitted state** that would survive `git reset --soft`.
-        - Entries that refer to files **inside** `cycle_owned_files` are also **blocking** unless they are the final cycle's applied-fix files that the Terminal-cycle verification above already cleared. Any staged/unstaged edit on an **earlier-cycle** cycle-owned file (or on a final-cycle file that the Terminal verification failed on) bypasses `git reset --soft` — soft-reset preserves the index and working tree but will NOT stage an unstaged edit, so the workflow's "all applied fixes are staged" claim becomes false. Surface every such entry in the abort output below, including staged vs unstaged status, so the user can commit/stash before re-running.
-      - **Part B (committed-range ownership)**: run `git diff --name-only <pre_cycle_1_head>..<final_head>` and compare against `cycle_owned_files`. Any path in the committed delta that is **NOT** in `cycle_owned_files` is an unrelated file the user accidentally included in a cycle commit; `git reset --soft` will stage it into the final squash without the preview flagging it (the preview only shows `--stat`, which lists filenames but does not cross-check ownership). Part B catches what Part A cannot: unrelated work already committed into the cycle range. Paths present in `cycle_history[*].unrelated_commit_paths[]` (user-approved during cycle-N>1 ownership gate) are NOT treated as abort-worthy at Part B — they already got a user decision. Part B surfaces them in the preview output with a `(user-approved unrelated)` tag so the final squash commit accurately reflects what is being shipped.
-      - If either Part A or Part B reports entries outside `cycle_owned_files`, print the following and abort the soft-reset entirely:
-        ```
-        ⚠️ State outside the cycle-owned files detected. `git reset --soft <pre_cycle_1_head>` would preserve this into the final staged index, mixing unrelated work into what looks like a "cycle-only" squash.
-
-        State leaking into the soft-reset target:
-        <list every entry with its source tag: [A-uncommitted] / [A-dirty-owned] / [B-committed] — one per line; if all three categories are empty this entire abort block is not printed>
-
-        Resolve before continuing:
-         - [A-uncommitted] paths: commit, stash, or clean them.
-         - [A-dirty-owned] paths: commit or clean the staged/unstaged remnants on cycle-owned files.
-         - [B-committed] paths: amend the offending cycle commit to drop the unrelated file, OR rewrite the commit range to exclude it, OR explicitly include them in a manual post-reset commit by running `git reset --soft <pre_cycle_1_head>` yourself after clearing [A-*].
-        Re-invoke the skill after the range is cycle-clean.
-        ```
-      - Stop the skill here (do NOT proceed to preview or reset) until the user fixes the state and re-invokes. The soft-reset preview gate gives false confidence if the preview shows only the cycle diff while the actual post-reset staged index would contain unrelated work (uncommitted OR committed).
-    - **Soft-reset preview (confirmation gate)**: only reached when the dirty-state audit passes. Before running `git reset --soft`, show the user what will be squashed. Run `git log --oneline <pre_cycle_1_head>..<final_head>` to list the cycle commits, and `git diff --stat <pre_cycle_1_head>..<final_head>` to show the cumulative change. Print:
-      ```
-      About to soft-reset <N> cycle commit(s) onto <pre_cycle_1_head>.
-
-      Why squash: the cycle commits (`review cycle 1 fixes`, `review cycle 2 fixes`, ...) are intermediate artifacts of the review loop. Most users want a single final commit that represents the applied change; soft-reset preserves every line of every cycle fix in the staged index, so you can write the final commit message yourself. Declining keeps the cycle commits in place if you prefer their granular history.
-
-      After reset, all changes below are staged in the index (working tree unchanged). You create your own commit message.
-
-      Commits to be collapsed:
-      <output of git log --oneline ...>
-
-      Cumulative change (will be staged):
-      <output of git diff --stat ...>
-      ```
-
-      **Approved-unrelated paths notice** (only when `cycle_history[*].unrelated_commit_paths[]` is non-empty): before the main reset prompt, display an informational section:
-      ```
-      Approved unrelated paths from earlier cycles (user-tagged during cycle-N>1 ownership gate):
-        - <path> (approved in cycle N)
-        - ...
-      These files are NOT in any applied fix's touched_files. They were bundled into cycle commits and will be preserved by the soft-reset into the final staged index. If you changed your mind about including them, decline the next prompt and amend the cycle commits manually.
-      ```
-      This is a display-only notice, not an AskUserQuestion — the user already tagged these paths as approved during the cycle-N>1 ownership gate. The main reset prompt below is the opportunity to back out.
-
-      Then issue the main reset `AskUserQuestion`:
-      - `question`: "Collapse these N cycle commit(s) into a staged index, ready for your commit?"
-      - options:
-        - `Yes, soft-reset now` — proceed to the next bullet.
-        - `No, leave cycle commits as-is` — skip the reset; print `Cycle commits left in place. Squash manually with `git reset --soft <pre_cycle_1_head>` if desired.` and end the skill.
-    - Run `git reset --soft <pre_cycle_1_head>`. This removes all intermediate cycle commits from HEAD but leaves the accumulated changes staged in the index. The user's working tree is unchanged.
-    - Print:
-      ```
-      Soft-reset: <N> temporary cycle commit(s) (<pre_cycle_1_head>..<final_head>) removed.
-      All applied fixes are staged in the index. Create your own commit:
-        git commit -m "<your message>"
-      ```
+See `references/termination.md` §Step 19 — Review assessment. Stub kept so the legacy `§Review Assessment` anchor — used by `references/summary-samples.ja.md` — still resolves after the split promoted the numbered step to a heading.
 
 ## Preconditions Recap
 
@@ -697,7 +337,7 @@ Implementation detail lives in `git log`; run-specific guidance lives in §19 Su
 - The chosen review target produces a non-empty diff: either uncommitted changes exist (`working-tree`), or HEAD is ahead of the auto-detected default branch (`branch`), or the user-supplied ref exists and `<ref>...HEAD` is non-empty (`base-ref`).
 - Codex plugin installed and `Skill(codex:setup)` reports a ready state.
 - `review-scope-guard` skill available (invoked at step 10a for scope triage and DoD collection).
-- Both `codex-review-cycle` and `review-scope-guard` are registered with the Claude Code harness. If not (e.g. during local development before marketplace publication), follow the SKILL.md steps manually — every step is self-contained.
+- Both `codex-review-cycle` and `review-scope-guard` are registered with the Claude Code harness. If not (e.g. during local development before marketplace publication), follow the SKILL.md steps manually together with the three reference files under `references/` — each step points to the reference content it needs (`references/summary-template.md`, `references/review-context.md`, `references/termination.md`).
 
 ## Failure Modes
 
@@ -720,5 +360,8 @@ Implementation detail lives in `git log`; run-specific guidance lives in §19 Su
 
 - `references/focus-text.md` — target-kind detection and the canonical code/plan focus text.
 - `references/validity-checklist.md` — full details of the six validity items.
-- `references/summary-samples.ja.md` — 日本語で render する場合の finding-block / stop signal footer / 終了メッセージ例。
+- `references/summary-template.md` — per-finding block rendering, heading anatomy, body bullets, verbatim recommendation containment, finding order.
+- `references/review-context.md` — `<review_context>` XML block structure, `<previous_fixes>` / `<rejected_findings>` rules.
+- `references/termination.md` — Phase 2 Case A / Case B render templates, Verdict Headline trend classification, Verification Disclaimer boilerplate, Applied-Fixes List, step 19 Review Assessment, step 20 soft-reset.
+- `references/summary-samples.ja.md` — Japanese-rendering examples for finding-block, stop-signal footer, and termination messages.
 - `skills/review-scope-guard/SKILL.md` — scope triage skill invoked at step 10a (DoD collection, 4-category triage, rejected ledger, stop signals).

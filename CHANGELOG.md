@@ -2,11 +2,14 @@
 
 All notable changes to this repository will be documented in this file.
 
-## Unreleased
+## 2026-04-25
 
 ### Changed
 
-- `codex-review-cycle` — self-collect review mode documentation and `focus-text.md` `base_sha` terminology drift fix.
+- `codex-review-cycle` v1.3.0 — SKILL.md size reduction via 3-section extraction to references.
+  - §Summary Output Template, §Review Context Format, §Termination Criteria (including §Verdict Headline, §Verification Disclaimer, §Applied-Fixes List, step 19 Review Assessment, step 20 soft-reset) move to `references/summary-template.md`, `references/review-context.md`, `references/termination.md` respectively. SKILL.md drops from 724 to 367 lines, below the skill-creator 500-line guideline.
+  - Cross-references within SKILL.md's remaining sections (Language section, Phase 1 steps 8 / 11 / 15 / 16, Phase 2 steps 17 / 18) switch from in-file `§X` anchors to explicit `` `references/X.md` `` file pointers. Relocated content preserves workflow semantics, state contracts, rendering templates, and stop-signal rules — this release is a pure structural refactor with no behavioral change.
+- `codex-review-cycle` v1.3.0 — self-collect review mode documentation and `focus-text.md` `base_sha` terminology drift fix.
   - §Review Target Modes gains a new paragraph describing codex plugin 1.0.4's self-collect mode. Diffs exceeding roughly 2 files or 256KB drop the inline patch, and codex self-collects with read-only `git` commands. Summary shape is documented per target — `working-tree` carries `git status` + staged/unstaged `--shortstat` + bounded untracked content; `branch` / `base-ref` carries commit log + `--stat` over `<base_sha>..HEAD`. Target stability is mode-specific: `branch` / `base-ref` pin to the immutable `base_sha` via `--base`, while `working-tree` is a live snapshot-at-invocation without a `base_sha` anchor. Validity items 1 and 4 re-check findings regardless of collection mode, so the skill contract is unchanged.
   - `references/focus-text.md` §Scope switches the `--base` argument placeholder to `base_sha`, matching SKILL.md step 8's frozen-SHA terminology (drift carried since v1.2.0).
 
