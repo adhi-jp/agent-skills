@@ -36,7 +36,17 @@ Render after every cycle, before the user selection prompt:
 ⚠️ <N> redactions applied to verbatim content this cycle (categories: <comma-list of <type> values>; <S> from scope triage, <C> from caller render).
 ```
 
+(The cascade-guard summary line is NOT emitted at this template — see below.)
+
 The footer redaction summary line renders only when `<S> + <C> >= 1` (sum of scope-guard's overlay count `<S>` returned at SKILL.md step 10a + the caller-side overlay count `<C>` applied at SKILL.md step 11). `<N> = <S> + <C>`. The inner `<S>` / `<C>` breakdown is debug attribution so the caller-side path's effectiveness is independently auditable.
+
+**Cascade-guard summary line is emitted at SKILL.md step 15a, NOT at step 11's summary render.** Step 11 runs before user selection (step 13) and before guard invocation (step 13.6 / 13.7), so `guard_receipts[]` and `batch_receipt` are still empty at step 11 — rendering the cascade-guard line here would always show zeros. The line:
+
+```
+🛡️ Cascade-guard: <P> findings applied (<C> closed, <R> accepted-residual), <B> blocked (<gate-status-breakdown>), <D> split-deferred; invocation_mode=<registered | manual-fallback | mixed>; batch_gate_status=<value | n/a>.
+```
+
+renders at step 15a (after step 15's `cycle_history` persist, before step 16's loop check). Emitted when `selected_count > 0` (≥1 finding entered step 13.6); omitted on V == 0 cycles AND on cycles where the user picked `None — skip all` at step 13. Counts are computed from final cycle outcomes (not raw receipt status): `<P>` = applied (receipt editable AND F-id not in `batch_envelope.splits[]`); `<B>` = receipt non-editable; `<D>` = receipt editable BUT deferred by batch split. Invariant: `<P> + <B> + <D> = selected_count`. When `<U> = V - selected_count > 0` (user declined some valid findings at selection), the line appends `<U> user-declined-at-selection (V=<V>)` so the full audit `<P> + <B> + <D> + <U> = V` is visible. `invocation_mode` reads `mixed` when receipts have both `registered` and `manual-fallback` values; `batch_gate_status` shows `n/a` when Phase 5.5 produced no carry record. Closes the visibility gap where per-finding `Cascade Guard — F<n>` envelope blocks live in `cycle_history` but would otherwise never surface to the conversation.
 
 ## Heading-line anatomy
 

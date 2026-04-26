@@ -50,6 +50,22 @@ ledger, and surfaces five stop signals, though not all are evaluable in
 every usage context. Invoked automatically by
 `codex-review-cycle` and also usable standalone after any review tool.
 
+### `review-fix-cascade-guard`
+
+Containment guard that runs before the agent applies any review-cycle
+fix and again after the multi-fix batch is assembled. Prevents the
+recurring cascade pattern where a valid finding is patched at the named
+line and the next cycle raises a new valid finding the fix itself
+created. For each selected finding it restates the invariant in
+path-neutral terms, classifies the failure into one of 7 cascade
+archetypes, builds a sibling-path matrix, picks an explicit fix
+envelope, requires targeted validation, and emits a `gate_status` enum
+that controls whether `codex-review-cycle` may apply the edit. After
+every per-finding envelope, a Phase 5.5 batch reconciliation pass
+catches conflicts across the cycle's combined fix set. Invoked
+automatically by `codex-review-cycle` at step 13.6 / step 13.7, and
+usable standalone before any review-fix edit.
+
 ### `writing-style-guide`
 
 Principles-first prose-quality skill for durable user-facing artifacts:
@@ -72,6 +88,7 @@ is this skill's territory.
 - `skills/vibe-planning-guard/`: planning and design-review skill package
 - `skills/codex-review-cycle/`: codex-driven interactive 3-cycle review-and-fix workflow
 - `skills/review-scope-guard/`: Definition-of-Done-aware review finding triage, invoked by codex-review-cycle
+- `skills/review-fix-cascade-guard/`: cascade-containment guard invoked by codex-review-cycle before any fix-application edit
 - `skills/writing-style-guide/`: principles-first prose-quality skill for durable artifacts
 - `CHANGELOG.md`: repository-level change history
 
@@ -114,3 +131,15 @@ specific to the skill.
   Claude-drafted proposal the user confirms, or a pasted block the user
   confirms (three modes). The skill never applies fixes itself — it only
   classifies findings and updates the ledger.
+- `review-fix-cascade-guard` runs after `review-scope-guard` triage and
+  before the agent applies any selected `must-fix` / `minimal-hygiene`
+  finding. It does not auto-fix; it returns a per-finding envelope with
+  a `gate_status` enum that gates the agent's `Edit` / `Write`. Edits
+  are permitted only when both the per-finding gate and the Phase 5.5
+  batch gate are `closed` or `accepted-residual`. The override transition
+  for `high-cascade-risk` / `invariant-unknown` requires the user to
+  explicitly record residuals, surfaces, validation limits, and the
+  next-cycle attack via `AskUserQuestion` before the gate flips. Phase 6
+  completion notes are mandatory for every applied finding and are
+  carried into the next cycle's `<previous_fixes>` `<fix>` named child
+  elements; missing notes abort the next cycle's preflight.

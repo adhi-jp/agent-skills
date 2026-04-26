@@ -1,0 +1,144 @@
+{
+  "schema_version": "1.0.0",
+  "skill": "review-fix-cascade-guard",
+  "skill_version": "1.0.0",
+  "purpose": "Standalone evals exercising the per-finding workflow (Phases 0-5 + Phase 6) on representative cascade scenarios. Baseline runs the prompts without the skill loaded; with-skill runs them with the skill loaded; the per-eval assertions encode what a correct cascade-guarded fix plan must contain. Integration coverage of the codex-review-cycle <-> guard contract is enforced by three mechanisms (no executable test runner): (A) mechanical preflight checks in codex-review-cycle SKILL.md step 8 (Phase 6 note + <batch_reconciliation> + cascade-guard receipts with editable gate_status); (B) manual dogfood scenarios D1-D6 in skills/review-fix-cascade-guard/references/dogfood-checklist.md; (C) the documentation cross-reference invariant documented in SKILL.md References.",
+  "common_assertions": [
+    "Output contains an `Invariant:` line whose body is path-neutral (no specific function/file/line names in the invariant phrasing itself).",
+    "Output contains a `Sibling-path matrix:` block listing at least two sibling paths beyond the one codex named.",
+    "Output names at least one cascade `Archetype:` from the 7-value enum (`path-coverage`, `state-persistence`, `boundary-binding`, `identity-contract`, `doc-cascade`, `interaction-modality`, `silent-violation`).",
+    "Output emits a `gate_status:` line whose value is one of: `closed`, `accepted-residual`, `invariant-unknown`, `high-cascade-risk`, `needs-user-decision`.",
+    "Output contains a `Likely next-cycle finding:` line predicting a plausible follow-on attack.",
+    "When the fix envelope excludes a valid sibling path, the output marks it explicitly under `Out of scope:` with a one-line reason."
+  ],
+  "evals": [
+    {
+      "id": "E01",
+      "name": "Inventory removal coverage",
+      "archetype": "path-coverage",
+      "prompt": "codex found that breaking a Minecraft machine block deletes its inventory contents instead of dropping them. The cited line is `playerWillDestroy`. Plan the fix.",
+      "expectations": [
+        "Invariant phrased as `<inventory> must be dropped exactly once on every block removal path.` (or equivalent path-neutral wording).",
+        "Sibling-path matrix lists at least: explosion, `/setblock`, replacement by piston/minecart/lava, neighbor-update removal, world unload.",
+        "Fix envelope does NOT stop at `playerWillDestroy`; it covers `onRemove` / `onBlockBroken` / `onExplosion` (or the framework-equivalent removal hook).",
+        "Includes a double-drop guard (avoid dropping when the block was already removed by the same broader operation)."
+      ]
+    },
+    {
+      "id": "E02",
+      "name": "Tree tap provenance",
+      "archetype": "path-coverage",
+      "prompt": "codex says player-placed logs can be tapped infinitely with the new tap gate. Fix the gate.",
+      "expectations": [
+        "Invariant phrased around `tapping is allowed only on naturally-grown logs whose leaves are persistent`, not around `nearby leaf type`.",
+        "Matrix considers: player-placed logs, persistent vs decayable leaves, partial decay state, log adjacency to schematic-built trees.",
+        "Fix uses provenance/persistent-leaf state, NOT raw block-type proximity."
+      ]
+    },
+    {
+      "id": "E03",
+      "name": "Confirm-host TOCTOU",
+      "archetype": "boundary-binding",
+      "prompt": "codex found that the confirm-host check happens before URL interpolation, so the actual send can hit a different host than the user authorized. Fix it.",
+      "expectations": [
+        "Invariant phrased around `the host authorized by the user must be the exact host used by the backend request`.",
+        "Fix binds the resolved URL to the executed request OR moves enforcement into the authoritative request-issuance layer.",
+        "Addresses nondeterministic interpolation (random functions, time-based variables, async-resolved variables).",
+        "Validation includes a static-URL test AND an interpolated-URL test."
+      ]
+    },
+    {
+      "id": "E04",
+      "name": "Scope-guard ledger schema",
+      "archetype": "identity-contract",
+      "prompt": "codex says raw findings may leak via the rejected ledger; redesign the ledger to store redacted titles. Plan the fix.",
+      "expectations": [
+        "Matrix names every ledger consumer: scope-guard's own writes, codex-review-cycle's `<rejected>` projection, summary render, audit log.",
+        "Fix accounts for field-name compatibility (old vs new shape) and migration of any persisted ledger.",
+        "Validation asserts no raw title appears in any caller projection."
+      ]
+    },
+    {
+      "id": "E05",
+      "name": "Plan split compatibility",
+      "archetype": "doc-cascade",
+      "prompt": "codex says extracting a SKILL.md section into a reference file may break existing anchors. Plan the fix.",
+      "expectations": [
+        "Matrix names: anchor stubs in the source SKILL.md, downstream cross-references (other SKILL.md, README, CHANGELOG, sample files), verification grep rules.",
+        "Fix preserves anchor resolvability (stub headings or link rewrites) AND keeps verification grep consistent with the new file shape."
+      ]
+    },
+    {
+      "id": "E06",
+      "name": "Audit mutation semantics",
+      "archetype": "state-persistence",
+      "prompt": "codex says audit logs fire even when nothing changed. Fix it.",
+      "expectations": [
+        "Matrix enumerates: semantic no-op (same value written), bulk import, delete + immediate re-create, async flush durability, error-path partial mutations.",
+        "Fix uses a `mutation-happened` flag derived from the actual data delta, not from the call entry point.",
+        "Validation includes a no-op write test that asserts no audit row is produced."
+      ]
+    },
+    {
+      "id": "E07",
+      "name": "False-green test runner",
+      "archetype": "silent-violation",
+      "prompt": "codex says the new smoke-test script can pass even when the intended test is absent or ignored. Fix it.",
+      "expectations": [
+        "Matrix names: zero matched tests, `#[ignore]` / `it.skip` tests, substring vs exact name match, executed-count parsing, missing-field assertions that pass against null/default.",
+        "Fix asserts an executed-count > 0 AND an exact test-identity match.",
+        "Validation includes a negative-control case where removing/renaming/ignoring the target test makes the gate fail."
+      ]
+    },
+    {
+      "id": "E08",
+      "name": "Canonical artifact identity",
+      "archetype": "identity-contract",
+      "prompt": "codex says alias lookup works on cold path but fails on warm cache and symlinked jar paths. Fix it.",
+      "expectations": [
+        "Output names ONE authoritative normalized identity (e.g. resolved canonical SHA / canonicalized absolute path).",
+        "Matrix names at least two alternate representations the fix reconciles: alias, raw-input path, cache key, display label, namespace descriptor.",
+        "Fix routes cold path, warm path, alias, cache key, and lookup through the same canonical identity."
+      ]
+    },
+    {
+      "id": "E09",
+      "name": "Editor input modality",
+      "archetype": "interaction-modality",
+      "prompt": "codex says the variable completion fix works for one cursor but fails for escaped placeholders and multiple cursors. Fix it.",
+      "expectations": [
+        "Matrix names: backend escape syntax parity (`\\\\{{` etc.), multi-cursor replacement (CodeMirror multiple selections), existing suffix preservation, language fallback when language is unknown.",
+        "Fix mirrors backend escape semantics on the frontend completion code path.",
+        "Fix applies the completion to every selection range, not just the main cursor."
+      ]
+    },
+    {
+      "id": "E10",
+      "name": "Silent formatter corruption",
+      "archetype": "silent-violation",
+      "prompt": "codex says XML/HTML auto-format still corrupts whitespace-sensitive payloads on save. Fix it.",
+      "expectations": [
+        "Output prefers fail-closed on save-time silent transformation unless losslessness is proven for every supported markup class.",
+        "Matrix lists: `<pre>` reflow, inter-element whitespace, CDATA, preserve-space markers, inline-element neighbors, malformed input.",
+        "Fix either proves the transformation is lossless OR moves formatting to a manual/undoable action and removes silent save-time formatting."
+      ]
+    },
+    {
+      "id": "E11",
+      "name": "Traversal mutation",
+      "archetype": "path-coverage",
+      "prompt": "codex says a tree-traversal plan captures child indexes before splicing siblings. Fix the plan.",
+      "expectations": [
+        "Matrix names: same-parent multi-match, adjacent-sibling cases, reverse-order apply, collect-then-apply, object key ordering.",
+        "Fix switches to collect-then-apply OR mutates in reverse index order so captured indexes stay valid.",
+        "Includes a regression case with multiple matches in the same parent."
+      ]
+    }
+  ],
+  "scoring": {
+    "common_assertion_weight": 0.6,
+    "per_eval_expectation_weight": 0.4,
+    "pass_threshold": 0.75,
+    "notes": "Pass = (common_assertion_pass_rate * 0.6) + (per_eval_expectation_pass_rate * 0.4) >= 0.75. With-skill runs are expected to pass; baseline runs are expected to fail at least the matrix and gate_status assertions on most prompts. The pre-implementation baseline-vs-with-skill comparison must show at least three historical cascade cases (E01, E03, E07 are the canonical three) prevented or explicitly residualized by the with-skill run."
+  }
+}
