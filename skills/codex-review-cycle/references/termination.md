@@ -156,7 +156,7 @@ Format, one outer bullet per cycle in order 1 → 2 → 3:
   - `F<n> (<scope_category>) <codex title verbatim>`
   - `F<n>` — cycle-local ID from that cycle's Summary block. Read from `cycle_history[N].applied_fixes[*].display_id`. Do not reconstruct or renumber. The `F` prefix stays literal.
   - `<scope_category>` — verbatim; always `must-fix` or `minimal-hygiene` (applied fixes come from these two only).
-  - `<codex title verbatim>` — the codex `title` field; never paraphrased, shortened, or translated.
+  - `<codex title verbatim>` — the codex `title` field, emitted in the post-overlay redacted form per `review-scope-guard` SKILL.md §Secret Hygiene. The verbatim contract is preserved within the redacted form (see scope-guard §Verbatim contract precedence); never paraphrased, shortened, or translated outside the redaction substitution.
 - Cycle with 0 applied fixes — `<Cycle label translated> <N>: <no-fix label translated>` (canonical English: `none`).
 
 Prohibited inside the list:

@@ -32,7 +32,11 @@ Render after every cycle, before the user selection prompt:
 | <Signal label> | <Status label> | <Evidence label> |
 |----------------|----------------|------------------|
 | ...            | ...            | ...              |
+
+⚠️ <N> redactions applied to verbatim content this cycle (categories: <comma-list of <type> values>; <S> from scope triage, <C> from caller render).
 ```
+
+The footer redaction summary line renders only when `<S> + <C> >= 1` (sum of scope-guard's overlay count `<S>` returned at SKILL.md step 10a + the caller-side overlay count `<C>` applied at SKILL.md step 11). `<N> = <S> + <C>`. The inner `<S>` / `<C>` breakdown is debug attribution so the caller-side path's effectiveness is independently auditable.
 
 ## Heading-line anatomy
 
@@ -46,7 +50,7 @@ Each finding heading encodes four identifiers plus the verbatim title in a singl
 - **`<severity>`** — codex severity keyword (`high` / `medium` / `low`). Verbatim.
 - **`<scope>`** — `review-scope-guard` triage category (`must-fix` / `minimal-hygiene` / `reject-out-of-scope` / `reject-noise`). Verbatim.
 - **`<validity>`** — validity check outcome (`valid` / `partially-valid` / `invalid`). Verbatim.
-- **`<codex title verbatim>`** — codex `title` field. Never translated, paraphrased, or shortened.
+- **`<codex title verbatim>`** — codex `title` field. Emitted in the post-overlay redacted form per `review-scope-guard` SKILL.md §Secret Hygiene. The verbatim contract is preserved within the redacted form: non-secret prose is byte-identical, secret matches become `[REDACTED:<type>]` per scope-guard §Verbatim contract precedence. Never translated, paraphrased, or shortened.
 
 The middle dot (`·`, U+00B7) is a visual separator only; do not replace with `|`, `,`, or `-`.
 
@@ -57,7 +61,7 @@ Every finding body contains exactly four bullets in this order:
 1. **File:Line** — always first. Format as ` `` `-wrapped `<file>:<line_start>` so the path renders in a monospace font. When codex did not cite a line, render as `<file> (line: n/a)`.
 2. **Claude's note** — ≤20-word sentence in the user's language, anchored on the validity check's rationale. Required for every finding, including `invalid` and `reject-*`.
 3. **Recommended action** — short translated phrase. Canonical values (illustrative in English): `Apply fix`, `Apply 1-line hygiene`, `Skip`, `Skip (ledger fwd)`.
-4. **Codex recommendation (verbatim)** — codex's `recommendation` field, quoted verbatim below the bullet label. The bullet label text is translated, but the quoted recommendation body is never translated, paraphrased, or truncated. This replaces the old bottom-of-summary `Recommendation (per finding)` block — embedding the recommendation inside each finding removes cross-referencing and keeps findings self-contained.
+4. **Codex recommendation (verbatim)** — codex's `recommendation` field, quoted verbatim below the bullet label. Emitted in the post-overlay redacted form per `review-scope-guard` SKILL.md §Secret Hygiene; the verbatim contract is preserved within the redacted form (see scope-guard §Verbatim contract precedence). The bullet label text is translated, but the quoted recommendation body is never translated, paraphrased, or truncated. This replaces the old bottom-of-summary `Recommendation (per finding)` block — embedding the recommendation inside each finding removes cross-referencing and keeps findings self-contained.
 
 ### Verbatim recommendation containment
 
@@ -95,8 +99,8 @@ Group findings by `<scope>` in this order: `must-fix` → `minimal-hygiene` → 
 
 ## Format rules that protect finding intent
 
-- The codex `title` in every heading is verbatim — no paraphrase, no shortening, no translation.
-- The codex `recommendation` inside each finding's last bullet is verbatim, regardless of length. Never truncate, summarize, or abbreviate.
+- The codex `title` in every heading is verbatim within the §Secret Hygiene redacted form (see `review-scope-guard` SKILL.md §Secret Hygiene → §Verbatim contract precedence) — no paraphrase, no shortening, no translation outside the redaction substitution.
+- The codex `recommendation` inside each finding's last bullet is verbatim within the §Secret Hygiene redacted form, regardless of length. Never truncate, summarize, or abbreviate.
 - Claude's interpretation lives only in the `Claude's note` and `Recommended action` bullets. Do not edit the heading title or the verbatim recommendation based on what Claude thinks the finding "really means".
 - If Claude judges a finding `invalid`, the block still renders with the original heading and recommendation. The `Claude's note` bullet carries `invalid because <reason>` (translated).
 - If `review-scope-guard` classifies a finding as `reject-out-of-scope` or `reject-noise`, the block still renders for audit. The heading's `<scope>` segment carries the category; the `Claude's note` carries the triage rationale from the skill's output.

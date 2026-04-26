@@ -1,5 +1,5 @@
 ---
-version: 1.3.0
+version: 1.3.1
 name: review-scope-guard
 description: Triage code/plan review findings against an explicit Definition of Done so must-fix bugs are separated from scope creep, out-of-scope semantic implementations, and noise. Collects the six-item Definition of Done interactively on first invocation, classifies every finding into one of four categories (`must-fix`, `minimal-hygiene`, `reject-out-of-scope`, `reject-noise`), maintains a rejected-findings ledger so repeated complaints are not re-litigated across cycles, and evaluates five stop signals for scope drift. Output is a triage verdict table plus an updated ledger usable by `codex-review-cycle`. Use when a codex review returned findings that may drift beyond the stated scope, when the user explicitly asks to triage or scope-check review findings, or when invoked by `codex-review-cycle` between its validity check and summary render. Do NOT trigger for single-shot lint reviews, unrelated code changes, or when the user has not yet run a review.
 ---
@@ -77,7 +77,7 @@ If `review-scope-guard` is not registered with the harness (Skill() invocation f
 ## Outputs
 
 - **Triage verdict table** — one row per input finding with category, rationale, DoD anchor, and recommended action. Every finding is represented, including `reject-*` ones (for audit trail).
-- **Updated rejected ledger** — YAML-style structure preserving the v1.2.0 field names (`id`, `title`, `reason`, `category`, `file`, `count`, `first_seen_cycle`, `last_seen_cycle`, `cluster_id`). The `title` / `reason` content is the post-overlay redacted text from §Secret Hygiene. The v1.2.0 `fingerprint` string is replaced by `raw_fingerprint` (SHA-256 hex digest), an internal-only field that is NOT forwarded to any user-facing render or `<rejected>` element. See §Secret Hygiene → Ledger schema with derived fingerprint.
+- **Updated rejected ledger** — YAML-style structure preserving the v1.2.0 field names (`id`, `title`, `reason`, `category`, `file`, `count`, `first_seen_cycle`, `last_seen_cycle`, `cluster_id`). The `title` / `reason` content is the post-overlay redacted text from §Secret Hygiene. The v1.2.0 `fingerprint` string is replaced by `raw_fingerprint` (SHA-256 hex digest), an internal-only field that is NOT forwarded to any user-facing render or `<rejected>` element. v1.3.1 adds `dedupe_token` (8-char hex prefix of SHA-256 over a non-secret 4-tuple; caller-facing — forwardable to `<rejected>` attributes — and exempt from §Secret Hygiene overlay because its construction inputs do not carry secrets). See §Secret Hygiene → Ledger schema with derived fingerprint.
 - **Active stop signals** — only the signals that tripped this cycle, with evidence.
 - **`not_evaluated_signal_names`** — ordered `string[]` of stop-signal names whose status is `not evaluated: metrics missing`, in the 5-signal canonical order (see `references/stop-signals.md` §Per-cycle suppression). Callers persist this per cycle to decide whether to suppress repeated `not evaluated` footnotes in later cycles; standalone callers may ignore it.
 - **`structurally_unevaluable_signal_names`** — ordered `string[]` of signals that are deterministically `not evaluated` for the current caller shape (e.g. `codex-review-cycle` always lacks `file-bloat` and `reactive-testing` metrics). Separate from `not_evaluated_signal_names` so callers can compact the footer: structurally-unevaluable signals are mentioned once per run (cycle 1), not per cycle. Standalone callers that supply metrics receive an empty list.
@@ -105,9 +105,11 @@ The patterns are necessarily incomplete: novel cloud-provider key formats, inter
 - **Redacted content emitted to outputs**: triage table `Title (verbatim)` column, per-finding recommendation verbatim block, ledger entry `title` and `reason` field bodies, the YAML render of the ledger as a whole (the `raw_fingerprint` field is internal-only and not rendered to the user-facing YAML; see §Ledger schema with derived fingerprint), footer / signal evidence echoes, every `<finding title verbatim>` placeholder in §Output Template, the `rejected_ledger` payload returned to the caller, and (when scope-guard owns the plan-evidence confirmation gate) the gate's `AskUserQuestion` question text and the persisted `target_binding` evidence block. Redaction at the gate runs **before** the question is shown, so a secret-bearing commit subject or path never reaches the prompt or the audit trail. See `references/dod-template.md` §Confirmation gate for the gate-side hook.
 - **Raw values used only inside in-memory computation**: the `raw_fingerprint` SHA-256 calculation and the lookup against existing ledger entries. Pre-overlay `raw_title` / `raw_reason` are transient values held only during the per-cycle triage pass; once the overlay has produced redacted text and the fingerprint hash, the skill discards the raw forms and never persists them. `raw_fingerprint` itself is persisted on the ledger but excluded from every user-facing render and every `<rejected>` forward (see §Ledger schema with derived fingerprint).
 
+> Footnote — `dedupe_token` exemption. The §Application sites overlay does not run over `dedupe_token` because every input to its hash (`severity`, `normalized_file_path`, `scope_category`, `cluster_id_or_empty`) is a structural label, not user-supplied free text — none of the four can carry a secret pattern the regex set is meant to catch. Forwarding `dedupe_token` to `<rejected>` attributes is therefore safe; the redaction guarantee holds because the source bytes are non-secret by construction.
+
 ### Ledger schema with derived fingerprint
 
-`rejected_ledger[*]` schema (non-breaking extension of v1.2.0): `{id, raw_fingerprint, category, title, reason, file, count, first_seen_cycle, last_seen_cycle, cluster_id}`. The field names `id`, `category`, `title`, `reason`, `file`, `count`, `first_seen_cycle`, `last_seen_cycle`, `cluster_id` and their order are preserved exactly from v1.2.0; only the **content** of `title` and `reason` switches to the post-overlay redacted text. The v1.2.0 `fingerprint` field (string of the form `<severity>|<normalized_title>|<file>`) is replaced by `raw_fingerprint` (SHA-256 hex digest); the `recommendation` field is not part of the ledger (per-finding render applies the §Secret Hygiene overlay directly at render time, not via ledger storage).
+`rejected_ledger[*]` schema (non-breaking extension of v1.2.0): `{id, raw_fingerprint, dedupe_token, category, title, reason, file, count, first_seen_cycle, last_seen_cycle, cluster_id}`. The field names `id`, `category`, `title`, `reason`, `file`, `count`, `first_seen_cycle`, `last_seen_cycle`, `cluster_id` and their order are preserved exactly from v1.2.0; only the **content** of `title` and `reason` switches to the post-overlay redacted text. The v1.2.0 `fingerprint` field (string of the form `<severity>|<normalized_title>|<file>`) is replaced by `raw_fingerprint` (SHA-256 hex digest); the `recommendation` field is not part of the ledger (per-finding render applies the §Secret Hygiene overlay directly at render time, not via ledger storage). v1.3.1 adds `dedupe_token = first 8 hex chars of SHA-256("<severity>|<normalized_file_path>|<scope_category>|<cluster_id_or_empty>")` — a caller-facing token derived from non-secret components only (severity keyword, normalized file path, four-category scope label, optional cluster_id). Because none of the construction inputs can carry a secret, `dedupe_token` is exempt from the §Secret Hygiene overlay (footnote: see §Application sites) and may be forwarded to `<rejected>` attributes the caller renders for codex consumption. Two findings that share severity + file + category + cluster (the typical paraphrased re-raise) collapse to the same `dedupe_token` even when their titles differ — this is the property the caller's downstream consumer is intended to exploit. `cluster_id_or_empty` is the literal `cluster_id` string when present, or the empty string when the entry has no cluster assignment.
 
 `raw_fingerprint = SHA-256("<severity>|<normalized(raw_title)>|<file>")`, hex-encoded. **Hashing the raw_title is canonical**: two findings carrying distinct secrets but sharing severity / normalized title / file collapse to the same `[REDACTED:<type>]` placeholder after redaction. Hashing the redacted form would merge them into one ledger entry, falsely incrementing `count` and tripping `repeat-finding`. Hashing the raw form keeps each distinct secret as its own entry, at the cost of recomputing the hash from each inbound raw_title.
 
@@ -195,6 +197,8 @@ The patterns are necessarily incomplete: novel cloud-provider key formats, inter
    - Findings classified `must-fix` or `minimal-hygiene` do NOT enter the ledger — they are about to be applied, not rejected.
 
    **Cluster assignment**: when writing or incrementing a ledger entry, inspect the finding's `rationale` text for explicit phrases like "same root cause as L<n>", "same <concept> boundary", "same <subsystem> invariant". When such a phrase refers to an existing ledger entry, copy that entry's `cluster_id` to the new entry (creating the `cluster_id` on the referenced entry first if absent — use a kebab-case summary of the shared concept). Do not auto-cluster findings without an explicit rationale phrase: false clustering silently hides distinct concerns under a shared label.
+
+   **Dedupe-token assignment** (v1.3.1): immediately after Cluster assignment resolves `cluster_id` (or leaves it unset), compute `dedupe_token = first 8 hex chars of SHA-256("<severity>|<normalized_file_path>|<scope_category>|<cluster_id_or_empty>")` and write it to the entry. `cluster_id_or_empty` is the literal `cluster_id` string or `""` when no cluster was assigned. The token is deterministic, non-secret by construction (see §Secret Hygiene → Ledger schema with derived fingerprint footnote), and forwarded by callers to `<rejected>` attributes for downstream consumers; on `count` increment, recompute the token only if `cluster_id` changed (otherwise inputs are stable and re-hashing is unnecessary).
 10. **Emit the updated ledger** in the format described in §Rejected Ledger Format.
 
 ### Phase 4 — Stop Signal Evaluation
@@ -242,6 +246,7 @@ DoD lives in-session only. The skill does not write it to disk.
 rejected_findings_ledger:
   - id: L1
     cluster_id: "reqwest-jar-isolation"   # optional; shared across findings touching the same root cause
+    dedupe_token: "1a2b3c4d"              # 8-char hex; non-secret by construction (see §Secret Hygiene → Ledger schema)
     title: "<finding title — §Secret Hygiene redacted form>"
     file: "<path or null>"
     category: "reject-out-of-scope"
@@ -251,6 +256,7 @@ rejected_findings_ledger:
     count: 3
   - id: L2
     cluster_id: "reqwest-jar-isolation"
+    dedupe_token: "1a2b3c4d"
     title: "<another title — §Secret Hygiene redacted form>"
     file: "<path or null>"
     category: "reject-noise"
@@ -263,11 +269,12 @@ rejected_findings_ledger:
 - `id` — `L1` / `L2` / … the user-visible identifier. Stable across cycles; do not renumber.
 - `raw_fingerprint` — internal-only SHA-256 hex digest of `<severity>|<normalized(raw_title)>|<file>`. Used for O(1) re-detection. **NOT shown** in the user-facing YAML render and **NOT forwarded** to `<rejected>` attributes — see §Secret Hygiene → Ledger schema with derived fingerprint.
 - `cluster_id` — optional short kebab-case string grouping findings that share a root cause even when titles, files, or severities differ. Populated by Claude at Phase 2 classification time when the rationale explicitly names a shared concept (e.g. "same jar-isolation boundary as L1"). Leave unset when no shared cause is evident; never auto-generate to avoid false clustering. `cluster_id` never suppresses findings — it only groups them for the termination-time assessment in `codex-review-cycle` step 19.
+- `dedupe_token` — 8-char hex prefix of `SHA-256("<severity>|<normalized_file_path>|<scope_category>|<cluster_id_or_empty>")`. Caller-facing — forwarded to `<rejected>` attributes for downstream consumers (e.g. `codex-review-cycle` v1.4.0 `<rejected dedupe_token="…">`). Exempt from the §Secret Hygiene overlay because every input is structural / non-secret by construction.
 - `title` — post-overlay redacted form of the codex title (§Secret Hygiene). The verbatim contract is preserved within the redacted form (no paraphrasing of non-secret text).
 - `reason` — post-overlay redacted form of the rationale assigned at first triage. Stable across re-occurrences so history stays coherent.
-- Projecting into `codex-review-cycle`'s `<rejected_findings>` block (only redacted-content fields and non-sensitive metadata cross the boundary; `raw_fingerprint` does not):
+- Projecting into `codex-review-cycle`'s `<rejected_findings>` block (redacted-content fields and non-sensitive metadata cross the boundary; `raw_fingerprint` does not, but `dedupe_token` does):
   ```xml
-  <rejected cycle="N-1" reason="<reason>"><![CDATA[<title>]]></rejected>
+  <rejected cycle="N-1" reason="<reason>" dedupe_token="<8-char hex>"><![CDATA[<title>]]></rejected>
   ```
 
 ## Stop Signals (summary)

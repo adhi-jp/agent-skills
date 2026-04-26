@@ -27,7 +27,7 @@ triage table の下にこの verbatim 引用ブロックを必ず付与する（
 
 ### このサイクル後の rejected ledger
 
-<YAML ブロック — id / cluster_id / reason / first_seen_cycle / last_seen_cycle / count は原文維持。`raw_fingerprint` は internal-only のため user-facing YAML には出さない>
+<YAML ブロック — id / cluster_id / dedupe_token / reason / first_seen_cycle / last_seen_cycle / count は原文維持。`raw_fingerprint` は internal-only のため user-facing YAML には出さない。`dedupe_token` (8-char hex) は v1.3.1 で追加された caller-facing フィールドで、 §Secret Hygiene overlay 対象外 (構成要素が non-secret のため)>
 
 ### Active stop signals (cycle N)
 
