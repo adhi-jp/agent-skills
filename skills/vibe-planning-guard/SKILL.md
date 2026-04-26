@@ -1,5 +1,5 @@
 ---
-version: 1.1.0
+version: 1.2.0
 name: vibe-planning-guard
 description: Create verified requirements definitions, design comparisons, and implementation plans for vibe coding with strict stop conditions and risk-scaled output. Use when the user wants a spec, implementation plan, design outline, rewrite plan, replacement plan, restoration plan, or help comparing implementation approaches or structuring a concrete change before coding. Trigger when requirements are ambiguous, contradictory, or underspecified; when feasibility is unclear; when a real design branch needs tradeoff analysis; when existing behavior must be replaced or restored safely; or when the task is large enough that a structured plan is warranted. Do not trigger by default for tiny, already-clear edits, simple API-usage questions, or narrow code explanations unless the user explicitly asks for planning or risk review.
 ---
@@ -33,6 +33,11 @@ Use the lightest safe mode for the task size and risk.
 - `strict`: Multi-file or high-blast-radius work such as migrations, rewrites, replacement or restoration of behavior, external integrations, auth, billing, data model changes, performance work, security-sensitive flows, or anything with unclear feasibility. Use the full report, ask only questions that resolve a blocker, and use structured comparison when ambiguity affects behavior, tests, data, or external contracts.
 - Choose `strict` immediately when auth, billing, security, migrations, external contracts, restoration work, or any `high` or `critical` `Unproven` item is involved.
 - Choose `strict` immediately when a behavioral equivalence analysis contains any `Unknown` dimension or when a `must preserve` dimension has been reclassified to `in scope for change` during analysis.
+- Choose `strict` immediately when the change touches shared static state, singletons, global event buses, or hook/subscriber ordering.
+- Choose `strict` immediately when the change touches persisted user config, default values for absent fields, opt-out paths, or schema migrations.
+- Choose `strict` immediately when the change touches the build, package, or release path, including manifest version bumps and entry-point command sources.
+- Choose `strict` immediately when the change crosses a client/server or otherwise untrusted-payload trust boundary.
+- Choose `strict` immediately when the change touches external contracts, execution sequencing, nonce or replay protection, FIFO ordering, or snapshot timing relative to writes.
 - Stay in `light` only when the slice is localized, the main behavior contract is already mostly clear, and any remaining uncertainty is deferred or non-blocking for the current phase.
 - If the choice feels borderline, choose `strict` and keep the report concise rather than weakening the safety bar.
 
@@ -48,6 +53,10 @@ Do not use `light` mode as an excuse to skip verification. It only reduces repor
 - When a request replaces, restores, rolls back, or rewrites existing behavior, inspect a previously-good commit before planning the change. If no known-good commit can be verified, mark that gap as `Unproven` and stop.
 - When a change touches existing behavior — whether through replacement, refactoring, migration, internal implementation change, or explicit specification change — perform the behavioral equivalence analysis from `references/behavioral-equivalence-analysis.md`. Separate each comparison dimension into `in scope for change` or `must preserve`, classify every dimension explicitly, and include the analysis in the plan output. If any `must preserve` dimension is found to be non-equivalent, stop and report to the user before continuing. If any dimension is classified `Unknown`, the change is blocked until proof is provided.
 - Define tests before implementation steps. For discovery-only phases, define proof checks and exit criteria before any spike or experiment.
+- When the change touches existing behavior, build the behavior contract inventory from `references/behavior-contract-inventory.md` before classifying any dimension in the behavioral equivalence analysis. The inventory must label each of its three buckets with `Primary source`, `Local reproduction`, or `Unproven`.
+- Apply `references/plan-boundary-controls.md` (plan-body firewall) before emitting the final plan output. Every addition is classified, `impl-detail` is deferred unless it proves feasibility or defines a current-slice test, and `history-only` material is collapsed or dropped.
+- Once the current-slice success criteria are recorded, freeze them. Admit a later addition only when it cites a user requirement, a newly verified source, or a `must preserve` dimension that turned out to be non-equivalent. Suggestions outside those bases go into deferred decisions or `Unproven` items, not into the success criteria.
+- Apply the completion gate from `references/plan-boundary-controls.md`. Once the gate passes for the current slice, stop adding plan detail. The completion gate does not override the `Unproven` stop rule — any `Unproven` item with `Phase relevance: implementation` for the current slice keeps the plan blocked, regardless of risk level. Risk level alone never exempts an item from the stop rule; only `Phase relevance` outside the current slice's implementation step does.
 - If even one implementation-relevant item remains `Unproven` for the current phase, stop after the plan. Do not authorize implementation. Shrink the current slice if needed until the current phase has zero `Unproven` implementation assumptions.
 
 ## Workflow
@@ -63,37 +72,58 @@ Do not use `light` mode as an excuse to skip verification. It only reduces repor
    - Move non-blocking or cosmetic uncertainty into deferred decisions when it does not affect the current code path, test design, or behavior contract.
    - Move design branches that do not affect the current phase into deferred decisions instead of bloating the current plan.
    - If the task is large, split it into discovery, test-lock, and implementation phases instead of forcing one giant plan.
-3. Build a fact table.
+   - Slice selection comes before inventory and freeze (steps 3 and 4) so those operate on a defined `current slice`. If discovery later reveals the slice is wrong, restart the workflow at this step rather than retrofitting inventory or freeze onto a different slice.
+3. Build the behavior contract inventory for the current slice when the change touches existing behavior.
+   - Read `references/behavior-contract-inventory.md` and populate the three buckets — immediate observable behavior, internal state transition, and persistent / lifecycle behavior — before classifying any dimension in the behavioral equivalence analysis.
+   - **Replacement / restoration branch**: when the request replaces, restores, rolls back, or rewrites existing behavior, run `references/change-recovery-checklist.md` steps 1-5 (identify target behavior, find the last known-good implementation, prove it was good, inspect it, build the two-column historical / current inventory) **as a prerequisite to this step**. The two-column inventory from the recovery checklist replaces this step's single-column inventory. The success-criteria freeze in step 4 then locks against the historical contract too, not just current behavior. Step 8's recovery flow becomes the residual / verification re-entry after the criteria are frozen.
+   - Label every bucket entry with exactly one of `Primary source`, `Local reproduction`, or `Unproven`. `Unproven` buckets are recorded with risk, phase relevance, and next review point, not silently merged with proven entries.
+   - The inventory rows are the inputs to the equivalence dimensions. A dimension cannot be classified `Equivalent` against an `Unproven` inventory entry.
+   - Omit the inventory only when the current slice provably does not touch existing behavior. Refactors, migrations, and internal implementation changes count as touching existing behavior under the Non-Negotiable Rule and require the inventory even when most rows collapse to `Not applicable` with a documented evidence-backed rationale. Do not emit empty bucket headings to satisfy structure when omission is justified.
+4. State and freeze current-slice success criteria.
+   - Write the success criteria for the current slice (the slice chosen in step 2). Once recorded, lock them. Apply the Success Criteria Freeze rule from `references/plan-boundary-controls.md` before admitting any later expansion.
+   - A later addition is admissible only when it cites a user requirement, a newly verified source, or a `must preserve` dimension that turned out to be non-equivalent. Other suggestions are recorded as deferred decisions or `Unproven` items with risk, phase relevance, and next review point.
+   - When a `must preserve` reclassification triggers a success-criteria expansion, escalate to `strict` mode and record the reclassification basis next to the new criterion.
+   - Future-phase criteria belong in deferred decisions, not in the current-slice freeze. If discovery later forces a slice change, restart at step 2 — do not retrofit the freeze onto a different slice.
+5. Build a fact table.
    - Turn requirements, assumptions, constraints, and inferred dependencies into a table with evidence class, source, and impact.
    - If the right evidence class is unclear, read `references/evidence-rubric.md`.
-4. Surface ambiguity and design branches explicitly.
+6. Surface ambiguity and design branches explicitly.
    - First list every ambiguous or conflicting requirement and offer alternatives that clarify behavior.
    - After the requirements are clarified, compare 2-3 viable design options only when a real design branch still remains.
    - For each option, include tradeoffs, blocking unknowns, and YAGNI impact for the current phase.
    - Recommend an option only when the decision inputs are sufficiently proven.
    - Recommendation may include expert judgment, but present `Why (verified facts)` separately from `Why (judgment)`.
    - If key decision inputs are still missing, do not force a recommendation. Give a `Recommended proof path` instead.
-5. Triage `Unproven` items.
+7. Triage `Unproven` items.
    - For each `Unproven` item, record risk level: `critical`, `high`, `medium`, or `low`.
    - Record whether it affects feasibility, behavior, data, integration, performance, security, UX, or cosmetic detail.
    - Record whether it blocks discovery, test design, or implementation for the current phase.
    - Use the risk level to order work and choose `light` versus `strict`, but do not treat risk as permission to implement around an `Unproven` blocker.
    - If a `light` plan contains any `high` or `critical` `Unproven` item, upgrade the report to `strict`.
-6. Use the recovery flow for replacement or restoration.
-   - Read `references/change-recovery-checklist.md`.
-   - Identify the current behavior, target behavior, and last known-good implementation.
-   - Inspect the code and tests in that historical state before describing any replacement or restoration plan.
-7. Lock proof checks and tests.
-   - In discovery phases, define proof checks, spike exit criteria, and the evidence needed to clear each blocker.
-   - In implementation phases, define acceptance tests, regression tests, and important failure cases before implementation steps.
-   - Align the proof checks and tests with the chosen option or proof path.
-   - When a behavioral equivalence analysis has been performed, include test scenarios for every dimension classified as `Equivalent` or `Changed (in scope)`. A test plan that only verifies the immediate observable result is incomplete. Persistence round-trips, lifecycle events, external contract guarantees, and resource cleanup must be covered when those dimensions are relevant.
-   - If any dimension from the behavioral equivalence analysis is classified `Unknown`, add a proof check specifically for that dimension before implementation.
-   - If the behavior is not yet clear enough to test, stay in discovery. Do not smuggle implementation into the discovery phase.
-8. Apply the verification gate.
-   - Use `references/design-exploration-rules.md` as a final self-check for comparison discipline, scope control, recommendation framing, and blocker visibility.
-   - If any item is still `Unproven`, stop at the plan and say implementation must not begin.
-   - If all implementation-relevant items for the current phase are proven, deliver the plan and note that implementation may begin only in a later execution step.
+8. Run the residual recovery checks for replacement or restoration.
+   - For replacement / restoration / rollback / rewrite work, the early branch in step 3 already executed `references/change-recovery-checklist.md` steps 1-5 (target behavior, known-good commit, inspection, two-column inventory) before the freeze. This step covers the residual recovery checklist items (steps 6-9): historical/current side-by-side comparison, applicable failure-pattern checks for the recovery surface, plan from verified evidence only, and the recovery-flow's behavioral equivalence anchor.
+   - For non-restoration work, this step is a no-op — skip it.
+   - If the early branch did not run because the work was reclassified mid-workflow as replacement/restoration, restart at step 2 with the restoration branch active. Do not retrofit recovery onto a frozen current-only contract.
+9. Run failure-pattern checks for applicable high-risk surfaces.
+   - Walk the slice's surface through `references/failure-pattern-checklist.md` and pick only the sections whose preconditions match. Fold answers into facts, blockers, or tests; do not paste empty checklist headings into the plan.
+   - This step runs **before** test-lock so checklist answers can shape the test plan rather than retroactively mutating a locked plan. If new test obligations or blockers surface in step 10 or later that should have been caught here, restart at this step rather than amending tests in place.
+   - Record the checklist applicability per `references/failure-pattern-checklist.md` §Applicability Record so the completion gate has a verifiable artifact.
+10. Lock proof checks and tests.
+    - In discovery phases, define proof checks, spike exit criteria, and the evidence needed to clear each blocker.
+    - In implementation phases, define acceptance tests, regression tests, and important failure cases before implementation steps.
+    - Align the proof checks and tests with the chosen option or proof path.
+    - When a behavioral equivalence analysis has been performed, include test scenarios for every dimension classified as `Equivalent` or `Changed (in scope)`. A test plan that only verifies the immediate observable result is incomplete. Persistence round-trips, lifecycle events, external contract guarantees, and resource cleanup must be covered when those dimensions are relevant.
+    - If any dimension from the behavioral equivalence analysis is classified `Unknown`, add a proof check specifically for that dimension before implementation.
+    - Incorporate the failure-pattern checklist answers from step 9 into the test plan (e.g., a step-9 `A.1 lifecycle` blocker implies a late-subscriber regression test).
+    - If the behavior is not yet clear enough to test, stay in discovery. Do not smuggle implementation into the discovery phase.
+11. Apply plan-boundary controls and the completion gate.
+    - Walk every plan addition through `references/plan-boundary-controls.md` (classification, `impl-detail` exception, `history-only` collapse, success-criteria freeze, plan-body firewall).
+    - Apply the completion gate from `references/plan-boundary-controls.md`. Once the gate passes for the current slice, stop iterating; do not extend the plan with additional `impl-detail` or speculative options. The completion gate respects the `Unproven` stop rule and never overrides it.
+    - The completion gate's "applicable failure-pattern checklist sections cleared" criterion reads the applicability record from step 9; missing or unjustified non-selections fail the gate.
+12. Apply the verification gate.
+    - Use `references/design-exploration-rules.md` as a final self-check for comparison discipline, scope control, recommendation framing, and blocker visibility.
+    - If any current-phase implementation-relevant item is still `Unproven`, stop at the plan and say implementation must not begin. Deferred / non-current-phase `Unproven` items remain documented with `Phase relevance` and `Next review point`; they do not block the current phase under this gate.
+    - If all current-phase implementation-relevant items are proven, deliver the plan and note that implementation may begin only in a later execution step.
 
 ## Evidence Classes
 
@@ -230,13 +260,39 @@ Use this full structure for `strict` mode:
 - State explicitly whether implementation is blocked or allowed.
 ```
 
-Include the following section in both modes when the change touches existing behavior. Once this analysis has been performed, the section must remain in the output regardless of subsequent mode changes, scope reclassification, or any other plan updates.
+Include the following two sections in both modes when the change touches existing behavior. The behavior contract inventory comes **first**, the behavioral equivalence analysis comes **second**, and the equivalence table must visibly cite or align with inventory rows. Once these sections have been emitted, they must remain in the output regardless of subsequent mode changes, scope reclassification, or any other plan updates.
+
+Use this compact inventory section for `light` mode:
+
+```markdown
+## Behavior contract inventory (include when the change touches existing behavior)
+| Bucket | Entry | Evidence | Source |
+| --- | --- | --- | --- |
+| Immediate observable behavior | … | `Primary source` / `Local reproduction` / `Unproven` | … |
+| Internal state transition | … | … | … |
+| Persistent / lifecycle behavior | … | … | … |
+```
+
+Use this full inventory section for `strict` mode:
+
+```markdown
+## Behavior contract inventory (include when the change touches existing behavior)
+| Bucket | Entry | Evidence | Source | Feeds equivalence dimension(s) |
+| --- | --- | --- | --- | --- |
+| Immediate observable behavior | … | `Primary source` / `Local reproduction` / `Unproven` | … | 1, 9, … |
+| Internal state transition | … | … | … | 2, 3, 4, … |
+| Persistent / lifecycle behavior | … | … | … | 5, 6, 8, … |
+```
+
+In both modes, every inventory row must carry exactly one of `Primary source`, `Local reproduction`, or `Unproven`. `Unproven` rows are triaged in the same way as any other `Unproven` item (risk, phase relevance, next review point). Empty bucket headings to satisfy structure are forbidden. The inventory and equivalence analysis may be omitted **only** when the current slice provably does not touch existing behavior — record the not-applicable rationale with an evidence class (e.g. "`Local reproduction`: confirmed by reading source that this slice introduces a new code path with no existing-behavior intersection"). Refactors, migrations, and internal implementation changes count as touching existing behavior under the Non-Negotiable Rule and stay under the inventory + equivalence rule even when most rows collapse to `Not applicable` with a documented rationale.
+
+The behavioral equivalence section that follows the inventory must visibly anchor each dimension classification to inventory rows. A dimension cannot be classified `Equivalent` against an `Unproven` inventory entry; it is `Unknown` until the entry is proven.
 
 Use this compact equivalence section for `light` mode:
 
 ```markdown
 ## Behavioral equivalence (include when the change touches existing behavior)
-| Dimension | Scope | Classification | Evidence | Rationale (if Not applicable or Changed) | Test or proof check |
+| Dimension | Scope | Classification | Evidence | Rationale (if Not applicable or Changed) | Test or proof check | Inventory row(s) |
 
 For `Changed (in scope)` dimensions (required in both modes):
 - Requirement or user approval reference:
@@ -249,7 +305,7 @@ Use this full equivalence section for `strict` mode:
 
 ```markdown
 ## Behavioral equivalence analysis (include when the change touches existing behavior)
-| Dimension | Scope (in scope for change / must preserve) | Classification | Evidence or source | Rationale (for Not applicable / Changed) |
+| Dimension | Scope (in scope for change / must preserve) | Classification | Evidence or source | Rationale (for Not applicable / Changed) | Inventory row(s) |
 
 For `Changed (in scope)` dimensions (required in both modes):
 - Requirement or user approval reference:
@@ -293,3 +349,6 @@ This section documents the exception request; it does not change the stop condit
 - Replacement, restoration, and rollback checks: `references/change-recovery-checklist.md`
 - Design comparison rules, recommendation framing, and self-checks: `references/design-exploration-rules.md`
 - Behavioral equivalence analysis for changes touching existing behavior: `references/behavioral-equivalence-analysis.md`
+- Behavior contract inventory built before equivalence analysis: `references/behavior-contract-inventory.md`
+- Plan-content classification, success-criteria freeze, plan-body firewall, and completion gate: `references/plan-boundary-controls.md`
+- Selective failure-pattern checks for high-risk surfaces: `references/failure-pattern-checklist.md`

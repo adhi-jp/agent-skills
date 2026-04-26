@@ -17,7 +17,13 @@ project structure.
 Planning-first skill for turning rough change requests into verified,
 option-aware implementation plans. It emphasizes workspace inspection,
 evidence-labeled claims, recovery-safe replacement planning, and explicit stop
-conditions when implementation blockers remain unproven.
+conditions when implementation blockers remain unproven. v1.2.0 adds a
+behavior-contract inventory built before behavioral equivalence analysis,
+plan-boundary controls (content classification, success-criteria freeze,
+plan-body firewall, completion gate) that keep review feedback from bloating
+the plan, and a selective 10-category failure-pattern checklist for high-risk
+surfaces (lifecycle, exception safety, shared state, migrations, ownership,
+trust boundary, accounting, packaging, tool capability, plan drift).
 
 ### `codex-review-cycle`
 

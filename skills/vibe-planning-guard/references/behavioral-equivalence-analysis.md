@@ -14,6 +14,28 @@ The following are **not** valid reasons to skip this analysis:
 - "The user requested this specific change, so other dimensions are fine."
 - "The immediate output looks the same."
 
+## Build the Inventory First
+
+Before classifying dimensions, build the behavior contract inventory from `references/behavior-contract-inventory.md`. The inventory pins each of the three buckets — immediate observable behavior, internal state transition, and persistent / lifecycle behavior — to `Primary source`, `Local reproduction`, or `Unproven`.
+
+Dimension classification anchors on the inventory rows. A dimension cannot be classified `Equivalent` against an `Unproven` inventory entry; it is `Unknown` until the entry is proven. Likewise, a dimension that the change clearly affects must have a corresponding inventory entry — missing inventory rows are not a free pass.
+
+## Mapping Inventory Buckets to Dimensions
+
+Use the bucket → dimension mapping below as a starting point. Buckets feed multiple dimensions; the mapping is informative, not exhaustive.
+
+| Inventory bucket | Primary dimensions | Secondary dimensions |
+| --- | --- | --- |
+| Immediate observable behavior | 1 (Immediate observable result), 9 (External contracts and guarantees) | 7 (Error and edge cases) |
+| Internal state transition | 2 (Ownership and reference semantics), 3 (Internal state changes), 4 (Side effects and events) | 7 (Error and edge cases), 9 (External contracts and guarantees) |
+| Persistent / lifecycle behavior | 5 (Persistence and serialization), 6 (Lifecycle and reload behavior), 8 (Resource cleanup and disposal) | 9 (External contracts and guarantees) |
+
+Examples:
+
+- An inventory row "FIFO eviction removes the least-recently-inserted entry on `put` overflow — `Local reproduction`" feeds dimension 1 (output of `evict()`), dimension 3 (internal state of the cache after overflow), and dimension 9 (the documented eviction guarantee).
+- An inventory row "On reload, the cache rebuilds from the persisted ordering log — `Primary source`: schema doc" feeds dimension 5 (round-trip preservation), dimension 6 (reload reconstruction), and possibly dimension 8 (cleanup of stale log entries).
+- An inventory row "Late subscribers registered after `start()` miss the initial event — `Unproven`" leaves dimension 6 (lifecycle and reload behavior) at `Unknown` until the contract is verified.
+
 ## Scope Separation
 
 Before classifying dimensions, separate each into one of two scopes:

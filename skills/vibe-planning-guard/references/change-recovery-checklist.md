@@ -20,14 +20,21 @@ Recover or replace behavior without discarding evidence that already exists in t
 4. Inspect the historical implementation directly.
    - Read the relevant code, tests, config, migrations, and assets in that commit.
    - Capture what was different and why it mattered.
-5. Compare historical and current behavior.
-   - Separate accidental regressions from intentional product changes.
+5. Build the behavior contract inventory for both columns.
+   - Read `references/behavior-contract-inventory.md` and populate the three buckets — immediate observable behavior, internal state transition, and persistent / lifecycle behavior — for both the historical / known-good contract and the current contract.
+   - Label every bucket entry with `Primary source`, `Local reproduction`, or `Unproven`.
+   - If the historical column for a bucket cannot be sourced from `Primary source` or `Local reproduction`, mark it `Unproven` and treat the gap as a recovery blocker rather than guessing.
+6. Compare historical and current behavior.
+   - Walk the inventory rows side by side. Separate accidental regressions from intentional product changes.
    - Note any surrounding changes that make direct restoration unsafe.
-6. Plan from verified evidence only.
+7. Run the failure-pattern checks that apply to the restoration.
+   - When restoration touches persisted config or schema, lifecycle / initialization order, build or release packaging, or any trust boundary, run the relevant sections of `references/failure-pattern-checklist.md`.
+   - Fold the answers into the recovery plan's facts, blockers, or tests; do not paste empty checklist headings.
+8. Plan from verified evidence only.
    - Reuse proven behavior when possible.
    - If the historical implementation cannot be verified or no longer fits the current environment, stop and convert the gap into a proof task.
-7. Perform the behavioral equivalence analysis.
-   - Read `references/behavioral-equivalence-analysis.md` and classify every comparison dimension for the replacement.
+9. Perform the behavioral equivalence analysis.
+   - Read `references/behavioral-equivalence-analysis.md` and classify every comparison dimension for the replacement, anchored to the inventory rows from step 5.
    - This step applies to all replacement and restoration tasks, regardless of whether the new implementation uses a different API.
 
 ## If Git History Is Incomplete

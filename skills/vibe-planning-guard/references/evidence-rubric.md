@@ -18,6 +18,21 @@ Use this file when the correct evidence label is unclear or when you need to dec
 - Treat behavioral equivalence between old and new code as proven only when every dimension defined in `references/behavioral-equivalence-analysis.md` has been individually classified and verified. Matching immediate output alone does not prove equivalence across other dimensions. Discovering that a `must preserve` dimension is not equivalent is a stop signal, not a classification decision.
 - If a historical implementation is used as evidence, confirm that it was actually known-good. A random old commit is not enough.
 - If the only support is indirect or secondhand, the item remains `Unproven`.
+- "A review pass suggested it" is not proof of a user requirement. Review notes are an input to the plan, not a source of new success criteria. Treat them under `references/plan-boundary-controls.md` (Success Criteria Freeze) — admissible only when they map to a user requirement, a newly verified source, or a non-equivalent `must preserve` dimension.
+- External transcripts, session histories, or chat logs that cannot be read from the current workspace remain `Unproven`. Do not cite them as evidence. They are upgraded only when the user pastes the relevant excerpts into this workspace, or when the underlying behavior is reproduced locally and captured as `Local reproduction`.
+
+## Verification Sources for Build, Release, and Packaging
+
+Build, package, and release commands change with the project. Memory of "how the build usually works" is not evidence. The authoritative source order, in descending priority:
+
+1. `AGENTS.md` (or equivalent in-repo agent / contributor guide) when present.
+2. CI configuration in this workspace (e.g., `.github/workflows/`, `.gitlab-ci.yml`, `azure-pipelines.yml`).
+3. Project scripts (`Makefile`, `package.json` scripts, `justfile`, `tasks.json`, `Procfile`).
+4. Packaging manifests and lockfiles (`Cargo.toml`, `pyproject.toml`, `package.json`, plugin manifests, `Dockerfile`).
+5. Release runbooks or ADRs checked in to the repository.
+6. `Local reproduction` of the build/release path in this workspace.
+
+If none of the above is available, the build/release claim stays `Unproven` and is recorded as a blocker per `references/failure-pattern-checklist.md` section A.8. Do not substitute remembered commands for any of these sources.
 
 ## When Primary Sources Are Not Reachable
 
