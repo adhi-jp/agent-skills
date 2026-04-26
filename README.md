@@ -27,17 +27,17 @@ trust boundary, accounting, packaging, tool capability, plan drift).
 
 ### `codex-review-cycle`
 
-Simple, user-driven 3-cycle review-and-fix workflow on a user-chosen git
-review target (working-tree diff, current branch vs. its auto-detected
-base branch, or an explicit commit/tag/branch ref), driven by the codex
-plugin's `review` or `adversarial-review --json`. The review variant is
-chosen once at cycle entry and stays fixed for all three cycles. Each
-cycle runs one codex review, Claude verifies findings against a six-item
-validity checklist, calls `review-scope-guard` to triage the findings
-against an explicit Definition of Done, and the user picks which findings
-to address. Claude then applies only the selected fixes before the next
-cycle. Hard cap at 3 cycles. Covers both code diffs and markdown planning
-documents.
+Default 2-cycle interactive review-and-fix workflow on a user-chosen git
+review target — working-tree diff, current branch vs. its auto-detected
+base, or an explicit commit/tag/branch ref — driven by the codex
+plugin's `review` or `adversarial-review --json`. Each cycle runs one
+codex review, Claude verifies findings against a six-item validity
+checklist, `review-scope-guard` triages them against an explicit
+Definition of Done, and the user picks which findings to fix before the
+next cycle. After the final cycle's fix phase, a final-cycle assessment block
+summarizes addressed findings and recommends continue / new-angle /
+end; the user decides whether to terminate or extend the run. Covers
+both code diffs and markdown planning documents.
 
 ### `review-scope-guard`
 
@@ -86,7 +86,7 @@ is this skill's territory.
 
 - `skills/minecraft-modding-workbench/`: Minecraft modding skill package
 - `skills/vibe-planning-guard/`: planning and design-review skill package
-- `skills/codex-review-cycle/`: codex-driven interactive 3-cycle review-and-fix workflow
+- `skills/codex-review-cycle/`: codex-driven interactive 2-cycle review-and-fix workflow with user-elected extensions
 - `skills/review-scope-guard/`: Definition-of-Done-aware review finding triage, invoked by codex-review-cycle
 - `skills/review-fix-cascade-guard/`: cascade-containment guard invoked by codex-review-cycle before any fix-application edit
 - `skills/writing-style-guide/`: principles-first prose-quality skill for durable artifacts

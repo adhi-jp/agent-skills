@@ -13,7 +13,7 @@
 When the residual set (carried user-declined + carried out-of-diff skipped) is empty:
 
 ```
-✅ <Clean-termination label translated> · <cycles label translated> <M>/3 · <F> <fixes-applied label translated> · <trend label translated>: <trend_keyword translated>
+✅ <Clean-termination label translated> · <cycles label translated> <M> · <F> <fixes-applied label translated> · <trend label translated>: <trend_keyword translated>
 
 <Verification Disclaimer rendered verbatim per subsection below>
 
@@ -22,20 +22,20 @@ When the residual set (carried user-declined + carried out-of-diff skipped) is e
   - F<n> (<scope_category>) <codex title verbatim>
   - F<m> (<scope_category>) <codex title verbatim>
 - <Cycle label translated> 2: <no-fix label translated>
-- <Cycle label translated> 3: <one entry per cycle — sub-bullets OR the no-fix label, per §Applied-Fixes List>
+- <... one outer bullet per cycle in `cycle_history`; sub-bullets OR the no-fix label, per §Applied-Fixes List>
 ```
 
 When any residuals exist (declined carry-overs, out-of-diff skips, or final-cycle declines), swap the verdict keyword and list the residuals — do NOT use the clean-termination keyword:
 
 ```
-⚠️ <Terminated-with-residuals label translated> · <cycles label> <M>/3 · <F> <applied label translated> / <R> <residual label translated> · <trend label>: <trend_keyword translated>
+⚠️ <Terminated-with-residuals label translated> · <cycles label> <M> · <F> <applied label translated> / <R> <residual label translated> · <trend label>: <trend_keyword translated>
 
 <Verification Disclaimer rendered verbatim>
 
 <Applied-fixes heading>:
 - <Cycle label> 1: <sub-bullets or no-fix label per §Applied-Fixes List>
 - <Cycle label> 2: <...>
-- <Cycle label> 3: <...>
+- <... one outer bullet per cycle in `cycle_history`>
 
 <User-declined-residuals heading translated>:
 - F<n> (<scope_category>) <codex title verbatim> — <file>:<line_start>, <declined-in-cycle label translated> <N>
@@ -44,19 +44,21 @@ When any residuals exist (declined carry-overs, out-of-diff skips, or final-cycl
 - <same per-entry sub-bullet format, sourced from cycle_history[*].skipped_for_scope[] that never reappear in applied_fixes[], or the no-fix label when empty>
 ```
 
-## Case B — 3 cycles complete with unresolved valid findings
+## Case B — user-elected termination after the final cycle (V[M] > 0)
+
+Reached only from `SKILL.md` step 16's `N >= 2` branch when the user picked `End the review` at the §Final-cycle Assessment decision prompt. `V[M] > 0` is guaranteed because step 12 routes any final-cycle V == 0 to Case A directly; reaching this case means at least one selectable finding existed on the terminal cycle. `<U> == 0` is a valid sub-state — every selectable finding was applied this cycle but the user chose to stop rather than running another cycle to verify the fixes.
 
 ```markdown
-⚠️ <Cap-reached label translated> · <cycles label> 3/3 · <A> <applied label> / <U> <unresolved label> · <trend label>: <trend_keyword translated>
+⚠️ <Cap-reached label translated> · <cycles label> <M> · <A> <applied label> / <U> <unresolved label> · <trend label>: <trend_keyword translated>
 
 <Verification Disclaimer rendered verbatim>
 
 <Applied-fixes heading translated>:
 - <Cycle label translated> 1: <sub-bullets or no-fix label per §Applied-Fixes List>
 - <Cycle label translated> 2: <...>
-- <Cycle label translated> 3: <...>
+- <... one outer bullet per cycle in `cycle_history`>
 
-- <Cycles-run label translated>: 3 / 3
+- <Cycles-run label translated>: <M>
 - <Findings-applied label translated>: <A>
 - <Findings-still-valid-and-unresolved label translated>: <U>
 
@@ -71,7 +73,7 @@ When any residuals exist (declined carry-overs, out-of-diff skips, or final-cycl
 - <Accept-as-residuals label translated>.
 ```
 
-The skill never advances to a fourth cycle. The user must invoke the skill again to continue.
+The skill ends here. The user re-invokes the skill to start a fresh run.
 
 ## Verdict Headline
 
@@ -83,15 +85,15 @@ Three verdict keywords; exactly one applies per run. `V[M]` is the step-12 V on 
 |-----------|-----------------|-------|
 | `V[M] == 0` AND residual set empty (step 12 → Case A) | `Clean termination` | ✅ |
 | `V[M] == 0` AND residual set non-empty (user-declined or out-of-diff skipped carry-overs; step 12 → Case A) | `Terminated with residuals` | ⚠️ |
-| `M == 3` AND `V[3] > 0` (step 16 `N == 3` → Case B). Sub-states: `<U> > 0` (some terminal findings unresolved) or `<U> == 0` (every terminal finding applied, no cycle 4 to re-review). | `Cap reached` | ⚠️ |
+| `M >= 2` AND `V[M] > 0` AND user picked `End the review` at the step-16 §Final-cycle Assessment decision prompt → Case B. Sub-states: `<U> > 0` (some terminal findings unresolved) or `<U> == 0` (every terminal finding applied; the user chose to stop rather than run another cycle to verify). | `Cap reached` | ⚠️ |
 
-The rows are mutually exclusive by construction: step 12 only routes to Case A when V == 0; step 16 only routes to Case B when V[3] > 0.
+The rows are mutually exclusive: step 12 routes to Case A only on V == 0; step 16 routes to Case B only on V[M] > 0 with a user-elected end. The `Cap reached` keyword reads as "review stopped with selectable findings unresolved" and applies whether the stop is a hard cap or a user-elected End — both conditions leave findings on the table.
 
 Headline fields:
 
 - **Emoji** — ✅ or ⚠️ per the table. Literal; never translated, never dropped.
 - **Verdict keyword** — translated per `SKILL.md` §Language.
-- **`cycles <M>/3`** — `<M>` is the executed-cycle count (1, 2, or 3). `cycles` translates; `<M>/3` stays literal.
+- **`cycles <M>`** — `<M>` is the executed-cycle count (1, 2, or any user-elected extension). `cycles` translates; `<M>` stays literal. No `/N` denominator: the cap is dynamic once the user can elect extensions, so the executed count alone carries the run length.
 - **Counts segment** — varies by verdict:
   - Clean termination: `<F> fix(es) applied`. `<F>` = `sum(len(cycle_history[i].applied_fixes))`.
   - Residuals: `<F> applied / <R> residual`. `<R>` = carried user-declined + carried out-of-diff skipped.
@@ -194,7 +196,7 @@ This block is advisory — it does not gate any action. Keep each part to one se
 
 ## Step 20 — Soft-reset temporary cycle commits
 
-(`branch` / `base-ref` only). During the review run, the user created one commit per cycle at Claude's request (`SKILL.md` Phase 1 step 14 manual-commit pause). These are intermediate review-cycle artifacts, not the user's intended final commit. To keep the applied code changes while removing the intermediate commit history:
+(`branch` / `base-ref` only). During the review run, one commit per cycle was created — either by the user under `SKILL.md` Phase 1 step 14's manual-commit pause, or by Claude under step 14's auto-commit branch when `auto_commit_consent == true` (the consent path is run-scoped; see SKILL.md step 14 §Auto-commit consent). Both paths produce identical commit shapes (`git add -- <touched files>` + `git commit -m "review cycle <N> fixes"`) on the same `pre_pause_head` anchor, so the soft-reset behavior below is path-agnostic. These are intermediate review-cycle artifacts, not the user's intended final commit. To keep the applied code changes while removing the intermediate commit history:
 
 - If `review_target.scope == working-tree` or no cycle commits were created, skip this step silently. "Silently" means **produce zero output for this step** — do NOT print `Soft-reset step skipped`, `Soft-reset skipped (scope == working-tree)`, a `(skipped)` tag, or any other acknowledgment that the step existed. The surrounding termination output must flow from §Step 19 — Review assessment directly to the end of the skill with no trace of this step. Silent-skip applies only to the scope / no-cycle-commits preconditions above; the Terminal-cycle verification warning, the Dirty-state audit abort, and the Soft-reset preview gate below remain user-visible in their own triggering cases.
 - **Terminal-cycle verification**: before resetting, verify the final cycle's applied fixes were actually committed. Run `git status --porcelain -- <final cycle's touched_files>`. If any files have uncommitted changes, print `⚠️ Final cycle has uncommitted applied fixes (<file list>). Soft-reset will NOT stage these — only committed changes become staged after reset. Commit them first, or they will be lost from the staged state.` and skip the reset with a manual-squash fallback: `git reset --soft <pre_cycle_1_head>`.
