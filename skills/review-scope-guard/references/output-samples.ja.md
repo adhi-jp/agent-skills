@@ -27,7 +27,7 @@ triage table の下にこの verbatim 引用ブロックを必ず付与する（
 
 ### このサイクル後の rejected ledger
 
-<YAML ブロック — fingerprint / cluster_id / reason / first_seen_cycle / last_seen_cycle / count は原文維持>
+<YAML ブロック — id / cluster_id / reason / first_seen_cycle / last_seen_cycle / count は原文維持。`raw_fingerprint` は internal-only のため user-facing YAML には出さない>
 
 ### Active stop signals (cycle N)
 
@@ -37,6 +37,8 @@ triage table の下にこの verbatim 引用ブロックを必ず付与する（
 
 _Not evaluated (metrics missing): <リスト>_
 
+⚠️ <N> 件の secret redaction を verbatim 出力に適用しました (種別: <comma-list of <type> values>).
+
 **次のアクション**: <ACTIVE/WARNING 時のみ表示。ADVISORY のみならこの行は省略>
 ```
 
@@ -44,5 +46,5 @@ _Not evaluated (metrics missing): <リスト>_
 
 翻訳規則の完全版は SKILL.md §Language を参照。以下は日本語で render する際の該当対応:
 
-- **verbatim に保つ**: `Title (verbatim)` 列本文、**推奨事項（各 finding）本文の `<codex recommendation verbatim>`**、カテゴリ名、`Severity`、`File:Line`、`fingerprint`、`cluster_id`、stop-signal 名と `Status` keyword、DoD anchor 固定語、cycle インデックス。
-- **日本語化する**: 見出し（「推奨事項（各 finding）」等、**ただし本文の `<codex recommendation verbatim>` は verbatim 保持**）、列ヘッダー (`カテゴリ` / `判定理由` / `アクション` 等)、判定理由本文、アクション値、次のアクション推奨テキスト、degraded-mode warning。
+- **verbatim に保つ**: `Title (verbatim)` 列本文、**推奨事項（各 finding）本文の `<codex recommendation verbatim>`**、カテゴリ名、`Severity`、`File:Line`、`cluster_id`、ledger `id` (`L1` / `L2` …)、stop-signal 名と `Status` keyword、DoD anchor 固定語、cycle インデックス、**`[REDACTED:<type>]` リテラル全体**（`<type>` 値 `apikey` / `jwt` / `private-key` / `url-auth` / `secret-context` / `env-secret` も英文字のまま保持）。
+- **日本語化する**: 見出し（「推奨事項（各 finding）」等、**ただし本文の `<codex recommendation verbatim>` は verbatim 保持**）、列ヘッダー (`カテゴリ` / `判定理由` / `アクション` 等)、判定理由本文、アクション値、次のアクション推奨テキスト、degraded-mode warning、redaction summary 行の散文部 (`<N> 件の secret redaction を verbatim 出力に適用しました (種別: …)` の和文部分。`[REDACTED:<type>]` リテラルおよび `<type>` 列挙値は和訳しない)。
