@@ -1,7 +1,7 @@
 ---
 version: 1.0.0
 name: writing-style-guide
-description: Apply disciplined writing principles whenever generating or editing user-facing text — source-code documentation, README, CHANGELOG, commit messages, PR descriptions, and chat replies the user reads. Use for any artifact where words persist beyond the immediate turn. Emphasizes concision, audience fit, and elimination of AI-adjacent filler (marketing vocabulary, hollow superlatives, unrequested caveats, acknowledgment preambles). Trigger whenever producing prose, even when the user did not explicitly ask to apply a style guide — text quality is part of delivery.
+description: Use when generating or editing user-facing prose, including docs, comments, READMEs, changelogs, commit messages, PR descriptions, and chat replies.
 ---
 
 # Writing Style Guide
@@ -36,6 +36,22 @@ When in doubt between applying the guide and preserving an exact format contract
 ### Concision over ornament
 
 Write the shortest version that still transmits the idea. A decorative sentence is a cost every future reader pays. Elegance comes from what is left out.
+
+### Preserve meaning when editing
+
+Editing changes wording, not the contract. Unless the user asks for a semantic change, preserve:
+
+- Factual claims, scope, audience, and terminology
+- Conditions, exceptions, warnings, limitations, and required actions
+- Modality: `must`, `should`, `may`, `can`, `required`, `optional`, and `recommended` carry different obligations
+
+A shorter sentence that changes what the reader must do is wrong. Compress warnings, constraints, and exceptions without removing the reader's ability to act safely and correctly.
+
+### Do not invent context
+
+Do not add reasons, goals, outcomes, roadmap claims, audience assumptions, or causality the source does not support. Avoid "designed to", "helps teams", "future-ready", and "makes it easy to scale" unless the artifact proves the claim.
+
+If the source is incomplete, leave the gap visible or ask when the missing input blocks the task. Do not smooth uncertainty into a confident story.
 
 ### Language follows the artifact, then English
 
@@ -76,7 +92,12 @@ These degrade any piece of writing. Remove them on sight.
 - **Name-echoing comments** — `// parse the user` on `fn parse_user()`. The reader sees the same thing twice.
 - **Marketing vocabulary** — `seamlessly`, `effortlessly`, `powerful`, `leverage`, `robust`, `enterprise-grade`. These signal sales copy, not engineering.
 - **Groundless future claims** — `this will enable future extensibility`, `making it easy to scale later`. Write to present behavior; readers can assess the future themselves.
-- **Unrequested additions** — disclaimers, alternative-approach write-ups, roadmap sections, or "things to consider" the user did not ask for. Scope discipline is part of quality. Required warnings are the exception: safety, security, data-loss, compliance, and irreversible-action notices are not "unrequested additions" even when the user never prompted for them. Concision never justifies dropping a warning the reader needs to avoid harm.
+- **Meaning drift** — edits that change who must do what, when a rule applies, what is allowed, or what happens on failure. Cleaner prose that changes the reader's obligations is a regression.
+- **Invented context** — adding motivation, product intent, business value, implementation rationale, or user impact that is not present in the source material.
+- **Template-shaped answers** — automatic `Summary / Testing / Notes`, three-part lists, or broad comparison sections when the artifact only needs a direct answer.
+- **Over-normalization** — replacing local terminology, order, tone, examples, or structure with generic textbook wording. Preserve useful house style even when it is less polished.
+- **Safety theater** — generic cautionary paragraphs that do not change what the reader should do. Real safety, security, data-loss, compliance, and irreversible-action warnings stay.
+- **Unrequested additions** — disclaimers, alternative-approach write-ups, roadmap sections, or "things to consider" the user did not ask for. Scope discipline is part of quality.
 - **Hollow transitions** — `It's worth noting that…`, `In conclusion,`, `Ultimately,`. If a point is worth making, make it; do not announce it.
 - **Forced symmetry** — rule-of-three lists padded with a filler item, parallel structures built from nothing. Three real points beat three forced ones.
 - **Em-dash abundance** — one or two per paragraph is fine; a third in the same paragraph becomes a tell.
@@ -97,17 +118,20 @@ Illustrations of how the core principles land on familiar artifacts — not work
 - Decide the primary reader before writing anything else.
 - Lead with what it is and how to start using it. Details that do not serve the first thirty seconds go below or out.
 - Cut sections the intended reader does not need. An end-user README should not double as an architecture doc.
+- When editing, keep the existing audience, prerequisites, terminology, and setup order unless the source is wrong or the user asks to reorganize it.
 
 ### CHANGELOG
 
 - Follow the project's existing style.
 - Each entry answers "what changed for me, the reader". Internal refactors without user-visible impact usually belong in commit history, not here.
+- Do not inflate impact. If a change fixes an internal crash path, do not turn it into a broad reliability claim.
 
 ### Commit messages
 
 - Match the repository's existing convention in prefix scheme, tone, and length.
 - The subject line states what the commit achieves, not what the author did.
 - The body explains the *why*, the tradeoffs, and anything a reviewer cannot see from the diff alone.
+- Do not claim intent, tests, user impact, or risk reduction that is not visible in the diff, issue, or supplied context.
 
 ### Chat replies
 
@@ -115,6 +139,7 @@ Illustrations of how the core principles land on familiar artifacts — not work
 - Keep in-progress updates to a sentence or two.
 - End-of-turn summaries, when needed, are one or two sentences. Stay silent when nothing is worth saying.
 - When the user asks for depth — a rationale, verification results, limitations, a recovery plan, a comparison — give them that depth. Concision is a default, not a ceiling; it never justifies omitting information the reader explicitly asked for or needs to act safely.
+- Do not add ritual closing offers, generic next steps, or formal section headings when a short answer resolves the request.
 
 ## Coexistence
 
@@ -127,6 +152,9 @@ When a project convention conflicts with a principle here, the project wins. Thi
 A short pass over the draft, looking for:
 
 - Words deletable without loss of meaning — delete them.
+- Edited meaning — check that facts, scope, modality, conditions, exceptions, warnings, and required actions still match the source.
+- Invented claims — remove unsupported reasons, intent, outcomes, roadmap statements, and audience assumptions.
+- Template residue — remove headings, lists, caveats, and wrap-up sentences that exist only because an answer "usually" has them.
 - Sentences that announce what the next sentence will do — drop the announcement.
 - Superlatives without evidence — cut or replace with specifics.
 - Sections the reader did not ask for — remove them.

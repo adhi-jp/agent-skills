@@ -6,6 +6,10 @@ All notable changes to this repository will be documented in this file.
 
 ### Changed
 
+- `writing-style-guide` — tightened controls for LLM-authored and LLM-edited prose.
+  - Front matter description now states only trigger conditions so agents are less likely to follow the summary instead of reading the full skill.
+  - New meaning-preservation and no-invented-context rules guard against modality drift, dropped conditions or warnings, unsupported rationale, and confident filler.
+  - Anti-patterns now cover meaning drift, invented context, template-shaped answers, over-normalization, and safety theater; README, CHANGELOG, commit-message, and chat guidance gained matching checks.
 - `review-scope-guard` — replaced Japanese examples and prose in non-Japanese Markdown with English equivalents.
   - `SKILL.md` now describes target-language column-label translation using English source labels and references the Japanese sample file in English.
   - `references/dod-template.md` now uses English-only plan-section examples and explicit-user-directive examples.
