@@ -18,7 +18,7 @@ All user-facing output is rendered in the user's language (the language the user
 
 **Translate into the user's language:**
 
-- Section headings and column labels (`カテゴリ` / `判定理由` / `アクション` equivalents in the target language)
+- Section headings and column labels (target-language equivalents of `Category` / `Rationale` / `Action`)
 - Free-text fields Claude authors: `rationale` body, `recommended_action` values, stop-signal evidence prose, next-action hints, degraded-mode warnings
 - `AskUserQuestion` `question`, `header`, and option `label` / `description` fields (e.g. during DoD interview)
 
@@ -375,4 +375,4 @@ The skill is equally callable standalone: the user runs `review-scope-guard` aft
 - `references/dod-template.md` — the six-item Definition of Done interview.
 - `references/triage-categories.md` — full definitions of the four categories with curl-retrospective examples.
 - `references/stop-signals.md` — the five stop signals, thresholds, required inputs, and output format.
-- `references/output-samples.ja.md` — 日本語で render する場合の triage table / ledger / stop signal footer 例。
+- `references/output-samples.ja.md` — examples for rendering the triage table, ledger, and stop-signal footer in Japanese.
