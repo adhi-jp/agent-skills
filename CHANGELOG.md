@@ -29,6 +29,10 @@ date is when that skill's `SKILL.md` version changed.
   - Verbatim output contracts now read as redacted-verbatim. Findings, recommendations, ledger reasons, DoD text from plan/diff evidence, confirmation evidence, caller return payloads, and downstream forwards apply §Secret Hygiene before render or persistence.
   - `references/dod-template.md`, `references/triage-categories.md`, and `references/output-samples.ja.md` now use the same disallowed-URL and redacted-verbatim wording.
 - `codex-review-cycle` — replaced the remaining Japanese footer-total wording in `SKILL.md` with English wording.
+- `review-scope-guard` — strengthened DoD anchor checks so item 4 must name concrete finding types it can reject, and item 5 quality bars must be falsifiable rather than broad "improved/comprehensive" anchors.
+- `codex-review-cycle` — records a per-cycle `convergence_type` and sends a cycle-2 scope-preserving angle when a plan-target cycle 1 only produced spec-clarification findings.
+- `vibe-planning-guard` — added diagnostic-finding restraint so plans responding to analyzer or review findings default to the smallest correction that addresses each finding, deferring adjacent hardening unless directly required.
+- `writing-style-guide` — clarified that artifact-level translation contracts override the active chat language for documentation edits.
 
 ## [codex-review-cycle 1.7.0] - 2026-04-26
 

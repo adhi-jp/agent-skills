@@ -17,13 +17,14 @@ project structure.
 Planning-first skill for turning rough change requests into verified,
 option-aware implementation plans. It emphasizes workspace inspection,
 evidence-labeled claims, recovery-safe replacement planning, and explicit stop
-conditions when implementation blockers remain unproven. v1.2.0 adds a
+conditions when implementation blockers remain unproven. It includes a
 behavior-contract inventory built before behavioral equivalence analysis,
 plan-boundary controls (content classification, success-criteria freeze,
-plan-body firewall, completion gate) that keep review feedback from bloating
-the plan, and a selective 10-category failure-pattern checklist for high-risk
-surfaces (lifecycle, exception safety, shared state, migrations, ownership,
-trust boundary, accounting, packaging, tool capability, plan drift).
+plan-body firewall, completion gate, diagnostic-finding restraint) to keep
+review feedback and analyzer warnings from bloating the plan, and a selective
+10-category failure-pattern checklist for high-risk surfaces (lifecycle,
+exception safety, shared state, migrations, ownership, trust boundary,
+accounting, packaging, tool capability, plan drift).
 
 ### `codex-review-cycle`
 
@@ -43,7 +44,8 @@ both code diffs and markdown planning documents.
 
 Companion skill that triages review findings against an explicit Definition
 of Done to separate must-fix bugs from scope creep and noise. Collects a
-six-item Definition of Done interactively on first invocation, classifies
+six-item Definition of Done interactively on first invocation, checks the
+out-of-scope anchor for strong sibling-framed finding rejections, classifies
 every finding into one of four categories (`must-fix`, `minimal-hygiene`,
 `reject-out-of-scope`, `reject-noise`), maintains a rejected-findings
 ledger, and surfaces five stop signals, though not all are evaluable in

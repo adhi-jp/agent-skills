@@ -54,6 +54,17 @@ Inadmissible bases include "review suggested it", "this would also be nice", "fo
 
 When a `must preserve` dimension reclassification triggers a success-criteria expansion, **automatically escalate the plan to `strict` mode** and record the reclassification basis next to the new criterion.
 
+## Diagnostic-Finding Restraint
+
+When the plan is a response to diagnostic findings, review comments, audit output, or analyzer warnings, treat each finding as a bounded input:
+
+1. Map the finding to the smallest change that would make that exact finding false.
+2. Check whether an existing contract already covers the issue and only needs clearer placement, wording, or cross-reference.
+3. Defer adjacent hardening, detector expansion, new operating modes, additional fixture families, and new policy surfaces unless the finding explicitly requires them or a newly verified source proves the narrow correction cannot work.
+4. Record any deferred adjacent work as a deferred decision, not as part of current-slice success criteria.
+
+If a reviewer later asks for one of the deferred adjacent items, run it through the Success Criteria Freeze again. "A reviewer found a related concern" is not enough by itself.
+
 ## Completion Gate
 
 Plan iteration stops, and the report is delivered, when **all of the following are true for the current slice**:

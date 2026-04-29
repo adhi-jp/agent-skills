@@ -63,6 +63,8 @@ Decide artifact language by this precedence, high to low:
 4. **Project convention** — surrounding docs, CONTRIBUTING, or a style guide in the repo.
 5. **Default to English** — when none of the above give a signal.
 
+When an artifact defines a translation or localization contract, follow that contract as part of the existing artifact language. Write canonical strings in the source language the artifact uses, and put localized examples in locale-marked files or sections only. The conversation language does not override a file's canonical documentation language unless the user explicitly asks to translate that artifact.
+
 Chat replies follow the user's active conversational language, not the file defaults.
 
 ### No meta-acknowledgments

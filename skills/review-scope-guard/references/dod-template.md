@@ -49,7 +49,14 @@ Expected form: a bulleted list. For feature work on an existing surface, include
 
 Expected form: a bulleted list of named items.
 
-**Strong requirement**: list at least 3 items, and for each item, name a *sibling* feature that sits next to it in the code path but is **in scope**. A vague out-of-scope list is the single most common reason `reject-out-of-scope` decisions collapse to `minimal-hygiene` fall-through. If you cannot name 3 tempting extensions, the change is either too small to need this skill (use the codex plugin directly) or the scope has not been thought through yet. Examples of sibling-framing: "cookie_store crate migration (out) — sits next to reqwest::cookie::Jar basic use (in)"; "env/session-scoped Jar partitioning (out) — sits next to single-process Jar sharing (in)".
+**Strong requirement**: list at least 3 items, and for each item, name both:
+
+- A *sibling* feature that sits next to it in the code path but is **in scope**.
+- The concrete review-finding type this item should reject if codex raises it in the current run.
+
+A vague out-of-scope list is the single most common reason `reject-out-of-scope` decisions collapse to `minimal-hygiene` fall-through. If you cannot name 3 tempting extensions, the change is either too small to need this skill (use the codex plugin directly) or the scope has not been thought through yet. Examples of strong sibling-framing: "cookie_store crate migration (out) — sits next to reqwest::cookie::Jar basic use (in); reject findings asking for persistent cookie-store migration"; "env/session-scoped Jar partitioning (out) — sits next to single-process Jar sharing (in); reject findings asking for session-isolated cookie jars".
+
+Weak item-4 entries name future topics but do not reject an incoming finding type. For example, "Future work: local-read containment" is weak because a later finding can still argue that containment improves quality. Rewrite it as "local-read containment rules (out) — sits next to repo-local plan reads (in); reject findings asking for symlink/traversal/submodule policy in this slice" if that boundary is real.
 
 The explicit out-of-scope list is the single most important item for the triage step. It is the list against which `reject-out-of-scope` decisions are made. Example:
 
@@ -73,6 +80,8 @@ Expected form: a bulleted list of verifiable properties. Example:
 
 These become the anchors for `must-fix` on security and round-trip findings.
 
+Quality bars must be falsifiable. Do not use broad "bow-tie" bars such as "diagnostic tool should judge this improved", "make the plan more complete", "hardening should be comprehensive", or "security should be stronger" unless each is rewritten into a concrete observable property. A bar that can justify almost any added feature is not a safe `must-fix` anchor; move it to deferred judgment or replace it with a measurable acceptance criterion.
+
 ### 6. Accepted Divergences
 
 **Question**: `Which cases are you explicitly willing to ship as best-effort or approximate?`
@@ -93,9 +102,9 @@ The skill supports four ways to collect the six items — all must produce the s
    - **diff-evidence path** — drafts from `review_target` (diff files, commit messages, patch excerpts). Allowed for ≤ ~100 LOC diffs that pass the evidence gate.
    - **plan-evidence path** — drafts from `plan_context` (an in-conversation implementation plan or spec). LOC threshold waived because the plan anchors scope independently of diff size. Requires the caller's up-front confirmation `AskUserQuestion` so false-positive plan detection cannot hijack the DoD anchor.
 
-   Proposal mode (both paths) must never auto-fill item 4 without sibling-framed examples; when evidence is thin, fall back to Interview mode for item 4.
-3. **Free-text** — the user pastes a pre-written DoD. Claude splits it into the six items, then runs a single `AskUserQuestion` confirming item 4 meets the sibling-framing rule in §4.
-4. **Quick** — one `AskUserQuestion` covering only item 4 (Explicit Out-of-Scope). Items 1/2/3/5/6 default to `(not specified)`. Use when the user explicitly requests "quick DoD" on a trivial change (≤ ~30 LOC). Item-4 completeness gate still applies; <3 sibling-framed items enters degraded mode as usual.
+   Proposal mode (both paths) must never auto-fill item 4 without strong sibling-framed examples that include finding-type rejections; when evidence is thin, fall back to Interview mode for item 4.
+3. **Free-text** — the user pastes a pre-written DoD. Claude splits it into the six items, then runs a single `AskUserQuestion` confirming item 4 meets the anchor-strength rule in §4.
+4. **Quick** — one `AskUserQuestion` covering only item 4 (Explicit Out-of-Scope). Items 1/2/3/5/6 default to `(not specified)`. Use when the user explicitly requests "quick DoD" on a trivial change (≤ ~30 LOC). Item-4 anchor-strength gate still applies; <3 strong sibling-framed items enters degraded mode as usual.
 
 Regardless of mode, echo the final DoD back as a numbered list so the user can audit before triage runs.
 
@@ -109,9 +118,9 @@ Regardless of mode, echo the final DoD back as a numbered list so the user can a
    Fall back to interview when the evidence gate fails. Input contract: this path MUST source its facts from `review_target` only; it MUST NOT infer from ambient git state (that would make the scope classifier circular — the DoD would be derived from the same diff it is supposed to judge).
 2b. **Proposal — plan-evidence path** — activated when `plan_context.user_confirmed == true`. LOC threshold is waived; the plan replaces the diff as the primary evidence source. See §Proposal-from-plan detection rules below for when this path fires and how the caller prepares `plan_context`.
 3. **Free-text** — triggered when the user pastes a DoD block in the conversation. Split into six items by heading/numbering, run one confirmation `AskUserQuestion` for item 4.
-4. **Quick** — triggered when user explicitly says "quick DoD" / "minimal DoD" / similar AND diff is ≤ ~30 LOC. Single `AskUserQuestion` collecting item 4 only, with label `Out-of-scope (≥3 sibling-framed items) — this is the minimum that keeps the scope guard active.` Other items default to `(not specified)`; the ≥2-blank warning is expected and suppressed.
+4. **Quick** — triggered when user explicitly says "quick DoD" / "minimal DoD" / similar AND diff is ≤ ~30 LOC. Single `AskUserQuestion` collecting item 4 only, with label `Out-of-scope (≥3 strong sibling-framed items) — this is the minimum that keeps the scope guard active.` Other items default to `(not specified)`; the ≥2-blank warning is expected and suppressed.
 
-Regardless of mode, the item-4 completeness gate in `review-scope-guard/SKILL.md` Phase 0 step 2b runs and may enter degraded mode if item 4 has <3 sibling-framed entries (with user override available).
+Regardless of mode, the item-4 anchor-strength gate in `review-scope-guard/SKILL.md` Phase 0 step 2b runs and may enter degraded mode if item 4 has <3 strong sibling-framed entries (with user override available).
 
 ## Proposal-from-plan detection rules
 
@@ -148,7 +157,7 @@ Before drafting DoD from plan content, the caller MUST issue a single confirmati
 
 **Binding-ambiguity fallback**: if the caller cannot compute the target evidence block (e.g. `review_target` was not passed, or `git log` is unavailable for a branch scope) OR if the plan's own intent/scope sections explicitly reference a different target — different base ref, different files, a previously-shipped version — the caller MUST skip the confirmation gate and fall back to `interview` mode. The plan-evidence path requires an unambiguous plan ⇔ target binding backed by concrete evidence, not just the user's belief that some plan exists.
 
-The confirmation gate exists because **plan detection is heuristic and plan-to-target correspondence is not**. A false positive on either axis would anchor the DoD for an entire review run on the wrong document, and the item-4 completeness gate in scope-guard step 2b would then run against a plan the user never intended to apply to this target. The gate consults the user once per detected plan and carries enough evidence for a mismatch to be obvious.
+The confirmation gate exists because **plan detection is heuristic and plan-to-target correspondence is not**. A false positive on either axis would anchor the DoD for an entire review run on the wrong document, and the item-4 anchor-strength gate in scope-guard step 2b would then run against a plan the user never intended to apply to this target. The gate consults the user once per detected plan and carries enough evidence for a mismatch to be obvious.
 
 ### Drafting from plan (after confirmation)
 
@@ -160,12 +169,12 @@ When `plan_context.user_confirmed == true` AND `plan_context.target_binding` is 
    - Item 1 (Intent) — from the plan's intent/goal section. Always present because detection required it (see §Detection rule (a)).
    - Item 2 (Supported Inputs) — from the plan's inputs / scope section. **If the plan has no explicit inputs section**, fall back to `interview` for item 2 only. Do NOT infer inputs from the plan's prose or from the diff; inferred inputs are not evidence-backed.
    - Item 3 (Required Features) — from the plan's must-have feature list. **If the plan has no explicit feature list** (only a goal sentence, say), fall back to `interview` for item 3 only. An invented `Required features` anchor would misclassify real must-fix findings as reject-out-of-scope.
-   - Item 4 (Explicit Out-of-Scope) — from the plan's out-of-scope / non-goals section. Must yield ≥3 sibling-framed items per §4; **if the plan lists <3 out-of-scope items**, fall back to `interview` for item 4 only (do NOT silently widen the DoD).
-   - Item 5 (Quality Bars) — from the plan's acceptance criteria / quality-bar section. **If the plan has no acceptance criteria section**, fall back to `interview` for item 5 only. Quality bars anchor security- and correctness-level `must-fix` decisions; a fabricated bar would suppress the class of finding the review cycle exists to surface.
+   - Item 4 (Explicit Out-of-Scope) — from the plan's out-of-scope / non-goals section. Must yield ≥3 strong sibling-framed items per §4; **if the plan lists <3 out-of-scope items or only future-topic boundaries without finding-type rejections**, fall back to `interview` for item 4 only (do NOT silently widen the DoD).
+   - Item 5 (Quality Bars) — from the plan's acceptance criteria / quality-bar section. **If the plan has no acceptance criteria section, or only broad bow-tie bars that are not falsifiable**, fall back to `interview` for item 5 only. Quality bars anchor security- and correctness-level `must-fix` decisions; a fabricated or over-broad bar would suppress the class of finding the review cycle exists to surface.
    - Item 6 (Accepted Divergences) — from the plan's known-limitation / deferred section, if present; `(not specified)` otherwise. Item 6 is the only item where silent `(not specified)` is safe because its absence widens scope conservatively (more things can become `must-fix`, not fewer).
 3. Echo the drafted DoD back to the user as a numbered list. Tag each item with `(from plan §<section>)` for drafted items and `(interview fallback — plan lacked <section>)` for each item that fell back, so the user can audit which anchors came from the plan vs. an interview question.
 4. Run the interview for each fallback item now (before triage), collecting per §Detailed mode rules item 1 (Interview). This keeps the plan-evidence path an accelerator — it skips interview questions the plan answered, not the ones the plan left blank.
-5. Run the item-4 completeness gate in scope-guard Phase 0 step 2b against the drafted DoD (whether sourced from plan or from fallback interview) as with any other mode.
+5. Run the item-4 anchor-strength gate in scope-guard Phase 0 step 2b against the drafted DoD (whether sourced from plan or from fallback interview) as with any other mode.
 
 ### Input contract
 
