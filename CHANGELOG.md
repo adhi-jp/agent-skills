@@ -2,66 +2,39 @@
 
 All notable changes to this repository will be documented in this file.
 
-## Unreleased
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+Skill versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+This repository contains independently versioned skills. Release sections use
+skill-version identifiers in the form `[skill-name X.Y.Z] - YYYY-MM-DD`; the
+date is when that skill's `SKILL.md` version changed.
+
+## [Unreleased]
 
 ### Changed
 
+- `CHANGELOG.md` now follows Keep a Changelog 1.1.0 with a bracketed
+  `Unreleased` section and skill-version release sections.
+- `AGENTS.md` now records the release workflow: accumulate changes under
+  `Unreleased`, choose affected skill versions only when the user requests a
+  release, and date each release section by the `SKILL.md` version change.
 - `writing-style-guide` — tightened controls for LLM-authored and LLM-edited prose.
-  - Front matter description now states only trigger conditions so agents are less likely to follow the summary instead of reading the full skill.
+  - Front matter description now lists trigger conditions only, reducing the chance that agents follow the summary instead of the full skill.
   - New meaning-preservation and no-invented-context rules guard against modality drift, dropped conditions or warnings, unsupported rationale, and confident filler.
   - Anti-patterns now cover meaning drift, invented context, template-shaped answers, over-normalization, and safety theater; README, CHANGELOG, commit-message, and chat guidance gained matching checks.
 - `review-scope-guard` — replaced Japanese examples and prose in non-Japanese Markdown with English equivalents.
   - `SKILL.md` now describes target-language column-label translation using English source labels and references the Japanese sample file in English.
   - `references/dod-template.md` now uses English-only plan-section examples and explicit-user-directive examples.
-- `review-scope-guard` v1.3.2 — tightened W007 / W011 / W012 guard wording.
+- `review-scope-guard` — tightened W007 / W011 / W012 guard wording.
   - `plan_context.source` now accepts only `conversation-paste`, `referenced-file-local`, and `earlier-turn`. URL/remote sources and legacy `referenced-file` are invalid; supplied content is discarded before interview fallback.
   - Verbatim output contracts now read as redacted-verbatim. Findings, recommendations, ledger reasons, DoD text from plan/diff evidence, confirmation evidence, caller return payloads, and downstream forwards apply §Secret Hygiene before render or persistence.
   - `references/dod-template.md`, `references/triage-categories.md`, and `references/output-samples.ja.md` now use the same disallowed-URL and redacted-verbatim wording.
 - `codex-review-cycle` — replaced the remaining Japanese footer-total wording in `SKILL.md` with English wording.
 
-## 2026-04-26
-
-### Added
-
-- `review-fix-cascade-guard` v1.0.0 — new containment guard that runs before any review-cycle fix is applied. Closes the recurring failure pattern where a valid finding is patched at the named line and the next cycle raises a new valid finding the fix itself created.
-  - Per-finding workflow (Phase 0 capture → Phase 1 invariant restatement + `gate_status` enum → Phase 2 archetype classification across 7 archetypes — `path-coverage`, `state-persistence`, `boundary-binding`, `identity-contract`, `doc-cascade`, `interaction-modality`, `silent-violation` → Phase 3 sibling-path matrix sweep → Phase 4 explicit fix envelope → Phase 5 targeted validation → Phase 6 mandatory completion note) plus Phase 5.5 batch reconciliation across the cycle's selected fixes (surface-overlap detection, invariant compatibility check, order/split decision, doc-cascade dedupe, combined-cycle prediction, batch `gate_status`).
-  - `gate_status` enum (`closed`, `accepted-residual`, `invariant-unknown`, `high-cascade-risk`, `needs-user-decision`) controls whether the caller may apply the edit. The legacy "stop OR mark as risk" wording is retired — `high-cascade-risk` and `invariant-unknown` may transition to `accepted-residual` ONLY through an `AskUserQuestion` that records residuals + surfaces + validation limits + next-cycle attack, after which the per-finding AND Phase 5.5 batch gates re-run before any edit.
-  - Phase 6 per-fix budget contract: 120 words per applied fix across `<invariant>`, `<surfaces_checked>`, `<residuals>`, `<next_cycle_attack>` with truncation priority (`<surfaces_checked>` first, `<residuals>` last and never empty); when even truncated residuals exceed 40 words the writer splits the finding into separate per-residual entries instead of dropping any.
-  - `evals/evals.json` — 11 standalone eval prompts covering inventory/path-coverage, tap-provenance, confirm-host TOCTOU, scope-guard ledger schema, plan split, audit mutation, false-green test runner, canonical artifact identity, editor input modality, silent formatter, and traversal mutation cases.
-  - **Integration contract enforcement (no-script design)**: the repository deliberately keeps no Node-based test infrastructure (no `package.json`, no test runner). The integration contract is enforced by three complementary mechanisms instead:
-    - **(A) Spec-level preflight checks in `codex-review-cycle`** (Claude-executed, 1-cycle delayed; not harness-enforced). Step 8 cycle-N>1 preflight verifies four invariants from cycle N-1: Phase 6 note presence on every applied fix; `<batch_reconciliation>` presence whenever Phase 5.5 produced any cross-cycle decision (≥2 envelope-collected findings OR non-empty splits / application_order / shared_surfaces — covers the 2-selected → 1-applied + 1-deferred case); per-finding cascade-guard invocation receipts (`cycle_history[N-1].guard_receipts[<display_id>]`) with both presence AND `gate_status ∈ {closed, accepted-residual}`; and batch receipt (`cycle_history[N-1].batch_receipt`) with both presence AND editable `batch_gate_status` whenever the persistence trigger held. A receipt-missing, note-missing, or non-editable-status state aborts the next cycle with a contract-violation message; the bypass is detected one cycle later, while still inside the 3-cycle cap. Closure caveat: Claude is both the writer and the checker of these receipts, so a Claude that bypasses the guard can also forge a `closed` receipt; the scheme catches drift, not deliberate evasion.
-    - **(B) Manual dogfood checklist** at `skills/review-fix-cascade-guard/references/dogfood-checklist.md`. Six manual scenarios D1–D6 cover the same surfaces an executable I1–I6 harness would have tested (guard-before-edit, unregistered-skill fallback, pause-on-open-envelope, Phase 6 carry-forward, multi-select batch reconciliation two-cycle, Phase 6 budget + truncation). Run after any contract-touching change.
-    - **(C) Documentation cross-reference invariant** in `skills/review-fix-cascade-guard/SKILL.md` §References. The contract is encoded across three files (cascade-guard SKILL, codex-review-cycle SKILL steps 13.6/13.7/14/15/8 preflight, `references/review-context.md`); whenever any one is changed, all three must be updated in the same edit pass.
-- `codex-review-cycle` v1.5.0 — caller-side coordination for the new `review-fix-cascade-guard` skill.
-  - **Step 13.6 — per-finding cascade guard pass (mandatory).** After the user selects findings (step 13) and the fix-weight precheck passes (step 13.5), invoke `Skill(review-fix-cascade-guard)` for every selected `must-fix` / `minimal-hygiene` finding. Read each per-finding `gate_status`; only `closed` and `accepted-residual` permit `Edit`/`Write` at step 14. Fallback path: if the skill is not registered, read `skills/review-fix-cascade-guard/SKILL.md` and run the workflow manually — silently skipping the guard is a contract violation.
-  - **Step 13.7 — Phase 5.5 batch reconciliation pass (mandatory).** After per-finding envelopes are collected, invoke the guard's batch reconciliation over the combined fix set. Read the batch `gate_status` with the same gating rule. The batch produces a `<batch_reconciliation>` carry record consumed by the next cycle's preflight whenever Phase 5.5 produced any cross-cycle decision (≥2 envelope-collected findings OR non-empty splits / order / shared_surfaces).
-  - **Step 14 — Apply fixes (gated).** Edits are gated on both the per-finding and batch `gate_status`. Gate-blocked findings enter `cycle_history[current].user_declined[]` with the gate-status reason embedded. After each `Edit`/`Write` lands, Claude composes the cascade-guard Phase 6 note (4 named fields, 120-word cap, truncation priority) and stores it on `applied_fixes[].phase_6_note`; missing notes abort the next cycle's preflight.
-  - **Step 15 — Cycle history extended.** `applied_fixes[]` entries now carry `phase_6_note`. New `batch_envelope` field on each `cycle_history` entry holds the Phase 5.5 batch reconciliation outputs whenever the persistence trigger held (≥2 envelope-collected findings OR non-empty splits / order / shared_surfaces); cycle N+1's `<previous_fixes>` `<batch_reconciliation>` is composed from this field. New `guard_receipts` map (`{<display_id>: {gate_status, archetypes, invocation_mode, ts}}`) and `batch_receipt` (`{batch_gate_status, fix_count, invocation_mode, ts}` populated under the same trigger) record cascade-guard invocation evidence so step 8 cycle-N>1 preflight can detect guard-bypass regressions in the prior cycle.
-  - **`references/review-context.md` v1.5.0 schema extension.** `<previous_fixes>` `<fix>` switches from compact body form to named-children form (`<title>`, `<summary>`, `<invariant>`, `<surfaces_checked>`, `<residuals>`, `<next_cycle_attack>`) and gains `category` / `display_id` attributes. New `<batch_reconciliation>` sibling element with `<shared_surfaces>`, `<application_order>`, `<splits>`, `<combined_prediction>`, `<batch_gate_status>` children. Per-fix budget caps + truncation priority documented inline. Backwards compatibility: a v1.4.0 reader sees unknown elements and ignores them, falling back to the legacy `<fix>` body; a v1.5.0 reader treats absence of named children as a missing Phase 6 note and aborts the next cycle's preflight.
-  - **§Failure Modes additions.** `review-fix-cascade-guard returns a non-editable gate_status` and `Phase 6 note missing for an applied finding` entries document the cascade-guard contract violations the cycle catches.
-  - **New step 15a — cascade-guard summary footer line.** A new `🛡️ Cascade-guard: <P> findings applied (<C> closed, <R> accepted-residual), <B> blocked (<gate-status-breakdown>), <D> split-deferred; invocation_mode=<registered | manual-fallback | mixed>; batch_gate_status=<value | n/a>.` line renders at step 15a (after step 15's `cycle_history` persist, before step 16's loop check) whenever `selected_count > 0` (≥1 finding entered step 13.6); omitted on V == 0 cycles and on cycles where the user picked `None — skip all`. Counts are computed from final cycle outcomes (not raw receipt status): `<P>` = entered `applied_fixes[]`, `<B>` = receipt non-editable, `<D>` = receipt editable but deferred by `batch_envelope.splits[]`. Invariant: `<P> + <B> + <D> = selected_count`. When `<U> = V - selected_count > 0`, the line appends `<U> user-declined-at-selection (V=<V>)` so the full audit `<P> + <B> + <D> + <U> = V` is visible. The line is emitted at step 15a, not step 11's summary render, because `guard_receipts[]` and `batch_receipt` are populated at step 13.6 / 13.7 — placing the line at step 11 would always show zeros.
-  - **Step 8 cycle-N>1 preflight extended.** Four new spec-level checks beyond the existing HEAD/working-tree/commit-delta/ownership checks: (1) Phase 6 note presence on every `cycle_history[N-1].applied_fixes[]` entry; (2) `<batch_reconciliation>` presence (`cycle_history[N-1].batch_envelope` non-null) whenever Phase 5.5 produced any cross-cycle decision in N-1; (3) cascade-guard invocation receipt presence AND editable `gate_status ∈ {closed, accepted-residual}` on every applied F-id (`cycle_history[N-1].guard_receipts[<display_id>]`); (4) batch receipt presence AND editable `batch_gate_status ∈ {closed, accepted-residual}` (`cycle_history[N-1].batch_receipt` non-null) under the same persistence trigger. Any missing record OR non-editable status aborts the cycle with a contract-violation message before composing review payload — the no-script audit-trail mechanism for the integration contract. Like all preflight checks, these depend on Claude running them honestly; they detect drift, not deliberate bypass.
-- `vibe-planning-guard` v1.2.0 — plan-boundary and failure-pattern hardening.
-  - `references/behavior-contract-inventory.md` — three buckets (immediate observable behavior, internal state transition, persistent / lifecycle behavior), each labeled with `Primary source` / `Local reproduction` / `Unproven`. Built before behavioral equivalence analysis; equivalence dimensions cite inventory rows and cannot classify `Equivalent` against an `Unproven` entry.
-  - `references/plan-boundary-controls.md` — plan-content classification (`spec-level` / `proof-level` / `test-level` / `impl-detail` / `history-only`), `impl-detail` exception (feasibility-proof or current-slice test definition), `history-only` collapse, success-criteria freeze (admissible bases: user requirement, newly verified source, non-equivalent `must preserve` dimension), plan-body firewall, and completion gate that stops plan iteration without overriding the `Unproven` stop rule.
-  - `references/failure-pattern-checklist.md` — selective checklist with 10 categories authoritative within the file itself (self-contained; drift checks resolve against this file alone): A.1 lifecycle and initialization order, A.2 exception safety and retry, A.3 shared state and multi-consumer behavior, A.4 persisted config and migrations, A.5 ownership / identity / persistence, A.6 trust boundary and temporal correlation, A.7 accounting / budgets / counters, A.8 build / release / packaging, A.9 tool capability and verification method, A.10 plan drift and dependency baseline. Each section is a planning question plus the evidence needed to clear it. Applied selectively; pasting the full 10 sections into every plan is a regression. The Applicability Record subsection lets the completion gate audit non-selections.
+## [codex-review-cycle 1.7.0] - 2026-04-26
 
 ### Changed
 
-- `vibe-planning-guard` v1.2.0 — `SKILL.md` updates.
-  - Front matter bumped to `1.2.0`.
-  - `Scale the Process` adds five strict-mode triggers: shared static state / singletons / global event buses / hook-subscriber ordering; persisted user config / default values for absent fields / opt-out paths / schema migrations; build / package / release path including manifest version bumps and entry-point command sources; client/server or untrusted-payload trust boundaries; external contracts / execution sequencing / nonce or replay protection / FIFO ordering / snapshot timing relative to writes.
-  - `Non-Negotiable Rules` adds four entries: behavior-contract inventory before behavioral equivalence, plan-body firewall before final plan output, success-criteria freeze for the current slice with the three admissible expansion bases, and the completion gate (which respects rather than overrides the `Unproven` stop rule).
-  - `Workflow` is restructured to a 12-step shape that operates on a defined current slice. After step 1 (ground), step 2 selects the smallest safe slice; step 3 builds the behavior contract inventory **for that slice** (with a replacement / restoration branch that runs `change-recovery-checklist.md` steps 1-5 first to produce a two-column historical / current inventory); step 4 states and freezes current-slice success criteria; steps 5-7 cover fact table, ambiguity / design branches, and `Unproven` triage; step 8 is the residual recovery checks for replacement / restoration work; step 9 runs failure-pattern checks for applicable high-risk surfaces **before** test-lock so checklist answers shape the test plan; step 10 locks proof checks and tests; step 11 applies plan-boundary controls and the completion gate; step 12 applies the verification gate. The verification gate's `Unproven` stop wording is current-phase implementation-relevant only — deferred / non-current-phase Unproven items are documented but do not block.
-  - The completion gate requires zero current-slice implementation-relevant `Unproven` items regardless of risk level; the override clause in plan-boundary-controls and SKILL.md no longer carves out `low` risk. Risk level alone never exempts an item — only `Phase relevance` outside the current slice's implementation step does.
-  - Report Structure adds explicit `Behavior contract inventory` section templates for both `light` and `strict` modes, placed before the `Behavioral equivalence (analysis)` section. The equivalence tables gain an `Inventory row(s)` column. Inventory omission requires the slice to provably not touch existing behavior with an evidence-backed not-applicable rationale; refactors / migrations / internal implementation changes stay under the rule.
-  - `References` lists the three new files alongside the existing four.
-- `vibe-planning-guard` v1.2.0 — `references/behavioral-equivalence-analysis.md` requires the inventory to be built before dimension classification, adds an inventory-bucket → nine-dimensions mapping table with examples (FIFO eviction, reload reconstruction, late subscribers), and keeps the nine dimensions unchanged.
-- `vibe-planning-guard` v1.2.0 — `references/change-recovery-checklist.md` inserts the inventory step before the historical / current comparison (with both columns per bucket), and connects the recovery flow to `failure-pattern-checklist.md` when restoration touches persisted config / schema, lifecycle / init order, build or release packaging, or trust boundaries. Original steps 5-7 renumber to 6-9.
-- `vibe-planning-guard` v1.2.0 — `references/design-exploration-rules.md` self-check adds four bullets: abstraction-level placement (`spec` / `proof` / `test` levels in body, `impl-detail` deferred), success-criteria growth audit against the three admissible bases, completion-gate stop, and the `impl-detail` deferral rule.
-- `vibe-planning-guard` v1.2.0 — `references/evidence-rubric.md` clarifies that "a review pass suggested it" is not proof of a user requirement, that inaccessible external transcripts / session histories remain `Unproven` until pasted in or locally reproduced, and adds a Verification Sources for Build, Release, and Packaging section with a 6-level priority order (`AGENTS.md` → CI configs → project scripts → manifests/lockfiles → release runbooks → `Local reproduction`).
-- `vibe-planning-guard` v1.2.0 — `README.md` describes the inventory, plan-boundary controls, and 10-category failure-pattern checklist.
-- `codex-review-cycle` v1.7.0 — 2-cycle default cap with user-elected extension at the final-cycle decision; replaces the v1.5.0 hard 3-cycle cap.
+- Default cap is now 2 review cycles, with user-elected extension at the final-cycle decision; replaces the v1.5.0 hard 3-cycle cap.
   - **Cap change.** `Phase 1 — Review Cycle` repeats up to 2 times by default (was 3). Step 16 `N == 1` falls through to cycle 2 unconditionally; `N >= 2` renders the new §Final-cycle Assessment block followed by a 3-option `AskUserQuestion` (`End the review` / `Continue reviewing (run cycle N+1)` / `Run a new-angle review (cycle N+1 with angle_request)`). Continue and New-angle increment `N` and re-enter step 8; the user can keep extending indefinitely.
   - **§Final-cycle Assessment block.** Renders before the decision prompt. Three sections (translated per §Language): addressed-findings list with cascade-guard Phase 6 envelope (`invariant` / `surfaces_checked` / `residuals` / `next_cycle_attack`) per applied fix; outstanding (declined + skipped) findings list; Claude's judgment with `Trend` / `Residuals summary` / `Verification gap` (when `applied_fixes.length > 0`) / `Recommendation` lines. Default recommendation is `Continue reviewing` whenever the terminal cycle has applied fixes — those edits have not been re-reviewed by codex within the same cycle, and the End option would ship them unverified. Full recommendation rules (including the converging-and-clean End path and the narrowly-clustered new-angle path) are in `SKILL.md` §Final-cycle Assessment.
   - **§Terminal-cycle audit.** New section invoked from step 16's `End the review` branch before any Phase 2 rendering. Mirrors both halves of `references/cycle-n-preflight.md` applied to `cycle_history[N]`: cascade-guard half (Phase 6 note presence, `<batch_reconciliation>` presence, per-finding receipts + editability, batch receipt + editability) for all scopes; commit-state half (HEAD movement, touched-file cleanliness, commit-delta coverage, ownership prompt) for `branch` / `base-ref` only. Continue / New-angle paths skip this audit because the next cycle's preflight already runs the equivalent check. Without the terminal audit, a user-elected End would ship missing Phase 6 notes or partially-committed fixes into Phase 2 Case B unaudited.
@@ -74,15 +47,73 @@ All notable changes to this repository will be documented in this file.
   - **§Failure Modes updates.** Stop-signal entry, V=0-after-extension entry, and user-decline-everything entry rewritten for the user-elected-end model.
   - **Deferred follow-ups (acknowledged in spec):** D7 dogfood scenario for the terminal-cycle End audit (negative control: missing Phase 6 note or receipt on the terminal cycle, verifies §Audit-failure recovery branch); V=0-path dogfood scenario.
   - **`references/cycle-n-preflight.md` added to tracking** as part of this release. The file documents the cycle-N>1 preflight (commit-state checks for `branch` / `base-ref`, cascade-guard checks for all scopes) referenced from step 8 and §References.
-- `review-fix-cascade-guard` v1.0.1 — `SKILL.md` integration claim updated for `codex-review-cycle` v1.7.0's two-boundary audit model.
-  - **§Integration claim** now names two cascade-guard audit boundaries instead of one: (A1) cycle-N>1 preflight on `cycle_history[N-1]` (existing); (A2) the new §Terminal-cycle audit on `cycle_history[N]` defined in `codex-review-cycle` v1.7.0. The (A1) wording is also clarified to scope D1–D6 dogfood coverage to (A1) only.
-  - **Dogfood gap acknowledged inline.** D1–D6 do not cover the (A2) terminal-cycle End path. Until a follow-up scenario lands, regressions on (A2) rely on the documentation cross-reference invariant in §References.
 
-## 2026-04-25
+## [review-fix-cascade-guard 1.0.1] - 2026-04-26
 
 ### Changed
 
-- `codex-review-cycle` v1.4.0 — caller-side coordination for the v1.3.0 scope-guard hardening (W007 / W011 / W012 follow-up) plus same-day Trust Hub diagnostic (audit 2026-04-21, Risk Level: MEDIUM) responses for COMMAND_EXECUTION / PROMPT_INJECTION / EXTERNAL_DOWNLOADS. Every item ships as partial mitigation; the residual list names each.
+- `SKILL.md` integration claim updated for `codex-review-cycle` v1.7.0's two-boundary audit model.
+  - **§Integration claim** now names two cascade-guard audit boundaries instead of one: (A1) cycle-N>1 preflight on `cycle_history[N-1]` (existing); (A2) the new §Terminal-cycle audit on `cycle_history[N]` defined in `codex-review-cycle` v1.7.0. The (A1) wording is also clarified to scope D1–D6 dogfood coverage to (A1) only.
+  - **Dogfood gap acknowledged inline.** D1–D6 do not cover the (A2) terminal-cycle End path. Until a follow-up scenario lands, regressions on (A2) rely on the documentation cross-reference invariant in §References.
+
+## [codex-review-cycle 1.5.0] - 2026-04-26
+
+### Added
+
+- Caller-side coordination for the new `review-fix-cascade-guard` skill.
+  - **Step 13.6 — per-finding cascade guard pass (mandatory).** After the user selects findings (step 13) and the fix-weight precheck passes (step 13.5), invoke `Skill(review-fix-cascade-guard)` for every selected `must-fix` / `minimal-hygiene` finding. Read each per-finding `gate_status`; only `closed` and `accepted-residual` permit `Edit`/`Write` at step 14. Fallback path: if the skill is not registered, read `skills/review-fix-cascade-guard/SKILL.md` and run the workflow manually — silently skipping the guard is a contract violation.
+  - **Step 13.7 — Phase 5.5 batch reconciliation pass (mandatory).** After per-finding envelopes are collected, invoke the guard's batch reconciliation over the combined fix set. Read the batch `gate_status` with the same gating rule. The batch produces a `<batch_reconciliation>` carry record consumed by the next cycle's preflight whenever Phase 5.5 produced any cross-cycle decision (≥2 envelope-collected findings OR non-empty splits / order / shared_surfaces).
+  - **Step 14 — Apply fixes (gated).** Edits are gated on both the per-finding and batch `gate_status`. Gate-blocked findings enter `cycle_history[current].user_declined[]` with the gate-status reason embedded. After each `Edit`/`Write` lands, Claude composes the cascade-guard Phase 6 note (4 named fields, 120-word cap, truncation priority) and stores it on `applied_fixes[].phase_6_note`; missing notes abort the next cycle's preflight.
+  - **Step 15 — Cycle history extended.** `applied_fixes[]` entries now carry `phase_6_note`. New `batch_envelope` field on each `cycle_history` entry holds the Phase 5.5 batch reconciliation outputs whenever the persistence trigger held (≥2 envelope-collected findings OR non-empty splits / order / shared_surfaces); cycle N+1's `<previous_fixes>` `<batch_reconciliation>` is composed from this field. New `guard_receipts` map (`{<display_id>: {gate_status, archetypes, invocation_mode, ts}}`) and `batch_receipt` (`{batch_gate_status, fix_count, invocation_mode, ts}` populated under the same trigger) record cascade-guard invocation evidence so step 8 cycle-N>1 preflight can detect guard-bypass regressions in the prior cycle.
+  - **`references/review-context.md` v1.5.0 schema extension.** `<previous_fixes>` `<fix>` switches from compact body form to named-children form (`<title>`, `<summary>`, `<invariant>`, `<surfaces_checked>`, `<residuals>`, `<next_cycle_attack>`) and gains `category` / `display_id` attributes. New `<batch_reconciliation>` sibling element with `<shared_surfaces>`, `<application_order>`, `<splits>`, `<combined_prediction>`, `<batch_gate_status>` children. Per-fix budget caps + truncation priority documented inline. Backwards compatibility: a v1.4.0 reader sees unknown elements and ignores them, falling back to the legacy `<fix>` body; a v1.5.0 reader treats absence of named children as a missing Phase 6 note and aborts the next cycle's preflight.
+  - **§Failure Modes additions.** `review-fix-cascade-guard returns a non-editable gate_status` and `Phase 6 note missing for an applied finding` entries document the cascade-guard contract violations the cycle catches.
+  - **New step 15a — cascade-guard summary footer line.** A new `🛡️ Cascade-guard: <P> findings applied (<C> closed, <R> accepted-residual), <B> blocked (<gate-status-breakdown>), <D> split-deferred; invocation_mode=<registered | manual-fallback | mixed>; batch_gate_status=<value | n/a>.` line renders at step 15a (after step 15's `cycle_history` persist, before step 16's loop check) whenever `selected_count > 0` (≥1 finding entered step 13.6); omitted on V == 0 cycles and on cycles where the user picked `None — skip all`. Counts are computed from final cycle outcomes (not raw receipt status): `<P>` = entered `applied_fixes[]`, `<B>` = receipt non-editable, `<D>` = receipt editable but deferred by `batch_envelope.splits[]`. Invariant: `<P> + <B> + <D> = selected_count`. When `<U> = V - selected_count > 0`, the line appends `<U> user-declined-at-selection (V=<V>)` so the full audit `<P> + <B> + <D> + <U> = V` is visible. The line is emitted at step 15a, not step 11's summary render, because `guard_receipts[]` and `batch_receipt` are populated at step 13.6 / 13.7 — placing the line at step 11 would always show zeros.
+  - **Step 8 cycle-N>1 preflight extended.** Four new spec-level checks beyond the existing HEAD/working-tree/commit-delta/ownership checks: (1) Phase 6 note presence on every `cycle_history[N-1].applied_fixes[]` entry; (2) `<batch_reconciliation>` presence (`cycle_history[N-1].batch_envelope` non-null) whenever Phase 5.5 produced any cross-cycle decision in N-1; (3) cascade-guard invocation receipt presence AND editable `gate_status ∈ {closed, accepted-residual}` on every applied F-id (`cycle_history[N-1].guard_receipts[<display_id>]`); (4) batch receipt presence AND editable `batch_gate_status ∈ {closed, accepted-residual}` (`cycle_history[N-1].batch_receipt` non-null) under the same persistence trigger. Any missing record OR non-editable status aborts the cycle with a contract-violation message before composing review payload — the no-script audit-trail mechanism for the integration contract. Like all preflight checks, these depend on Claude running them honestly; they detect drift, not deliberate bypass.
+
+## [review-fix-cascade-guard 1.0.0] - 2026-04-26
+
+### Added
+
+- New containment guard that runs before any review-cycle fix is applied. Closes the recurring failure pattern where a valid finding is patched at the named line and the next cycle raises a new valid finding the fix itself created.
+  - Per-finding workflow (Phase 0 capture → Phase 1 invariant restatement + `gate_status` enum → Phase 2 archetype classification across 7 archetypes — `path-coverage`, `state-persistence`, `boundary-binding`, `identity-contract`, `doc-cascade`, `interaction-modality`, `silent-violation` → Phase 3 sibling-path matrix sweep → Phase 4 explicit fix envelope → Phase 5 targeted validation → Phase 6 mandatory completion note) plus Phase 5.5 batch reconciliation across the cycle's selected fixes (surface-overlap detection, invariant compatibility check, order/split decision, doc-cascade dedupe, combined-cycle prediction, batch `gate_status`).
+  - `gate_status` enum (`closed`, `accepted-residual`, `invariant-unknown`, `high-cascade-risk`, `needs-user-decision`) controls whether the caller may apply the edit. The legacy "stop OR mark as risk" wording is retired — `high-cascade-risk` and `invariant-unknown` may transition to `accepted-residual` ONLY through an `AskUserQuestion` that records residuals + surfaces + validation limits + next-cycle attack, after which the per-finding AND Phase 5.5 batch gates re-run before any edit.
+  - Phase 6 per-fix budget contract: 120 words per applied fix across `<invariant>`, `<surfaces_checked>`, `<residuals>`, `<next_cycle_attack>` with truncation priority (`<surfaces_checked>` first, `<residuals>` last and never empty); when even truncated residuals exceed 40 words the writer splits the finding into separate per-residual entries instead of dropping any.
+  - `evals/evals.json` — 11 standalone eval prompts covering inventory/path-coverage, tap-provenance, confirm-host TOCTOU, scope-guard ledger schema, plan split, audit mutation, false-green test runner, canonical artifact identity, editor input modality, silent formatter, and traversal mutation cases.
+  - **Integration contract enforcement (no-script design)**: the repository deliberately keeps no Node-based test infrastructure (no `package.json`, no test runner). The integration contract is enforced by three complementary mechanisms instead:
+    - **(A) Spec-level preflight checks in `codex-review-cycle`** (Claude-executed, 1-cycle delayed; not harness-enforced). Step 8 cycle-N>1 preflight verifies four invariants from cycle N-1: Phase 6 note presence on every applied fix; `<batch_reconciliation>` presence whenever Phase 5.5 produced any cross-cycle decision (≥2 envelope-collected findings OR non-empty splits / application_order / shared_surfaces — covers the 2-selected → 1-applied + 1-deferred case); per-finding cascade-guard invocation receipts (`cycle_history[N-1].guard_receipts[<display_id>]`) with both presence AND `gate_status ∈ {closed, accepted-residual}`; and batch receipt (`cycle_history[N-1].batch_receipt`) with both presence AND editable `batch_gate_status` whenever the persistence trigger held. A receipt-missing, note-missing, or non-editable-status state aborts the next cycle with a contract-violation message; the bypass is detected one cycle later, while still inside the 3-cycle cap. Closure caveat: Claude is both the writer and the checker of these receipts, so a Claude that bypasses the guard can also forge a `closed` receipt; the scheme catches drift, not deliberate evasion.
+    - **(B) Manual dogfood checklist** at `skills/review-fix-cascade-guard/references/dogfood-checklist.md`. Six manual scenarios D1–D6 cover the same surfaces an executable I1–I6 harness would have tested (guard-before-edit, unregistered-skill fallback, pause-on-open-envelope, Phase 6 carry-forward, multi-select batch reconciliation two-cycle, Phase 6 budget + truncation). Run after any contract-touching change.
+    - **(C) Documentation cross-reference invariant** in `skills/review-fix-cascade-guard/SKILL.md` §References. The contract is encoded across three files (cascade-guard SKILL, codex-review-cycle SKILL steps 13.6/13.7/14/15/8 preflight, `references/review-context.md`); whenever any one is changed, all three must be updated in the same edit pass.
+
+## [vibe-planning-guard 1.2.0] - 2026-04-26
+
+### Added
+
+- Plan-boundary and failure-pattern hardening.
+  - `references/behavior-contract-inventory.md` — three buckets (immediate observable behavior, internal state transition, persistent / lifecycle behavior), each labeled with `Primary source` / `Local reproduction` / `Unproven`. Built before behavioral equivalence analysis; equivalence dimensions cite inventory rows and cannot classify `Equivalent` against an `Unproven` entry.
+  - `references/plan-boundary-controls.md` — plan-content classification (`spec-level` / `proof-level` / `test-level` / `impl-detail` / `history-only`), `impl-detail` exception (feasibility-proof or current-slice test definition), `history-only` collapse, success-criteria freeze (admissible bases: user requirement, newly verified source, non-equivalent `must preserve` dimension), plan-body firewall, and completion gate that stops plan iteration without overriding the `Unproven` stop rule.
+  - `references/failure-pattern-checklist.md` — selective checklist with 10 categories authoritative within the file itself (self-contained; drift checks resolve against this file alone): A.1 lifecycle and initialization order, A.2 exception safety and retry, A.3 shared state and multi-consumer behavior, A.4 persisted config and migrations, A.5 ownership / identity / persistence, A.6 trust boundary and temporal correlation, A.7 accounting / budgets / counters, A.8 build / release / packaging, A.9 tool capability and verification method, A.10 plan drift and dependency baseline. Each section is a planning question plus the evidence needed to clear it. Applied selectively; pasting the full 10 sections into every plan is a regression. The Applicability Record subsection lets the completion gate audit non-selections.
+
+### Changed
+
+- `SKILL.md` updates.
+  - Front matter bumped to `1.2.0`.
+  - `Scale the Process` adds five strict-mode triggers: shared static state / singletons / global event buses / hook-subscriber ordering; persisted user config / default values for absent fields / opt-out paths / schema migrations; build / package / release path including manifest version bumps and entry-point command sources; client/server or untrusted-payload trust boundaries; external contracts / execution sequencing / nonce or replay protection / FIFO ordering / snapshot timing relative to writes.
+  - `Non-Negotiable Rules` adds four entries: behavior-contract inventory before behavioral equivalence, plan-body firewall before final plan output, success-criteria freeze for the current slice with the three admissible expansion bases, and the completion gate (which respects rather than overrides the `Unproven` stop rule).
+  - `Workflow` is restructured to a 12-step shape that operates on a defined current slice. After step 1 (ground), step 2 selects the smallest safe slice; step 3 builds the behavior contract inventory **for that slice** (with a replacement / restoration branch that runs `change-recovery-checklist.md` steps 1-5 first to produce a two-column historical / current inventory); step 4 states and freezes current-slice success criteria; steps 5-7 cover fact table, ambiguity / design branches, and `Unproven` triage; step 8 is the residual recovery checks for replacement / restoration work; step 9 runs failure-pattern checks for applicable high-risk surfaces **before** test-lock so checklist answers shape the test plan; step 10 locks proof checks and tests; step 11 applies plan-boundary controls and the completion gate; step 12 applies the verification gate. The verification gate's `Unproven` stop wording is current-phase implementation-relevant only — deferred / non-current-phase Unproven items are documented but do not block.
+  - The completion gate requires zero current-slice implementation-relevant `Unproven` items regardless of risk level; the override clause in plan-boundary-controls and SKILL.md no longer carves out `low` risk. Risk level alone never exempts an item — only `Phase relevance` outside the current slice's implementation step does.
+  - Report Structure adds explicit `Behavior contract inventory` section templates for both `light` and `strict` modes, placed before the `Behavioral equivalence (analysis)` section. The equivalence tables gain an `Inventory row(s)` column. Inventory omission requires the slice to provably not touch existing behavior with an evidence-backed not-applicable rationale; refactors / migrations / internal implementation changes stay under the rule.
+  - `References` lists the three new files alongside the existing four.
+- `references/behavioral-equivalence-analysis.md` requires the inventory to be built before dimension classification, adds an inventory-bucket → nine-dimensions mapping table with examples (FIFO eviction, reload reconstruction, late subscribers), and keeps the nine dimensions unchanged.
+- `references/change-recovery-checklist.md` inserts the inventory step before the historical / current comparison (with both columns per bucket), and connects the recovery flow to `failure-pattern-checklist.md` when restoration touches persisted config / schema, lifecycle / init order, build or release packaging, or trust boundaries. Original steps 5-7 renumber to 6-9.
+- `references/design-exploration-rules.md` self-check adds four bullets: abstraction-level placement (`spec` / `proof` / `test` levels in body, `impl-detail` deferred), success-criteria growth audit against the three admissible bases, completion-gate stop, and the `impl-detail` deferral rule.
+- `references/evidence-rubric.md` clarifies that "a review pass suggested it" is not proof of a user requirement, that inaccessible external transcripts / session histories remain `Unproven` until pasted in or locally reproduced, and adds a Verification Sources for Build, Release, and Packaging section with a 6-level priority order (`AGENTS.md` → CI configs → project scripts → manifests/lockfiles → release runbooks → `Local reproduction`).
+- `README.md` describes the inventory, plan-boundary controls, and 10-category failure-pattern checklist.
+
+## [codex-review-cycle 1.4.0] - 2026-04-26
+
+### Changed
+
+- Caller-side coordination for the v1.3.0 scope-guard hardening (W007 / W011 / W012 follow-up) plus same-day Trust Hub diagnostic (audit 2026-04-21, Risk Level: MEDIUM) responses for COMMAND_EXECUTION / PROMPT_INJECTION / EXTERNAL_DOWNLOADS. Every item ships as partial mitigation; the residual list names each.
   - **A. Caller emission redaction propagation.** Phase 1 step 11 (summary render), step 8 (`<review_context>` composition: `<previous_fixes>` `<fix>` and `<rejected>` from `claude_invalid[]`), step 13 (User Selection UI option `label`), step 8 JSON parse second-failure raw-stdout fallback, and §Failure Modes "User wants to cancel the skill mid-cycle" cancellation summary now apply the `review-scope-guard` SKILL.md §Secret Hygiene overlay at the caller emission boundary. The footer redaction summary line aggregates scope-guard's `<S>` and the caller-side `<C>` into a single `<N> = <S> + <C>` count, with per-source breakdown so caller-side overlay activity stays auditable. References (`summary-template.md`, `termination.md` §Applied-Fixes List, `review-context.md`) gain the same overlay note inline so the verbatim contract reads as `verbatim within the redacted form` everywhere it applies.
   - **B. Caller-owned plan-content digest binding (caller-only protection, not double defense).** Phase 0 step 7 plan-evidence path on the adversarial-review variant computes `candidate_digest = SHA-256(plan_context.content)` before issuing the confirmation `AskUserQuestion`, embeds the first 8 hex chars in the `Yes` option `description`, and persists `target_binding.plan_content_digest` only after the user selects `Yes`. The 3-step pre-question / question / post-`Yes` ordering exists because, without it, the description would claim a digest the user has not yet bound. Phase 1 step 8 re-verifies at every entry: cycle 1 first-use AND every cycle N≥2 start. Mismatch halts and surfaces a `continue-with-interview` / `abort` text-reply gate matching the manual-commit pause shape. Step 7 has a variant responsibility table: caller owns the digest on adversarial-review; scope-guard owns it on standalone / native-review (v1.3.0 path unchanged). On the adversarial-review path the caller forwards `plan_context` to scope-guard at step 10a but scope-guard's collection-mode workflow is skipped because the caller pre-collected DoD, so scope-guard's own post-confirmation digest verify does NOT fire. Extending scope-guard's verify to the cached-DoD path is a future scope-guard release.
   - **D. Stable non-secret `dedupe_token` (forwarding-only groundwork; paraphrased re-raise stays open).** `<review_context>` `<rejected>` elements now carry `dedupe_token="<8-char hex>"` on both source kinds. Ledger-derived entries get the token from scope-guard at v1.3.1 ledger update; claude_invalid-derived entries get the token from the caller at composition time using the same `SHA-256("<severity>|<normalized_file_path>|<scope_category>|<cluster_id_or_empty>")` formula, with cluster omitted. Every input is a structural label, so the token is non-secret by construction and exempt from the §Secret Hygiene overlay. v1.4.0 forwards the token only; codex-side prompt logic that consumes it to suppress paraphrased re-raises is a separate codex-CLI release, and v1.3.0's paraphrased re-raise regression stays open until that release.
@@ -92,14 +123,18 @@ All notable changes to this repository will be documented in this file.
   - **References updated.** `summary-template.md` (overlay note in heading anatomy / body bullets / format rules + footer redaction summary line format with `<S>` / `<C>` breakdown); `termination.md` (overlay note on §Applied-Fixes List `<codex title verbatim>` description); `review-context.md` (`<rejected dedupe_token="…">` attribute on both source kinds, second literal preface line for inert-data boundary marker, inert-reference-data Template note, `<previous_fixes>` `<fix>` title overlay note, claude_invalid composition-time overlay + dedupe_token compute note); `validity-checklist.md` (External-source rule rewrite + inert-data note for cited-file Reads).
   - **Trust Hub diagnostic correspondence (2026-04-21, MEDIUM):** COMMAND_EXECUTION → F; PROMPT_INJECTION → E; EXTERNAL_DOWNLOADS → G. Each ships as partial mitigation; harness-side closure for any of the three is deferred.
   - **Residual risk (operators must layer additional defences).** (a) `dedupe_token` codex-prompt consumer logic is not in this release; paraphrased re-raise remains a v1.3.0-introduced behaviour regression until a codex-CLI release lands. (b) §Secret Hygiene detector still misses secret formats outside the six listed patterns; pair with a static secret scanner at CI time (unchanged from v1.3.0). (c) Caller-owned digest binding fires only on the plan-evidence path AND only on adversarial-review variant; free-text / proposal-diff-evidence / interview / quick modes carry no `plan_context` to bind, and scope-guard's own post-confirmation verify is bypassed on the adversarial-review path. Extending scope-guard's verify to the cached-DoD path is a future scope-guard release. (d) `unrelated_commit_paths[]` paths are not run through the §Secret Hygiene overlay; file-name secrets (rare) would slip past the caller boundary. (e) E is layer 1 only; harness-side trust-boundary isolation, parser-validated structured fields, and capability isolation are a separate Claude Code harness release. (f) F is spec-mandated, not runtime-guarded; `--focus-file` enforcement / wrapper script / harness reject of inline forms is a separate release. (g) G is caller-side regime; harness URL enforcement is a separate release.
-- `review-scope-guard` v1.3.1 — `dedupe_token` ledger field added (8-char hex prefix of `SHA-256("<severity>|<normalized_file_path>|<scope_category>|<cluster_id_or_empty>")`) on every `rejected_ledger[*]` entry. Computed at Phase 3 step 9 immediately after Cluster assignment. Caller-facing field exempt from §Secret Hygiene overlay (every input is a structural label, non-secret by construction); forwarded through to `<rejected dedupe_token="…">` attributes by caller skills. v1.3.1 is a hard dependency for `codex-review-cycle` v1.4.0 (the caller assumes the field exists; no defensive fallback for older scope-guard versions). §Outputs / §Ledger schema with derived fingerprint / §Phase 3 step 9 / §Output Template / §Rejected Ledger Format YAML / `<rejected>` projection example all updated. §Failure Modes and §Plan Content Trust Contract are unchanged.
-- `codex-review-cycle` v1.3.0 — SKILL.md size reduction via 3-section extraction to references.
-  - §Summary Output Template, §Review Context Format, §Termination Criteria (including §Verdict Headline, §Verification Disclaimer, §Applied-Fixes List, step 19 Review Assessment, step 20 soft-reset) move to `references/summary-template.md`, `references/review-context.md`, `references/termination.md` respectively. SKILL.md drops from 724 to 367 lines, below the skill-creator 500-line guideline.
-  - Cross-references within SKILL.md's remaining sections (Language section, Phase 1 steps 8 / 11 / 15 / 16, Phase 2 steps 17 / 18) switch from in-file `§X` anchors to explicit `` `references/X.md` `` file pointers. Relocated content preserves workflow semantics, state contracts, rendering templates, and stop-signal rules — this release is a pure structural refactor with no behavioral change.
-- `codex-review-cycle` v1.3.0 — self-collect review mode documentation and `focus-text.md` `base_sha` terminology drift fix.
-  - §Review Target Modes gains a new paragraph describing codex plugin 1.0.4's self-collect mode. Diffs exceeding roughly 2 files or 256KB drop the inline patch, and codex self-collects with read-only `git` commands. Summary shape is documented per target — `working-tree` carries `git status` + staged/unstaged `--shortstat` + bounded untracked content; `branch` / `base-ref` carries commit log + `--stat` over `<base_sha>..HEAD`. Target stability is mode-specific: `branch` / `base-ref` pin to the immutable `base_sha` via `--base`, while `working-tree` is a live snapshot-at-invocation without a `base_sha` anchor. Validity items 1 and 4 re-check findings regardless of collection mode, so the skill contract is unchanged.
-  - `references/focus-text.md` §Scope switches the `--base` argument placeholder to `base_sha`, matching SKILL.md step 8's frozen-SHA terminology (drift carried since v1.2.0).
-- `review-scope-guard` v1.3.0 — secret-hygiene overlay, plan-content trust contract, URL fail-closed, post-confirmation digest binding, and ledger-schema migration. This release is **risk reduction**, not complete closure of the W007 / W011 / W012 reports; see Residual risk below.
+
+## [review-scope-guard 1.3.1] - 2026-04-26
+
+### Changed
+
+- `dedupe_token` ledger field added (8-char hex prefix of `SHA-256("<severity>|<normalized_file_path>|<scope_category>|<cluster_id_or_empty>")`) on every `rejected_ledger[*]` entry. Computed at Phase 3 step 9 immediately after Cluster assignment. Caller-facing field exempt from §Secret Hygiene overlay (every input is a structural label, non-secret by construction); forwarded through to `<rejected dedupe_token="…">` attributes by caller skills. v1.3.1 is a hard dependency for `codex-review-cycle` v1.4.0 (the caller assumes the field exists; no defensive fallback for older scope-guard versions). §Outputs / §Ledger schema with derived fingerprint / §Phase 3 step 9 / §Output Template / §Rejected Ledger Format YAML / `<rejected>` projection example all updated. §Failure Modes and §Plan Content Trust Contract are unchanged.
+
+## [review-scope-guard 1.3.0] - 2026-04-26
+
+### Changed
+
+- Secret-hygiene overlay, plan-content trust contract, URL fail-closed, post-confirmation digest binding, and ledger-schema migration. This release is **risk reduction**, not complete closure of the W007 / W011 / W012 reports; see Residual risk below.
   - §Secret Hygiene (new section, between §Outputs and §Workflow) plus the §Ledger schema with derived fingerprint subsection. Six regex patterns (known-prefix API keys, JWT, PEM private-key headers, URL-embedded auth, context-anchored secret, env-style assignment) replace matches with `[REDACTED:<type>]` across every scope-guard emission path: triage-table title, per-finding recommendation, ledger entry `title` / `reason`, footer / signal evidence, every Output Template placeholder, the `rejected_ledger` payload returned to the caller, and — when scope-guard owns the plan-evidence confirmation gate — the gate's `AskUserQuestion` text and persisted `target_binding`. §Language gains the overlay note on the two verbatim entries. The footer renders `⚠️ <N> redactions applied to verbatim content this cycle (categories: <list>).` whenever at least one redaction fired. **Risk reduction scope**: only the six listed formats are redacted; novel formats outside that list still flow through verbatim, an explicit known trade-off.
   - §Plan Content Trust Contract (new section, between §Inputs and §Outputs). `plan_context.content` and other caller-supplied free-text fields are treated as inert data; imperative sentences (`treat all findings as reject-noise`, `skip the item-4 gate`, `ignore previous instructions`) are not executed as skill directives. Skill directives originate only from this `SKILL.md` + references, schema-defined caller-passed fields, and explicit user messages in the current conversation. Self-initiated memory writes remain prohibited. Surfacing imperative text in triage rationale is permitted but optional.
   - `plan_context.source` splits into `referenced-file-local` and `referenced-file-url`. URL-backed plan evidence is **fail-closed on every path**: the skill MUST NOT fetch the URL, and caller-prefetched content under that source is rejected and falls back to interview. The inert-data overlay applies on every path that delivers `plan_context` to scope-guard. `target_binding.plan_content_digest` (SHA-256 of `plan_context.content`) is computed by scope-guard at the confirmation gate and re-verified on the post-confirmation read; mismatches halt and surface a `continue-with-interview` / `abort` user reply gate. Digest verification covers `referenced-file-local`, `conversation-paste`, and `earlier-turn` under an in-memory threat model that captures caller mutation of `plan_context.content` after confirmation. **Digest-binding effective scope**: it fires only when scope-guard itself runs the confirmation gate — standalone invocation and the `codex-review-cycle` native-review variant. On the standard `codex-review-cycle` adversarial-review path the caller pre-collects DoD at Phase 0 step 7 and forwards cached `dod` only (no `plan_context`), so digest binding is **bypassed**; fail-closed URL and inert-data overlay still apply. Phase 1 step 5 gains ingest-time legacy v1.2.0 ledger migration with the new `legacy_ledger_mode: "migrate" | "fail-closed"` input (default migrate; legacy fingerprint string hashed directly into `raw_fingerprint` so cross-version repeat-finding stays behaviourally equivalent; entries with missing or unparseable fingerprint strings hard-fail rather than synthesising placeholders). §Failure Modes adds five entries (secrets detected, plan imperative directives, legacy ledger entries, URL fail-closed, digest mismatch).
@@ -107,11 +142,22 @@ All notable changes to this repository will be documented in this file.
   - **Residual risk (operators must layer additional defences)**: (a) the §Secret Hygiene regex detector misses secret formats outside the listed six patterns; pair with a static secret scanner (trufflehog, gitleaks) at CI time. (b) The in-memory threat model does not catch `referenced-file-local` on-disk file rewrites or `earlier-turn` source mutation due to conversation compaction (the skill does not re-fetch). (c) **Digest binding is bypassed on the codex-review-cycle adversarial-review standard path** because that caller owns the confirmation gate and forwards cached `dod` only; fail-closed URL and inert-data overlay still fire there. (d) `<rejected>` forwarding now carries the redacted title rather than the raw codex string, so codex's upstream suppression can degrade — ledger-side repeat-finding stays equivalent to v1.2.0 for byte-identical re-raises, but paraphrased re-raises are an accepted behaviour regression. (e) Caller verbatim emission paths in `codex-review-cycle` and other consumers (summary template, termination Applied-Fixes List, `<review_context>` / `<previous_fixes>` CDATA, User Selection UI labels, JSON parse failure stdout fallback, cancellation summary) are unchanged here; see Known follow-up. (f) **Standalone YAML round-trip is lossy**: `raw_fingerprint` is internal-only (offline brute-force defence), so standalone callers serialising the user-facing YAML between separate sessions lose the dedupe key. In-invocation ledger objects stay behaviourally v1.2.0-equivalent; the regression hits only the save-and-reload-across-sessions pattern.
   - **Known follow-up**: caller-side verbatim emission paths in `codex-review-cycle` and other consumers stay out of scope here. A separate plan will coordinate redaction propagation across the caller stack.
 
-## 2026-04-19
+## [codex-review-cycle 1.3.0] - 2026-04-25
 
 ### Changed
 
-- `codex-review-cycle` v1.2.0 — finding-block summary format, pre-render translation gate, and DoD proposal from in-conversation plans.
+- `SKILL.md` size reduction via 3-section extraction to references.
+  - §Summary Output Template, §Review Context Format, §Termination Criteria (including §Verdict Headline, §Verification Disclaimer, §Applied-Fixes List, step 19 Review Assessment, step 20 soft-reset) move to `references/summary-template.md`, `references/review-context.md`, `references/termination.md` respectively. SKILL.md drops from 724 to 367 lines, below the skill-creator 500-line guideline.
+  - Cross-references within SKILL.md's remaining sections (Language section, Phase 1 steps 8 / 11 / 15 / 16, Phase 2 steps 17 / 18) switch from in-file `§X` anchors to explicit `` `references/X.md` `` file pointers. Relocated content preserves workflow semantics, state contracts, rendering templates, and stop-signal rules — this release is a pure structural refactor with no behavioral change.
+- Self-collect review mode documentation and `focus-text.md` `base_sha` terminology drift fix.
+  - §Review Target Modes gains a new paragraph describing codex plugin 1.0.4's self-collect mode. Diffs exceeding roughly 2 files or 256KB drop the inline patch, and codex self-collects with read-only `git` commands. Summary shape is documented per target — `working-tree` carries `git status` + staged/unstaged `--shortstat` + bounded untracked content; `branch` / `base-ref` carries commit log + `--stat` over `<base_sha>..HEAD`. Target stability is mode-specific: `branch` / `base-ref` pin to the immutable `base_sha` via `--base`, while `working-tree` is a live snapshot-at-invocation without a `base_sha` anchor. Validity items 1 and 4 re-check findings regardless of collection mode, so the skill contract is unchanged.
+  - `references/focus-text.md` §Scope switches the `--base` argument placeholder to `base_sha`, matching SKILL.md step 8's frozen-SHA terminology (drift carried since v1.2.0).
+
+## [codex-review-cycle 1.2.0] - 2026-04-19
+
+### Changed
+
+- Finding-block summary format, pre-render translation gate, and DoD proposal from in-conversation plans.
   - §Summary Output Template now uses a per-finding compact block instead of an 8-column table: heading `#### F<n> · <severity> · <scope> · <validity> — <codex title>` plus four body bullets (File:Line, Claude's note, Recommended action, codex recommendation verbatim). Each finding's verbatim recommendation moves inside the block, so the bottom-of-summary `Recommendation (per finding)` list is gone. Findings group by `must-fix` → `minimal-hygiene` → `reject-out-of-scope` → `reject-noise` so selectable items come first. Wide tables and `──────` separator blocks are now explicitly forbidden.
   - Verbatim-recommendation containment: the fourth bullet's quoted body handles multi-line or Markdown-shaped recommendations via an escape-safe fenced block whose fence length is `(maxRun + 1)` backticks, where `maxRun` is the longest backtick run in the recommendation body. A fixed 3-backtick fence is forbidden because nested ` ``` ` inside the recommendation would close the wrapper. Single-line recommendations with no Markdown markers stay inline.
   - Step 11 and §Summary Output Template open with a Language pre-render gate: determine the user's output language before writing any output, then translate headings, bullet labels, action values, and footer prose. English labels in the template are marked as placeholders, not literal output.
@@ -121,16 +167,21 @@ All notable changes to this repository will be documented in this file.
   - Routing hardened so Case A and Case B predicates do not overlap. Case A is reached only via step 12's V == 0 path (`cycle_history[M].selectable_count == 0` asserted at the start of step 17); Case B is reached only from step 16's `N == 3` branch where `V[3] > 0` by construction. The old path that rendered `Clean termination` after a cycle 3 with V > 0 all-applied is removed. Case B's `<U>` count carries both sub-states — `<U> > 0` (unapplied remain) and `<U> == 0` (every terminal finding applied, no cycle 4 to re-review); Summary blocks render only when `<U> >= 1`, and `<U> == 0` renders a `No unresolved findings.` one-liner under the same heading. Mid-cycle interruption routes through §Failure Modes' cancellation path instead of Case B, because its state contract is not satisfied on abort.
   - State contract extended so Phase 2 reads from persisted fields. `applied_fixes[]`, `user_declined[]`, and `skipped_for_scope[]` entries gain `display_id` (cycle-local `F<n>` from step 9, used by §Applied-Fixes List and residual-line `F<n>`), and the residual buckets gain `cycle_index` for the residual-line `declined in cycle N` token. `selectable_count` is persisted per cycle (V from step 12) as the single source for trend classification. A shared **No-fix cycle-history persist** step covers both terminal V == 0 paths and the `Run cycle N+1` override — without it the terminal V == 0 cycle was absent from `cycle_history`, undercounting `cycles <M>/3` and skewing trend.
   - §Language and `references/summary-samples.ja.md` updated to match: verdict keywords, three trend keywords, disclaimer boilerplate, Applied-Fixes labels, Case B body labels, residual headings, emoji and numeric headline fragments are added to the translate/verbatim lists. The Japanese sample adds Case A clean, Case A residuals, and Case B headline examples plus a translation table for `Clean termination` / `Terminated with residuals` / `Cap reached` and `converging` / `stable` / `cascading`.
-- `review-scope-guard` v1.2.0 — plan-evidence proposal path with plan-to-target binding and per-item evidence gate.
+
+## [review-scope-guard 1.2.0] - 2026-04-19
+
+### Changed
+
+- Plan-evidence proposal path with plan-to-target binding and per-item evidence gate.
   - New optional input `plan_context` (`{source, reference, content, user_confirmed, target_binding}`) carries an in-conversation implementation plan. When `user_confirmed == true` AND `target_binding` is populated, the plan-evidence path of proposal mode activates and the LOC threshold no longer applies.
   - `references/dod-template.md` adds §Proposal-from-plan detection rules: four detection sources (referenced file, conversation paste, earlier turn, explicit user directive), the high-signal confirmation gate (shows top-5 changed files and top-5 commit subjects so stale or adjacent plans cannot quietly anchor a review), multiple-candidate-plan disambiguation, and a binding-ambiguity fallback. The drafting procedure enforces a per-item evidence gate — items 2, 3, 4, 5 each fall back to the interview when the plan lacks the corresponding section, preventing the scope-guard contract from anchoring on fabricated triage anchors. Item 6 remains safe under silent `(not specified)` because its absence widens scope conservatively.
   - SKILL.md §Inputs and Phase 0 step 2 separate the diff-evidence path (gated on `review_target`) from the plan-evidence path (gated on `plan_context`).
 
-## 2026-04-18
+## [minecraft-modding-workbench 1.1.0] - 2026-04-19
 
 ### Changed
 
-- `minecraft-modding-workbench` v1.1.0 — align the skill with the current `minecraft-modding` MCP entry-tool surface.
+- Aligns the skill with the current `minecraft-modding` MCP entry-tool surface.
   - `SKILL.md` scope covers Forge-style access transformers (via `validate-project` task `access-transformer`) and the NBT helper family (`nbt-to-json`, `json-to-nbt`, `nbt-apply-json-patch`).
   - MCP Guardrails lists supporting utilities alongside the entry tools: `get-registry-data` for server-generated vanilla registry bodies, `get-runtime-metrics` for cache/search/index diagnostics, and the NBT helpers for typed-JSON round-trip and RFC6902-style in-place edits. `manage-cache` entry now mentions `action: "verify"`. The MCP-unavailable fallback guidance now also covers version skew: when a named tool/task/argument is rejected as unknown, the skill treats it as an older MCP install and falls back to v1.0-compatible paths instead of guessing alternative payload shapes.
   - Fast Debugging Order gains entries for NeoForge access transformer failures (with `atNamespace` discipline), NBT payload schema drift, and cache/index anomalies that start with `get-runtime-metrics` before any mutating `manage-cache` call. The registry/missing-content entry now states that `get-registry-data` returns the vanilla-version entry list only, so absence from its output is not evidence that a modded, dependency, or datapack entry is missing.
@@ -138,101 +189,107 @@ All notable changes to this repository will be documented in this file.
   - `references/task-checklists.md` renames the Mixin checklist to cover access transformers alongside access wideners, clarifies the mapping/namespace discipline for NeoForge ATs, and adds an "NBT or Save Data" checklist. The NBT checklist covers source identification, compression matching, `DataVersion` preservation, typed-JSON envelope discipline, a pre-edit backup requirement for live save data, and an explicit stop on `.mca` region containers.
   - `references/neoforge.md` adds an Access Transformers section covering file location, mod declaration, mojmap/SRG discipline, and minimal-widening guidance.
 
+## [writing-style-guide 1.0.0] - 2026-04-18
+
 ### Added
 
-- `writing-style-guide` v1.0.0 — principles-first prose-quality skill for
-  durable user-facing artifacts: source-code documentation, README,
-  CHANGELOG, commit messages, PR descriptions, and chat replies the reader
-  keeps. Covers concision, audience fit, meta-acknowledgment removal,
-  language precedence (explicit user request > existing artifact language
-  > filename locale marker > project convention > English default), and
-  artifact self-containment with a durable-traceability carve-out for issue
-  IDs, RFC numbers, commit SHAs, and other rename-stable citations. The
-  anti-pattern set names the AI-tell vocabulary (marketing language, hollow
-  transitions, groundless future claims, forced symmetry, em-dash
-  abundance) and name-echoing doc comments; required safety, security,
-  data-loss, compliance, and irreversible-action warnings are exempt from
-  the unrequested-additions rule. Scope discipline keeps the guide off
-  machine-readable output, verbatim relays, transient status lines, and
-  bare acknowledgments, and explicit depth requests (rationale, verification
-  results, limitations, recovery plans, comparisons) override the concision
-  default. Coexistence section defers to project conventions and active
-  workflows for procedure; the guide only shapes the words those workflows
-  produce.
+- New principles-first prose-quality skill for durable user-facing artifacts:
+  source-code documentation, README, CHANGELOG, commit messages, PR
+  descriptions, and chat replies the reader keeps. Covers concision, audience
+  fit, meta-acknowledgment removal, language precedence (explicit user request
+  > existing artifact language > filename locale marker > project convention
+  > English default), and artifact self-containment with a durable-traceability
+  carve-out for issue IDs, RFC numbers, commit SHAs, and other rename-stable
+  citations. The anti-pattern set names the AI-tell vocabulary (marketing
+  language, hollow transitions, groundless future claims, forced symmetry,
+  em-dash abundance) and name-echoing doc comments; required safety, security,
+  data-loss, compliance, and irreversible-action warnings are exempt from the
+  unrequested-additions rule. Scope discipline keeps the guide off
+  machine-readable output, verbatim relays, transient status lines, and bare
+  acknowledgments. Explicit depth requests (rationale, verification results,
+  limitations, recovery plans, comparisons) override the concision default.
+  Coexistence section defers to project conventions and active workflows for
+  procedure; the guide only shapes the words those workflows produce.
 
-## 2026-04-17
+## [codex-review-cycle 1.1.0] - 2026-04-18
 
 ### Changed
 
-- `codex-review-cycle` v1.1.0 — DoD collection modes, V=0 override, validity external-source exception, soft-reset preview, and Japanese rendering examples.
+- DoD collection modes, V=0 override, validity external-source exception, soft-reset preview, and Japanese rendering examples.
   - DoD can be collected in `interview` / `proposal` / `free-text` modes instead of the single-question-per-item flow (Task 2).
   - `cycle_history[N].not_evaluated_signal_names` carries the stop-signal not-evaluated set so cycle 2+ can suppress repeated footnotes deterministically (Task 3).
-  - validity item 3 gains an external-source verification exception that surfaces reads outside the review diff as `Claude's note` when such reads changed the verdict (Task 4).
-  - when V=0 fires before cycle 3, the user can opt into cycle N+1 with an `<angle_request>` element in `<review_context>`; a `no_fix_cycle: true` marker exempts the cycle-N>1 preflight from the HEAD-advance check to avoid deadlocking branch/base-ref scopes (Task 5).
-  - optional `cluster_id` in the rejected-findings ledger groups findings by shared root cause; surfaced in the termination assessment (rejected-ledger scope only) (Task 7).
-  - soft-reset previews the accumulated cycle commits (`git log --oneline` + `git diff --stat`) and asks the user to confirm before running `git reset --soft`; README public contract updated to match (Task 8).
-  - new reference `summary-samples.ja.md` shows Japanese rendering of summary table, stop-signal footer, and termination messages (Task 9).
-- `review-scope-guard` v1.1.0 — DoD out-of-scope requirement, DoD collection modes, state carrier for stop-signal suppression, cluster_id, and Japanese rendering examples.
+  - Validity item 3 gains an external-source verification exception that surfaces reads outside the review diff as `Claude's note` when such reads changed the verdict (Task 4).
+  - When V=0 fires before cycle 3, the user can opt into cycle N+1 with an `<angle_request>` element in `<review_context>`; a `no_fix_cycle: true` marker exempts the cycle-N>1 preflight from the HEAD-advance check to avoid deadlocking branch/base-ref scopes (Task 5).
+  - Optional `cluster_id` in the rejected-findings ledger groups findings by shared root cause; surfaced in the termination assessment (rejected-ledger scope only) (Task 7).
+  - Soft-reset previews the accumulated cycle commits (`git log --oneline` + `git diff --stat`) and asks the user to confirm before running `git reset --soft`; README public contract updated to match (Task 8).
+  - New reference `summary-samples.ja.md` shows Japanese rendering of summary table, stop-signal footer, and termination messages (Task 9).
+
+## [review-scope-guard 1.1.0] - 2026-04-18
+
+### Changed
+
+- DoD out-of-scope requirement, DoD collection modes, state carrier for stop-signal suppression, `cluster_id`, and Japanese rendering examples.
   - `dod-template.md` now requires ≥3 sibling-framed out-of-scope items in DoD item 4 (Task 1).
   - DoD collection modes — see `codex-review-cycle` entry above (Task 2).
   - `not_evaluated_signal_names` return-value field — see `codex-review-cycle` entry above (Task 3).
   - `cluster_id` field — see `codex-review-cycle` entry above (Task 7).
-  - new reference `output-samples.ja.md` shows Japanese rendering of triage table, ledger, and stop-signal footer with a verbatim recommendation block (Task 9).
+  - New reference `output-samples.ja.md` shows Japanese rendering of triage table, ledger, and stop-signal footer with a verbatim recommendation block (Task 9).
+- G1 (straddle adjudication for DoD-endorsed security-adjacent designs) is intentionally excluded from this release. Three rounds of adversarial review surfaced state-ordering and classifier-input-surface concerns that need further design work. It requires a separate plan with explicit `rationale` timing and classifier-lexicon tests.
 
-### Deferred
-
-- G1 (straddle adjudication for DoD-endorsed security-adjacent designs) is intentionally NOT included in this release. Three rounds of adversarial-review surfaced state-ordering and classifier-input-surface concerns that need further design work. Will be re-proposed as a separate plan with explicit `rationale` timing and classifier-lexicon tests.
-
-## 2026-04-15
+## [codex-review-cycle 1.0.0] - 2026-04-16
 
 ### Added
 
-- `codex-review-cycle` v1.0.0 — bounded 3-cycle interactive review-and-fix
-  workflow driven by the codex plugin's `review` or `adversarial-review
-  --json`. Three review target modes: `working-tree` (uncommitted diff),
-  `branch` (HEAD vs. auto-detected base), `base-ref` (HEAD vs. explicit
-  ref). Each cycle runs one codex review, Claude verifies findings against
-  a six-item validity checklist, `review-scope-guard` triages scope, and
-  the user selects which findings to fix. Adversarial cycles carry a
-  `<review_context>` XML block across cycles. Hard cap at 3 cycles. For
+- Bounded 3-cycle interactive review-and-fix workflow driven by the codex
+  plugin's `review` or `adversarial-review --json`. Three review target modes:
+  `working-tree` (uncommitted diff), `branch` (HEAD vs. auto-detected base),
+  `base-ref` (HEAD vs. explicit ref). Each cycle runs one codex review, Claude
+  verifies findings against a six-item validity checklist, `review-scope-guard`
+  triages scope, and the user selects which findings to fix. Adversarial cycles
+  carry a `<review_context>` XML block across cycles. Hard cap at 3 cycles. For
   `branch`/`base-ref` scopes, Claude pauses between cycles for the user to
   manually commit applied fixes before the next cycle proceeds.
-- `codex-review-cycle` v1.0.0 references: `focus-text.md`,
-  `validity-checklist.md`.
-- `review-scope-guard` v1.0.0 — companion skill that triages review findings
-  against an explicit Definition of Done. Classifies findings into four
-  categories (`must-fix`, `minimal-hygiene`, `reject-out-of-scope`,
-  `reject-noise`). Collects a six-item DoD interactively, maintains a
-  rejected-findings ledger, and surfaces five stop signals (not all
-  evaluable in every usage context). Usable
-  standalone or as a companion to `codex-review-cycle`.
-- `review-scope-guard` v1.0.0 references: `dod-template.md`,
-  `triage-categories.md`, `stop-signals.md`.
+- References: `focus-text.md`, `validity-checklist.md`.
 
-## 2026-03-28
+## [review-scope-guard 1.0.0] - 2026-04-16
 
 ### Added
 
-- `vibe-planning-guard` v1.1.0 — behavioral equivalence analysis reference for
-  changes touching existing behavior, covering comparison dimensions, scope
-  separation, classification, and stop conditions
+- Companion skill that triages review findings against an explicit Definition
+  of Done. Classifies findings into four categories (`must-fix`,
+  `minimal-hygiene`, `reject-out-of-scope`, `reject-noise`). Collects a
+  six-item DoD interactively, maintains a rejected-findings ledger, and surfaces
+  five stop signals (not all evaluable in every usage context). Usable
+  standalone or as a companion to `codex-review-cycle`.
+- References: `dod-template.md`, `triage-categories.md`, `stop-signals.md`.
+
+## [vibe-planning-guard 1.1.0] - 2026-03-28
+
+### Added
+
+- Behavioral equivalence analysis reference for changes touching existing
+  behavior. Covers comparison dimensions, scope separation, classification, and
+  stop conditions.
 
 ### Changed
 
-- `vibe-planning-guard` v1.1.0: `SKILL.md` now requires behavioral equivalence
-  analysis for changes to existing behavior, escalates uncertain cases to
-  `strict`, and expands test-plan and report expectations
-- `vibe-planning-guard` v1.1.0: recovery checklist, design exploration
-  guidance, and evidence rubric now reference the behavioral equivalence
-  analysis workflow
+- `SKILL.md` now requires behavioral equivalence analysis for changes to
+  existing behavior, escalates uncertain cases to `strict`, and expands
+  test-plan and report expectations.
+- Recovery checklist, design exploration guidance, and evidence rubric now
+  reference the behavioral equivalence analysis workflow.
 
-## 2026-03-15
-
-Initial public release of this skill repository.
+## [minecraft-modding-workbench 1.0.0] - 2026-03-15
 
 ### Added
 
-- `minecraft-modding-workbench` v1.0.0 — Fabric, NeoForge, and Architectury workflows
-- `vibe-planning-guard` v1.0.0 — planning-first implementation work
-- references and supporting files for both packaged skills
-- repository publication files including `README.md` and `LICENSE`
+- Initial public release of this skill repository.
+- Fabric, NeoForge, and Architectury workflows.
+- Repository publication files including `README.md` and `LICENSE`.
+
+## [vibe-planning-guard 1.0.0] - 2026-03-15
+
+### Added
+
+- Planning-first implementation work.
+- References and supporting files for both packaged skills.
