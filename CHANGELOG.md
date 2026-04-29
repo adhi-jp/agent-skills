@@ -44,6 +44,7 @@ date is when that skill's `SKILL.md` version changed.
   - A manual `closed` gate now requires real sibling-path matrix and targeted-validation evidence.
   - `codex-review-cycle` edit gates, receipts, preflights, cascade footer counts, and `<previous_fixes>` boundaries now track those evidence flags instead of trusting invocation mode alone.
 - `codex-review-cycle`, `review-scope-guard`, and `review-fix-cascade-guard` — shortened front matter descriptions to trigger-only wording so agents load the skill body instead of following a workflow summary from metadata.
+- `minecraft-modding-workbench` — shortened the front matter description to trigger-only wording and clarified that `mcp-recipes.md` keeps canonical MCP hyphenated tool names while host callable names may differ.
 
 ## [codex-review-cycle 1.7.0] - 2026-04-26
 

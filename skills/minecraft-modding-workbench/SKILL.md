@@ -2,13 +2,10 @@
 version: 1.1.0
 name: minecraft-modding-workbench
 description: >
-  Build, debug, port, or inspect Minecraft Java Edition mods for Fabric,
-  NeoForge, and Architectury with the `minecraft-modding` MCP server. Use for
-  Minecraft mod work involving supported loader workspaces, Mixins, access
-  wideners, access transformers, Yarn/intermediary/Mojang mappings,
-  common-vs-platform module splits, version migration, registry or resource
-  debugging, NBT payload round-trip and patching, and mod JAR inspection or
-  remapping.
+  Use when building, debugging, porting, or inspecting Minecraft Java Edition
+  mods for Fabric, NeoForge, or Architectury, including Mixins, access
+  wideners, access transformers, mappings, registry/resource issues, NBT
+  payloads, mod JAR inspection, remapping, or version migration.
 ---
 
 # Minecraft Modding Workbench

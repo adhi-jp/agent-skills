@@ -20,6 +20,10 @@
 
 Read this file when you already know which high-level MCP entry tool you need, but you want a payload shape that validates on the current v3 surface.
 
+This file uses the `minecraft-modding` MCP's canonical hyphenated tool names, such as `inspect-minecraft`, `validate-project`, and `nbt-to-json`.
+
+Some hosts expose the same tools through transformed callable names, such as snake_case function names. When making a tool call, use the callable name shown by the current tool schema. Do not rewrite this document's canonical names or payload examples just because one host uses a transformed function identifier.
+
 These are starting points, not mandatory templates. Keep the first pass small and expand only when `result.summary` says you need more detail.
 
 ## Shared Defaults
