@@ -7,7 +7,7 @@ The four categories every finding is classified into. These categories are delib
 Evaluate each finding in this order. The first match wins.
 
 1. **must-fix / security check** → `must-fix` if the finding names a violation of a DoD required feature, quality bar, or security property. This check runs **first** so a later cycle's clearer DoD, changed context, or security interpretation can rescue a finding whose fingerprint already sits in the rejected ledger. A security-relevant or required-feature-violating finding is NEVER suppressed by a prior ledger entry.
-2. **Ledger lookup** → `reject-noise: already-rejected` if the fingerprint is in the rejected ledger AND the finding did not fire `must-fix` in step 1. Reuse the ledger's prior reason verbatim.
+2. **Ledger lookup** → `reject-noise: already-rejected` if the fingerprint is in the rejected ledger AND the finding did not fire `must-fix` in step 1. Reuse the ledger's prior redacted reason without paraphrasing.
 3. **out-of-scope check** → `reject-out-of-scope` if the finding targets a DoD explicit out-of-scope item or proposes new functionality not in DoD
 4. **noise check** → `reject-noise` if the finding is a vague suggestion, a niche edge case, or implementation detail on a plan target
 5. **fall-through** → `minimal-hygiene` (the default for leaked findings that are neither bugs in DoD scope nor safe to ignore). When `dod` is `null`, the fall-through still lands here — the skill preserves the 4-category invariant. The caller surfaces a degraded-mode warning in the summary footer so the user knows scope triage was weakened, but no new bucket is created.
@@ -53,7 +53,7 @@ Canonical sub-types:
 - **New-feature proposal** — codex suggests adding a feature that was never in scope. Example: "Add Multipart file reading in cURL import."
 - **Priority-resolution proposal on tangential methods** — codex suggests logic for methods the change was not supposed to handle. Example: "Route WebDAV `PROPFIND` correctly."
 
-**Action**: reject. Add to the rejected ledger with the reason verbatim. Do NOT apply any code change for this finding. The next cycle's `<review_context>` (when called from codex-review-cycle) will forward this rejection so codex is asked not to re-report it.
+**Action**: reject. Add to the rejected ledger with the post-overlay redacted reason. Do NOT apply any code change for this finding. The next cycle's `<review_context>` (when called from codex-review-cycle) will forward this rejection so codex is asked not to re-report it.
 
 ### 4. `reject-noise`
 

@@ -9,6 +9,10 @@ All notable changes to this repository will be documented in this file.
 - `review-scope-guard` — replaced Japanese examples and prose in non-Japanese Markdown with English equivalents.
   - `SKILL.md` now describes target-language column-label translation using English source labels and references the Japanese sample file in English.
   - `references/dod-template.md` now uses English-only plan-section examples and explicit-user-directive examples.
+- `review-scope-guard` v1.3.2 — tightened W007 / W011 / W012 guard wording.
+  - `plan_context.source` now accepts only `conversation-paste`, `referenced-file-local`, and `earlier-turn`. URL/remote sources and legacy `referenced-file` are invalid; supplied content is discarded before interview fallback.
+  - Verbatim output contracts now read as redacted-verbatim. Findings, recommendations, ledger reasons, DoD text from plan/diff evidence, confirmation evidence, caller return payloads, and downstream forwards apply §Secret Hygiene before render or persistence.
+  - `references/dod-template.md`, `references/triage-categories.md`, and `references/output-samples.ja.md` now use the same disallowed-URL and redacted-verbatim wording.
 - `codex-review-cycle` — replaced the remaining Japanese footer-total wording in `SKILL.md` with English wording.
 
 ## 2026-04-26
