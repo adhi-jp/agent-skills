@@ -1,14 +1,14 @@
 ---
 version: 1.3.2
 name: review-scope-guard
-description: Triage code/plan review findings against an explicit Definition of Done so must-fix bugs are separated from scope creep, out-of-scope semantic implementations, and noise. Collects the six-item Definition of Done interactively on first invocation, classifies every finding into one of four categories (`must-fix`, `minimal-hygiene`, `reject-out-of-scope`, `reject-noise`), maintains a rejected-findings ledger so repeated complaints are not re-litigated across cycles, and evaluates five stop signals for scope drift. Output is a triage verdict table plus an updated ledger usable by `codex-review-cycle`. Use when a codex review returned findings that may drift beyond the stated scope, when the user explicitly asks to triage or scope-check review findings, or when invoked by `codex-review-cycle` between its validity check and summary render. Do NOT trigger for single-shot lint reviews, unrelated code changes, or when the user has not yet run a review.
+description: Use when Codex or code/plan review findings need Definition-of-Done scope triage, especially to separate must-fix issues from minimal hygiene, out-of-scope hardening, repeated noise, or self-induced refinements. Also use when codex-review-cycle invokes scope guard between validity checking and summary render. Do not use for single-shot lint or unrelated changes.
 ---
 
 # Review Scope Guard
 
 ## Overview
 
-A scope-aware triage skill that sits between a review tool and a user-facing summary. It takes a list of review findings and a Definition of Done (DoD), classifies each finding into one of four action categories, and maintains a rejected-findings ledger so the same complaint is never re-litigated across cycles. The skill never applies fixes itself — it only decides which findings are worth escalating and which should be suppressed.
+A scope-aware triage skill that sits between a review tool and a user-facing summary. It takes a list of review findings, a Definition of Done (DoD), and optional explicit project context, classifies each finding into one of four action categories, and maintains a rejected-findings ledger so the same complaint is never re-litigated across cycles. The skill never applies fixes itself — it only decides which findings are worth escalating and which should be suppressed.
 
 This skill exists because adversarial review tools (including codex's `adversarial-review`) are calibrated for "correctness gaps from a theoretical ideal", not "impact on the stated scope". Without a scope filter the implementer chases edge cases and semantic implementations that were never in scope, then reverts them. A 19-cycle curl-import session that reverted ~50% of its Phase 2-3 additions is the empirical baseline this skill is designed to prevent.
 
@@ -57,7 +57,8 @@ If `review-scope-guard` is not registered with the harness (Skill() invocation f
 - **`dod`** (optional) — a pre-loaded Definition of Done as either structured text or a file path. If absent, the skill collects it interactively in Phase 0.
 - **`rejected_ledger`** (optional) — a prior ledger from earlier cycles. If absent, starts from empty.
 - **`metrics`** (optional, used by stop signals) — per-target `size_initial` / `size_now` line counts, `tests_total`, `required_features_count`. Missing metrics mean the corresponding stop signals report `not evaluated`.
-- **`history`** (optional) — per-cycle list of applied finding IDs with their triage categories. Needed for `hygiene-only-stretch` and `out-of-scope-streak`.
+- **`history`** (optional) — per-cycle history. Minimal shape: applied finding IDs with triage categories, enough for `hygiene-only-stretch` and partial `out-of-scope-streak`. Preferred integrated shape: `cycle_history[]` entries with `applied_fixes[]` carrying `{display_id, title, scope_category, touched_files[], phase_6_note}` plus `selectable_count` / `scope_health` when available. The richer shape lets the noise check identify self-induced refinements of text, tests, fixtures, runbooks, or policy introduced by the immediately previous cycle.
+- **`project_context`** (optional) — explicit user-stated scale / operational context for the target, such as `personal mod`, `hobby project`, `internal tool`, `production service`, or `unknown`. Use only context stated by the user, the confirmed DoD, or a confirmed plan; do not infer production obligations from codex severity, repository size, or generic best practices. This field is resolved before Phase 2 triage and helps classify out-of-context production hardening as `reject-out-of-scope` when the user did not ask for it.
 - **`review_target`** (optional overall, **required when DoD is collected in `proposal` mode via the diff-evidence path**) — the caller's resolved review target, shaped as `{scope, base_ref, base_sha, diff_command, diff_files, diff_numstat, commit_range, commit_messages[], diff_patch_excerpts}`. `scope` ∈ `working-tree|branch|base-ref`; `base_sha` is the frozen SHA (`base_ref` is display-only); `diff_files` is `git diff --name-only` output; `commit_messages[]` is the subject+body list of commits in the range (empty for working-tree); `diff_patch_excerpts` is bounded content-bearing evidence (first ~200 lines of tracked-modified diff + first ~50 lines of each untracked file for working-tree; **also populated for branch/base-ref when commit messages are templated/vague** — see proposal-mode evidence gate below). Without `review_target`, the **diff-evidence path** of `proposal` mode is disabled and the skill falls back to `interview` mode (the `plan-evidence` path below may still fire independently) — proposal mode MUST NOT draft from ambient git state, because drafting from the wrong scope would make the scope classifier circular (DoD derived from the diff then used to judge the diff). **Proposal-mode diff-evidence gate**: the diff-evidence path requires content-bearing evidence regardless of scope:
   - **Working-tree**: requires non-empty `diff_patch_excerpts`; filename+numstat alone is insufficient. If commit_messages is empty AND diff_patch_excerpts is empty/blank, fall back to interview.
   - **Branch / base-ref**: commit messages alone are not automatically sufficient. At least one commit must have a subject of ≥20 characters AND a non-empty body, OR `diff_patch_excerpts` must be populated (same budget-based heuristic as working-tree). If all commits are short/templated (e.g. `"fix review comments"`, `"wip"`, `"update tests"`) AND no patch excerpts are supplied, fall back to interview. A DoD drafted from a vague squash commit subject would anchor `must-fix` and `reject-out-of-scope` decisions for the whole run against a weak inferred scope — that is the failure mode this gate blocks.
@@ -87,6 +88,8 @@ If `review-scope-guard` is not registered with the harness (Skill() invocation f
 - **Active stop signals** — only the signals that tripped this cycle, with evidence.
 - **`not_evaluated_signal_names`** — ordered `string[]` of stop-signal names whose status is `not evaluated: metrics missing`, in the 5-signal canonical order (see `references/stop-signals.md` §Per-cycle suppression). Callers persist this per cycle to decide whether to suppress repeated `not evaluated` footnotes in later cycles; standalone callers may ignore it.
 - **`structurally_unevaluable_signal_names`** — ordered `string[]` of signals that are deterministically `not evaluated` for the current caller shape (e.g. `codex-review-cycle` always lacks `file-bloat` and `reactive-testing` metrics). Separate from `not_evaluated_signal_names` so callers can compact the footer: structurally-unevaluable signals are mentioned once per run (cycle 1), not per cycle. Standalone callers that supply metrics receive an empty list.
+- **`resolved_project_context`** — the context value actually used during Phase 2. This equals the supplied `project_context` unless that value was absent / `unknown` and explicit user language, the confirmed DoD, or a confirmed plan named the target context during Phase 0. Callers should cache it before computing any final-cycle scope-health assessment.
+- **`dod`** — the collected or pre-loaded Definition of Done, including `dod.item4_gate` when the item-4 anchor-strength gate ran. Integrated callers cache this after native-review cycle 1.
 - **Next-action hint** — one-line recommendation when any stop signal is `ACTIVE` or `WARNING`.
 
 ## Secret Hygiene
@@ -162,6 +165,7 @@ The patterns are necessarily incomplete: novel cloud-provider key formats, inter
        - `Enter degraded mode anyway` — proceed as previously specified (reject-out-of-scope disabled, footer warning every cycle). `dod.item4_gate: "degraded"`.
      The override path exists because "scope creep prevention" and "trivially-scoped change" are both legitimate states; the gate should distinguish them via user input, not silently punish the second case.
 3. **Echo the DoD.** Print the collected DoD back as a numbered markdown list so the user can confirm it before triage runs. Do not persist to disk unless the user explicitly asks.
+3a. **Resolve `project_context` before triage.** Set `resolved_project_context = project_context` when the caller supplied a concrete value other than `unknown`. Otherwise derive it only from explicit user language, the confirmed DoD, or a confirmed `plan_context` target binding. Do not infer `production service` from codex severity, repository size, CI presence, or generic release practices. If no explicit context exists, keep `resolved_project_context = "unknown"`. Phase 2 uses `resolved_project_context`, so native-review cycle 1 can collect DoD and classify out-of-context hardening in the same invocation.
 
 ### Phase 1 — Findings Normalization
 
@@ -186,10 +190,11 @@ The patterns are necessarily incomplete: novel cloud-provider key formats, inter
 ### Phase 2 — Triage
 
 7. **Classify each finding** using the decision order in `references/triage-categories.md`:
+   - **Validity is not scope.** The caller may attach `valid` / `partially-valid` / `invalid` outcomes, but validity answers only whether codex described the artifact accurately. It never implies `must-fix`. For every `valid` or `partially-valid` finding, still run the full four-category decision order below and compare against DoD item 4, accepted divergences, and `resolved_project_context` before making the recommendation selectable.
    1. **must-fix / security check** — if the finding violates a DoD required feature, quality bar, or security property, classify as `must-fix`. This runs **first** so a ledger hit can never permanently suppress a security- or DoD-relevant finding whose context has since changed.
    2. **Ledger lookup** — if the new finding's `raw_fingerprint` matches an existing ledger entry's `raw_fingerprint` AND step 1 did not fire, classify as `reject-noise: already-rejected` and reuse the ledger's prior redacted reason without paraphrasing.
-   3. **out-of-scope check** — if the finding targets a DoD explicit out-of-scope item or proposes functionality not in DoD required features, classify as `reject-out-of-scope`.
-   4. **noise check** — if the finding is a vague suggestion, a niche edge case, or (on plan targets) a detailed-design nitpick, classify as `reject-noise`.
+   3. **out-of-scope check** — if the finding targets a DoD explicit out-of-scope item, proposes functionality not in DoD required features, or asks for production-grade hardening outside `resolved_project_context`, classify as `reject-out-of-scope`.
+   4. **noise check** — if the finding is a vague suggestion, a niche edge case, or (on plan targets) a detailed-design nitpick, classify as `reject-noise`. When `history` includes the previous cycle's `applied_fixes[]` surfaces, also classify self-induced refinements as `reject-noise`: later-cycle polish of text, tests, fixtures, runbooks, or policy introduced by that accepted fix, without a new DoD violation. If `history` lacks those surfaces, do not guess; leave counting to the caller's `scope_health` assessment.
    5. **fall-through** — if none of the above matched, default to `minimal-hygiene`. This is the right default for "a real hygiene problem on an out-of-scope flag that still needs a 1-line consume + warn". When `dod` is `null` (user declined the interview), the fall-through still lands in `minimal-hygiene` — the skill preserves the 4-category invariant (see §Category Invariant) — but the summary footer adds the degraded-mode warning described in `codex-review-cycle` failure modes.
 
 **Category Invariant**: the triage system has exactly **4 categories** (`must-fix`, `minimal-hygiene`, `reject-out-of-scope`, `reject-noise`). Adding a 5th category (e.g. `unclassified`) is a Required Feature violation — future callers or self-review iterations MUST reject any such proposal as `reject-out-of-scope`. Degraded-mode handling (missing DoD) stays inside the 4 categories via the `minimal-hygiene` fall-through plus a warning; it does not create a new bucket.
@@ -218,7 +223,7 @@ The patterns are necessarily incomplete: novel cloud-provider key formats, inter
 ### Phase 5 — Output
 
 14. **Render the triage verdict table** in the format in §Output Template. Every input finding appears in the table. Titles and recommendations preserve codex's wording within the §Secret Hygiene redacted form (see §Output Template format rules and §Verbatim contract precedence).
-15. **Hand control back to the caller.** If invoked by `codex-review-cycle`, return the triage verdict table, updated ledger, active signals, and `not_evaluated_signal_names` (see §Outputs). If invoked standalone, print everything to the user and stop.
+15. **Hand control back to the caller.** If invoked by `codex-review-cycle`, return the triage verdict table, updated ledger, active signals, `not_evaluated_signal_names`, `resolved_project_context`, and `dod` (see §Outputs). If invoked standalone, print everything to the user and stop.
 
 ## 4 Triage Categories (summary)
 
@@ -228,8 +233,8 @@ Full definitions and curl-retrospective examples in `references/triage-categorie
 |----------|----------|--------|
 | `must-fix` | Core feature bug, round-trip bug, security-relevant, URL/state hygiene, regression of existing behavior — anything violating a DoD required feature or quality bar | Apply fix this cycle |
 | `minimal-hygiene` | Out-of-scope flag/feature whose value pollutes a core path. Apply minimal 1-line consume + warn only | Apply 1-line hygiene only; semantics NOT implemented |
-| `reject-out-of-scope` | Semantic implementation of DoD-excluded features, or new-feature proposals not in DoD required features | Reject; add to ledger for next-cycle forward |
-| `reject-noise` | Vague suggestions, niche edge cases, repeated complaints (ledger hit), detailed-design on plan targets | Reject; add to or increment ledger |
+| `reject-out-of-scope` | Semantic implementation of DoD-excluded features, new-feature proposals not in DoD required features, or production-grade hardening outside `resolved_project_context` | Reject; add to ledger for next-cycle forward |
+| `reject-noise` | Vague suggestions, niche edge cases, repeated complaints (ledger hit), detailed-design on plan targets, or self-induced refinements of the previous cycle's accepted text, tests, fixtures, runbooks, or policy | Reject; add to or increment ledger |
 
 **Decision order**: must-fix/security → ledger lookup (for non-must-fix only) → out-of-scope → noise → fall-through to `minimal-hygiene`. must-fix/security runs first so a ledger hit never silently suppresses a finding that has become security-relevant or DoD-required since the original rejection.
 
@@ -290,12 +295,12 @@ rejected_findings_ledger:
 | `hygiene-only-stretch` | 2 consecutive cycles applied only `minimal-hygiene` | Diminishing returns | ✅ yes — caller passes `cycle_history.applied_fixes[]` with categories |
 | `repeat-finding` | Any ledger entry `count >= 2` | Yo-yo is forming | ✅ yes — caller passes `rejected_ledger` |
 | `out-of-scope-streak` | 3 consecutive cycles with ≥80% applied fixes on out-of-scope areas | Clear scope drift | ⚠️ **partial** — caller's `applied_fixes[]` only tags scope category, not out-of-scope area attribution. In the integrated workflow this signal reports `not evaluated: DoD-anchor attribution missing` unless the caller is extended to record it |
-| `file-bloat` | Target file(s) grew ≥1.5× (advisory) or ≥2× (warning) from baseline | Over-engineering likely | ❌ **no** — `codex-review-cycle` does not capture `size_initial` at Phase 0 or `size_now` per cycle. In the integrated workflow this signal always reports `not evaluated: metrics missing`. It is only usable when `review-scope-guard` is invoked standalone with explicit metrics |
+| `file-bloat` | Target file(s) grew ≥1.5× (advisory) or ≥2× (warning) from baseline | Over-engineering likely | ❌ **no** — `codex-review-cycle` does not pass the stop-signal `metrics` shape. It maintains separate caller-local plan/doc metrics for its final-cycle `scope_health`, but this signal remains `not evaluated: metrics missing` unless `review-scope-guard` is invoked standalone with explicit metrics |
 | `reactive-testing` | `tests_total / required_features >= 5` | Tests growing faster than features | ❌ **no** — `codex-review-cycle` does not capture `tests_total` or `required_features` count. Same caveat as `file-bloat`: standalone-only |
 
 All signals are **hints only**. The skill never stops the caller's review loop. Full conditions and required inputs in `references/stop-signals.md`.
 
-**Integration caveat**: when invoked from `codex-review-cycle`, two of the five signals (`file-bloat`, `reactive-testing`) and part of a third (`out-of-scope-streak`) are structurally `not evaluated` because the caller does not currently collect the required metrics. This is a deliberate simplicity trade-off in `codex-review-cycle` — it keeps the caller's Phase 0 light. Users who need the full five-signal surface should invoke `review-scope-guard` standalone after any review tool and pass `metrics` and `history` with the required attribution explicitly.
+**Integration caveat**: when invoked from `codex-review-cycle`, two signals (`file-bloat`, `reactive-testing`) and part of `out-of-scope-streak` are structurally `not evaluated` because the caller does not pass the full stop-signal metric / attribution contract. `codex-review-cycle` has a separate final-cycle `scope_health` assessment for self-induced findings, out-of-context hardening, and plan/doc growth; it is not a substitute for this skill's standalone five-signal surface. Users who need all five signals should invoke `review-scope-guard` standalone and pass `metrics` plus attributed `history`.
 
 ## Output Template
 
@@ -336,8 +341,8 @@ Format rules that protect finding intent:
 When `codex-review-cycle` calls this skill in its Phase 1:
 
 1. `codex-review-cycle` calls `review-scope-guard` at its step 10a (after the silent validity check at step 10, before the summary render at step 11).
-2. The caller passes `findings[]`, the running `rejected_ledger`, optional `metrics`, and optional `history`. For adversarial-review variant, the caller pre-collects DoD at step 7 of Phase 0 and passes it forward. For native-review variant, the first cycle of the run collects DoD here via Phase 0; later cycles reuse the cached DoD.
-3. This skill returns the triage verdict table, updated ledger, and active stop signals.
+2. The caller passes `findings[]`, `rejected_ledger`, `project_context`, optional `metrics`, and optional `history`. In the integrated path, `history` should be the caller's `cycle_history[]` with prior `applied_fixes[]` surfaces (`touched_files[]` plus `phase_6_note`) when available, not only finding IDs. For adversarial-review, the caller pre-collects DoD at Phase 0 step 7. For native-review, cycle 1 collects DoD here and later cycles reuse it.
+3. This skill resolves `project_context` before Phase 2 triage and returns the triage verdict table, updated ledger, active stop signals, `resolved_project_context`, and `dod`.
 4. `codex-review-cycle` merges the triage category into each finding block's heading segment (`#### F<n> · <severity> · <scope> · <validity> — <title>`), filters its user-selection UI to only `must-fix` and `minimal-hygiene`, and forwards the ledger into the next cycle's `<review_context>` `<rejected_findings>` block.
 5. Stop signals appear in the `codex-review-cycle` summary footer.
 

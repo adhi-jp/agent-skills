@@ -30,9 +30,20 @@ date is when that skill's `SKILL.md` version changed.
   - `references/dod-template.md`, `references/triage-categories.md`, and `references/output-samples.ja.md` now use the same disallowed-URL and redacted-verbatim wording.
 - `codex-review-cycle` — replaced the remaining Japanese footer-total wording in `SKILL.md` with English wording.
 - `review-scope-guard` — strengthened DoD anchor checks so item 4 must name concrete finding types it can reject, and item 5 quality bars must be falsifiable rather than broad "improved/comprehensive" anchors.
+- `review-scope-guard` — clarified that valid findings still need scope triage.
+  - Added `project_context` / `resolved_project_context` as scale inputs resolved before classification.
+  - Added out-of-context production hardening and heavyweight optional test infrastructure as `reject-out-of-scope` shapes.
+  - Added self-induced refinements as `reject-noise` candidates when prior applied-fix surfaces are available.
 - `codex-review-cycle` — records a per-cycle `convergence_type` and sends a cycle-2 scope-preserving angle when a plan-target cycle 1 only produced spec-clarification findings.
+- `codex-review-cycle` — adds a final-cycle scope-health check for self-induced findings, out-of-context hardening, and material plan/doc growth before recommending another cycle.
+  - Plan targets now capture a caller-local `scope_health_baseline` plus per-cycle metrics so target-growth warnings have a concrete line / step / fixture-reference / file-count contract.
+  - `project_context` is updated from confirmed DoD / plan evidence before adversarial triage and cached from `review-scope-guard`'s `resolved_project_context` return for native-review triage.
 - `vibe-planning-guard` — added diagnostic-finding restraint so plans responding to analyzer or review findings default to the smallest correction that addresses each finding, deferring adjacent hardening unless directly required.
 - `writing-style-guide` — clarified that artifact-level translation contracts override the active chat language for documentation edits.
+- `review-fix-cascade-guard` — made manual fallback evidence explicit.
+  - A manual `closed` gate now requires real sibling-path matrix and targeted-validation evidence.
+  - `codex-review-cycle` edit gates, receipts, preflights, cascade footer counts, and `<previous_fixes>` boundaries now track those evidence flags instead of trusting invocation mode alone.
+- `codex-review-cycle`, `review-scope-guard`, and `review-fix-cascade-guard` — shortened front matter descriptions to trigger-only wording so agents load the skill body instead of following a workflow summary from metadata.
 
 ## [codex-review-cycle 1.7.0] - 2026-04-26
 

@@ -186,8 +186,9 @@ diff 範囲外で skip された finding（終端まで残存）:
 
 **トレンド**: 安定 — サイクル 1 で 5 件、サイクル 2 で 3 件 selectable があり、適用は 3 件、却下が 2 件で残った。
 **残存サマリ**: user-declined 2 件（must-fix 1 件、minimal-hygiene 1 件）、diff 範囲外 skip は 0 件。
+**スコープ健全性**: 警告 — サイクル 2 の finding が直前サイクルで追加した文言の精緻化を求めている。
 **検証ギャップ**: 1 件の適用済み fix が codex によって再レビューされていません — End を選ぶと再レビュー無しで出荷します。 Continue または別の視点でレビューを選ぶと cycle 3 で再評価されます。
-**推奨**: レビューを続ける — 残存している must-fix が 1 件あり、加えて cycle 2 で適用した fix が未レビューのため、別サイクルで再評価する余地がある。
+**推奨**: レビューを終了する — スコープ健全性の警告が出ているため、次サイクルは本質的な修正より自己誘発の精緻化を増やす可能性が高い。
 
 [AskUserQuestion]
 質問: サイクル 2 が完了しました。レビューを終了する／同じ focus でもう 1 サイクル実行する／別の視点でもう 1 サイクル実行する のどれにしますか？
@@ -208,6 +209,9 @@ diff 範囲外で skip された finding（終端まで残存）:
 | `Claude's judgment` | Claude の判断 |
 | `Trend` | トレンド |
 | `Residuals summary` | 残存サマリ |
+| `Scope-health` | スコープ健全性 |
+| `healthy` | 健全 |
+| `warning` | 警告 |
 | `Verification gap` | 検証ギャップ |
 | `Recommendation` | 推奨 |
 | `Invariant` | 不変条件 |

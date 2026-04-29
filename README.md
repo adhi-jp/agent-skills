@@ -36,9 +36,10 @@ codex review, Claude verifies findings against a six-item validity
 checklist, `review-scope-guard` triages them against an explicit
 Definition of Done, and the user picks which findings to fix before the
 next cycle. After the final cycle's fix phase, a final-cycle assessment block
-summarizes addressed findings and recommends continue / new-angle /
-end; the user decides whether to terminate or extend the run. Covers
-both code diffs and markdown planning documents.
+summarizes addressed findings, checks scope health for self-induced findings,
+out-of-context hardening, and target growth, and recommends continue,
+new-angle, or end; the user decides whether to terminate or extend the run.
+Covers both code diffs and markdown planning documents.
 
 ### `review-scope-guard`
 
@@ -51,6 +52,8 @@ every finding into one of four categories (`must-fix`, `minimal-hygiene`,
 ledger, and surfaces five stop signals, though not all are evaluable in
 every usage context. Invoked automatically by
 `codex-review-cycle` and also usable standalone after any review tool.
+Valid findings still pass through this scope triage; a true premise does
+not automatically become a selectable fix.
 
 ### `review-fix-cascade-guard`
 
@@ -66,7 +69,9 @@ that controls whether `codex-review-cycle` may apply the edit. After
 every per-finding envelope, a Phase 5.5 batch reconciliation pass
 catches conflicts across the cycle's combined fix set. Invoked
 automatically by `codex-review-cycle` at step 13.6 / step 13.7, and
-usable standalone before any review-fix edit.
+usable standalone before any review-fix edit. Manual fallback is valid
+only when it records the same Phase 3 matrix and Phase 5 validation
+evidence as the registered skill path.
 
 ### `writing-style-guide`
 
@@ -122,7 +127,10 @@ specific to the skill.
   collapses the per-cycle commits via soft-reset and leaves all applied
   changes staged for the user to create a single final commit. If the
   user declines, the cycle commits remain in place and the user can
-  squash them manually later.
+  squash them manually later. For plan targets, the final-cycle
+  scope-health judgment uses caller-local baseline and current metrics for
+  plan growth; those metrics are separate from `review-scope-guard`'s
+  standalone stop-signal inputs.
   Both `codex-review-cycle` and `review-scope-guard` must be registered
   with the Claude Code harness (as marketplace plugins or in the user's
   skill set) for `Skill()` invocation to work. If either skill is not
@@ -144,4 +152,7 @@ specific to the skill.
   next-cycle attack via `AskUserQuestion` before the gate flips. Phase 6
   completion notes are mandatory for every applied finding and are
   carried into the next cycle's `<previous_fixes>` `<fix>` named child
-  elements; missing notes abort the next cycle's preflight.
+  elements; missing notes abort the next cycle's preflight. When the guard
+  runs through manual fallback, receipt evidence must show the matrix and
+  validation steps actually ran; otherwise `codex-review-cycle` blocks the
+  edit as `manual_fallback_evidence_missing`.

@@ -35,10 +35,12 @@ Each scenario is small (one or two findings) so a single dogfood pass takes minu
 
 - Claude detects the skill is unregistered and prints a notice explaining it will read `skills/review-fix-cascade-guard.disabled/SKILL.md` (or the renamed path) and run the workflow manually.
 - The per-finding `Cascade Guard — F<n>` block still appears with the same shape.
-- `guard_receipts[F<n>].invocation_mode == "manual-fallback"` shows in the cycle summary footer (step 15a cascade-guard line).
+- `guard_receipts[F<n>].invocation_mode == "manual-fallback"` shows in the cycle summary footer (step 15a cascade-guard line), and the receipt records `matrix_evidence_present == true` plus `validation_evidence_present == true`.
+- The manual block contains at least one concrete Phase 3 sibling-path matrix cell and Phase 5 validation for both the reported case and likely sibling case (or explicit manual verification notes for both).
 - No `Edit`/`Write` happens before the manual-fallback block.
+- Negative-control variant: omit the Phase 3 matrix or Phase 5 validation notes in the manual fallback transcript. The cycle must record `manual_fallback_evidence_missing`, place the finding in `user_declined[]`, and perform no `Edit`/`Write` for that finding even if the manual receipt says `gate_status: closed`.
 
-**Failure signal**: Claude silently skips the guard, or `Edit` happens without a manual-fallback notice.
+**Failure signal**: Claude silently skips the guard, `Edit` happens without a manual-fallback notice, or an evidence-free `manual-fallback` / `closed` receipt permits an edit instead of being blocked as `manual_fallback_evidence_missing`.
 
 **Cleanup**: rename the directory back to `skills/review-fix-cascade-guard/`.
 

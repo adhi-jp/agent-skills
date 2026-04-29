@@ -46,7 +46,16 @@ The footer redaction summary line renders only when `<S> + <C> >= 1` (sum of sco
 🛡️ Cascade-guard: <P> findings applied (<C> closed, <R> accepted-residual), <B> blocked (<gate-status-breakdown>), <D> split-deferred; invocation_mode=<registered | manual-fallback | mixed>; batch_gate_status=<value | n/a>.
 ```
 
-renders at step 15a (after step 15's `cycle_history` persist, before step 16's loop check). Emitted when `selected_count > 0` (≥1 finding entered step 13.6); omitted on V == 0 cycles AND on cycles where the user picked `None — skip all` at step 13. Counts are computed from final cycle outcomes (not raw receipt status): `<P>` = applied (receipt editable AND F-id not in `batch_envelope.splits[]`); `<B>` = receipt non-editable; `<D>` = receipt editable BUT deferred by batch split. Invariant: `<P> + <B> + <D> = selected_count`. When `<U> = V - selected_count > 0` (user declined some valid findings at selection), the line appends `<U> user-declined-at-selection (V=<V>)` so the full audit `<P> + <B> + <D> + <U> = V` is visible. `invocation_mode` reads `mixed` when receipts have both `registered` and `manual-fallback` values; `batch_gate_status` shows `n/a` when Phase 5.5 produced no carry record. Closes the visibility gap where per-finding `Cascade Guard — F<n>` envelope blocks live in `cycle_history` but would otherwise never surface to the conversation.
+renders at step 15a (after step 15's `cycle_history` persist, before step 16's loop check). Emit it when `selected_count > 0`; omit it on V == 0 cycles and when the user picked `None — skip all` at step 13.
+
+Counts come from final cycle outcomes, not raw receipt status:
+
+- `<P>` = applied findings: receipt editable and F-id not in `batch_envelope.splits[]`.
+- `<B>` = blocked findings: receipt non-editable, including `manual-fallback` receipts missing matrix / validation evidence.
+- `<D>` = split-deferred findings: receipt editable but deferred by batch split.
+- `<U>` = `V - selected_count`, rendered only when positive as `<U> user-declined-at-selection (V=<V>)`.
+
+A receipt is editable only when `gate_status ∈ {closed, accepted-residual}` and, for `manual-fallback`, both evidence flags are true. Invariants: `<P> + <B> + <D> = selected_count`; when `<U>` is present, `<P> + <B> + <D> + <U> = V`. `invocation_mode` reads `mixed` when receipts have both `registered` and `manual-fallback` values; `batch_gate_status` shows `n/a` when Phase 5.5 produced no carry record. This line surfaces per-finding `Cascade Guard — F<n>` envelope results that otherwise live only in `cycle_history`.
 
 ## Heading-line anatomy
 
