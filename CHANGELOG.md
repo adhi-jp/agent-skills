@@ -10,6 +10,20 @@ date is when that skill's `SKILL.md` version changed.
 
 ## [Unreleased]
 
+### Added
+
+- `vibe-planning` — added a standalone vibe-coding implementation-planning
+  skill.
+  - `SKILL.md` defines trigger coverage for plan mode, implementation plans,
+    specifications, acceptance criteria, test plans, vibe-coding requests,
+    requirements clarification, "what to build first" prompts, and equivalent
+    planning requests in any language without enumerating language-specific
+    trigger phrases in front matter.
+  - The workflow grounds plans in primary sources or local investigation,
+    supports non-technical users, challenges false or infeasible requirements,
+    places acceptance criteria and tests before implementation steps, and
+    records accepted risk without converting unproven assumptions into facts.
+
 ### Changed
 
 - `CHANGELOG.md` now follows Keep a Changelog 1.1.0 with a bracketed

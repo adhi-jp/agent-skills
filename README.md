@@ -12,6 +12,16 @@ projects. It is designed around the `minecraft-modding` MCP server from
 version-aware debugging, mapping work, mod JAR inspection, and multi-loader
 project structure.
 
+### `vibe-planning`
+
+Standalone planning skill for turning rough vibe-coding requests into
+implementation-ready plans. It supports both technical and non-technical users,
+and emphasizes primary-source or local-investigation grounding, plain-language
+clarification, acceptance criteria before implementation, tests before code,
+explicit handling of unproven assumptions, and output-language selection via
+user instruction, `VIBE_PLANNING_OUTPUT_LANG`, agent config, or conversation
+language.
+
 ### `vibe-planning-guard`
 
 Planning-first skill for turning rough change requests into verified,
@@ -92,6 +102,7 @@ is this skill's territory.
 ## Repository Layout
 
 - `skills/minecraft-modding-workbench/`: Minecraft modding skill package
+- `skills/vibe-planning/`: standalone vibe-coding implementation-planning skill package
 - `skills/vibe-planning-guard/`: planning and design-review skill package
 - `skills/codex-review-cycle/`: codex-driven interactive 2-cycle review-and-fix workflow with user-elected extensions
 - `skills/review-scope-guard/`: Definition-of-Done-aware review finding triage, invoked by codex-review-cycle
@@ -113,6 +124,9 @@ specific to the skill.
 - `minecraft-modding-workbench` is scoped to Fabric, NeoForge, and
   Architectury. Legacy Forge-only projects should be treated as a separate
   toolchain check, not as NeoForge by default.
+- `vibe-planning` is independent from `vibe-planning-guard`. Use it as the
+  primary user-facing planning workflow when the user asks for a plan, spec,
+  acceptance criteria, test plan, or rough vibe-coding implementation plan.
 - `vibe-planning-guard` is for planning, not implementation. It should stay
   light on tiny, already-clear edits unless the user explicitly asks for
   planning or risk review.
