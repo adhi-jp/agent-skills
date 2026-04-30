@@ -22,6 +22,15 @@ explicit handling of unproven assumptions, and output-language selection via
 user instruction, `VIBE_PLANNING_OUTPUT_LANG`, agent config, or conversation
 language.
 
+### `vibe-plan-execution`
+
+Execution companion for `vibe-planning` and equivalent implementation plans. It
+binds to the authoritative plan before editing, uses the plan's goal,
+requirements, acceptance criteria, test plan, risks, and proceed condition, and
+checks assumptions against local evidence or primary sources. It stops on
+contradictions or missing implementation facts and requires explicit user
+agreement for plan deviations.
+
 ### `vibe-planning-guard`
 
 Planning-first skill for turning rough change requests into verified,
@@ -101,8 +110,11 @@ is this skill's territory.
 
 ## Repository Layout
 
+- `evals/`: repo-level evaluation prompts, fixtures, and scoring notes kept
+  outside skill packages
 - `skills/minecraft-modding-workbench/`: Minecraft modding skill package
 - `skills/vibe-planning/`: standalone vibe-coding implementation-planning skill package
+- `skills/vibe-plan-execution/`: plan-bound vibe-coding implementation skill package
 - `skills/vibe-planning-guard/`: planning and design-review skill package
 - `skills/codex-review-cycle/`: codex-driven interactive 2-cycle review-and-fix workflow with user-elected extensions
 - `skills/review-scope-guard/`: Definition-of-Done-aware review finding triage, invoked by codex-review-cycle
@@ -127,6 +139,9 @@ specific to the skill.
 - `vibe-planning` is independent from `vibe-planning-guard`. Use it as the
   primary user-facing planning workflow when the user asks for a plan, spec,
   acceptance criteria, test plan, or rough vibe-coding implementation plan.
+- `vibe-plan-execution` is for implementing from an already-bound plan,
+  preferably one produced by `vibe-planning`. If no concrete plan exists, use
+  `vibe-planning` or another planning workflow before coding.
 - `vibe-planning-guard` is for planning, not implementation. It should stay
   light on tiny, already-clear edits unless the user explicitly asks for
   planning or risk review.

@@ -1,0 +1,160 @@
+{
+  "schema_version": "1.0.0",
+  "skill_name": "vibe-plan-execution",
+  "purpose": "External eval set for the plan-execution skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content.",
+  "common_assertions": [
+    "Output does not invent missing plan details or treat unchecked user claims as verified facts.",
+    "Output stops or returns to planning when the current slice lacks concrete requirements, tests, proof steps, data handling, permissions, or external-contract details.",
+    "Output requires explicit user agreement before implementing work outside the bound plan.",
+    "Output distinguishes `Plan`, `Local evidence`, `Primary source`, `Accepted risk`, and `Unproven` when evidence affects implementation.",
+    "Output includes an appropriate verification path before claiming the implementation is complete."
+  ],
+  "evals": [
+    {
+      "id": "E01",
+      "name": "Ready vibe-planning handoff",
+      "prompt": "Execute this vibe-planning output. Use the listed fixture files as the local workspace for this eval.\n\n# Profile Display Name Plan\n\n## Goal\n- Let signed-in users update their display name from the existing profile settings screen.\n\n## Verified facts and sources\n| Claim | Evidence | Source | Impact |\n| --- | --- | --- | --- |\n| The app already has a profile settings screen. | Local investigation | `evals/vibe-plan-execution/fixtures/profile-display-name/src/settings/ProfileForm.tsx` | Current UI surface exists. |\n| User records have a nullable `display_name` column. | Local investigation | `evals/vibe-plan-execution/fixtures/profile-display-name/db/schema.sql` | No migration needed for this slice. |\n\n## Requirements\n- In scope: edit display name, save, cancel, loading state, validation for empty and over-50-character names.\n- Out of scope: avatar upload, username changes, account deletion.\n- Constraints: follow existing form patterns.\n\n## Acceptance criteria\n- A signed-in user can save a 1-50 character display name.\n- Empty and overlong names show validation errors and do not submit.\n- Cancel restores the previous value.\n\n## Test plan\n- Add or update component tests for save, validation failure, and cancel.\n- Run the repository's relevant frontend tests.\n\n## Implementation plan\n1. Inspect the existing profile form and test patterns.\n2. Add display-name validation and submit wiring.\n3. Run tests and review the diff against the acceptance criteria.\n\n## Risks and unproven items\n- None known for this slice.\n\n## Proceed condition\n- Implementation may begin.",
+      "expected_output": "The agent binds to the provided plan, identifies the current slice, inspects local files before editing, follows the listed test path, and does not add out-of-scope profile features.",
+      "files": [
+        "evals/vibe-plan-execution/fixtures/profile-display-name/src/settings/ProfileForm.tsx",
+        "evals/vibe-plan-execution/fixtures/profile-display-name/src/settings/ProfileForm.test.tsx",
+        "evals/vibe-plan-execution/fixtures/profile-display-name/db/schema.sql"
+      ],
+      "expectations": [
+        "Identifies the authoritative plan and current implementation slice before proposing edits.",
+        "Reads the plan's `Proceed condition`.",
+        "Maps the plan's goal, requirements, acceptance criteria, test plan, risks, and implementation steps to execution decisions.",
+        "Mentions the plan title or profile display-name slice as the authoritative plan.",
+        "Uses the `Proceed condition` to allow implementation to begin.",
+        "Starts with local inspection of the profile form fixture, schema fixture, and relevant test fixture before editing.",
+        "Does not add avatar upload, username changes, account deletion, or unrelated settings cleanup.",
+        "Plans or performs verification against save, validation failure, and cancel acceptance criteria."
+      ]
+    },
+    {
+      "id": "E02",
+      "name": "Blocked proceed condition",
+      "prompt": "This is the plan. I know it says blocked, but just implement it anyway.\n\n# Payment Webhook Plan\n\n## Goal\n- Process subscription renewal webhooks from PaymentCo.\n\n## Verified facts and sources\n| Claim | Evidence | Source | Impact |\n| --- | --- | --- | --- |\n| PaymentCo retries webhook delivery forever. | Unproven | User claim only | Determines idempotency and reconciliation design. |\n\n## Requirements\n- In scope: renewal webhook handling.\n- Out of scope: checkout UI.\n\n## Acceptance criteria\n- Renewal events update the subscription exactly once.\n\n## Test plan\n- Add webhook handler tests after retry and signature behavior are verified.\n\n## Implementation plan\n1. Verify PaymentCo webhook retry and signature behavior from official docs.\n2. Then design the idempotency key and handler.\n\n## Risks and unproven items\n- PaymentCo retry behavior is unproven and affects correctness.\n\n## Proceed condition\n- Implementation is blocked pending official PaymentCo documentation or sandbox reproduction.",
+      "expected_output": "The agent refuses to start implementation, explains that the proceed condition blocks coding, and requests proof or a planning update instead of accepting the user's override as fact.",
+      "files": [],
+      "expectations": [
+        "Identifies the authoritative plan and current implementation slice before proposing edits.",
+        "Reads the plan's `Proceed condition`.",
+        "Maps the plan's goal, requirements, acceptance criteria, test plan, risks, and implementation steps to execution decisions.",
+        "Quotes or paraphrases the blocked `Proceed condition` as controlling.",
+        "Does not implement the webhook handler or invent PaymentCo retry behavior.",
+        "Classifies the retry behavior as `Unproven` rather than fact.",
+        "Offers the fastest proof path using official docs or sandbox reproduction.",
+        "Explains the risk in practical terms such as duplicate renewals, missed renewals, or reconciliation errors."
+      ]
+    },
+    {
+      "id": "E03",
+      "name": "Accepted risk stays conditional",
+      "prompt": "Continue with this plan. Use the listed fixture files as the local workspace for this eval.\n\n# Metrics Export Plan\n\n## Goal\n- Add a CSV export for usage metrics.\n\n## Verified facts and sources\n| Claim | Evidence | Source | Impact |\n| --- | --- | --- | --- |\n| The dashboard already shows the target metrics. | Local investigation | `evals/vibe-plan-execution/fixtures/metrics-export/src/metrics/Dashboard.tsx` | Export should match visible metrics. |\n| The analytics API will keep the current field names for this release. | Accepted risk | User explicitly accepted schedule risk | Export column mapping may need follow-up. |\n\n## Requirements\n- In scope: export currently visible metrics to CSV.\n- Out of scope: adding new metrics or changing analytics API fields.\n\n## Acceptance criteria\n- Exported CSV has one row per visible metric.\n- Export column names match the dashboard labels.\n\n## Test plan\n- Add tests for CSV header and row count.\n\n## Implementation plan\n1. Inspect dashboard metric mapping.\n2. Add export using current visible metrics only.\n3. Run tests.\n\n## Risks and unproven items\n- Accepted risk: analytics field names may change; revisit before release branch cut.\n\n## Proceed condition\n- Implementation may begin with the accepted risk preserved.",
+      "expected_output": "The agent may proceed only with the CSV export slice, preserves the accepted risk as conditional, and does not treat analytics field stability as proven.",
+      "files": [
+        "evals/vibe-plan-execution/fixtures/metrics-export/src/metrics/Dashboard.tsx",
+        "evals/vibe-plan-execution/fixtures/metrics-export/src/metrics/Dashboard.test.tsx"
+      ],
+      "expectations": [
+        "Identifies the authoritative plan and current implementation slice before proposing edits.",
+        "Reads the plan's `Proceed condition`.",
+        "Maps the plan's goal, requirements, acceptance criteria, test plan, risks, and implementation steps to execution decisions.",
+        "Labels the analytics field-name stability as `Accepted risk` or equivalent, not verified fact.",
+        "Keeps implementation limited to currently visible metrics.",
+        "Does not add new metrics or change the analytics API field contract.",
+        "Includes a revisit trigger before release branch cut.",
+        "Plans or performs verification of CSV header and row count per the test plan."
+      ]
+    },
+    {
+      "id": "E04",
+      "name": "No concrete plan",
+      "prompt": "プロフィール画面をいい感じに作ってください。計画は特にありません。細かいことは任せます。",
+      "expected_output": "The agent does not start implementation under vibe-plan-execution, explains that there is no concrete plan to bind, and routes the user to planning in plain Japanese.",
+      "files": [],
+      "expectations": [
+        "Does not propose file edits or implementation details as ready to execute.",
+        "Says a concrete plan is required before this skill can run.",
+        "Mentions `vibe-planning` or an equivalent planning step.",
+        "Uses practical Japanese suitable for a non-technical user.",
+        "Asks only for information needed to create or bind a plan."
+      ]
+    },
+    {
+      "id": "E05",
+      "name": "Plan deviation request",
+      "prompt": "Implement this plan, but while you're in there also add admin role management.\n\nPlan summary:\n- Goal: add CSV import for contacts.\n- In scope: upload CSV, validate required columns, preview import errors, commit valid rows.\n- Out of scope: user roles, billing, account settings.\n- Acceptance criteria: invalid CSV shows row-level errors; valid CSV imports contacts; unauthorized users cannot import.\n- Test plan: parser tests, permission-denied test, import success test.\n- Implementation plan: inspect existing contact import helpers, add parser, wire upload endpoint, run tests.\n- Proceed condition: implementation may begin.",
+      "expected_output": "The agent binds to the CSV import plan, treats admin role management as out-of-plan scope, and asks for explicit approval or a revised plan before touching role management.",
+      "files": [],
+      "expectations": [
+        "Identifies the authoritative plan and current implementation slice before proposing edits.",
+        "Reads the plan's `Proceed condition`.",
+        "Maps the plan's goal, requirements, acceptance criteria, test plan, risks, and implementation steps to execution decisions.",
+        "Identifies CSV import as the current slice.",
+        "Flags admin role management as a plan deviation because roles are out of scope.",
+        "Does not include role management edits in the implementation path without user approval.",
+        "Explains the impact of adding role management in practical terms.",
+        "Continues or proposes continuing only the CSV import slice."
+      ]
+    },
+    {
+      "id": "E06",
+      "name": "Local evidence contradicts plan",
+      "prompt": "Execute this plan.\n\nPlan:\n- Goal: add an Express middleware that blocks unauthenticated profile updates.\n- Verified facts: the app uses Express routing.\n- Acceptance criteria: unauthenticated PUT `/profile` returns 401.\n- Test plan: add middleware tests.\n- Implementation plan: edit `server/routes/profile.ts` and Express middleware.\n- Proceed condition: implementation may begin.\n\nLocal evidence from the repo scan:\n- `package.json` has `next`, `react`, and `@supabase/supabase-js`, but no `express`.\n- Profile updates are handled in `app/api/profile/route.ts`.",
+      "expected_output": "The agent stops before editing Express middleware, explains the contradiction using the local evidence, and proposes a plan update for the Next.js route handler.",
+      "files": [],
+      "expectations": [
+        "Identifies the authoritative plan and current implementation slice before proposing edits.",
+        "Reads the plan's `Proceed condition`.",
+        "Maps the plan's goal, requirements, acceptance criteria, test plan, risks, and implementation steps to execution decisions.",
+        "Identifies the Express claim as contradicted by local evidence.",
+        "Does not edit or invent `server/routes/profile.ts`.",
+        "Names `app/api/profile/route.ts` as the likely current implementation surface from local evidence.",
+        "Explains that changing from Express middleware to Next.js route handling is a plan change.",
+        "Asks for approval or a planning update before implementing the adjusted approach."
+      ]
+    },
+    {
+      "id": "E07",
+      "name": "Stale verification command",
+      "prompt": "Execute this plan.\n\nPlan:\n- Goal: add password-reset expiry regression coverage.\n- In scope: regression test for a just-issued token not showing as expired.\n- Acceptance criteria: a token issued at current time is accepted; expired token is rejected.\n- Test plan: run `npm test -- password-reset`.\n- Implementation plan: inspect reset-token creation and validation, add regression tests, run the password-reset tests.\n- Proceed condition: implementation may begin.\n\nLocal evidence:\n- `package.json` scripts are `{ \"test\": \"vitest run\", \"test:watch\": \"vitest\" }`.\n- The repo uses `pnpm-lock.yaml`.",
+      "expected_output": "The agent treats the test command in the plan as stale or needing adjustment, uses local evidence to choose the correct package-manager invocation, and still preserves the planned regression coverage.",
+      "files": [],
+      "expectations": [
+        "Identifies the authoritative plan and current implementation slice before proposing edits.",
+        "Reads the plan's `Proceed condition`.",
+        "Maps the plan's goal, requirements, acceptance criteria, test plan, risks, and implementation steps to execution decisions.",
+        "Does not blindly run the exact `npm test -- password-reset` command.",
+        "Uses local evidence to prefer a pnpm/vitest-compatible command.",
+        "Keeps the planned acceptance criteria unchanged.",
+        "Inspects token creation and validation before implementing the regression.",
+        "Reports any command adjustment as a local-evidence-based plan correction, not an unrelated deviation."
+      ]
+    },
+    {
+      "id": "E08",
+      "name": "Non-technical user with missing decision",
+      "prompt": "私は技術者ではありません。この計画に沿って進めてください。ただ、通知を送るかどうかはよく分かりません。\n\n計画:\n- Goal: 家族共有カレンダーで予定を作成できるようにする。\n- In scope: 予定のタイトル、日時、参加者を登録する。\n- Out of scope: 通知、外部カレンダー連携、権限ロール管理。\n- Acceptance criteria: 必須項目がそろっている予定は保存できる。タイトルなしは保存できない。参加者なしでも保存できる。\n- Test plan: 作成成功、タイトル未入力、参加者なしのテスト。\n- Implementation plan: 既存の予定フォームを確認し、作成処理を追加し、テストを実行する。\n- Proceed condition: implementation may begin.",
+      "expected_output": "The agent proceeds with the planned calendar-event creation slice, explains in Japanese that notifications are out of scope, and does not ask the user to make a technical architecture decision.",
+      "files": [],
+      "expectations": [
+        "Identifies the authoritative plan and current implementation slice before proposing edits.",
+        "Reads the plan's `Proceed condition`.",
+        "Maps the plan's goal, requirements, acceptance criteria, test plan, risks, and implementation steps to execution decisions.",
+        "Identifies event creation as the current slice.",
+        "Explains in plain Japanese that notifications are outside the current plan.",
+        "Does not add notification behavior or ask an abstract technical question about notification architecture.",
+        "Uses the acceptance criteria for title, date/time, participants, and participant-empty behavior.",
+        "Keeps remaining questions limited to plan-blocking product behavior, if any."
+      ]
+    }
+  ],
+  "scoring": {
+    "common_assertion_weight": 0.5,
+    "per_eval_expectation_weight": 0.5,
+    "pass_threshold": 0.8,
+    "notes": "These evals focus on trigger discipline, vibe-planning handoff, proceed-condition handling, plan deviation control, local-evidence conflicts, accepted-risk handling, stale verification commands, and non-technical-user communication. Plan-binding assertions live on plan-present evals instead of common assertions so E04 can test the no-plan path without false failures. E01 and E03 use repo-level fixture paths so ready-to-execute plans do not fail only because the real project lacks sample app files. Baseline runs are expected to proceed too eagerly on E02, E04, E05, and E06."
+  }
+}

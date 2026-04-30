@@ -12,6 +12,18 @@ date is when that skill's `SKILL.md` version changed.
 
 ### Added
 
+- `vibe-plan-execution` — added an execution companion for `vibe-planning` and
+  equivalent implementation plans.
+  - `SKILL.md` triggers only when executing an existing `vibe-planning` output,
+    implementation plan, specification, acceptance criteria, or task plan.
+  - The workflow uses the bound plan's goal, requirements, acceptance criteria,
+    test plan, risks, and proceed condition; checks assumptions against local
+    evidence or primary sources; stops on missing or contradictory implementation
+    facts; and requires explicit user agreement for plan deviations.
+  - `evals/vibe-plan-execution/` adds an external fixture-backed eval set for
+    trigger discipline, `vibe-planning` handoff, proceed-condition handling,
+    plan deviation control, local-evidence conflicts, accepted-risk handling,
+    stale verification commands, and non-technical-user communication.
 - `vibe-planning` — added a standalone vibe-coding implementation-planning
   skill.
   - `SKILL.md` defines trigger coverage for plan mode, implementation plans,
