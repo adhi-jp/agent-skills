@@ -35,11 +35,22 @@ date is when that skill's `SKILL.md` version changed.
     supports non-technical users, challenges false or infeasible requirements,
     places acceptance criteria and tests before implementation steps, and
     records accepted risk without converting unproven assumptions into facts.
+- `review-scope-guard` — added an external eval set under
+  `evals/review-scope-guard/`.
+  - Prompts cover DoD triage, weak item-4 degraded mode, secret hygiene, ledger
+    handling, URL plan rejection, plan binding, project context, self-induced
+    refinements, evidence gates, integration signal surfaces, and stop signals.
+  - Prompt wording avoids naming skill-specific branches when ordinary review
+    handoff language is enough.
 
 ### Changed
 
 - `CHANGELOG.md` now follows Keep a Changelog 1.1.0 with a bracketed
   `Unreleased` section and skill-version release sections.
+- `review-fix-cascade-guard` — moved eval prompts from the bundled skill
+  package to `evals/review-fix-cascade-guard/`, matching the external eval
+  layout used by `vibe-plan-execution`.
+- Generated eval workspaces under `evals/*/workspace/` are now ignored.
 - `AGENTS.md` now records the release workflow: accumulate changes under
   `Unreleased`, choose affected skill versions only when the user requests a
   release, and date each release section by the `SKILL.md` version change.

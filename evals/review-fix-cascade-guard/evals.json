@@ -1,8 +1,7 @@
 {
   "schema_version": "1.0.0",
-  "skill": "review-fix-cascade-guard",
-  "skill_version": "1.0.0",
-  "purpose": "Standalone evals exercising the per-finding workflow (Phases 0-5 + Phase 6) on representative cascade scenarios. Baseline runs the prompts without the skill loaded; with-skill runs them with the skill loaded; the per-eval assertions encode what a correct cascade-guarded fix plan must contain. Integration coverage of the codex-review-cycle <-> guard contract is enforced by three mechanisms (no executable test runner): (A) mechanical preflight checks in codex-review-cycle SKILL.md step 8 (Phase 6 note + <batch_reconciliation> + cascade-guard receipts with editable gate_status); (B) manual dogfood scenarios D1-D6 in skills/review-fix-cascade-guard/references/dogfood-checklist.md; (C) the documentation cross-reference invariant documented in SKILL.md References.",
+  "skill_name": "review-fix-cascade-guard",
+  "purpose": "External eval set for review-fix-cascade-guard. Prompts live outside skills/ so they are not bundled as skill content. Covers the per-finding cascade workflow on representative scenarios. Integration coverage remains in codex-review-cycle preflights, dogfood D1-D6, and the documentation cross-reference invariant.",
   "common_assertions": [
     "Output contains an `Invariant:` line whose body is path-neutral (no specific function/file/line names in the invariant phrasing itself).",
     "Output contains a `Sibling-path matrix:` block listing at least two sibling paths beyond the one codex named.",
@@ -139,6 +138,6 @@
     "common_assertion_weight": 0.6,
     "per_eval_expectation_weight": 0.4,
     "pass_threshold": 0.75,
-    "notes": "Pass = (common_assertion_pass_rate * 0.6) + (per_eval_expectation_pass_rate * 0.4) >= 0.75. With-skill runs are expected to pass; baseline runs are expected to fail at least the matrix and gate_status assertions on most prompts. The pre-implementation baseline-vs-with-skill comparison must show at least three historical cascade cases (E01, E03, E07 are the canonical three) prevented or explicitly residualized by the with-skill run."
+    "notes": "Pass = weighted common and per-eval assertions >= 0.75. With-skill runs should pass; baselines should fail matrix or `gate_status` checks on most prompts. E01, E03, and E07 are the canonical baseline-vs-with-skill cascade cases."
   }
 }

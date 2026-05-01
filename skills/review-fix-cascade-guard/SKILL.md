@@ -292,7 +292,7 @@ The guard makes the smallest fix that satisfies the invariant across the relevan
 - `skills/codex-review-cycle/references/review-context.md` — `<previous_fixes>` `<fix>` named-child schema (`<invariant>`, `<surfaces_checked>`, `<residuals>`, `<next_cycle_attack>`) and the `<batch_reconciliation>` sibling element schema this guard fills.
 - `skills/review-scope-guard/SKILL.md` §Secret Hygiene — overlay applied to every Phase 6 child body and `<batch_reconciliation>` child body before composition.
 - `references/dogfood-checklist.md` — manual D1–D6 scenarios that exercise the integration contract end to end. Run after a contract-touching change to either skill.
-- `skills/review-fix-cascade-guard/evals/evals.json` — 11 standalone eval prompts covering the per-finding workflow on representative cascade scenarios.
+- `evals/review-fix-cascade-guard/evals.json` — 11 standalone external eval prompts covering the per-finding workflow on representative cascade scenarios.
 
 ### Documentation cross-reference invariant
 

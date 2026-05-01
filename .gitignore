@@ -8,6 +8,7 @@
 
 # Local development artifacts
 .local-workspaces/
+evals/*/workspace/
 skills-lock.json
 
 # Editor and OS noise

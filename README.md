@@ -112,6 +112,9 @@ is this skill's territory.
 
 - `evals/`: repo-level evaluation prompts, fixtures, and scoring notes kept
   outside skill packages
+- `evals/vibe-plan-execution/`: external plan-execution eval prompts and fixtures
+- `evals/review-fix-cascade-guard/`: external cascade-guard eval prompts
+- `evals/review-scope-guard/`: external scope-guard eval prompts
 - `skills/minecraft-modding-workbench/`: Minecraft modding skill package
 - `skills/vibe-planning/`: standalone vibe-coding implementation-planning skill package
 - `skills/vibe-plan-execution/`: plan-bound vibe-coding implementation skill package
