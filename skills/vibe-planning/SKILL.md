@@ -56,11 +56,17 @@ translation.
   infeasible, state the evidence and propose the closest viable alternative.
 - Respect the user's requested outcome as far as reality allows. When a request
   cannot be implemented literally, preserve the intent and adjust the mechanism.
+- When the user asks for broad UX improvements, make the first slice complete
+  or improve an existing verified surface before adding adjacent unverified
+  channels, providers, modes, or settings.
 - Ask questions only for intent, tradeoffs, permissions, business rules, or
   missing context that investigation cannot determine.
 - For non-technical users, explain choices in plain language and translate
   technical consequences into product or workflow impact.
 - Define acceptance criteria and tests before implementation steps.
+- For editable UI plans, include observable state transitions in the acceptance
+  criteria and tests: save, cancel/reset or explicit no-cancel behavior, pending
+  state, success feedback, validation failure, and error recovery when relevant.
 - If implementation proceeds with an `Unproven` assumption, require explicit
   user risk acceptance and keep the item labeled as `Accepted risk`; never
   convert it into verified fact.
@@ -111,6 +117,10 @@ localized work.
      integration, API/DB/permission change, or small local implementation.
    - Choose spec-driven, test-driven, or combined planning from the table.
    - Split large requests into the smallest useful current slice.
+   - If local evidence shows an existing partial surface and the user mentions
+     adjacent future capabilities, make the first slice complete or improve that
+     surface unless a verified requirement makes an adjacent capability part of
+     the current outcome.
 2. **Investigate before asking**
    - Inspect the workspace and primary sources relevant to the current slice.
    - Record facts with evidence labels.
@@ -129,6 +139,9 @@ localized work.
    - Convert the clarified specification into observable pass/fail criteria.
    - Include negative cases, permissions, failure states, empty states, migration
      or compatibility expectations, and UX states when relevant.
+   - For editable forms or settings screens, explicitly decide whether cancel,
+     reset, or navigation-away behavior is in scope; when it already exists,
+     preserve it with acceptance criteria and tests.
 6. **Design tests before implementation**
    - Derive tests from acceptance criteria.
    - For bug fixes, include a failing regression test or a reproduction proof.

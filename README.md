@@ -20,7 +20,10 @@ and emphasizes primary-source or local-investigation grounding, plain-language
 clarification, acceptance criteria before implementation, tests before code,
 explicit handling of unproven assumptions, and output-language selection via
 user instruction, `VIBE_PLANNING_OUTPUT_LANG`, agent config, or conversation
-language.
+language. Editable UI plans also cover state transitions such as save,
+cancel/reset, pending, validation, success, and error recovery, and prefer
+completing verified existing surfaces before expanding into adjacent unproven
+channels or modes.
 
 ### `vibe-plan-execution`
 
@@ -112,6 +115,7 @@ is this skill's territory.
 
 - `evals/`: repo-level evaluation prompts, fixtures, and scoring notes kept
   outside skill packages
+- `evals/vibe-planning/`: external planning eval prompts and fixtures
 - `evals/vibe-plan-execution/`: external plan-execution eval prompts and fixtures
 - `evals/review-fix-cascade-guard/`: external cascade-guard eval prompts
 - `evals/review-scope-guard/`: external scope-guard eval prompts

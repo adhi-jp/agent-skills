@@ -35,6 +35,16 @@ date is when that skill's `SKILL.md` version changed.
     supports non-technical users, challenges false or infeasible requirements,
     places acceptance criteria and tests before implementation steps, and
     records accepted risk without converting unproven assumptions into facts.
+  - `SKILL.md` now covers editable UI state transitions such as save,
+    cancel/reset, pending, validation, success, and error recovery so plans
+    preserve existing form behavior in acceptance criteria and tests.
+  - `SKILL.md` now directs broad UX plans to complete or improve existing
+    verified surfaces before expanding into adjacent unproven channels, modes,
+    or settings.
+  - `evals/vibe-planning/` adds an external fixture-backed eval set for
+    evidence labeling, local investigation, unsupported external claims,
+    accepted-risk handling, output-language precedence, non-technical-user
+    communication, and destructive-risk blocking.
 - `review-scope-guard` — added an external eval set under
   `evals/review-scope-guard/`.
   - Prompts cover DoD triage, weak item-4 degraded mode, secret hygiene, ledger
