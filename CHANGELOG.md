@@ -52,6 +52,16 @@ date is when that skill's `SKILL.md` version changed.
     refinements, evidence gates, integration signal surfaces, and stop signals.
   - Prompt wording avoids naming skill-specific branches when ordinary review
     handoff language is enough.
+- `writing-style-guide` — added an external eval set under
+  `evals/writing-style-guide/`.
+  - The focused 10-case set covers no-invented-context discipline, language
+    precedence, standalone artifacts, code comments, changelog restraint,
+    concise chat replies, safety-warning retention, durable traceability,
+    template obedience, and exact-format contracts.
+  - Higher-pressure cases cover modality and exception preservation, PR
+    template obedience with thin evidence, durable issue citations without
+    scratch-note leaks, and friendlier policy wording without new service
+    promises.
 
 ### Changed
 
@@ -67,6 +77,19 @@ date is when that skill's `SKILL.md` version changed.
 - `writing-style-guide` — tightened controls for LLM-authored and LLM-edited prose.
   - Front matter description now lists trigger conditions only, reducing the chance that agents follow the summary instead of the full skill.
   - New meaning-preservation and no-invented-context rules guard against modality drift, dropped conditions or warnings, unsupported rationale, and confident filler.
+  - Meaning preservation now treats supplied negative statuses such as tests not
+    run, not measured, and no rollout plan as facts to preserve rather than
+    generic missing information.
+  - Testing-section guidance now explicitly renders supplied statuses such as
+    `Not run` or `Not measured` instead of replacing them with `Not provided`.
+  - Risk and evidence guidance now preserves bounded evidence such as
+    parser-change-only scope alongside missing-proof facts such as no
+    benchmarks or rollout plan supplied.
+  - No-invented-context guidance now calls out unsupported security and safety
+    rationales that sound obvious but are not present in the source.
+  - Warm/friendly rewrite guidance now keeps tone changes inside supplied facts
+    instead of adding reassurance claims, service-volume promises, availability
+    hints, or new support-channel instructions.
   - Anti-patterns now cover meaning drift, invented context, template-shaped answers, over-normalization, and safety theater; README, CHANGELOG, commit-message, and chat guidance gained matching checks.
 - `review-scope-guard` — replaced Japanese examples and prose in non-Japanese Markdown with English equivalents.
   - `SKILL.md` now describes target-language column-label translation using English source labels and references the Japanese sample file in English.

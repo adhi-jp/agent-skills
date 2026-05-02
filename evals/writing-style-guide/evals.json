@@ -1,0 +1,176 @@
+{
+  "schema_version": "1.0.0",
+  "skill_name": "writing-style-guide",
+  "purpose": "External eval set for writing-style-guide. Prompts live outside skills/ so they are not bundled as skill content. This focused set covers no-invented-context discipline, language precedence, standalone artifacts, code comments, changelog restraint, concise chat replies, safety-warning retention, durable traceability, template obedience, and exact-format contracts.",
+  "common_assertions": [
+    "Output preserves source facts, scope, terminology, modality, conditions, exceptions, warnings, and required actions whenever source text is being edited or summarized.",
+    "Output does not invent unsupported reasons, goals, outcomes, roadmap claims, business value, audience assumptions, tests, or performance/security impact.",
+    "Output avoids decorative or marketing vocabulary such as `seamlessly`, `effortlessly`, `powerful`, `robust`, `enterprise-grade`, and `leverage` unless it appears in quoted source text that must remain verbatim.",
+    "Output does not add meta-acknowledgments, ritual closings, broad disclaimers, or template sections that the prompt did not ask for.",
+    "Output follows the applicable language signal: explicit user instruction first, then existing artifact language or filename locale, while preserving identifiers, file paths, commands, and code in their source language.",
+    "Artifact text stands alone and does not refer to ephemeral prompt context such as `the provided text`, `above`, `plan1.md`, `as requested`, or `as discussed` unless the reference is a durable requested citation.",
+    "When the prompt requires an exact machine-readable format, output preserves that shape and emits no surrounding prose or Markdown fences."
+  ],
+  "evals": [
+    {
+      "id": "E01",
+      "name": "README blurb without marketing invention",
+      "prompt": "Make this README blurb less clunky without adding unsupported claims.\n\nFooCache is a Rust library that stores HTTP responses on disk and returns cached responses when the configured TTL has not expired. It supports ETag revalidation.",
+      "expected_output": "The agent writes a concise README blurb that states FooCache is a Rust HTTP response disk cache with TTL-based reuse and ETag revalidation, without marketing filler or invented benefits.",
+      "files": [],
+      "expectations": [
+        "States that FooCache is a Rust library or Rust HTTP response cache.",
+        "Preserves disk storage of HTTP responses.",
+        "Preserves the configured-TTL condition for returning cached responses.",
+        "Preserves ETag revalidation support.",
+        "Does not claim speed, scalability, reliability, team productivity, enterprise readiness, or ease of use unless directly supported by the source.",
+        "Removes or avoids ornamental wording such as `seamlessly`, `effortlessly`, `powerful`, `robust`, or `future-ready`."
+      ]
+    },
+    {
+      "id": "E02",
+      "name": "Comments explain why not signature echo",
+      "prompt": "Rewrite comments only. Keep the code behavior unchanged.\n\n```ts\n// validate the email\nfunction validateEmail(email: string) {\n  return /.+@.+/.test(email);\n}\n\n// retry the request\nasync function retryRequest() {\n  // existing implementation\n}\n```\n\nContext: Retry exists because PaymentCo sometimes returns 409 while a renewal is settling. The email validator rejects empty and malformed addresses before submission.",
+      "expected_output": "The agent removes or replaces name-echoing comments, keeps behavior unchanged, and uses comments only where they add useful rationale such as the PaymentCo 409 settling case.",
+      "files": [],
+      "expectations": [
+        "Does not leave `validate the email` as a comment that merely repeats `validateEmail`.",
+        "Does not leave `retry the request` as a comment that merely repeats `retryRequest`.",
+        "Either removes the email comment or rewrites it to explain a non-obvious contract without inventing validation behavior.",
+        "Includes a useful retry rationale tied to PaymentCo 409 responses during renewal settling.",
+        "Does not change function names, signatures, return values, or implementation behavior.",
+        "Does not add unsupported claims about PaymentCo availability, retry counts, backoff policy, or idempotency."
+      ]
+    },
+    {
+      "id": "E03",
+      "name": "Internal refactor stays out of changelog",
+      "prompt": "Write a changelog entry from this diff summary. If this should not be in the changelog, say so directly instead of inventing user impact.\n\nRenamed parseWebhookPayload to parseWebhookBody and moved it from webhook.ts to webhookParser.ts. No behavior changed; tests pass unchanged.",
+      "expected_output": "The agent declines to create a user-facing changelog entry because the diff is an internal refactor with no behavior change.",
+      "files": [],
+      "expectations": [
+        "Says no user-facing changelog entry is needed, or otherwise clearly treats the change as commit-history-only.",
+        "Does not claim improved reliability, maintainability, performance, security, API clarity, or user-visible behavior.",
+        "Does not describe the parser as newly supporting or fixing webhook behavior.",
+        "Does not turn unchanged tests into a user-facing quality claim.",
+        "Keeps the response short and direct."
+      ]
+    },
+    {
+      "id": "E04",
+      "name": "Concise chat test result reply",
+      "prompt": "The user asks: `Did the tests pass?`\n\nThe command output was:\n`cargo test -p api --lib: 42 passed, 0 failed`\n\nWrite the chat reply.",
+      "expected_output": "The agent gives a concise answer that says the tests passed and includes the command result, with no preamble, headings, or ritual follow-up offer.",
+      "files": [],
+      "expectations": [
+        "Starts with the answer, such as `Yes` or `They passed`.",
+        "Includes `cargo test -p api --lib` or otherwise identifies the tested command.",
+        "Includes `42 passed, 0 failed`.",
+        "Does not start with `Sure`, `Absolutely`, `Great question`, or another meta-acknowledgment.",
+        "Does not add headings, a `Summary / Testing / Notes` template, or unrelated next steps.",
+        "Does not end with a generic offer such as `Let me know if you need anything else`."
+      ]
+    },
+    {
+      "id": "E05",
+      "name": "Exact JSON contract wins",
+      "prompt": "Return exactly this JSON shape and nothing else, with prose values edited for concision and unsupported claims removed.\n\n```json\n{\"title\":\"The system is designed to help teams seamlessly manage exports\",\"warning\":\"You must back up the database before running the migration\",\"notes\":[\"This makes it easy to scale later\"]}\n```",
+      "expected_output": "The agent returns only valid JSON with the same object shape, concise supported prose values, the backup warning preserved, and unsupported marketing/future claims removed.",
+      "files": [],
+      "expectations": [
+        "Outputs valid JSON only, with no Markdown fence, prose introduction, explanation, or trailing notes.",
+        "Preserves exactly the top-level keys `title`, `warning`, and `notes`.",
+        "Keeps `notes` as an array.",
+        "Preserves the required warning that the database must be backed up before running the migration.",
+        "Removes or rewrites unsupported claims such as `designed to help teams`, `seamlessly`, and `easy to scale later`.",
+        "Does not add new keys, comments, or metadata to compensate for removed claims."
+      ]
+    },
+    {
+      "id": "E06",
+      "name": "Japanese locale artifact stays Japanese",
+      "prompt": "Please polish this section for docs/README.ja.md. Do not translate filenames, commands, or environment variables.\n\n## セットアップ\nNode 20 を入れます。npm install を実行します。API_URL を .env に設定してください。",
+      "expected_output": "The agent keeps the locale-marked README prose in Japanese while preserving technical tokens in their original form.",
+      "files": [],
+      "expectations": [
+        "Writes the polished artifact prose in Japanese because `README.ja.md` is locale-marked.",
+        "Preserves `Node 20`, `npm install`, `API_URL`, and `.env` exactly.",
+        "Does not translate commands, file paths, environment variables, or product identifiers.",
+        "Does not switch the section to English because the prompt was written in English.",
+        "Does not add new setup steps or repository assumptions."
+      ]
+    },
+    {
+      "id": "E07",
+      "name": "Policy modality and exception trap",
+      "prompt": "Make this admin policy friendlier and less legalistic. Keep the obligations and exceptions exactly the same.\n\nAdmins must not delete a workspace until they have exported audit logs. In sandbox projects, admins may skip the export. Support should notify the workspace owner when deletion is scheduled, but notification is not required for workspaces already suspended for fraud.",
+      "expected_output": "The agent rewrites the policy in friendlier prose while preserving must-not deletion gating, sandbox-only export skipping, should-level owner notification, and the fraud-suspension exception.",
+      "files": [],
+      "expectations": [
+        "Preserves that admins must not delete a workspace until audit logs have been exported.",
+        "Preserves that only sandbox projects may skip the audit-log export.",
+        "Preserves `should notify` or equivalent non-mandatory notification guidance for scheduled deletion.",
+        "Preserves that notification is not required for workspaces already suspended for fraud.",
+        "Does not upgrade `should notify` to an unconditional `must notify` requirement.",
+        "Does not weaken `must not delete` into a recommendation, preference, or best practice.",
+        "Does not add new obligations such as backups, approvals, grace periods, legal review, or owner confirmation."
+      ]
+    },
+    {
+      "id": "E08",
+      "name": "PR description template with thin evidence",
+      "prompt": "Write a PR description using exactly this template and no extra sections. If a section has no supplied evidence, say `Not provided` instead of filling from assumptions.\n\n## Summary\n## Testing\n## Risk\n\nContext:\n- Diff: changed `Retry-After` parsing from `parseInt` to `Number` so fractional seconds are preserved.\n- Tests: not run.\n- Risk: parser change only; no production incidents, customer reports, benchmarks, or rollout plan are supplied.",
+      "expected_output": "The agent fills only the three requested PR template sections, names the fractional Retry-After parser change, reports tests as not run, keeps risk to the supplied parser-change-only evidence, and avoids unsupported incident, benchmark, or rollout claims.",
+      "files": [],
+      "expectations": [
+        "Uses exactly the three requested headings: `## Summary`, `## Testing`, and `## Risk`.",
+        "Does not add extra sections such as `Notes`, `Background`, `Rollout`, `Related issues`, or `Next steps`.",
+        "Summary mentions preserving fractional seconds in `Retry-After` parsing or the `parseInt` to `Number` change.",
+        "Testing explicitly states that tests were not run; it does not say only `Not provided`, and it does not claim tests passed, coverage was added, or validation was completed.",
+        "Risk reflects that the supplied risk evidence is limited to a parser change only, or states that no production incidents, customer reports, benchmarks, or rollout plan were supplied.",
+        "Risk does not claim `low risk`, `safe`, `no risk`, production incident mitigation, customer impact, benchmarks, or rollout readiness without supplied evidence.",
+        "`Not provided` appears only for information categories that truly lack supplied evidence; it is not used to replace supplied facts such as `Tests: not run` or parser-change-only risk.",
+        "Does not mention unsupported implementation details beyond the supplied parser change."
+      ]
+    },
+    {
+      "id": "E09",
+      "name": "Durable issue citation without scratch-note leak",
+      "prompt": "Turn this scratch note into a release-note bullet. Include the durable issue ID, but do not mention the scratch file path.\n\nScratch source: notes/auth-copy.md\nIssue: AUTH-742\nRefresh-token replay attempts now return 401. This does not rotate existing tokens and does not change access-token TTL.",
+      "expected_output": "The agent writes a standalone release-note bullet that includes AUTH-742, states the replay-attempt behavior, preserves the no-rotation and no-TTL-change limits, and omits the scratch file path.",
+      "files": [],
+      "expectations": [
+        "Includes `AUTH-742` as a durable issue citation.",
+        "Mentions that refresh-token replay attempts now return 401.",
+        "Preserves that existing tokens are not rotated.",
+        "Preserves that access-token TTL does not change.",
+        "Does not mention `notes/auth-copy.md`, `scratch source`, `scratch note`, `above`, or similar prompt-production context.",
+        "Does not inflate the note into broad authentication hardening, replay protection completeness, incident response, or security posture claims.",
+        "Formats the result as a release-note bullet or similarly concise changelog-style entry."
+      ]
+    },
+    {
+      "id": "E10",
+      "name": "Friendly support policy without service promises",
+      "prompt": "Make this support README paragraph warmer for end users, but do not add promises or change the policy.\n\nSupport usually responds within two business days. Enterprise customers may request a faster SLA if their contract includes one. We do not provide emergency phone support. Do not send access tokens in support tickets.",
+      "expected_output": "The agent makes the support paragraph warmer while preserving the qualified response time, enterprise contract condition, no emergency phone support rule, and access-token warning.",
+      "files": [],
+      "expectations": [
+        "Preserves `usually` or an equivalent qualifier on the two-business-day response time.",
+        "Preserves `two business days` exactly or equivalently.",
+        "Preserves that faster SLA requests are available only for enterprise customers whose contract includes one.",
+        "Preserves that emergency phone support is not provided.",
+        "Preserves the instruction not to send access tokens in support tickets.",
+        "Does not add unsupported promises or reassurance claims such as 24/7 support, dedicated support, priority handling, guaranteed response, escalation paths, immediate help, `we read every ticket`, `we honor your agreement`, or `our team is here for you`.",
+        "Does not add new support-channel instructions such as telling users to keep urgent issues in a ticket.",
+        "Does not soften the access-token warning into a vague suggestion."
+      ]
+    }
+  ],
+  "scoring": {
+    "common_assertion_weight": 0.45,
+    "per_eval_expectation_weight": 0.55,
+    "pass_threshold": 0.8,
+    "notes": "These evals focus on concrete writing-style contracts rather than aesthetic preference. The compressed set keeps the cases that most directly distinguish the skill from baseline behavior: unsupported invention, language precedence, prompt-context leaks, exact-format constraints, modality drift, and evidence handling."
+  }
+}
