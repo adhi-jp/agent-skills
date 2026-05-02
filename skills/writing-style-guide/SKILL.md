@@ -1,5 +1,5 @@
 ---
-version: 1.0.0
+version: 1.1.0
 name: writing-style-guide
 description: Use when generating or editing user-facing prose, including docs, comments, READMEs, changelogs, commit messages, PR descriptions, and chat replies.
 ---

@@ -1,5 +1,5 @@
 ---
-version: 1.2.0
+version: 1.3.0
 name: vibe-planning-guard
 description: Create verified requirements definitions, design comparisons, and implementation plans for vibe coding with strict stop conditions and risk-scaled output. Use when the user wants a spec, implementation plan, design outline, rewrite plan, replacement plan, restoration plan, or help comparing implementation approaches or structuring a concrete change before coding. Trigger when requirements are ambiguous, contradictory, or underspecified; when feasibility is unclear; when a real design branch needs tradeoff analysis; when existing behavior must be replaced or restored safely; or when the task is large enough that a structured plan is warranted. Do not trigger by default for tiny, already-clear edits, simple API-usage questions, or narrow code explanations unless the user explicitly asks for planning or risk review.
 ---

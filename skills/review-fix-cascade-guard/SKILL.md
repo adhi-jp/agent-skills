@@ -1,5 +1,5 @@
 ---
-version: 1.0.1
+version: 1.0.2
 name: review-fix-cascade-guard
 description: Use when applying user-selected review findings after scope triage, especially inside codex-review-cycle or after a standalone Codex adversarial review, and a line-scoped fix may create follow-on valid findings. Do not use for ordinary edits, plan drafting, single-shot lint, no-review contexts, or generic refactor checklists.
 ---

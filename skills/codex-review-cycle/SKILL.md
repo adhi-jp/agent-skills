@@ -1,5 +1,5 @@
 ---
-version: 1.7.0
+version: 1.8.0
 name: codex-review-cycle
 description: Use when the user explicitly asks to run an iterative Codex review cycle on a non-empty git diff, including working-tree changes, current branch vs base, explicit commit/tag/branch refs, code diffs, or Markdown planning documents. Do not use for one-shot reviews, auto-hardening, background checks, plan drafting, or empty review targets.
 ---

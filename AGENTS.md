@@ -21,6 +21,7 @@
   - Patch: clarifications, narrow fixes, examples, or behavior-preserving corrections.
 - Bump the `version` field in each affected skill's `SKILL.md` only during release preparation.
 - Move the released changelog entries from `## [Unreleased]` to a section headed `## [<skill-name> <version>] - <YYYY-MM-DD>`, where the date is when that skill's `SKILL.md` version changed.
+- Move repository-wide maintenance entries that are not attributable to one skill to `## [Repository] - <YYYY-MM-DD>`. Do not use repository sections for skill behavior changes.
 
 ## Change Coupling Rules
 

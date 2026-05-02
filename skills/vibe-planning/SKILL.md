@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: vibe-planning
 description: >
   Use when the user wants planning before coding: plan mode, create a plan,

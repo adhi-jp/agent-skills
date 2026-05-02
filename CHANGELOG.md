@@ -4,11 +4,26 @@ All notable changes to this repository will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Skill versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-This repository contains independently versioned skills. Release sections use
-skill-version identifiers in the form `[skill-name X.Y.Z] - YYYY-MM-DD`; the
-date is when that skill's `SKILL.md` version changed.
+This repository contains independently versioned skills. Skill release sections
+use identifiers in the form `[skill-name X.Y.Z] - YYYY-MM-DD`; the date is when
+that skill's `SKILL.md` version changed. Repository-wide maintenance sections
+use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
+
+## [Repository] - 2026-05-02
+
+### Changed
+
+- `CHANGELOG.md` now follows Keep a Changelog 1.1.0 with a bracketed
+  `Unreleased` section, skill-version release sections, and repository
+  maintenance sections.
+- `AGENTS.md` now records the release workflow: accumulate changes under
+  `Unreleased`, choose affected skill versions only when the user requests a
+  release, and date each skill release section by the `SKILL.md` version change.
+- Generated eval workspaces under `evals/*/workspace/` are now ignored.
+
+## [vibe-plan-execution 1.0.0] - 2026-05-02
 
 ### Added
 
@@ -24,6 +39,11 @@ date is when that skill's `SKILL.md` version changed.
     trigger discipline, `vibe-planning` handoff, proceed-condition handling,
     plan deviation control, local-evidence conflicts, accepted-risk handling,
     stale verification commands, and non-technical-user communication.
+
+## [vibe-planning 1.0.0] - 2026-05-02
+
+### Added
+
 - `vibe-planning` — added a standalone vibe-coding implementation-planning
   skill.
   - `SKILL.md` defines trigger coverage for plan mode, implementation plans,
@@ -45,6 +65,11 @@ date is when that skill's `SKILL.md` version changed.
     evidence labeling, local investigation, unsupported external claims,
     accepted-risk handling, output-language precedence, non-technical-user
     communication, and destructive-risk blocking.
+
+## [review-scope-guard 1.4.0] - 2026-05-02
+
+### Added
+
 - `review-scope-guard` — added an external eval set under
   `evals/review-scope-guard/`.
   - Prompts cover DoD triage, weak item-4 degraded mode, secret hygiene, ledger
@@ -52,6 +77,49 @@ date is when that skill's `SKILL.md` version changed.
     refinements, evidence gates, integration signal surfaces, and stop signals.
   - Prompt wording avoids naming skill-specific branches when ordinary review
     handoff language is enough.
+
+### Changed
+
+- `review-scope-guard` — replaced Japanese examples and prose in non-Japanese Markdown with English equivalents.
+  - `SKILL.md` now describes target-language column-label translation using English source labels and references the Japanese sample file in English.
+  - `references/dod-template.md` now uses English-only plan-section examples and explicit-user-directive examples.
+- `review-scope-guard` — tightened W007 / W011 / W012 guard wording.
+  - `plan_context.source` now accepts only `conversation-paste`, `referenced-file-local`, and `earlier-turn`. URL/remote sources and legacy `referenced-file` are invalid; supplied content is discarded before interview fallback.
+  - Verbatim output contracts now read as redacted-verbatim. Findings, recommendations, ledger reasons, DoD text from plan/diff evidence, confirmation evidence, caller return payloads, and downstream forwards apply §Secret Hygiene before render or persistence.
+  - `references/dod-template.md`, `references/triage-categories.md`, and `references/output-samples.ja.md` now use the same disallowed-URL and redacted-verbatim wording.
+- `review-scope-guard` — strengthened DoD anchor checks so item 4 must name concrete finding types it can reject, and item 5 quality bars must be falsifiable rather than broad "improved/comprehensive" anchors.
+- `review-scope-guard` — clarified that valid findings still need scope triage.
+  - Added `project_context` / `resolved_project_context` as scale inputs resolved before classification.
+  - Added out-of-context production hardening and heavyweight optional test infrastructure as `reject-out-of-scope` shapes.
+  - Added self-induced refinements as `reject-noise` candidates when prior applied-fix surfaces are available.
+
+## [codex-review-cycle 1.8.0] - 2026-05-02
+
+### Changed
+
+- `codex-review-cycle` — records a per-cycle `convergence_type` and sends a cycle-2 scope-preserving angle when a plan-target cycle 1 only produced spec-clarification findings.
+- `codex-review-cycle` — adds a final-cycle scope-health check for self-induced findings, out-of-context hardening, and material plan/doc growth before recommending another cycle.
+  - Plan targets now capture a caller-local `scope_health_baseline` plus per-cycle metrics so target-growth warnings have a concrete line / step / fixture-reference / file-count contract.
+  - `project_context` is updated from confirmed DoD / plan evidence before adversarial triage and cached from `review-scope-guard`'s `resolved_project_context` return for native-review triage.
+- `codex-review-cycle` — replaced the remaining Japanese footer-total wording in
+  `SKILL.md` with English wording.
+- `codex-review-cycle` — shortened the front matter description to trigger-only
+  wording so agents load the skill body instead of following a workflow summary
+  from metadata.
+- `codex-review-cycle` — edit gates, receipts, preflights, cascade footer
+  counts, and `<previous_fixes>` boundaries now track `review-fix-cascade-guard`
+  manual-fallback evidence flags instead of trusting invocation mode alone.
+
+## [vibe-planning-guard 1.3.0] - 2026-05-02
+
+### Changed
+
+- `vibe-planning-guard` — added diagnostic-finding restraint so plans responding to analyzer or review findings default to the smallest correction that addresses each finding, deferring adjacent hardening unless directly required.
+
+## [writing-style-guide 1.1.0] - 2026-05-02
+
+### Added
+
 - `writing-style-guide` — added an external eval set under
   `evals/writing-style-guide/`.
   - The focused 10-case set covers no-invented-context discipline, language
@@ -65,15 +133,6 @@ date is when that skill's `SKILL.md` version changed.
 
 ### Changed
 
-- `CHANGELOG.md` now follows Keep a Changelog 1.1.0 with a bracketed
-  `Unreleased` section and skill-version release sections.
-- `review-fix-cascade-guard` — moved eval prompts from the bundled skill
-  package to `evals/review-fix-cascade-guard/`, matching the external eval
-  layout used by `vibe-plan-execution`.
-- Generated eval workspaces under `evals/*/workspace/` are now ignored.
-- `AGENTS.md` now records the release workflow: accumulate changes under
-  `Unreleased`, choose affected skill versions only when the user requests a
-  release, and date each release section by the `SKILL.md` version change.
 - `writing-style-guide` — tightened controls for LLM-authored and LLM-edited prose.
   - Front matter description now lists trigger conditions only, reducing the chance that agents follow the summary instead of the full skill.
   - New meaning-preservation and no-invented-context rules guard against modality drift, dropped conditions or warnings, unsupported rationale, and confident filler.
@@ -91,29 +150,25 @@ date is when that skill's `SKILL.md` version changed.
     instead of adding reassurance claims, service-volume promises, availability
     hints, or new support-channel instructions.
   - Anti-patterns now cover meaning drift, invented context, template-shaped answers, over-normalization, and safety theater; README, CHANGELOG, commit-message, and chat guidance gained matching checks.
-- `review-scope-guard` — replaced Japanese examples and prose in non-Japanese Markdown with English equivalents.
-  - `SKILL.md` now describes target-language column-label translation using English source labels and references the Japanese sample file in English.
-  - `references/dod-template.md` now uses English-only plan-section examples and explicit-user-directive examples.
-- `review-scope-guard` — tightened W007 / W011 / W012 guard wording.
-  - `plan_context.source` now accepts only `conversation-paste`, `referenced-file-local`, and `earlier-turn`. URL/remote sources and legacy `referenced-file` are invalid; supplied content is discarded before interview fallback.
-  - Verbatim output contracts now read as redacted-verbatim. Findings, recommendations, ledger reasons, DoD text from plan/diff evidence, confirmation evidence, caller return payloads, and downstream forwards apply §Secret Hygiene before render or persistence.
-  - `references/dod-template.md`, `references/triage-categories.md`, and `references/output-samples.ja.md` now use the same disallowed-URL and redacted-verbatim wording.
-- `codex-review-cycle` — replaced the remaining Japanese footer-total wording in `SKILL.md` with English wording.
-- `review-scope-guard` — strengthened DoD anchor checks so item 4 must name concrete finding types it can reject, and item 5 quality bars must be falsifiable rather than broad "improved/comprehensive" anchors.
-- `review-scope-guard` — clarified that valid findings still need scope triage.
-  - Added `project_context` / `resolved_project_context` as scale inputs resolved before classification.
-  - Added out-of-context production hardening and heavyweight optional test infrastructure as `reject-out-of-scope` shapes.
-  - Added self-induced refinements as `reject-noise` candidates when prior applied-fix surfaces are available.
-- `codex-review-cycle` — records a per-cycle `convergence_type` and sends a cycle-2 scope-preserving angle when a plan-target cycle 1 only produced spec-clarification findings.
-- `codex-review-cycle` — adds a final-cycle scope-health check for self-induced findings, out-of-context hardening, and material plan/doc growth before recommending another cycle.
-  - Plan targets now capture a caller-local `scope_health_baseline` plus per-cycle metrics so target-growth warnings have a concrete line / step / fixture-reference / file-count contract.
-  - `project_context` is updated from confirmed DoD / plan evidence before adversarial triage and cached from `review-scope-guard`'s `resolved_project_context` return for native-review triage.
-- `vibe-planning-guard` — added diagnostic-finding restraint so plans responding to analyzer or review findings default to the smallest correction that addresses each finding, deferring adjacent hardening unless directly required.
 - `writing-style-guide` — clarified that artifact-level translation contracts override the active chat language for documentation edits.
+
+## [review-fix-cascade-guard 1.0.2] - 2026-05-02
+
+### Changed
+
+- `review-fix-cascade-guard` — moved eval prompts from the bundled skill
+  package to `evals/review-fix-cascade-guard/`, matching the external eval
+  layout used by `vibe-plan-execution`.
 - `review-fix-cascade-guard` — made manual fallback evidence explicit.
   - A manual `closed` gate now requires real sibling-path matrix and targeted-validation evidence.
-  - `codex-review-cycle` edit gates, receipts, preflights, cascade footer counts, and `<previous_fixes>` boundaries now track those evidence flags instead of trusting invocation mode alone.
-- `codex-review-cycle`, `review-scope-guard`, and `review-fix-cascade-guard` — shortened front matter descriptions to trigger-only wording so agents load the skill body instead of following a workflow summary from metadata.
+- `review-fix-cascade-guard` — shortened the front matter description to
+  trigger-only wording so agents load the skill body instead of following a
+  workflow summary from metadata.
+
+## [minecraft-modding-workbench 1.1.1] - 2026-05-02
+
+### Changed
+
 - `minecraft-modding-workbench` — shortened the front matter description to trigger-only wording and clarified that `mcp-recipes.md` keeps canonical MCP hyphenated tool names while host callable names may differ.
 
 ## [codex-review-cycle 1.7.0] - 2026-04-26

@@ -2,6 +2,19 @@
 
 Codex skill packages maintained in this workspace for public distribution.
 
+## Current Skill Versions
+
+| Skill | Version |
+| --- | --- |
+| `minecraft-modding-workbench` | `1.1.1` |
+| `vibe-planning` | `1.0.0` |
+| `vibe-plan-execution` | `1.0.0` |
+| `vibe-planning-guard` | `1.3.0` |
+| `codex-review-cycle` | `1.8.0` |
+| `review-scope-guard` | `1.4.0` |
+| `review-fix-cascade-guard` | `1.0.2` |
+| `writing-style-guide` | `1.1.0` |
+
 ## Included Skills
 
 ### `minecraft-modding-workbench`
@@ -99,17 +112,16 @@ evidence as the registered skill path.
 
 Principles-first prose-quality skill for durable user-facing artifacts:
 source-code documentation, README, CHANGELOG, commit messages, PR
-descriptions, and chat replies the reader keeps. Covers concision,
-audience fit, language precedence, artifact self-containment with a
-durable-citation carve-out, and the AI-tell anti-patterns (marketing
-vocabulary, hollow transitions, groundless future claims, forced
-symmetry, em-dash abundance). Required safety, compliance, and
-irreversible-action warnings are exempt from the "unrequested
-additions" rule; machine-readable output, verbatim relays, transient
-status lines, and bare acknowledgments are skipped so the guide stays
-out of where prose style is not the deliverable. Defers to project
-conventions and active workflows for procedure; only the word choice
-is this skill's territory.
+descriptions, release notes, and chat replies. Covers concision,
+meaning preservation, no-invented-context discipline, language
+precedence, artifact self-containment with a durable-citation carve-out,
+exact-format obedience, and concrete handling of supplied statuses such
+as tests not run, not measured, or no rollout plan. Required safety,
+security, compliance, data-loss, and irreversible-action warnings stay
+when they change what the reader should do; generic safety theater and
+unsupported rationale are removed. Defers to project conventions and
+active workflows for procedure; only the prose quality is this skill's
+territory.
 
 ## Repository Layout
 
@@ -119,6 +131,7 @@ is this skill's territory.
 - `evals/vibe-plan-execution/`: external plan-execution eval prompts and fixtures
 - `evals/review-fix-cascade-guard/`: external cascade-guard eval prompts
 - `evals/review-scope-guard/`: external scope-guard eval prompts
+- `evals/writing-style-guide/`: external prose-quality eval prompts
 - `skills/minecraft-modding-workbench/`: Minecraft modding skill package
 - `skills/vibe-planning/`: standalone vibe-coding implementation-planning skill package
 - `skills/vibe-plan-execution/`: plan-bound vibe-coding implementation skill package
@@ -133,7 +146,8 @@ is this skill's territory.
 
 Each skill package ships with:
 
-- `SKILL.md`: the main workflow and decision rules
+- `SKILL.md`: front matter with `version`, `name`, and `description`, followed
+  by the main workflow and decision rules
 
 Some packages also include `references/` or other helper assets that are
 specific to the skill.

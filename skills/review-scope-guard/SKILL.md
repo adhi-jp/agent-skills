@@ -1,5 +1,5 @@
 ---
-version: 1.3.2
+version: 1.4.0
 name: review-scope-guard
 description: Use when Codex or code/plan review findings need Definition-of-Done scope triage, especially to separate must-fix issues from minimal hygiene, out-of-scope hardening, repeated noise, or self-induced refinements. Also use when codex-review-cycle invokes scope guard between validity checking and summary render. Do not use for single-shot lint or unrelated changes.
 ---
