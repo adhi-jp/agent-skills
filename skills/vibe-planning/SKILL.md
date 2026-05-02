@@ -161,6 +161,18 @@ localized work.
      or rollout checks appropriate to the stack.
    - Include a final diff-review step that checks the result against the
      specification and acceptance criteria.
+   - For multi-slice plans, include commit checkpoints after each independently
+     verifiable phase or slice. Each checkpoint states the intended scope,
+     required verification, and a proposed standalone Conventional Commit
+     message that names the concrete change. Do not plan commits for
+     discovery-only, unverified, or work-in-progress states.
+9. **Prepare the implementation handoff**
+   - Include a short handoff that starts with "When implementing this plan" so
+     pasted plans remain self-contained execution requests.
+   - Tell the implementer to treat the document as authoritative, re-check local
+     facts before editing, follow the acceptance criteria and test plan,
+     implement only the current in-scope slice, and stop on a blocked
+     `Proceed condition` or contradictory local evidence.
 
 ## Handling Incorrect or Impossible Requests
 
@@ -232,12 +244,23 @@ tasks, but preserve the order: requirements and tests come before implementation
 2. [Implementation step]
 3. [Verification and diff-review step]
 
+## Commit checkpoints
+- [For multi-slice plans only: checkpoint scope, required verification, and
+  proposed standalone Conventional Commit message. Omit this section for
+  single-slice or discovery-only plans.]
+
 ## Risks and unproven items
 - Item:
 - Evidence label: `Unproven` | `Accepted risk`
 - Impact:
 - Fastest proof path:
 - Revisit trigger:
+
+## Implementation handoff
+- When implementing this plan, treat this document as authoritative. Re-check
+  local facts before editing, follow the acceptance criteria and test plan,
+  implement only the current in-scope slice, and stop if the `Proceed condition`
+  is blocked or local evidence contradicts the plan.
 
 ## Proceed condition
 - [State whether implementation is ready, conditional on accepted risk, or
@@ -258,5 +281,7 @@ Before finalizing the plan, check that:
 - Acceptance criteria are observable.
 - Tests come before implementation steps.
 - Implementation steps do not rely on unlabeled assumptions.
+- The implementation handoff is present, self-contained, and does not name
+  another skill.
 - Accepted risks are explicit, scoped, and revisitable.
 - The output language follows the configured precedence.

@@ -7,7 +7,8 @@
     "Output stops or returns to planning when the current slice lacks concrete requirements, tests, proof steps, data handling, permissions, or external-contract details.",
     "Output requires explicit user agreement before implementing work outside the bound plan.",
     "Output distinguishes `Plan`, `Local evidence`, `Primary source`, `Accepted risk`, and `Unproven` when evidence affects implementation.",
-    "Output includes an appropriate verification path before claiming the implementation is complete."
+    "Output includes an appropriate verification path before claiming the implementation is complete.",
+    "When commits are authorized, output commits or proposes commits only after completed and verified checkpoints, and uses standalone Conventional Commit messages that do not leak prompt context or plan labels."
   ],
   "evals": [
     {
@@ -149,12 +150,29 @@
         "Uses the acceptance criteria for title, date/time, participants, and participant-empty behavior.",
         "Keeps remaining questions limited to plan-blocking product behavior, if any."
       ]
+    },
+    {
+      "id": "E09",
+      "name": "Authorized commit checkpoints with standalone messages",
+      "prompt": "Execute this plan and commit after each completed checkpoint.\n\n# Contact Import Plan\n\n## Goal\n- Add contact CSV import in two verified slices.\n\n## Requirements\n- In scope: parse uploaded CSV files, show row-level preview errors, and persist valid rows after confirmation.\n- Out of scope: role management, billing, and background imports.\n\n## Acceptance criteria\n- Invalid CSV rows show row-level errors and are not persisted.\n- Valid CSV rows appear in the preview and are persisted only after confirmation.\n\n## Test plan\n- Parser tests cover required columns, malformed rows, and valid rows.\n- UI tests cover preview errors and confirmation persistence.\n\n## Implementation plan\n1. Add parser behavior and parser tests.\n2. Add preview UI and persistence wiring with UI tests.\n\n## Commit checkpoints\n- After parser tests pass: proposed message `Phase 1`.\n- After UI tests pass: proposed message `Implement plan step 2`.\n\n## Risks and unproven items\n- None known for this slice.\n\n## Proceed condition\n- Implementation may begin.",
+      "expected_output": "The agent treats commits as authorized only for completed verified checkpoints, rejects the plan's prompt-dependent commit-message labels, and uses standalone Conventional Commit messages that name the concrete contact-import changes.",
+      "files": [],
+      "expectations": [
+        "Identifies the authoritative plan and current implementation slice before proposing edits.",
+        "Reads the plan's `Proceed condition`.",
+        "Treats commit authorization as scoped to the listed completed checkpoints.",
+        "Does not commit before the relevant parser or UI verification passes.",
+        "Does not use `Phase 1`, `Implement plan step 2`, `per plan`, `above`, or equivalent prompt-dependent wording as a commit message.",
+        "Uses standalone Conventional Commit messages that describe concrete changes such as adding the contact CSV parser or wiring import preview persistence.",
+        "Keeps role management, billing, background imports, and adjacent cleanup out of the committed scope.",
+        "Reports skipped or failing verification instead of committing an unverified work-in-progress state."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.5,
     "per_eval_expectation_weight": 0.5,
     "pass_threshold": 0.8,
-    "notes": "These evals focus on trigger discipline, vibe-planning handoff, proceed-condition handling, plan deviation control, local-evidence conflicts, accepted-risk handling, stale verification commands, and non-technical-user communication. Plan-binding assertions live on plan-present evals instead of common assertions so E04 can test the no-plan path without false failures. E01 and E03 use repo-level fixture paths so ready-to-execute plans do not fail only because the real project lacks sample app files. Baseline runs are expected to proceed too eagerly on E02, E04, E05, and E06."
+    "notes": "These evals focus on trigger discipline, vibe-planning handoff, proceed-condition handling, plan deviation control, local-evidence conflicts, accepted-risk handling, stale verification commands, non-technical-user communication, and commit-checkpoint discipline. Plan-binding assertions live on plan-present evals instead of common assertions so E04 can test the no-plan path without false failures. E01 and E03 use repo-level fixture paths so ready-to-execute plans do not fail only because the real project lacks sample app files. Baseline runs are expected to proceed too eagerly on E02, E04, E05, and E06, or use plan labels as commit messages on E09."
   }
 }

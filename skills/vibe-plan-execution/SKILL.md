@@ -134,6 +134,19 @@ questions, or blockers.
      or manual smoke checks.
    - Review the final diff against the plan's acceptance criteria and non-goals.
    - Report any skipped check with the reason and residual risk.
+7. **Commit verified checkpoints when authorized**
+   - Commit only when the user explicitly authorized commits or the bound plan
+     includes commit checkpoints the user asked to execute.
+   - Commit after each completed and verified phase, slice, or checkpoint. Keep
+     each commit logically scoped to the verified change.
+   - Do not commit discovery-only, unverified, failing, or work-in-progress states
+     unless the user explicitly accepts that exact state.
+   - Use Conventional Commits and the repository's commit rules.
+   - Write commit messages as standalone, durable prose: describe the actual
+     behavior or documentation change, not prompt context, conversation context,
+     or plan labels. Avoid references like `per the plan`, `above`,
+     `as requested`, `Phase 1`, `step 2`, or `implementation plan`; name the
+     concrete change instead.
 
 ## Stop Conditions
 
@@ -182,3 +195,5 @@ Before finalizing:
 - False or infeasible plan items were challenged with evidence and alternatives.
 - Tests or proof checks matched the plan's acceptance criteria.
 - The final diff was reviewed against plan scope and non-goals.
+- Authorized commits, if any, were made only after verified checkpoints and used
+  standalone Conventional Commit messages without prompt or plan-label leaks.

@@ -1,12 +1,14 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-planning",
-  "purpose": "External eval set for the vibe-planning skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers planning trigger discipline, evidence labeling, local investigation, incorrect user claims, accepted-risk handling, output-language precedence, non-technical-user communication, and destructive-risk blocking.",
+  "purpose": "External eval set for the vibe-planning skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers planning trigger discipline, evidence labeling, local investigation, incorrect user claims, accepted-risk handling, output-language precedence, non-technical-user communication, destructive-risk blocking, commit-checkpoint planning, and implementation handoff wording.",
   "common_assertions": [
     "Output is a planning artifact, not implementation; it does not edit files, provide patches, or claim the work is already complete.",
     "Output includes the planning contract in a usable order: goal, verified facts and sources, requirements, acceptance criteria, test plan, implementation or discovery plan, risks/unproven items, and proceed condition.",
     "Output labels implementation-affecting claims with `Primary source`, `Local investigation`, `Unproven`, or `Accepted risk` and does not present memory, inference, or unchecked user claims as fact.",
     "Output defines acceptance criteria and tests before implementation steps.",
+    "For multi-slice implementation plans, output includes commit checkpoints only after independently verifiable phases or slices, with required verification and proposed standalone Conventional Commit messages.",
+    "Output includes an implementation handoff beginning with `When implementing this plan` that tells a later implementer to bind to the plan, re-check local facts, follow acceptance criteria and tests, and stop on blocked proceed conditions or contradictory local evidence without naming another skill.",
     "Output puts proof-gathering before implementation steps whenever feasibility, external behavior, data handling, permissions, or current workspace behavior is unproven.",
     "Output asks only plan-changing questions that cannot be answered from local inspection, primary sources, or user-provided source material."
   ],
@@ -157,12 +159,27 @@
         "Keeps implementation steps limited to proof, test-lock, or staged migration preparation until destructive risks are resolved.",
         "Sets `Proceed condition` to blocked pending proof and a safe migration/rollback plan."
       ]
+    },
+    {
+      "id": "E09",
+      "name": "Multi-slice plan with commit checkpoints",
+      "prompt": "Create an implementation plan for a feature delivered in three slices: add a contact CSV import parser, wire an upload preview UI, then persist valid rows. Include how to verify each slice. No fixture files are provided.",
+      "expected_output": "The agent creates a planning artifact, keeps workspace-specific facts unproven, and includes commit checkpoints only after independently verifiable slices with required verification and proposed standalone Conventional Commit messages.",
+      "files": [],
+      "expectations": [
+        "Does not claim existing parser, UI, database, permission, or routing surfaces without local evidence.",
+        "Defines acceptance criteria and tests before implementation steps.",
+        "Splits the work into independently verifiable parser, preview UI, and persistence slices.",
+        "Includes commit checkpoints after verified slices, not before proof or as work-in-progress commits.",
+        "Each checkpoint includes required verification and a proposed Conventional Commit message.",
+        "Proposed commit messages describe concrete changes such as parser coverage, preview UI, or persistence wiring rather than `Phase 1`, `per plan`, or `implementation plan`."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.5,
     "per_eval_expectation_weight": 0.5,
     "pass_threshold": 0.8,
-    "notes": "These evals focus on the plan-generation contract rather than execution. Fixture-backed cases check local-investigation grounding, while prompt-only cases pressure unsupported user claims, external-contract proof, accepted-risk handling, language selection, and destructive-risk limits. Baseline runs are expected to over-trust user claims, skip proof paths, produce implementation steps too early, or omit evidence labels."
+    "notes": "These evals focus on the plan-generation contract rather than execution. Fixture-backed cases check local-investigation grounding, while prompt-only cases pressure unsupported user claims, external-contract proof, accepted-risk handling, language selection, destructive-risk limits, commit-checkpoint planning, and implementation handoff wording. Baseline runs are expected to over-trust user claims, skip proof paths, produce implementation steps too early, omit evidence labels, omit commit checkpoints for multi-slice work, or omit a later-execution handoff."
   }
 }

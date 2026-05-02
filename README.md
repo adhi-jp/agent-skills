@@ -36,7 +36,9 @@ user instruction, `VIBE_PLANNING_OUTPUT_LANG`, agent config, or conversation
 language. Editable UI plans also cover state transitions such as save,
 cancel/reset, pending, validation, success, and error recovery, and prefer
 completing verified existing surfaces before expanding into adjacent unproven
-channels or modes.
+channels or modes. Multi-slice plans include commit checkpoints only after
+independently verifiable phases or slices, with standalone proposed messages.
+Plans also include a short implementation handoff for later execution requests.
 
 ### `vibe-plan-execution`
 
@@ -45,7 +47,9 @@ binds to the authoritative plan before editing, uses the plan's goal,
 requirements, acceptance criteria, test plan, risks, and proceed condition, and
 checks assumptions against local evidence or primary sources. It stops on
 contradictions or missing implementation facts and requires explicit user
-agreement for plan deviations.
+agreement for plan deviations. When commits are authorized, it commits only
+completed and verified checkpoints and uses standalone Conventional Commit
+messages that describe the actual change without prompt or plan-label references.
 
 ### `vibe-planning-guard`
 

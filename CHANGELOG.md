@@ -11,6 +11,24 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- `vibe-planning` — multi-slice plans now include commit checkpoints only after
+  independently verifiable phases or slices, with required verification and a
+  proposed standalone Conventional Commit message.
+  - Plans now include an implementation handoff that starts with "When
+    implementing this plan" and tells later execution requests to bind to the
+    plan, re-check local facts, follow acceptance criteria and tests, and stop
+    on blocked proceed conditions or contradictory local evidence.
+  - `evals/vibe-planning/` now covers commit-checkpoint planning and
+    implementation handoff wording.
+- `vibe-plan-execution` — authorized commits now happen only after completed
+  and verified checkpoints, avoid discovery-only or work-in-progress states, and
+  require standalone Conventional Commit messages that describe the actual
+  change without prompt or plan-label references.
+  - `evals/vibe-plan-execution/` now covers authorized checkpoint commits and
+    rejects plan-label commit messages such as `Phase 1`.
+
 ## [Repository] - 2026-05-02
 
 ### Changed
