@@ -28,6 +28,13 @@
 - Any skill behavior change must update the relevant `SKILL.md`, supporting references, README text, and `CHANGELOG.md` entry in the same change set when those artifacts describe the changed behavior.
 - Do not defer sibling documentation updates when the current change invalidates existing text.
 
+## Evaluation Workspace Rules
+
+- Keep eval definitions under `evals/<skill-name>/`.
+- Store generated eval run outputs under `evals/<skill-name>/workspace/`.
+- Do not create generated eval workspaces next to skill packages under `skills/`.
+- Do not commit generated eval workspaces unless the user explicitly asks for them; they are local artifacts covered by `.gitignore`.
+
 ## Commit Rules
 
 - Use Conventional Commits.

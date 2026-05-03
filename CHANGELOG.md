@@ -13,6 +13,9 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- Repository — `AGENTS.md` now requires generated eval run outputs under
+  `evals/<skill-name>/workspace/`, keeps them out of `skills/`, and treats them
+  as ignored local artifacts unless explicitly requested.
 - `minecraft-modding-workbench` — added MCP preflight, failure-budget, fallback
   fact-labeling, dependency source lookup, validator fallback, GameTest, and
   HUD/client-rendering guidance.
