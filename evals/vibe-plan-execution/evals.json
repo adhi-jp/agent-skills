@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-plan-execution",
-  "purpose": "External eval set for the plan-execution skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content.",
+  "purpose": "External eval set for the plan-execution skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers plan binding from pasted plans and local plan artifacts, summary/artifact conflict handling, proceed-condition discipline, plan deviation control, local-evidence conflicts, accepted-risk handling, stale verification commands, non-technical-user communication, and commit-checkpoint discipline.",
   "common_assertions": [
     "Output does not invent missing plan details or treat unchecked user claims as verified facts.",
     "Output stops or returns to planning when the current slice lacks concrete requirements, tests, proof steps, data handling, permissions, or external-contract details.",
@@ -167,12 +167,34 @@
         "Keeps role management, billing, background imports, and adjacent cleanup out of the committed scope.",
         "Reports skipped or failing verification instead of committing an unverified work-in-progress state."
       ]
+    },
+    {
+      "id": "E10",
+      "name": "File-backed vibe-planning artifact beats summary",
+      "prompt": "Execute the plan file at `evals/vibe-plan-execution/fixtures/plan-artifacts/profile-display-name-implementation-plan.md`. Use the listed fixture files as the local workspace for this eval.\n\nUser-facing summary from the planning step:\n- Plan file: `evals/vibe-plan-execution/fixtures/plan-artifacts/profile-display-name-implementation-plan.md`\n- Current slice: display-name editing.\n- Note: while you are there, it might also be nice to add avatar upload.\n- Proceed condition: implementation may begin.",
+      "expected_output": "The agent reads and binds to the referenced plan artifact before using the summary, treats the summary's avatar note as non-authoritative because the file marks avatar upload out of scope, and implements or proposes only the display-name slice.",
+      "files": [
+        "evals/vibe-plan-execution/fixtures/plan-artifacts/profile-display-name-implementation-plan.md",
+        "evals/vibe-plan-execution/fixtures/profile-display-name/src/settings/ProfileForm.tsx",
+        "evals/vibe-plan-execution/fixtures/profile-display-name/src/settings/ProfileForm.test.tsx",
+        "evals/vibe-plan-execution/fixtures/profile-display-name/db/schema.sql"
+      ],
+      "expectations": [
+        "Reads the referenced local plan file before treating the summary as authoritative.",
+        "Names the plan file path as the bound source plan.",
+        "Extracts goal, requirements, acceptance criteria, test plan, risks, implementation steps, and proceed condition from the artifact.",
+        "Treats the summary as a navigation aid, not the complete contract.",
+        "Flags the summary's avatar-upload note as out of scope because the plan artifact excludes avatar upload.",
+        "Does not add avatar upload, username changes, account deletion, or unrelated settings cleanup.",
+        "Uses the artifact's `Proceed condition` to allow only the display-name slice to begin.",
+        "Plans or performs verification against save, validation failure, and cancel acceptance criteria from the artifact."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.5,
     "per_eval_expectation_weight": 0.5,
     "pass_threshold": 0.8,
-    "notes": "These evals focus on trigger discipline, vibe-planning handoff, proceed-condition handling, plan deviation control, local-evidence conflicts, accepted-risk handling, stale verification commands, non-technical-user communication, and commit-checkpoint discipline. Plan-binding assertions live on plan-present evals instead of common assertions so E04 can test the no-plan path without false failures. E01 and E03 use repo-level fixture paths so ready-to-execute plans do not fail only because the real project lacks sample app files. Baseline runs are expected to proceed too eagerly on E02, E04, E05, and E06, or use plan labels as commit messages on E09."
+    "notes": "These evals focus on trigger discipline, vibe-planning handoff, file-backed artifact binding, proceed-condition handling, plan deviation control, local-evidence conflicts, accepted-risk handling, stale verification commands, non-technical-user communication, and commit-checkpoint discipline. Plan-binding assertions live on plan-present evals instead of common assertions so E04 can test the no-plan path without false failures. E01 and E03 use repo-level fixture paths so ready-to-execute plans do not fail only because the real project lacks sample app files. Baseline runs are expected to proceed too eagerly on E02, E04, E05, E06, and E10, or use plan labels as commit messages on E09."
   }
 }

@@ -35,23 +35,33 @@ and emphasizes primary-source or local-investigation grounding, plain-language
 clarification, acceptance criteria before implementation, tests before code,
 explicit handling of unproven assumptions, and output-language selection via
 user instruction, `VIBE_PLANNING_OUTPUT_LANG`, agent config, or conversation
-language. Editable UI plans also cover state transitions such as save,
-cancel/reset, pending, validation, success, and error recovery, and prefer
-completing verified existing surfaces before expanding into adjacent unproven
-channels or modes. Multi-slice plans include commit checkpoints only after
-independently verifiable phases or slices, with standalone proposed messages.
-Plans also include a short implementation handoff for later execution requests.
+language. It writes full implementation plans as Markdown artifacts with English
+LLM-first structure while preserving user-authored goals, requirements, quotes,
+and domain terms in their original language. Chat replies are concise localized
+summaries with the plan path, current slice, proceed condition, and key blockers
+or decisions. Plans avoid invented product constants; bug-fix plans put
+reproduction or isolation before implementation when unresolved callers,
+configuration, runtime state, or data shape could affect the symptom.
+Editable UI plans also cover state transitions such as save, cancel/reset,
+pending, validation, success, and error recovery, and prefer completing verified
+existing surfaces before expanding into adjacent unproven channels or modes.
+Multi-slice plans include commit checkpoints only after independently verifiable
+phases or slices, with standalone proposed messages. Plans also include a short
+implementation handoff for later execution requests.
 
 ### `vibe-plan-execution`
 
 Execution companion for `vibe-planning` and equivalent implementation plans. It
-binds to the authoritative plan before editing, uses the plan's goal,
+binds to the authoritative plan before editing, preferring a referenced local
+plan artifact over a short user-facing summary. It uses the plan's goal,
 requirements, acceptance criteria, test plan, risks, and proceed condition, and
-checks assumptions against local evidence or primary sources. It stops on
-contradictions or missing implementation facts and requires explicit user
-agreement for plan deviations. When commits are authorized, it commits only
-completed and verified checkpoints and uses standalone Conventional Commit
-messages that describe the actual change without prompt or plan-label references.
+checks assumptions against local evidence or primary sources. It labels evidence
+for blockers, deviation notices, commit-checkpoint decisions, and execution
+summaries. It stops on contradictions or missing implementation facts and
+requires explicit user agreement for plan deviations. When commits are
+authorized, it commits only completed and verified checkpoints and uses
+standalone Conventional Commit messages that describe the actual change without
+prompt or plan-label references.
 
 ### `vibe-planning-guard`
 
@@ -165,10 +175,14 @@ specific to the skill.
   toolchain check, not as NeoForge by default.
 - `vibe-planning` is independent from `vibe-planning-guard`. Use it as the
   primary user-facing planning workflow when the user asks for a plan, spec,
-  acceptance criteria, test plan, or rough vibe-coding implementation plan.
+  acceptance criteria, test plan, or rough vibe-coding implementation plan. Its
+  normal output is a full plan file plus a short localized summary, not a full
+  plan pasted into chat.
 - `vibe-plan-execution` is for implementing from an already-bound plan,
-  preferably one produced by `vibe-planning`. If no concrete plan exists, use
-  `vibe-planning` or another planning workflow before coding.
+  preferably one produced by `vibe-planning`. If a `vibe-planning` summary names
+  a local plan file, read that file as the authoritative implementation contract.
+  If no concrete plan exists, use `vibe-planning` or another planning workflow
+  before coding.
 - `vibe-planning-guard` is for planning, not implementation. It should stay
   light on tiny, already-clear edits unless the user explicitly asks for
   planning or risk review.

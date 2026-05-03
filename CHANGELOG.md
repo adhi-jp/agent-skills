@@ -11,6 +11,31 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- `vibe-planning` — plans now default to Markdown artifacts with English
+  LLM-first structure, safe path selection, collision handling, and
+  original-language preservation for user intent, requirements, quoted material,
+  and domain terms.
+  - User-facing chat output is now a concise localized summary with the plan
+    path, current slice, proceed condition, and key blockers or decisions,
+    instead of a duplicate full plan.
+  - Plans avoid invented numeric limits, thresholds, timing windows, quotas, or
+    product constants, and require bug-fix reproduction or isolation before
+    production-code changes when unresolved callers, configuration, runtime
+    state, external behavior, or data shape could affect the symptom.
+  - `evals/vibe-planning/` now covers plan artifact and localized-summary
+    separation, and no longer expects unsupported display-name limits as local
+    evidence.
+- `vibe-plan-execution` — execution now prefers a referenced local
+  `vibe-planning` plan artifact over its short user-facing summary and treats
+  summary/artifact conflicts as blockers when they affect scope, behavior,
+  verification, risk, or proceed conditions.
+  - User-facing blockers, questions, deviation notices, commit-checkpoint
+    decisions, and execution summaries now use evidence labels when the decision
+    depends on plan or workspace facts, even if no code was edited.
+  - `evals/vibe-plan-execution/` now covers file-backed plan binding.
+
 ## [Repository] - 2026-05-03
 
 ### Changed

@@ -22,9 +22,9 @@ be proven, and make uncertainty visible.
 This skill is independent. Do not assume another planning skill or guard is
 available.
 
-## Output Language
+## Output Language and Artifact
 
-Resolve the user-facing output language before drafting the plan:
+Resolve the user-facing summary language before drafting the plan:
 
 1. Explicit user instruction in the current request.
 2. `VIBE_PLANNING_OUTPUT_LANG`, if the environment is safely readable. If the
@@ -41,6 +41,43 @@ language cannot be read, treat it as unset and continue. Keep file paths, code
 identifiers, API names, commands, field names, error messages, and quoted source
 material in their original language unless the user explicitly asks for
 translation.
+
+Write the full implementation plan as a Markdown artifact by default, then give
+the user only a concise summary in the resolved user-facing language.
+Use this file path selection order:
+
+1. A user-specified local path.
+2. An existing project convention for plans or specs if it is obvious from the
+   workspace, such as `plans/`, `docs/plans/`, or `specs/`.
+3. `plans/YYYY-MM-DD-<goal-slug>-implementation-plan.md` at the workspace root,
+   using the current local date and a short lowercase ASCII slug.
+
+Do not overwrite an existing plan file. If an explicit user path already exists,
+ask before replacing it; use a non-destructive sibling only when the user allowed
+that behavior. For generated default names, append a numeric suffix such as `-2`
+on collision. Do not modify `.gitignore` only because a plan artifact was
+created.
+
+The artifact is for later agents and implementers. Use fixed English section
+headings and concise implementation-oriented English prose for structure.
+Preserve user-authored goals, requirements, in-scope and out-of-scope
+statements, quoted source material, domain vocabulary, product labels,
+identifiers, paths, commands, errors, API names, and field names in their
+original language. When an English operational paraphrase is useful, place it
+after the original wording instead of replacing the original.
+
+After writing the file, reply with only the essentials in the resolved
+user-facing language:
+
+- Plan file path.
+- Current slice.
+- Proceed condition.
+- Key `Unproven`, `Accepted risk`, blocker, or decision items.
+- The next action needed from the user, if any.
+
+Do not paste the full plan into chat unless file writing is unavailable, unsafe,
+or explicitly declined. If no file was written, state the reason and provide the
+complete plan artifact in the reply using the same English artifact structure.
 
 ## Core Rules
 
@@ -65,9 +102,18 @@ translation.
 - For non-technical users, explain choices in plain language and translate
   technical consequences into product or workflow impact.
 - Define acceptance criteria and tests before implementation steps.
+- Do not invent numeric limits, thresholds, timing windows, quotas, or product
+  constants. Use values only when they come from user requirements, local
+  evidence, primary sources, or accepted risk; otherwise label the value
+  `Unproven` and make proof or a product decision precede implementation.
 - For editable UI plans, include observable state transitions in the acceptance
   criteria and tests: save, cancel/reset or explicit no-cancel behavior, pending
   state, success feedback, validation failure, and error recovery when relevant.
+- For narrow changes inside profile, account, settings, admin, billing, or other
+  broad surfaces, explicitly name adjacent features that are not in the current
+  slice when a later implementer could plausibly expand into them. Include
+  destructive or high-risk adjacent account actions, such as account deletion,
+  only as out of scope unless the user asked for them.
 - If implementation proceeds with an `Unproven` assumption, require explicit
   user risk acceptance and keep the item labeled as `Accepted risk`; never
   convert it into verified fact.
@@ -145,7 +191,11 @@ localized work.
      preserve it with acceptance criteria and tests.
 6. **Design tests before implementation**
    - Derive tests from acceptance criteria.
-   - For bug fixes, include a failing regression test or a reproduction proof.
+   - For bug fixes, include a failing regression test or a reproduction proof
+     before production-code changes.
+   - If the reported symptom may depend on unverified callers, configuration,
+     runtime state, external behavior, or data shape, put the fastest isolation
+     step before implementation steps, even when a local defect is also visible.
    - For refactors, include equivalence checks that prove behavior is preserved.
    - For UI, include interaction, state, responsive layout, and accessibility
      checks when relevant.
@@ -204,10 +254,11 @@ If the user explicitly chooses to continue with an unproven assumption:
 Never use accepted risk for irreversible, destructive, unsafe, illegal, or
 credential-exposing actions. Those require proof or a safer alternative.
 
-## Standard Output
+## Standard Plan Artifact
 
-Use this structure for implementation-ready plans. Keep it compact for small
-tasks, but preserve the order: requirements and tests come before implementation.
+Use this structure for the implementation-ready plan file. Keep it compact for
+small tasks, but preserve the order: requirements and tests come before
+implementation.
 
 ```markdown
 # [Plan title]
@@ -276,6 +327,13 @@ Before finalizing the plan, check that:
 
 - Discoverable facts were investigated before asking the user.
 - Technical jargon is explained or avoided when the user may be non-technical.
+- The full plan was written to a durable Markdown artifact, or the fallback
+  reason for chat-only output is stated.
+- The plan artifact uses stable English section headings and preserves
+  user-authored intent, requirements, quoted material, and domain terms in their
+  original language.
+- The user-facing reply is a concise summary in the resolved language and does
+  not duplicate the full artifact unless file output was unavailable or declined.
 - Every implementation-affecting claim has an evidence label.
 - False or infeasible requirements are challenged with evidence and alternatives.
 - Acceptance criteria are observable.
@@ -284,4 +342,4 @@ Before finalizing the plan, check that:
 - The implementation handoff is present, self-contained, and does not name
   another skill.
 - Accepted risks are explicit, scoped, and revisitable.
-- The output language follows the configured precedence.
+- The user-facing summary language follows the configured precedence.

@@ -1,14 +1,17 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-planning",
-  "purpose": "External eval set for the vibe-planning skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers planning trigger discipline, evidence labeling, local investigation, incorrect user claims, accepted-risk handling, output-language precedence, non-technical-user communication, destructive-risk blocking, commit-checkpoint planning, and implementation handoff wording.",
+  "purpose": "External eval set for the vibe-planning skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers planning trigger discipline, file-backed plan artifacts, concise localized summaries, evidence labeling, local investigation, incorrect user claims, accepted-risk handling, output-language precedence, non-technical-user communication, destructive-risk blocking, commit-checkpoint planning, and implementation handoff wording.",
   "common_assertions": [
-    "Output is a planning artifact, not implementation; it does not edit files, provide patches, or claim the work is already complete.",
-    "Output includes the planning contract in a usable order: goal, verified facts and sources, requirements, acceptance criteria, test plan, implementation or discovery plan, risks/unproven items, and proceed condition.",
+    "Output is a planning result, not implementation; it does not edit application files, provide patches, or claim the work is already complete.",
+    "Output writes or names a durable Markdown implementation-plan artifact, or clearly states why file output was unavailable and then returns the complete artifact in chat.",
+    "The plan artifact uses stable English section headings and an LLM-first layout while preserving user-authored goals, requirements, quoted material, domain vocabulary, paths, identifiers, commands, errors, API names, and field names in their original language.",
+    "The user-facing response is a concise summary in the resolved user-facing language and includes the plan file path or fallback reason, current slice, proceed condition, and key blockers, unproven items, accepted risks, or decisions without duplicating the full plan when a file was written.",
+    "The plan artifact includes the planning contract in a usable order: goal, verified facts and sources, requirements, acceptance criteria, test plan, implementation or discovery plan, risks/unproven items, implementation handoff, and proceed condition.",
     "Output labels implementation-affecting claims with `Primary source`, `Local investigation`, `Unproven`, or `Accepted risk` and does not present memory, inference, or unchecked user claims as fact.",
     "Output defines acceptance criteria and tests before implementation steps.",
-    "For multi-slice implementation plans, output includes commit checkpoints only after independently verifiable phases or slices, with required verification and proposed standalone Conventional Commit messages.",
-    "Output includes an implementation handoff beginning with `When implementing this plan` that tells a later implementer to bind to the plan, re-check local facts, follow acceptance criteria and tests, and stop on blocked proceed conditions or contradictory local evidence without naming another skill.",
+    "For multi-slice implementation plans, the plan artifact includes commit checkpoints only after independently verifiable phases or slices, with required verification and proposed standalone Conventional Commit messages.",
+    "The plan artifact includes an implementation handoff beginning with `When implementing this plan` that tells a later implementer to bind to the plan, re-check local facts, follow acceptance criteria and tests, and stop on blocked proceed conditions or contradictory local evidence without naming another skill.",
     "Output puts proof-gathering before implementation steps whenever feasibility, external behavior, data handling, permissions, or current workspace behavior is unproven.",
     "Output asks only plan-changing questions that cannot be answered from local inspection, primary sources, or user-provided source material."
   ],
@@ -17,19 +20,19 @@
       "id": "E01",
       "name": "Fixture-backed display-name plan in Japanese",
       "prompt": "プロフィール画面で表示名を編集できるようにしたいです。何から作るべきか、実装前の計画を作ってください。私は技術者ではないので、難しい判断はかみ砕いてください。Use the listed fixture files as the local workspace for this eval.",
-      "expected_output": "The agent creates a Japanese implementation plan grounded in the fixture files, keeps the current slice to display-name editing, defines validation/save/existing-cancel acceptance criteria, and lists tests before implementation steps.",
+      "expected_output": "The agent creates an English-structured implementation plan artifact grounded in the fixture files, preserves the Japanese user intent, returns only a concise Japanese summary, keeps the current slice to display-name editing, defines validation/save/existing-cancel acceptance criteria without inventing unsupported numeric limits, and lists tests before implementation steps.",
       "files": [
         "evals/vibe-planning/fixtures/profile-display-name/src/settings/ProfileForm.tsx",
         "evals/vibe-planning/fixtures/profile-display-name/src/settings/ProfileForm.test.tsx",
         "evals/vibe-planning/fixtures/profile-display-name/db/schema.sql"
       ],
       "expectations": [
-        "Uses Japanese for user-facing prose while keeping file paths, identifiers, and commands in their original language.",
+        "Uses Japanese for the user-facing summary while keeping the plan artifact's section headings in English and file paths, identifiers, and commands in their original language.",
         "Cites `ProfileForm.tsx`, `ProfileForm.test.tsx`, and `schema.sql` as `Local investigation` evidence.",
         "Identifies that the current form already submits `displayName` and that `display_name` exists in the database schema.",
-        "Identifies current gaps such as empty/over-50-character validation or loading/error-state coverage, and preserves the fixture's existing cancel behavior.",
+        "Identifies current gaps such as empty validation, missing verified max-length policy, or loading/error-state coverage, and preserves the fixture's existing cancel behavior.",
         "Keeps the current slice limited to display-name editing and marks avatar upload, username changes, and account deletion as out of scope or not part of this plan.",
-        "Defines observable acceptance criteria for saving a 1-50 character display name, rejecting empty/overlong values, and preserving the existing cancel behavior that restores the previous value.",
+        "Defines observable acceptance criteria for saving a nonblank display name, rejecting empty values, preserving the existing cancel behavior that restores the previous value, and either proving any overlong limit from local/product evidence or labeling it `Unproven` instead of inventing one.",
         "Derives a test plan for save, validation failure, existing cancel restoration, and relevant loading/error state before listing implementation steps.",
         "Sets `Proceed condition` to implementation-ready only for the bounded display-name slice."
       ]
@@ -94,10 +97,10 @@
       "id": "E05",
       "name": "Output language environment override",
       "prompt": "VIBE_PLANNING_OUTPUT_LANG=English\n日本語で相談していますが、この設定に従って、ユーザーのタイムゾーン設定をプロフィールに追加する計画を作ってください。No fixture files are provided.",
-      "expected_output": "The agent follows the explicit VIBE_PLANNING_OUTPUT_LANG setting from the prompt and writes the plan in English while preserving technical identifiers.",
+      "expected_output": "The agent follows the explicit VIBE_PLANNING_OUTPUT_LANG setting from the prompt, returns the concise user-facing summary in English, and writes or falls back to an English-structured plan artifact while preserving technical identifiers.",
       "files": [],
       "expectations": [
-        "Writes the user-facing plan in English despite the surrounding Japanese request.",
+        "Writes the user-facing summary in English despite the surrounding Japanese request.",
         "Does not run broad discovery only to find a language setting.",
         "Keeps code identifiers, file paths, commands, and environment variable names in their original form.",
         "Marks workspace-specific claims as `Unproven` because no fixture files or repository evidence were provided.",
@@ -128,7 +131,7 @@
       "id": "E07",
       "name": "Non-technical notification planning",
       "prompt": "私は技術者ではありません。通知設定をいい感じにしたいです。メール、SMS、プッシュ通知が全部あると便利そうですが、まず何を作るべきか計画してください。Use the listed fixture file as the local workspace for this eval.",
-      "expected_output": "The agent responds in plain Japanese, grounds the plan in the existing email-only fixture, narrows the first slice, and asks only concrete product questions needed for notification behavior.",
+      "expected_output": "The agent responds with a concise plain-Japanese summary, writes or names an English-structured plan artifact grounded in the existing email-only fixture, narrows the first slice, and asks only concrete product questions needed for notification behavior.",
       "files": [
         "evals/vibe-planning/fixtures/notification-settings/src/notifications/Preferences.tsx"
       ],
@@ -180,6 +183,6 @@
     "common_assertion_weight": 0.5,
     "per_eval_expectation_weight": 0.5,
     "pass_threshold": 0.8,
-    "notes": "These evals focus on the plan-generation contract rather than execution. Fixture-backed cases check local-investigation grounding, while prompt-only cases pressure unsupported user claims, external-contract proof, accepted-risk handling, language selection, destructive-risk limits, commit-checkpoint planning, and implementation handoff wording. Baseline runs are expected to over-trust user claims, skip proof paths, produce implementation steps too early, omit evidence labels, omit commit checkpoints for multi-slice work, or omit a later-execution handoff."
+    "notes": "These evals focus on the plan-generation contract rather than execution. Fixture-backed cases check local-investigation grounding and file-backed artifact behavior, while prompt-only cases pressure unsupported user claims, external-contract proof, accepted-risk handling, summary-language selection, destructive-risk limits, commit-checkpoint planning, and implementation handoff wording. Baseline runs are expected to over-trust user claims, skip proof paths, produce implementation steps too early, omit evidence labels, paste full plans into chat instead of producing a durable artifact plus concise summary, omit commit checkpoints for multi-slice work, or omit a later-execution handoff."
   }
 }

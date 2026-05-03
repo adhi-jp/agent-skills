@@ -17,8 +17,10 @@ before coding.
 
 ## Relationship to `vibe-planning`
 
-This skill executes bound implementation plans. Prefer a `vibe-planning` output
-when one exists, and read these sections directly:
+This skill executes bound implementation plans. `vibe-planning` usually writes
+a Markdown plan artifact and returns only a short user-facing summary. When a
+local plan file path is available, read and bind to that file before using any
+pasted summary or conversation recap. Read these sections directly:
 
 - `Goal`, `Requirements`, and `Acceptance criteria` define the behavior
   contract for the current slice.
@@ -34,6 +36,11 @@ If a `vibe-planning` plan says implementation is blocked, do not start coding.
 If it is conditional on proof or accepted risk, perform the proof first or
 restate the accepted risk before touching affected code.
 
+Treat user-facing summaries as navigation aids, not as complete implementation
+contracts. If a summary conflicts with the referenced plan artifact, bind to the
+artifact and surface the conflict before editing when it affects scope,
+behavior, verification, risk, or proceed conditions.
+
 ## Concrete Plan Requirements
 
 A plan is concrete enough to execute only when the current slice has:
@@ -44,6 +51,11 @@ A plan is concrete enough to execute only when the current slice has:
 - A test, proof, or manual verification path.
 - Implementation steps or a named code area to inspect first.
 - Open risks, unproven items, or a statement that none are known.
+
+A referenced `vibe-planning` summary alone is not concrete enough when it points
+to an accessible plan artifact. Read the artifact first. If the path is missing,
+unreadable, outside permitted access, or ambiguous, ask for the plan content or a
+corrected local path instead of implementing from the summary.
 
 If any missing item changes what to build, how to test it, data handling,
 permissions, external contracts, or user experience, return to `vibe-planning`
@@ -60,8 +72,9 @@ Do not use this skill for:
 
 ## Core Rules
 
-- Identify the implementation plan before editing files. If multiple plans
-  could apply, ask the user which one is authoritative.
+- Identify the implementation plan before editing files. If the user references
+  a local plan file path, read it before editing. If multiple plans could apply,
+  ask the user which one is authoritative.
 - Treat the user's words as intent, not verified fact. Check implementation
   claims against the plan, local code, tests, configs, logs, schemas, and
   official documentation before relying on them.
@@ -80,8 +93,10 @@ Do not use this skill for:
 
 ## Evidence Classes
 
-Use these labels internally and in user-facing blockers when they affect the
-implementation decision:
+Use these labels internally and in user-facing blockers, questions, plan
+deviation notices, commit-checkpoint decisions, and execution summaries when
+they affect scope, behavior, verification, risk, commit authorization, or
+whether implementation may proceed:
 
 - `Plan`: stated by the bound implementation plan, specification, acceptance
   criteria, or task list.
@@ -99,13 +114,22 @@ source`. `Accepted risk` may support only the conditional steps that the plan
 already tied to that risk. Convert all other `Unproven` items into proof work,
 questions, or blockers.
 
+Do not omit evidence labels only because no files were edited. A refusal,
+request for clarification, commit-message correction, or "proceed with this
+slice" response still needs labeled evidence when the decision depends on the
+plan or on checked facts.
+
 ## Execution Workflow
 
 1. **Bind the plan**
-   - Name the source plan and the current slice being implemented.
+   - Name the source plan, including the local path when it came from a file,
+     and the current slice being implemented.
    - Extract in-scope behavior, out-of-scope behavior, acceptance criteria,
      tests, constraints, and explicit non-goals.
    - Read the `Proceed condition` first when the plan came from `vibe-planning`.
+   - If a user-facing summary differs from the full plan artifact, treat the
+     artifact as authoritative and stop for a decision when the difference
+     changes behavior, scope, tests, risks, or the proceed condition.
    - If the concrete plan requirements are missing and the gap affects
      implementation, stop and ask for a planning update instead of filling it in.
 2. **Verify before editing**
@@ -176,10 +200,13 @@ When stopping, explain:
 
 - Keep progress updates tied to the plan: "I am implementing step 2" or "This
   conflicts with acceptance criterion 3."
+- When bound to a plan file, include the path in the initial binding note so the
+  user can see which artifact controls the work.
 - When no concrete plan exists, say implementation is blocked and name
   `vibe-planning` or the active planning workflow as the next step.
 - For non-technical users, describe consequences in workflow terms before naming
-  the implementation detail.
+  the implementation detail. Keep evidence labels explicit but light, such as
+  "根拠: `Plan` ..." or "Evidence: `Plan` ...".
 - Do not bury plan deviations in the final summary. Call them out before editing.
 - In the final response, include the implemented slice, verification performed,
   plan deviations or blockers, and any remaining planned steps.
@@ -189,9 +216,11 @@ When stopping, explain:
 Before finalizing:
 
 - The implementation plan was explicitly identified.
+- Any referenced local plan file was read before using a summary.
 - The current slice stayed inside the plan or the user approved a deviation.
-- Every implementation-affecting claim came from `Plan`, `Local evidence`, or
-  `Primary source`.
+- Every implementation-affecting or decision-affecting claim came from `Plan`,
+  `Local evidence`, `Primary source`, or scoped `Accepted risk`, and user-facing
+  decisions used those labels even when no code was edited.
 - False or infeasible plan items were challenged with evidence and alternatives.
 - Tests or proof checks matched the plan's acceptance criteria.
 - The final diff was reviewed against plan scope and non-goals.
