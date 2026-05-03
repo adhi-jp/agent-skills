@@ -1,5 +1,5 @@
 ---
-version: 1.1.1
+version: 1.2.0
 name: minecraft-modding-workbench
 description: >
   Use when building, debugging, porting, or inspecting Minecraft Java Edition

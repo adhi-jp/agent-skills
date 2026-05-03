@@ -11,11 +11,18 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [Repository] - 2026-05-03
+
 ### Changed
 
-- Repository — `AGENTS.md` now requires generated eval run outputs under
+- `AGENTS.md` now requires generated eval run outputs under
   `evals/<skill-name>/workspace/`, keeps them out of `skills/`, and treats them
   as ignored local artifacts unless explicitly requested.
+
+## [minecraft-modding-workbench 1.2.0] - 2026-05-03
+
+### Changed
+
 - `minecraft-modding-workbench` — added MCP preflight, failure-budget, fallback
   fact-labeling, dependency source lookup, validator fallback, GameTest, and
   HUD/client-rendering guidance.
@@ -29,6 +36,11 @@ use `[Repository] - YYYY-MM-DD`.
   - `evals/minecraft-modding-workbench/` now covers MCP preflight, validator
     restart fallback, dependency source lookup, worldgen codec validation, HUD
     projection checks, and GameTest/access-widener wiring.
+
+## [vibe-planning 1.1.0] - 2026-05-03
+
+### Changed
+
 - `vibe-planning` — multi-slice plans now include commit checkpoints only after
   independently verifiable phases or slices, with required verification and a
   proposed standalone Conventional Commit message.
@@ -38,6 +50,11 @@ use `[Repository] - YYYY-MM-DD`.
     on blocked proceed conditions or contradictory local evidence.
   - `evals/vibe-planning/` now covers commit-checkpoint planning and
     implementation handoff wording.
+
+## [vibe-plan-execution 1.1.0] - 2026-05-03
+
+### Changed
+
 - `vibe-plan-execution` — authorized commits now happen only after completed
   and verified checkpoints, avoid discovery-only or work-in-progress states, and
   require standalone Conventional Commit messages that describe the actual
