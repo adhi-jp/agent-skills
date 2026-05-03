@@ -23,7 +23,9 @@ Version-aware Minecraft modding skill for Fabric, NeoForge, and Architectury
 projects. It is designed around the `minecraft-modding` MCP server from
 `@adhisang/minecraft-modding-mcp` and focuses on full implementation slices,
 version-aware debugging, mapping work, mod JAR inspection, and multi-loader
-project structure.
+project structure. It also defines MCP preflight and fallback behavior for
+unavailable or unstable tool servers, dependency source lookup, resource/codec
+validation, GameTest wiring, and HUD/client-rendering verification.
 
 ### `vibe-planning`
 

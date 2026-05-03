@@ -10,7 +10,8 @@
 6. [Networking](#networking)
 7. [Sided Access](#sided-access)
 8. [Access Transformers](#access-transformers)
-9. [Common Pitfalls](#common-pitfalls)
+9. [GameTest Notes](#gametest-notes)
+10. [Common Pitfalls](#common-pitfalls)
 
 ---
 
@@ -344,6 +345,17 @@ Common AT mistakes:
 - Stale entries referencing fields removed in a newer MC version
 - Forgetting to declare the AT file in `neoforge.mods.toml`
 
+## GameTest Notes
+
+Use `references/gametest.md` for the full checklist.
+
+- NeoForge GameTest discovery and run tasks differ from Fabric. Use the
+  workspace's existing task names and source set layout.
+- Access transformer, event bus, and capability behavior should be verified on
+  the NeoForge runtime path, not inferred from Fabric tests.
+- In Architectury workspaces, record whether a GameTest ran against NeoForge or
+  Fabric before using it as evidence for shared code.
+
 ## Common Pitfalls
 
 - **Using `Registry.register()` directly** — Always use `DeferredRegister`. Direct registry access can cause ordering bugs.
@@ -351,3 +363,4 @@ Common AT mistakes:
 - **Wrong event bus** — `RegisterCapabilitiesEvent`, `EntityAttributeCreationEvent`, `FMLClientSetupEvent` are on the MOD bus. `LivingDeathEvent`, `BlockEvent.BreakEvent` are on the GAME bus.
 - **Missing `neoforge.mods.toml`** — The mod won't load without it. Make sure `modId` in the TOML matches `@Mod("modid")`.
 - **Datagen output not in sourceSets** — Add `sourceSets.main.resources.srcDir("src/generated/resources")` to `build.gradle` so generated files are included in the build.
+- **Using Fabric GameTest as NeoForge proof** — Run the NeoForge task when the behavior depends on ATs, event bus registration, capabilities, or platform adapter code.

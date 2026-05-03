@@ -10,7 +10,8 @@
 6. [Data Generation](#data-generation)
 7. [Networking](#networking)
 8. [Entrypoints](#entrypoints)
-9. [Common Pitfalls](#common-pitfalls)
+9. [GameTest Notes](#gametest-notes)
+10. [Common Pitfalls](#common-pitfalls)
 
 ---
 
@@ -401,6 +402,21 @@ public class MyModClient implements ClientModInitializer {
 }
 ```
 
+## GameTest Notes
+
+Use `references/gametest.md` for the full checklist.
+
+- Fabric API test setup can create the GameTest source set and run task, but
+  discovery still depends on the correct `fabric-gametest` entrypoint for the
+  workspace.
+- If the GameTest source set is loaded as a separate mod, common resources such
+  as access wideners may not resolve. Check the workspace's Loom `mods`
+  sourceSet grouping before changing test logic.
+- Confirm that the runtime test path sees common classes, common resources, and
+  any access widener declared by the mod under test.
+- A Fabric GameTest pass does not prove NeoForge event bus, access transformer,
+  or platform adapter behavior.
+
 ## Common Pitfalls
 
 - **Forgetting `initialize()` calls** — Static registration only happens when the class is loaded. If you don't call something in the class from your entrypoint, nothing gets registered.
@@ -409,3 +425,4 @@ public class MyModClient implements ClientModInitializer {
 - **Missing Fabric API dependency** — If you use Fabric API modules, declare the dependency in `fabric.mod.json`. Missing it causes confusing errors on mod loaders that don't bundle Fabric API.
 - **Wrong `compatibilityLevel` in Mixin config** — These examples target MC 1.21.1, so use `JAVA_21` here. For MC 1.20.x, drop back to `JAVA_17`.
 - **Not separating client/common Mixins** — Put client-targeting Mixins in the `"client"` array, not `"mixins"`. Server-side class loading of client Mixins crashes.
+- **GameTest source set as separate mod** — If tests cannot resolve the mod's access widener or common resources, inspect the GameTest entrypoint and Loom sourceSet grouping before rewriting the tested code.

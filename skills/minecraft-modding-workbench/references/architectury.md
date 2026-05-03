@@ -7,8 +7,9 @@
 3. [Platform-Specific APIs](#platform-specific-apis)
 4. [Registration Strategy](#registration-strategy)
 5. [Datagen and Assets](#datagen-and-assets)
-6. [Verification](#verification)
-7. [Migration Notes](#migration-notes)
+6. [GameTest and Runtime Tests](#gametest-and-runtime-tests)
+7. [Verification](#verification)
+8. [Migration Notes](#migration-notes)
 
 Unless stated otherwise, this file assumes an Architectury workspace targeting Minecraft `1.21.x` with current Fabric and NeoForge modules. Use the actual workspace's shared init and registration helpers over these examples when they differ.
 
@@ -119,6 +120,20 @@ When adding datagen:
 - Prefer the workspace's existing module placement and Gradle task structure
 - Do not duplicate generated shared resources into every platform module unless the project already does that
 - Verify whether the root build, platform build, or a dedicated datagen run task is the intended entrypoint
+
+## GameTest and Runtime Tests
+
+Use `references/gametest.md` for the detailed runtime-test checklist.
+
+- Decide whether the test is exercising Fabric, NeoForge, or shared pure Java
+  logic. The loader runtime matters.
+- Common GameTest logic only works when the platform test runtime includes the
+  common output and resources.
+- If Fabric GameTests cannot resolve a common access widener, inspect the
+  workspace's Loom `mods` sourceSet grouping and `fabric-gametest` entrypoint
+  before changing the tested feature.
+- Do not treat a Fabric GameTest pass as proof that the NeoForge adapter,
+  access transformer, or event bus path works.
 
 ## Verification
 

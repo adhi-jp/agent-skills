@@ -5,16 +5,18 @@
 1. [When to Read This](#when-to-read-this)
 2. [Shared Defaults](#shared-defaults)
 3. [Common Error Shapes](#common-error-shapes)
-4. [`inspect-minecraft`](#inspect-minecraft)
-5. [`analyze-symbol`](#analyze-symbol)
-6. [`compare-minecraft`](#compare-minecraft)
-7. [`validate-project`](#validate-project)
-8. [`analyze-mod`](#analyze-mod)
-9. [`get-registry-data`](#get-registry-data)
-10. [`get-runtime-metrics`](#get-runtime-metrics)
-11. [NBT Helpers](#nbt-helpers)
-12. [`manage-cache`](#manage-cache)
-13. [Recovery Moves](#recovery-moves)
+4. [Old Shape to Current Shape](#old-shape-to-current-shape)
+5. [MCP Unavailable Fallback](#mcp-unavailable-fallback)
+6. [`inspect-minecraft`](#inspect-minecraft)
+7. [`analyze-symbol`](#analyze-symbol)
+8. [`compare-minecraft`](#compare-minecraft)
+9. [`validate-project`](#validate-project)
+10. [`analyze-mod`](#analyze-mod)
+11. [`get-registry-data`](#get-registry-data)
+12. [`get-runtime-metrics`](#get-runtime-metrics)
+13. [NBT Helpers](#nbt-helpers)
+14. [`manage-cache`](#manage-cache)
+15. [Recovery Moves](#recovery-moves)
 
 ## When to Read This
 
@@ -36,6 +38,9 @@ These are starting points, not mandatory templates. Keep the first pass small an
 - Parallelize only independent read-only discovery calls after loader, version, mapping, and `projectPath` are known.
 - Keep dependent chains sequential.
 - Do not run `manage-cache`, `index-artifact`, remap apply flows, or other mutating maintenance calls in parallel with calls that depend on the same cache or JAR.
+- Worker restart, timeout, or transport failure gets one narrower high-level
+  retry. If that fails, stop using that tool for the current task and record
+  fallback evidence.
 
 ## Common Error Shapes
 
@@ -116,6 +121,48 @@ What to do:
 - Retry with a narrower high-level call first.
 - Use `manage-cache` when the problem looks like stale cache or stale index state.
 - Fall back to workspace files, logs, and nearby code without inventing descriptors, mappings, or registry IDs.
+
+### Worker restart on a validator: stop the loop
+
+What to do:
+
+- Treat one restart from `validate-project`, `validate-mixin`,
+  `validate-access-widener`, or `validate-access-transformer` as enough evidence
+  that the validator is not usable for this task.
+- Switch to `validator-fallbacks.md`.
+- Do not report MCP validator success unless a validator actually returned a
+  usable result.
+
+## Old Shape to Current Shape
+
+Use this section when an older example or model memory suggests a flat payload.
+The current recipes prefer nested `subject` objects.
+
+| Old or risky shape | Current shape |
+| --- | --- |
+| `target: "1.21.1"` | `subject: { "kind": "version", "version": "1.21.1", ... }` where the tool supports a version subject |
+| flat artifact `target` under `inspect-minecraft` | `subject: { "kind": "artifact", "artifact": { "type": "resolve-target", "target": { "kind": "jar", "value": "/path.jar" } } }` |
+| bare class name passed as the whole subject | `subject: { "kind": "class", "name": "<fqcn>" }` or the tool-specific `focus` form |
+| workspace path as a top-level string | `subject: { "kind": "workspace", "projectPath": "/path/to/mod", ... }` where the tool expects a workspace subject |
+| changing tools after `ERR_INVALID_INPUT` | fix `fieldErrors` and retry the same high-level tool once |
+
+Do not invent an intermediate payload shape to satisfy both old and current
+examples. Use the callable schema shown by the host and these current recipes.
+
+## MCP Unavailable Fallback
+
+If `inspect-minecraft` and `analyze-symbol` are not available, or if the current
+MCP is older than these recipes, read `mcp-unavailable-fallback.md`.
+
+Fallback facts must be labelled separately:
+
+```text
+Verified by workspace/source jar fallback:
+- <claim> -- <evidence>
+```
+
+Dependency API inspection should follow `dependency-jars.md` instead of ad hoc
+Gradle cache searches.
 
 ## `inspect-minecraft`
 

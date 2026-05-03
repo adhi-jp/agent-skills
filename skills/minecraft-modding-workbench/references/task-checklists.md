@@ -9,9 +9,12 @@ Start with the matching high-level recipe in `references/mcp-recipes.md`, then u
 3. [Entity or Mob](#entity-or-mob)
 4. [Mixin, Access Widener, or Access Transformer](#mixin-access-widener-or-access-transformer)
 5. [Worldgen or Data-Driven Content](#worldgen-or-data-driven-content)
-6. [Porting or Compatibility Fixes](#porting-or-compatibility-fixes)
-7. [Mod JAR Analysis](#mod-jar-analysis)
-8. [NBT or Save Data](#nbt-or-save-data)
+6. [HUD, Screens, or Client Rendering](#hud-screens-or-client-rendering)
+7. [Projectile, Targeting, or Homing Logic](#projectile-targeting-or-homing-logic)
+8. [GameTest or Runtime Test Harness](#gametest-or-runtime-test-harness)
+9. [Porting or Compatibility Fixes](#porting-or-compatibility-fixes)
+10. [Mod JAR Analysis](#mod-jar-analysis)
+11. [NBT or Save Data](#nbt-or-save-data)
 
 ## Simple Block or Item
 
@@ -128,6 +131,21 @@ Vanilla anchors:
 
 - The nearest vanilla ore, structure, biome modifier, or placed feature path
 - The relevant registry entries and vanilla JSON layout
+- Before writing worldgen JSON, identify one same-version vanilla configured
+  feature and one same-version vanilla placed feature.
+- List the fields intentionally changed from vanilla.
+
+Verification:
+
+- Run MCP project or resource validation when available.
+- If MCP is unavailable, compare against same-version vanilla resources and run
+  the lightest resource-load path available: existing GameTest, configured
+  datagen/resource validation, platform run task, or `runClient`.
+- Do not mark natural generation, loot, item model definitions, biome modifiers,
+  or registry resources as working from `./gradlew build` alone.
+- Treat runtime log lines such as `Failed to parse either`, `No key ...`, and
+  `Unknown registry key ...` as codec or schema mismatches until proven
+  otherwise.
 
 Common misses:
 
@@ -135,6 +153,77 @@ Common misses:
 - Data files in the wrong folder
 - Feature registered but never injected into biome generation
 - Old worldgen API copied into a newer Minecraft version
+- Build passes but runtime registry/resource load fails
+- Vanilla JSON from a different Minecraft version copied into the current version
+
+## HUD, Screens, or Client Rendering
+
+Recipe:
+
+- Read `references/rendering-hud.md` before changing projection math, HUD event
+  registration, GUI scale handling, or screen tooltip/render flow.
+- Use MCP or workspace source to verify the relevant vanilla/client method signature before copying examples.
+
+Checklist:
+
+- Keep client-only imports behind client entrypoints or client-only platform modules.
+- Separate fixed 2D overlay math from world-to-screen projection.
+- Record world position, camera position, front/behind-camera decision,
+  projected coordinates, GUI-scaled pixels, and clamp behavior for entity
+  markers.
+- For Minecraft 1.21.x, prefer a verified helper such as `GameRenderer.projectPointToScreen(Vec3)` when available.
+- Do not pass partial tick to an API that expects FOV degrees.
+- Check bow draw, zoom, GUI scale, off-screen targets, and behind-camera targets.
+- Restore render state such as blend, depth, shader color, and pose stack balance when the workspace APIs require it.
+
+Common misses:
+
+- Renderer registered on the wrong side
+- Screen or HUD event only wired for one loader in a multi-loader project
+- Projection uses stale or incomplete FOV state
+- Marker appears only at screen edges because NDC or GUI scaling is wrong
+- Unit tests cover math but no runtime visual state was verified
+
+## Projectile, Targeting, or Homing Logic
+
+Checklist:
+
+- Separate pure Java targeting math from runtime entity, projectile, and event behavior.
+- Verify projectile spawn hooks, entity hit callbacks, damage source behavior,
+  and enchantment/event side effects in the target Minecraft version.
+- Record server/client authority. Client-side reticles or previews must not be treated as server targeting proof.
+- Use unit tests for scoring, ranges, priorities, and serialization.
+- Use GameTest or runtime launch for projectile spawn, entity hit, Mixin injection, loader event, or networking behavior.
+- For HUD indicators tied to targets, also run the HUD checklist.
+
+Common misses:
+
+- Unit tests pass but loader event wiring never fires
+- Homing or lock-on state stored on the wrong side
+- Projectile helper bypasses vanilla hooks or enchantment callbacks
+- Target filtering differs between preview HUD and server logic
+
+## GameTest or Runtime Test Harness
+
+Recipe:
+
+- Read `references/gametest.md`.
+- Confirm which loader runtime the test task exercises before treating it as coverage.
+
+Checklist:
+
+- Identify the GameTest source set, entrypoint/discovery path, and run task.
+- Confirm common classes and resources are visible to the test runtime.
+- For Fabric, check whether `fabric-gametest` entrypoint overlay is required.
+- For Architectury, check source set grouping before debugging access widener resolution.
+- For NeoForge, verify the NeoForge-specific run task and discovery path.
+- Record which loader passed and which loader remains unverified.
+
+Common misses:
+
+- Test source set is treated as a separate mod and cannot see the common access widener
+- Fabric GameTest pass is treated as proof of NeoForge event or AT behavior
+- Runtime registry/resource load is not exercised by ordinary unit tests
 
 ## Porting or Compatibility Fixes
 

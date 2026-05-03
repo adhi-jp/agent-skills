@@ -1,0 +1,111 @@
+{
+  "schema_version": "1.0.0",
+  "skill_name": "minecraft-modding-workbench",
+  "purpose": "External eval set for the minecraft-modding-workbench skill. Covers MCP availability preflight, bounded MCP failure handling, dependency source lookup, resource codec validation, HUD projection/FOV checks, and GameTest/access-widener wiring.",
+  "common_assertions": [
+    "Output treats minecraft-modding MCP as the preferred source of truth when available, but does not invent MCP results when tools are missing or failing.",
+    "Output records a project profile or explicitly identifies missing profile facts before making version, loader, mapping, or Java-version-sensitive claims.",
+    "Output separates `Verified by MCP`, `Verified by workspace/source jar fallback`, `Runtime/user-observed`, and `Unverified` facts when the answer will guide implementation.",
+    "Output uses high-level MCP tools first when they are available and uses fallback references only after preflight, older-MCP detection, or the stated failure budget justifies fallback.",
+    "Output does not treat `./gradlew build` alone as proof for resource codec loading, loader runtime wiring, or client rendering behavior.",
+    "Output keeps implementation or debugging fixes narrow and grounded in same-version Minecraft, loader, mapping, workspace, source jar, or runtime log evidence."
+  ],
+  "evals": [
+    {
+      "id": "E01",
+      "name": "MCP unavailable preflight",
+      "prompt": "A Fabric 1.21.10 mod workspace is open. The host exposes no minecraft-modding MCP tools when searched. Plan how to inspect `AbstractContainerScreen.render` before changing tooltip behavior.",
+      "expected_output": "The agent reports MCP unavailable once, records fallback mode, builds a project profile from workspace files, and plans local same-version source or bytecode inspection without repeatedly guessing MCP tool names.",
+      "files": [],
+      "expectations": [
+        "States that minecraft-modding MCP is unavailable or not exposed after preflight.",
+        "Does not keep retrying random MCP tool names.",
+        "Records or asks for workspace root, Minecraft version, loader, mapping, and Java version before version-sensitive claims.",
+        "Uses workspace/source jar fallback for `AbstractContainerScreen.render` rather than claiming MCP verification.",
+        "Plans to verify the exact method behavior from same-version source, bytecode, or javap output.",
+        "Labels final API facts as fallback-verified, not MCP-verified."
+      ]
+    },
+    {
+      "id": "E02",
+      "name": "Validator restart fallback",
+      "prompt": "A NeoForge 1.21.x project has an access transformer and Mixin crash. `validate-project` restarts once, and `validate-mixin` also restarts once. Explain the next debugging steps.",
+      "expected_output": "The agent stops looping validators, records them unavailable for this task, and uses manual owner/name/descriptor/namespace/config/side checks plus narrow Gradle/runtime verification.",
+      "files": [],
+      "expectations": [
+        "Does not retry the same restarting validators repeatedly.",
+        "Records MCP validator output as unavailable rather than successful.",
+        "Requires owner FQN, member or method name, JVM descriptor, mapping namespace, and side for the Mixin or AT target.",
+        "Checks the mixin config or access transformer declaration in loader metadata.",
+        "Matches NeoForge AT namespace to the file and project era.",
+        "Plans narrow compile/build checks and runtime validation when the problem only appears during loader or Mixin application."
+      ]
+    },
+    {
+      "id": "E03",
+      "name": "Architectury dependency source lookup",
+      "prompt": "In an Architectury project, I need to use `CreativeTabRegistry`, but I am not sure which methods exist in our configured Architectury API version. MCP cannot return dependency class source. What should the workbench do?",
+      "expected_output": "The agent uses dependency lookup discipline: inspect Gradle versions, locate the Architectury API sources jar, fall back to jar listing or javap only if source is missing, and report the exact artifact used.",
+      "files": [],
+      "expectations": [
+        "Starts from the workspace's Gradle dependency and `architectury_api_version` rather than online examples.",
+        "Prefers MCP or dependency source jar before bytecode inspection.",
+        "Looks in Gradle module caches for the exact group, artifact, and version.",
+        "Uses `*-sources.jar` when available.",
+        "Falls back to `jar tf` or `javap` only when source is unavailable.",
+        "Reports the artifact path and labels the fact as dependency source fallback when MCP did not verify it."
+      ]
+    },
+    {
+      "id": "E04",
+      "name": "Worldgen codec validation",
+      "prompt": "A new tree feature compiles and `./gradlew build` passes, but runtime logs say `No key dirt_provider` and `Failed to parse either` while loading `configured_feature`. Decide whether the work is complete and plan the fix.",
+      "expected_output": "The agent treats build as insufficient, classifies the issue as resource codec/schema mismatch, compares against same-version vanilla worldgen JSON, and requires resource-load validation after the fix.",
+      "files": [],
+      "expectations": [
+        "Does not mark the feature complete from `./gradlew build`.",
+        "Classifies the runtime errors as likely codec or schema mismatch.",
+        "Requires same-version vanilla configured feature and placed feature examples before editing JSON broadly.",
+        "Identifies intentionally changed fields from vanilla.",
+        "Plans MCP resource/project validation if available, or fallback resource-load validation if not.",
+        "Requires GameTest, datagen/resource validation, platform run task, or `runClient` evidence before claiming natural generation works."
+      ]
+    },
+    {
+      "id": "E05",
+      "name": "HUD projection and FOV",
+      "prompt": "A lock-on reticle sometimes flashes at the screen edge and disappears while drawing a bow. We changed projection math recently. Plan the debugging steps for a Minecraft 1.21.x client HUD.",
+      "expected_output": "The agent uses the rendering/HUD checklist, separates overlay math from world-to-screen projection, checks FOV degrees vs partial tick, GUI scale, behind-camera/off-screen behavior, and runtime visual evidence.",
+      "files": [],
+      "expectations": [
+        "Separates fixed 2D overlay behavior from world-to-screen projection.",
+        "Checks world position, camera position, front/behind-camera decision, projected coordinates, GUI-scaled pixels, and clamp behavior.",
+        "Mentions verifying `GameRenderer.projectPointToScreen(Vec3)` or equivalent same-version helper when available.",
+        "States that `getProjectionMatrix(float)` takes FOV degrees and should not receive partial tick.",
+        "Checks bow draw, FOV smoothing, GUI scale, off-screen, and behind-camera cases.",
+        "Does not treat unit tests alone as proof of runtime visual behavior."
+      ]
+    },
+    {
+      "id": "E06",
+      "name": "Fabric GameTest access widener wiring",
+      "prompt": "Fabric GameTests fail before running tests because the loader cannot resolve the mod access widener from common resources in an Architectury workspace. What should be checked?",
+      "expected_output": "The agent uses GameTest guidance: distinguish source set/discovery/runtime wiring from test logic, inspect `fabric-gametest` entrypoint and Loom sourceSet grouping, and avoid treating one loader's tests as proof for the other.",
+      "files": [],
+      "expectations": [
+        "Distinguishes GameTest runtime wiring from the tested gameplay logic.",
+        "Checks whether the `fabric-gametest` entrypoint overlay is required.",
+        "Checks whether the GameTest source set is treated as a separate mod.",
+        "Checks Loom `mods` sourceSet grouping so common classes and resources are visible.",
+        "Confirms common access widener visibility before changing feature code.",
+        "Records which loader runtime was tested and does not infer NeoForge behavior from Fabric GameTests."
+      ]
+    }
+  ],
+  "scoring": {
+    "common_assertion_weight": 0.4,
+    "per_eval_expectation_weight": 0.6,
+    "pass_threshold": 0.8,
+    "notes": "These evals target workflow discipline rather than generated code. Baseline failures are expected to include repeated MCP tool guessing, unlabelled fallback facts, treating build as runtime proof, bytecode cache spelunking before source jars, incomplete HUD/FOV checks, or confusing GameTest wiring with gameplay logic."
+  }
+}

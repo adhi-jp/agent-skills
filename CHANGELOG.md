@@ -13,6 +13,19 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `minecraft-modding-workbench` — added MCP preflight, failure-budget, fallback
+  fact-labeling, dependency source lookup, validator fallback, GameTest, and
+  HUD/client-rendering guidance.
+  - New references cover MCP-unavailable fallback, dependency JAR/source
+    inspection, rendering/HUD projection checks, validator fallback playbooks,
+    subagent MCP contracts, project profile templates, and GameTest wiring.
+  - Task checklists now require stronger resource/codec validation for worldgen
+    and data-driven content, distinguish runtime rendering from unit-testable
+    math, and avoid treating `./gradlew build` as proof of resource load or
+    visual behavior.
+  - `evals/minecraft-modding-workbench/` now covers MCP preflight, validator
+    restart fallback, dependency source lookup, worldgen codec validation, HUD
+    projection checks, and GameTest/access-widener wiring.
 - `vibe-planning` — multi-slice plans now include commit checkpoints only after
   independently verifiable phases or slices, with required verification and a
   proposed standalone Conventional Commit message.
