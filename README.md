@@ -1,6 +1,7 @@
 # Agent Skills
 
-Codex skill packages maintained in this workspace for public distribution.
+Agent skills and eval prompts for vibe-coding plans, review loops, commit
+messages, prose, and Minecraft modding.
 
 ## Current Skill Versions
 

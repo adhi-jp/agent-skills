@@ -11,6 +11,11 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- Repository README now uses platform-neutral wording and highlights the
+  vibe-coding-oriented skill packages.
+
 ## [vibe-commit-message 1.0.0] - 2026-05-04
 
 ### Added
