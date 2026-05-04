@@ -11,6 +11,8 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [vibe-planning 2.0.0] - 2026-05-04
+
 ### Changed
 
 - `vibe-planning` — plans now default to Markdown artifacts with English
@@ -27,6 +29,11 @@ use `[Repository] - YYYY-MM-DD`.
   - `evals/vibe-planning/` now covers plan artifact and localized-summary
     separation, and no longer expects unsupported display-name limits as local
     evidence.
+
+## [vibe-plan-execution 1.2.0] - 2026-05-04
+
+### Changed
+
 - `vibe-plan-execution` — execution now prefers a referenced local
   `vibe-planning` plan artifact over its short user-facing summary and treats
   summary/artifact conflicts as blockers when they affect scope, behavior,

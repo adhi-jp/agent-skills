@@ -7,8 +7,8 @@ Codex skill packages maintained in this workspace for public distribution.
 | Skill | Version |
 | --- | --- |
 | `minecraft-modding-workbench` | `1.2.0` |
-| `vibe-planning` | `1.1.0` |
-| `vibe-plan-execution` | `1.1.0` |
+| `vibe-planning` | `2.0.0` |
+| `vibe-plan-execution` | `1.2.0` |
 | `vibe-planning-guard` | `1.3.0` |
 | `codex-review-cycle` | `1.8.0` |
 | `review-scope-guard` | `1.4.0` |
