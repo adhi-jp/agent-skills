@@ -46,6 +46,13 @@ use `[Repository] - YYYY-MM-DD`.
     performance commits, CI/build/publishing automation, and security or
     data-loss-sensitive fixes.
 
+### Changed
+
+- `vibe-commit-message` — clarified that required commit trailers belong in a
+  footer block separated from the prose body by a blank line, so release
+  messages avoid ending with a single-line `Verification: ...` paragraph before
+  `git commit --trailer` appends a co-author trailer.
+
 ## [vibe-planning 2.0.0] - 2026-05-04
 
 ### Changed

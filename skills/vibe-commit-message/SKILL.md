@@ -101,6 +101,21 @@ syncs, dependency bumps, generated lock updates, or catalog refreshes without
 behavior details, prefer subject-only; add one sentence only when it records
 limited scope or missing context the subject cannot carry.
 
+When the repository or workflow requires commit trailers such as
+`Co-Authored-By` or `Signed-off-by`, keep them in a final footer block separated
+from the prose body by a blank line. Avoid ending the body with a final
+single-line `Key: value` paragraph such as `Verification: ...` immediately
+before adding trailers with `git commit --trailer`; Git may treat that line as
+part of the trailer block. Prefer labeled body sections with bullets before the
+footer:
+
+```text
+Verification:
+- `git diff --check` passed.
+
+Co-Authored-By: Codex <noreply@openai.com>
+```
+
 ## Writing Workflow
 
 1. Inspect the commit scope before writing: staged diff or target commit, recent
@@ -309,7 +324,8 @@ Avoid a body that only says the same thing as the subject in longer words.
 
 ### Release commit
 
-Prefer a neutral release-preparation subject:
+Prefer a neutral release-preparation subject. If a required footer trailer is
+present, keep it after a blank line:
 
 ```text
 chore(release): 1.4.0
@@ -322,12 +338,15 @@ Compatibility:
 
 Verification:
 - `pnpm test` and `pnpm build` passed.
+
+Co-Authored-By: Codex <noreply@openai.com>
 ```
 
-Avoid `publish`, `deploy`, `roll out`, `ship`, or `cut` in the subject or body
-unless the supplied context says that action happened. For preparation-only
-commits, write `Prepares 1.4.0`, `Records 1.4.0`, or `Promotes Unreleased
-entries into 1.4.0`, not `Cuts 1.4.0`.
+Do not add footer trailers such as `Co-Authored-By` unless the repository or
+workflow requires them. Avoid `publish`, `deploy`, `roll out`, `ship`, or `cut`
+in the subject or body unless the supplied context says that action happened.
+For preparation-only commits, write `Prepares 1.4.0`, `Records 1.4.0`, or
+`Promotes Unreleased entries into 1.4.0`, not `Cuts 1.4.0`.
 
 ### Bundled plan or review work
 
@@ -365,3 +384,6 @@ Before finalizing a commit message, verify:
 - Breaking changes, rollback paths, migrations, and known limitations are visible
   when present.
 - Unsupported impact claims and prompt-context references are gone.
+- Required trailers are separated from the prose body by a blank line and the
+  body does not end with a single-line `Key: value` paragraph immediately before
+  a `git commit --trailer` footer is added.

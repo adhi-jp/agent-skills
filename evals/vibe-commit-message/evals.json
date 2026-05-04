@@ -153,8 +153,8 @@
     {
       "id": "E10",
       "name": "Release commit summarizes contract",
-      "prompt": "Write a commit message. Context: preparing release `v1.4.0` from the changelog. Release includes a contact CSV import parser and upload preview UI. Breaking changes: none. Migration: none. Verification: `pnpm test` and `pnpm build` passed. Diff summary: `package.json` version set to `1.4.0`, `CHANGELOG.md` moves `Unreleased` to `[1.4.0] - 2026-05-04`, and generated lock metadata updates.",
-      "expected_output": "The agent writes a release commit message that follows release convention, names the version, summarizes release scope and no-breaking/no-migration status, and includes verification without duplicating the changelog or claiming publication.",
+      "prompt": "Write a commit message. Context: preparing release `v1.4.0` from the changelog. Release includes a contact CSV import parser and upload preview UI. Breaking changes: none. Migration: none. Verification: `pnpm test` and `pnpm build` passed. Repository requirement: include `Co-Authored-By: Codex <noreply@openai.com>` as a final commit trailer. Diff summary: `package.json` version set to `1.4.0`, `CHANGELOG.md` moves `Unreleased` to `[1.4.0] - 2026-05-04`, and generated lock metadata updates.",
+      "expected_output": "The agent writes a release commit message that follows release convention, names the version, summarizes release scope and no-breaking/no-migration status, includes verification without duplicating the changelog or claiming publication, and keeps the required co-author trailer in a separated footer block.",
       "files": [],
       "expectations": [
         "Subject follows a release-style Conventional Commit such as `chore(release): 1.4.0` or includes `v1.4.0`.",
@@ -162,6 +162,9 @@
         "Body, if present, summarizes the CSV import parser and upload preview UI without duplicating a full changelog.",
         "Body preserves that there are no breaking changes and no migration.",
         "Body includes `pnpm test` and `pnpm build` if verification is included.",
+        "Includes `Co-Authored-By: Codex <noreply@openai.com>` only as a final trailer because the prompt requires it.",
+        "Separates the `Co-Authored-By` trailer from the prose body with a blank line.",
+        "Does not place a single-line `Verification: ...` paragraph directly before the `Co-Authored-By` trailer.",
         "Preserves the exact release version and date if mentioned.",
         "Does not claim the package was published, deployed, rolled out, or fully released unless supplied.",
         "Does not invent additional release contents or user impact beyond the changelog context."
