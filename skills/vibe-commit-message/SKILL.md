@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: vibe-commit-message
 description: Use when writing, revising, reviewing, or critiquing git commit messages, especially commit bodies, Conventional Commits, release commits, dependency updates, monorepo/package changes, i18n/localization commits, performance work, CI/build automation, security/data-loss fixes, agent-authored history, LLM-readable project history, or requests for vibe/AI-friendly commit context.
 ---

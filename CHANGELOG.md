@@ -11,6 +11,8 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [vibe-commit-message 1.0.0] - 2026-05-04
+
 ### Added
 
 - `vibe-commit-message` — added a commit-message writing skill for LLM-first
