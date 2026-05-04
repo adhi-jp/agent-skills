@@ -9,6 +9,7 @@ Codex skill packages maintained in this workspace for public distribution.
 | `minecraft-modding-workbench` | `1.2.0` |
 | `vibe-planning` | `2.0.0` |
 | `vibe-plan-execution` | `1.2.0` |
+| `vibe-commit-message` | `Unreleased` |
 | `vibe-planning-guard` | `1.3.0` |
 | `codex-review-cycle` | `1.8.0` |
 | `review-scope-guard` | `1.4.0` |
@@ -62,6 +63,19 @@ requires explicit user agreement for plan deviations. When commits are
 authorized, it commits only completed and verified checkpoints and uses
 standalone Conventional Commit messages that describe the actual change without
 prompt or plan-label references.
+
+### `vibe-commit-message`
+
+Commit-message writing skill for LLM-readable git history. It keeps Conventional
+Commit subjects outcome-focused and reserves bodies for context the diff cannot
+recover: triggering failures, requirements, constraints, tradeoffs,
+compatibility or rollback notes, verification signals, and deliberate non-goals.
+It discourages file-by-file or test-inventory transcription, translates
+non-durable plan or review references into standalone context, omits bodies for
+self-explanatory mechanical syncs, and covers i18n copy, monorepo contracts,
+dependency updates, release commits, performance work, CI/build automation, and
+security/data-loss fixes while preserving public API names, error codes,
+commands, env vars, and migration anchors.
 
 ### `vibe-planning-guard`
 
@@ -145,12 +159,14 @@ territory.
   outside skill packages
 - `evals/vibe-planning/`: external planning eval prompts and fixtures
 - `evals/vibe-plan-execution/`: external plan-execution eval prompts and fixtures
+- `evals/vibe-commit-message/`: external commit-message eval prompts
 - `evals/review-fix-cascade-guard/`: external cascade-guard eval prompts
 - `evals/review-scope-guard/`: external scope-guard eval prompts
 - `evals/writing-style-guide/`: external prose-quality eval prompts
 - `skills/minecraft-modding-workbench/`: Minecraft modding skill package
 - `skills/vibe-planning/`: standalone vibe-coding implementation-planning skill package
 - `skills/vibe-plan-execution/`: plan-bound vibe-coding implementation skill package
+- `skills/vibe-commit-message/`: LLM-first commit-message writing skill package
 - `skills/vibe-planning-guard/`: planning and design-review skill package
 - `skills/codex-review-cycle/`: codex-driven interactive 2-cycle review-and-fix workflow with user-elected extensions
 - `skills/review-scope-guard/`: Definition-of-Done-aware review finding triage, invoked by codex-review-cycle
@@ -162,8 +178,8 @@ territory.
 
 Each skill package ships with:
 
-- `SKILL.md`: front matter with `version`, `name`, and `description`, followed
-  by the main workflow and decision rules
+- `SKILL.md`: front matter with `name` and `description`, plus `version` after
+  the skill has been released, followed by the main workflow and decision rules
 
 Some packages also include `references/` or other helper assets that are
 specific to the skill.
@@ -183,6 +199,9 @@ specific to the skill.
   a local plan file, read that file as the authoritative implementation contract.
   If no concrete plan exists, use `vibe-planning` or another planning workflow
   before coding.
+- `vibe-commit-message` governs commit-message content, not staging or commit
+  execution. It should coexist with project-specific commit workflows and the
+  repo's release rules.
 - `vibe-planning-guard` is for planning, not implementation. It should stay
   light on tiny, already-clear edits unless the user explicitly asks for
   planning or risk review.

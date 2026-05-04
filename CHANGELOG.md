@@ -11,6 +11,41 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Added
+
+- `vibe-commit-message` — added a commit-message writing skill for LLM-first
+  git history.
+  - `SKILL.md` tells agents to preserve context, requirements, constraints,
+    tradeoffs, compatibility, verification, and non-goals that are not obvious
+    from the diff, while avoiding file-by-file or symbol-by-symbol diff
+    transcription.
+  - Commit messages are framed as durable user-facing prose, with prose-quality
+    checks for concision, meaning preservation, no invented context, standalone
+    artifacts, exact-format templates, and required warnings.
+  - Mechanical sync, dependency bump, generated lock update, and catalog refresh
+    messages prefer subject-only output when no behavior context is supplied.
+  - `evals/vibe-commit-message/` covers production-symptom commits, internal
+    test refactors, thin-evidence restraint, breaking default migrations, and
+    mechanical skill sync messages, plus bundled plan-item changes whose
+    rationale must survive after scratch plans are removed.
+  - `SKILL.md` and `evals/vibe-commit-message/` also cover i18n copy commits,
+    monorepo package contracts, dependency-update rationale, and release commit
+    boundaries.
+  - Conventional Commit subjects now reject generic types such as `change`, and
+    release-preparation messages avoid publish/deploy/rollout wording unless
+    that action is supplied.
+  - Bundled-change cohesion guidance now prefers stable workflows or contracts
+    over private implementation names unless they are public search anchors.
+  - Bundled-change guidance now treats prompt-supplied private plumbing names as
+    non-durable by default and gives workflow-label replacements; release
+    preparation wording bans publish/deploy/rollout/ship/cut claims in both
+    subjects and bodies unless those actions are supplied.
+  - Monorepo guidance now tells agents to state shared-contract cohesion without
+    self-referential phrases such as "in one commit".
+  - Cross-repository history review added guidance and eval coverage for
+    performance commits, CI/build/publishing automation, and security or
+    data-loss-sensitive fixes.
+
 ## [vibe-planning 2.0.0] - 2026-05-04
 
 ### Changed

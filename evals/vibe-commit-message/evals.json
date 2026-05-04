@@ -1,0 +1,222 @@
+{
+  "schema_version": "1.0.0",
+  "skill_name": "vibe-commit-message",
+  "purpose": "External eval set for vibe-commit-message. Prompts live outside skills/ so they are not bundled as skill content. Covers LLM-first commit bodies, diff-transcription avoidance, missing-context restraint, compatibility notes, verification signal quality, Conventional Commit subject discipline, i18n copy commits, monorepo contract changes, dependency updates, release commits, performance work, CI/build automation, and security/data-loss fixes.",
+  "common_assertions": [
+    "Output follows the repository or prompt's commit-message convention, including Conventional Commit subject style when requested or implied.",
+    "The subject describes the achieved behavior or contract rather than the editing act or file movement.",
+    "The body, when present, adds context, constraints, compatibility, verification, deliberate non-goals, or explicit absence-of-context information that is not obvious from the diff summary; subject-only is acceptable when the subject and diff already explain the change.",
+    "Output does not transcribe the diff into file-by-file or symbol-by-symbol bullets unless those names are public contracts or needed durable search anchors.",
+    "Output does not invent unsupported motivation, production impact, performance/security benefit, test results, rollout status, or risk reduction.",
+    "Output omits the body or keeps it very short when the subject and diff already explain the change.",
+    "Output avoids prompt-context leaks such as `as requested`, `per the plan`, `above`, `this commit`, or references to an AI author."
+  ],
+  "evals": [
+    {
+      "id": "E01",
+      "name": "Crash diagnostics without field inventory",
+      "prompt": "Write a Conventional Commit message for this staged change. Context: `validate-mixin` was causing MCP worker restarts in production sessions before callers could tell which stage or namespace failed. Diff summary: adds per-stage validation budgets, structured supervisor restart envelopes, public error metadata, rollback env vars, docs, and tests. Out of scope: hard AbortSignal cancellation and validate-project partial success.",
+      "expected_output": "The agent writes a commit message that captures the production restart symptom, caller recovery problem, cooperative-budget decision, compatibility/rollback behavior, and explicit out-of-scope items without listing every new field or test.",
+      "files": [],
+      "expectations": [
+        "Subject uses a Conventional Commit type and relevant scope such as `validate-mixin` or `supervisor`.",
+        "Body includes the production worker-restart or caller-diagnostic context.",
+        "Body explains the decision in terms of stage budgets or structured restart diagnostics, not just added files.",
+        "Body includes rollback or compatibility information when mentioning the new behavior.",
+        "Body states the AbortSignal and validate-project exclusions.",
+        "Does not enumerate every metadata field, target status value, test file, or docs file from the diff summary."
+      ]
+    },
+    {
+      "id": "E02",
+      "name": "Internal test split keeps body small",
+      "prompt": "Write the commit message. Diff summary: moved searchClassSource tests from tests/source-service.test.ts into tests/source-service.search.test.ts; extracted five metric readers into tests/helpers/source-service-metrics.ts; total test count and coverage unchanged. Context: source-service.test.ts was 9504 lines and slow to work in.",
+      "expected_output": "The agent writes a compact test commit message whose body preserves the reason for the split and unchanged confidence signal without listing every moved helper or test case.",
+      "files": [],
+      "expectations": [
+        "Subject describes splitting or isolating search coverage, not simply moving files.",
+        "Body mentions the large or slow source-service test file as the motivation.",
+        "Body mentions that coverage or test count is unchanged.",
+        "Does not list all five metric reader names.",
+        "Does not list individual test case names.",
+        "Does not claim user-visible behavior changed."
+      ]
+    },
+    {
+      "id": "E03",
+      "name": "No supplied rationale means no invented incident",
+      "prompt": "Write a commit message from this diff summary only: changed Retry-After parsing from parseInt to Number so fractional seconds are preserved. Tests were not run. No issue, incident, rollout plan, benchmark, or customer report was supplied.",
+      "expected_output": "The agent writes a concise message that states fractional Retry-After preservation and tests-not-run status without inventing a production incident or benefit.",
+      "files": [],
+      "expectations": [
+        "Subject names preserving fractional `Retry-After` values or equivalent behavior.",
+        "Body, if present, stays brief.",
+        "Mentions tests were not run if verification is included.",
+        "Does not claim a production incident, customer impact, benchmark result, rollout readiness, reliability improvement, or standards compliance unless supplied.",
+        "Does not ask for more context unless it says the current message would otherwise be misleading."
+      ]
+    },
+    {
+      "id": "E04",
+      "name": "Breaking default change includes migration path",
+      "prompt": "Create a commit message. Diff summary: `find-mapping` now defaults `signatureMode` to `name-only` instead of exact matching; callers can pass `signatureMode: \"exact\"` to retain the old strict behavior; docs and tests updated. Reason: agents often omitted descriptors and received invalid-input failures instead of candidate overloads.",
+      "expected_output": "The agent writes a feature or breaking-change commit message that explains the agent recovery problem, the default-change decision, and the compatibility path for old strict callers.",
+      "files": [],
+      "expectations": [
+        "Subject uses a standard Conventional Commit type such as `feat`, `fix`, `refactor`, or `chore`; it does not invent a generic type such as `change`.",
+        "Subject marks the mapping or find-mapping scope and indicates a default or signature-mode change.",
+        "Uses a breaking-change marker or body note when following Conventional Commits.",
+        "Body explains that descriptor omission by agents caused invalid-input or poor recovery behavior.",
+        "Body states that `signatureMode: \"exact\"` preserves the old strict behavior.",
+        "Does not bury the breaking default change inside a generic docs/tests list.",
+        "Does not list every updated test or documentation file."
+      ]
+    },
+    {
+      "id": "E05",
+      "name": "Mechanical skill sync avoids oversized body",
+      "prompt": "Write a commit message. Diff summary: refreshed bundled skills from upstream catalog, replaced one deprecated skill with its successor, updated skills-lock hashes. No behavior details are known beyond the upstream sync.",
+      "expected_output": "The agent writes a short chore commit message with no body, or with only a one-sentence absent-context note, avoiding a fake detailed narrative about unknown upstream behavior.",
+      "files": [],
+      "expectations": [
+        "Subject uses a chore-style scope such as `skills`.",
+        "Message says this is a skill catalog refresh or replacement plus lock update.",
+        "Body is absent, or limited to one short sentence that adds missing-context or limited-scope information.",
+        "Does not use the body only to repeat `refresh`, `replace`, and `update locks` in longer prose.",
+        "Does not invent detailed behavior changes for upstream skills.",
+        "Does not list every changed file or hash.",
+        "Does not claim the sync improves quality, reliability, or capabilities beyond what is supplied."
+      ]
+    },
+    {
+      "id": "E06",
+      "name": "Bundled plan items become durable context",
+      "prompt": "Write a commit message. Context: Plan items 11.8 and 8.3 were implemented in one diff because both touch the request editor save shortcut, BodyEditor headers prop, and sample collection refresh path. The plan file will be deleted after merge. Behavior: onboarding empty states add CTAs for new request and sample collection; Cmd+S auto-formats JSON bodies on save but deliberately leaves XML/HTML manual because whitespace-sensitive markup could change wire bytes.",
+      "expected_output": "The agent writes a commit message that explains the durable cohesion reason and JSON-vs-markup decision without relying on soon-deleted plan item numbers.",
+      "files": [],
+      "expectations": [
+        "Subject names the user-facing request-editor, onboarding, save, or formatting outcome.",
+        "Body explains that the changes are bundled because they share request-editor save or refresh plumbing.",
+        "Body includes the durable JSON-only auto-format decision and the XML/HTML whitespace risk.",
+        "Does not use `plan item 11.8`, `8.3`, or the deleted plan file as the main explanation.",
+        "Does not list every component or prop touched unless it is needed as a public/search anchor.",
+        "Does not mention review cycles, prompt context, or AI authorship."
+      ]
+    },
+    {
+      "id": "E07",
+      "name": "i18n copy preserves locale scope",
+      "prompt": "Write a commit message. Diff summary: updated `docs/README-ja.md` and `src/locales/ja.json` for password-reset expiry copy. English source strings and code are unchanged. Context: Japanese users read the old copy as implying an expired link could be reused later; the new copy says expired links require requesting a new email. Tests were not run.",
+      "expected_output": "The agent writes a concise i18n or docs commit message that captures the Japanese-copy ambiguity and unchanged source/code scope without claiming password-reset behavior changed.",
+      "files": [],
+      "expectations": [
+        "Subject uses an i18n, docs, locale, or password-reset copy scope and names the copy outcome rather than file edits.",
+        "Body, if present, mentions the Japanese copy ambiguity or that expired links require a new email.",
+        "Preserves locale/file identifiers such as `ja`, `README-ja.md`, or `src/locales/ja.json` when useful; does not translate identifiers.",
+        "States or preserves that English source strings and code are unchanged when discussing scope.",
+        "Mentions tests were not run if verification is included.",
+        "Does not claim password-reset logic, token expiry behavior, security posture, or all locales changed."
+      ]
+    },
+    {
+      "id": "E08",
+      "name": "Monorepo packages share one contract",
+      "prompt": "Write a commit message. Diff summary: `packages/api`, `packages/web`, and `packages/sdk` update the exported `UserProfile.displayName` field to be nullable; generated API types and the workspace lock update. Context: the backend already returns `null` for SSO-only accounts; clients previously treated it as `string` and rendered `undefined`. Migration: callers should handle `null` or fall back to email. Verification: `pnpm -w test` passed.",
+      "expected_output": "The agent writes a monorepo commit message that explains the shared nullable display-name contract, runtime/client impact, migration path, and verification without listing every package edit.",
+      "files": [],
+      "expectations": [
+        "Subject names the profile/display-name contract rather than a generic multi-package update.",
+        "Body explains why multiple packages belong together through the shared API/client contract.",
+        "Body mentions the existing backend `null` behavior or the prior `undefined` rendering issue.",
+        "Body includes the migration guidance to handle `null` or fall back to email.",
+        "Body includes `pnpm -w test` if verification is included.",
+        "Does not list every changed package file or portray the packages as unrelated edits.",
+        "Does not claim a broad monorepo refactor or unrelated profile improvements."
+      ]
+    },
+    {
+      "id": "E09",
+      "name": "Dependency update keeps supplied rationale",
+      "prompt": "Write a commit message. Diff summary: bump `@acme/payments` from 2.4.1 to 2.5.0 and update `pnpm-lock.yaml`. Context: 2.5.0 adds Node 22 support required by current CI runners. No security advisory was supplied. Release notes say the API is backward compatible. Verification: `pnpm test:payments` passed.",
+      "expected_output": "The agent writes a dependency-update commit message that preserves the Node 22 CI rationale, backward-compatibility evidence, and test signal without inventing a security or performance reason.",
+      "files": [],
+      "expectations": [
+        "Subject uses a dependency or payments scope and names Node 22 or CI compatibility rather than only `update lockfile`.",
+        "Body includes the supplied Node 22 CI-runner rationale.",
+        "Body preserves the absence of a security advisory if security is discussed.",
+        "Body mentions backward compatibility only as release-note evidence, not as an invented guarantee.",
+        "Body includes `pnpm test:payments` if verification is included.",
+        "Does not claim a security fix, performance improvement, bug fix, rollout, or broader dependency modernization.",
+        "Does not list lockfile mechanics beyond the relevant dependency/version anchor."
+      ]
+    },
+    {
+      "id": "E10",
+      "name": "Release commit summarizes contract",
+      "prompt": "Write a commit message. Context: preparing release `v1.4.0` from the changelog. Release includes a contact CSV import parser and upload preview UI. Breaking changes: none. Migration: none. Verification: `pnpm test` and `pnpm build` passed. Diff summary: `package.json` version set to `1.4.0`, `CHANGELOG.md` moves `Unreleased` to `[1.4.0] - 2026-05-04`, and generated lock metadata updates.",
+      "expected_output": "The agent writes a release commit message that follows release convention, names the version, summarizes release scope and no-breaking/no-migration status, and includes verification without duplicating the changelog or claiming publication.",
+      "files": [],
+      "expectations": [
+        "Subject follows a release-style Conventional Commit such as `chore(release): 1.4.0` or includes `v1.4.0`.",
+        "Subject and body use release-preparation wording and do not say `publish`, `deploy`, `roll out`, `ship`, or `cut` unless that action was supplied.",
+        "Body, if present, summarizes the CSV import parser and upload preview UI without duplicating a full changelog.",
+        "Body preserves that there are no breaking changes and no migration.",
+        "Body includes `pnpm test` and `pnpm build` if verification is included.",
+        "Preserves the exact release version and date if mentioned.",
+        "Does not claim the package was published, deployed, rolled out, or fully released unless supplied.",
+        "Does not invent additional release contents or user impact beyond the changelog context."
+      ]
+    },
+    {
+      "id": "E11",
+      "name": "Performance work preserves constraints",
+      "prompt": "Write a commit message. Diff summary: `compile_many` queues finalized outputs and writes files in parallel; parent directory creation is deduped; worker pool cap increases from 8 to 16; regression test covers failed output writes. Context: PEX serialization must remain input-ordered for FO4 legacy compatibility, and the compile cache must only warm after a successful output write. No benchmark delta was supplied.",
+      "expected_output": "The agent writes a performance commit message that names the output-write workload and the preserved ordering/cache constraints without inventing benchmark results or listing implementation mechanics.",
+      "files": [],
+      "expectations": [
+        "Subject uses a performance-oriented type or scope and names `compile_many` output writes or equivalent workload.",
+        "Body mentions the preserved input ordering or FO4 legacy serialization contract.",
+        "Body mentions that cache warming remains gated on successful output writes if discussing the cache.",
+        "Body mentions the failed-write regression test if verification is included.",
+        "Does not invent benchmark numbers, speedup percentages, throughput claims, or broad performance results.",
+        "Does not turn the body into a step-by-step thread pool, queue, or filesystem operation inventory."
+      ]
+    },
+    {
+      "id": "E12",
+      "name": "CI publishing fix keeps toolchain constraint",
+      "prompt": "Write a commit message. Diff summary: GitHub Actions publish workflow uses `npm exec npm@^11.5.1 publish` for the publish step, removes the global npm upgrade, and leaves the rest of the pnpm workflow unchanged. Context: Node 22.22.2 runners bundle npm 10.9.7, which cannot do OIDC token exchange for scoped packages; globally installing npm@latest failed with `MODULE_NOT_FOUND` for `promise-retry`. No package was published in this change.",
+      "expected_output": "The agent writes a CI commit message that preserves the Node/npm/OIDC failure context and narrow publish-step decision without claiming a release happened or listing workflow edits.",
+      "files": [],
+      "expectations": [
+        "Subject uses a CI, publish, or release-automation scope and names OIDC, trusted publishing, Node 22, or npm 11.",
+        "Body mentions the Node 22.22.2 / npm 10.9.7 runner constraint or OIDC token-exchange failure.",
+        "Body explains the narrow npm@11 publish-step decision rather than only saying the workflow changed.",
+        "Body mentions the global npm upgrade failure or `MODULE_NOT_FOUND` if explaining the alternative.",
+        "Does not claim a package was published, deployed, released, or rolled out.",
+        "Does not list YAML edits such as permissions, steps, or package-manager commands without the runner/toolchain rationale."
+      ]
+    },
+    {
+      "id": "E13",
+      "name": "Data-loss fix keeps failure ordering",
+      "prompt": "Write a commit message. Diff summary: `clear_local_data` now renames `store.enc` to `store.enc.removing` before deleting key files, sweeps leftover `.removing` files, and adds two regression tests. Context: deleting master keys before removing `store.enc` could leave an encrypted store on disk that a later fresh key could not open if store removal failed. Verification: `cargo test` passed; release artifact guard passed. No external incident or vulnerability advisory was supplied.",
+      "expected_output": "The agent writes a security/data-loss-sensitive commit message that explains the destructive ordering failure, quarantine decision, verification, and lack of advisory without claiming a broad security fix.",
+      "files": [],
+      "expectations": [
+        "Subject names the local data, secure store, or key/store cleanup outcome rather than generic refactoring.",
+        "Body explains the key-before-store deletion failure mode or unrecoverable encrypted store risk.",
+        "Body explains the quarantine or rename-first decision.",
+        "Body includes `cargo test` and release artifact guard if verification is included.",
+        "Does not claim an external incident, CVE, vulnerability advisory, exploit, or broad security hardening.",
+        "Does not list every helper, filename, or test unless `store.enc` / `store.enc.removing` is used as a recovery anchor."
+      ]
+    }
+  ],
+  "scoring": {
+    "common_assertion_weight": 0.45,
+    "per_eval_expectation_weight": 0.55,
+    "pass_threshold": 0.8,
+    "notes": "These evals pressure the failure mode observed in agent-authored history: long bodies that mirror the diff instead of preserving why the change exists. Strong outputs may still include concrete API names when they are compatibility anchors, but should not turn the body into a change inventory. Later cases cover commit shapes where the useful context is locale scope, cross-package contract, dependency rationale, release boundaries, performance constraints, CI toolchain failures, or destructive-operation safety."
+  }
+}
