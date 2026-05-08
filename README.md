@@ -48,8 +48,11 @@ Editable UI plans also cover state transitions such as save, cancel/reset,
 pending, validation, success, and error recovery, and prefer completing verified
 existing surfaces before expanding into adjacent unproven channels or modes.
 Multi-slice plans include commit checkpoints only after independently verifiable
-phases or slices, with standalone proposed messages. Plans also include a short
-implementation handoff for later execution requests.
+phases or slices, with standalone proposed messages. At plan creation time, the
+skill records matching visible skills in a skill usage plan: which skills to
+use, when to use them, and the fallback if they are unavailable during
+execution. Plans also include a short implementation handoff for later execution
+requests.
 
 ### `vibe-plan-execution`
 
@@ -194,7 +197,10 @@ specific to the skill.
   primary user-facing planning workflow when the user asks for a plan, spec,
   acceptance criteria, test plan, or rough vibe-coding implementation plan. Its
   normal output is a full plan file plus a short localized summary, not a full
-  plan pasted into chat.
+  plan pasted into chat. It names concrete companion skills only after verifying
+  them from the current environment, user-provided material, project
+  instructions, or local metadata; unavailable skills remain optional and get an
+  explicit fallback.
 - `vibe-plan-execution` is for implementing from an already-bound plan,
   preferably one produced by `vibe-planning`. If a `vibe-planning` summary names
   a local plan file, read that file as the authoritative implementation contract.

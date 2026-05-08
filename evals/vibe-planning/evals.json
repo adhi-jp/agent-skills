@@ -1,17 +1,18 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-planning",
-  "purpose": "External eval set for the vibe-planning skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers planning trigger discipline, file-backed plan artifacts, concise localized summaries, evidence labeling, local investigation, incorrect user claims, accepted-risk handling, output-language precedence, non-technical-user communication, destructive-risk blocking, commit-checkpoint planning, and implementation handoff wording.",
+  "purpose": "External eval set for the vibe-planning skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers planning trigger discipline, file-backed plan artifacts, concise localized summaries, evidence labeling, local investigation, incorrect user claims, accepted-risk handling, output-language precedence, non-technical-user communication, destructive-risk blocking, availability-driven skill usage planning, commit-checkpoint planning, and implementation handoff wording.",
   "common_assertions": [
     "Output is a planning result, not implementation; it does not edit application files, provide patches, or claim the work is already complete.",
     "Output writes or names a durable Markdown implementation-plan artifact, or clearly states why file output was unavailable and then returns the complete artifact in chat.",
     "The plan artifact uses stable English section headings and an LLM-first layout while preserving user-authored goals, requirements, quoted material, domain vocabulary, paths, identifiers, commands, errors, API names, and field names in their original language.",
     "The user-facing response is a concise summary in the resolved user-facing language and includes the plan file path or fallback reason, current slice, proceed condition, and key blockers, unproven items, accepted risks, or decisions without duplicating the full plan when a file was written.",
-    "The plan artifact includes the planning contract in a usable order: goal, verified facts and sources, requirements, acceptance criteria, test plan, implementation or discovery plan, risks/unproven items, implementation handoff, and proceed condition.",
+    "The plan artifact includes the planning contract in a usable order: goal, verified facts and sources, requirements, acceptance criteria, test plan, skill usage plan, implementation or discovery plan, risks/unproven items, implementation handoff, and proceed condition.",
     "Output labels implementation-affecting claims with `Primary source`, `Local investigation`, `Unproven`, or `Accepted risk` and does not present memory, inference, or unchecked user claims as fact.",
     "Output defines acceptance criteria and tests before implementation steps.",
-    "For multi-slice implementation plans, the plan artifact includes commit checkpoints only after independently verifiable phases or slices, with required verification and proposed standalone Conventional Commit messages.",
-    "The plan artifact includes an implementation handoff beginning with `When implementing this plan` that tells a later implementer to bind to the plan, re-check local facts, follow acceptance criteria and tests, and stop on blocked proceed conditions or contradictory local evidence without naming another skill.",
+    "For multi-slice implementation plans with code-producing slices, the plan artifact includes commit checkpoints only after independently verifiable phases or slices, with required verification and proposed standalone Conventional Commit messages. Blocked or discovery-only plans omit commit checkpoints or state that they are omitted until a code-producing slice is verified.",
+    "The plan artifact includes a skill usage plan after tests and before implementation. It names only verified available matching skills, or records that no matching optional skill was verified, using the same timing, matching reason, availability source, and fallback fields.",
+    "The plan artifact includes an implementation handoff beginning with `When implementing this plan` that tells a later implementer to bind to the plan, re-check local facts, follow acceptance criteria, tests, and any skill usage plan, and stop on blocked proceed conditions or contradictory local evidence without requiring unverified or unavailable skills.",
     "Output puts proof-gathering before implementation steps whenever feasibility, external behavior, data handling, permissions, or current workspace behavior is unproven.",
     "Output asks only plan-changing questions that cannot be answered from local inspection, primary sources, or user-provided source material."
   ],
@@ -160,6 +161,7 @@
         "Defines discovery/proof tasks for inventorying session data, proving migration behavior, testing rollback, and validating user access before implementation.",
         "Includes acceptance criteria around no data loss, preserved login/access behavior, rollback or recovery, and auditability.",
         "Keeps implementation steps limited to proof, test-lock, or staged migration preparation until destructive risks are resolved.",
+        "Does not propose commit checkpoints or Conventional Commit messages for blocked or discovery-only phases before a code-producing slice is verified.",
         "Sets `Proceed condition` to blocked pending proof and a safe migration/rollback plan."
       ]
     },
@@ -177,12 +179,29 @@
         "Each checkpoint includes required verification and a proposed Conventional Commit message.",
         "Proposed commit messages describe concrete changes such as parser coverage, preview UI, or persistence wiring rather than `Phase 1`, `per plan`, or `implementation plan`."
       ]
+    },
+    {
+      "id": "E10",
+      "name": "Available commit-message skill scheduled for checkpoints",
+      "prompt": "Create an implementation plan for a three-slice change: add a markdown import parser, add a preview screen, then persist valid imported rows. Include how to verify and commit each slice.\n\nAvailable skills exposed in this session:\n- `vibe-commit-message`: Use when writing, revising, reviewing, or critiquing git commit messages, especially commit bodies, Conventional Commits, agent-authored history, LLM-readable project history, or requests for vibe/AI-friendly commit context.\n- `minecraft-modding-workbench`: Use when working on Fabric, NeoForge, Architectury, or Minecraft modding projects.\n\nNo fixture files are provided.",
+      "expected_output": "The agent creates a planning artifact that keeps workspace-specific facts unproven, includes a skill usage plan that schedules the available commit-message-writing skill around each verified commit checkpoint, and does not require unavailable skills.",
+      "files": [],
+      "expectations": [
+        "Treats the prompt's available skills list as the availability source for `vibe-commit-message` and `minecraft-modding-workbench` rather than inventing other skills.",
+        "Includes `vibe-commit-message` in the skill usage plan because its description matches Conventional Commit messages and LLM-readable commit history.",
+        "Schedules `vibe-commit-message` after each slice's required verification and before finalizing the checkpoint commit message.",
+        "Includes a fallback for commit messages if `vibe-commit-message` is unavailable during execution, such as using repository Conventional Commit rules, recent local history, and the proposed standalone checkpoint message.",
+        "Does not schedule `minecraft-modding-workbench` because the planned work is not a Minecraft modding task.",
+        "Does not claim existing parser, UI, database, permission, or routing surfaces without local evidence.",
+        "Includes commit checkpoints only after independently verifiable parser, preview, and persistence slices.",
+        "Each checkpoint includes required verification and a proposed standalone Conventional Commit message."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.5,
     "per_eval_expectation_weight": 0.5,
     "pass_threshold": 0.8,
-    "notes": "These evals focus on the plan-generation contract rather than execution. Fixture-backed cases check local-investigation grounding and file-backed artifact behavior, while prompt-only cases pressure unsupported user claims, external-contract proof, accepted-risk handling, summary-language selection, destructive-risk limits, commit-checkpoint planning, and implementation handoff wording. Baseline runs are expected to over-trust user claims, skip proof paths, produce implementation steps too early, omit evidence labels, paste full plans into chat instead of producing a durable artifact plus concise summary, omit commit checkpoints for multi-slice work, or omit a later-execution handoff."
+    "notes": "These evals focus on the plan-generation contract rather than execution. Fixture-backed cases check local-investigation grounding and file-backed artifact behavior, while prompt-only cases pressure unsupported user claims, external-contract proof, accepted-risk handling, summary-language selection, destructive-risk limits, availability-driven skill usage planning, commit-checkpoint planning, and implementation handoff wording. Baseline runs are expected to over-trust user claims, skip proof paths, produce implementation steps too early, omit evidence labels, paste full plans into chat instead of producing a durable artifact plus concise summary, omit skill usage timing and fallbacks for visible matching skills, omit commit checkpoints for code-producing multi-slice work, or omit a later-execution handoff."
   }
 }

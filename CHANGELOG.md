@@ -15,6 +15,14 @@ use `[Repository] - YYYY-MM-DD`.
 
 - Repository README now uses platform-neutral wording and highlights the
   vibe-coding-oriented skill packages.
+- `vibe-planning` now requires generated plans to include availability-driven
+  skill usage guidance: planners inspect visible skill metadata, choose only
+  matching available skills, state timing and fallback, and schedule an
+  available commit-message-writing skill at verified commit checkpoints without
+  hard-coding a fixed companion skill set. Plans with no matching optional skill
+  still use the same fields so fallback behavior remains explicit, and blocked
+  or discovery-only plans do not require commit messages until a code-producing
+  slice is verified.
 - `codex-review-cycle` now documents optional out-of-scope worktree
   isolation: the skill can ask once to hide unrelated dirty paths outside the
   active review target with a pathspec-limited stash, keep git-common-dir
