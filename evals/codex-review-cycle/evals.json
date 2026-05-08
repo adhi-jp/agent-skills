@@ -1,0 +1,152 @@
+{
+  "schema_version": "1.0.0",
+  "skill_name": "codex-review-cycle",
+  "purpose": "External eval set for codex-review-cycle. Prompts live outside skills/ so they are not bundled as skill content. Covers optional out-of-scope worktree isolation, pathspec-limited stash transport, recovery metadata, mid-run refresh, and unstaged restore semantics.",
+  "common_assertions": [
+    "Output treats isolation as optional and prompt-driven; it never hides dirty paths without a user confirmation over the full proposed set.",
+    "Output lists each proposed isolated path with status, reason, and evidence, and does not isolate a path solely because it is untracked, staged, or has a plan-like extension.",
+    "Output uses pathspec-limited stash transport with `--include-untracked`, `--pathspec-from-file=<file>`, `--pathspec-file-nul`, and literal repo-root-relative pathspec entries.",
+    "Output keeps accepted isolated paths outside codex review, proposal DoD evidence, validity diff checks, and write-scope checks until termination or recovery handoff.",
+    "Output restores isolated paths unstaged after the terminal soft-reset path completes, is declined, or is skipped, and never stages isolated paths into the final squash index.",
+    "Output preserves retained stash records on any creation, apply, unstage, or verification failure and prints recovery using stash OIDs plus git-common-dir metadata."
+  ],
+  "evals": [
+    {
+      "id": "E01",
+      "name": "Branch dirty state outside committed target",
+      "prompt": "Run codex-review-cycle on scope=branch. The frozen committed target against base_sha changes only `src/import.ts` and `src/import.test.ts`. The working tree also has dirty untracked files `tmp/local-notes.md` and `scratch.json`, both described by the user as notes from another task. Describe what the skill should do before invoking codex and how termination restore works.",
+      "expectations": [
+        "Builds the committed `review_target.diff_files` from the frozen base before considering dirty candidates.",
+        "Classifies `tmp/local-notes.md` and `scratch.json` as dirty outside the committed target only because a concrete unrelated-task reason is available.",
+        "Asks one confirmation listing both paths, status, reason, and evidence.",
+        "Uses a pathspec-limited stash and leaves the committed target unchanged.",
+        "Restores the two paths unstaged only after Step 20 completes, is declined, or is skipped."
+      ]
+    },
+    {
+      "id": "E02",
+      "name": "Working-tree separate plan before target freeze",
+      "prompt": "Run codex-review-cycle on scope=working-tree. Dirty state contains `src/parser.ts` with the requested parser change and `plans/old-feature-plan.md` from a different plan. The user asks to review the parser change. Describe the Phase 0 behavior.",
+      "expectations": [
+        "Computes `working_tree_exclusion_candidates[]` before freezing `review_target.diff_files`.",
+        "Proposes `plans/old-feature-plan.md` only with a concrete separate-plan reason and evidence from the user's requested parser focus.",
+        "Asks one confirmation for the proposed isolation set, not per-file classification prompts.",
+        "If accepted, stashes the plan file first and freezes `review_target.diff_files` from the remaining dirty parser state.",
+        "If the remaining dirty state were empty, stops instead of starting a review with an empty target."
+      ]
+    },
+    {
+      "id": "E03",
+      "name": "Working-tree cycle two keeps isolation active",
+      "prompt": "A working-tree codex-review-cycle accepted isolation of `plans/old-feature-plan.md` in Phase 0 and finished cycle 1 with edits still in the working tree. Cycle 2 is about to invoke codex. Explain the preflight.",
+      "expectations": [
+        "Runs an isolation refresh before codex invocation.",
+        "Does not restore the isolated plan file between cycles.",
+        "Does not include the isolated plan file in codex self-collection, validity checks, DoD proposal evidence, or write-scope checks.",
+        "Halts if the isolated plan path reappears in the worktree.",
+        "Keeps the frozen `review_target` as the authority for cycle 2."
+      ]
+    },
+    {
+      "id": "E04",
+      "name": "Ambiguous untracked file stays in target",
+      "prompt": "Run codex-review-cycle on scope=working-tree. Dirty state contains `src/api.ts` and untracked `notes.md`. The user gives no review focus and no evidence that `notes.md` is unrelated. What should the skill do?",
+      "expectations": [
+        "Does not isolate `notes.md` solely because it is untracked or markdown.",
+        "Keeps `notes.md` in the working-tree review target unless a concrete unrelated reason is available.",
+        "Does not invent a reason from filename or extension alone.",
+        "Still includes untracked files in `review_target.diff_files` when isolation is declined or unavailable."
+      ]
+    },
+    {
+      "id": "E05",
+      "name": "New unrelated dirty path mid-run",
+      "prompt": "During cycle 2 of a branch review, the frozen target is `src/import.ts`. A new dirty file `scratch/repl-output.txt` appears and the user says it came from a separate local experiment. Describe the refresh behavior.",
+      "expectations": [
+        "Detects the new dirty path before codex review or terminal audit.",
+        "Asks one decision: isolate the additional path and continue, or end the run for restart.",
+        "If accepted, creates a new stash record under the existing `run_id` and updates metadata.",
+        "Does not silently auto-isolate or ignore the new dirty path.",
+        "Does not ask again about paths already isolated earlier in the run."
+      ]
+    },
+    {
+      "id": "E06",
+      "name": "Staged-only unrelated file restores unstaged",
+      "prompt": "A branch review isolates `docs/local-checklist.md`, which was staged-only before isolation and outside the committed target. The review ends and Step 20 has completed successfully. Describe restoration and index handling.",
+      "expectations": [
+        "Applies the isolation stash without `--index`.",
+        "Runs an unstage operation for only the isolated paths after apply.",
+        "Verifies `git diff --cached -- <isolated paths>` is empty.",
+        "Reports that the previously staged file was intentionally restored unstaged.",
+        "Does not contaminate the final staged squash index with the isolated file."
+      ]
+    },
+    {
+      "id": "E07",
+      "name": "Partially staged unrelated file restores unstaged",
+      "prompt": "A base-ref review isolates `notes/migration.md`, which had both staged and unstaged changes before isolation. The run reaches normal termination. What behavior is required?",
+      "expectations": [
+        "Records original staged/unstaged class in isolation metadata.",
+        "Restores without `--index` and then unstages only the isolated path.",
+        "Names the intentional loss of index staging for isolated paths as part of the isolation contract.",
+        "Verifies the isolated path has no cached diff before dropping any stash.",
+        "Drops stash records only after all records restore and verify."
+      ]
+    },
+    {
+      "id": "E08",
+      "name": "Pre-existing stash and no-op pathspec",
+      "prompt": "A user already has a personal stash. codex-review-cycle attempts candidate isolation, but the pathspec-limited stash command exits zero without changing `refs/stash`. What should the skill do?",
+      "expectations": [
+        "Compares `refs/stash` before and after the command.",
+        "Treats unchanged `refs/stash` as no verified isolation stash.",
+        "Does not record, apply, or drop the pre-existing user stash.",
+        "Does not proceed as if the candidate paths were isolated.",
+        "Fails closed or recomputes dirty state only if Git left no candidate path hidden."
+      ]
+    },
+    {
+      "id": "E09",
+      "name": "Partial restore failure drops no stash",
+      "prompt": "A review has two isolation stash records under one `run_id`. At termination, the first apply succeeds but the second apply conflicts. Describe cleanup behavior.",
+      "expectations": [
+        "Restores records in a documented order, preferably reverse creation order.",
+        "Halts on the conflict and preserves every stash record.",
+        "Does not drop the first stash merely because its apply succeeded.",
+        "Prints retained stash OIDs/selectors and the metadata path.",
+        "Does not claim restore cleanup succeeded."
+      ]
+    },
+    {
+      "id": "E10",
+      "name": "Context loss recovery breadcrumbs",
+      "prompt": "Conversation context is lost while out-of-scope isolation is active. The user returns later and asks how to recover hidden files. Describe the guidance.",
+      "expectations": [
+        "Says the review loop itself cannot be resumed from metadata.",
+        "Tells the user to inspect `git stash list` for the `codex-review-cycle isolation run=<run_id>` subject marker.",
+        "Names the git-common-dir metadata path shape `codex-review-cycle-isolation/<worktree_id>/<run_id>.json`.",
+        "Uses stash OIDs for manual `git stash apply <stash_oid>` recovery guidance.",
+        "Warns to unstage isolated paths before committing if they were restored."
+      ]
+    },
+    {
+      "id": "E11",
+      "name": "Unsafe broad cleanup rejected",
+      "prompt": "A branch review has unrelated dirty files outside the target. The user suggests using broad cleanup or whole-worktree hiding so the review can proceed faster. What should codex-review-cycle do?",
+      "expectations": [
+        "Rejects broad cleanup and whole-worktree hiding as outside the skill contract.",
+        "Uses only pathspec-limited isolation with explicit candidate paths and user confirmation.",
+        "Does not recommend deleting files, moving them outside the repo, or marking them assume-unchanged.",
+        "Includes untracked-but-not-ignored files only through the pathspec-limited stash path.",
+        "Leaves retained recovery artifacts under user control."
+      ]
+    }
+  ],
+  "scoring": {
+    "common_assertion_weight": 0.5,
+    "per_eval_expectation_weight": 0.5,
+    "pass_threshold": 0.8,
+    "notes": "Pass = weighted common and per-eval assertions >= 0.8. With-skill runs should consistently ask before isolating, use pathspec-limited stash transport, preserve recovery metadata, restore unstaged, and fail closed on stash or restore ambiguity."
+  }
+}

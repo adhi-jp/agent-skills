@@ -209,8 +209,12 @@ specific to the skill.
 - `codex-review-cycle` requires the `codex` Claude Code plugin to be
   installed and `/codex:setup` to be complete. The skill only runs when the
   current directory is a git repository and the chosen review target
-  resolves to a non-empty diff. It does not commit files on behalf of the
-  user; for `branch` / `base-ref` scopes the skill pauses between cycles
+  resolves to a non-empty diff. Before review, it may ask once to
+  temporarily isolate out-of-scope dirty paths with a pathspec-limited stash
+  and git-common-dir recovery metadata, then restore those paths unstaged
+  after termination or hand off retained stash recovery details on failure.
+  It does not commit files without explicit run-level consent; for
+  `branch` / `base-ref` scopes the skill otherwise pauses between cycles
   for the user to manually commit applied fixes. At termination, the skill
   previews the accumulated cycle commits (via `git log --oneline` and
   `git diff --stat`) and asks the user to confirm. On approval it

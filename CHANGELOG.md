@@ -15,6 +15,13 @@ use `[Repository] - YYYY-MM-DD`.
 
 - Repository README now uses platform-neutral wording and highlights the
   vibe-coding-oriented skill packages.
+- `codex-review-cycle` now documents optional out-of-scope worktree
+  isolation: the skill can ask once to hide unrelated dirty paths outside the
+  active review target with a pathspec-limited stash, keep git-common-dir
+  recovery metadata, and restore isolated paths unstaged after the terminal
+  soft-reset path completes, is declined, or is skipped. Diagnostic and
+  explanatory outputs now include a compact recap of selection, transport, and
+  restore/recovery contracts.
 
 ## [vibe-commit-message 1.0.0] - 2026-05-04
 
