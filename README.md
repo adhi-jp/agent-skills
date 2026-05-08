@@ -27,7 +27,8 @@ projects. It is designed around the `minecraft-modding` MCP server from
 version-aware debugging, mapping work, mod JAR inspection, and multi-loader
 project structure. It also defines MCP preflight and fallback behavior for
 unavailable or unstable tool servers, dependency source lookup, resource/codec
-validation, GameTest wiring, and HUD/client-rendering verification.
+validation, GameTest wiring, HUD/client-rendering verification, and narrow
+reference routing for task-relevant playbooks.
 
 ### `vibe-planning`
 

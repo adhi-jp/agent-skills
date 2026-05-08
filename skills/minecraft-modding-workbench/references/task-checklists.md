@@ -1,6 +1,10 @@
 # Common Task Checklists
 
-Start with the matching high-level recipe in `references/mcp-recipes.md`, then use the checklist below to make sure the delivered slice is actually complete.
+Use this file after building the project profile and running MCP preflight. Read
+only the section that matches the requested slice. Consult `references/mcp-recipes.md`
+only when you need payload shape, high-level tool recovery, invalid-input
+correction, or a supporting utility that is not already covered by the first
+high-level MCP call.
 
 ## Table of Contents
 

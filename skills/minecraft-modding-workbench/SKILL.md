@@ -36,7 +36,7 @@ working code and assets.
 - Respond in the user's language when practical, but keep the workflow and trigger logic language-agnostic.
 - Separate facts by verification source when the answer will guide later
   implementation: `Verified by MCP`, `Verified by workspace/source jar
-  fallback`, and `Runtime/user-observed`.
+  fallback`, `Runtime/user-observed`, and `Unverified`.
 
 ## Quick Path
 
@@ -44,13 +44,17 @@ working code and assets.
    version, mapping, Java version, modules, and normal verification commands.
 2. Run MCP preflight before assuming `minecraft-modding` tools are callable.
 3. Use one high-level MCP call first for the relevant fact.
-4. If a worker restart, timeout, or transport failure occurs, retry once with a
+4. Choose a narrow reference route before loading bundled references. Once the
+   task shape is known, start with its checklist section and add loader, MCP
+   recipe, fallback, or task-specific references only when their conditions match.
+5. If a worker restart, timeout, or transport failure occurs, retry once with a
    narrower high-level payload, then switch to the matching fallback playbook.
-5. For invalid payloads, read `references/mcp-recipes.md`, correct the shape
-   once, and retry the same high-level tool before changing tools.
-6. For Mixins, access wideners, and access transformers, record owner, name,
+6. For invalid payloads, consult only the relevant `references/mcp-recipes.md`
+   recipe, correct the shape once, and retry the same high-level tool before
+   changing tools.
+7. For Mixins, access wideners, and access transformers, record owner, name,
    descriptor, namespace, config declaration, and side before editing.
-7. For resources, worldgen, loot, models, codecs, HUD, screens, and runtime
+8. For resources, worldgen, loot, models, codecs, HUD, screens, and runtime
    hooks, run the task-specific checklist instead of treating `build` as proof
    of runtime behavior.
 
@@ -82,24 +86,62 @@ Run this once near the start of a Minecraft modding task, before the first MCP-d
    - Match the project's naming, package layout, registration helpers, and client/server split.
    - Reuse existing registries, tabs, packet patterns, and datagen providers when present.
    - Prefer workspace-aware MCP resolution before manual version or mapping selection.
-3. Load only the relevant references.
-   - Read `references/fabric.md` for Fabric projects.
-   - Read `references/neoforge.md` for NeoForge projects.
-   - Read `references/architectury.md` for Architectury multi-module projects.
-   - Read `references/bootstrap-from-template.md` when the workspace is a sparse template.
-   - Read `references/task-checklists.md` for the requested feature slice.
-   - Read `references/mcp-recipes.md` when payload shape, recovery, or sequencing is unclear.
-   - Read `references/mcp-unavailable-fallback.md` when MCP tools are unavailable, stale, or repeatedly failing.
-   - Read `references/dependency-jars.md` when checking Architectury, Fabric API, NeoForge, or other dependency classes.
-   - Read `references/rendering-hud.md` for HUD overlays, screens, projection, GUI scale, FOV, or client rendering.
-   - Read `references/validator-fallbacks.md` when `validate-project`, Mixin, access widener, or access transformer validators fail.
-   - Read `references/gametest.md` when adding or debugging GameTest wiring.
+3. Load only the relevant references using the Reference Routing section below.
 4. Find the closest vanilla example before implementing behavior.
    - Start with `inspect-minecraft` or `analyze-symbol`.
    - Drop to low-level tools only when the high-level answer still leaves the implementation ambiguous.
 
 If no project exists yet, ask only for loader, Minecraft version, modid, and package name.
 If the task depends on an external generator or template that is not present, say so explicitly instead of fabricating generated files.
+
+## Reference Routing
+
+Bundled references are optional, conditional context. Do not read or restate the
+whole reference bundle just because this skill triggered.
+
+- Default route:
+  - Use `SKILL.md`, the project profile, MCP preflight, and one high-level MCP
+    lookup when available.
+  - Read only the matching section of `references/task-checklists.md` once the
+    task shape is known.
+- Loader route:
+  - Read `references/fabric.md` only for Fabric project structure,
+    registration, APIs, entrypoints, datagen, networking, Mixins, or pitfalls.
+  - Read `references/neoforge.md` only for NeoForge project structure,
+    DeferredRegister, events, capabilities, access transformers, datagen,
+    networking, sided access, or pitfalls.
+  - Read `references/architectury.md` only for Architectury multi-module
+    placement or a slice that crosses common/platform boundaries.
+  - Read multiple loader references only when the workspace is multi-loader and
+    the changed slice touches those loaders.
+- MCP recipe route:
+  - Read `references/mcp-recipes.md` only for payload shape, high-level tool
+    error recovery, `ERR_INVALID_INPUT`, old-shape/current-shape mismatch, or a
+    supporting utility not covered by the high-level call.
+  - If a high-level MCP answer is sufficient, do not restate unrelated recipes.
+- Fallback route:
+  - Read `references/mcp-unavailable-fallback.md` only after preflight shows no
+    MCP tools, a named tool or argument is rejected as older MCP, or the failure
+    budget routes to fallback.
+  - Read `references/validator-fallbacks.md` only after `validate-project`,
+    `validate-mixin`, `validate-access-widener`, or
+    `validate-access-transformer` is unavailable, restarts, times out, or cannot
+    answer.
+- Task-specific route:
+  - Read `references/dependency-jars.md` for dependency API source lookup.
+  - Read `references/rendering-hud.md` for HUD overlays, screens, projection,
+    GUI scale, FOV, or client rendering.
+  - Read `references/gametest.md` for GameTest or test-harness wiring.
+  - Read `references/bootstrap-from-template.md` only for sparse templates.
+  - Read `references/project-profile-template.md` when a durable project profile
+    is useful.
+  - Read `references/subagent-mcp-contract.md` only when delegating Minecraft
+    work to another agent.
+
+For substantial plans, debugging explanations, eval outputs, or handoffs where
+reference choices affect implementation facts, include a compact reference route
+record: loaded references with reasons, plus skipped reference categories with
+reasons. Keep it short; it is provenance, not a summary of every skipped file.
 
 ## MCP Guardrails
 

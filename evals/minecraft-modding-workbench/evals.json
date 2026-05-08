@@ -1,14 +1,16 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "minecraft-modding-workbench",
-  "purpose": "External eval set for the minecraft-modding-workbench skill. Covers MCP availability preflight, bounded MCP failure handling, dependency source lookup, resource codec validation, HUD projection/FOV checks, and GameTest/access-widener wiring.",
+  "purpose": "External eval set for the minecraft-modding-workbench skill. Covers MCP availability preflight, bounded MCP failure handling, dependency source lookup, resource codec validation, HUD projection/FOV checks, GameTest/access-widener wiring, and narrow reference routing.",
   "common_assertions": [
     "Output treats minecraft-modding MCP as the preferred source of truth when available, but does not invent MCP results when tools are missing or failing.",
     "Output records a project profile or explicitly identifies missing profile facts before making version, loader, mapping, or Java-version-sensitive claims.",
     "Output separates `Verified by MCP`, `Verified by workspace/source jar fallback`, `Runtime/user-observed`, and `Unverified` facts when the answer will guide implementation.",
     "Output uses high-level MCP tools first when they are available and uses fallback references only after preflight, older-MCP detection, or the stated failure budget justifies fallback.",
     "Output does not treat `./gradlew build` alone as proof for resource codec loading, loader runtime wiring, or client rendering behavior.",
-    "Output keeps implementation or debugging fixes narrow and grounded in same-version Minecraft, loader, mapping, workspace, source jar, or runtime log evidence."
+    "Output keeps implementation or debugging fixes narrow and grounded in same-version Minecraft, loader, mapping, workspace, source jar, or runtime log evidence.",
+    "Output uses a narrow reference route: it names only task-relevant references or explicitly explains why an extra reference was needed.",
+    "Output does not restate unrelated MCP recipes, loader recipes, HUD guidance, GameTest guidance, or fallback playbooks when the task route does not require them."
   ],
   "evals": [
     {
@@ -100,12 +102,87 @@
         "Confirms common access widener visibility before changing feature code.",
         "Records which loader runtime was tested and does not infer NeoForge behavior from Fabric GameTests."
       ]
+    },
+    {
+      "id": "E07",
+      "name": "Simple Fabric item narrow route",
+      "prompt": "A Fabric-facing slice in an Architectury multi-loader 1.21.x workspace asks for a simple item registration plus lang, item model, and recipe support. MCP is available for vanilla facts. Plan the work without implementing it.",
+      "expected_output": "The agent builds a project profile, runs MCP preflight, uses one high-level MCP lookup only if a vanilla/API fact is needed, routes to the Simple Block or Item checklist, uses Architectury/common placement guidance when workspace inspection shows a multi-loader common module, and avoids unrelated Fabric/NeoForge platform-only, HUD, GameTest, validator, dependency-jar, or fallback playbooks.",
+      "files": [],
+      "expectations": [
+        "Records or asks for workspace root, Minecraft version, loader, mapping, Java version, modid, and package before version-sensitive claims.",
+        "Runs or plans MCP preflight before MCP-dependent claims and prefers one high-level read-only MCP call when a vanilla/API fact is needed.",
+        "Uses the Simple Block or Item checklist for the requested feature slice.",
+        "Uses Architectury placement guidance when workspace inspection shows a multi-loader common module, and uses Fabric-specific guidance only for Fabric project structure, registration, datagen, resources, or common pitfalls that apply to this slice.",
+        "Does not restate unrelated Fabric/NeoForge platform-only, HUD, GameTest, validator, dependency-jar, NBT, mod-JAR, or MCP-unavailable fallback guidance.",
+        "Includes a compact reference-route record or equivalent explanation naming loaded and skipped reference categories."
+      ]
+    },
+    {
+      "id": "E08",
+      "name": "MCP invalid payload recovery without broad fallback",
+      "prompt": "`inspect-minecraft` is exposed while checking a vanilla class, but the first call is rejected with `ERR_INVALID_INPUT` for an unsupported field. Explain the next step.",
+      "expected_output": "The agent treats the error as a payload-shape issue, reads the MCP recipe only to correct the request shape, retries the same high-level tool once, and does not switch to MCP-unavailable fallback unless the corrected call fails under the failure budget.",
+      "files": [],
+      "expectations": [
+        "Classifies `ERR_INVALID_INPUT` as invalid payload shape, not MCP unavailability.",
+        "Reads or cites `references/mcp-recipes.md` only for the relevant payload shape and error recovery.",
+        "Corrects the payload once and retries the same high-level `inspect-minecraft` path before changing tools.",
+        "Does not switch to `references/mcp-unavailable-fallback.md` unless the corrected call also fails under the stated failure budget.",
+        "Does not guess alternate tool names or drop to low-level tools before the corrected high-level retry.",
+        "Keeps facts unverified until the corrected MCP call or a later fallback actually verifies them."
+      ]
+    },
+    {
+      "id": "E09",
+      "name": "Older MCP fallback route",
+      "prompt": "The host exposes `inspect-minecraft`, but it rejects a named v3 argument from the current recipes as unknown while inspecting a Fabric 1.21.x workspace. Explain how to proceed.",
+      "expected_output": "The agent treats the installed MCP as older than the current recipes, says so once, uses the nearest older-compatible tool shape or workspace/source fallback, and avoids random tool-name guessing or unrelated recipe restatement.",
+      "files": [],
+      "expectations": [
+        "States that the installed MCP appears older than the current recipes or does not support the named argument.",
+        "Does not keep guessing random `minecraft-modding` tool names or argument names.",
+        "Uses the nearest older-compatible path when one is known, otherwise switches to workspace/source fallback.",
+        "Labels facts from the fallback path as workspace/source-jar fallback, not MCP-verified.",
+        "Does not restate unrelated NBT, GameTest, HUD, loader-registration, or mod-JAR recipes.",
+        "Records the reference route or fallback reason compactly."
+      ]
+    },
+    {
+      "id": "E10",
+      "name": "HUD route without loader sprawl",
+      "prompt": "A Minecraft 1.21.x client HUD lock-on reticle flashes at the screen edge while drawing a bow. The workspace is already known; no loader migration or registration change is requested. Plan the debugging route.",
+      "expected_output": "The agent routes to HUD/client rendering guidance and the HUD task checklist, verifies same-version client projection helpers through MCP or source fallback, checks runtime visual states, and avoids unrelated loader registration, worldgen, GameTest, dependency, or fallback playbooks.",
+      "files": [],
+      "expectations": [
+        "Uses HUD, screens, or client rendering checklist guidance rather than a generic build-only plan.",
+        "Reads or cites `references/rendering-hud.md` for projection, GUI scale, FOV, behind-camera, and visual verification concerns.",
+        "Verifies same-version client method signatures through MCP or workspace/source fallback before changing projection math.",
+        "Checks bow draw, FOV smoothing, GUI scale, off-screen, edge clamp, and behind-camera cases.",
+        "Does not restate unrelated Fabric/NeoForge registration, worldgen, GameTest, dependency-jar, validator, or NBT guidance.",
+        "Does not treat unit tests or `./gradlew build` alone as proof of runtime visual behavior."
+      ]
+    },
+    {
+      "id": "E11",
+      "name": "Dependency API route",
+      "prompt": "In an Architectury workspace, I need the exact methods available on `CreativeTabRegistry` in our configured Architectury API dependency. MCP cannot return dependency class source. What should the workbench do?",
+      "expected_output": "The agent starts from the workspace Gradle dependency version, prefers MCP or the exact dependency sources jar, reads dependency lookup guidance, reports the artifact used, and does not scan unrelated Minecraft loader references unless module placement affects the change.",
+      "files": [],
+      "expectations": [
+        "Starts from the workspace's Gradle dependency declaration and exact Architectury API version.",
+        "Prefers MCP dependency lookup when available, then the exact `*-sources.jar`, before bytecode or decompiler fallback.",
+        "Reads or cites `references/dependency-jars.md` for source-jar and artifact reporting discipline.",
+        "Reports the exact group, artifact, version, and artifact path used as evidence.",
+        "Labels facts as dependency source fallback when MCP did not verify them.",
+        "Does not restate unrelated Fabric, NeoForge, HUD, GameTest, validator, worldgen, or MCP-unavailable fallback guidance unless module placement truly requires it."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.4,
     "per_eval_expectation_weight": 0.6,
     "pass_threshold": 0.8,
-    "notes": "These evals target workflow discipline rather than generated code. Baseline failures are expected to include repeated MCP tool guessing, unlabelled fallback facts, treating build as runtime proof, bytecode cache spelunking before source jars, incomplete HUD/FOV checks, or confusing GameTest wiring with gameplay logic."
+    "notes": "These evals target workflow discipline rather than generated code. Baseline failures are expected to include repeated MCP tool guessing, unlabelled fallback facts, treating build as runtime proof, bytecode cache spelunking before source jars, incomplete HUD/FOV checks, confusing GameTest wiring with gameplay logic, broad reference routing, or restating unrelated recipes."
   }
 }

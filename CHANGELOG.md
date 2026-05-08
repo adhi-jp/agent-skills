@@ -30,6 +30,11 @@ use `[Repository] - YYYY-MM-DD`.
   soft-reset path completes, is declined, or is skipped. Diagnostic and
   explanatory outputs now include a compact recap of selection, transport, and
   restore/recovery contracts.
+- `minecraft-modding-workbench` now makes reference routing explicit: agents
+  start from the project profile, MCP preflight, one high-level MCP lookup, and
+  the matching task checklist section, then load loader, MCP recipe, fallback,
+  or task-specific references only when their route conditions match. Eval
+  coverage now checks narrow routes and unrelated recipe suppression.
 
 ## [vibe-commit-message 1.0.0] - 2026-05-04
 
