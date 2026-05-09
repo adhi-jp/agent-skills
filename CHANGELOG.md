@@ -11,10 +11,17 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [Repository] - 2026-05-09
+
 ### Changed
 
 - Repository README now uses platform-neutral wording and highlights the
   vibe-coding-oriented skill packages.
+
+## [vibe-planning 2.1.0] - 2026-05-09
+
+### Changed
+
 - `vibe-planning` now requires generated plans to include availability-driven
   skill usage guidance: planners inspect visible skill metadata, choose only
   matching available skills, state timing and fallback, and schedule an
@@ -23,6 +30,11 @@ use `[Repository] - YYYY-MM-DD`.
   still use the same fields so fallback behavior remains explicit, and blocked
   or discovery-only plans do not require commit messages until a code-producing
   slice is verified.
+
+## [codex-review-cycle 1.9.0] - 2026-05-09
+
+### Changed
+
 - `codex-review-cycle` now documents optional out-of-scope worktree
   isolation: the skill can ask once to hide unrelated dirty paths outside the
   active review target with a pathspec-limited stash, keep git-common-dir
@@ -30,6 +42,11 @@ use `[Repository] - YYYY-MM-DD`.
   soft-reset path completes, is declined, or is skipped. Diagnostic and
   explanatory outputs now include a compact recap of selection, transport, and
   restore/recovery contracts.
+
+## [minecraft-modding-workbench 1.2.1] - 2026-05-09
+
+### Changed
+
 - `minecraft-modding-workbench` now makes reference routing explicit: agents
   start from the project profile, MCP preflight, one high-level MCP lookup, and
   the matching task checklist section, then load loader, MCP recipe, fallback,
