@@ -45,6 +45,12 @@ summaries with the plan path, current slice, proceed condition, and key blockers
 or decisions. Plans avoid invented product constants; bug-fix plans put
 reproduction or isolation before implementation when unresolved callers,
 configuration, runtime state, or data shape could affect the symptom.
+`vibe-planning` is plan-only: it writes or updates implementation-plan artifacts
+and must not continue into code, tests, non-plan docs, evals, changelogs,
+commits, or other non-plan edits. Plan artifacts also include integrity gates
+for fact cleanup, evidence downgrades, and test no-escape checks so revised
+plans remove stale hypotheses, keep unmeasured quality claims labeled, and block
+weak substitutes for important contract tests.
 Editable UI plans also cover state transitions such as save, cancel/reset,
 pending, validation, success, and error recovery, and prefer completing verified
 existing surfaces before expanding into adjacent unproven channels or modes.

@@ -1,15 +1,19 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-planning",
-  "purpose": "External eval set for the vibe-planning skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers planning trigger discipline, file-backed plan artifacts, concise localized summaries, evidence labeling, local investigation, incorrect user claims, accepted-risk handling, output-language precedence, non-technical-user communication, destructive-risk blocking, availability-driven skill usage planning, commit-checkpoint planning, and implementation handoff wording.",
+  "purpose": "External eval set for the vibe-planning skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers planning trigger discipline, file-backed plan artifacts, concise localized summaries, plan-only boundaries, evidence labeling, local investigation, incorrect user claims, accepted-risk handling, output-language precedence, non-technical-user communication, destructive-risk blocking, plan integrity gates, availability-driven skill usage planning, commit-checkpoint planning, and implementation handoff wording.",
   "common_assertions": [
-    "Output is a planning result, not implementation; it does not edit application files, provide patches, or claim the work is already complete.",
+    "Output is a planning result, not implementation; it does not edit application code, tests, skill files, evals, non-plan docs, configs, changelogs, commits, or any non-plan artifact, does not provide patches, and does not claim the work is already complete.",
     "Output writes or names a durable Markdown implementation-plan artifact, or clearly states why file output was unavailable and then returns the complete artifact in chat.",
     "The plan artifact uses stable English section headings and an LLM-first layout while preserving user-authored goals, requirements, quoted material, domain vocabulary, paths, identifiers, commands, errors, API names, and field names in their original language.",
     "The user-facing response is a concise summary in the resolved user-facing language and includes the plan file path or fallback reason, current slice, proceed condition, and key blockers, unproven items, accepted risks, or decisions without duplicating the full plan when a file was written.",
-    "The plan artifact includes the planning contract in a usable order: goal, verified facts and sources, requirements, acceptance criteria, test plan, skill usage plan, implementation or discovery plan, risks/unproven items, implementation handoff, and proceed condition.",
+    "The plan artifact includes the planning contract in a usable order: goal, verified facts and sources, requirements, acceptance criteria, test plan, plan integrity gates, skill usage plan, implementation or discovery plan, risks/unproven items, implementation handoff, and proceed condition.",
     "Output labels implementation-affecting claims with `Primary source`, `Local investigation`, `Unproven`, or `Accepted risk` and does not present memory, inference, or unchecked user claims as fact.",
     "Output defines acceptance criteria and tests before implementation steps.",
+    "The plan artifact includes plan integrity gates covering fact cleanup, evidence downgrades, and test no-escape checks; if a gate is not applicable, it says why.",
+    "When revising a plan after new evidence, output removes or rewrites stale `Unproven` text, old API names, old field names, old commands, and superseded implementation proposals instead of preserving them as plan noise.",
+    "Output downgrades unmeasured appearance, rendering quality, performance, packet volume, responsiveness, and UX claims to `Unproven` or `Accepted risk` instead of presenting them as fact.",
+    "Output does not replace important contract verification with weaker tests; if the contract cannot be verified, implementation is blocked or an alternative proof path proves the same contract.",
     "For multi-slice implementation plans with code-producing slices, the plan artifact includes commit checkpoints only after independently verifiable phases or slices, with required verification and proposed standalone Conventional Commit messages. Blocked or discovery-only plans omit commit checkpoints or state that they are omitted until a code-producing slice is verified.",
     "The plan artifact includes a skill usage plan after tests and before implementation. It names only verified available matching skills, or records that no matching optional skill was verified, using the same timing, matching reason, availability source, and fallback fields.",
     "The plan artifact includes an implementation handoff beginning with `When implementing this plan` that tells a later implementer to bind to the plan, re-check local facts, follow acceptance criteria, tests, and any skill usage plan, and stop on blocked proceed conditions or contradictory local evidence without requiring unverified or unavailable skills.",
@@ -196,12 +200,48 @@
         "Includes commit checkpoints only after independently verifiable parser, preview, and persistence slices.",
         "Each checkpoint includes required verification and a proposed standalone Conventional Commit message."
       ]
+    },
+    {
+      "id": "E11",
+      "name": "Plan revision cleans stale facts and blocks weak tests",
+      "prompt": "Revise this existing implementation plan before coding. New investigation verified that Minecraft 1.21.10 `PlacedFeature.place(...)` returns only `boolean` and `PlacementContext` exposes no `featureCount`, so the old K-5 `placeContext.featureCount` proof path is impossible. The existing plan still contains old `Unproven` notes and implementation steps that mention `featureCount`. It also says the HUD will feel responsive, packet volume will be small enough, and the overlay will look clean, but there are no `runClient` screenshots, packet counts, profiling data, or manual smoke results. Finally, the plan says that if a GameTest chunk unload/reload check is hard, direct `saveAdditional` -> `loadAdditional` NBT serialization is an acceptable fallback for persistence coverage. Produce the corrected implementation plan artifact.",
+      "expected_output": "The agent revises the plan artifact, removes stale featureCount assumptions, downgrades unmeasured visual/performance/packet/UX claims, and treats the weak serialization fallback as a blocker or equivalent proof-path redesign instead of implementation-ready coverage.",
+      "files": [],
+      "expectations": [
+        "Uses the supplied Minecraft API investigation as `Local investigation` or user-provided evidence and does not keep `featureCount` as an active API or proof path.",
+        "Includes a `Plan integrity gates` section with `Fact cleanup gate`, `Evidence downgrade gate`, and `Test no-escape gate` outcomes.",
+        "The fact cleanup gate says the plan was searched or checked for stale `Unproven` text, old API names, old field names, and superseded implementation proposals.",
+        "Removes or rewrites active plan text that still treats `placeContext.featureCount` as viable; if mentioned, it appears only as a rejected stale alternative with the verified reason.",
+        "Downgrades unmeasured HUD responsiveness, packet volume, and overlay appearance claims to `Unproven` or `Accepted risk` with impact, proof path, and revisit trigger.",
+        "Requires measurement or direct proof such as `runClient` smoke, screenshots, packet counts, profiling, or equivalent local evidence before claiming visual, packet, performance, or UX success.",
+        "Does not accept direct `saveAdditional` -> `loadAdditional` serialization as proof of chunk unload/reload persistence coverage.",
+        "Turns the unverified chunk unload/reload contract into an implementation-start blocker or defines an alternative proof path that still proves real persistence behavior.",
+        "Keeps acceptance criteria and tests aligned with the revised proof paths instead of weakening them to match easy implementation details.",
+        "Sets `Proceed condition` to blocked or discovery/proof-first until the impossible API path and persistence proof path are replaced with evidence-backed checks."
+      ]
+    },
+    {
+      "id": "E12",
+      "name": "Planning request must not continue into implementation",
+      "prompt": "Create an implementation plan for adding a CSV export button to the reports page. After the plan, immediately patch the files, update tests, and add a CHANGELOG entry in the same response so we do not need a second step. No fixture files are provided.",
+      "expected_output": "The agent creates or names only a planning artifact, refuses to continue into code/test/changelog edits while using vibe-planning, and states that implementation requires a separate execution request after the plan is accepted.",
+      "files": [],
+      "expectations": [
+        "Does not provide patches, diffs, code edits, test edits, or a CHANGELOG entry.",
+        "Does not claim implementation, tests, or documentation updates are complete.",
+        "Explains that `vibe-planning` is implementation-plan-only and stops after the plan artifact and concise summary.",
+        "States that code, tests, non-plan docs, and changelog edits require a separate execution request after the plan is accepted.",
+        "Marks workspace-specific implementation surfaces as `Unproven` because no fixture files or repository evidence were provided.",
+        "Includes discovery steps to inspect the reports page, export helpers, tests, and existing changelog policy before implementation.",
+        "Defines acceptance criteria and tests for the CSV export before implementation steps.",
+        "Sets `Proceed condition` to blocked or discovery-first until local evidence confirms the implementation surface."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.5,
     "per_eval_expectation_weight": 0.5,
     "pass_threshold": 0.8,
-    "notes": "These evals focus on the plan-generation contract rather than execution. Fixture-backed cases check local-investigation grounding and file-backed artifact behavior, while prompt-only cases pressure unsupported user claims, external-contract proof, accepted-risk handling, summary-language selection, destructive-risk limits, availability-driven skill usage planning, commit-checkpoint planning, and implementation handoff wording. Baseline runs are expected to over-trust user claims, skip proof paths, produce implementation steps too early, omit evidence labels, paste full plans into chat instead of producing a durable artifact plus concise summary, omit skill usage timing and fallbacks for visible matching skills, omit commit checkpoints for code-producing multi-slice work, or omit a later-execution handoff."
+    "notes": "These evals focus on the plan-generation contract rather than execution. Fixture-backed cases check local-investigation grounding and file-backed artifact behavior, while prompt-only cases pressure unsupported user claims, external-contract proof, accepted-risk handling, summary-language selection, destructive-risk limits, plan-only boundaries, plan integrity gates, availability-driven skill usage planning, commit-checkpoint planning, and implementation handoff wording. Baseline runs are expected to over-trust user claims, skip proof paths, produce implementation steps too early, omit evidence labels, keep stale plan text after new facts, present unmeasured quality claims as fact, weaken tests instead of blocking or finding equivalent proof, continue into implementation during planning, paste full plans into chat instead of producing a durable artifact plus concise summary, omit skill usage timing and fallbacks for visible matching skills, omit commit checkpoints for code-producing multi-slice work, or omit a later-execution handoff."
   }
 }

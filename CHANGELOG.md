@@ -11,6 +11,16 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- `vibe-planning` now explicitly stays within implementation-plan creation or
+  revision: it must not continue into code, tests, skill files, evals,
+  non-plan docs, configs, changelogs, commits, or other non-plan edits while
+  planning. Plans also include integrity gates for fact cleanup, evidence
+  downgrades, and test no-escape handling so revised plans remove stale
+  hypotheses and old API names, keep unmeasured visual/performance/packet/UX
+  claims labeled, and block weak substitutes for important contract tests.
+
 ## [Repository] - 2026-05-09
 
 ### Changed

@@ -19,6 +19,12 @@ agent can execute without inventing missing behavior. Treat the user's request
 as valuable intent, not verified fact: preserve what they want, prove what can
 be proven, and make uncertainty visible.
 
+`vibe-planning` is an implementation-planning-only skill. While using this
+skill, do not implement the planned work and do not edit application code,
+tests, skill packages, evals, non-plan docs, configs, changelogs, commits, or
+any other non-plan artifact. The only file edits this skill may make are
+creating or updating the implementation-plan artifact itself.
+
 This skill is independent. Do not assume another planning skill, guard,
 execution skill, commit-message skill, or other companion skill is available.
 When skill metadata is visible in the current environment, use it only to plan
@@ -84,6 +90,13 @@ complete plan artifact in the reply using the same English artifact structure.
 
 ## Core Rules
 
+- This skill is for implementation-plan creation or revision only. Stop after
+  the plan artifact and concise summary are complete; implementation requires a
+  separate execution request outside `vibe-planning`.
+- Do not provide patches, edit non-plan files, make commits, or claim that code,
+  tests, non-plan docs, evals, configs, changelogs, or other implementation work
+  is complete. Non-mutating investigation is allowed when needed to ground the
+  plan.
 - Ground the plan in primary sources or actual investigation before asking the
   user to decide. Read relevant local code, tests, configs, schemas, docs, logs,
   issue text, or official documentation first.
@@ -124,6 +137,17 @@ complete plan artifact in the reply using the same English artifact structure.
 - If implementation proceeds with an `Unproven` assumption, require explicit
   user risk acceptance and keep the item labeled as `Accepted risk`; never
   convert it into verified fact.
+- Treat plan updates as replacement work, not additive history. When
+  investigation verifies, refutes, or replaces a hypothesis, remove stale
+  `Unproven` entries, old API names, and superseded implementation proposals
+  instead of leaving them as plan noise.
+- Do not claim visual quality, performance, packet volume, efficiency,
+  responsiveness, usability, or UX improvement as fact unless it was measured,
+  reproduced, captured, or supported by a primary source or local evidence.
+  Otherwise keep the claim `Unproven` or record explicit `Accepted risk`.
+- Do not weaken tests to make a plan implementation-ready. If an important
+  contract cannot be verified as planned, make it an implementation-start
+  blocker or define an alternative proof path that still proves the contract.
 
 ## Evidence Labels
 
@@ -143,6 +167,48 @@ tests, or implementation order:
 
 Every `Unproven` or `Accepted risk` item must include impact, the fastest proof
 path, and where it must be revisited.
+
+## Plan Integrity Gates
+
+Run these gates before finalizing any plan and every time a plan is revised
+after new evidence appears.
+
+For a first-draft plan with no prior artifact or copied handoff text, record the
+relevant gate as not applicable with the reason. Do not run broad discovery only
+to prove that no prior plan exists.
+
+1. **Fact cleanup gate**
+   - When a hypothesis becomes verified, refuted, or replaced, run full-text
+     search over the plan artifact and any copied handoff notes for the old
+     `Unproven` wording, old API names, old field names, old commands, and
+     superseded implementation proposals.
+   - Delete or rewrite stale text. Do not keep old labels or rejected designs as
+     historical commentary unless the plan still needs them as an explicit
+     rejected alternative.
+   - If the plan still contains both the new fact and the old hypothesis, the
+     gate fails.
+2. **Evidence downgrade gate**
+   - Downgrade appearance, rendering quality, performance, packet volume,
+     memory use, responsiveness, "feels better", and UX claims to `Unproven`
+     unless they are backed by measurement, screenshots, run logs, profiling,
+     packet counts, user research, primary-source limits, or direct local
+     reproduction.
+   - If the user chooses to proceed without measurement, keep the item as
+     `Accepted risk` with impact, fastest proof path, and revisit trigger.
+   - Do not let optimistic wording such as "should be fine", "small enough", or
+     "visually cleaner" appear as verified fact.
+3. **Test no-escape gate**
+   - Identify important contracts that the plan depends on, especially API
+     fields, serialization, persistence, network behavior, permissions,
+     migrations, visual behavior, cross-loader behavior, and external-service
+     behavior.
+   - If a planned test cannot verify a contract, do not replace it with a weaker
+     test that proves only implementation details or serialization shadows. Mark
+     implementation start as blocked, or add an alternative proof path that
+     still proves the same contract.
+   - If the alternative proof path reduces coverage, record the reduced claim as
+     `Unproven` or `Accepted risk` and keep implementation blocked unless the
+     user explicitly accepts that risk.
 
 ## Method Selection
 
@@ -206,7 +272,14 @@ localized work.
    - For refactors, include equivalence checks that prove behavior is preserved.
    - For UI, include interaction, state, responsive layout, and accessibility
      checks when relevant.
-7. **Plan available skill usage**
+7. **Run plan integrity gates**
+   - Apply the `Fact cleanup gate`, `Evidence downgrade gate`, and `Test
+     no-escape gate` before finalizing the plan.
+   - When revising an existing plan after investigation, treat stale facts and
+     old implementation options as defects to remove, not context to preserve.
+   - If a gate fails, update the specification, acceptance criteria, tests,
+     risks, and proceed condition before implementation is allowed to start.
+8. **Plan available skill usage**
    - Inspect available skill metadata at plan creation time when it is already
      exposed in the runtime, supplied by the user, documented in project
      instructions, or cheaply discoverable from local skill metadata.
@@ -235,14 +308,14 @@ localized work.
    - Do not let optional skill usage weaken the core plan contract: acceptance
      criteria, tests, evidence labels, proceed conditions, and user decisions
      still control the work.
-8. **Plan implementation**
+9. **Plan implementation**
    - Use only steps supported by `Primary source`, `Local investigation`, or
      explicit `Accepted risk`.
    - Preserve local conventions and existing architecture unless evidence shows
      they are the source of the problem.
    - Put proof-gathering steps before implementation steps when feasibility is
      still unproven.
-9. **Plan verification and review**
+10. **Plan verification and review**
    - Include test, lint, type-check, build, manual smoke, screenshot, diff review,
      or rollout checks appropriate to the stack.
    - Include a final diff-review step that checks the result against the
@@ -255,7 +328,7 @@ localized work.
    - Do not plan commits for discovery-only, blocked, unverified, destructive,
      or work-in-progress states. For discovery-first or blocked plans, say that
      commit checkpoints are omitted until a code-producing slice is verified.
-10. **Prepare the implementation handoff**
+11. **Prepare the implementation handoff**
    - Include a short handoff that starts with "When implementing this plan" so
      pasted plans remain self-contained execution requests.
    - Tell the implementer to treat the document as authoritative, re-check local
@@ -329,6 +402,21 @@ implementation.
 - Negative and edge cases:
 - Manual or visual checks:
 
+## Plan integrity gates
+- Fact cleanup gate:
+  - Status or not-applicable reason:
+  - Search scope:
+  - Stale `Unproven`, old API names, old field names, old commands, and old
+    implementation proposals removed or rewritten:
+- Evidence downgrade gate:
+  - Status or not-applicable reason:
+  - Visual, performance, packet-volume, responsiveness, and UX claims without
+    measurement downgraded to `Unproven` or `Accepted risk`:
+- Test no-escape gate:
+  - Status or not-applicable reason:
+  - Important contracts:
+  - Blockers before implementation or alternative proof paths:
+
 ## Skill usage plan
 - Skill:
 - Availability source:
@@ -362,7 +450,10 @@ implementation.
 - When implementing this plan, treat this document as authoritative. Re-check
   local facts before editing, follow the acceptance criteria, test plan, and
   skill usage plan, implement only the current in-scope slice, and stop if the
-  `Proceed condition` is blocked or local evidence contradicts the plan.
+  `Proceed condition` is blocked or local evidence contradicts the plan. This
+  plan artifact is not implementation authorization; code, tests, non-plan docs,
+  evals, configs, changelogs, commits, and other non-plan edits require a
+  separate execution request.
 
 ## Proceed condition
 - [State whether implementation is ready, conditional on accepted risk, or
@@ -389,6 +480,16 @@ Before finalizing the plan, check that:
 - False or infeasible requirements are challenged with evidence and alternatives.
 - Acceptance criteria are observable.
 - Tests come before implementation steps.
+- The plan-only boundary is respected: no non-plan files were edited, no patches
+  were provided, no commits were made, and no implementation completion was
+  claimed while using `vibe-planning`.
+- The `Fact cleanup gate` removed stale `Unproven` text, old API names, old
+  field names, old commands, and superseded implementation proposals after facts
+  changed.
+- The `Evidence downgrade gate` keeps unmeasured appearance, performance, packet
+  volume, responsiveness, and UX claims as `Unproven` or `Accepted risk`.
+- The `Test no-escape gate` blocks implementation or defines an equivalent
+  proof path when an important contract cannot be verified as planned.
 - The skill usage plan names only verified available skills with timing and
   fallback, or records `No matching optional skill verified` with the same
   availability source, timing, matching reason, and fallback fields.
