@@ -39,6 +39,17 @@ use `[Repository] - YYYY-MM-DD`.
   downgrades, and test no-escape handling so revised plans remove stale
   hypotheses and old API names, keep unmeasured visual/performance/packet/UX
   claims labeled, and block weak substitutes for important contract tests.
+- `vibe-planning` now includes a generality gate that maps examples, fixtures,
+  project memories, and history-derived failures to broader planning dimensions
+  before they influence scope, acceptance criteria, tests, or implementation
+  order. Its eval coverage now declares project classes and adds non-web
+  pressure prompts for CLI/local tooling, library APIs, runtime operations,
+  file-format migration, and domain-specific planning.
+- `vibe-planning` eval coverage now hardens assertion wording from iteration-12
+  grader feedback, requiring substantive fixture facts, concrete proof paths,
+  slice-scoped commit checkpoints, explicit destructive-risk alternatives,
+  concrete gate outcomes, exact-decimal money parsing decisions, safe local file
+  writes, runtime rollback specificity, and fail-closed domain safety behavior.
 - `vibe-plan-execution` now requires an evidence-backed plan-deviation gate before
   agents skip, reorder, narrow, or replace planned proof, API/specification
   checks, tests, or edits. Perceived redundancy, minimalism, speed, memory, or

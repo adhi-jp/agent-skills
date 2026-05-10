@@ -112,6 +112,12 @@ complete plan artifact in the reply using the same English artifact structure.
   may name a specific skill only after its availability was verified from the
   current environment, user-provided material, project instructions, or local
   metadata.
+- Treat concrete examples, fixtures, project memories, and history-derived
+  failure cases as evidence or pressure tests, not skill boundaries. Before an
+  example changes scope, acceptance criteria, tests, or implementation order,
+  map it to the broader planning dimension it represents, such as external
+  contracts, data shape, lifecycle state, destructive risk, local evidence
+  grounding, or optional tool usage.
 - Respect the user's requested outcome as far as reality allows. When a request
   cannot be implemented literally, preserve the intent and adjust the mechanism.
 - When the user asks for broad UX improvements, make the first slice complete
@@ -209,6 +215,21 @@ to prove that no prior plan exists.
    - If the alternative proof path reduces coverage, record the reduced claim as
      `Unproven` or `Accepted risk` and keep implementation blocked unless the
      user explicitly accepts that risk.
+4. **Generality gate**
+   - Treat any concrete example, fixture, project memory, copied handoff, or
+     history-derived failure case that influenced the plan as a sampled case, not
+     an exhaustive list or mandatory project shape.
+   - Map each influential example to an abstract planning dimension before it
+     affects scope, acceptance criteria, tests, or implementation order.
+   - Check whether the plan overfits to one sampled product, framework, UI
+     modality, data shape, runtime, or toolchain. Remove adjacent surfaces,
+     channels, security paths, APIs, or UI states that come only from examples,
+     not the user's request or local evidence.
+   - Keep the generated plan specific to the current user request and verified
+     local evidence. Do not generalize away domain requirements, file formats,
+     runtimes, user wording, or product decisions that are actually supplied.
+   - If the user intentionally asks for a project-specific plan, record that
+     reason instead of silently broadening or neutralizing the request.
 
 ## Method Selection
 
@@ -273,8 +294,8 @@ localized work.
    - For UI, include interaction, state, responsive layout, and accessibility
      checks when relevant.
 7. **Run plan integrity gates**
-   - Apply the `Fact cleanup gate`, `Evidence downgrade gate`, and `Test
-     no-escape gate` before finalizing the plan.
+   - Apply the `Fact cleanup gate`, `Evidence downgrade gate`, `Test
+     no-escape gate`, and `Generality gate` before finalizing the plan.
    - When revising an existing plan after investigation, treat stale facts and
      old implementation options as defects to remove, not context to preserve.
    - If a gate fails, update the specification, acceptance criteria, tests,
@@ -416,6 +437,12 @@ implementation.
   - Status or not-applicable reason:
   - Important contracts:
   - Blockers before implementation or alternative proof paths:
+- Generality gate:
+  - Status or not-applicable reason:
+  - Concrete examples, fixtures, memories, or historical cases that influenced
+    the plan:
+  - Abstract planning dimensions derived from those examples:
+  - Overfit risks and scope corrections:
 
 ## Skill usage plan
 - Skill:
@@ -490,6 +517,17 @@ Before finalizing the plan, check that:
   volume, responsiveness, and UX claims as `Unproven` or `Accepted risk`.
 - The `Test no-escape gate` blocks implementation or defines an equivalent
   proof path when an important contract cannot be verified as planned.
+- The `Generality gate` treats examples, fixtures, project memories, and past
+  failures as sampled cases, not exhaustive lists or mandatory branches.
+- Concrete examples that affect the plan are mapped to abstract planning
+  dimensions before they influence scope, acceptance criteria, tests, or
+  implementation order.
+- Plans do not expand into adjacent surfaces, channels, APIs, security paths, or
+  UI states only because examples mention them.
+- Plans do not ignore non-web, non-UI, non-product, CLI, library, data,
+  infrastructure, runtime, or domain-specific work.
+- Generality checks do not weaken local evidence, erase supplied domain details,
+  or make the plan less specific to the user's current request.
 - The skill usage plan names only verified available skills with timing and
   fallback, or records `No matching optional skill verified` with the same
   availability source, timing, matching reason, and fallback fields.
