@@ -11,6 +11,25 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Added
+
+- `vibe-debug-fix` adds a self-contained vibe-coding debug/fix skill package
+  for rough bug reports, regressions, failed prior fixes, tool-confidence
+  issues, environment-specific failures, runtime artifact mismatches, and
+  existing-feature repair. The workflow defines vibe-intent capture, a debug
+  ledger, existing-behavior analysis, source routing, speculation control,
+  failed-attempt handling, state-space matrices, artifact freshness,
+  verification degradation, concrete user retest contracts, continuity,
+  pattern recurrence, and finish gates.
+- `evals/vibe-debug-fix/` adds pressure prompts across frontend/UI,
+  backend/service logic, auth/security boundaries, data representation,
+  build/deploy/runtime artifacts, tool/dev automation, async lifecycle and
+  concurrency, verification limits, continuity, and recurrence. The evals
+  reject code-first answers, named-skill dependencies, single-example fixes,
+  static-only dynamic matrices, skipped-check passes, stale-artifact "fixed"
+  claims, vague retest handoffs, dropped unresolved symptoms, broad tool
+  abandonment, and hope-based completion claims.
+
 ### Changed
 
 - `vibe-planning` now explicitly stays within implementation-plan creation or

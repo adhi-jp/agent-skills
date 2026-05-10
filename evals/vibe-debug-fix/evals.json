@@ -1,0 +1,251 @@
+{
+  "schema_version": "1.0.0",
+  "skill_name": "vibe-debug-fix",
+  "purpose": "External eval set for vibe-debug-fix. Prompts live outside skills/ so they are not bundled as skill content. Covers rough vibe reports, existing-feature fixes, failed prior attempts, existing-behavior preservation, source routing, speculation control, state-space analysis, artifact freshness, degraded verification, user retest contracts, continuity, recurrence, and broad project-class generality.",
+  "common_assertions": [
+    "Output preserves the user's rough symptom wording while translating it into observable behavior, expected behavior, unknowns, proof paths, and current-scope closure criteria.",
+    "Output opens or updates a debug ledger with expected behavior source, observed behavior source, prior attempts, suspected/proven cause, affected dimensions, verification path, and a closure status.",
+    "Output performs local/source investigation before asking the user for a full technical reproduction, and asks only questions that change the fix or proof path.",
+    "Output does not require another named skill or treat another named skill as a dependency.",
+    "Output separates verified facts, hypotheses, expert judgment, expected outcomes, and proof results before acting on implementation-affecting claims.",
+    "Output includes a disconfirming check for the preferred cause or fix.",
+    "Output analyzes existing behavior to preserve or intentionally change user-visible output, internal state, lifecycle/persistence, external contracts, and runtime artifacts when relevant.",
+    "Output converts user examples into state-space dimensions rather than fixing only the named example.",
+    "Output treats skipped, unavailable, flaky, environment-limited, or manual-only checks as non-proof.",
+    "Output does not claim fixed without observable proof and artifact freshness when runtime artifacts are involved.",
+    "If local proof depends on the user, output provides exact setup, action sequence, expected observation, artifact freshness marker, failure evidence to capture, and ledger item closed.",
+    "Output avoids treating concrete example domains as universal requirements and remains applicable outside UI, web, asset, animation, and tooling bugs."
+  ],
+  "evals": [
+    {
+      "id": "E01",
+      "name": "Rough UI vibe report",
+      "project_class": "frontend-ui",
+      "prompt": "The dashboard filter still feels broken. I do not know the technical reason, but after I pick a region the count jumps around and the empty state looks wrong. Fix it.",
+      "expected_output": "The agent preserves the user's wording, builds a ledger for count instability and empty-state display, inspects available dashboard/filter code and tests before asking for more detail, and defines proof before coding.",
+      "expectations": [
+        "Does not demand a formal reproduction from the user before inspecting available evidence.",
+        "Creates separate ledger items for count jumping and empty-state mismatch or explicitly explains why they are one symptom.",
+        "Identifies expected behavior sources to find, such as existing tests, product copy, filter state code, or prior behavior.",
+        "Builds a matrix that includes selected filter, empty/non-empty result, loading state, and refresh/reset behavior.",
+        "Does not claim a UI fix is complete without an observation path that can see the count and empty state."
+      ]
+    },
+    {
+      "id": "E02",
+      "name": "Existing plan self-contained",
+      "project_class": "backend-service",
+      "prompt": "Use this plan to fix the failed invoice retry behavior. Plan: expected behavior is that retrying a failed invoice updates status once and never creates a duplicate invoice. Test plan: reproduce with the retry worker and add an idempotency regression. Risks: payment API retry semantics must be checked from authoritative docs. Proceed condition: start after checking local worker code and the payment docs.",
+      "expected_output": "The agent can execute the debug/fix workflow from the supplied plan without requiring any other named skill, while still building a debug ledger and checking source-of-truth behavior.",
+      "expectations": [
+        "Does not say a separate named plan-execution skill is required.",
+        "Binds to the supplied plan as task context while keeping the debug/fix workflow self-contained.",
+        "Routes payment retry semantics to official docs, upstream source, local wrapper code, or user-provided source material.",
+        "Adds existing-behavior preservation for single status update and no duplicate invoice.",
+        "Requires reproduction or source trace before changing idempotency behavior."
+      ]
+    },
+    {
+      "id": "E03",
+      "name": "Repeated missing resource attempts",
+      "project_class": "build-runtime-artifact",
+      "prompt": "The image is still missing in the packaged app. You already renamed the asset and changed the manifest path twice. In source it looks right, but the installed build still shows the placeholder.",
+      "expected_output": "The agent explains why prior fixes remain unproven or failed, checks the authoritative packaged resource/runtime artifact contract, and requires artifact freshness before another fix or user retest.",
+      "expectations": [
+        "Updates the failed-attempt ledger for the asset rename and manifest path changes.",
+        "Explains that source correctness alone does not prove the installed artifact contains the asset.",
+        "Routes investigation to package contents, build output, manifest/resource mapping, cache, and install/update path.",
+        "Ties any next fix to a new artifact proof or source trace instead of another path guess.",
+        "Does not ask the user to retest until the package/build/cache freshness marker is identified."
+      ]
+    },
+    {
+      "id": "E04",
+      "name": "Directional rendering regression",
+      "project_class": "frontend-ui",
+      "prompt": "The route preview fix only works left-to-right. Up-to-down still renders the label on the wrong side, and after I reverse the route it keeps the old marker.",
+      "expected_output": "The agent turns the named direction into a direction/lifecycle matrix and includes stale cleanup, not just a one-direction coordinate tweak.",
+      "expectations": [
+        "Builds a matrix with at least horizontal, vertical, reversed route, and stale marker cleanup cases.",
+        "Treats the user's left-to-right example as one dimension value, not the whole fix.",
+        "Includes existing behavior to preserve for label placement and marker identity.",
+        "Adds a disconfirming check that would show the coordinate or cleanup hypothesis is wrong.",
+        "Does not claim fixed from a static screenshot or one route only."
+      ]
+    },
+    {
+      "id": "E05",
+      "name": "Temporal concurrency rendering",
+      "project_class": "async-lifecycle-concurrency",
+      "prompt": "The animation looks okay when one item moves, but with two items at once they swap order, and after canceling the last one leaves a ghost card.",
+      "expected_output": "The agent includes temporal sequence, ordering, overlapping instances, per-entity identity, cancel/reset, and final cleanup in the state-space matrix before fixing.",
+      "expectations": [
+        "Does not use a static-only matrix.",
+        "Includes ordered movement and simultaneous instances as separate dimensions.",
+        "Includes per-entity identity and ghost cleanup after the final event.",
+        "Requires proof for single item, multiple overlapping items, cancel/reset, and final cleanup.",
+        "Keeps unrelated animation redesign out of scope unless needed for the current ledger item."
+      ]
+    },
+    {
+      "id": "E06",
+      "name": "Environment-dependent auth regression",
+      "project_class": "auth-security-boundary",
+      "prompt": "Login works locally but fails on staging after the passkey callback. The production origin is different too, so I am worried a quick local fix will make security worse.",
+      "expected_output": "The agent routes passkey/origin behavior to authoritative docs or source, builds an environment/security-boundary matrix, and blocks risky changes without proof.",
+      "expectations": [
+        "Separates local, staging, and production origin behavior.",
+        "Checks authoritative source material for the auth/passkey origin contract before changing security-boundary behavior.",
+        "Identifies existing behavior to preserve for valid origins and rejection of invalid origins.",
+        "Does not weaken verification or broaden allowed origins based on local success alone.",
+        "Explains the blocker in user-impact terms such as failed login or accepting the wrong origin."
+      ]
+    },
+    {
+      "id": "E07",
+      "name": "Representation and encoding bug",
+      "project_class": "data-representation",
+      "prompt": "Search works for normal tags, but tags with commas, spaces, or non-English characters disappear from the URL and the saved filter cannot be reopened.",
+      "expected_output": "The agent treats this as a representation/encoding round-trip bug and preserves search, URL, serialization, persistence, and display behavior.",
+      "expectations": [
+        "Builds a matrix for comma, space, Unicode, raw value, encoded URL, stored value, and displayed label.",
+        "Separates user-visible output from serialization and persistence behavior.",
+        "Requires a round-trip proof rather than only checking the parser or only checking the UI.",
+        "Names a disconfirming case such as mixed tags or reopening a saved filter.",
+        "Does not treat the comma example as the only case."
+      ]
+    },
+    {
+      "id": "E08",
+      "name": "Tool confidence after worker failure",
+      "project_class": "tool-dev-automation",
+      "prompt": "The generated client is wrong. One worker process restarted when you ran the generator earlier, so just stop using that whole toolchain and hand-edit the generated files.",
+      "expected_output": "The agent classifies the worker failure narrowly, looks for usable retries or fallback proof, and does not globally abandon the toolchain without evidence.",
+      "expectations": [
+        "Distinguishes failed worker invocation from the entire toolchain being unusable.",
+        "Checks logs, command mode, input shape, generated artifact, and official/local tool docs as relevant.",
+        "Considers a narrower retry, single-file generation, dry run, or source schema proof before hand-editing generated output.",
+        "Treats hand-editing generated files as risky unless the generated-artifact contract supports it.",
+        "Records the tool-confidence decision in the debug ledger."
+      ]
+    },
+    {
+      "id": "E09",
+      "name": "Source change not in runtime artifact",
+      "project_class": "build-runtime-artifact",
+      "prompt": "The tests pass after your source fix, but the browser tab I am using still has the old behavior. I have no idea whether the dev server picked it up.",
+      "expected_output": "The agent treats runtime freshness as unproven, verifies the bundle/server/cache path, and gives exact retest steps only after a freshness marker exists.",
+      "expectations": [
+        "Does not equate passing tests with the browser runtime containing the fix.",
+        "Checks dev-server rebuild, bundle hash or timestamp, process restart, cache, and target tab/environment as applicable.",
+        "Leaves the ledger item not fixed or blocked until artifact freshness is proven.",
+        "Provides a freshness marker for user retest, such as refreshed bundle timestamp or restarted process.",
+        "Reports any unavailable freshness check as non-proof."
+      ]
+    },
+    {
+      "id": "E10",
+      "name": "Free-text option change",
+      "project_class": "data-representation",
+      "prompt": "You offered to apply the fix to 'all archived reports' or 'only reports from May'. I said 'the appropriate reports', because some April reports are affected too. Continue.",
+      "expected_output": "The agent treats the user's wording change as a scope signal and re-checks assumptions before editing the wrong target set.",
+      "expectations": [
+        "Does not map 'the appropriate reports' back to the closest offered option.",
+        "Preserves the user's wording and identifies the target-set ambiguity.",
+        "Investigates available data, code, tests, or report metadata before asking a narrowing question.",
+        "Asks only for the minimum decision if local evidence cannot identify affected reports.",
+        "Does not proceed with May-only or all-archived edits as if confirmed."
+      ]
+    },
+    {
+      "id": "E11",
+      "name": "Optimistic narrow fix trap",
+      "project_class": "backend-service",
+      "prompt": "The API 500 only happened on the CSV export endpoint. A small null check should be enough; please patch it quickly.",
+      "expected_output": "The agent downgrades 'should be enough' to a hypothesis, checks the real runtime path and existing behavior, and names a disconfirming check before patching.",
+      "expectations": [
+        "Classifies the null-check idea as hypothesis or expert judgment, not proof.",
+        "Inspects the export path, caller inputs, serialization behavior, and error path before editing.",
+        "Identifies existing behavior to preserve for valid exports and error handling.",
+        "Names a disconfirming check such as reproducing with the reported input or proving another endpoint uses the same serializer.",
+        "Does not claim fixed from confidence or patch size."
+      ]
+    },
+    {
+      "id": "E12",
+      "name": "Manual verification ambiguity",
+      "project_class": "frontend-ui",
+      "prompt": "You said the layout issue was fixed, but I do not know what exactly to test. It only looked wrong on my tablet after rotating the screen.",
+      "expected_output": "The agent treats local proof as incomplete unless it covers the tablet rotation case and provides a concrete user retest contract if local observation is unavailable.",
+      "expectations": [
+        "Does not use a vague 'please retest' request.",
+        "Includes setup with tablet/browser/orientation or an equivalent viewport marker.",
+        "Gives an exact action sequence including rotation and any page state needed.",
+        "States expected observation and failure evidence to capture.",
+        "Maps the retest to a ledger item and leaves it unclosed until evidence returns if local proof is unavailable."
+      ]
+    },
+    {
+      "id": "E13",
+      "name": "Skipped smoke test trap",
+      "project_class": "verification-limits",
+      "prompt": "The CLI fix needs interactive stdin, but this environment cannot provide it. The unit tests pass, so can we mark the interactive bug fixed?",
+      "expected_output": "The agent treats the unavailable interactive smoke test as non-proof and chooses alternate proof, residual risk, user retest, accepted residual, or blocker.",
+      "expectations": [
+        "Does not count the skipped interactive check as a pass.",
+        "Separates unit-test proof from interactive stdin behavior.",
+        "Offers a credible alternate proof or marks the interactive behavior as blocked/residual.",
+        "Provides a user retest contract if user-side manual verification is the chosen path.",
+        "Does not claim fixed until the ledger item has proof or an accepted residual."
+      ]
+    },
+    {
+      "id": "E14",
+      "name": "Resume keeps unresolved symptoms",
+      "project_class": "continuity",
+      "prompt": "Continue from where we left off. The first fix handled duplicate notifications, but the badge count was still wrong and the retry button sometimes stayed disabled.",
+      "expected_output": "The agent re-anchors on the latest request and keeps badge count and retry disabled as unresolved ledger items instead of restarting from only the completed duplicate-notification fix.",
+      "expectations": [
+        "Performs a continuity check before new work.",
+        "Marks duplicate notifications separately from unresolved badge count and retry button symptoms.",
+        "Identifies the next proof/action for each unresolved item.",
+        "Does not drop the retry-button issue because another subtask was completed.",
+        "Avoids claiming the whole report is fixed until every current-scope ledger item closes."
+      ]
+    },
+    {
+      "id": "E15",
+      "name": "Repeated similar finding review",
+      "project_class": "recurrence-review",
+      "prompt": "This is the third time review caught the same kind of missing cleanup, just in a different subscription path. Fix this one and make sure we are not missing the neighboring case again.",
+      "expected_output": "The agent runs a pattern-recurrence check, scans adjacent cleanup surfaces, and adds a negative/disconfirming check for the most likely missed sibling.",
+      "expectations": [
+        "Restates the repeated cleanup class path-neutrally.",
+        "Scans adjacent surfaces that share the cleanup contract, not just the cited line.",
+        "Adds a disconfirming or negative check for a neighboring case likely to be missed.",
+        "Keeps the fix bounded to the current cleanup class rather than broad unrelated hardening.",
+        "Records any excluded sibling path with a reason or residual risk."
+      ]
+    },
+    {
+      "id": "E16",
+      "name": "Async service duplicate event",
+      "project_class": "async-lifecycle-concurrency",
+      "prompt": "The webhook processor still sometimes applies the same shipment event twice. It passed the happy-path test, but the user saw duplicate status history after retries.",
+      "expected_output": "The agent treats this as an async/idempotency repair, builds a retry/concurrency state-space matrix, and requires proof beyond the happy path.",
+      "expectations": [
+        "Preserves the user's 'still sometimes' report as evidence without assuming the root cause.",
+        "Includes retry, duplicate delivery, concurrent processing, ordering, persistence, and error/recovery paths in the matrix.",
+        "Identifies existing behavior to preserve for a single valid event and history ordering.",
+        "Requires a regression or isolation proof that observes duplicate prevention under retry or concurrency.",
+        "Explains why the happy-path test did not prove the reported symptom was fixed."
+      ]
+    }
+  ],
+  "scoring": {
+    "common_assertion_weight": 0.55,
+    "per_eval_expectation_weight": 0.45,
+    "pass_threshold": 0.75,
+    "notes": "With-skill runs should pass by building a debug ledger, proof path, existing-behavior analysis, source route, state-space matrix, artifact freshness proof, degraded-verification handling, concrete user retest contract, continuity check, or recurrence check as prompted. Baselines are expected to over-index on direct fixes, ask the user for a full reproduction too early, require another named skill, fix only the named example, treat skipped checks as passes, abandon tools too broadly, or claim fixed without artifact freshness or observable proof."
+  }
+}

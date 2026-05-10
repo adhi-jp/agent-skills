@@ -17,6 +17,9 @@ messages, prose, and Minecraft modding.
 | `review-fix-cascade-guard` | `1.0.2` |
 | `writing-style-guide` | `1.1.0` |
 
+Unreleased skill packages do not receive a version until release preparation.
+`vibe-debug-fix` is currently documented under `CHANGELOG.md` `Unreleased`.
+
 ## Included Skills
 
 ### `minecraft-modding-workbench`
@@ -79,6 +82,19 @@ impact, and closest plan-preserving alternative before asking for approval. When
 commits are authorized, it commits only completed and verified checkpoints and
 uses standalone Conventional Commit messages that describe the actual change
 without prompt or plan-label references.
+
+### `vibe-debug-fix`
+
+Self-contained debug/fix skill for rough vibe-coding bug reports, regressions,
+failed prior attempts, repeated "still broken" feedback, environment-specific
+failures, runtime artifact mismatches, tool-confidence issues, and
+existing-feature repair. It preserves the user's wording, turns symptoms into a
+debug ledger, analyzes existing behavior to preserve or intentionally change,
+routes unfamiliar external or tool behavior to authoritative sources, separates
+hypotheses from proof, expands examples into state-space dimensions, verifies
+artifact freshness, handles degraded verification as non-proof, gives exact
+user retest contracts when local proof is unavailable, and keeps unresolved
+symptoms alive across resume or recurrence.
 
 ### `vibe-commit-message`
 
@@ -175,6 +191,9 @@ territory.
   outside skill packages
 - `evals/vibe-planning/`: external planning eval prompts and fixtures
 - `evals/vibe-plan-execution/`: external plan-execution eval prompts and fixtures
+- `evals/vibe-debug-fix/`: external debug/fix pressure prompts spanning rough
+  reports, failed attempts, artifacts, auth, representation, tools, async
+  lifecycle, continuity, and recurrence
 - `evals/vibe-commit-message/`: external commit-message eval prompts
 - `evals/review-fix-cascade-guard/`: external cascade-guard eval prompts
 - `evals/review-scope-guard/`: external scope-guard eval prompts
@@ -182,6 +201,7 @@ territory.
 - `skills/minecraft-modding-workbench/`: Minecraft modding skill package
 - `skills/vibe-planning/`: standalone vibe-coding implementation-planning skill package
 - `skills/vibe-plan-execution/`: plan-bound vibe-coding implementation skill package
+- `skills/vibe-debug-fix/`: self-contained vibe-coding debug/fix skill package
 - `skills/vibe-commit-message/`: LLM-first commit-message writing skill package
 - `skills/vibe-planning-guard/`: planning and design-review skill package
 - `skills/codex-review-cycle/`: codex-driven interactive 2-cycle review-and-fix workflow with user-elected extensions
