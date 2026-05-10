@@ -63,17 +63,22 @@ requests.
 
 ### `vibe-plan-execution`
 
-Execution companion for `vibe-planning` and equivalent implementation plans. It
-binds to the authoritative plan before editing, preferring a referenced local
-plan artifact over a short user-facing summary. It uses the plan's goal,
-requirements, acceptance criteria, test plan, risks, and proceed condition, and
-checks assumptions against local evidence or primary sources. It labels evidence
-for blockers, deviation notices, commit-checkpoint decisions, and execution
-summaries. It stops on contradictions or missing implementation facts and
-requires explicit user agreement for plan deviations. When commits are
-authorized, it commits only completed and verified checkpoints and uses
-standalone Conventional Commit messages that describe the actual change without
-prompt or plan-label references.
+Execution skill for concrete implementation plans, including plans from
+`vibe-planning`, other planning workflows, specifications, issues, and task
+lists. It binds to the authoritative plan before editing, preferring a
+referenced local plan artifact over a short user-facing summary. It uses the
+plan's goal, requirements, acceptance criteria, test plan, risks, and proceed
+condition, and checks assumptions against local evidence or primary sources. It
+labels evidence for blockers, deviation notices, commit-checkpoint decisions,
+and execution summaries. It stops on contradictions or missing implementation
+facts and requires an evidence-backed gate before plan deviations, including
+shortcuts justified by perceived redundancy or a preferred smaller
+implementation. Agents must prove the affected plan item is contradicted,
+impossible, unsafe, stale, or already satisfied, then report the evidence,
+impact, and closest plan-preserving alternative before asking for approval. When
+commits are authorized, it commits only completed and verified checkpoints and
+uses standalone Conventional Commit messages that describe the actual change
+without prompt or plan-label references.
 
 ### `vibe-commit-message`
 
@@ -208,11 +213,12 @@ specific to the skill.
   them from the current environment, user-provided material, project
   instructions, or local metadata; unavailable skills remain optional and get an
   explicit fallback.
-- `vibe-plan-execution` is for implementing from an already-bound plan,
-  preferably one produced by `vibe-planning`. If a `vibe-planning` summary names
-  a local plan file, read that file as the authoritative implementation contract.
-  If no concrete plan exists, use `vibe-planning` or another planning workflow
-  before coding.
+- `vibe-plan-execution` is for implementing from an already-bound concrete plan.
+  The plan can come from `vibe-planning`, another planning workflow, a
+  specification, an issue, a task list, or the current conversation. If a
+  summary names a local plan file, read that file as the authoritative
+  implementation contract. If no concrete plan exists, return to planning before
+  coding.
 - `vibe-commit-message` governs commit-message content, not staging or commit
   execution. It should coexist with project-specific commit workflows and the
   repo's release rules.

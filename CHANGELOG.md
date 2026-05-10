@@ -20,6 +20,19 @@ use `[Repository] - YYYY-MM-DD`.
   downgrades, and test no-escape handling so revised plans remove stale
   hypotheses and old API names, keep unmeasured visual/performance/packet/UX
   claims labeled, and block weak substitutes for important contract tests.
+- `vibe-plan-execution` now requires an evidence-backed plan-deviation gate before
+  agents skip, reorder, narrow, or replace planned proof, API/specification
+  checks, tests, or edits. Perceived redundancy, minimalism, speed, memory, or
+  preference can no longer justify deviation without local or primary-source
+  verification and an explicit notice.
+- `vibe-plan-execution` eval coverage now checks redundancy-driven shortcuts
+  and flags proposed code and tests that contradict each other on asserted
+  behavior.
+- `vibe-plan-execution` now requires agents to quote or paraphrase a plan's
+  `Proceed condition` in the binding or first blocker notice, including cases
+  where later local evidence overrides an initially permissive condition.
+- `vibe-plan-execution` now clarifies that it executes any concrete bound
+  implementation plan, not only plans produced by `vibe-planning`.
 
 ## [Repository] - 2026-05-09
 

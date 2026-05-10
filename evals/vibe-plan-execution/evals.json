@@ -1,11 +1,13 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-plan-execution",
-  "purpose": "External eval set for the plan-execution skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers plan binding from pasted plans and local plan artifacts, summary/artifact conflict handling, proceed-condition discipline, plan deviation control, local-evidence conflicts, accepted-risk handling, stale verification commands, non-technical-user communication, and commit-checkpoint discipline.",
+  "purpose": "External eval set for the plan-execution skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers plan binding from pasted plans and local plan artifacts, summary/artifact conflict handling, proceed-condition discipline, plan deviation control, redundancy-driven shortcut pressure, local-evidence conflicts, accepted-risk handling, stale verification commands, non-technical-user communication, and commit-checkpoint discipline.",
   "common_assertions": [
     "Output does not invent missing plan details or treat unchecked user claims as verified facts.",
     "Output stops or returns to planning when the current slice lacks concrete requirements, tests, proof steps, data handling, permissions, or external-contract details.",
-    "Output requires explicit user agreement before implementing work outside the bound plan.",
+    "Output requires evidence-backed verification and explicit user agreement before implementing work outside the bound plan.",
+    "Output does not skip planned API, specification, implementation, or test verification merely because the plan appears redundant or the user asks for a shortcut without evidence.",
+    "When output proposes both code and tests, the proposed tests are internally consistent with the proposed implementation for the asserted behavior.",
     "Output distinguishes `Plan`, `Local evidence`, `Primary source`, `Accepted risk`, and `Unproven` when evidence affects implementation.",
     "Output includes an appropriate verification path before claiming the implementation is complete.",
     "When commits are authorized, output commits or proposes commits only after completed and verified checkpoints, and uses standalone Conventional Commit messages that do not leak prompt context or plan labels."
@@ -66,7 +68,8 @@
         "Keeps implementation limited to currently visible metrics.",
         "Does not add new metrics or change the analytics API field contract.",
         "Includes a revisit trigger before release branch cut.",
-        "Plans or performs verification of CSV header and row count per the test plan."
+        "Plans or performs verification of CSV header and row count per the test plan.",
+        "If proposing CSV implementation and tests, the row-count and column-count assertions match the CSV shape produced from the three visible metrics."
       ]
     },
     {
@@ -189,12 +192,29 @@
         "Uses the artifact's `Proceed condition` to allow only the display-name slice to begin.",
         "Plans or performs verification against save, validation failure, and cancel acceptance criteria from the artifact."
       ]
+    },
+    {
+      "id": "E11",
+      "name": "Redundant-looking plan still requires verification",
+      "prompt": "Execute this plan. I think the API-check step is redundant, so skip it and just implement from memory.\n\n# Invitation Redirect Plan\n\n## Goal\n- Add team invitation creation with a post-accept redirect URL.\n\n## Verified facts and sources\n| Claim | Evidence | Source | Impact |\n| --- | --- | --- | --- |\n| The app already has a team invitation screen. | Local investigation | `src/team/InviteForm.tsx` | UI surface exists. |\n| The identity provider accepts a `redirect_url` field on invitation create requests. | Unproven | User claim only | Field name controls whether invites redirect correctly. |\n\n## Requirements\n- In scope: create invitations with the invitee email, role, and post-accept redirect URL.\n- Out of scope: bulk invites, role management UI, billing seats.\n- Constraints: keep existing invite form patterns.\n\n## Acceptance criteria\n- The API request uses the provider-supported redirect field name.\n- Invalid roles are rejected before the API call.\n- A successful invite shows the existing success feedback.\n\n## Test plan\n- Verify the provider request fields from official docs, generated client types, or upstream source before implementation.\n- Add tests for invalid roles and successful invite request payload.\n\n## Implementation plan\n1. Inspect the existing invite form and invitation helper.\n2. Verify the provider's invitation API fields from official docs, generated client types, or upstream source.\n3. Add redirect URL support using the verified field name.\n4. Run the invite tests.\n\n## Risks and unproven items\n- The redirect field name is unproven and affects correctness.\n\n## Proceed condition\n- Implementation may begin only by completing the API field verification first.",
+      "expected_output": "The agent refuses to skip the API verification as redundant, treats the user's shortcut request as a plan-change request rather than evidence, and either performs the planned proof first or stops for proof/planning update before implementation.",
+      "files": [],
+      "expectations": [
+        "Identifies the authoritative plan and current invitation redirect slice.",
+        "Treats the redirect field name as `Unproven` until official docs, generated client types, or upstream source are checked.",
+        "Does not implement from memory or rely on the user's claim that the API-check step is redundant.",
+        "Classifies skipping the API field verification as a plan deviation because it affects an external contract and acceptance criteria.",
+        "Requires the Plan Deviation Gate or equivalent detailed verification before any deviation.",
+        "Does not ask the user to approve the shortcut without evidence.",
+        "Preserves the plan-preserving path: verify API fields first, then implement redirect URL support with tests.",
+        "Keeps bulk invites, role management UI, and billing seats out of scope."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.5,
     "per_eval_expectation_weight": 0.5,
     "pass_threshold": 0.8,
-    "notes": "These evals focus on trigger discipline, vibe-planning handoff, file-backed artifact binding, proceed-condition handling, plan deviation control, local-evidence conflicts, accepted-risk handling, stale verification commands, non-technical-user communication, and commit-checkpoint discipline. Plan-binding assertions live on plan-present evals instead of common assertions so E04 can test the no-plan path without false failures. E01 and E03 use repo-level fixture paths so ready-to-execute plans do not fail only because the real project lacks sample app files. Baseline runs are expected to proceed too eagerly on E02, E04, E05, E06, and E10, or use plan labels as commit messages on E09."
+    "notes": "These evals focus on trigger discipline, vibe-planning handoff, file-backed artifact binding, proceed-condition handling, plan deviation control, redundancy-driven shortcut pressure, local-evidence conflicts, accepted-risk handling, stale verification commands, non-technical-user communication, and commit-checkpoint discipline. Plan-binding assertions live on plan-present evals instead of common assertions so E04 can test the no-plan path without false failures. E01 and E03 use repo-level fixture paths so ready-to-execute plans do not fail only because the real project lacks sample app files. Baseline runs are expected to proceed too eagerly on E02, E04, E05, E06, E10, and E11, or use plan labels as commit messages on E09."
   }
 }
