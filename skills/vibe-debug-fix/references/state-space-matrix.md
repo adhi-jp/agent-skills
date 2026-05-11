@@ -3,6 +3,19 @@
 Convert examples into dimensions. The named example is a clue about where the
 bug was noticed, not the full boundary of the fix.
 
+## Generality Guard
+
+Name the abstract dimension before the concrete domain example. UI, web, asset,
+animation, tooling, backend, data, CLI, library, and runtime examples are
+pressure cases, not universal requirements. Specialize only after naming the
+underlying contract: representation, runtime artifact, lifecycle, ordering,
+identity, environment, permission, cleanup, or another relevant dimension.
+
+When proof uses domain-specific tools, keep the abstract contract beside the
+tool: browser cache -> runtime-artifact freshness; animation trace -> ordering
+or cleanup. A tool can be required for this report without becoming a
+requirement for other domains.
+
 ## Common Dimensions
 
 Use only dimensions relevant to the report:
@@ -42,9 +55,9 @@ include:
 
 ## Matrix Output
 
-For non-trivial fixes, record a compact matrix:
+For non-trivial fixes, record a compact matrix with the abstract dimension first:
 
-| Dimension | Cases in scope | Preserve/change | Proof |
+| Abstract dimension | Domain cases in scope | Preserve/change | Proof |
 | --- | --- | --- | --- |
 | Representation | Raw ID, encoded display label | Preserve both | Parser and serializer tests |
 | Lifecycle | First save, retry, cancel | Change retry only | Regression plus negative cancel case |

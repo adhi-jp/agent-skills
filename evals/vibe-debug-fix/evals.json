@@ -13,6 +13,7 @@
     "Output converts user examples into state-space dimensions rather than fixing only the named example.",
     "Output treats skipped, unavailable, flaky, environment-limited, or manual-only checks as non-proof.",
     "Output does not claim fixed without observable proof and artifact freshness when runtime artifacts are involved.",
+    "When bounded triage shows repeated source-only attempts, broad static tracing, or a contradicted initial approach cannot distinguish live runtime state, output proposes a focused diagnostic probe or equivalent runtime observation before another implementation guess.",
     "If local proof depends on the user, output provides exact setup, action sequence, expected observation, artifact freshness marker, failure evidence to capture, and ledger item closed.",
     "Output avoids treating concrete example domains as universal requirements and remains applicable outside UI, web, asset, animation, and tooling bugs."
   ],
@@ -240,12 +241,28 @@
         "Requires a regression or isolation proof that observes duplicate prevention under retry or concurrency.",
         "Explains why the happy-path test did not prove the reported symptom was fixed."
       ]
+    },
+    {
+      "id": "E17",
+      "name": "Source-only runtime probe escalation",
+      "project_class": "runtime-diagnostic",
+      "prompt": "We started by assuming the live preview bug was just a renderer issue, but that approach seems wrong now. We already checked the nearest preview renderer, stream coordinator, existing logs, unit tests, and built artifact timestamp; none of them show whether later updates are being dropped or cleanup is failing. We have read several source files and made two small patches, but in my real app it is still wrong. The unit tests pass. The remaining symptom only happens while the preview stream is running: the first update animates, later updates stop halfway, and after the stream ends the last item stays visible. Before reading another pile of source files or making another code guess, should we add a temporary probe?",
+      "expected_output": "The agent treats the bounded triage as complete, stops the broad source-only fix loop, records the failed attempts and contradicted renderer hypothesis, and proposes a narrow temporary probe or equivalent runtime observation with exact hypothesis boundary, expected signatures, artifact freshness, user action sequence, evidence capture, and cleanup/removal plan.",
+      "expectations": [
+        "Does not propose another broad static-analysis pass or source-only implementation patch before distinguishing the live runtime hypotheses.",
+        "Acknowledges the bounded triage already checked nearby source, tests, logs, and artifact freshness, and explains why those checks still do not observe the live-state boundary.",
+        "Updates the debug ledger with prior patches, the contradicted initial approach, why unit tests did not prove the streaming symptom, and a probe or instrumentation plan.",
+        "Names the probe question in terms of observable runtime boundaries such as update ordering, per-item identity, stream end cleanup, retained state, or artifact freshness.",
+        "Specifies a low-friction probe shape such as focused trace labels, counters, compact state logs, test-harness assertions, or runtime artifact inspection, while avoiding broad noisy logging and user-data exposure.",
+        "Provides exact build or freshness steps, action sequence, expected probe signatures, failure evidence to capture, and which ledger item the probe would close.",
+        "Includes a cleanup or conversion plan for temporary instrumentation before finalizing the fix."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.55,
     "per_eval_expectation_weight": 0.45,
     "pass_threshold": 0.75,
-    "notes": "With-skill runs should pass by building a debug ledger, proof path, existing-behavior analysis, source route, state-space matrix, artifact freshness proof, degraded-verification handling, concrete user retest contract, continuity check, or recurrence check as prompted. Baselines are expected to over-index on direct fixes, ask the user for a full reproduction too early, require another named skill, fix only the named example, treat skipped checks as passes, abandon tools too broadly, or claim fixed without artifact freshness or observable proof."
+    "notes": "With-skill runs should pass by building a debug ledger, proof path, existing-behavior analysis, source route, state-space matrix, probe escalation when source-only debugging stalls, artifact freshness proof, degraded-verification handling, concrete user retest contract, continuity check, or recurrence check as prompted. Baselines are expected to over-index on direct fixes, ask the user for a full reproduction too early, require another named skill, fix only the named example, treat skipped checks as passes, continue source-only guesses when a runtime probe is needed, abandon tools too broadly, or claim fixed without artifact freshness or observable proof."
   }
 }

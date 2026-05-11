@@ -18,20 +18,31 @@ use `[Repository] - YYYY-MM-DD`.
   issues, environment-specific failures, runtime artifact mismatches, and
   existing-feature repair. The workflow defines vibe-intent capture, a debug
   ledger, existing-behavior analysis, source routing, speculation control,
-  failed-attempt handling, state-space matrices, artifact freshness,
-  verification degradation, concrete user retest contracts, continuity,
-  pattern recurrence, and finish gates.
+  probe escalation, failed-attempt handling, state-space matrices, artifact
+  freshness, verification degradation, concrete user retest contracts,
+  continuity, pattern recurrence, and finish gates.
 - `evals/vibe-debug-fix/` adds pressure prompts across frontend/UI,
   backend/service logic, auth/security boundaries, data representation,
   build/deploy/runtime artifacts, tool/dev automation, async lifecycle and
-  concurrency, verification limits, continuity, and recurrence. The evals
-  reject code-first answers, named-skill dependencies, single-example fixes,
-  static-only dynamic matrices, skipped-check passes, stale-artifact "fixed"
-  claims, vague retest handoffs, dropped unresolved symptoms, broad tool
-  abandonment, and hope-based completion claims.
+  concurrency, runtime diagnostic probe escalation, verification limits,
+  continuity, and recurrence. The evals reject code-first answers, named-skill
+  dependencies, single-example fixes, static-only dynamic matrices, skipped-check
+  passes, stale-artifact "fixed" claims, vague retest handoffs, dropped
+  unresolved symptoms, broad tool abandonment, source-only guesses when a
+  runtime probe is needed, and hope-based completion claims.
 
 ### Changed
 
+- `vibe-debug-fix` now escalates stalled or over-broad source-only debugging to
+  focused probes only after bounded triage of nearby source, tests, logs,
+  artifacts, and expected behavior leaves live-state hypotheses unresolved,
+  would require tracing many interacting source surfaces, or contradicts the
+  initial approach. The skill records probe plans/results in the debug ledger,
+  defines a reversible probe contract and cleanup gate, makes user retest
+  contracts immediate when local proof cannot observe a scoped behavior, keeps
+  example domains from becoming universal requirements by anchoring
+  domain-specific cases to abstract dimensions, and adds eval coverage for probe
+  escalation before another implementation guess.
 - `vibe-planning` now explicitly stays within implementation-plan creation or
   revision: it must not continue into code, tests, skill files, evals,
   non-plan docs, configs, changelogs, commits, or other non-plan edits while

@@ -38,7 +38,9 @@ current environment.
 
 ## User Retest Contract
 
-When proof depends on the user, give a concrete contract:
+When local proof cannot observe current-scope behavior, choose now: alternate
+proof, blocker, accepted residual, or a concrete user retest contract. Do not
+defer with "if needed".
 
 1. Setup: environment, version, account, feature flag, data, artifact freshness
    marker, and any cache/restart condition.
@@ -49,5 +51,6 @@ When proof depends on the user, give a concrete contract:
    exported file, artifact hash, or reproduction notes to capture.
 5. Ledger closure: which symptom or matrix row each check closes.
 
-Avoid "please retest". The user should know exactly what to do and what result
-would prove or reopen the fix.
+Avoid "please retest", "try it again", and promises to provide steps later. The
+user should know exactly what to do and what result would prove or reopen the
+fix.

@@ -92,10 +92,12 @@ failures, runtime artifact mismatches, tool-confidence issues, and
 existing-feature repair. It preserves the user's wording, turns symptoms into a
 debug ledger, analyzes existing behavior to preserve or intentionally change,
 routes unfamiliar external or tool behavior to authoritative sources, separates
-hypotheses from proof, expands examples into state-space dimensions, verifies
-artifact freshness, handles degraded verification as non-proof, gives exact
-user retest contracts when local proof is unavailable, and keeps unresolved
-symptoms alive across resume or recurrence.
+hypotheses from proof, expands examples into domain-general state-space
+dimensions before domain-specific cases, verifies artifact freshness, escalates
+stalled or over-broad source-only debugging to focused probes after bounded
+triage, handles degraded verification as non-proof, gives exact user retest
+contracts as soon as local proof is unavailable, and keeps unresolved symptoms
+alive across resume or recurrence.
 
 ### `vibe-commit-message`
 
@@ -194,7 +196,7 @@ territory.
 - `evals/vibe-plan-execution/`: external plan-execution eval prompts and fixtures
 - `evals/vibe-debug-fix/`: external debug/fix pressure prompts spanning rough
   reports, failed attempts, artifacts, auth, representation, tools, async
-  lifecycle, continuity, and recurrence
+  lifecycle, runtime diagnostic probe escalation, continuity, and recurrence
 - `evals/vibe-commit-message/`: external commit-message eval prompts
 - `evals/review-fix-cascade-guard/`: external cascade-guard eval prompts
 - `evals/review-scope-guard/`: external scope-guard eval prompts

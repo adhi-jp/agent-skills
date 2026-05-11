@@ -1,6 +1,6 @@
 ---
 name: vibe-debug-fix
-description: Use when debugging, bug fixing, or repairing existing features from vibe-coding feedback, rough bug reports, regressions, "still broken" or failed prior fixes, tool-confidence or automation failures, environment-specific failures, runtime artifact mismatches, security boundary surprises, or fixes that feel wrong.
+description: Use when debugging or repairing existing features from rough vibe-coding reports, regressions, failed prior fixes, repeated "still broken" feedback, source-only debugging stalls, unobserved runtime state, tool or automation failures, environment-specific failures, runtime artifact mismatches, security boundary surprises, or fixes that feel wrong.
 ---
 
 # Vibe Debug Fix
@@ -24,13 +24,16 @@ Use this for existing-feature repair when the user reports any of these:
 - A regression, failed previous fix, repeated symptom, environment-specific
   behavior, stale runtime artifact, tool failure, or automation failure.
 - A bug where the first report is an example rather than a full reproduction.
+- Debugging is drifting into broad source reading, repeated patching, or
+  approach changes while runtime ordering, artifacts, cleanup, or environment
+  state remains unobserved.
 - A fix that might affect existing behavior, contracts, state, permissions,
   artifacts, lifecycle, or user-visible output.
 
-Examples are not boundaries. Concrete examples such as UI glitches, auth
-origins, asset paths, encodings, worker restarts, deploy bundles, and async
-cleanup are only instances of broader dimensions. Generalize them before using
-them.
+Examples are not boundaries. Name the abstract dimension before the concrete
+domain example: UI/web, auth origin, asset path, encoding, worker, deploy
+artifact, animation, or async cleanup. Do not turn that domain into a universal
+requirement for unrelated bugs.
 
 ## When Not to Use
 
@@ -47,6 +50,14 @@ The user's report is valuable evidence of experience, not a verified root
 cause. Investigate available code, tests, logs, screenshots, docs, artifacts,
 history, and tool output before asking questions. Ask only questions that change
 the fix, proof path, risk acceptance, or current-scope closure.
+
+Use probes only when they provide better proof than more static work. First run
+bounded triage: nearest code, relevant tests, existing logs, artifacts, and the
+expected-behavior source. After triage, propose the smallest diagnostic probe or
+equivalent runtime observation before changing behavior again when multiple
+live-state hypotheses remain, static proof would sprawl across interacting
+surfaces, evidence contradicts the original approach, or the next source-only
+patch would be a guess.
 
 Stop before implementation when the current issue lacks any of these:
 
@@ -69,6 +80,8 @@ Read these bundled references only when their details are needed:
   ledger.
 - `references/state-space-matrix.md` - state-space dimensions for static,
   dynamic, environment, representation, and lifecycle bugs.
+- `references/probe-escalation.md` - temporary probes, traces, logs,
+  assertions, runtime observations, and cleanup.
 - `references/verification-handoff.md` - artifact freshness,
   verification-degradation, and user retest contracts.
 - `references/continuity-and-recurrence.md` - resume handling and repeated-class
@@ -101,8 +114,9 @@ Read these bundled references only when their details are needed:
    - Maintain a ledger with these fields for each current-scope symptom:
      reported symptom; expected behavior and source; observed behavior and
      source; prior attempts and why each failed or remains unproven; suspected
-     causes; proven cause; affected state-space dimensions; verification path;
-     closure status.
+     causes; probe or instrumentation plan and result when source-only evidence
+     cannot distinguish live-state hypotheses; proven cause; affected
+     state-space dimensions; verification path; closure status.
    - Closure status is exactly one of `fixed`, `not-reproduced`, `deferred`,
      `accepted-residual`, or `blocked`.
    - Do not claim "fixed" until every current-scope ledger item has proof and a
@@ -132,8 +146,13 @@ Read these bundled references only when their details are needed:
      related tools because one mode or invocation failed.
 
 7. **Build the state-space matrix**
-   - For non-trivial fixes, convert user examples into dimensions rather than
-     fixing only the named example.
+   - For non-trivial fixes, convert user examples into domain-general dimensions
+     before naming domain-specific cases.
+   - Put an abstract dimension label beside every domain-specific case, probe,
+     retest step, or closure criterion. Use labels such as representation,
+     runtime artifact, lifecycle, ordering, identity, environment, permission,
+     and cleanup. Domain tools may fit the report, but they must not read as
+     universal requirements outside that domain.
    - Include relevant dimensions such as input representation, encoding,
      environment/origin, platform/runtime, direction, lifecycle state,
      cache/artifact freshness, permission/role, sync/async path, and
@@ -155,26 +174,56 @@ Read these bundled references only when their details are needed:
    - Name one fast disconfirming check that could show the chosen cause or fix
      is wrong.
 
-9. **Handle failed attempts**
+9. **Choose diagnostic probes at the right time**
+   - Run bounded static triage first: nearest source path, relevant tests,
+     existing logs, artifact freshness, expected-behavior source, and one fast
+     disconfirming check when available.
+   - Do not propose a probe solely because the bug is dynamic. Prefer a failing
+     regression test, local reproduction, source trace, existing log, or
+     artifact inspection when it answers the current question.
+   - Trigger this gate before another fix only when bounded triage still leaves
+     multiple live-state explanations, static proof would sprawl across many
+     files or runtime paths, the original approach is contradicted, or a repeated
+     source-only fix comes back "still broken".
+   - If the probe needs the user's real environment, compare that burden with
+     the value of the observation. Prefer local or artifact-level proof when it
+     answers the same question.
+   - State the probe question: what branch, state transition, payload,
+     artifact, timestamp, ordering, identity, cleanup, or runtime boundary the
+     probe must observe to separate the hypotheses.
+   - Prefer low-friction probes that fit the user's real observation path:
+     existing logger calls, focused trace labels, counters, debug-only dumps,
+     test-harness assertions, artifact/package inspection, or narrow runtime
+     logs.
+   - Avoid broad noisy logging, secret or user-data exposure, expensive startup
+     requirements, and permanent diagnostic behavior unless the user accepts the
+     retained surface.
+   - Before asking the user to run a probe, provide exact build or freshness
+     steps, action sequence, expected log or trace signatures, failure evidence
+     to capture, and cleanup criteria.
+   - Do not make another implementation guess until the probe result,
+     equivalent source trace, or accepted residual resolves the unknown.
+
+10. **Handle failed attempts**
    - On repeated reports or "still broken" feedback, explain why the last fix
      did not address the symptom before proposing another fix.
    - The next fix must be tied to new proof, a source trace, or a state-space
      finding. Do not make another independent guess.
 
-10. **Fix the smallest verified slice**
+11. **Fix the smallest verified slice**
     - Prefer reproduction first. If local reproduction is not feasible, use a
       source trace, isolation proof, or exact manual proof path.
     - Keep edits close to the proven cause and existing local patterns.
     - Preserve unrelated behavior and defer adjacent hardening unless it is
       needed to close a current ledger item.
 
-11. **Prove artifact freshness**
+12. **Prove artifact freshness**
     - Before asking the user to retest or declaring a runtime issue fixed,
       prove the tested artifact includes the change: rebuilt package or binary,
       refreshed dev-server bundle, migrated local data, regenerated assets,
       updated lockfile, restarted process, cleared stale cache, or equivalent.
 
-12. **Handle degraded verification**
+13. **Handle degraded verification**
     - Skipped, unavailable, flaky, environment-limited, or manual-only checks
       are not proof.
     - For each degraded check, choose alternate proof, narrower local proof plus
@@ -182,13 +231,16 @@ Read these bundled references only when their details are needed:
     - Do not count "manual smoke skipped", "not locally reproducible", or "test
       environment cannot observe this" as a pass.
 
-13. **Use a concrete user retest contract when needed**
-    - If local proof cannot observe the behavior, give the user exact setup,
-      action sequence, expected observation, artifact/version freshness marker,
-      failure evidence to capture, and which ledger item each check closes.
-    - Avoid vague requests such as "please retest".
+14. **Use a concrete user retest contract when needed**
+    - When local proof cannot observe current-scope behavior, choose now:
+      alternate proof, blocker, accepted residual, or a full user retest
+      contract. Do not defer with "if needed" or promise steps later.
+    - A user retest contract names exact setup, action sequence, expected
+      observation, artifact/version freshness marker, failure evidence to
+      capture, and the ledger item or matrix row each check closes.
+    - Avoid vague requests such as "please retest" or "try it again".
 
-14. **Review recurrence before finishing**
+15. **Review recurrence before finishing**
     - If the same class of bug, review finding, or user complaint appears at
       least twice, scan adjacent surfaces for the class of omission before
       finishing.
@@ -206,6 +258,8 @@ Stop and report a blocker or ask the smallest plan-changing question when:
 - A repeated report arrives and you cannot explain why the prior fix failed.
 - A needed source, artifact, tool, or runtime path is unavailable and no
   alternate proof is credible.
+- A needed diagnostic probe, trace, log, assertion, or runtime observation is
+  unavailable and no source trace or alternate proof can observe the unknown.
 - A current-scope existing-behavior dimension remains `unknown`.
 
 ## Finish Gate
@@ -216,6 +270,9 @@ Before ending:
   `deferred`, `accepted-residual`, or `blocked`.
 - Every `fixed` item has proof and artifact freshness when runtime artifacts are
   involved.
+- Temporary probes are removed before finishing, or any retained diagnostic
+  surface is intentional, disabled or bounded, documented, and verified not to
+  expose secrets or user data.
 - Every preserved or intentionally changed behavior dimension has verification
   or an explicit residual.
 - Skipped or degraded checks are reported as non-proof with next action.
