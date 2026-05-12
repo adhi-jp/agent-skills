@@ -110,7 +110,11 @@ non-durable plan or review references into standalone context, omits bodies for
 self-explanatory mechanical syncs, and covers i18n copy, monorepo contracts,
 dependency updates, release commits, performance work, CI/build automation, and
 security/data-loss fixes while preserving public API names, error codes,
-commands, env vars, and migration anchors.
+commands, env vars, and migration anchors. It also applies a fresh-clone-reader
+check so commit messages do not depend on provenance that only exists in the
+author's local checkout or tool session. Verification guidance keeps stable
+proof while omitting machine-specific invocation inputs, and body-formatting
+guidance keeps adjacent list bullets compact through commit handoff.
 
 ### `vibe-planning-guard`
 

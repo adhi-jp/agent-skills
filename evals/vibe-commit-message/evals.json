@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-commit-message",
-  "purpose": "External eval set for vibe-commit-message. Prompts live outside skills/ so they are not bundled as skill content. Covers LLM-first commit bodies, diff-transcription avoidance, missing-context restraint, compatibility notes, verification signal quality, Conventional Commit subject discipline, i18n copy commits, monorepo contract changes, dependency updates, release commits, performance work, CI/build automation, and security/data-loss fixes.",
+  "purpose": "External eval set for vibe-commit-message. Prompts live outside skills/ so they are not bundled as skill content. Covers LLM-first commit bodies, diff-transcription avoidance, missing-context restraint, compatibility notes, verification signal quality, Conventional Commit subject discipline, i18n copy commits, monorepo contract changes, dependency updates, release commits, performance work, CI/build automation, security/data-loss fixes, author-local verification provenance, and compact list formatting.",
   "common_assertions": [
     "Output follows the repository or prompt's commit-message convention, including Conventional Commit subject style when requested or implied.",
     "The subject describes the achieved behavior or contract rather than the editing act or file movement.",
@@ -9,7 +9,10 @@
     "Output does not transcribe the diff into file-by-file or symbol-by-symbol bullets unless those names are public contracts or needed durable search anchors.",
     "Output does not invent unsupported motivation, production impact, performance/security benefit, test results, rollout status, or risk reduction.",
     "Output omits the body or keeps it very short when the subject and diff already explain the change.",
-    "Output avoids prompt-context leaks such as `as requested`, `per the plan`, `above`, `this commit`, or references to an AI author."
+    "Output avoids prompt-context leaks such as `as requested`, `per the plan`, `above`, `this commit`, or references to an AI author.",
+    "Output applies a fresh-clone-reader test: it does not rely on provenance that only exists in the author's local checkout, tool session, unpublished repository state, or conversation context; non-recoverable provenance is translated into durable requirements, invariants, workflow reasons, verification results, or omitted.",
+    "Output may preserve stable verification tools, suite names, public env var names, committed paths, and outcomes, but removes or parameterizes unrecoverable author-local invocation inputs.",
+    "Output keeps adjacent bullets in the same logical list on consecutive lines while preserving the required blank line before footer trailers."
   ],
   "evals": [
     {
@@ -214,12 +217,75 @@
         "Does not claim an external incident, CVE, vulnerability advisory, exploit, or broad security hardening.",
         "Does not list every helper, filename, or test unless `store.enc` / `store.enc.removing` is used as a recovery anchor."
       ]
+    },
+    {
+      "id": "E14",
+      "name": "Repository-local provenance becomes durable proof",
+      "prompt": "Write a commit message. Diff summary: `vibe-commit-message` adds a durability check for commit-message references, updates README/CHANGELOG, and adds eval coverage. Context: the author's local notes include private run labels, an unpublished branch name, temporary comparison output, and the chat turn where the failure was found. Durable facts: the new rule is that commit messages must stand alone for a fresh clone reader; the updated eval suite is valid JSON; `git diff --check` passed. No release version changed.",
+      "expected_output": "The agent writes a commit message that preserves the fresh-clone-reader rule, durable verification, and no-release-version scope without relying on local-only provenance.",
+      "files": [],
+      "expectations": [
+        "Subject names repository-local context filtering, durable references, or fresh-clone-readable commit messages.",
+        "Body explains the rule in terms of future readers resolving references from committed or stable records.",
+        "Body translates local provenance into the durable requirement or verification results instead of treating the provenance as evidence readers need.",
+        "Body includes JSON validation or `git diff --check` if verification is included.",
+        "Body preserves that no release version changed if release scope is discussed.",
+        "Does not rely on private run labels, unpublished branch names, temporary comparison output, or chat-turn provenance.",
+        "Does not turn the body into a file-by-file list of the skill, README, changelog, and eval edits."
+      ]
+    },
+    {
+      "id": "E15",
+      "name": "History revision preserves stable metadata",
+      "prompt": "Revise this existing commit message without changing its subject or final trailer. Subject: `fix(vibe-commit-message): filter repository-local context`. Body: `Context:\\n- The private working branch and local comparison notes showed why the old wording failed.\\n\\nBehavior:\\n- Add a fresh-clone reader check for commit-message references.\\n\\nVerification:\\n- The local proof bundle passed and JSON validation passed.\\n\\nCo-Authored-By: Codex <noreply@openai.com>`. Diff summary: the patch adds the fresh-clone reader rule and eval coverage. Durable verification: `python -m json.tool evals/vibe-commit-message/evals.json` passed. Requirement: keep the subject and trailer exactly.",
+      "expected_output": "The agent rewrites the body so it keeps the durable behavior and verification while preserving the exact subject and required trailer.",
+      "files": [],
+      "expectations": [
+        "Subject remains exactly `fix(vibe-commit-message): filter repository-local context`.",
+        "Final trailer remains exactly `Co-Authored-By: Codex <noreply@openai.com>` and is separated from the prose body by a blank line.",
+        "Body explains the fresh-clone reader check or durable-reference rule.",
+        "Body includes `python -m json.tool evals/vibe-commit-message/evals.json` if verification is included.",
+        "Does not rely on the private branch, local notes, or local proof bundle as context needed by the reader.",
+        "Does not remove the durable verification result while removing local-only provenance."
+      ]
+    },
+    {
+      "id": "E16",
+      "name": "Machine-specific verification keeps durable proof",
+      "prompt": "Write a commit message. Diff summary: `vibe-commit-message` clarifies verification provenance and adds eval coverage. Context: a prior message leaked an author's machine-specific invocation even though only the proof mattered. Verification notes from the author: `WIDGET_SDK=/Users/maya/work/vendor/widget-sdk-2.4 cargo test -p history --test provenance_filters` passed; `python -m json.tool evals/vibe-commit-message/evals.json` passed; `git diff --check` passed. `WIDGET_SDK` points to a private local checkout and is not a documented project env var. No skill version changed.",
+      "expected_output": "The agent writes a commit message that keeps the stable provenance-filter test, JSON validation, diff check, and no-version-change scope without leaking the private local SDK path or making that setup reader context.",
+      "files": [],
+      "expectations": [
+        "Subject names verification provenance, author-local invocation filtering, or durable proof.",
+        "Body explains that machine-specific verification setup should not become commit-message context.",
+        "Body includes the stable `cargo test -p history --test provenance_filters` proof, `python -m json.tool evals/vibe-commit-message/evals.json`, or `git diff --check` if verification is included.",
+        "Body preserves that no skill version changed if release scope is discussed.",
+        "Does not reproduce the private SDK checkout path from the prompt as reader context.",
+        "Does not keep an env assignment to a private local checkout as required reader context.",
+        "Does not reduce verification to only vague wording such as `tests passed` when stable commands or suite names are supplied."
+      ]
+    },
+    {
+      "id": "E17",
+      "name": "Compact list revision preserves trailer separation",
+      "prompt": "Revise this existing commit message without changing its subject or final trailer. Subject: `fix(vibe-commit-message): preserve compact list bodies`. Body: `Behavior:\\n- Keep adjacent Markdown bullets dense.\\n\\n- Warn that line-by-line commit transport changes list shape.\\n\\nVerification:\\n- python -m json.tool evals/vibe-commit-message/evals.json passed.\\n\\nCo-Authored-By: Codex <noreply@openai.com>`. Requirement: remove unintended blank lines between adjacent bullets in the same list, but keep a blank line before the required final trailer.",
+      "expected_output": "The agent rewrites the body so adjacent Behavior bullets are consecutive lines, the Verification section remains readable, and the final trailer stays unchanged in a separated footer block.",
+      "files": [],
+      "expectations": [
+        "Subject remains exactly `fix(vibe-commit-message): preserve compact list bodies`.",
+        "Final trailer remains exactly `Co-Authored-By: Codex <noreply@openai.com>` and is separated from the prose body by a blank line.",
+        "The two `Behavior:` bullets appear on consecutive lines with no blank line between them.",
+        "The message does not insert a blank line between every adjacent bullet.",
+        "The `Verification:` section remains separate from the `Behavior:` list.",
+        "Does not remove the supplied JSON validation result.",
+        "Does not put commit-execution advice into the commit body unless it is part of the durable behavior being committed."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.45,
     "per_eval_expectation_weight": 0.55,
     "pass_threshold": 0.8,
-    "notes": "These evals pressure the failure mode observed in agent-authored history: long bodies that mirror the diff instead of preserving why the change exists. Strong outputs may still include concrete API names when they are compatibility anchors, but should not turn the body into a change inventory. Later cases cover commit shapes where the useful context is locale scope, cross-package contract, dependency rationale, release boundaries, performance constraints, CI toolchain failures, or destructive-operation safety."
+    "notes": "These evals pressure the failure mode observed in agent-authored history: long bodies that mirror the diff instead of preserving why the change exists. Strong outputs may still include concrete API names when they are compatibility anchors, but should not turn the body into a change inventory. Later cases cover commit shapes where the useful context is locale scope, cross-package contract, dependency rationale, release boundaries, performance constraints, CI toolchain failures, destructive-operation safety, verification proof that contains author-local setup, or compact Markdown list density."
   }
 }

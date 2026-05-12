@@ -43,6 +43,16 @@ use `[Repository] - YYYY-MM-DD`.
   example domains from becoming universal requirements by anchoring
   domain-specific cases to abstract dimensions, and adds eval coverage for probe
   escalation before another implementation guess.
+- `vibe-commit-message` now applies a fresh-clone-reader check so commit
+  messages translate provenance that only exists in the author's local checkout,
+  tool session, unpublished repository state, or conversation context into
+  durable requirements, invariants, workflow reasons, or verification results.
+  Its eval coverage now checks mixed provenance and history-revision cases
+  without depending on a fixed blacklist of local-only terms.
+- `vibe-commit-message` now clarifies that verification lines should preserve
+  stable proof while omitting or parameterizing machine-specific invocation
+  inputs, and that adjacent Markdown bullets should stay compact when multi-line
+  commit messages are handed to commit execution.
 - `vibe-planning` now explicitly stays within implementation-plan creation or
   revision: it must not continue into code, tests, skill files, evals,
   non-plan docs, configs, changelogs, commits, or other non-plan edits while

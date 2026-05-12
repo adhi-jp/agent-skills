@@ -44,6 +44,8 @@ Before writing a body, classify candidate information by value:
 | Rollback flag, migration path, breaking change, preserved legacy behavior, or intentional no-op | Include |
 | Known limitation, deferred follow-up, or risk accepted for this commit | Include |
 | Verification that changes confidence or review risk | Include briefly |
+| Verification invocation details | Keep stable tool, command, or suite names, public env var names, and outcomes; omit or parameterize author-local inputs |
+| Author-local provenance | Keep the durable fact it proves; omit it if none remains |
 
 If the available evidence does not explain why the change exists, do not invent
 motivation. Write a smaller message from observable behavior and ask for missing
@@ -102,6 +104,10 @@ syncs, dependency bumps, generated lock updates, or catalog refreshes without
 behavior details, prefer subject-only; add one sentence only when it records
 limited scope or missing context the subject cannot carry.
 
+Write adjacent bullets in one logical list on consecutive lines. Blank lines
+between bullets mean a multi-paragraph list item or section break; they do not
+replace the required blank line before footer trailers.
+
 When the repository or workflow requires commit trailers such as
 `Co-Authored-By` or `Signed-off-by`, keep them in a final footer block separated
 from the prose body by a blank line. Avoid ending the body with a final
@@ -116,6 +122,11 @@ Verification:
 
 Co-Authored-By: Codex <noreply@openai.com>
 ```
+
+When passing a multi-line message to commit execution, use one message buffer,
+message file, editor buffer, or equivalent transport. Avoid one `git commit -m`
+argument per line or bullet for compact lists; each `-m` value becomes a
+separate paragraph and can add blank lines between adjacent bullets.
 
 ## Writing Workflow
 
@@ -141,7 +152,10 @@ Co-Authored-By: Codex <noreply@openai.com>
    durable search anchors.
 6. Cut any bullet that a future agent could recover just as well from the diff,
    `git show --stat`, or test names.
-7. Check that every claim is supported by the diff, supplied context, local
+7. Apply the fresh-clone-reader test: keep only references a future reader can
+   recover from committed or stable external records. Translate author-local
+   provenance into the durable fact it proves, or omit it.
+8. Check that every claim is supported by the diff, supplied context, local
    evidence, or a primary source. Remove unsupported impact, reliability,
    performance, security, or user-benefit claims.
 
@@ -209,23 +223,37 @@ Commit bodies are most useful when they capture:
 
 ## Durable References
 
-Commit messages should stand alone after scratch plans, chat context, and review
-cycle state disappear.
+Commit messages should survive the loss of local planning artifacts,
+unpublished repository state, tool output, and conversation context.
 
-Keep durable repository or issue-system references: issue IDs, incident IDs,
+Use the fresh-clone-reader test: a future reader should be able to resolve each
+reference from committed files, remote repository metadata, issue or review
+systems, release artifacts, public documentation, primary sources, or stable
+identifiers. Keep useful durable references such as issue IDs, incident IDs,
 ADRs, release versions, public API names, stable design docs, and commit SHAs.
 
-Translate references that are likely to rot:
+For references that fail the test, keep the durable requirement, workflow,
+invariant, compatibility promise, design constraint, verification result, or
+cohesion reason they support. If no durable meaning remains, omit them.
 
-- Replace plan item numbers with the actual requirement or user workflow.
-- Replace review finding IDs with the invariant or failure mode the finding
-  exposed.
-- Replace "3 review cycles" with the specific class of defects fixed, unless the
-  review-cycle count itself is an audit requirement.
-- Replace "per the plan" with the concrete scope or acceptance criterion.
+## Verification Provenance
 
-When a plan or review reference explains why unrelated-looking changes are
-bundled, preserve that as a cohesion reason instead of as a bare identifier.
+Verification prose preserves durable proof, not machine-specific setup. Keep
+stable tool, command, or suite names; public env var names; committed project
+paths; documented install paths; audit-relevant filenames; and outcomes when
+they help a future reader understand what was proven.
+
+Before including an exact invocation, split stable proof from author-local
+inputs. Omit, replace with a durable placeholder, or summarize values a fresh
+clone reader cannot recover or reuse from committed or stable records:
+host-local absolute paths, private environment values, temporary files,
+unpublished checkout locations, local dependency paths, local run labels, and
+transient tool-session output.
+
+When the exact invocation is dominated by author-local setup, summarize the
+durable proof instead of making that setup reader context. Avoid overcorrecting
+to vague proof such as "tests passed" when the stable suite, command, guardrail,
+or outcome matters.
 
 ## What to Cut
 
@@ -245,8 +273,9 @@ Remove or compress:
   evidence.
 - Prompt or conversation leaks: `as requested`, `per the plan`, `above`,
   `Claude noticed`, `this commit`, `in this commit`, `in one commit`.
-- Bare scratch references: `plan item 8.3`, `cycle 2 F1`, `the backlog file`,
-  or deleted local note paths when they are not durable citations.
+- Unrecoverable author-local provenance: checkout state, tool sessions,
+  unpublished repository state, temporary files, host-local dependency paths,
+  private environment values, or local planning and review labels.
 
 ## Examples
 
@@ -385,6 +414,12 @@ Before finalizing a commit message, verify:
 - Breaking changes, rollback paths, migrations, and known limitations are visible
   when present.
 - Unsupported impact claims and prompt-context references are gone.
+- Every reference passes the fresh-clone-reader test or has been translated into
+  the durable fact it supports.
+- Verification keeps stable proof while omitting or parameterizing
+  machine-specific invocation inputs.
+- Adjacent bullets in the same logical list are consecutive lines unless the
+  blank line intentionally creates a multi-paragraph item or section break.
 - Required trailers are separated from the prose body by a blank line and the
   body does not end with a single-line `Key: value` paragraph immediately before
   a `git commit --trailer` footer is added.
