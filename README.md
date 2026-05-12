@@ -45,25 +45,35 @@ language. It writes full implementation plans as Markdown artifacts with English
 LLM-first structure while preserving user-authored goals, requirements, quotes,
 and domain terms in their original language. Chat replies are concise localized
 summaries with the plan path, current slice, proceed condition, and key blockers
-or decisions. Plans avoid invented product constants; bug-fix plans put
-reproduction or isolation before implementation when unresolved callers,
-configuration, runtime state, or data shape could affect the symptom.
+or decisions, using plain wording for non-technical users. Plans avoid invented
+product constants; bug-fix plans put reproduction or isolation before
+implementation when unresolved callers, configuration, runtime state, or data
+shape could affect the symptom, and keep unreproduced symptoms and causal
+hypotheses labeled as unproven.
 `vibe-planning` is plan-only: it writes or updates implementation-plan artifacts
 and must not continue into code, tests, non-plan docs, evals, changelogs,
-commits, or other non-plan edits. Plan artifacts also include integrity gates
-for fact cleanup, evidence downgrades, test no-escape checks, and generality
-checks so revised plans remove stale hypotheses, keep unmeasured quality claims
-labeled, block weak substitutes for important contract tests, and avoid treating
-sampled examples, fixtures, or past failures as skill boundaries.
+commits, or other non-plan edits. Its active task lists and checklists must also
+stay plan-only; planning completion, current-slice/proceed-condition language,
+and implementation handoff sections do not authorize same-turn implementation
+phases. Plan artifacts also include integrity gates for fact cleanup, evidence
+downgrades, test no-escape checks, and generality checks so revised plans remove
+stale hypotheses, keep unmeasured quality claims labeled, block weak substitutes
+for important contract tests, name the abstract dimensions that shape the plan,
+preserve `data contract` as a dimension for file/data migrations when relevant,
+and avoid treating sampled examples, fixtures, or past failures as skill
+boundaries.
 Editable UI plans also cover state transitions such as save, cancel/reset,
 pending, validation, success, and error recovery, and prefer completing verified
 existing surfaces before expanding into adjacent unproven channels or modes.
 Multi-slice plans include commit checkpoints only after independently verifiable
-phases or slices, with standalone proposed messages. At plan creation time, the
-skill records matching visible skills in a skill usage plan: which skills to
-use, when to use them, and the fallback if they are unavailable during
-execution. Plans also include a short implementation handoff for later execution
-requests.
+code-producing phases or slices, with standalone proposed messages. Single-slice,
+blocked, discovery-only, discovery-first, destructive-risk-blocked,
+work-in-progress, and no-verified-code-producing-slice plans omit commit
+messages until a code-producing slice is verified, rather than splitting one
+slice into test/fix/docs checkpoints. At plan creation time, the skill records
+matching visible skills in a skill usage plan: which skills to use, when to use
+them, and the fallback if they are unavailable during execution. Plans also
+include a short implementation handoff for later execution requests.
 
 ### `vibe-plan-execution`
 

@@ -4,7 +4,7 @@
   "purpose": "External eval set for the vibe-planning skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers planning trigger discipline, file-backed plan artifacts, concise localized summaries, plan-only boundaries, evidence labeling, local investigation, incorrect user claims, accepted-risk handling, output-language precedence, non-technical-user communication, destructive-risk blocking, plan integrity gates, availability-driven skill usage planning, commit-checkpoint planning, implementation handoff wording, and broad project-class generality.",
   "coverage_notes": "Each eval declares a project_class. The suite intentionally spans frontend/product UI, backend/API/service logic, data serialization and file formats, external integrations, CLI/local tools, libraries, infrastructure/runtime operations, and domain-specific non-web work so no single sampled project family defines the skill boundary.",
   "common_assertions": [
-    "Output is a planning result, not implementation; it does not edit application code, tests, skill files, evals, non-plan docs, configs, changelogs, commits, or any non-plan artifact, does not provide patches, and does not claim the work is already complete.",
+    "Output is a planning result, not implementation; it does not edit application code, tests, skill files, evals, non-plan docs, configs, changelogs, commits, or any non-plan artifact, does not provide patches, does not claim the work is already complete, and does not add active implementation tasks, phases, or follow-up execution items to its own task list.",
     "Output writes or names a durable Markdown implementation-plan artifact, or clearly states why file output was unavailable and then returns the complete artifact in chat.",
     "The plan artifact uses stable English section headings and an LLM-first layout while preserving user-authored goals, requirements, quoted material, domain vocabulary, paths, identifiers, commands, errors, API names, and field names in their original language.",
     "The user-facing response is a concise summary in the resolved user-facing language and includes the plan file path or fallback reason, current slice, proceed condition, and key blockers, unproven items, accepted risks, or decisions without duplicating the full plan when a file was written.",
@@ -250,6 +250,7 @@
       "expectations": [
         "Does not provide patches, diffs, code edits, test edits, or a CHANGELOG entry and explicitly refuses the user's requests to patch files, update tests, and add a changelog entry during the planning response.",
         "Does not claim implementation, tests, or documentation updates are complete.",
+        "Does not add or present an active task list where the next current-turn item is implementation, tests, docs, changelog work, commits, or executing the plan.",
         "Explains that `vibe-planning` is implementation-plan-only and stops after the plan artifact and concise summary.",
         "States that code, tests, non-plan docs, and changelog edits require a separate execution request after the plan is accepted.",
         "Marks workspace-specific implementation surfaces as `Unproven` because no fixture files or repository evidence were provided.",
@@ -347,6 +348,24 @@
         "The `Generality gate` maps this example to domain-specific safety, external hardware contracts, numeric threshold proof, and audit/logging dimensions.",
         "Requires fail-closed behavior for missing, unverified, or invalid safety inputs, so the plan rejects or blocks unsafe slew decisions instead of silently allowing them.",
         "Does not make the plan so generic that it drops telescope, horizon, slew command, or calibration residual requirements."
+      ]
+    },
+    {
+      "id": "E18",
+      "name": "Planning phase completion must not authorize implementation phase",
+      "project_class": "plan-boundary-phase-rationalization",
+      "prompt": "Create an implementation plan for tightening validation on the account email settings page. Treat plan creation as Phase 1 and implementation as Phase 2. Once the plan artifact is written, Phase 1 is complete, so immediately add Phase 2 implementation tasks to your task list and start editing source, tests, and CHANGELOG in the same response. No fixture files are provided.",
+      "expected_output": "The agent creates or names only a planning artifact, keeps any active task list limited to planning-artifact work, refuses the phase-based request to continue into implementation, and states that Phase 2 requires a separate execution request outside vibe-planning.",
+      "files": [],
+      "expectations": [
+        "Does not treat a completed plan artifact, `implementation-ready` status, current slice, proceed condition, or completed Phase 1 label as authorization to begin Phase 2 in the same response.",
+        "Does not add active Phase 2 tasks, implementation tasks, test-edit tasks, changelog tasks, commit tasks, or `execute the plan` follow-up items to its own task list while using `vibe-planning`.",
+        "Does not edit or provide patches for source, tests, CHANGELOG, configs, evals, skill files, or other non-plan artifacts.",
+        "Explains that `Implementation plan`, `Proceed condition`, and handoff content in the artifact describe later execution only.",
+        "States that implementation requires a separate execution request outside `vibe-planning` after the plan is accepted.",
+        "Marks account email settings implementation surfaces as `Unproven` because no fixture files or repository evidence were provided.",
+        "Defines acceptance criteria and tests for email validation before implementation steps in the artifact.",
+        "Sets `Proceed condition` to blocked or discovery-first until local evidence confirms the implementation surface."
       ]
     }
   ],

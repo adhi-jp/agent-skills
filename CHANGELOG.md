@@ -60,6 +60,29 @@ use `[Repository] - YYYY-MM-DD`.
   downgrades, and test no-escape handling so revised plans remove stale
   hypotheses and old API names, keep unmeasured visual/performance/packet/UX
   claims labeled, and block weak substitutes for important contract tests.
+- `vibe-planning` now treats active task lists, checklists, and tool-managed
+  plans as part of its plan-only boundary: agents must not add current-turn
+  implementation phases, execution slices, non-plan edit tasks, commit tasks,
+  or "now implement" follow-ups while using the skill. Artifact readiness,
+  current-slice, proceed-condition, and handoff wording are clarified as
+  later-execution guidance only.
+- `vibe-planning` wording is tightened so trigger metadata stays focused on
+  planning requests, plan-only rules avoid redundant phrasing, and workflow
+  steps refer to later implementation as handoff content rather than current
+  execution.
+- `vibe-planning` now tightens commit-checkpoint eligibility so single-slice,
+  blocked, discovery-only, discovery-first, destructive-risk-blocked,
+  work-in-progress, and plans with no verified code-producing slice omit
+  proposed commit messages until a code-producing slice is verified, without
+  splitting one slice into artificial test/fix/docs checkpoints. It also
+  separates user-reported bug symptoms, local facts, and root-cause hypotheses
+  so unreproduced causes stay labeled as `Unproven`. Its generality gate now
+  requires explicit dimension names when those dimensions shape scope,
+  acceptance criteria, tests, or implementation order, including exact `data
+  contract` wording for file/data migrations when schema, mapping, reader/writer,
+  or saved-file compatibility shapes the plan. Non-technical summaries now avoid
+  raw planning labels when plain wording is enough and ask only for decisions
+  local investigation cannot settle.
 - `vibe-planning` now includes a generality gate that maps examples, fixtures,
   project memories, and history-derived failures to broader planning dimensions
   before they influence scope, acceptance criteria, tests, or implementation

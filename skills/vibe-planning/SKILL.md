@@ -4,26 +4,29 @@ name: vibe-planning
 description: >
   Use when the user wants planning before coding: plan mode, create a plan,
   implementation plan, specification, acceptance criteria, test plan, vibe
-  coding, requirements clarification, what to build first, or equivalent
-  planning requests in any language. Also use for rough, ambiguous,
-  feasibility-sensitive, non-technical, or not-yet-implementable coding
-  requests.
+  coding, requirements clarification, what to build first, or rough,
+  ambiguous, feasibility-sensitive, non-technical, or not-yet-implementable
+  coding requests in any language.
 ---
 
 # Vibe Planning
 
 ## Overview
 
-Turn rough vibe-coding intent into an implementation plan another engineer or
-agent can execute without inventing missing behavior. Treat the user's request
-as valuable intent, not verified fact: preserve what they want, prove what can
-be proven, and make uncertainty visible.
+Turn rough vibe-coding intent into a plan another engineer or agent can execute
+without inventing missing behavior. Treat the user's request as valuable intent,
+not verified fact: preserve the goal, prove what can be proven, and make
+uncertainty visible.
 
-`vibe-planning` is an implementation-planning-only skill. While using this
-skill, do not implement the planned work and do not edit application code,
-tests, skill packages, evals, non-plan docs, configs, changelogs, commits, or
-any other non-plan artifact. The only file edits this skill may make are
-creating or updating the implementation-plan artifact itself.
+`vibe-planning` is plan-only. While using it, create or update only the plan
+artifact. Do not implement, edit application code, tests, skill packages, evals,
+non-plan docs, configs, changelogs, commits, or any other non-plan artifact.
+
+Apply the same boundary to the active task list, checklist, or tool-managed
+plan. Active tasks may cover only plan artifact work. Do not add current-turn
+implementation phases, execution slices, non-plan edit tasks, commit tasks, or
+"now implement the plan" follow-ups. If the user asks for planning and
+implementation in one request, write or revise the plan artifact and stop.
 
 This skill is independent. Do not assume another planning skill, guard,
 execution skill, commit-message skill, or other companion skill is available.
@@ -84,6 +87,14 @@ user-facing language:
 - Key `Unproven`, `Accepted risk`, blocker, or decision items.
 - The next action needed from the user, if any.
 
+For non-technical users, write the chat summary in plain terms in the resolved
+user-facing language. Avoid raw labels such as `slice`, `Proceed condition`,
+`Unproven`, and `Accepted risk` unless the user already uses them or you explain
+them immediately. Prefer practical meanings such as "what we will build first",
+"what must be decided before work starts", "not verified yet", and "a tradeoff
+the user explicitly accepts". Preserve technical identifiers only when needed
+for traceability, and explain their practical meaning.
+
 Do not paste the full plan into chat unless file writing is unavailable, unsafe,
 or explicitly declined. If no file was written, state the reason and provide the
 complete plan artifact in the reply using the same English artifact structure.
@@ -91,12 +102,16 @@ complete plan artifact in the reply using the same English artifact structure.
 ## Core Rules
 
 - This skill is for implementation-plan creation or revision only. Stop after
-  the plan artifact and concise summary are complete; implementation requires a
-  separate execution request outside `vibe-planning`.
+  the plan artifact and concise summary. Implementation requires a separate
+  execution request outside `vibe-planning`.
 - Do not provide patches, edit non-plan files, make commits, or claim that code,
   tests, non-plan docs, evals, configs, changelogs, or other implementation work
-  is complete. Non-mutating investigation is allowed when needed to ground the
-  plan.
+  is complete. Non-mutating investigation is allowed when it grounds the plan.
+- Plan-readiness language is later-execution handoff, not current-turn
+  authorization. `Implementation plan`, `Commit checkpoints`, `Implementation
+  handoff`, `Current slice`, `Proceed condition`, `implementation-ready`, or a
+  completed planning phase may indicate that a separate execution request can
+  begin; they must not trigger implementation while this skill is active.
 - Ground the plan in primary sources or actual investigation before asking the
   user to decide. Read relevant local code, tests, configs, schemas, docs, logs,
   issue text, or official documentation first.
@@ -115,9 +130,10 @@ complete plan artifact in the reply using the same English artifact structure.
 - Treat concrete examples, fixtures, project memories, and history-derived
   failure cases as evidence or pressure tests, not skill boundaries. Before an
   example changes scope, acceptance criteria, tests, or implementation order,
-  map it to the broader planning dimension it represents, such as external
+  map it to a broader planning dimension it represents, such as external
   contracts, data shape, lifecycle state, destructive risk, local evidence
-  grounding, or optional tool usage.
+  grounding, or optional tool usage. Name dimensions that shape the generated
+  plan.
 - Respect the user's requested outcome as far as reality allows. When a request
   cannot be implemented literally, preserve the intent and adjust the mechanism.
 - When the user asks for broad UX improvements, make the first slice complete
@@ -127,6 +143,9 @@ complete plan artifact in the reply using the same English artifact structure.
   missing context that investigation cannot determine.
 - For non-technical users, explain choices in plain language and translate
   technical consequences into product or workflow impact.
+- For non-technical "what should we build first" requests, recommend the first
+  slice supported by local evidence. Ask only for product wording, business
+  rules, or tradeoffs that local investigation cannot settle.
 - Define acceptance criteria and tests before implementation steps.
 - Do not invent numeric limits, thresholds, timing windows, quotas, or product
   constants. Use values only when they come from user requirements, local
@@ -154,6 +173,12 @@ complete plan artifact in the reply using the same English artifact structure.
 - Do not weaken tests to make a plan implementation-ready. If an important
   contract cannot be verified as planned, make it an implementation-start
   blocker or define an alternative proof path that still proves the contract.
+- For bug reports, separate the user-reported symptom, local facts, and
+  root-cause hypothesis. The symptom and hypothesis stay `Unproven` until a
+  fixture-backed failing test, reproduction, log, or local evidence proves the
+  causal link. Do not treat a plausible boundary, off-by-one, clock,
+  configuration, or data-shape issue as the root cause only because it could
+  explain the symptom.
 
 ## Evidence Labels
 
@@ -221,6 +246,14 @@ to prove that no prior plan exists.
      an exhaustive list or mandatory project shape.
    - Map each influential example to an abstract planning dimension before it
      affects scope, acceptance criteria, tests, or implementation order.
+   - Name derived dimensions directly in the gate outcome. Use dimensions from
+     the current request and evidence, not a pasted universal checklist.
+   - For local data or file migrations, include exact names for relevant
+     dimensions: `data contract` when schema versions, field mapping,
+     reader/writer compatibility, or saved-file compatibility matter; include
+     `file format compatibility`, `parser capability`, or
+     `destructive-write risk` when those risks shape the plan. Do not replace
+     `data contract` with a narrower phrase such as content preservation.
    - Check whether the plan overfits to one sampled product, framework, UI
      modality, data shape, runtime, or toolchain. Remove adjacent surfaces,
      channels, security paths, APIs, or UI states that come only from examples,
@@ -285,8 +318,11 @@ localized work.
      preserve it with acceptance criteria and tests.
 6. **Design tests before implementation**
    - Derive tests from acceptance criteria.
-   - For bug fixes, include a failing regression test or a reproduction proof
-     before production-code changes.
+   - For bug fixes, include a failing regression test or reproduction proof
+     before production-code changes, and label the reported symptom and
+     suspected root cause separately. A visible local defect can be a hypothesis
+     and proof target, but not a verified root cause until reproduced or
+     otherwise proven.
    - If the reported symptom may depend on unverified callers, configuration,
      runtime state, external behavior, or data shape, put the fastest isolation
      step before implementation steps, even when a local defect is also visible.
@@ -329,7 +365,7 @@ localized work.
    - Do not let optional skill usage weaken the core plan contract: acceptance
      criteria, tests, evidence labels, proceed conditions, and user decisions
      still control the work.
-9. **Plan implementation**
+9. **Describe later implementation**
    - Use only steps supported by `Primary source`, `Local investigation`, or
      explicit `Accepted risk`.
    - Preserve local conventions and existing architecture unless evidence shows
@@ -341,14 +377,16 @@ localized work.
      or rollout checks appropriate to the stack.
    - Include a final diff-review step that checks the result against the
      specification and acceptance criteria.
-   - For multi-slice implementation plans with code-producing slices,
-     include commit checkpoints after each independently verifiable phase or
-     slice. Each checkpoint states the intended scope, required verification,
-     and a proposed standalone Conventional Commit message that names the
-     concrete change.
-   - Do not plan commits for discovery-only, blocked, unverified, destructive,
-     or work-in-progress states. For discovery-first or blocked plans, say that
-     commit checkpoints are omitted until a code-producing slice is verified.
+   - Include commit checkpoints only for multi-slice plans with independently
+     verifiable code-producing slices. Each checkpoint states the intended
+     scope, required verification, and a proposed standalone Conventional Commit
+     message that names the concrete change.
+   - For single-slice, discovery-only, blocked, discovery-first without a
+     verified code-producing slice, destructive-risk-blocked, no-code-slice, or
+     work-in-progress plans, write only: `Commit checkpoints are omitted until a code-producing slice is verified.`
+   - Do not split a single current slice into artificial test, fix, docs, or
+     changelog checkpoints only to create commit messages. Red or failing-test
+     proof work is not a verified code-producing checkpoint.
 11. **Prepare the implementation handoff**
    - Include a short handoff that starts with "When implementing this plan" so
      pasted plans remain self-contained execution requests.
@@ -392,6 +430,10 @@ credential-exposing actions. Those require proof or a safer alternative.
 Use this structure for the implementation-ready plan file. Keep it compact for
 small tasks, but preserve the order: requirements and tests come before
 implementation.
+
+The `Implementation plan` section is handoff for a later execution request. It
+does not authorize the planner to add active implementation tasks or edit
+non-plan files in the same response.
 
 ```markdown
 # [Plan title]
@@ -442,6 +484,8 @@ implementation.
   - Concrete examples, fixtures, memories, or historical cases that influenced
     the plan:
   - Abstract planning dimensions derived from those examples:
+  - Explicit dimension names that shaped scope, acceptance criteria, tests, or
+    implementation order:
   - Overfit risks and scope corrections:
 
 ## Skill usage plan
@@ -460,11 +504,12 @@ implementation.
 3. [Verification and diff-review step]
 
 ## Commit checkpoints
-- [For multi-slice implementation plans with code-producing slices: checkpoint
-  scope, required verification, and proposed standalone Conventional Commit
-  message. Omit this section for single-slice, blocked, or discovery-only plans,
-  or state that commit checkpoints are omitted until a code-producing slice is
-  verified.]
+- [For multi-slice plans with code-producing slices: checkpoint scope, required
+  verification, and a proposed standalone Conventional Commit message. For
+  single-slice, blocked, discovery-only, discovery-first without a verified
+  code-producing slice, destructive-risk-blocked, no-code-slice, or
+  work-in-progress plans, write only: `Commit checkpoints are omitted until a code-producing slice is verified.`
+  Do not list future, red-test-only, docs-only, or changelog-only checkpoints.]
 
 ## Risks and unproven items
 - Item:
@@ -508,8 +553,12 @@ Before finalizing the plan, check that:
 - Acceptance criteria are observable.
 - Tests come before implementation steps.
 - The plan-only boundary is respected: no non-plan files were edited, no patches
-  were provided, no commits were made, and no implementation completion was
-  claimed while using `vibe-planning`.
+  were provided, no commits were made, no implementation completion was claimed,
+  and no active implementation tasks, phases, or follow-up execution items were
+  added while using `vibe-planning`.
+- `Commit checkpoints` matches the `Proceed condition`: ineligible plans do not
+  include proposed commit messages, and single-slice work was not split into
+  artificial checkpoints.
 - The `Fact cleanup gate` removed stale `Unproven` text, old API names, old
   field names, old commands, and superseded implementation proposals after facts
   changed.
@@ -522,6 +571,14 @@ Before finalizing the plan, check that:
 - Concrete examples that affect the plan are mapped to abstract planning
   dimensions before they influence scope, acceptance criteria, tests, or
   implementation order.
+- Abstract planning dimensions are named explicitly when they shape the plan,
+  using names from the current request and evidence rather than a generic
+  checklist.
+- Local data or file migration plans use exact dimension names when relevant,
+  including `data contract` for schema versions, field mapping, reader/writer
+  compatibility, or saved-file compatibility.
+- Bug reports keep the reported symptom, local facts, and root-cause hypothesis
+  separately labeled; no unproven cause is presented as the root cause.
 - Plans do not expand into adjacent surfaces, channels, APIs, security paths, or
   UI states only because examples mention them.
 - Plans do not ignore non-web, non-UI, non-product, CLI, library, data,
