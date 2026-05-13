@@ -11,6 +11,8 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [vibe-debug-fix 1.0.0] - 2026-05-13
+
 ### Added
 
 - `vibe-debug-fix` adds a self-contained vibe-coding debug/fix skill package
@@ -43,6 +45,11 @@ use `[Repository] - YYYY-MM-DD`.
   example domains from becoming universal requirements by anchoring
   domain-specific cases to abstract dimensions, and adds eval coverage for probe
   escalation before another implementation guess.
+
+## [vibe-commit-message 1.0.1] - 2026-05-13
+
+### Changed
+
 - `vibe-commit-message` now applies a fresh-clone-reader check so commit
   messages translate provenance that only exists in the author's local checkout,
   tool session, unpublished repository state, or conversation context into
@@ -53,6 +60,11 @@ use `[Repository] - YYYY-MM-DD`.
   stable proof while omitting or parameterizing machine-specific invocation
   inputs, and that adjacent Markdown bullets should stay compact when multi-line
   commit messages are handed to commit execution.
+
+## [vibe-planning 3.0.0] - 2026-05-13
+
+### Changed
+
 - `vibe-planning` now explicitly stays within implementation-plan creation or
   revision: it must not continue into code, tests, skill files, evals,
   non-plan docs, configs, changelogs, commits, or other non-plan edits while
@@ -94,6 +106,11 @@ use `[Repository] - YYYY-MM-DD`.
   slice-scoped commit checkpoints, explicit destructive-risk alternatives,
   concrete gate outcomes, exact-decimal money parsing decisions, safe local file
   writes, runtime rollback specificity, and fail-closed domain safety behavior.
+
+## [vibe-plan-execution 1.3.0] - 2026-05-13
+
+### Changed
+
 - `vibe-plan-execution` now requires an evidence-backed plan-deviation gate before
   agents skip, reorder, narrow, or replace planned proof, API/specification
   checks, tests, or edits. Perceived redundancy, minimalism, speed, memory, or

@@ -8,17 +8,15 @@ messages, prose, and Minecraft modding.
 | Skill | Version |
 | --- | --- |
 | `minecraft-modding-workbench` | `1.2.1` |
-| `vibe-planning` | `2.1.0` |
-| `vibe-plan-execution` | `1.2.0` |
-| `vibe-commit-message` | `1.0.0` |
+| `vibe-planning` | `3.0.0` |
+| `vibe-plan-execution` | `1.3.0` |
+| `vibe-debug-fix` | `1.0.0` |
+| `vibe-commit-message` | `1.0.1` |
 | `vibe-planning-guard` | `1.3.0` |
 | `codex-review-cycle` | `1.9.0` |
 | `review-scope-guard` | `1.4.0` |
 | `review-fix-cascade-guard` | `1.0.2` |
 | `writing-style-guide` | `1.1.0` |
-
-Unreleased skill packages do not receive a version until release preparation.
-`vibe-debug-fix` is currently documented under `CHANGELOG.md` `Unreleased`.
 
 ## Included Skills
 
