@@ -47,7 +47,9 @@ or decisions, using plain wording for non-technical users. Plans avoid invented
 product constants; bug-fix plans put reproduction or isolation before
 implementation when unresolved callers, configuration, runtime state, or data
 shape could affect the symptom, and keep unreproduced symptoms and causal
-hypotheses labeled as unproven.
+hypotheses labeled as unproven. It separates current-slice blockers from
+deferred decisions so optional product constants or future enhancements do not
+block a bounded slice after acceptance criteria are narrowed.
 `vibe-planning` is plan-only: it writes or updates implementation-plan artifacts
 and must not continue into code, tests, non-plan docs, evals, changelogs,
 commits, or other non-plan edits. Its active task lists and checklists must also
@@ -60,6 +62,18 @@ for important contract tests, name the abstract dimensions that shape the plan,
 preserve `data contract` as a dimension for file/data migrations when relevant,
 and avoid treating sampled examples, fixtures, or past failures as skill
 boundaries.
+Plans choose `light` or `strict` depth. `light` keeps small, localized, low-risk
+artifacts compact by collapsing not-applicable details while preserving
+evidence, acceptance criteria, tests, per-step skill routes, self-review, and
+the proceed condition. `strict` is required for existing behavior, high-risk
+controls, external contracts, destructive risk, diagnostic findings, recovery or
+replacement work, auth/security/billing, data migrations, or current-slice
+implementation blockers.
+For high-risk planning surfaces, `vibe-planning` owns the safeguards formerly
+split out in `vibe-planning-guard`: behavior-contract inventory before
+equivalence analysis, known-good recovery checks, diagnostic-scope controls,
+selective failure-pattern checks, and blocked proceed conditions while
+implementation blockers remain unproven.
 Editable UI plans also cover state transitions such as save, cancel/reset,
 pending, validation, success, and error recovery, and prefer completing verified
 existing surfaces before expanding into adjacent unproven channels or modes.
@@ -69,9 +83,14 @@ blocked, discovery-only, discovery-first, destructive-risk-blocked,
 work-in-progress, and no-verified-code-producing-slice plans omit commit
 messages until a code-producing slice is verified, rather than splitting one
 slice into test/fix/docs checkpoints. At plan creation time, the skill records
-matching visible skills in a skill usage plan: which skills to use, when to use
-them, and the fallback if they are unavailable during execution. Plans also
-include a short implementation handoff for later execution requests.
+matching visible skills in a per-step skill usage plan. Every discovery,
+implementation, verification, self-review, and commit-checkpoint step gets a
+route to a verified matching skill, `No matching optional skill verified`, or
+`No skill needed`, with availability source, timing, matching reason, and
+fallback. Plans also include an implementation handoff and a final self-review
+gate that checks route completeness, unavailable-skill leakage, evidence labels,
+test ordering, plan-only boundaries, proceed conditions, and unresolved
+implementation blockers before returning the concise summary.
 
 ### `vibe-plan-execution`
 
@@ -240,14 +259,13 @@ specific to the skill.
 - `minecraft-modding-workbench` is scoped to Fabric, NeoForge, and
   Architectury. Legacy Forge-only projects should be treated as a separate
   toolchain check, not as NeoForge by default.
-- `vibe-planning` is independent from `vibe-planning-guard`. Use it as the
-  primary user-facing planning workflow when the user asks for a plan, spec,
-  acceptance criteria, test plan, or rough vibe-coding implementation plan. Its
-  normal output is a full plan file plus a short localized summary, not a full
-  plan pasted into chat. It names concrete companion skills only after verifying
-  them from the current environment, user-provided material, project
-  instructions, or local metadata; unavailable skills remain optional and get an
-  explicit fallback.
+- `vibe-planning` is the primary user-facing planning workflow when the user
+  asks for a plan, spec, acceptance criteria, test plan, or rough vibe-coding
+  implementation plan. Its normal output is a full plan file plus a short
+  localized summary, not a full plan pasted into chat. It names concrete
+  companion skills only after verifying them from the current environment,
+  user-provided material, project instructions, or local metadata; unavailable
+  skills remain optional and get an explicit fallback.
 - `vibe-plan-execution` is for implementing from an already-bound concrete plan.
   The plan can come from `vibe-planning`, another planning workflow, a
   specification, an issue, a task list, or the current conversation. If a

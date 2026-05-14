@@ -78,8 +78,10 @@ identifiers, paths, commands, errors, API names, and field names in their
 original language. When an English operational paraphrase is useful, place it
 after the original wording instead of replacing the original.
 
-After writing the file, reply with only the essentials in the resolved
-user-facing language:
+Run the `Plan self-review gate` on the draft artifact before the user-facing
+summary. Correct material issues in the artifact, then record the gate outcome
+there. After the self-reviewed file is written, reply with only the essentials
+in the resolved user-facing language:
 
 - Plan file path.
 - Current slice.
@@ -180,6 +182,116 @@ complete plan artifact in the reply using the same English artifact structure.
   configuration, or data-shape issue as the root cause only because it could
   explain the symptom.
 
+## High-Risk Planning Controls
+
+Use these controls only when their preconditions match the current slice. They
+are safeguards, not a universal checklist for every plan.
+
+Read a bundled reference only when its control applies:
+
+- `references/behavior-contract-inventory.md` - required before behavioral
+  equivalence analysis when the slice touches existing behavior.
+- `references/behavioral-equivalence-analysis.md` - required for refactors,
+  migrations, replacements, internal implementation changes, and explicit
+  behavior changes that touch an existing contract.
+- `references/change-recovery-checklist.md` - required before planning
+  replacement, restoration, rollback, or rewrite work against behavior that
+  used to be correct.
+- `references/plan-boundary-controls.md` - required before finalizing a plan
+  that incorporates review comments, diagnostic findings, audit output,
+  analyzer warnings, or late additions after success criteria were written.
+- `references/failure-pattern-checklist.md` - required selectively for
+  high-risk surfaces such as lifecycle ordering, shared state, persisted config,
+  trust boundaries, counters, build or release paths, tool capabilities, and
+  multi-phase plan drift.
+
+When the current slice touches existing behavior, build the behavior contract
+inventory before equivalence analysis. Separate immediate observable behavior,
+internal state transition, and persistent or lifecycle behavior. Label each
+entry as `Primary source`, `Local investigation`, or `Unproven`. Refactors,
+migrations, and internal implementation changes count as existing-behavior work
+even when the user expects behavior to stay the same. Omit the inventory only
+with an evidence-backed not-applicable rationale.
+
+For replacement, restoration, rollback, or rewrite plans, find and inspect
+known-good evidence before planning the change. Use git history, release tags,
+historical tests, checked-in fixtures, specs, runbooks, or user-provided source
+material. If the known-good contract cannot be proven, reframe the slice as
+discovery or net-new behavior design and keep implementation blocked.
+
+For plans driven by review comments, audit output, analyzer warnings, or other
+diagnostic findings, freeze current-slice success criteria once written. Later
+additions belong in the current success criteria only when they cite a user
+requirement, newly verified evidence, or a `must preserve` equivalence dimension
+that is non-equivalent. Otherwise defer the addition. Apply the plan-body
+firewall so diagnostic findings produce the smallest corrective slice instead
+of adjacent hardening, new modes, new detectors, or extra policy surfaces.
+
+For high-risk surfaces, apply only the matching failure-pattern checklist
+sections and record why adjacent near-miss sections were not selected. Pasting
+the full checklist into every plan is a planning failure; missing an applicable
+section is also a failure. Fold selected answers into facts, blockers,
+acceptance criteria, or tests before locking the test plan.
+
+If any current-slice implementation blocker remains `Unproven`, the `Proceed
+condition` must block implementation or make the affected step conditional on
+explicit `Accepted risk` already recorded in the plan. Risk level does not
+override this stop condition. Future or optional decisions that are not needed
+for the bounded current slice should be deferred instead of blocking
+implementation.
+
+## Plan Depth and Unproven Triage
+
+Choose plan depth after initial investigation. Escalate when new evidence
+reveals a `strict` trigger.
+
+- `light` plans are for small, localized, low-risk slices after local evidence
+  shows the slice has no existing-behavior change, external contract,
+  destructive operation, auth/security/billing boundary, data migration,
+  diagnostic finding, replacement/restoration/rollback/rewrite, or
+  current-slice implementation blocker. `light` reduces rendering only: it still
+  needs evidence labels, acceptance criteria before tests, tests before
+  implementation, per-step skill routing, self-review, and a proceed condition.
+- `strict` plans are required when the slice touches existing behavior,
+  high-risk planning controls, external contracts, destructive risk,
+  diagnostic/review/audit/analyzer findings, recovery or replacement work,
+  auth/security/billing boundaries, data migrations, or unresolved
+  current-slice implementation blockers. When a `must preserve` equivalence
+  dimension becomes non-equivalent, escalate to `strict`.
+
+Compact rendering is allowed only for `light` plans:
+
+- Omit high-risk sections when not applicable and record a short
+  evidence-backed not-applicable reason in `Plan integrity gates`.
+- Collapse not-applicable gate details into concise lines instead of expanding
+  every subfield.
+- Group repeated skill-route rows only when the row names every covered step ID
+  and all route fields are identical. A grouped row is not a global skill list.
+- Keep the `Plan self-review gate` concise, but correct material issues before
+  responding.
+
+Classify every `Unproven` item by `Phase relevance`:
+
+- `current-slice implementation blocker`: the item is needed to define,
+  implement, or test the current acceptance criteria, or affects current-slice
+  feasibility, behavior, data handling, permissions, security, external
+  contracts, or destructive risk. Implementation is blocked unless the user
+  explicitly accepts a scoped `Accepted risk`.
+- `proof before implementation`: the item should be resolved by a discovery or
+  proof step before code changes begin; the plan may be discovery-first, but
+  implementation remains blocked until proof completes.
+- `deferred decision`: the item is optional, future-phase, avoidable by
+  narrowing acceptance criteria, or not needed for the current bounded slice.
+  Record it as deferred with impact and revisit trigger; do not block the
+  current slice on it.
+- `non-implementation follow-up`: the item affects rollout, monitoring,
+  product copy, or future hardening but not the current implementation contract.
+
+When unknown product constants, numeric limits, or adjacent enhancements are
+outside the current slice, do not invent them or block planning on them.
+Recommend the evidence-backed bounded slice, remove the unsupported constant
+from current acceptance criteria, and record the unknown as a deferred decision.
+
 ## Evidence Labels
 
 Use these labels in the plan when a claim affects scope, feasibility, behavior,
@@ -196,8 +308,8 @@ tests, or implementation order:
 - `Accepted risk`: an `Unproven` item the user explicitly chose to proceed with
   after the impact was explained.
 
-Every `Unproven` or `Accepted risk` item must include impact, the fastest proof
-path, and where it must be revisited.
+Every `Unproven` or `Accepted risk` item must include impact, `Phase
+relevance`, the fastest proof path, and where it must be revisited.
 
 ## Plan Integrity Gates
 
@@ -279,16 +391,21 @@ Choose the lightest method that still protects the work:
 | Small function | Test-driven is usually enough |
 | Larger feature development | Spec-driven is close to required |
 
-Use the full spec-driven + test-driven flow when behavior is complex, expensive
-to change later, or crosses data, security, permission, API, billing,
-persistence, or external-service boundaries. Use a compact version for small,
-localized work.
+Use the full spec-driven + test-driven flow and `strict` rendering when behavior
+is complex, expensive to change later, or crosses data, security, permission,
+API, billing, persistence, or external-service boundaries. Use `light` rendering
+only for small, localized, low-risk work under the plan-depth rules above.
 
 ## Planning Workflow
 
 1. **Classify the work**
    - Identify whether the task is a feature, bug fix, refactor, UI/UX change,
      integration, API/DB/permission change, or small local implementation.
+   - Identify whether the slice touches existing behavior, replaces or restores
+     prior behavior, responds to diagnostic findings, or crosses a high-risk
+     surface that needs one of the high-risk planning controls.
+   - Choose `light` or `strict` depth. Start with `strict` whenever a strict
+     trigger applies; escalate from `light` if investigation finds one later.
    - Choose spec-driven, test-driven, or combined planning from the table.
    - Split large requests into the smallest useful current slice.
    - If local evidence shows an existing partial surface and the user mentions
@@ -302,13 +419,22 @@ localized work.
      `Unproven`.
 3. **Clarify intent**
    - Ask only plan-changing questions that cannot be answered from evidence.
+   - Do not block the whole plan on optional constants, future enhancements, or
+     adjacent product decisions that can be deferred after narrowing the current
+     acceptance criteria.
    - For non-technical users, offer concrete choices with consequences instead
      of abstract architecture terms.
 4. **Write or refine the specification**
    - State the goal, users, in-scope behavior, out-of-scope behavior, constraints,
      and success criteria.
+   - When the slice touches existing behavior, write the behavior contract
+     inventory before behavioral equivalence analysis. For replacement,
+     restoration, rollback, or rewrite work, run the recovery checks against
+     known-good evidence before freezing success criteria.
    - Review the specification for ambiguity, contradiction, missing states,
      hidden dependencies, and unverifiable assumptions.
+   - Separate current-slice implementation blockers from deferred decisions
+     before writing the proceed condition.
 5. **Define acceptance criteria**
    - Convert the clarified specification into observable pass/fail criteria.
    - Include negative cases, permissions, failure states, empty states, migration
@@ -327,35 +453,53 @@ localized work.
      runtime state, external behavior, or data shape, put the fastest isolation
      step before implementation steps, even when a local defect is also visible.
    - For refactors, include equivalence checks that prove behavior is preserved.
+   - When high-risk controls apply, include tests or proof checks for the
+     selected equivalence dimensions, recovery comparisons, diagnostic-finding
+     correction, and failure-pattern checklist answers.
    - For UI, include interaction, state, responsive layout, and accessibility
      checks when relevant.
 7. **Run plan integrity gates**
    - Apply the `Fact cleanup gate`, `Evidence downgrade gate`, `Test
      no-escape gate`, and `Generality gate` before finalizing the plan.
+   - Apply the success-criteria freeze, diagnostic-finding restraint, plan-body
+     firewall, completion gate, and selective failure-pattern applicability
+     record when their preconditions matched the current slice.
    - When revising an existing plan after investigation, treat stale facts and
      old implementation options as defects to remove, not context to preserve.
    - If a gate fails, update the specification, acceptance criteria, tests,
      risks, and proceed condition before implementation is allowed to start.
-8. **Plan available skill usage**
+   - For `light` plans, collapse not-applicable gate details into concise
+     evidence-backed lines. For `strict` plans, keep the applied high-risk
+     control evidence visible.
+8. **Plan per-step skill routing**
    - Inspect available skill metadata at plan creation time when it is already
      exposed in the runtime, supplied by the user, documented in project
      instructions, or cheaply discoverable from local skill metadata.
    - Do not perform broad filesystem, network, package-manager, or marketplace
      discovery solely to find optional skills. If skill metadata is not visible
-     or cannot be read cheaply, say that no matching optional skill was verified
-     and continue with the normal plan.
+     or cannot be read cheaply, route affected steps to
+     `No matching optional skill verified` and continue with the normal plan.
    - Select only skills whose descriptions match the planned work, method,
      stack, artifact, or workflow checkpoint. Do not include a skill just because
      it is installed.
-   - For each selected skill, state when to use it, why its description matches,
-     the availability source, and the fallback if that skill is unavailable
-     when the plan is executed.
-   - If no optional skill is verified as matching, still include one
-     `Skill usage plan` entry using the same fields:
-     `Skill: No matching optional skill verified`, `Availability source`,
-     `Use when: Not applicable`, `Matching reason: Not applicable`, and
-     `Fallback if unavailable`. The fallback should say to continue with the
-     normal plan, repository rules, and any proposed checkpoint messages.
+   - Assign a skill route for every discovery, implementation, verification,
+     plan self-review, and commit-checkpoint step in the generated artifact. A
+     global skill list is incomplete unless every step has a route.
+   - Each route must include: step identifier, selected skill route, availability
+     source, when to use it, matching reason, and fallback. The selected skill
+     route is exactly one of:
+     - A verified available matching skill, or a short ordered list of matching
+       skills when the step genuinely needs more than one.
+     - `No matching optional skill verified` when the step could benefit from a
+       skill but none was verified available.
+     - `No skill needed` when the step is mechanical or governed fully by the
+       core plan, repository rules, or local commands.
+   - For `No matching optional skill verified`, the fallback must say how to do
+     that step with the normal plan, repository rules, local evidence, and
+     proposed checkpoint messages when relevant. For `No skill needed`, the
+     matching reason must state why no optional skill is useful for that step.
+   - `light` plans may group repeated route rows only when the grouped row names
+     every covered step ID and all route fields are identical.
    - When the plan includes commit checkpoints and a commit-message-writing
      skill is verified available, schedule that skill after checkpoint
      verification and before finalizing each commit message. If no matching
@@ -392,8 +536,21 @@ localized work.
      pasted plans remain self-contained execution requests.
    - Tell the implementer to treat the document as authoritative, re-check local
      facts before editing, follow the acceptance criteria, test plan, and skill
-     usage plan, implement only the current in-scope slice, and stop on a
-     blocked `Proceed condition` or contradictory local evidence.
+     usage plan's per-step routes, implement only the current in-scope slice,
+     and stop on a blocked `Proceed condition` or contradictory local evidence.
+12. **Run the plan self-review gate**
+   - Run this gate after the draft artifact exists and before the concise
+     user-facing summary.
+   - Re-read the artifact as a later implementer and check at least:
+     step-to-skill-route completeness, unavailable-skill leakage, evidence
+     labels, acceptance-criteria/test ordering, plan-only boundary, proceed
+     condition, and unresolved `Unproven` implementation blockers.
+   - If the gate finds a material issue, correct the artifact before responding.
+     Do not record an issue as "noted" while leaving the artifact inconsistent.
+   - Record the outcome in `Plan self-review gate`, including checks performed,
+     corrections made, and any remaining material issues. If remaining material
+     issues exist, the `Proceed condition` must block or clearly state the
+     required decision/proof.
 
 ## Handling Incorrect or Impossible Requests
 
@@ -418,6 +575,8 @@ If the user explicitly chooses to continue with an unproven assumption:
 - Record the impact area: feasibility, behavior, data, integration, performance,
   security, UX, cost, or schedule.
 - Keep the evidence label as `Accepted risk`.
+- Record `Phase relevance` so the risk is tied to a current conditional step,
+  future deferred decision, or non-implementation follow-up.
 - Include the fastest proof path and revisit trigger.
 - Make implementation steps conditional where the unproven assumption could
   invalidate the plan.
@@ -427,9 +586,9 @@ credential-exposing actions. Those require proof or a safer alternative.
 
 ## Standard Plan Artifact
 
-Use this structure for the implementation-ready plan file. Keep it compact for
-small tasks, but preserve the order: requirements and tests come before
-implementation.
+Use this structure for the implementation-ready plan file. Keep `light` plans
+compact, but preserve the order: requirements and tests come before
+implementation. Compact output reduces rendering, not planning discipline.
 
 The `Implementation plan` section is handoff for a later execution request. It
 does not authorize the planner to add active implementation tasks or edit
@@ -440,6 +599,11 @@ non-plan files in the same response.
 
 ## Goal
 - [What the user wants to accomplish and for whom]
+
+## Plan depth
+- Mode: `light` | `strict`
+- Rationale:
+- Escalation trigger checked:
 
 ## Verified facts and sources
 | Claim | Evidence | Source | Impact |
@@ -454,10 +618,25 @@ non-plan files in the same response.
 - Item:
 - Options or decision:
 - Evidence:
+- Phase relevance: current-slice implementation blocker | proof before implementation | deferred decision | non-implementation follow-up
 - Recommended path:
 
 ## Acceptance criteria
 - [Observable pass/fail criterion]
+
+[For `strict` plans, insert only matching high-risk sections before the test
+plan. For `light` plans, omit non-applicable sections and record the
+evidence-backed reason in `Plan integrity gates`.]
+
+## Behavior contract inventory
+- [Only when the slice touches existing behavior.]
+
+## Behavioral equivalence analysis
+- [Include only when the slice touches existing behavior.]
+
+## Failure-pattern checks
+- [Include only when high-risk checklist sections apply; select matching
+  sections and record near-miss non-selections.]
 
 ## Test plan
 - Acceptance tests:
@@ -466,6 +645,9 @@ non-plan files in the same response.
 - Manual or visual checks:
 
 ## Plan integrity gates
+[For `light` plans, collapse not-applicable gates into concise evidence-backed
+lines. For `strict` plans, keep applied high-risk evidence visible.]
+
 - Fact cleanup gate:
   - Status or not-applicable reason:
   - Search scope:
@@ -479,6 +661,11 @@ non-plan files in the same response.
   - Status or not-applicable reason:
   - Important contracts:
   - Blockers before implementation or alternative proof paths:
+- High-risk controls:
+  - Status or not-applicable reason:
+  - Behavior inventory / equivalence / recovery controls applied:
+  - Diagnostic-finding restraint, success-criteria freeze, plan-body firewall,
+    and failure-pattern applicability record:
 - Generality gate:
   - Status or not-applicable reason:
   - Concrete examples, fixtures, memories, or historical cases that influenced
@@ -489,14 +676,12 @@ non-plan files in the same response.
   - Overfit risks and scope corrections:
 
 ## Skill usage plan
-- Skill:
-- Availability source:
-- Use when:
-- Matching reason:
-- Fallback if unavailable:
-- [If no optional skill was verified, include the same fields with
-  `Skill: No matching optional skill verified`, `Use when: Not applicable`, and
-  `Matching reason: Not applicable`.]
+| Plan step | Skill route | Availability source | Use when | Matching reason | Fallback if unavailable |
+| --- | --- | --- | --- | --- | --- |
+| [Step identifier from Discovery plan, Implementation plan, Test plan, Plan self-review gate, or Commit checkpoints] | [Verified matching skill, `No matching optional skill verified`, or `No skill needed`] | [Visible session metadata, user-supplied list, project instructions, local skill metadata, or `Not applicable`] | [Exact timing for this step] | [Why the route matches, or why no skill is needed/no match was verified] | [How to proceed if the skill is unavailable, or the normal-plan fallback for no-skill/no-match routes] |
+
+[A `light` plan may group repeated rows only when this cell names every covered
+step ID and every other route field is identical.]
 
 ## Implementation plan
 1. [Proof or setup step, if needed]
@@ -515,21 +700,32 @@ non-plan files in the same response.
 - Item:
 - Evidence label: `Unproven` | `Accepted risk`
 - Impact:
+- Phase relevance: current-slice implementation blocker | proof before implementation | deferred decision | non-implementation follow-up
 - Fastest proof path:
 - Revisit trigger:
 
 ## Implementation handoff
 - When implementing this plan, treat this document as authoritative. Re-check
   local facts before editing, follow the acceptance criteria, test plan, and
-  skill usage plan, implement only the current in-scope slice, and stop if the
-  `Proceed condition` is blocked or local evidence contradicts the plan. This
-  plan artifact is not implementation authorization; code, tests, non-plan docs,
-  evals, configs, changelogs, commits, and other non-plan edits require a
-  separate execution request.
+  skill usage plan's per-step routes, implement only the current in-scope slice,
+  and stop if the `Proceed condition` is blocked or local evidence contradicts
+  the plan. This plan artifact is not implementation authorization; code, tests,
+  non-plan docs, evals, configs, changelogs, commits, and other non-plan edits
+  require a separate execution request.
+
+## Plan self-review gate
+- Status:
+- Checks performed: step-to-skill-route completeness, unavailable-skill leakage,
+  evidence labels, acceptance-criteria/test ordering, plan-only boundary,
+  proceed condition, and unresolved `Unproven` implementation blockers.
+- Corrections made:
+- Remaining material issues:
+- [For `light` plans, keep this concise while still recording corrections.]
 
 ## Proceed condition
 - [State whether implementation is ready, conditional on accepted risk, or
-  blocked pending proof/user decision.]
+  blocked pending proof/user decision. Deferred decisions outside the current
+  slice do not block implementation after acceptance criteria are narrowed.]
 ```
 
 For discovery-only phases, replace `Implementation plan` with `Discovery plan`
@@ -546,6 +742,15 @@ Before finalizing the plan, check that:
 - The plan artifact uses stable English section headings and preserves
   user-authored intent, requirements, quoted material, and domain terms in their
   original language.
+- The plan states `light` or `strict` depth, and the selected depth matches the
+  actual risk surface.
+- `light` plans use compact rendering only to collapse not-applicable detail;
+  they still include evidence labels, acceptance criteria, tests, per-step
+  skill routes, self-review, and a proceed condition.
+- `strict` plans are used for existing-behavior work, high-risk controls,
+  external contracts, destructive risk, diagnostic findings, recovery or
+  replacement work, auth/security/billing, data migrations, or current-slice
+  implementation blockers.
 - The user-facing reply is a concise summary in the resolved language and does
   not duplicate the full artifact unless file output was unavailable or declined.
 - Every implementation-affecting claim has an evidence label.
@@ -568,6 +773,18 @@ Before finalizing the plan, check that:
   proof path when an important contract cannot be verified as planned.
 - The `Generality gate` treats examples, fixtures, project memories, and past
   failures as sampled cases, not exhaustive lists or mandatory branches.
+- When existing behavior is touched, the plan includes a behavior contract
+  inventory before behavioral equivalence analysis, or an evidence-backed
+  not-applicable rationale.
+- Replacement, restoration, rollback, and rewrite plans are anchored to
+  known-good evidence, or the plan is reframed as discovery or net-new behavior
+  design with implementation blocked.
+- Diagnostic-finding, review, audit, and analyzer-driven plans apply the
+  success-criteria freeze and plan-body firewall so the current slice corrects
+  the finding without importing adjacent hardening by default.
+- Failure-pattern checks are selective: applicable high-risk sections are
+  answered and near-miss non-selections are recorded, but the full checklist is
+  not pasted into ordinary plans.
 - Concrete examples that affect the plan are mapped to abstract planning
   dimensions before they influence scope, acceptance criteria, tests, or
   implementation order.
@@ -586,10 +803,36 @@ Before finalizing the plan, check that:
 - Generality checks do not weaken local evidence, erase supplied domain details,
   or make the plan less specific to the user's current request.
 - The skill usage plan names only verified available skills with timing and
-  fallback, or records `No matching optional skill verified` with the same
+  fallback, or records `No matching optional skill verified` / `No skill needed`
+  with the same availability source, timing, matching reason, and fallback
+  fields.
+- The skill usage plan maps every discovery, implementation, verification,
+  plan self-review, and commit-checkpoint step to a route. A global skill list
+  without per-step assignment fails this check.
+- Grouped `light` route rows name every covered step ID and share identical
   availability source, timing, matching reason, and fallback fields.
+- Every skill route has the required fields: step identifier, selected skill or
+  explicit no-skill/no-match value, availability source, when to use it,
+  matching reason, and fallback.
+- The skill usage plan does not require unavailable skills, hard-code a fixed
+  companion skill set, or route a step to an installed skill whose description
+  does not match that step.
 - Implementation steps do not rely on unlabeled assumptions.
+- The proceed condition blocks implementation whenever a current-slice
+  implementation blocker remains `Unproven`, unless the plan records an
+  explicit scoped `Accepted risk` that supports only that conditional step.
+- Optional product constants, future enhancements, and adjacent decisions are
+  deferred instead of blocking the current slice after acceptance criteria are
+  narrowed to evidence-backed behavior.
 - The implementation handoff is present, self-contained, and does not require
   unverified or unavailable skills.
+- The `Plan self-review gate` ran after the draft artifact and before the
+  concise user summary. It checked step-to-skill-route completeness,
+  unavailable-skill leakage, evidence labels, acceptance-criteria/test ordering,
+  plan-only boundary, proceed condition, and unresolved `Unproven`
+  implementation blockers.
+- Any material issue found by self-review was corrected in the artifact before
+  final response. A self-review that notes a material issue but leaves the plan
+  unchanged fails this check.
 - Accepted risks are explicit, scoped, and revisitable.
 - The user-facing summary language follows the configured precedence.

@@ -11,6 +11,25 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- `vibe-planning` now owns high-risk planning safeguards formerly split out in
+  `vibe-planning-guard`: behavior-contract inventory before behavioral
+  equivalence analysis for existing-behavior work, known-good recovery checks
+  for replacement/restoration/rollback/rewrite planning, success-criteria freeze
+  and plan-body firewall for diagnostic-finding-driven plans, selective
+  failure-pattern checks for high-risk surfaces, and blocked proceed conditions
+  for unproven current-slice implementation blockers.
+- `vibe-planning` now requires per-step skill routing in generated plan
+  artifacts, covering discovery, implementation, verification, self-review, and
+  commit-checkpoint steps with a verified matching skill, explicit no-match, or
+  no-skill route plus fallback. Plans also require a corrective self-review gate
+  before the concise user summary.
+- `vibe-planning` now distinguishes `light` compact rendering from `strict`
+  high-risk planning, and triages `Unproven` items into current-slice blockers,
+  proof-before-implementation work, deferred decisions, or non-implementation
+  follow-ups so optional future decisions do not block bounded slices.
+
 ## [vibe-debug-fix 1.0.0] - 2026-05-13
 
 ### Added
