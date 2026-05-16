@@ -1,0 +1,133 @@
+{
+  "schema_version": "1.0.0",
+  "skill_name": "vibe-clarify-requirements",
+  "purpose": "External eval set for vibe-clarify-requirements. Prompts live outside skills/ so they are not bundled as skill content. Covers chat-only requirement clarification before implementation planning, small-request question limits, broad confirmation checklists, brainstorming for creative requirement exploration, downstream-workflow neutrality, non-technical communication, scope boundaries, defaults versus decisions, and readiness states.",
+  "common_assertions": [
+    "Output is chat-only requirement clarification: it does not create or edit files, provide patches, write tests, produce a full implementation plan, run commands, make commits, prepare a release, or claim implementation work is complete.",
+    "Output separates confirmed requirements, assumptions, reasonable defaults, user decisions, out-of-scope items, success criteria, open risks or unknowns, and planning readiness instead of blending them into a single recommendation.",
+    "Output does not require, name, or route to a specific downstream skill or workflow; it may refer generically to a next phase or implementation planning after user approval.",
+    "For small localized requests, output asks no more than three direct questions and proposes reasonable defaults where safe.",
+    "For broad or highly unclear requests with more than three material decisions, output uses a grouped confirmation checklist rather than a long interrogation.",
+    "When creative exploration is useful, output presents brainstormed ideas as candidate options with tradeoffs and does not treat unchosen ideas as confirmed requirements.",
+    "Output marks inferred behavior as an assumption or proposed default, not as a confirmed user requirement.",
+    "Output keeps adjacent features out of scope unless the user explicitly includes them in the first useful slice.",
+    "Output does not put unconfirmed adjacent capabilities in `Proposed Scope` with a `subject to confirmation` qualifier; they stay in `Out of Scope`, `Decisions Needed`, or candidate options until selected.",
+    "Output uses the user's language for the chat-facing brief while preserving code identifiers, paths, commands, API names, and product terms."
+  ],
+  "evals": [
+    {
+      "id": "E01",
+      "name": "Small profile UI clarification",
+      "prompt": "I want users to be able to edit their display name on the profile screen, but I have not decided the details yet. Make it feel right.",
+      "expected_output": "The agent returns a concise requirements brief for display-name editing, proposes a small first scope, asks at most three direct questions, and stops for confirmation without writing an implementation plan.",
+      "files": [],
+      "expectations": [
+        "Uses the user's active language for the user-facing brief.",
+        "Keeps the first scope limited to display-name editing.",
+        "Separates confirmed goal from assumptions or proposed defaults such as save behavior, validation, and cancel/reset behavior.",
+        "Asks no more than three direct questions.",
+        "Defines practical success criteria such as editing, saving, validation, and visible feedback without claiming implementation details.",
+        "Marks readiness as `Conditional for planning` or equivalent if product decisions remain.",
+        "Does not plan code edits, tests, files, or commits."
+      ]
+    },
+    {
+      "id": "E02",
+      "name": "Broad notification request uses checklist",
+      "prompt": "I want the whole notification area to feel right. Email, SMS, push notifications, frequency settings, an admin screen, and delivery logs all sound useful. What do we need to decide?",
+      "expected_output": "The agent avoids a long question list and renders a grouped confirmation checklist that separates blocking first-scope decisions, safe defaults, and later decisions.",
+      "files": [],
+      "expectations": [
+        "Uses a confirmation checklist instead of asking many direct questions.",
+        "Groups items into blocking decisions, defaults that can be accepted or overridden, and later decisions.",
+        "Recommends a bounded first useful scope rather than treating every notification channel and admin surface as immediate scope.",
+        "Explains SMS and push uncertainty in product terms such as cost, permission, provider setup, or opt-in behavior without inventing provider facts.",
+        "Keeps admin screens and delivery logs out of the first slice unless the user confirms them.",
+        "Includes a planning-readiness state that reflects unresolved channel and behavior decisions.",
+        "Does not name or require a specific downstream workflow."
+      ]
+    },
+    {
+      "id": "E03",
+      "name": "Immediate coding request still clarifies",
+      "prompt": "Just start coding a CSV import feature. I only know it should upload a file and somehow create contacts.",
+      "expected_output": "The agent stops at requirement clarification because file format, validation, duplicate handling, preview behavior, permissions, and persistence rules are underspecified.",
+      "files": [],
+      "expectations": [
+        "Does not provide code, patches, file edits, or implementation steps.",
+        "Identifies that upload, parsing, validation, duplicate handling, preview behavior, permissions, and persistence rules may change what gets built.",
+        "Separates a minimal proposed first scope from later enhancements.",
+        "Uses a checklist or concise decision list if more than three material choices are open.",
+        "Marks readiness as `Conditional for planning` or `Not ready for planning` until blocking data and behavior decisions are answered.",
+        "Does not treat `somehow create contacts` as a confirmed data contract."
+      ]
+    },
+    {
+      "id": "E04",
+      "name": "Downstream workflow neutrality",
+      "prompt": "Before any planning tool or special workflow gets involved, help me clarify a billing settings change. Users should be able to choose invoice email recipients, but I don't want this tied to a specific agent skill.",
+      "expected_output": "The agent clarifies billing-recipient requirements in chat and avoids naming, requiring, or routing to any downstream skill or workflow.",
+      "files": [],
+      "expectations": [
+        "Does not name or require any downstream skill, planning tool, or special workflow.",
+        "Clarifies billing-recipient behavior, permissions, validation, auditability, and notification consequences at the requirement level.",
+        "Marks billing and permission choices as blocking or high-impact decisions where appropriate.",
+        "Keeps adjacent billing features such as payment methods, tax settings, invoice templates, or plan changes out of scope unless requested.",
+        "Uses planning-readiness language based on unresolved decisions.",
+        "Stops after the requirements brief."
+      ]
+    },
+    {
+      "id": "E05",
+      "name": "Non-technical checkout wording",
+      "prompt": "I am not technical. On the checkout screen, shipping, coupons, and the final total are hard to understand. I want customers to feel confident before buying.",
+      "expected_output": "The agent writes a plain brief that translates checkout concerns into observable requirements and decisions without implementation jargon.",
+      "files": [],
+      "expectations": [
+        "Uses practical language suitable for a non-technical user.",
+        "Translates `feel confident before buying` into observable outcomes such as clear shipping, coupon, and final total display while keeping it as an interpretation if not confirmed.",
+        "Separates confirmed pain points from assumptions about layout, copy, calculation, and error states.",
+        "Asks only decisions that affect user experience or business rules, such as coupon failure messaging or when shipping is known.",
+        "Defines success criteria in shopping-flow terms rather than framework or database terms.",
+        "Marks readiness as `Conditional for planning` if business rules remain unresolved."
+      ]
+    },
+    {
+      "id": "E06",
+      "name": "Contradictory migration scope",
+      "prompt": "We need to migrate saved reports to the new format, but don't change old reports and don't add compatibility code. It has to be safe and invisible to users.",
+      "expected_output": "The agent surfaces the contradiction between migration, unchanged old reports, no compatibility code, and invisible behavior, then stops for user decisions.",
+      "files": [],
+      "expectations": [
+        "Identifies the contradiction instead of smoothing it into a confident requirement.",
+        "Separates possible interpretations such as copy-on-read, one-time migration, dual reader, or no migration.",
+        "Explains the consequence of each choice in user or data-safety terms.",
+        "Marks data compatibility and rollback expectations as blocking decisions.",
+        "Does not propose implementation details as if the contradiction were resolved.",
+        "Marks readiness as `Not ready for planning` or equivalent until the migration contract is chosen."
+      ]
+    },
+    {
+      "id": "E07",
+      "name": "Creative dashboard brainstorming stays optional",
+      "prompt": "The direction is not decided yet. I want a team activity dashboard that people actually want to check every morning. Use a few creative ideas while clarifying the requirements.",
+      "expected_output": "The agent offers a small set of creative dashboard directions with fit and tradeoff notes, keeps them as options until the user chooses, and then asks which direction should become the requirement basis.",
+      "files": [],
+      "expectations": [
+        "Uses the user's active language for the user-facing brief.",
+        "Offers two to five creative options or directions rather than one asserted solution.",
+        "For each option, includes when it fits and a practical tradeoff.",
+        "States what requirement would be adopted if the user chooses an option.",
+        "Does not treat all brainstormed ideas as confirmed requirements.",
+        "Keeps the output chat-only and does not write an implementation plan.",
+        "Marks readiness as `Conditional for planning` or equivalent until the user chooses a direction."
+      ]
+    }
+  ],
+  "scoring": {
+    "common_assertion_weight": 0.45,
+    "per_eval_expectation_weight": 0.55,
+    "pass_threshold": 0.8,
+    "notes": "These evals focus on observable requirement-clarification behavior rather than subjective writing quality. They pressure the skill's main contracts: chat-only output, question-load control, broad checklist mode, downstream-workflow neutrality, scope separation, and readiness discipline."
+  }
+}

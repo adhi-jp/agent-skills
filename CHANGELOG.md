@@ -11,6 +11,20 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Added
+
+- `vibe-clarify-requirements` adds a chat-only pre-planning requirements
+  clarification skill package and eval prompts for rough, ambiguous,
+  contradictory, creative, or non-technical vibe-coding goals. It separates
+  confirmed requirements, defaults, decisions, out-of-scope work, assumptions,
+  success criteria, open unknowns, and planning readiness without creating
+  files, writing plans, editing code, running tests, committing, or requiring a
+  named downstream workflow. Creative exploration stays optional: brainstormed
+  options include fit and tradeoff notes, and do not become requirements until
+  the user selects a direction. The skill keeps unconfirmed adjacent
+  capabilities out of `Proposed Scope` instead of adding them with a
+  confirmation qualifier.
+
 ### Changed
 
 - `vibe-planning` now owns high-risk planning safeguards formerly split out in

@@ -1,7 +1,7 @@
 # Agent Skills
 
-Agent skills and eval prompts for vibe-coding plans, review loops, commit
-messages, prose, and Minecraft modding.
+Agent skills and eval prompts for vibe-coding requirement clarification, plans,
+review loops, commit messages, prose, and Minecraft modding.
 
 ## Current Skill Versions
 
@@ -30,6 +30,21 @@ project structure. It also defines MCP preflight and fallback behavior for
 unavailable or unstable tool servers, dependency source lookup, resource/codec
 validation, GameTest wiring, HUD/client-rendering verification, and narrow
 reference routing for task-relevant playbooks.
+
+### `vibe-clarify-requirements`
+
+Chat-only requirement-clarification skill for rough, ambiguous, contradictory,
+or non-technical vibe-coding goals before implementation planning. It separates
+confirmed requirements, defaults, decisions, out-of-scope work, assumptions,
+success criteria, open unknowns, and planning readiness without creating files,
+writing plans, editing code, running tests, committing, or requiring a named
+downstream workflow. Small requests ask no more than three direct questions;
+broader unclear requests use a confirmation checklist. Creative exploration
+stays optional: brainstormed options include fit and tradeoff notes, and do not
+become requirements until the user selects a direction. Readiness states describe
+planning readiness only; they do not authorize implementation. Unconfirmed
+adjacent features stay out of the proposed first slice until the user selects
+them.
 
 ### `vibe-planning`
 
@@ -223,6 +238,8 @@ territory.
 
 - `evals/`: repo-level evaluation prompts, fixtures, and scoring notes kept
   outside skill packages
+- `evals/vibe-clarify-requirements/`: external requirement-clarification eval
+  prompts
 - `evals/vibe-planning/`: external planning eval prompts and fixtures
 - `evals/vibe-plan-execution/`: external plan-execution eval prompts and fixtures
 - `evals/vibe-debug-fix/`: external debug/fix pressure prompts spanning rough
@@ -233,6 +250,7 @@ territory.
 - `evals/review-scope-guard/`: external scope-guard eval prompts
 - `evals/writing-style-guide/`: external prose-quality eval prompts
 - `skills/minecraft-modding-workbench/`: Minecraft modding skill package
+- `skills/vibe-clarify-requirements/`: chat-only vibe-coding requirement-clarification skill package
 - `skills/vibe-planning/`: standalone vibe-coding implementation-planning skill package
 - `skills/vibe-plan-execution/`: plan-bound vibe-coding implementation skill package
 - `skills/vibe-debug-fix/`: self-contained vibe-coding debug/fix skill package
