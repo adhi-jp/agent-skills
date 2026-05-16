@@ -24,6 +24,10 @@ use `[Repository] - YYYY-MM-DD`.
   the user selects a direction. The skill keeps unconfirmed adjacent
   capabilities out of `Proposed Scope` instead of adding them with a
   confirmation qualifier.
+- `vibe-writing` adds a consolidated writing skill package and eval prompts for
+  vibe-coding development text, source-code comments and docstrings,
+  README/docs, CHANGELOG and release notes, PR descriptions, UI copy, chat
+  replies, progress updates, final summaries, and commit messages.
 
 ### Changed
 
@@ -43,6 +47,31 @@ use `[Repository] - YYYY-MM-DD`.
   high-risk planning, and triages `Unproven` items into current-slice blockers,
   proof-before-implementation work, deferred decisions, or non-implementation
   follow-ups so optional future decisions do not block bounded slices.
+- `vibe-writing` consolidates the key behavior from `vibe-commit-message` and
+  `writing-style-guide`: LLM-first development text by default, human-reader
+  exceptions, meaning and modality preservation, language and exact-format
+  precedence, explicit absence, useful local anchors, hollow-transition
+  removal, command-inference restraint, durable references, chat-reply rules,
+  source-code documentation guidance, CHANGELOG restraint, and commit-message
+  durability. Deeper commit-message rules now live in
+  `skills/vibe-writing/references/commit-messages.md`.
+- `vibe-writing` now tightens inference restraint for capability statements,
+  commands, and mechanical sync commit messages, and clarifies that requested
+  commit messages should be returned as raw commit text rather than Markdown
+  fenced blocks. Commit-message guidance also now calls out preserving
+  migration and compatibility modality such as `should`, `may`, and `must`,
+  commit-body preserve/cut selection, and performance-message restraint for
+  prior-state inference and implementation-mechanics inventories.
+- `vibe-writing` now clarifies concise boundaries for verbatim tool/log output,
+  bare acknowledgments, support/policy warmth without service promises, and
+  commit-message pre-draft context checks with optional non-trivial body labels.
+
+### Removed
+
+- `vibe-writing` removes the standalone `vibe-commit-message` and
+  `writing-style-guide` skill packages and their live eval owners after moving
+  their selected writing and commit-message contracts into the consolidated
+  skill.
 
 ## [vibe-debug-fix 1.0.0] - 2026-05-13
 

@@ -1,7 +1,7 @@
 # Agent Skills
 
 Agent skills and eval prompts for vibe-coding requirement clarification, plans,
-review loops, commit messages, prose, and Minecraft modding.
+review loops, writing, and Minecraft modding.
 
 ## Current Skill Versions
 
@@ -11,12 +11,10 @@ review loops, commit messages, prose, and Minecraft modding.
 | `vibe-planning` | `3.0.0` |
 | `vibe-plan-execution` | `1.3.0` |
 | `vibe-debug-fix` | `1.0.0` |
-| `vibe-commit-message` | `1.0.1` |
 | `vibe-planning-guard` | `1.3.0` |
 | `codex-review-cycle` | `1.9.0` |
 | `review-scope-guard` | `1.4.0` |
 | `review-fix-cascade-guard` | `1.0.2` |
-| `writing-style-guide` | `1.1.0` |
 
 ## Included Skills
 
@@ -141,22 +139,28 @@ triage, handles degraded verification as non-proof, gives exact user retest
 contracts as soon as local proof is unavailable, and keeps unresolved symptoms
 alive across resume or recurrence.
 
-### `vibe-commit-message`
+### `vibe-writing`
 
-Commit-message writing skill for LLM-readable git history. It keeps Conventional
-Commit subjects outcome-focused and reserves bodies for context the diff cannot
-recover: triggering failures, requirements, constraints, tradeoffs,
-compatibility or rollback notes, verification signals, and deliberate non-goals.
-It discourages file-by-file or test-inventory transcription, translates
-non-durable plan or review references into standalone context, omits bodies for
-self-explanatory mechanical syncs, and covers i18n copy, monorepo contracts,
-dependency updates, release commits, performance work, CI/build automation, and
-security/data-loss fixes while preserving public API names, error codes,
-commands, env vars, and migration anchors. It also applies a fresh-clone-reader
-check so commit messages do not depend on provenance that only exists in the
-author's local checkout or tool session. Verification guidance keeps stable
-proof while omitting machine-specific invocation inputs, and body-formatting
-guidance keeps adjacent list bullets compact through commit handoff.
+Consolidated writing skill for vibe-coding development text, source-code
+comments and docstrings, README/docs, CHANGELOG and release notes, PR
+descriptions, UI copy, chat replies, progress updates, final summaries, and git
+commit messages. It defaults to LLM-optimized development text that preserves
+contracts, evidence, useful local anchors, exact formats, language precedence,
+explicit absence, durable references, and modality such as `must`, `should`, and
+`may`, while avoiding meaningless hard wraps in compact LLM-facing examples and
+list items. Human reader optimization applies only when the artifact's main
+reader is human; docs and guides can still be LLM-first for agent-facing workflows.
+Verbatim tool or log output and bare acknowledgments stay exact, hollow
+transitions are removed when they add no operational value, and support or
+policy warmth must not add service promises.
+Commit-message guidance lives in `references/commit-messages.md` and covers
+outcome-focused Conventional Commit subjects, commit-body preserve/cut selection,
+pre-draft context checks, optional non-trivial body labels,
+fresh-clone-readable references, verification provenance, monorepo and
+multiple-package cohesion, i18n/localization scope, dependency updates,
+performance work, CI/build/publishing changes, security/privacy/data-loss fixes,
+release commits, thin-evidence cases, mechanical syncs, trailer separation,
+compact bullets, and multi-line message transport.
 
 ### `vibe-planning-guard`
 
@@ -219,21 +223,6 @@ usable standalone before any review-fix edit. Manual fallback is valid
 only when it records the same Phase 3 matrix and Phase 5 validation
 evidence as the registered skill path.
 
-### `writing-style-guide`
-
-Principles-first prose-quality skill for durable user-facing artifacts:
-source-code documentation, README, CHANGELOG, commit messages, PR
-descriptions, release notes, and chat replies. Covers concision,
-meaning preservation, no-invented-context discipline, language
-precedence, artifact self-containment with a durable-citation carve-out,
-exact-format obedience, and concrete handling of supplied statuses such
-as tests not run, not measured, or no rollout plan. Required safety,
-security, compliance, data-loss, and irreversible-action warnings stay
-when they change what the reader should do; generic safety theater and
-unsupported rationale are removed. Defers to project conventions and
-active workflows for procedure; only the prose quality is this skill's
-territory.
-
 ## Repository Layout
 
 - `evals/`: repo-level evaluation prompts, fixtures, and scoring notes kept
@@ -245,21 +234,19 @@ territory.
 - `evals/vibe-debug-fix/`: external debug/fix pressure prompts spanning rough
   reports, failed attempts, artifacts, auth, representation, tools, async
   lifecycle, runtime diagnostic probe escalation, continuity, and recurrence
-- `evals/vibe-commit-message/`: external commit-message eval prompts
+- `evals/vibe-writing/`: external writing and commit-message eval prompts
 - `evals/review-fix-cascade-guard/`: external cascade-guard eval prompts
 - `evals/review-scope-guard/`: external scope-guard eval prompts
-- `evals/writing-style-guide/`: external prose-quality eval prompts
 - `skills/minecraft-modding-workbench/`: Minecraft modding skill package
 - `skills/vibe-clarify-requirements/`: chat-only vibe-coding requirement-clarification skill package
 - `skills/vibe-planning/`: standalone vibe-coding implementation-planning skill package
 - `skills/vibe-plan-execution/`: plan-bound vibe-coding implementation skill package
 - `skills/vibe-debug-fix/`: self-contained vibe-coding debug/fix skill package
-- `skills/vibe-commit-message/`: LLM-first commit-message writing skill package
+- `skills/vibe-writing/`: consolidated vibe-coding writing skill package
 - `skills/vibe-planning-guard/`: planning and design-review skill package
 - `skills/codex-review-cycle/`: codex-driven interactive 2-cycle review-and-fix workflow with user-elected extensions
 - `skills/review-scope-guard/`: Definition-of-Done-aware review finding triage, invoked by codex-review-cycle
 - `skills/review-fix-cascade-guard/`: cascade-containment guard invoked by codex-review-cycle before any fix-application edit
-- `skills/writing-style-guide/`: principles-first prose-quality skill for durable artifacts
 - `CHANGELOG.md`: repository-level change history
 
 ## Package Contents
@@ -290,9 +277,10 @@ specific to the skill.
   summary names a local plan file, read that file as the authoritative
   implementation contract. If no concrete plan exists, return to planning before
   coding.
-- `vibe-commit-message` governs commit-message content, not staging or commit
-  execution. It should coexist with project-specific commit workflows and the
-  repo's release rules.
+- `vibe-writing` governs writing quality and commit-message content, not
+  staging, commit execution, PR submission, template changes, or release
+  actions. Project-specific workflows and the repo's release rules take
+  precedence; `vibe-writing` applies to the words inside those constraints.
 - `vibe-planning-guard` is for planning, not implementation. It should stay
   light on tiny, already-clear edits unless the user explicitly asks for
   planning or risk review.
