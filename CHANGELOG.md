@@ -31,6 +31,47 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-clarify-requirements` now treats readiness, confirmation, approval,
+  completed checklists, and "go ahead" handoff wording as later-phase context
+  only; while the skill is active, the chat-only brief stops before same-turn
+  planning, implementation task entries, file edits, tests, verification
+  commands, commits, or changelog changes.
+- `vibe-clarify-requirements` now makes the small-request question budget
+  harder to bypass: extra low-impact unknowns should move to defaults,
+  assumptions, out-of-scope items, or open risks instead of `Decisions Needed`,
+  checklists, or option groups, and option sets need a recommended default the
+  user can accept with one short reply.
+- `vibe-clarify-requirements` now sharpens readiness-state selection:
+  bounded option/default selection remains `Conditional for planning`, while
+  mutually exclusive requirements and unresolved data, safety, compatibility,
+  rollback, or recovery contracts remain `Not ready for planning`.
+- `vibe-clarify-requirements` now reinforces the brainstorming option count so
+  creative clarification returns two to five candidate directions, even when
+  more distinct ideas are available.
+- `vibe-clarify-requirements` now requires bulk-data and irreversible-write
+  safety choices such as explicit preview or review-before-write, duplicate
+  handling, permissions, persistence, and recovery to be classified as defaults,
+  decisions, out-of-scope items, or open unknowns; post-write summaries do not
+  substitute for pre-write preview behavior.
+- `vibe-clarify-requirements` now clarifies readiness wording so exact
+  readiness labels are used, pending default confirmation remains
+  `Conditional for planning`, approved coherent briefs are not downgraded for
+  routine planning checks, ready briefs avoid pending-approval or
+  approval-to-handoff qualifiers, and conditional briefs name both user decisions
+  and local evidence checks when both can change the requirement contract or
+  build shape.
+- `vibe-clarify-requirements` now limits defaults to confirmed scope or
+  cross-cutting choices, prevents defaults from selecting or conditionally
+  pre-staging unselected adjacent surfaces such as admin, reporting, audit,
+  diagnostic, or log storage/retention/search, and keeps surface-specific
+  defaults with the relevant decision or candidate option. It also distinguishes
+  routine planning checks from local evidence that can change scope, data
+  contracts, success criteria, safety, or recovery, including import schema,
+  validation, create path, upload plumbing, and file limits that can alter
+  columns, mapping, persistence, or safety.
+- `vibe-clarify-requirements` now treats auditability for billing, permission,
+  security, account-setting, recipient, and routing changes as requirement
+  behavior rather than satisfying it by only excluding audit-log UI work.
 - `vibe-planning` now owns high-risk planning safeguards formerly split out in
   `vibe-planning-guard`: behavior-contract inventory before behavioral
   equivalence analysis for existing-behavior work, known-good recovery checks

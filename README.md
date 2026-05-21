@@ -36,13 +36,39 @@ or non-technical vibe-coding goals before implementation planning. It separates
 confirmed requirements, defaults, decisions, out-of-scope work, assumptions,
 success criteria, open unknowns, and planning readiness without creating files,
 writing plans, editing code, running tests, committing, or requiring a named
-downstream workflow. Small requests ask no more than three direct questions;
-broader unclear requests use a confirmation checklist. Creative exploration
-stays optional: brainstormed options include fit and tradeoff notes, and do not
-become requirements until the user selects a direction. Readiness states describe
-planning readiness only; they do not authorize implementation. Unconfirmed
-adjacent features stay out of the proposed first slice until the user selects
-them.
+downstream workflow. Small requests ask no more than three direct questions,
+mark recommended defaults for option sets, and move lower-impact unknowns into
+defaults, assumptions, out-of-scope items, or open risks so the user can accept
+the defaults with one short reply. Broader unclear requests use a confirmation
+checklist. Creative exploration stays optional: two to five brainstormed options
+include fit and tradeoff notes, and do not become requirements until the user
+selects a direction. Readiness states use exact planning-readiness labels and
+distinguish bounded option/default confirmation from contradictory or unresolved
+data, safety, compatibility, rollback, and recovery contracts, avoid
+`Ready for planning` when product confirmation still remains, and keep ready
+briefs free of pending-approval or approval-to-handoff qualifiers. Readiness,
+confirmation, approval, or "go ahead" wording stays later-phase context while
+the skill is active; it still stops before same-turn planning, implementation
+task entries, file edits, tests, verification commands, commits, or changelog
+changes. Approved coherent briefs stay ready for planning when only routine
+planning checks remain; conditional readiness names both user decisions and
+local evidence checks when both can change the requirement contract or build
+shape. Defaults stay limited to confirmed scope or cross-cutting choices, and do
+not select or conditionally pre-stage adjacent surfaces such as admin,
+reporting, audit, diagnostic, or log storage/retention/search; surface defaults
+that only apply after selection stay with the relevant decision or candidate
+option. Bulk data or irreversible-write requests explicitly surface write-safety
+choices such as preview or review-before-write, duplicate handling, permissions,
+persistence, and recovery as defaults, decisions, out-of-scope items, or open
+unknowns; post-write summaries do not substitute for pre-write preview behavior.
+Existing schema, validation, create path, upload plumbing, and file-limit checks
+are pre-planning evidence when they can change import columns, mapping, limits,
+persistence, success criteria, or safety.
+Billing, permission, security, account-setting, recipient, and routing changes
+cover auditability as requirement behavior rather than only excluding audit-log
+UI work.
+Unconfirmed adjacent features stay out of the proposed first slice until the
+user selects them.
 
 ### `vibe-planning`
 
