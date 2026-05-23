@@ -1,7 +1,7 @@
 ---
 version: 1.3.0
 name: vibe-plan-execution
-description: Use when the user asks to execute, implement, continue, or apply an existing implementation plan, specification, acceptance criteria, task plan, or vibe-planning output. Do not use for plan creation or coding requests with no concrete plan to bind.
+description: Use when the user asks to execute, implement, continue, or apply an existing implementation plan, specification, acceptance criteria, task plan, or prior planning output. Do not use for plan creation or coding requests with no concrete plan to bind.
 ---
 
 # Vibe Plan Execution
@@ -17,20 +17,21 @@ evidence proves the plan is incorrect, stale, impossible, unsafe, or already
 satisfied. Treat "this looks redundant" as a hypothesis, not as permission to
 skip planned API, specification, implementation, or test work.
 
-If no concrete plan exists, return to planning before coding. `vibe-planning`
-is one valid planning workflow, not a prerequisite for this skill.
+If no concrete plan exists, return to planning before coding. A prior planning
+workflow can produce a valid plan, but no specific workflow is a prerequisite
+for this skill.
 
 ## Plan Sources
 
 This skill executes any concrete bound implementation plan. The plan may come
-from `vibe-planning`, another planning workflow, a hand-written specification,
-an issue, a task list, or the current conversation.
+from a planning workflow, a hand-written specification, an issue, a task list,
+or the current conversation.
 
-Plans produced by `vibe-planning` need one extra check because they usually
-write a Markdown plan artifact and return only a short user-facing summary. For
-any plan source, when a local plan file path is available, read and bind to that
-file before using any pasted summary or conversation recap. When the plan has
-these sections, read them directly:
+Planning workflows that write a Markdown plan artifact and return only a short
+user-facing summary need one extra check. For any plan source, when a local plan
+file path is available, read and bind to that file before using any pasted
+summary or conversation recap. When the plan has these sections, read them
+directly:
 
 - `Goal`, `Requirements`, and `Acceptance criteria` define the behavior
   contract for the current slice.
@@ -38,6 +39,9 @@ these sections, read them directly:
   that may have changed since planning.
 - `Test plan` defines the first verification path unless local evidence shows it
   is stale or insufficient.
+- `Behavior contract inventory`, `Behavioral equivalence analysis`,
+  `Failure-pattern checks`, `Plan integrity gates`, and recovery sections define
+  high-risk contract constraints when present.
 - `Implementation plan` defines the edit order; do not add adjacent work.
 - `Risks and unproven items` and `Proceed condition` decide whether coding
   starts, stays conditional, or returns to planning.
@@ -111,6 +115,15 @@ Do not use this skill for:
 - Prefer the repository's existing patterns and the smallest change that satisfies
   the current slice. Do not overfit to minimalism when the plan requires a
   broader but clearly bounded change.
+- Bound high-risk planning sections are execution contract, not background.
+  Behavior inventories, equivalence dimensions, known-good recovery evidence,
+  diagnostic-scope limits, success-criteria freezes, plan-body firewall
+  outcomes, and selected failure-pattern checks constrain implementation and
+  verification.
+- If the bound plan leaves a current-slice implementation assumption
+  `Unproven`, do not implement that slice unless the plan records an explicit
+  `Accepted risk` for the conditional step. Risk level by itself never clears
+  an `Unproven` implementation blocker.
 
 ## Evidence Classes
 
@@ -174,8 +187,13 @@ deviation.
      and the current slice being implemented.
    - Extract in-scope behavior, out-of-scope behavior, acceptance criteria,
      tests, constraints, and explicit non-goals.
+   - Extract any high-risk planning sections: behavior inventory, equivalence
+     dimensions, recovery or known-good evidence, diagnostic-scope controls,
+     failure-pattern applicability, plan integrity gates, and current-slice
+     `Unproven` or `Accepted risk` items.
    - Quote or paraphrase the plan's `Proceed condition` when it has one. For
-     `vibe-planning` artifacts, read it before other sections.
+     artifact-backed planning outputs, read the `Proceed condition` before other
+     sections.
    - If a user-facing summary differs from the full plan artifact, treat the
      artifact as authoritative and stop for a decision when the difference
      changes behavior, scope, tests, risks, or the proceed condition.
@@ -187,6 +205,9 @@ deviation.
      product limits, permissions, data contracts, and unstable facts.
    - Compare the plan with local reality. Record conflicts before choosing an
      implementation path.
+   - Treat omitted or stale high-risk sections as plan problems when their
+     preconditions still apply locally; do not silently replace them with a
+     weaker proof path.
    - Run the Plan Deviation Gate before skipping, reordering, narrowing, or
      replacing any planned proof, API/specification check, test, or edit.
 3. **Lock the current slice**
@@ -201,6 +222,10 @@ deviation.
    - Follow the test or proof strategy in the plan.
    - For bug fixes, reproduce the failure or add a regression test when feasible.
    - For refactors, protect existing behavior with equivalence checks.
+   - When the plan includes behavior inventory, equivalence, recovery, or
+     selected failure-pattern checks, verify every current-slice contract those
+     sections marked as `must preserve`, `Changed (in scope)`, or selected for
+     high-risk proof.
    - For UI work, verify states and responsive behavior the plan calls out.
 5. **Implement conservatively**
    - Reuse local helpers, conventions, naming, and architecture.
@@ -262,9 +287,9 @@ When stopping, explain:
   user can see which artifact controls the work.
 - Include the plan's `Proceed condition` in the initial binding note or the
   first blocker notice, even when later local evidence overrides it.
-- When no concrete plan exists, say implementation is blocked and name planning
-  as the next step. Mention `vibe-planning` only when it is the appropriate or
-  active planning workflow.
+- When no concrete plan exists, say implementation is blocked and planning is
+  the next step. Refer to a specific planning workflow only when it is
+  appropriate or already active in the context.
 - For non-technical users, describe consequences in workflow terms before naming
   the implementation detail. Keep evidence labels explicit but light, such as
   "根拠: `Plan` ..." or "Evidence: `Plan` ...".

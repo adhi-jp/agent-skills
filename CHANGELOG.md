@@ -94,6 +94,22 @@ use `[Repository] - YYYY-MM-DD`.
   high-risk planning, and triages `Unproven` items into current-slice blockers,
   proof-before-implementation work, deferred decisions, or non-implementation
   follow-ups so optional future decisions do not block bounded slices.
+- `vibe-plan-execution` now treats bound high-risk plan sections for behavior
+  inventory, behavioral equivalence, known-good recovery, diagnostic-scope
+  controls, and selected failure-pattern checks as execution contract that
+  cannot be skipped or weakened without the existing Plan Deviation Gate.
+- `vibe-plan-execution` now describes plan sources with neutral planning
+  workflow wording, preserving artifact-backed plan binding without naming a
+  companion planning skill as special or required.
+- `vibe-plan-execution` eval prompts now keep executor-visible expected-output
+  summaries less prescriptive, leaving target decisions in grader assertions
+  instead of handing them to both compared configs.
+- `vibe-plan-execution` eval assertions now keep high-risk planning-section
+  checks scenario-specific instead of counting them as mostly not-applicable
+  common assertions.
+- `vibe-plan-execution` commit-checkpoint eval input now states the contact
+  import data-handling, permission, and external-contract assumptions so the
+  scenario tests commit discipline instead of ambiguous plan concreteness.
 - `vibe-writing` consolidates the key behavior from `vibe-commit-message` and
   `writing-style-guide`: LLM-first development text by default, human-reader
   exceptions, meaning and modality preservation, language and exact-format

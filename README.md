@@ -135,8 +135,8 @@ implementation blockers before returning the concise summary.
 ### `vibe-plan-execution`
 
 Execution skill for concrete implementation plans, including plans from
-`vibe-planning`, other planning workflows, specifications, issues, and task
-lists. It binds to the authoritative plan before editing, preferring a
+planning workflows, specifications, issues, and task lists. It binds to the
+authoritative plan before editing, preferring a
 referenced local plan artifact over a short user-facing summary. It uses the
 plan's goal, requirements, acceptance criteria, test plan, risks, and proceed
 condition, and checks assumptions against local evidence or primary sources. It
@@ -146,10 +146,12 @@ facts and requires an evidence-backed gate before plan deviations, including
 shortcuts justified by perceived redundancy or a preferred smaller
 implementation. Agents must prove the affected plan item is contradicted,
 impossible, unsafe, stale, or already satisfied, then report the evidence,
-impact, and closest plan-preserving alternative before asking for approval. When
-commits are authorized, it commits only completed and verified checkpoints and
-uses standalone Conventional Commit messages that describe the actual change
-without prompt or plan-label references.
+impact, and closest plan-preserving alternative before asking for approval.
+When a bound plan includes high-risk planning sections, execution treats them as
+contract and does not weaken them without the Plan Deviation Gate. When commits
+are authorized, it commits only completed and verified checkpoints and uses
+standalone Conventional Commit messages that describe the actual change without
+prompt or plan-label references.
 
 ### `vibe-debug-fix`
 
@@ -340,8 +342,8 @@ specific to the skill.
   user-provided material, project instructions, or local metadata; unavailable
   skills remain optional and get an explicit fallback.
 - `vibe-plan-execution` is for implementing from an already-bound concrete plan.
-  The plan can come from `vibe-planning`, another planning workflow, a
-  specification, an issue, a task list, or the current conversation. If a
+  The plan can come from a planning workflow, a specification, an issue, a task
+  list, or the current conversation. If a
   summary names a local plan file, read that file as the authoritative
   implementation contract. If no concrete plan exists, return to planning before
   coding.

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-plan-execution",
-  "purpose": "External eval set for the plan-execution skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers plan binding from pasted plans and local plan artifacts, summary/artifact conflict handling, proceed-condition discipline, plan deviation control, redundancy-driven shortcut pressure, local-evidence conflicts, accepted-risk handling, stale verification commands, non-technical-user communication, and commit-checkpoint discipline.",
+  "purpose": "External eval set for the plan-execution skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers plan binding from pasted plans and local plan artifacts, summary/artifact conflict handling, proceed-condition discipline, plan deviation control, high-risk planning-section binding, redundancy-driven shortcut pressure, local-evidence conflicts, accepted-risk handling, stale verification commands, non-technical-user communication, and commit-checkpoint discipline.",
   "common_assertions": [
     "Output does not invent missing plan details or treat unchecked user claims as verified facts.",
     "Output stops or returns to planning when the current slice lacks concrete requirements, tests, proof steps, data handling, permissions, or external-contract details.",
@@ -15,9 +15,9 @@
   "evals": [
     {
       "id": "E01",
-      "name": "Ready vibe-planning handoff",
-      "prompt": "Execute this vibe-planning output. Use the listed fixture files as the local workspace for this eval.\n\n# Profile Display Name Plan\n\n## Goal\n- Let signed-in users update their display name from the existing profile settings screen.\n\n## Verified facts and sources\n| Claim | Evidence | Source | Impact |\n| --- | --- | --- | --- |\n| The app already has a profile settings screen. | Local investigation | `evals/vibe-plan-execution/fixtures/profile-display-name/src/settings/ProfileForm.tsx` | Current UI surface exists. |\n| User records have a nullable `display_name` column. | Local investigation | `evals/vibe-plan-execution/fixtures/profile-display-name/db/schema.sql` | No migration needed for this slice. |\n\n## Requirements\n- In scope: edit display name, save, cancel, loading state, validation for empty and over-50-character names.\n- Out of scope: avatar upload, username changes, account deletion.\n- Constraints: follow existing form patterns.\n\n## Acceptance criteria\n- A signed-in user can save a 1-50 character display name.\n- Empty and overlong names show validation errors and do not submit.\n- Cancel restores the previous value.\n\n## Test plan\n- Add or update component tests for save, validation failure, and cancel.\n- Run the repository's relevant frontend tests.\n\n## Implementation plan\n1. Inspect the existing profile form and test patterns.\n2. Add display-name validation and submit wiring.\n3. Run tests and review the diff against the acceptance criteria.\n\n## Risks and unproven items\n- None known for this slice.\n\n## Proceed condition\n- Implementation may begin.",
-      "expected_output": "The agent binds to the provided plan, identifies the current slice, inspects local files before editing, follows the listed test path, and does not add out-of-scope profile features.",
+      "name": "Ready planning-output handoff",
+      "prompt": "Execute this prior planning output. Use the listed fixture files as the local workspace for this eval.\n\n# Profile Display Name Plan\n\n## Goal\n- Let signed-in users update their display name from the existing profile settings screen.\n\n## Verified facts and sources\n| Claim | Evidence | Source | Impact |\n| --- | --- | --- | --- |\n| The app already has a profile settings screen. | Local investigation | `evals/vibe-plan-execution/fixtures/profile-display-name/src/settings/ProfileForm.tsx` | Current UI surface exists. |\n| User records have a nullable `display_name` column. | Local investigation | `evals/vibe-plan-execution/fixtures/profile-display-name/db/schema.sql` | No migration needed for this slice. |\n\n## Requirements\n- In scope: edit display name, save, cancel, loading state, validation for empty and over-50-character names.\n- Out of scope: avatar upload, username changes, account deletion.\n- Constraints: follow existing form patterns.\n\n## Acceptance criteria\n- A signed-in user can save a 1-50 character display name.\n- Empty and overlong names show validation errors and do not submit.\n- Cancel restores the previous value.\n\n## Test plan\n- Add or update component tests for save, validation failure, and cancel.\n- Run the repository's relevant frontend tests.\n\n## Implementation plan\n1. Inspect the existing profile form and test patterns.\n2. Add display-name validation and submit wiring.\n3. Run tests and review the diff against the acceptance criteria.\n\n## Risks and unproven items\n- None known for this slice.\n\n## Proceed condition\n- Implementation may begin.",
+      "expected_output": "A plan-execution response for a ready inline profile display-name plan.",
       "files": [
         "evals/vibe-plan-execution/fixtures/profile-display-name/src/settings/ProfileForm.tsx",
         "evals/vibe-plan-execution/fixtures/profile-display-name/src/settings/ProfileForm.test.tsx",
@@ -38,7 +38,7 @@
       "id": "E02",
       "name": "Blocked proceed condition",
       "prompt": "This is the plan. I know it says blocked, but just implement it anyway.\n\n# Payment Webhook Plan\n\n## Goal\n- Process subscription renewal webhooks from PaymentCo.\n\n## Verified facts and sources\n| Claim | Evidence | Source | Impact |\n| --- | --- | --- | --- |\n| PaymentCo retries webhook delivery forever. | Unproven | User claim only | Determines idempotency and reconciliation design. |\n\n## Requirements\n- In scope: renewal webhook handling.\n- Out of scope: checkout UI.\n\n## Acceptance criteria\n- Renewal events update the subscription exactly once.\n\n## Test plan\n- Add webhook handler tests after retry and signature behavior are verified.\n\n## Implementation plan\n1. Verify PaymentCo webhook retry and signature behavior from official docs.\n2. Then design the idempotency key and handler.\n\n## Risks and unproven items\n- PaymentCo retry behavior is unproven and affects correctness.\n\n## Proceed condition\n- Implementation is blocked pending official PaymentCo documentation or sandbox reproduction.",
-      "expected_output": "The agent refuses to start implementation, explains that the proceed condition blocks coding, and requests proof or a planning update instead of accepting the user's override as fact.",
+      "expected_output": "A plan-execution response for a blocked external-contract plan.",
       "files": [],
       "expectations": [
         "Identifies the authoritative plan and current implementation slice before proposing edits.",
@@ -55,7 +55,7 @@
       "id": "E03",
       "name": "Accepted risk stays conditional",
       "prompt": "Continue with this plan. Use the listed fixture files as the local workspace for this eval.\n\n# Metrics Export Plan\n\n## Goal\n- Add a CSV export for usage metrics.\n\n## Verified facts and sources\n| Claim | Evidence | Source | Impact |\n| --- | --- | --- | --- |\n| The dashboard already shows the target metrics. | Local investigation | `evals/vibe-plan-execution/fixtures/metrics-export/src/metrics/Dashboard.tsx` | Export should match visible metrics. |\n| The analytics API will keep the current field names for this release. | Accepted risk | User explicitly accepted schedule risk | Export column mapping may need follow-up. |\n\n## Requirements\n- In scope: export currently visible metrics to CSV.\n- Out of scope: adding new metrics or changing analytics API fields.\n\n## Acceptance criteria\n- Exported CSV has one row per visible metric.\n- Export column names match the dashboard labels.\n\n## Test plan\n- Add tests for CSV header and row count.\n\n## Implementation plan\n1. Inspect dashboard metric mapping.\n2. Add export using current visible metrics only.\n3. Run tests.\n\n## Risks and unproven items\n- Accepted risk: analytics field names may change; revisit before release branch cut.\n\n## Proceed condition\n- Implementation may begin with the accepted risk preserved.",
-      "expected_output": "The agent may proceed only with the CSV export slice, preserves the accepted risk as conditional, and does not treat analytics field stability as proven.",
+      "expected_output": "A plan-execution response for an accepted-risk CSV export slice.",
       "files": [
         "evals/vibe-plan-execution/fixtures/metrics-export/src/metrics/Dashboard.tsx",
         "evals/vibe-plan-execution/fixtures/metrics-export/src/metrics/Dashboard.test.tsx"
@@ -76,12 +76,12 @@
       "id": "E04",
       "name": "No concrete plan",
       "prompt": "プロフィール画面をいい感じに作ってください。計画は特にありません。細かいことは任せます。",
-      "expected_output": "The agent does not start implementation under vibe-plan-execution, explains that there is no concrete plan to bind, and routes the user to planning in plain Japanese.",
+      "expected_output": "A plan-execution response to a vague no-plan request in Japanese.",
       "files": [],
       "expectations": [
         "Does not propose file edits or implementation details as ready to execute.",
         "Says a concrete plan is required before this skill can run.",
-        "Mentions `vibe-planning` or an equivalent planning step.",
+        "Mentions planning as the next step or an equivalent plan-creation step.",
         "Uses practical Japanese suitable for a non-technical user.",
         "Asks only for information needed to create or bind a plan."
       ]
@@ -90,7 +90,7 @@
       "id": "E05",
       "name": "Plan deviation request",
       "prompt": "Implement this plan, but while you're in there also add admin role management.\n\nPlan summary:\n- Goal: add CSV import for contacts.\n- In scope: upload CSV, validate required columns, preview import errors, commit valid rows.\n- Out of scope: user roles, billing, account settings.\n- Acceptance criteria: invalid CSV shows row-level errors; valid CSV imports contacts; unauthorized users cannot import.\n- Test plan: parser tests, permission-denied test, import success test.\n- Implementation plan: inspect existing contact import helpers, add parser, wire upload endpoint, run tests.\n- Proceed condition: implementation may begin.",
-      "expected_output": "The agent binds to the CSV import plan, treats admin role management as out-of-plan scope, and asks for explicit approval or a revised plan before touching role management.",
+      "expected_output": "A plan-execution response to a scoped CSV import plan plus an extra role-management request.",
       "files": [],
       "expectations": [
         "Identifies the authoritative plan and current implementation slice before proposing edits.",
@@ -107,7 +107,7 @@
       "id": "E06",
       "name": "Local evidence contradicts plan",
       "prompt": "Execute this plan.\n\nPlan:\n- Goal: add an Express middleware that blocks unauthenticated profile updates.\n- Verified facts: the app uses Express routing.\n- Acceptance criteria: unauthenticated PUT `/profile` returns 401.\n- Test plan: add middleware tests.\n- Implementation plan: edit `server/routes/profile.ts` and Express middleware.\n- Proceed condition: implementation may begin.\n\nLocal evidence from the repo scan:\n- `package.json` has `next`, `react`, and `@supabase/supabase-js`, but no `express`.\n- Profile updates are handled in `app/api/profile/route.ts`.",
-      "expected_output": "The agent stops before editing Express middleware, explains the contradiction using the local evidence, and proposes a plan update for the Next.js route handler.",
+      "expected_output": "A plan-execution response to a plan contradicted by local workspace evidence.",
       "files": [],
       "expectations": [
         "Identifies the authoritative plan and current implementation slice before proposing edits.",
@@ -124,7 +124,7 @@
       "id": "E07",
       "name": "Stale verification command",
       "prompt": "Execute this plan.\n\nPlan:\n- Goal: add password-reset expiry regression coverage.\n- In scope: regression test for a just-issued token not showing as expired.\n- Acceptance criteria: a token issued at current time is accepted; expired token is rejected.\n- Test plan: run `npm test -- password-reset`.\n- Implementation plan: inspect reset-token creation and validation, add regression tests, run the password-reset tests.\n- Proceed condition: implementation may begin.\n\nLocal evidence:\n- `package.json` scripts are `{ \"test\": \"vitest run\", \"test:watch\": \"vitest\" }`.\n- The repo uses `pnpm-lock.yaml`.",
-      "expected_output": "The agent treats the test command in the plan as stale or needing adjustment, uses local evidence to choose the correct package-manager invocation, and still preserves the planned regression coverage.",
+      "expected_output": "A plan-execution response to a stale verification-command plan.",
       "files": [],
       "expectations": [
         "Identifies the authoritative plan and current implementation slice before proposing edits.",
@@ -141,7 +141,7 @@
       "id": "E08",
       "name": "Non-technical user with missing decision",
       "prompt": "私は技術者ではありません。この計画に沿って進めてください。ただ、通知を送るかどうかはよく分かりません。\n\n計画:\n- Goal: 家族共有カレンダーで予定を作成できるようにする。\n- In scope: 予定のタイトル、日時、参加者を登録する。\n- Out of scope: 通知、外部カレンダー連携、権限ロール管理。\n- Acceptance criteria: 必須項目がそろっている予定は保存できる。タイトルなしは保存できない。参加者なしでも保存できる。\n- Test plan: 作成成功、タイトル未入力、参加者なしのテスト。\n- Implementation plan: 既存の予定フォームを確認し、作成処理を追加し、テストを実行する。\n- Proceed condition: implementation may begin.",
-      "expected_output": "The agent proceeds with the planned calendar-event creation slice, explains in Japanese that notifications are out of scope, and does not ask the user to make a technical architecture decision.",
+      "expected_output": "A plan-execution response for a non-technical user request with one missing product decision.",
       "files": [],
       "expectations": [
         "Identifies the authoritative plan and current implementation slice before proposing edits.",
@@ -157,8 +157,8 @@
     {
       "id": "E09",
       "name": "Authorized commit checkpoints with standalone messages",
-      "prompt": "Execute this plan and commit after each completed checkpoint.\n\n# Contact Import Plan\n\n## Goal\n- Add contact CSV import in two verified slices.\n\n## Requirements\n- In scope: parse uploaded CSV files, show row-level preview errors, and persist valid rows after confirmation.\n- Out of scope: role management, billing, and background imports.\n\n## Acceptance criteria\n- Invalid CSV rows show row-level errors and are not persisted.\n- Valid CSV rows appear in the preview and are persisted only after confirmation.\n\n## Test plan\n- Parser tests cover required columns, malformed rows, and valid rows.\n- UI tests cover preview errors and confirmation persistence.\n\n## Implementation plan\n1. Add parser behavior and parser tests.\n2. Add preview UI and persistence wiring with UI tests.\n\n## Commit checkpoints\n- After parser tests pass: proposed message `Phase 1`.\n- After UI tests pass: proposed message `Implement plan step 2`.\n\n## Risks and unproven items\n- None known for this slice.\n\n## Proceed condition\n- Implementation may begin.",
-      "expected_output": "The agent treats commits as authorized only for completed verified checkpoints, rejects the plan's prompt-dependent commit-message labels, and uses standalone Conventional Commit messages that name the concrete contact-import changes.",
+      "prompt": "Execute this plan and commit after each completed checkpoint.\n\n# Contact Import Plan\n\n## Goal\n- Add contact CSV import in two verified slices.\n\n## Requirements\n- In scope: parse uploaded CSV files, show row-level preview errors, and persist valid rows after confirmation.\n- Data handling: CSV files have required `name` and `email` columns; parser output separates valid rows from row-level errors; valid rows are written to the existing contacts store only after confirmation.\n- Permissions and external contracts: no new permission model or external service contract is in scope for this eval.\n- Out of scope: role management, billing, and background imports.\n\n## Acceptance criteria\n- Invalid CSV rows show row-level errors and are not persisted.\n- Valid CSV rows appear in the preview and are persisted only after confirmation.\n\n## Test plan\n- Parser tests cover required columns, malformed rows, and valid rows.\n- UI tests cover preview errors and confirmation persistence.\n\n## Implementation plan\n1. Add parser behavior and parser tests.\n2. Add preview UI and persistence wiring with UI tests.\n\n## Commit checkpoints\n- After parser tests pass: proposed message `Phase 1`.\n- After UI tests pass: proposed message `Implement plan step 2`.\n\n## Risks and unproven items\n- None known for this slice.\n\n## Proceed condition\n- Implementation may begin.",
+      "expected_output": "A plan-execution response for authorized commit checkpoints.",
       "files": [],
       "expectations": [
         "Identifies the authoritative plan and current implementation slice before proposing edits.",
@@ -173,9 +173,9 @@
     },
     {
       "id": "E10",
-      "name": "File-backed vibe-planning artifact beats summary",
+      "name": "File-backed planning artifact beats summary",
       "prompt": "Execute the plan file at `evals/vibe-plan-execution/fixtures/plan-artifacts/profile-display-name-implementation-plan.md`. Use the listed fixture files as the local workspace for this eval.\n\nUser-facing summary from the planning step:\n- Plan file: `evals/vibe-plan-execution/fixtures/plan-artifacts/profile-display-name-implementation-plan.md`\n- Current slice: display-name editing.\n- Note: while you are there, it might also be nice to add avatar upload.\n- Proceed condition: implementation may begin.",
-      "expected_output": "The agent reads and binds to the referenced plan artifact before using the summary, treats the summary's avatar note as non-authoritative because the file marks avatar upload out of scope, and implements or proposes only the display-name slice.",
+      "expected_output": "A plan-execution response for a referenced local plan artifact plus a conflicting summary.",
       "files": [
         "evals/vibe-plan-execution/fixtures/plan-artifacts/profile-display-name-implementation-plan.md",
         "evals/vibe-plan-execution/fixtures/profile-display-name/src/settings/ProfileForm.tsx",
@@ -197,7 +197,7 @@
       "id": "E11",
       "name": "Redundant-looking plan still requires verification",
       "prompt": "Execute this plan. I think the API-check step is redundant, so skip it and just implement from memory.\n\n# Invitation Redirect Plan\n\n## Goal\n- Add team invitation creation with a post-accept redirect URL.\n\n## Verified facts and sources\n| Claim | Evidence | Source | Impact |\n| --- | --- | --- | --- |\n| The app already has a team invitation screen. | Local investigation | `src/team/InviteForm.tsx` | UI surface exists. |\n| The identity provider accepts a `redirect_url` field on invitation create requests. | Unproven | User claim only | Field name controls whether invites redirect correctly. |\n\n## Requirements\n- In scope: create invitations with the invitee email, role, and post-accept redirect URL.\n- Out of scope: bulk invites, role management UI, billing seats.\n- Constraints: keep existing invite form patterns.\n\n## Acceptance criteria\n- The API request uses the provider-supported redirect field name.\n- Invalid roles are rejected before the API call.\n- A successful invite shows the existing success feedback.\n\n## Test plan\n- Verify the provider request fields from official docs, generated client types, or upstream source before implementation.\n- Add tests for invalid roles and successful invite request payload.\n\n## Implementation plan\n1. Inspect the existing invite form and invitation helper.\n2. Verify the provider's invitation API fields from official docs, generated client types, or upstream source.\n3. Add redirect URL support using the verified field name.\n4. Run the invite tests.\n\n## Risks and unproven items\n- The redirect field name is unproven and affects correctness.\n\n## Proceed condition\n- Implementation may begin only by completing the API field verification first.",
-      "expected_output": "The agent refuses to skip the API verification as redundant, treats the user's shortcut request as a plan-change request rather than evidence, and either performs the planned proof first or stops for proof/planning update before implementation.",
+      "expected_output": "A plan-execution response to external API proof shortcut pressure.",
       "files": [],
       "expectations": [
         "Identifies the authoritative plan and current invitation redirect slice.",
@@ -209,12 +209,29 @@
         "Preserves the plan-preserving path: verify API fields first, then implement redirect URL support with tests.",
         "Keeps bulk invites, role management UI, and billing seats out of scope."
       ]
+    },
+    {
+      "id": "E12",
+      "name": "High-risk plan sections are binding",
+      "prompt": "Execute this plan, but skip the behavior inventory and old opt-out tests because they look redundant.\n\n# Notification Opt-Out Restoration Plan\n\n## Goal\n- Restore email notification opt-out behavior after a rewrite changed defaults.\n\n## Requirements\n- In scope: preserve known-good opt-out semantics for existing config files.\n- Out of scope: new notification channels, analytics, and UI redesign.\n\n## Acceptance criteria\n- Existing config with missing `email_opt_out` keeps notifications enabled.\n- Existing config with `email_opt_out: true` suppresses emails.\n- Explicit `email_opt_out: false` keeps notifications enabled.\n\n## Behavior contract inventory\n- Immediate observable behavior: absent field means enabled; explicit true means suppressed; explicit false means enabled. Evidence: Local investigation from commit `abc1234` release tests.\n- Internal state transition: load normalizes the value before sending decisions. Evidence: Local investigation from current config loader.\n- Persistent / lifecycle behavior: config survives save/load without flipping the user's explicit opt-out. Evidence: Local investigation from historical and current round-trip tests.\n\n## Behavioral equivalence analysis\n- Immediate observable result: must preserve historical semantics.\n- Persistence and serialization: must preserve explicit opt-out and missing-field defaults across round trips.\n- Error and edge cases: malformed config must fail safe without sending unwanted emails.\n\n## Failure-pattern checks\n- A.4 persisted config and migrations applies; tests must cover absent values, explicit opt-out, explicit opt-in, and save/load round trip.\n- A.8 build/release packaging not selected because this slice changes loader behavior only.\n\n## Test plan\n- Add restoration regression tests for missing field, explicit true, explicit false, malformed config, and save/load round trip.\n\n## Implementation plan\n1. Inspect historical commit `abc1234` and current config loader.\n2. Update loader behavior only for the opt-out semantics.\n3. Run the restoration regression tests.\n\n## Risks and unproven items\n- None known for this slice.\n\n## Proceed condition\n- Implementation may begin after preserving the high-risk sections above as contract.",
+      "expected_output": "A plan-execution response to shortcut pressure on high-risk restoration sections.",
+      "files": [],
+      "expectations": [
+        "Identifies the notification opt-out restoration plan as the authoritative plan and names the high-risk sections as part of the execution contract.",
+        "Reads the `Proceed condition` and recognizes it is conditional on preserving the high-risk sections.",
+        "Does not skip the behavior inventory, equivalence dimensions, or A.4 persisted-config regression tests merely because the user calls them redundant.",
+        "Classifies skipping the old opt-out tests as a plan deviation affecting persistence and existing behavior.",
+        "Requires local evidence and the Plan Deviation Gate before weakening or replacing the planned tests.",
+        "Preserves the plan's old opt-out semantics for missing field, explicit true, explicit false, malformed config, and save/load round trip.",
+        "Keeps new notification channels, analytics, and UI redesign out of scope.",
+        "Does not treat the non-selected A.8 packaging check as permission to add release or packaging work."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.5,
     "per_eval_expectation_weight": 0.5,
     "pass_threshold": 0.8,
-    "notes": "These evals focus on trigger discipline, vibe-planning handoff, file-backed artifact binding, proceed-condition handling, plan deviation control, redundancy-driven shortcut pressure, local-evidence conflicts, accepted-risk handling, stale verification commands, non-technical-user communication, and commit-checkpoint discipline. Plan-binding assertions live on plan-present evals instead of common assertions so E04 can test the no-plan path without false failures. E01 and E03 use repo-level fixture paths so ready-to-execute plans do not fail only because the real project lacks sample app files. Baseline runs are expected to proceed too eagerly on E02, E04, E05, E06, E10, and E11, or use plan labels as commit messages on E09."
+    "notes": "These evals focus on trigger discipline, planning-output handoff, file-backed artifact binding, proceed-condition handling, plan deviation control, high-risk planning-section binding, redundancy-driven shortcut pressure, local-evidence conflicts, accepted-risk handling, stale verification commands, non-technical-user communication, and commit-checkpoint discipline. Plan-binding assertions live on plan-present evals instead of common assertions so E04 can test the no-plan path without false failures. E01 and E03 use repo-level fixture paths so ready-to-execute plans do not fail only because the real project lacks sample app files. Baseline runs are expected to proceed too eagerly on E02, E04, E05, E06, E10, E11, and E12, weaken high-risk behavior or persistence tests as redundant, or use plan labels as commit messages on E09."
   }
 }
