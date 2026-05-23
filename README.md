@@ -1,9 +1,12 @@
 # Agent Skills
 
-Agent skills and eval prompts for vibe-coding requirement clarification, plans,
-review loops, writing, and Minecraft modding.
+Agent skills and eval prompts for vibe-coding requirements specs, plans, review
+loops, writing, and Minecraft modding.
 
 ## Current Skill Versions
+
+Unreleased skills without a `version` field are documented below but omitted
+from this table until release preparation.
 
 | Skill | Version |
 | --- | --- |
@@ -29,46 +32,44 @@ unavailable or unstable tool servers, dependency source lookup, resource/codec
 validation, GameTest wiring, HUD/client-rendering verification, and narrow
 reference routing for task-relevant playbooks.
 
-### `vibe-clarify-requirements`
+### `vibe-requirements-spec`
 
-Chat-only requirement-clarification skill for rough, ambiguous, contradictory,
-or non-technical vibe-coding goals before implementation planning. It separates
-confirmed requirements, defaults, decisions, out-of-scope work, assumptions,
-success criteria, open unknowns, and planning readiness without creating files,
-writing plans, editing code, running tests, committing, or requiring a named
-downstream workflow. Small requests ask no more than three direct questions,
-mark recommended defaults for option sets, and move lower-impact unknowns into
-defaults, assumptions, out-of-scope items, or open risks so the user can accept
-the defaults with one short reply. Broader unclear requests use a confirmation
-checklist. Creative exploration stays optional: two to five brainstormed options
-include fit and tradeoff notes, and do not become requirements until the user
-selects a direction. Readiness states use exact planning-readiness labels and
-distinguish bounded option/default confirmation from contradictory or unresolved
-data, safety, compatibility, rollback, and recovery contracts, avoid
-`Ready for planning` when product confirmation still remains, and keep ready
-briefs free of pending-approval or approval-to-handoff qualifiers. Readiness,
-confirmation, approval, or "go ahead" wording stays later-phase context while
-the skill is active; it still stops before same-turn planning, implementation
-task entries, file edits, tests, verification commands, commits, or changelog
-changes. Approved coherent briefs stay ready for planning when only routine
-planning checks remain; conditional readiness names both user decisions and
-local evidence checks when both can change the requirement contract or build
-shape. Defaults stay limited to confirmed scope or cross-cutting choices, and do
-not select or conditionally pre-stage adjacent surfaces such as admin,
-reporting, audit, diagnostic, or log storage/retention/search; surface defaults
-that only apply after selection stay with the relevant decision or candidate
-option. Bulk data or irreversible-write requests explicitly surface write-safety
-choices such as preview or review-before-write, duplicate handling, permissions,
-persistence, and recovery as defaults, decisions, out-of-scope items, or open
-unknowns; post-write summaries do not substitute for pre-write preview behavior.
-Existing schema, validation, create path, upload plumbing, and file-limit checks
-are pre-planning evidence when they can change import columns, mapping, limits,
-persistence, success criteria, or safety.
-Billing, permission, security, account-setting, recipient, and routing changes
-cover auditability as requirement behavior rather than only excluding audit-log
-UI work.
-Unconfirmed adjacent features stay out of the proposed first slice until the
-user selects them.
+Markdown requirements-spec drafting skill for rough, ambiguous, contradictory,
+creative, or non-technical vibe-coding goals before implementation planning. It
+creates or updates one spec artifact with an approval state, current
+requirements, proposed defaults, ideas or options, decisions, assumptions,
+out-of-scope items, acceptance criteria, open risks, and revision notes. While
+active, its only allowed write is the requirements spec artifact; it does not
+write implementation plans, implementation task entries, code, tests,
+verification command lists, commits, release work, changelog entries, or
+unrelated files.
+
+The skill keeps the same spec active across related turns until the user
+explicitly approves it, cancels it, or replaces the effort. Ambiguous readiness
+or handoff wording such as "looks good", "ready", "continue", or "go ahead" is
+not enough to approve the current spec unless it clearly approves the artifact.
+Changes after approval reopen the spec and require renewed approval. Approved
+specs can feed a later implementation-planning phase, but this skill still stops
+after updating the spec and returning a concise localized summary with the spec
+path, approval state, blockers or unknowns, and exact next user action.
+
+Small requests ask no more than three direct questions, mark recommended
+defaults for option sets, and move lower-impact unknowns into defaults,
+assumptions, out-of-scope items, or open risks. Broader unclear requests use a
+grouped confirmation checklist. Creative exploration stays optional: two to five
+brainstormed options include fit and tradeoff notes, and do not become
+requirements until the user selects a direction. Defaults stay limited to
+confirmed scope or cross-cutting choices and do not select or conditionally
+pre-stage adjacent surfaces such as admin, reporting, audit views, diagnostic
+views, or log storage/retention/search. Bulk data or irreversible-write requests
+explicitly surface write-safety choices such as preview or review-before-write,
+duplicate handling, permissions, persistence, and recovery. Billing, permission,
+security, account-setting, recipient, and routing changes cover auditability as
+requirement behavior rather than only excluding audit-log UI work. For
+notification or messaging work, unselected delivery-log surfaces stay out of
+first-slice defaults and acceptance criteria, including structured per-send
+records, timestamp/user/channel/outcome fields, retention, queryability, and
+viewer behavior.
 
 ### `vibe-planning`
 
@@ -253,7 +254,7 @@ evidence as the registered skill path.
 
 - `evals/`: repo-level evaluation prompts, fixtures, and scoring notes kept
   outside skill packages
-- `evals/vibe-clarify-requirements/`: external requirement-clarification eval
+- `evals/vibe-requirements-spec/`: external requirements-spec drafting eval
   prompts
 - `evals/vibe-planning/`: external planning eval prompts and fixtures
 - `evals/vibe-plan-execution/`: external plan-execution eval prompts and fixtures
@@ -264,7 +265,7 @@ evidence as the registered skill path.
 - `evals/review-fix-cascade-guard/`: external cascade-guard eval prompts
 - `evals/review-scope-guard/`: external scope-guard eval prompts
 - `skills/minecraft-modding-workbench/`: Minecraft modding skill package
-- `skills/vibe-clarify-requirements/`: chat-only vibe-coding requirement-clarification skill package
+- `skills/vibe-requirements-spec/`: Markdown requirements-spec drafting skill package
 - `skills/vibe-planning/`: standalone vibe-coding implementation-planning skill package
 - `skills/vibe-plan-execution/`: plan-bound vibe-coding implementation skill package
 - `skills/vibe-debug-fix/`: self-contained vibe-coding debug/fix skill package
@@ -290,10 +291,14 @@ specific to the skill.
 - `minecraft-modding-workbench` is scoped to Fabric, NeoForge, and
   Architectury. Legacy Forge-only projects should be treated as a separate
   toolchain check, not as NeoForge by default.
-- `vibe-planning` is the primary user-facing planning workflow when the user
-  asks for a plan, spec, acceptance criteria, test plan, or rough vibe-coding
-  implementation plan. Its normal output is a full plan file plus a short
-  localized summary, not a full plan pasted into chat. It names concrete
+- `vibe-requirements-spec` is the pre-planning requirements-spec workflow. It
+  writes or updates only the requirements spec artifact while active, keeps the
+  same spec open until explicit approval, cancellation, or replacement, and does
+  not create an implementation plan in the same skill response.
+- `vibe-planning` is the primary user-facing implementation-planning workflow
+  when the user asks for a plan, acceptance criteria, test plan, or rough
+  vibe-coding implementation plan. Its normal output is a full plan file plus a
+  short localized summary, not a full plan pasted into chat. It names concrete
   companion skills only after verifying them from the current environment,
   user-provided material, project instructions, or local metadata; unavailable
   skills remain optional and get an explicit fallback.

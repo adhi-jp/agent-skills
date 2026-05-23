@@ -13,17 +13,15 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Added
 
-- `vibe-clarify-requirements` adds a chat-only pre-planning requirements
-  clarification skill package and eval prompts for rough, ambiguous,
-  contradictory, creative, or non-technical vibe-coding goals. It separates
-  confirmed requirements, defaults, decisions, out-of-scope work, assumptions,
-  success criteria, open unknowns, and planning readiness without creating
-  files, writing plans, editing code, running tests, committing, or requiring a
-  named downstream workflow. Creative exploration stays optional: brainstormed
-  options include fit and tradeoff notes, and do not become requirements until
-  the user selects a direction. The skill keeps unconfirmed adjacent
-  capabilities out of `Proposed Scope` instead of adding them with a
-  confirmation qualifier.
+- `vibe-requirements-spec` adds a Markdown requirements-spec drafting skill
+  package and eval prompts for rough, ambiguous, contradictory, creative, or
+  non-technical vibe-coding goals before implementation planning. It replaces
+  the unreleased `vibe-clarify-requirements` package direction with the concise
+  canonical name and a spec-artifact contract. While active, it writes or
+  updates only the current requirements spec artifact, separates confirmed
+  requirements, proposed defaults, ideas or options, decisions, assumptions,
+  out-of-scope items, acceptance criteria, open risks, approval state, and
+  revision notes, and does not require a named downstream workflow.
 - `vibe-writing` adds a consolidated writing skill package and eval prompts for
   vibe-coding development text, source-code comments and docstrings,
   README/docs, CHANGELOG and release notes, PR descriptions, UI copy, chat
@@ -31,47 +29,26 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
-- `vibe-clarify-requirements` now treats readiness, confirmation, approval,
-  completed checklists, and "go ahead" handoff wording as later-phase context
-  only; while the skill is active, the chat-only brief stops before same-turn
-  planning, implementation task entries, file edits, tests, verification
-  commands, commits, or changelog changes.
-- `vibe-clarify-requirements` now makes the small-request question budget
-  harder to bypass: extra low-impact unknowns should move to defaults,
-  assumptions, out-of-scope items, or open risks instead of `Decisions Needed`,
-  checklists, or option groups, and option sets need a recommended default the
-  user can accept with one short reply.
-- `vibe-clarify-requirements` now sharpens readiness-state selection:
-  bounded option/default selection remains `Conditional for planning`, while
-  mutually exclusive requirements and unresolved data, safety, compatibility,
-  rollback, or recovery contracts remain `Not ready for planning`.
-- `vibe-clarify-requirements` now reinforces the brainstorming option count so
-  creative clarification returns two to five candidate directions, even when
-  more distinct ideas are available.
-- `vibe-clarify-requirements` now requires bulk-data and irreversible-write
-  safety choices such as explicit preview or review-before-write, duplicate
-  handling, permissions, persistence, and recovery to be classified as defaults,
-  decisions, out-of-scope items, or open unknowns; post-write summaries do not
-  substitute for pre-write preview behavior.
-- `vibe-clarify-requirements` now clarifies readiness wording so exact
-  readiness labels are used, pending default confirmation remains
-  `Conditional for planning`, approved coherent briefs are not downgraded for
-  routine planning checks, ready briefs avoid pending-approval or
-  approval-to-handoff qualifiers, and conditional briefs name both user decisions
-  and local evidence checks when both can change the requirement contract or
-  build shape.
-- `vibe-clarify-requirements` now limits defaults to confirmed scope or
-  cross-cutting choices, prevents defaults from selecting or conditionally
-  pre-staging unselected adjacent surfaces such as admin, reporting, audit,
-  diagnostic, or log storage/retention/search, and keeps surface-specific
-  defaults with the relevant decision or candidate option. It also distinguishes
-  routine planning checks from local evidence that can change scope, data
-  contracts, success criteria, safety, or recovery, including import schema,
-  validation, create path, upload plumbing, and file limits that can alter
-  columns, mapping, persistence, or safety.
-- `vibe-clarify-requirements` now treats auditability for billing, permission,
-  security, account-setting, recipient, and routing changes as requirement
-  behavior rather than satisfying it by only excluding audit-log UI work.
+- `vibe-requirements-spec` keeps the same spec artifact active across related
+  turns until the user explicitly approves it, cancels it, or replaces it.
+  Ambiguous readiness or handoff wording such as "looks good", "ready",
+  "continue", or "go ahead" does not approve the spec unless it clearly approves
+  the current artifact; requirement changes after approval reopen drafting and
+  require renewed explicit approval.
+- `vibe-requirements-spec` preserves requirement discipline in the spec
+  artifact: small requests ask at most three direct questions with recommended
+  defaults, broader unclear requests use grouped confirmation checklists,
+  creative exploration returns two to five optional directions, and unconfirmed
+  adjacent capabilities stay out of confirmed first-slice requirements.
+- `vibe-requirements-spec` classifies bulk-data and irreversible-write safety,
+  local evidence that can change scope or data contracts, and auditability for
+  billing, permission, security, account-setting, recipient, and routing changes
+  as requirement-spec dimensions before approval.
+- `vibe-requirements-spec` now blocks a delivery-log loophole in broad
+  notification specs: structured per-send records, timestamp/user/channel/outcome
+  fields, retention, queryability, and viewer behavior stay out of first-slice
+  defaults and acceptance criteria unless the user selected delivery logs or
+  approved that record behavior as first-slice scope.
 - `vibe-planning` now owns high-risk planning safeguards formerly split out in
   `vibe-planning-guard`: behavior-contract inventory before behavioral
   equivalence analysis for existing-behavior work, known-good recovery checks
