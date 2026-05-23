@@ -13,6 +13,27 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Added
 
+- Repository infrastructure adds `scripts/eval_runner.py`, a shared stdlib eval
+  CLI for validating repo eval definitions, preparing required agent-scoped
+  `evals/<skill-name>/workspace/<agent>/` run directories, recording external
+  outputs and grades, aggregating benchmarks, and writing static review HTML
+  without starting a server by default. `AGENTS.md` documents the shared Codex,
+  Claude Code, and Gemini-compatible eval workflow, and root `CLAUDE.md` points
+  Claude Code agents to `AGENTS.md` as the repository policy source. The eval
+  CLI now records deterministic eval/run fingerprints with agent identity,
+  supports explicit same-agent compatible baseline reuse through `aggregate
+  --baseline-from`, separates token counts from output character counts, and
+  reports richer benchmark debug summaries. It also generates separate
+  `grader_prompt.md` files, sets the initial run contract to `eval-runner-v1`,
+  validates `grading.json` expectation text against prepared assertions,
+  computes pass/fail summaries from the validated expectation rows instead of
+  trusting optional grader-provided summary fields,
+  records parent-captured metrics through `record --total-tokens`,
+  `--duration-ms`, `--total-duration-seconds`, and `--output-chars`, treats
+  same-file `record` inputs as no-ops after validation, rejects output copy
+  sources that contain the destination output directory, adds aggregate analyzer
+  notes, and writes static report feedback download controls plus
+  `report --previous-iteration` comparisons.
 - `vibe-requirements-spec` adds a Markdown requirements-spec drafting skill
   package and eval prompts for rough, ambiguous, contradictory, creative, or
   non-technical vibe-coding goals before implementation planning. It replaces

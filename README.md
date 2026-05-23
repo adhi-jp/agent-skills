@@ -274,7 +274,26 @@ evidence as the registered skill path.
 - `skills/codex-review-cycle/`: codex-driven interactive 2-cycle review-and-fix workflow with user-elected extensions
 - `skills/review-scope-guard/`: Definition-of-Done-aware review finding triage, invoked by codex-review-cycle
 - `skills/review-fix-cascade-guard/`: cascade-containment guard invoked by codex-review-cycle before any fix-application edit
+- `scripts/eval_runner.py`: shared stdlib CLI for preparing agent-scoped repo
+  eval runs, recording outputs and parent-captured metrics, aggregating, and
+  statically reviewing results with grader prompts and client-side feedback
 - `CHANGELOG.md`: repository-level change history
+
+## Shared Eval Runner
+
+Use `python3 scripts/eval_runner.py` for repo-level skill eval runs. `prepare`
+creates `prompt.md`, `grader_prompt.md`, `run_manifest.json`, and
+`eval_metadata.json` under `evals/<skill-name>/workspace/<agent>/iteration-N/`.
+Run `prompt.md` with the named agent, then run `grader_prompt.md` as a separate
+grading pass when supported. Use `record` to attach outputs, parent-captured
+metrics such as `--total-tokens`, `--duration-ms`, and `--output-chars`, and
+the grader-produced `grading.json`.
+
+`grading.json` must preserve every `eval_metadata.json.assertions` text exactly
+once, in order. `aggregate` writes `benchmark.json` and `benchmark.md` with
+analysis notes, and `report` writes static `review.html` without starting a
+server. `report --previous-iteration <iteration-dir>` compares against a prior
+benchmark; feedback controls download a local `feedback.json` from the browser.
 
 ## Package Contents
 
