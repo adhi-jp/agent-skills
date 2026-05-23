@@ -47,6 +47,14 @@ use `[Repository] - YYYY-MM-DD`.
   vibe-coding development text, source-code comments and docstrings,
   README/docs, CHANGELOG and release notes, PR descriptions, UI copy, chat
   replies, progress updates, final summaries, and commit messages.
+- `skill-quality` adds a skill package, session-derived pattern reference, and
+  eval prompts for creating or improving skills from benchmark results, grader
+  feedback, review comments, trigger failures, session-history patterns, and
+  quality regressions. It focuses on evidence intake, no-change gates,
+  failure-to-contract translation, narrow coupled artifact changes,
+  discriminating eval prompts and assertions, shared eval-runner hygiene, wording
+  preservation, current-proposal evidence maps, expected-output prompt leak
+  control, evidence-bound cost claims, and degeneration checks.
 
 ### Changed
 

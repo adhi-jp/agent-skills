@@ -1,0 +1,119 @@
+{
+  "schema_version": "1.0.0",
+  "skill_name": "skill-quality",
+  "purpose": "External eval set for skill-quality. Prompts live outside skills/ so they are not bundled as skill content. Covers current-proposal evidence maps, failure-to-contract translation, narrow skill edits, eval assertion hardening, expected-output leak control, runner hygiene, session-history synthesis, cost-claim discipline, and regression prevention for skill creation or improvement.",
+  "common_assertions": [
+    "Output starts from the observed failure signal and labels the current proposal's implementation-affecting claims as primary source, local investigation, unproven, accepted risk, or equivalent evidence categories.",
+    "Output translates the failure into a reusable skill contract or dimension before recommending prose edits.",
+    "Output avoids wording-only optimization, behavior churn, or tracked edits when the evidence does not show a contract gap.",
+    "Output chooses the smallest coupled artifact changes and updates SKILL.md, references, evals, README text, and CHANGELOG only when those artifacts own or describe the changed behavior.",
+    "Output does not bump skill versions, prepare a release, commit generated workspaces, or assume release authorization unless the user explicitly requested release work.",
+    "Output updates or proposes eval expectations that are observable, discriminating, and targeted at the failure mode rather than broad style preference.",
+    "Output rejects broad rewrites, universal checklists, stale session anecdotes, companion-skill requirements, fake baselines, self-grading bias, and weak proof substitutes as quality regressions."
+  ],
+  "evals": [
+    {
+      "id": "E01",
+      "name": "Bounded planning overblocking",
+      "prompt": "A `vibe-planning` benchmark failed on a display-name planning eval. The produced plan blocked implementation until empty-display-name behavior and max length were decided. A reviewer suggests adding concrete empty-name and max-length guidance to the skill so the eval passes. Available run notes say only that the current fixture covered nonblank save/cancel behavior and did not cite any product source for empty-name or numeric length policy. Decide what kind of skill and eval change, if any, is justified.",
+      "expected_output": "The agent uses evidence labels to classify the reported failure and reviewer suggestion, proposes only justified coupled artifact changes, and avoids release, version, or workspace changes.",
+      "files": [],
+      "expectations": [
+        "Names the reusable dimension as current-slice blocker versus deferred decision or equivalent, not just a display-name-specific rule.",
+        "Rejects the reviewer's suggestion to add concrete empty-name or max-length policy unless a primary product source supports those facts.",
+        "Recommends narrowing current acceptance criteria instead of inventing max-length or empty-value constants.",
+        "Updates or proposes updates to `skills/vibe-planning/SKILL.md` and `evals/vibe-planning/evals.json` in the same change set.",
+        "Adds or proposes negative-pressure eval checks that fail plans which hard-code unsupported product constants or block solely on adjacent optional policy.",
+        "Mentions README and CHANGELOG updates only because the behavior is repository-visible.",
+        "Does not weaken high-risk planning safeguards to make the eval pass.",
+        "Does not copy a large new checklist into every plan."
+      ]
+    },
+    {
+      "id": "E02",
+      "name": "Assertion hardening without behavior churn",
+      "prompt": "A grader says the eval assertion `the plan is good and practical` is too vague. Another expectation says the product requires a 50-character display-name limit, but no source supports that limit. The skill output already follows the intended behavior, but grading varies by reviewer. What should change?",
+      "expected_output": "The agent treats this as an eval-quality issue first, rewrites the vague assertion into observable expectations, removes or sources the unsupported product constant, and avoids changing skill behavior without evidence of a behavior gap.",
+      "files": [],
+      "expectations": [
+        "Identifies the failure as assertion ambiguity or grader variance rather than immediately changing the skill.",
+        "Rewrites the assertion into concrete observable checks such as required sections, evidence labels, ordered tests, or forbidden claims.",
+        "Corrects or removes the unsupported 50-character product expectation instead of teaching the skill to invent that limit.",
+        "Reports that no `SKILL.md` change is needed unless a separate behavior contract gap appears.",
+        "Keeps the assertion per-eval unless it is valid for every eval in the suite.",
+        "Recommends rerunning or regrading the affected eval after the assertion change.",
+        "Does not loosen the assertion merely to make the grade pass.",
+        "Does not add unrelated `SKILL.md` prose when the behavior contract is already clear."
+      ]
+    },
+    {
+      "id": "E03",
+      "name": "Old skill recovery without wholesale rollback",
+      "prompt": "After consolidating two writing skills, one commit-message eval got worse. The old skill handled this case. A reviewer suggests pasting the whole old commit-message skill back into the new `vibe-writing` body.",
+      "expected_output": "The agent recovers only the minimal useful old contract, likely in a reference, adds a targeted eval, and rejects wholesale rollback or skill bloat.",
+      "files": [],
+      "expectations": [
+        "Compares the old and new behavior to identify the specific missing contract.",
+        "Recommends restoring only the high-value rule, not pasting the whole old skill into the body.",
+        "Prefers a reference file for detailed commit-message guidance if the body would become too large.",
+        "Adds or tightens a targeted eval for the failing commit-message case.",
+        "Preserves the consolidated skill's existing reader-priority and exact-format boundaries.",
+        "Does not reintroduce the retired standalone skill as a live dependency unless the user explicitly changes the product direction."
+      ]
+    },
+    {
+      "id": "E04",
+      "name": "Non-discriminating benchmark",
+      "prompt": "The latest benchmark shows `with_skill` pass rate 1.0 and `without_skill` pass rate 1.0 on the new evals. The with-skill run also used many more tokens. The user asks whether the skill is now better.",
+      "expected_output": "The agent refuses to claim improvement, identifies non-discriminating evals and cost concerns, avoids calling the skill worse solely from token cost without supporting evidence or a predefined budget, and proposes expectation or prompt hardening plus a rerun.",
+      "files": [],
+      "expectations": [
+        "Does not claim the skill improved solely because `with_skill` passed.",
+        "Calls out that identical baseline pass rate means the evals did not prove skill value.",
+        "Treats the token increase as a cost signal to inspect rather than automatic failure or success.",
+        "Does not call the skill worse, harmful, or a regression solely from token increase without transcript evidence, run data proving unjustified cost, or a predefined cost budget.",
+        "Proposes hardening prompts or expectations around the old failure mode.",
+        "Mentions checking for ritual, universal checklist output, or unnecessary verbosity in with-skill transcripts.",
+        "Recommends rerunning comparative evals after the eval is made discriminating."
+      ]
+    },
+    {
+      "id": "E05",
+      "name": "Eval runner workflow repair",
+      "prompt": "Session history shows old skill eval runs sometimes rendered a fake zero baseline, mixed output characters with token counts, put grades outside output directories, included assertions in executor prompts, and launched review servers that stayed running. Design the repository workflow change.",
+      "expected_output": "The agent turns the session failures into file-contract requirements for a provider-neutral shared eval runner with separate grader prompts, parent-captured metrics, compatible baseline reuse, and static reports.",
+      "files": [],
+      "expectations": [
+        "Maps each session failure to an abstract workflow dimension such as benchmark completeness, metric provenance, grader separation, artifact association, or report lifecycle.",
+        "Requires provider-neutral file contracts instead of Claude-Code-only `.agents` dependencies.",
+        "Requires separate executor and grader artifacts or passes to reduce self-grading bias.",
+        "Requires parent-captured token, duration, and output-character metrics to stay distinct.",
+        "Requires missing baselines or incompatible baseline reuse to be incomplete rather than fake comparative proof.",
+        "Requires static report output by default with no server, browser open, PID file, or background process."
+      ]
+    },
+    {
+      "id": "E06",
+      "name": "Session-history skill creation",
+      "prompt": "Create a new skill from this repo's Codex session history. Extract sessions where eval results caused skill or eval edits and reruns. Use subagents and temporary files for the history pass, then produce a concise skill and evals from the patterns.",
+      "expected_output": "The agent labels the current proposal's evidence map, uses delegated session extraction, writes temporary summaries, synthesizes reusable improvement and degeneration patterns, creates the skill/eval package, and updates repository docs and changelog without release work.",
+      "files": [],
+      "expectations": [
+        "Splits session-history extraction into bounded subagent or equivalent parallel tasks when available.",
+        "Labels the current proposal's evidence map with categories such as primary source, local investigation, unproven, or accepted risk, not only the future subagent note format.",
+        "Writes temporary per-session or per-cluster notes outside tracked skill packages.",
+        "Synthesizes patterns rather than copying session transcripts into the skill body.",
+        "Creates or proposes a concise skill name and keeps trigger description focused on when to use it.",
+        "Creates external eval prompts under `evals/<skill-name>/` for the new behavior.",
+        "Updates README and CHANGELOG under Unreleased when adding the skill.",
+        "Does not bump versions, commit generated workspaces, or include session-history temp files in the repo."
+      ]
+    }
+  ],
+  "scoring": {
+    "common_assertion_weight": 0.45,
+    "per_eval_expectation_weight": 0.55,
+    "pass_threshold": 0.8,
+    "notes": "These evals test skill-improvement judgment, not subjective prose quality. Baselines are expected to over-edit skills, under-harden assertions, over-trust benchmarks, or miss repository eval-runner constraints."
+  }
+}

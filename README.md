@@ -1,7 +1,7 @@
 # Agent Skills
 
 Agent skills and eval prompts for vibe-coding requirements specs, plans, review
-loops, writing, and Minecraft modding.
+loops, writing, skill quality, and Minecraft modding.
 
 ## Current Skill Versions
 
@@ -203,6 +203,22 @@ review feedback and analyzer warnings from bloating the plan, and a selective
 exception safety, shared state, migrations, ownership, trust boundary,
 accounting, packaging, tool capability, plan drift).
 
+### `skill-quality`
+
+Skill creation and improvement workflow for turning eval failures, benchmark
+results, grader feedback, review findings, trigger failures, and session-history
+patterns into narrow skill contract changes. It starts from evidence, writes a
+small failure-to-contract delta, labels the current proposal's evidence,
+leaves artifacts unchanged when there is no evidence-backed contract gap,
+chooses the smallest coupled artifact set, updates discriminating repo-level
+evals, and uses the shared eval runner honestly. It keeps executor-visible eval
+summaries high-level, keeps token/time claims evidence-bound, and blocks common
+regressions such as broad rewrites, universal checklists, fake baselines,
+self-grading bias, weak proof substitutes, companion-skill requirements,
+generated workspace commits, wording-only churn, and release/version changes
+without explicit release instruction. Its reference notes summarize local
+session-derived patterns for efficient skill improvement and skill degradation.
+
 ### `codex-review-cycle`
 
 Default 2-cycle interactive review-and-fix workflow on a user-chosen git
@@ -262,6 +278,7 @@ evidence as the registered skill path.
   reports, failed attempts, artifacts, auth, representation, tools, async
   lifecycle, runtime diagnostic probe escalation, continuity, and recurrence
 - `evals/vibe-writing/`: external writing and commit-message eval prompts
+- `evals/skill-quality/`: external skill-improvement and eval-hardening prompts
 - `evals/review-fix-cascade-guard/`: external cascade-guard eval prompts
 - `evals/review-scope-guard/`: external scope-guard eval prompts
 - `skills/minecraft-modding-workbench/`: Minecraft modding skill package
@@ -271,6 +288,7 @@ evidence as the registered skill path.
 - `skills/vibe-debug-fix/`: self-contained vibe-coding debug/fix skill package
 - `skills/vibe-writing/`: consolidated vibe-coding writing skill package
 - `skills/vibe-planning-guard/`: planning and design-review skill package
+- `skills/skill-quality/`: skill creation, improvement, and eval-hardening skill package
 - `skills/codex-review-cycle/`: codex-driven interactive 2-cycle review-and-fix workflow with user-elected extensions
 - `skills/review-scope-guard/`: Definition-of-Done-aware review finding triage, invoked by codex-review-cycle
 - `skills/review-fix-cascade-guard/`: cascade-containment guard invoked by codex-review-cycle before any fix-application edit
