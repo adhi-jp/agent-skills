@@ -14,7 +14,6 @@ from this table until release preparation.
 | `vibe-planning` | `3.0.0` |
 | `vibe-plan-execution` | `1.3.0` |
 | `vibe-debug-fix` | `1.0.0` |
-| `vibe-planning-guard` | `1.3.0` |
 
 ## Included Skills
 
@@ -107,7 +106,7 @@ controls, external contracts, destructive risk, diagnostic findings, recovery or
 replacement work, auth/security/billing, data migrations, or current-slice
 implementation blockers.
 For high-risk planning surfaces, `vibe-planning` owns the safeguards formerly
-split out in `vibe-planning-guard`: behavior-contract inventory before
+split out in the retired planning guard: behavior-contract inventory before
 equivalence analysis, known-good recovery checks, diagnostic-scope controls,
 selective failure-pattern checks, and blocked proceed conditions while
 implementation blockers remain unproven.
@@ -188,20 +187,6 @@ performance work, CI/build/publishing changes, security/privacy/data-loss fixes,
 release commits, thin-evidence cases, mechanical syncs, trailer separation,
 compact bullets, and multi-line message transport.
 
-### `vibe-planning-guard`
-
-Planning-first skill for turning rough change requests into verified,
-option-aware implementation plans. It emphasizes workspace inspection,
-evidence-labeled claims, recovery-safe replacement planning, and explicit stop
-conditions when implementation blockers remain unproven. It includes a
-behavior-contract inventory built before behavioral equivalence analysis,
-plan-boundary controls (content classification, success-criteria freeze,
-plan-body firewall, completion gate, diagnostic-finding restraint) to keep
-review feedback and analyzer warnings from bloating the plan, and a selective
-10-category failure-pattern checklist for high-risk surfaces (lifecycle,
-exception safety, shared state, migrations, ownership, trust boundary,
-accounting, packaging, tool capability, plan drift).
-
 ### `skill-quality`
 
 Skill creation and improvement workflow for turning eval failures, benchmark
@@ -265,7 +250,6 @@ only explicit user, DoD, or confirmed-plan evidence.
 - `skills/vibe-plan-execution/`: plan-bound vibe-coding implementation skill package
 - `skills/vibe-debug-fix/`: self-contained vibe-coding debug/fix skill package
 - `skills/vibe-writing/`: consolidated vibe-coding writing skill package
-- `skills/vibe-planning-guard/`: planning and design-review skill package
 - `skills/skill-quality/`: skill creation, improvement, and eval-hardening skill package
 - `skills/vibe-review/`: integrated vibe-coding review workflow with delegated review, scope triage, cascade containment, and terminal audit
 - `scripts/eval_runner.py`: shared stdlib CLI for preparing agent-scoped repo
@@ -325,9 +309,6 @@ specific to the skill.
   staging, commit execution, PR submission, template changes, or release
   actions. Project-specific workflows and the repo's release rules take
   precedence; `vibe-writing` applies to the words inside those constraints.
-- `vibe-planning-guard` is for planning, not implementation. It should stay
-  light on tiny, already-clear edits unless the user explicitly asks for
-  planning or risk review.
 - `vibe-review` runs only when the current directory is a git repository and
   the chosen review target resolves to a non-empty diff. It is platform-neutral:
   Claude Code with the `codex` plugin can be documented as a special backend,

@@ -85,7 +85,7 @@ use `[Repository] - YYYY-MM-DD`.
   fields, retention, queryability, and viewer behavior stay out of first-slice
   defaults and acceptance criteria unless the user selected delivery logs or
   approved that record behavior as first-slice scope.
-- `vibe-planning` now owns high-risk planning safeguards formerly split out in
+- `vibe-planning` now owns the safeguards formerly split out in the retired
   `vibe-planning-guard`: behavior-contract inventory before behavioral
   equivalence analysis for existing-behavior work, known-good recovery checks
   for replacement/restoration/rollback/rewrite planning, success-criteria freeze
@@ -151,6 +151,9 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Removed
 
+- Repository maintenance removed the retired `vibe-planning-guard` skill package
+  and live README references after moving its non-overlapping safeguards into
+  the active `vibe-*` workflows.
 - The old standalone review skill packages (`codex-review-cycle`,
   `review-scope-guard`, and `review-fix-cascade-guard`) and their active eval
   owners under `evals/` were removed after their user-facing behavior moved into
