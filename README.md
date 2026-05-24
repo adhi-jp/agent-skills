@@ -1,7 +1,7 @@
 # Agent Skills
 
-Agent skills and eval prompts for vibe-coding requirements specs, plans, review
-loops, writing, skill quality, and Minecraft modding.
+Agent skills and eval prompts for vibe-coding orchestration, requirements
+specs, plans, review loops, writing, skill quality, and Minecraft modding.
 
 ## Current Skill Versions
 
@@ -27,6 +27,29 @@ project structure. It also defines MCP preflight and fallback behavior for
 unavailable or unstable tool servers, dependency source lookup, resource/codec
 validation, GameTest wiring, HUD/client-rendering verification, and narrow
 reference routing for task-relevant playbooks.
+
+### `vibe-coding`
+
+Unreleased top-level orchestration skill for explicitly invoked multi-turn
+vibe-coding workflows. It activates only through an explicit host-specific
+`vibe-coding` invocation, host-provided invocation signal, or direct instruction
+such as "use `vibe-coding`"; merely mentioning "vibe coding" as a style, label,
+or quote does not activate it. If activation lacks a concrete coding
+instruction, it asks for the instruction before selecting a downstream route.
+
+The skill tracks workflow state through conversation context and existing
+artifact paths, then selects exactly one primary visible `vibe-*` specialist for
+the immediate next phase. It routes underspecified new goals to
+`vibe-requirements-spec`, approved specs or insufficient execution inputs to
+`vibe-planning`, concrete ready implementation plans to
+`vibe-plan-execution`, bug reports and regressions to `vibe-debug-fix`, review
+targets to `vibe-review`, and wording-only deliverables to `vibe-writing`.
+Specialist boundaries remain authoritative: `vibe-coding` does not relax
+approval stops, planning-only behavior, proceed conditions, review gates,
+writing-only scope, release policy, or commit authorization. It also
+distinguishes matched-but-unavailable specialists from no matching specialist
+and treats non-`vibe-*` domain skills as auxiliary only in this first
+implementation.
 
 ### `vibe-requirements-spec`
 
@@ -234,6 +257,9 @@ only explicit user, DoD, or confirmed-plan evidence.
 
 - `evals/`: repo-level evaluation prompts, fixtures, and scoring notes kept
   outside skill packages
+- `evals/vibe-coding/`: external orchestration eval prompts for activation,
+  lifecycle routing, phase boundaries, specialist availability, and auxiliary
+  skill containment
 - `evals/vibe-requirements-spec/`: external requirements-spec drafting eval
   prompts
 - `evals/vibe-planning/`: external planning eval prompts and fixtures
@@ -245,6 +271,7 @@ only explicit user, DoD, or confirmed-plan evidence.
 - `evals/skill-quality/`: external skill-improvement and eval-hardening prompts
 - `evals/vibe-review/`: external integrated review eval prompts
 - `skills/minecraft-modding-workbench/`: Minecraft modding skill package
+- `skills/vibe-coding/`: explicit top-level vibe-coding orchestration skill package
 - `skills/vibe-requirements-spec/`: Markdown requirements-spec drafting skill package
 - `skills/vibe-planning/`: standalone vibe-coding implementation-planning skill package
 - `skills/vibe-plan-execution/`: plan-bound vibe-coding implementation skill package

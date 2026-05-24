@@ -62,6 +62,24 @@ use `[Repository] - YYYY-MM-DD`.
   DoD/scope triage, stop signals, rejected-ledger behavior, secret hygiene,
   cascade containment, final-cycle assessment, terminal audit, and explicit
   history-operation consent in one coordinator workflow.
+- `vibe-coding` adds an explicit top-level orchestration skill package and eval
+  suite for multi-turn vibe-coding workflows. The skill activates only through
+  explicit `vibe-coding` invocation or instruction, tracks routing state through
+  conversation context and artifact paths, routes to one verified visible
+  specialist `vibe-*` phase at a time, preserves downstream phase boundaries,
+  distinguishes matched-but-unavailable specialists from no matching specialist,
+  keeps unrelated ordinary requests from retaining live routing state, and keeps
+  auxiliary skills from weakening primary workflow gates. Its eval suite covers
+  representative host-specific invocations, host-provided invocation signals,
+  direct use instructions, lifecycle cleanup, and boundary-preserving fallback
+  paths while keeping executor-visible expected-output summaries high level.
+  Follow-up eval-result review tightened invocation-only handling so bare
+  activation asks narrowly for the missing instruction, and scoped common
+  availability and boundary assertions to turns where a downstream phase or
+  route decision exists. A later iteration review added harder natural-language
+  eval prompts for Japanese approved-spec continuation and unavailable
+  `vibe-review` routing to improve benchmark discrimination after the baseline
+  passed most existing checks.
 
 ### Changed
 
