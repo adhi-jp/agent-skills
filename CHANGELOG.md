@@ -55,6 +55,13 @@ use `[Repository] - YYYY-MM-DD`.
   discriminating eval prompts and assertions, shared eval-runner hygiene, wording
   preservation, current-proposal evidence maps, expected-output prompt leak
   control, evidence-bound cost claims, and degeneration checks.
+- `vibe-review` adds the integrated user-facing vibe-coding review skill and
+  eval suite. The skill owns startup review contracts, review target handling,
+  delegated adversarial or explicit normal review, multi-angle execution,
+  normalized findings, validity checking, lightweight specification gaps,
+  DoD/scope triage, stop signals, rejected-ledger behavior, secret hygiene,
+  cascade containment, final-cycle assessment, terminal audit, and explicit
+  history-operation consent in one coordinator workflow.
 
 ### Changed
 
@@ -110,6 +117,19 @@ use `[Repository] - YYYY-MM-DD`.
 - `vibe-plan-execution` commit-checkpoint eval input now states the contact
   import data-handling, permission, and external-contract assumptions so the
   scenario tests commit discipline instead of ambiguous plan concreteness.
+- Vibe-coding review now uses `vibe-review` as the active user-facing workflow.
+  The prior review loop, DoD triage, rejected-ledger, secret-hygiene,
+  cascade-gate, final-cycle, and history-operation contracts are preserved as
+  internal `vibe-review` stages while adding platform-neutral delegated-review
+  behavior, common finding normalization, provenance-preserving deduplication,
+  and separate lightweight specification-gap output.
+- `vibe-review` tightens dirty-path isolation verification, stale plan-evidence
+  digest handling, weak DoD proposal anchors, explicit project-context
+  filtering, and zero-selectable termination so those paths fail closed before
+  scope triage, edits, terminal rendering, or history operations.
+- `vibe-review` evals now grade terminal-audit and stash-restore cases against
+  retained dirty-isolation metadata, recovery breadcrumbs, and history-operation
+  blocking so generic restore advice cannot mask isolation recovery regressions.
 - `vibe-writing` consolidates the key behavior from `vibe-commit-message` and
   `writing-style-guide`: LLM-first development text by default, human-reader
   exceptions, meaning and modality preservation, language and exact-format
@@ -131,6 +151,10 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Removed
 
+- The old standalone review skill packages (`codex-review-cycle`,
+  `review-scope-guard`, and `review-fix-cascade-guard`) and their active eval
+  owners under `evals/` were removed after their user-facing behavior moved into
+  `vibe-review`.
 - `vibe-writing` removes the standalone `vibe-commit-message` and
   `writing-style-guide` skill packages and their live eval owners after moving
   their selected writing and commit-message contracts into the consolidated

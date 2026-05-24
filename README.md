@@ -15,9 +15,6 @@ from this table until release preparation.
 | `vibe-plan-execution` | `1.3.0` |
 | `vibe-debug-fix` | `1.0.0` |
 | `vibe-planning-guard` | `1.3.0` |
-| `codex-review-cycle` | `1.9.0` |
-| `review-scope-guard` | `1.4.0` |
-| `review-fix-cascade-guard` | `1.0.2` |
 
 ## Included Skills
 
@@ -221,52 +218,32 @@ generated workspace commits, wording-only churn, and release/version changes
 without explicit release instruction. Its reference notes summarize local
 session-derived patterns for efficient skill improvement and skill degradation.
 
-### `codex-review-cycle`
+### `vibe-review`
 
-Default 2-cycle interactive review-and-fix workflow on a user-chosen git
-review target — working-tree diff, current branch vs. its auto-detected
-base, or an explicit commit/tag/branch ref — driven by the codex
-plugin's `review` or `adversarial-review --json`. Each cycle runs one
-codex review, Claude verifies findings against a six-item validity
-checklist, `review-scope-guard` triages them against an explicit
-Definition of Done, and the user picks which findings to fix before the
-next cycle. After the final cycle's fix phase, a final-cycle assessment block
-summarizes addressed findings, checks scope health for self-induced findings,
-out-of-context hardening, and target growth, and recommends continue,
-new-angle, or end; the user decides whether to terminate or extend the run.
-Covers both code diffs and markdown planning documents.
+Integrated vibe-coding review workflow for user-selected git review targets:
+`working-tree`, `branch`, and `base-ref`. It proposes one startup review
+contract that combines target, mode, backend, review effort, reviewer count,
+angle set, execution mode, DoD source, plan binding, cycle policy, dirty-path
+isolation candidates, and review focus when local evidence is strong enough.
+The default mode is adversarial delegated review where the host supports a
+review-only delegated path; normal review is an explicit opt-in mode that runs
+through the same normalization, validity, DoD triage, rejected-ledger,
+specification-gap, cascade, residual, and terminal-audit pipeline.
 
-### `review-scope-guard`
-
-Companion skill that triages review findings against an explicit Definition
-of Done to separate must-fix bugs from scope creep and noise. Collects a
-six-item Definition of Done interactively on first invocation, checks the
-out-of-scope anchor for strong sibling-framed finding rejections, classifies
-every finding into one of four categories (`must-fix`, `minimal-hygiene`,
-`reject-out-of-scope`, `reject-noise`), maintains a rejected-findings
-ledger, and surfaces five stop signals, though not all are evaluable in
-every usage context. Invoked automatically by
-`codex-review-cycle` and also usable standalone after any review tool.
-Valid findings still pass through this scope triage; a true premise does
-not automatically become a selectable fix.
-
-### `review-fix-cascade-guard`
-
-Containment guard that runs before the agent applies any review-cycle
-fix and again after the multi-fix batch is assembled. Prevents the
-recurring cascade pattern where a valid finding is patched at the named
-line and the next cycle raises a new valid finding the fix itself
-created. For each selected finding it restates the invariant in
-path-neutral terms, classifies the failure into one of 7 cascade
-archetypes, builds a sibling-path matrix, picks an explicit fix
-envelope, requires targeted validation, and emits a `gate_status` enum
-that controls whether `codex-review-cycle` may apply the edit. After
-every per-finding envelope, a Phase 5.5 batch reconciliation pass
-catches conflicts across the cycle's combined fix set. Invoked
-automatically by `codex-review-cycle` at step 13.6 / step 13.7, and
-usable standalone before any review-fix edit. Manual fallback is valid
-only when it records the same Phase 3 matrix and Phase 5 validation
-evidence as the registered skill path.
+`vibe-review` preserves the previous review loop, scope-triage, and
+cascade-containment responsibilities inside one coordinator-owned workflow.
+Delegated reviewers are review-only backends; the coordinator alone asks the
+user, merges findings, updates ledgers, applies fixes, runs cascade gates, and
+performs consented history operations. Backend output is normalized into a
+common finding shape before downstream gates, duplicate findings keep child
+provenance, lightweight specification gaps render separately from normal
+findings, secret hygiene redacts before render or persistence, and edits remain
+forbidden until per-finding and batch cascade gates are `closed` or
+`accepted-residual`. Terminal audit runs before End/residual rendering and
+before any soft reset, squash, amend, or other history operation.
+Dirty-path isolation must be verified before hidden paths are trusted, stale
+plan evidence fails closed on digest mismatch, and project-context filters use
+only explicit user, DoD, or confirmed-plan evidence.
 
 ## Repository Layout
 
@@ -281,8 +258,7 @@ evidence as the registered skill path.
   lifecycle, runtime diagnostic probe escalation, continuity, and recurrence
 - `evals/vibe-writing/`: external writing and commit-message eval prompts
 - `evals/skill-quality/`: external skill-improvement and eval-hardening prompts
-- `evals/review-fix-cascade-guard/`: external cascade-guard eval prompts
-- `evals/review-scope-guard/`: external scope-guard eval prompts
+- `evals/vibe-review/`: external integrated review eval prompts
 - `skills/minecraft-modding-workbench/`: Minecraft modding skill package
 - `skills/vibe-requirements-spec/`: Markdown requirements-spec drafting skill package
 - `skills/vibe-planning/`: standalone vibe-coding implementation-planning skill package
@@ -291,9 +267,7 @@ evidence as the registered skill path.
 - `skills/vibe-writing/`: consolidated vibe-coding writing skill package
 - `skills/vibe-planning-guard/`: planning and design-review skill package
 - `skills/skill-quality/`: skill creation, improvement, and eval-hardening skill package
-- `skills/codex-review-cycle/`: codex-driven interactive 2-cycle review-and-fix workflow with user-elected extensions
-- `skills/review-scope-guard/`: Definition-of-Done-aware review finding triage, invoked by codex-review-cycle
-- `skills/review-fix-cascade-guard/`: cascade-containment guard invoked by codex-review-cycle before any fix-application edit
+- `skills/vibe-review/`: integrated vibe-coding review workflow with delegated review, scope triage, cascade containment, and terminal audit
 - `scripts/eval_runner.py`: shared stdlib CLI for preparing agent-scoped repo
   eval runs, recording outputs and parent-captured metrics, aggregating, and
   statically reviewing results with grader prompts and client-side feedback
@@ -354,47 +328,13 @@ specific to the skill.
 - `vibe-planning-guard` is for planning, not implementation. It should stay
   light on tiny, already-clear edits unless the user explicitly asks for
   planning or risk review.
-- `codex-review-cycle` requires the `codex` Claude Code plugin to be
-  installed and `/codex:setup` to be complete. The skill only runs when the
-  current directory is a git repository and the chosen review target
-  resolves to a non-empty diff. Before review, it may ask once to
-  temporarily isolate out-of-scope dirty paths with a pathspec-limited stash
-  and git-common-dir recovery metadata, then restore those paths unstaged
-  after termination or hand off retained stash recovery details on failure.
-  It does not commit files without explicit run-level consent; for
-  `branch` / `base-ref` scopes the skill otherwise pauses between cycles
-  for the user to manually commit applied fixes. At termination, the skill
-  previews the accumulated cycle commits (via `git log --oneline` and
-  `git diff --stat`) and asks the user to confirm. On approval it
-  collapses the per-cycle commits via soft-reset and leaves all applied
-  changes staged for the user to create a single final commit. If the
-  user declines, the cycle commits remain in place and the user can
-  squash them manually later. For plan targets, the final-cycle
-  scope-health judgment uses caller-local baseline and current metrics for
-  plan growth; those metrics are separate from `review-scope-guard`'s
-  standalone stop-signal inputs.
-  Both `codex-review-cycle` and `review-scope-guard` must be registered
-  with the Claude Code harness (as marketplace plugins or in the user's
-  skill set) for `Skill()` invocation to work. If either skill is not
-  registered, open the SKILL.md file and follow the workflow manually —
-  the spec is self-contained enough for direct execution.
-- `review-scope-guard` needs a Definition of Done to triage against. On
-  first invocation it collects the six DoD items via an interview, a
-  Claude-drafted proposal the user confirms, or a pasted block the user
-  confirms (three modes). The skill never applies fixes itself — it only
-  classifies findings and updates the ledger.
-- `review-fix-cascade-guard` runs after `review-scope-guard` triage and
-  before the agent applies any selected `must-fix` / `minimal-hygiene`
-  finding. It does not auto-fix; it returns a per-finding envelope with
-  a `gate_status` enum that gates the agent's `Edit` / `Write`. Edits
-  are permitted only when both the per-finding gate and the Phase 5.5
-  batch gate are `closed` or `accepted-residual`. The override transition
-  for `high-cascade-risk` / `invariant-unknown` requires the user to
-  explicitly record residuals, surfaces, validation limits, and the
-  next-cycle attack via `AskUserQuestion` before the gate flips. Phase 6
-  completion notes are mandatory for every applied finding and are
-  carried into the next cycle's `<previous_fixes>` `<fix>` named child
-  elements; missing notes abort the next cycle's preflight. When the guard
-  runs through manual fallback, receipt evidence must show the matrix and
-  validation steps actually ran; otherwise `codex-review-cycle` blocks the
-  edit as `manual_fallback_evidence_missing`.
+- `vibe-review` runs only when the current directory is a git repository and
+  the chosen review target resolves to a non-empty diff. It is platform-neutral:
+  Claude Code with the `codex` plugin can be documented as a special backend,
+  but the default contract is a host capability model for review-only delegated
+  reviewers. If the selected adversarial delegated path is unavailable, the
+  workflow pauses for explicit approval of an available backend or mode instead
+  of silently downgrading. For `branch` and `base-ref` scopes, commits, squashes,
+  resets, amends, and similar history operations require operation-specific user
+  consent plus dirty-state, ownership, preview, isolation-restore, and
+  conflict-safety preconditions.
