@@ -48,16 +48,21 @@
 python3 scripts/eval_runner.py validate evals/vibe-planning/evals.json
 python3 scripts/eval_runner.py prepare evals/vibe-planning/evals.json --agent codex --eval E10 --config with_skill,without_skill --runs 1
 python3 scripts/eval_runner.py record evals/vibe-planning/workspace/codex/iteration-1/eval-available-commit-message-skill-scheduled-for-checkpoints/with_skill/run-1 --outputs /path/to/outputs --total-tokens 123 --duration-ms 4567 --output-chars 890 --grading /path/to/grading.json
+python3 scripts/eval_runner.py doctor evals/vibe-planning/workspace/codex/iteration-1
 python3 scripts/eval_runner.py aggregate evals/vibe-planning/workspace/codex/iteration-1
 python3 scripts/eval_runner.py report evals/vibe-planning/workspace/codex/iteration-1
 ```
 
-- `prepare` creates agent-scoped, provider-neutral `prompt.md`, `grader_prompt.md`, and `run_manifest.json` files for each selected eval/config/run. Run `prompt.md` manually in the agent named by `--agent`; run `grader_prompt.md` in a separate grading pass when the host environment supports it.
-- `record` attaches produced outputs, parent-captured timing, token, and output-size metrics, and grader-produced `grading.json`. Prefer `--total-tokens`, `--duration-ms`, and `--output-chars` for parent-captured metrics; accepted timing keys are `duration_ms`, `duration_seconds`, `total_duration_seconds`, `executor_duration_seconds`, and `total_tokens`.
+- `prepare` creates agent-scoped, provider-neutral `run_index.json`, `next_steps.md`, `prompt.md`, `grader_prompt.md`, and `run_manifest.json` files for each selected eval/config/run. Run the current `prompt.md` manually in the agent named by `--agent`; write `outputs/run_receipt.json` from the current run manifest or next-steps payload; run `grader_prompt.md` in a separate grading pass when the host environment supports it.
+- `prepare --rerun-of <iteration-dir>` checks eval fingerprints, configs, run counts, agent, model, grader model, and run contract before writing a fresh rerun. Use `--accept-input-changes` only when the changed inputs are intentional.
+- `record` attaches produced outputs, parent-captured timing, token, output-size metrics, usage blobs, and grader-produced `grading.json`. Prefer `--total-tokens`, `--duration-ms`, and `--output-chars` for parent-captured metrics, or `--usage-file` / `--usage-text` when the host records the same metrics; accepted timing keys are `duration_ms`, `duration_seconds`, `total_duration_seconds`, `executor_duration_seconds`, and `total_tokens`.
+- `record --grading` and `record --finalize` validate prompt receipt and final metrics for current runner contracts. Use `--allow-missing-prompt-receipt` or `--allow-missing-metrics` only for legacy, partial, or smoke runs; those opt-outs make complete aggregate/report proof incomplete unless `aggregate --allow-incomplete` is used.
+- Use `grading-template <run-dir>` to generate a placeholder `grading.json` with every assertion text preserved. Use `record-batch <records.json>` only for metrics, usage, grading, and finalization metadata after prevalidation.
 - `grading.json` must include every prepared `eval_metadata.json.assertions` text exactly once, in order, with `text`, `passed`, and `evidence` fields.
 - `aggregate` fails incomplete comparative runs by default; pass `--allow-incomplete` for a single-config smoke run.
 - When a compatible baseline iteration exists for the same agent, use `aggregate --baseline-from <iteration-dir> --baseline-config without_skill` instead of rerunning unchanged baseline configs. Baseline reuse requires matching agent labels and fingerprints; do not force reuse legacy workspaces that lack fingerprint metadata.
-- Use `report --previous-iteration <iteration-dir>` to compare against a previous `benchmark.json`. Feedback controls in `review.html` are static client-side download controls; they must not start a server or write files by themselves.
+- Use `doctor <iteration-dir>` for iteration health checks and `doctor <iteration-dir> --require-complete` before treating a run set as complete proof.
+- Use `report --previous-iteration <iteration-dir>` or `report --previous-iteration auto` to compare against a previous `benchmark.json`. Feedback controls in `review.html` are static client-side download controls; they must not start a server or write files by themselves.
 
 ## Commit Rules
 

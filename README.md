@@ -287,18 +287,27 @@ only explicit user, DoD, or confirmed-plan evidence.
 ## Shared Eval Runner
 
 Use `python3 scripts/eval_runner.py` for repo-level skill eval runs. `prepare`
-creates `prompt.md`, `grader_prompt.md`, `run_manifest.json`, and
-`eval_metadata.json` under `evals/<skill-name>/workspace/<agent>/iteration-N/`.
-Run `prompt.md` with the named agent, then run `grader_prompt.md` as a separate
-grading pass when supported. Use `record` to attach outputs, parent-captured
-metrics such as `--total-tokens`, `--duration-ms`, and `--output-chars`, and
-the grader-produced `grading.json`.
+creates `run_index.json`, `next_steps.md`, `prompt.md`, `grader_prompt.md`,
+`run_manifest.json`, and `eval_metadata.json` under
+`evals/<skill-name>/workspace/<agent>/iteration-N/`. Run the current
+`prompt.md` with the named agent, write `outputs/run_receipt.json` from the
+current run manifest or next-steps payload, then run `grader_prompt.md` as a
+separate grading pass when supported. Use `record` to attach outputs,
+parent-captured metrics such as `--total-tokens`, `--duration-ms`, and
+`--output-chars`, `--usage-file` or `--usage-text` usage blobs, and the
+grader-produced `grading.json`. `record --finalize` validates the prompt
+receipt and required final metrics; explicit `--allow-missing-*` flags mark
+partial or smoke runs as incomplete.
 
 `grading.json` must preserve every `eval_metadata.json.assertions` text exactly
-once, in order. `aggregate` writes `benchmark.json` and `benchmark.md` with
-analysis notes, and `report` writes static `review.html` without starting a
-server. `report --previous-iteration <iteration-dir>` compares against a prior
-benchmark; feedback controls download a local `feedback.json` from the browser.
+once, in order. Use `grading-template <run-dir>` to generate a placeholder
+template. `aggregate` writes `benchmark.json` and `benchmark.md` with analysis
+notes and incomplete-run blockers; `doctor <iteration-dir>` reports iteration
+health; `record-batch` attaches metrics, usage, grading, and finalization
+metadata for multiple runs after prevalidation. `report` writes static
+`review.html` without starting a server. `report --previous-iteration
+<iteration-dir>` or `auto` compares against a prior benchmark; feedback controls
+download a local `feedback.json` from the browser.
 
 ## Package Contents
 

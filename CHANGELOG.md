@@ -34,6 +34,15 @@ use `[Repository] - YYYY-MM-DD`.
   sources that contain the destination output directory, adds aggregate analyzer
   notes, and writes static report feedback download controls plus
   `report --previous-iteration` comparisons.
+- Shared eval-runner infrastructure adds the `eval-runner-v2` run contract with
+  `run_index.json`, `next_steps.md`, artifact hashes, prompt receipt
+  validation, `prepare --rerun-of` input guards, `record --finalize`, usage
+  blob parsing, output-character auto-fill from `outputs/response.md`, grading
+  template generation, v2 aggregate incompleteness blockers, actionable
+  `doctor` iteration checks, `report --previous-iteration auto`,
+  per-expectation previous-result display, conservative repeated-failure
+  diagnostics, and narrow `record-batch` prevalidation for metrics, usage,
+  grading, and finalization metadata.
 - `vibe-requirements-spec` adds a Markdown requirements-spec drafting skill
   package and eval prompts for rough, ambiguous, contradictory, creative, or
   non-technical vibe-coding goals before implementation planning. It replaces
@@ -83,6 +92,15 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skill-quality` now clarifies high-baseline and both-config-pass benchmark
+  interpretation, prepared-artifact versus actual prompt-delivery proof,
+  session-history audit filters, common assertion applicability preflights,
+  compact delegated quality handoffs, pure-grader ownership boundaries, and
+  narrow auxiliary use for planning/spec or eval-runner evidence decisions. Its
+  eval suite strengthens the existing non-discriminating benchmark,
+  eval-runner workflow, session-history, and assertion-hardening cases, narrows
+  executor-visible expected-output summaries and common assertions, and keeps
+  the frontmatter trigger evidence-driven without adding release work.
 - `vibe-requirements-spec` keeps the same spec artifact active across related
   turns until the user explicitly approves it, cancels it, or replaces it.
   Ambiguous readiness or handoff wording such as "looks good", "ready",

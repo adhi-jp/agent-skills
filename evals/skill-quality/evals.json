@@ -8,15 +8,15 @@
     "Output avoids wording-only optimization, behavior churn, or tracked edits when the evidence does not show a contract gap.",
     "Output chooses the smallest coupled artifact changes and updates SKILL.md, references, evals, README text, and CHANGELOG only when those artifacts own or describe the changed behavior.",
     "Output does not bump skill versions, prepare a release, commit generated workspaces, or assume release authorization unless the user explicitly requested release work.",
-    "Output updates or proposes eval expectations that are observable, discriminating, and targeted at the failure mode rather than broad style preference.",
-    "Output rejects broad rewrites, universal checklists, stale session anecdotes, companion-skill requirements, fake baselines, self-grading bias, and weak proof substitutes as quality regressions."
+    "When a tracked skill/eval behavior change is justified, output updates or proposes eval expectations that are observable, discriminating, and targeted at the failure mode rather than broad style preference.",
+    "Output rejects the relevant degeneration shown by the scenario, such as broad rewrites, universal checklists, stale session anecdotes, companion-skill requirements, fake baselines, self-grading bias, or weak proof substitutes."
   ],
   "evals": [
     {
       "id": "E01",
       "name": "Bounded planning overblocking",
       "prompt": "A `vibe-planning` benchmark failed on a display-name planning eval. The produced plan blocked implementation until empty-display-name behavior and max length were decided. A reviewer suggests adding concrete empty-name and max-length guidance to the skill so the eval passes. Available run notes say only that the current fixture covered nonblank save/cancel behavior and did not cite any product source for empty-name or numeric length policy. Decide what kind of skill and eval change, if any, is justified.",
-      "expected_output": "The agent uses evidence labels to classify the reported failure and reviewer suggestion, proposes only justified coupled artifact changes, and avoids release, version, or workspace changes.",
+      "expected_output": "The agent produces evidence-bound planning-eval triage with a reusable contract dimension, supported artifact-scope choice, and release/workspace boundaries.",
       "files": [],
       "expectations": [
         "Names the reusable dimension as current-slice blocker versus deferred decision or equivalent, not just a display-name-specific rule.",
@@ -33,14 +33,15 @@
       "id": "E02",
       "name": "Assertion hardening without behavior churn",
       "prompt": "A grader says the eval assertion `the plan is good and practical` is too vague. Another expectation says the product requires a 50-character display-name limit, but no source supports that limit. The skill output already follows the intended behavior, but grading varies by reviewer. What should change?",
-      "expected_output": "The agent treats this as an eval-quality issue first, rewrites the vague assertion into observable expectations, removes or sources the unsupported product constant, and avoids changing skill behavior without evidence of a behavior gap.",
+      "expected_output": "The agent produces an evidence-bound eval-quality triage response that separates assertion ambiguity from behavior changes, identifies unsupported product facts, and names the coupled verification path.",
       "files": [],
       "expectations": [
         "Identifies the failure as assertion ambiguity or grader variance rather than immediately changing the skill.",
         "Rewrites the assertion into concrete observable checks such as required sections, evidence labels, ordered tests, or forbidden claims.",
         "Corrects or removes the unsupported 50-character product expectation instead of teaching the skill to invent that limit.",
         "Reports that no `SKILL.md` change is needed unless a separate behavior contract gap appears.",
-        "Keeps the assertion per-eval unless it is valid for every eval in the suite.",
+        "Before keeping or moving the assertion to common assertions, checks whether it is valid across activation-only, exact-format, localized, verbatim, narrow-boundary, and no-change eval classes.",
+        "Keeps the assertion per-eval unless it is valid for every eval class it will govern.",
         "Recommends rerunning or regrading the affected eval after the assertion change.",
         "Does not loosen the assertion merely to make the grade pass.",
         "Does not add unrelated `SKILL.md` prose when the behavior contract is already clear."
@@ -50,7 +51,7 @@
       "id": "E03",
       "name": "Old skill recovery without wholesale rollback",
       "prompt": "After consolidating two writing skills, one commit-message eval got worse. The old skill handled this case. A reviewer suggests pasting the whole old commit-message skill back into the new `vibe-writing` body.",
-      "expected_output": "The agent recovers only the minimal useful old contract, likely in a reference, adds a targeted eval, and rejects wholesale rollback or skill bloat.",
+      "expected_output": "The agent produces a minimal regression-recovery plan for a consolidated skill, with evidence comparison, artifact ownership, and targeted regression coverage.",
       "files": [],
       "expectations": [
         "Compares the old and new behavior to identify the specific missing contract.",
@@ -64,12 +65,14 @@
     {
       "id": "E04",
       "name": "Non-discriminating benchmark",
-      "prompt": "The latest benchmark shows `with_skill` pass rate 1.0 and `without_skill` pass rate 1.0 on the new evals. The with-skill run also used many more tokens. The user asks whether the skill is now better.",
-      "expected_output": "The agent refuses to claim improvement, identifies non-discriminating evals and cost concerns, avoids calling the skill worse solely from token cost without supporting evidence or a predefined budget, and proposes expectation or prompt hardening plus a rerun.",
+      "prompt": "The latest benchmark shows `with_skill` pass rate 1.0 and `without_skill` pass rate 1.0 on the new evals after an expected-output summary was edited to fix a prompt mismatch. The baseline improved after the eval edit, and the with-skill run used many more tokens. The user asks whether the skill is now better.",
+      "expected_output": "The agent produces benchmark interpretation with evidence boundaries, cost-signal handling, leakage checks, and a follow-up proof path for both-config pass results.",
       "files": [],
       "expectations": [
         "Does not claim the skill improved solely because `with_skill` passed.",
         "Calls out that identical baseline pass rate means the evals did not prove skill value.",
+        "Treats both configs passing after the eval/prompt fix as regression coverage unless a separate discriminating run proves skill value.",
+        "Inspects expected-output summary leakage, named capability hints, prompt friendliness, and assertion applicability before changing skill behavior.",
         "Treats the token increase as a cost signal to inspect rather than automatic failure or success.",
         "Does not call the skill worse, harmful, or a regression solely from token increase without transcript evidence, run data proving unjustified cost, or a predefined cost budget.",
         "Proposes hardening prompts or expectations around the old failure mode.",
@@ -80,8 +83,8 @@
     {
       "id": "E05",
       "name": "Eval runner workflow repair",
-      "prompt": "Session history shows old skill eval runs sometimes rendered a fake zero baseline, mixed output characters with token counts, put grades outside output directories, included assertions in executor prompts, and launched review servers that stayed running. Design the repository workflow change.",
-      "expected_output": "The agent turns the session failures into file-contract requirements for a provider-neutral shared eval runner with separate grader prompts, parent-captured metrics, compatible baseline reuse, and static reports.",
+      "prompt": "Session history shows old skill eval runs sometimes rendered a fake zero baseline, mixed output characters with token counts, put grades outside output directories, included assertions in executor prompts, launched review servers that stayed running, and reused a stale executor prompt even though the prepared `prompt.md` had changed. Design the repository workflow change and explain what can and cannot be proven from prepared artifacts alone.",
+      "expected_output": "The agent proposes provider-neutral eval-runner workflow requirements and states proof boundaries for artifacts, metrics, baselines, grader separation, prompt identity, and reporting.",
       "files": [],
       "expectations": [
         "Maps each session failure to an abstract workflow dimension such as benchmark completeness, metric provenance, grader separation, artifact association, or report lifecycle.",
@@ -89,18 +92,22 @@
         "Requires separate executor and grader artifacts or passes to reduce self-grading bias.",
         "Requires parent-captured token, duration, and output-character metrics to stay distinct.",
         "Requires missing baselines or incompatible baseline reuse to be incomplete rather than fake comparative proof.",
-        "Requires static report output by default with no server, browser open, PID file, or background process."
+        "Requires static report output by default with no server, browser open, PID file, or background process.",
+        "Distinguishes prepared `prompt.md` and `eval_metadata.json` as intended runner state from actual manual-agent invocation evidence.",
+        "Requires invocation logs, copied task prompt, subagent transcript, prompt receipt, or equivalent evidence before claiming the stale prompt was actually sent."
       ]
     },
     {
       "id": "E06",
       "name": "Session-history skill creation",
-      "prompt": "Create a new skill from this repo's Codex session history. Extract sessions where eval results caused skill or eval edits and reruns. Use subagents and temporary files for the history pass, then produce a concise skill and evals from the patterns.",
-      "expected_output": "The agent labels the current proposal's evidence map, uses delegated session extraction, writes temporary summaries, synthesizes reusable improvement and degeneration patterns, creates the skill/eval package, and updates repository docs and changelog without release work.",
+      "prompt": "Create a new skill from this repo's Codex session history. Extract sessions where eval results caused skill or eval edits and reruns. Use subagents and temporary files for the history pass, then produce a concise skill and evals from the patterns. Raw search results also include the current audit session's `rg skill-quality` commands, quoted SKILL.md bodies, and files read only as reference material.",
+      "expected_output": "The agent outlines a session-history skill creation workflow with delegated extraction, evidence synthesis, package/eval/doc coupling, history-noise filtering, and release/workspace boundaries.",
       "files": [],
       "expectations": [
         "Splits session-history extraction into bounded subagent or equivalent parallel tasks when available.",
+        "Passes delegated history or benchmark reviewers a compact quality lens covering evidence, inferred risk, unsupported claims, and what should not change.",
         "Labels the current proposal's evidence map with categories such as primary source, local investigation, unproven, or accepted risk, not only the future subagent note format.",
+        "Excludes current audit search commands, quoted skill bodies, session metadata, and reference-only reads from historical skill-use counts unless they are tied to a substantive decision.",
         "Writes temporary per-session or per-cluster notes outside tracked skill packages.",
         "Synthesizes patterns rather than copying session transcripts into the skill body.",
         "Creates or proposes a concise skill name and keeps trigger description focused on when to use it.",

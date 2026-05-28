@@ -1,6 +1,6 @@
 ---
 name: skill-quality
-description: Use when creating, improving, reviewing, or repairing a skill package or its evals from benchmark results, grader feedback, review comments, session-history patterns, trigger failures, or quality regressions; especially when deciding what to change, what not to change, how to update assertions, or whether to rerun skill evals.
+description: Use when making evidence-driven quality decisions for a skill package or its evals from benchmark results, grader feedback, review comments, session-history patterns, trigger failures, or quality regressions; especially when deciding what to change, what not to change, how to update assertions, or whether to rerun skill evals.
 ---
 
 # Skill Quality
@@ -48,6 +48,28 @@ subagents when available. Give each agent a bounded session range or question,
 have it write temporary per-session notes under `/tmp`, and synthesize the
 patterns yourself before editing tracked files.
 
+When delegated review, extraction, or benchmark analysis may affect a tracked
+skill/eval decision, pass a compact quality lens to the delegate instead of
+assuming this skill context transfers. Name the delegated mode, such as
+contract review, eval hardening, benchmark triage, or history extraction; ask
+for evidence, inferred risks, unsupported claims, what should not change, and,
+for eval work, expected-output leakage, common assertion applicability, and
+baseline plausibility. Do not require the full skill for narrow lookups.
+
+For session-history audits, count actual skill use only when the record shows a
+user trigger, assistant declaration, skill-body read tied to a substantive
+decision, or decision behavior in a substantive task. Separate current audit
+sessions, search-command echoes, quoted skill bodies, session metadata, and
+reference-only file reads from historical usage evidence.
+
+Planning or requirements-spec workflows remain primary when they are creating
+plans or specs. Use this skill only as an auxiliary lens when that work turns
+failures, session-history patterns, review comments, or benchmark evidence into
+future skill behavior, acceptance criteria, eval discrimination, or
+benchmark-proof requirements. Eval tooling work is relevant only when it affects
+prompt delivery, grading fidelity, baseline compatibility, metric provenance,
+artifact completeness, or report claims.
+
 ## Failure To Contract
 
 Before changing skill text or eval behavior, write a one-sentence contract
@@ -65,7 +87,8 @@ Good contract deltas name the abstract dimension behind the example:
 - `current-slice blocker` instead of one display-name fixture.
 - `artifact freshness` instead of one missing image path.
 - `benchmark completeness` instead of one fake `Config B` row.
-- `local-anchor preservation` instead of one phrase such as `header handoff`.
+- `local-anchor preservation` from one phrase such as `header handoff`, while
+  preserving the concrete anchor as evidence when useful.
 
 ## Change Selection
 
@@ -102,6 +125,10 @@ discriminating, observable, and hard to pass with the old failure mode.
 - Prefer per-eval expectations for narrow behavior. Add a common assertion only
   when it is valid for every eval, including exact-format and verbatim-output
   cases.
+- Before adding, changing, or keeping a common assertion, check the eval classes
+  it will govern, including activation-only, exact-format, localized, verbatim,
+  narrow-boundary, and no-change cases. Move scenario-specific stop gates or
+  narrow behavior into per-eval expectations.
 - Write expectations against visible output, files, commands, records, or
   decisions, not against style taste.
 - If the eval runner shows `expected_output` or an expected-output summary to
@@ -131,6 +158,7 @@ For this repository, use the shared runner:
 python3 scripts/eval_runner.py validate evals/<skill-name>/evals.json
 python3 scripts/eval_runner.py prepare evals/<skill-name>/evals.json --agent codex --config with_skill,without_skill --runs 1
 python3 scripts/eval_runner.py record <run-dir> --outputs <outputs> --total-tokens <n> --duration-ms <n> --output-chars <n> --grading <grading.json>
+python3 scripts/eval_runner.py doctor <iteration-dir> --require-complete
 python3 scripts/eval_runner.py aggregate <iteration-dir>
 python3 scripts/eval_runner.py report <iteration-dir>
 ```
@@ -146,6 +174,17 @@ fingerprints as incomplete proof, not as a pass. `report` is static by default;
 do not start a server or leave a background process unless the user requested an
 opt-in server workflow.
 
+Prepared runner artifacts prove intended runner state, and saved outputs prove
+what was recorded. Actual prompt delivery for manual agent runs requires an
+invocation log, copied task prompt, subagent transcript, matching prompt
+receipt, or equivalent evidence. Without that proof, label prompt mismatch as
+`Unproven` or `Accepted risk` and choose a rerun or other proof path before
+making root-cause or skill-quality claims.
+
+Pure graders stay bound to the prepared assertions. The change owner treats
+surprising, repeated, missing, ambiguous, or both-config-passing grades as
+evidence to interpret before editing skill or eval behavior.
+
 Treat eval execution as a data-boundary decision. Do not send private skill
 packages, eval prompts, fixtures, outputs, or session excerpts to an external
 agent or hosted service unless the user or project explicitly authorizes that
@@ -157,6 +196,11 @@ Compare behavior before declaring improvement:
 
 - Which failures changed from fail to pass, and which old passes stayed intact?
 - Did the baseline also pass? If yes, the eval may not prove the skill helped.
+- Did a new or targeted eval have a high `without_skill` pass rate, both
+  configs pass, or a baseline improve after an eval edit? Inspect prompt
+  leakage, expected-output summaries, named capability hints, assertion
+  applicability, and whether the eval is regression-only before claiming skill
+  value.
 - Did token or time cost increase? Treat deltas as cost signals. Call them
   regressions only when transcript evidence, run data, or a predefined budget
   proves the cost is not justified by useful behavior.
@@ -191,7 +235,7 @@ Before finalizing, reject these common regressions:
 Before reporting completion:
 
 - Is the failure signal tied to evidence, not guesswork?
-- Is there a contract delta before the prose change?
+- Is there a contract delta before changing skill text or eval behavior?
 - Are examples mapped to reusable dimensions?
 - Did wording edits preserve modality, exceptions, anchors, and absence
   statuses?
