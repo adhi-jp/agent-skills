@@ -28,6 +28,11 @@
 - Any skill behavior change must update the relevant `SKILL.md`, supporting references, README text, and `CHANGELOG.md` entry in the same change set when those artifacts describe the changed behavior.
 - Do not defer sibling documentation updates when the current change invalidates existing text.
 
+## Local Skill Snapshot Rules
+
+- Local skill snapshot paths under `.agents/skills/` and `.claude/skills/` are managed copies, not source. Do not edit, sync, copy into, remove, recreate, stage, or commit them, and do not modify them as a side effect of other work. Reading them for reference (for example, to understand a skill that exists only as a snapshot) is allowed.
+- Use tracked skill packages under `skills/` as the authoritative source for repository changes and verification. Make repository edits against `skills/`, not against the snapshot copies, and do not treat `.agents/skills/` or `.claude/skills/` as the source of truth for parity or committed runtime state.
+
 ## Evaluation Workspace Rules
 
 - Keep eval definitions under `evals/<skill-name>/`.

@@ -20,6 +20,12 @@ use `[Repository] - YYYY-MM-DD`.
   `--dry-run`, and refusing add/update when the selected source skill has
   working-tree changes.
 
+### Changed
+
+- Agent instructions now clarify that `.agents/skills/` and `.claude/skills/`
+  are script-managed skill snapshots: agents may read them for reference but
+  must make repository edits against `skills/` rather than editing or staging
+  the snapshots.
 ## [vibe-planning 4.0.0] - 2026-05-30
 
 ### Changed
