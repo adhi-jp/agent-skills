@@ -157,16 +157,23 @@ For this repository, use the shared runner:
 ```sh
 python3 scripts/eval_runner.py validate evals/<skill-name>/evals.json
 python3 scripts/eval_runner.py prepare evals/<skill-name>/evals.json --agent codex --config with_skill,without_skill --runs 1
-python3 scripts/eval_runner.py record <run-dir> --outputs <outputs> --total-tokens <n> --duration-ms <n> --output-chars <n> --grading <grading.json>
+python3 scripts/eval_runner.py record <run-dir> --outputs <outputs> --total-tokens <n> --duration-ms <n> --output-chars <n>
+python3 scripts/eval_runner.py prepare-grading <run-dir|iteration-dir>
+python3 scripts/eval_runner.py grading-template <run-dir>
+python3 scripts/eval_runner.py record <run-dir> --grading <grading.json>
 python3 scripts/eval_runner.py doctor <iteration-dir> --require-complete
 python3 scripts/eval_runner.py aggregate <iteration-dir>
 python3 scripts/eval_runner.py report <iteration-dir>
 ```
 
-Use the generated `prompt.md` for execution and `grader_prompt.md` for a
-separate grading pass when supported. `grading.json` must preserve every
-prepared assertion text exactly once, in order, with `text`, `passed`, and
-`evidence`.
+Use the generated `prompt.md` for execution. Current-contract `prepare` output
+is executor-safe and does not include `grader_prompt.md` or assertion-bearing
+`eval_metadata.json`; run `prepare-grading` only after executor outputs and
+`outputs/run_receipt.json` exist. For custom workspace roots outside
+`evals/<skill-name>/workspace/<agent>/iteration-N`, pass `--evals-json <path>`
+to `prepare-grading`. Use the generated `grader_prompt.md` for a separate
+grading pass when supported. `grading.json` must preserve every prepared
+assertion text exactly once, in order, with `text`, `passed`, and `evidence`.
 
 Reuse baselines only through compatible same-agent fingerprints. Treat missing
 timing, missing grades, missing configs, or reused legacy artifacts without

@@ -287,25 +287,56 @@ only explicit user, DoD, or confirmed-plan evidence.
 ## Shared Eval Runner
 
 Use `python3 scripts/eval_runner.py` for repo-level skill eval runs. `prepare`
-creates `run_index.json`, `next_steps.md`, `prompt.md`, `grader_prompt.md`,
-`run_manifest.json`, and `eval_metadata.json` under
-`evals/<skill-name>/workspace/<agent>/iteration-N/`. Run the current
-`prompt.md` with the named agent, write `outputs/run_receipt.json` from the
-current run manifest or next-steps payload, then run `grader_prompt.md` as a
-separate grading pass when supported. Use `record` to attach outputs,
-parent-captured metrics such as `--total-tokens`, `--duration-ms`, and
-`--output-chars`, `--usage-file` or `--usage-text` usage blobs, and the
-grader-produced `grading.json`. `record --finalize` validates the prompt
-receipt and required final metrics; explicit `--allow-missing-*` flags mark
-partial or smoke runs as incomplete.
+creates `run_index.json`, `next_steps.md`, executor-safe `prompt.md`,
+`executor_metadata.json`, `outputs/`, and `run_manifest.json` under
+`evals/<skill-name>/workspace/<agent>/iteration-N/`. It does not create
+`grader_prompt.md` or assertion-bearing `eval_metadata.json` during the
+executor phase. Run the current `prompt.md` with the named agent, write
+`outputs/run_receipt.json` from the current run manifest or next-steps payload,
+then run `prepare-grading <run-dir|iteration-dir>` after executor output exists.
+That step creates the grader-only `grader_prompt.md` and assertion-bearing
+`eval_metadata.json` for a separate grading pass when supported. For custom
+workspace roots outside `evals/<skill-name>/workspace/<agent>/iteration-N`, pass
+`--evals-json <path>` to `prepare-grading`. Use `record` to attach outputs,
+parent-captured metrics such as `--total-tokens`,
+`--duration-ms`, and `--output-chars`, `--usage-file` or `--usage-text` usage
+blobs, and the grader-produced `grading.json`. Token and duration values must
+come from parent-captured or usage-derived metrics, not placeholders, guesses,
+reused defaults, or executor estimates. `record --finalize` validates the prompt
+receipt, required final metrics, and metric-integrity findings; explicit
+`--allow-missing-*` or `--allow-suspicious-metrics` flags mark partial or smoke
+runs as incomplete.
 
 `grading.json` must preserve every `eval_metadata.json.assertions` text exactly
-once, in order. Use `grading-template <run-dir>` to generate a placeholder
-template. `aggregate` writes `benchmark.json` and `benchmark.md` with analysis
-notes and incomplete-run blockers; `doctor <iteration-dir>` reports iteration
-health; `record-batch` attaches metrics, usage, grading, and finalization
-metadata for multiple runs after prevalidation. `report` writes static
-`review.html` without starting a server. `report --previous-iteration
+once, in order. Use `grading-template <run-dir>` after `prepare-grading` to
+generate a placeholder template. Current-contract runs also apply a static
+grading-boundary audit at
+`record --grading`, `record --finalize`, `record-batch`, `doctor`, and
+`aggregate`: the audit checks the whole recorded output set for deterministic
+contradictions such as raw commit messages inside Markdown fences, no-fence
+assertions with fences, prompt-local standalone leaks, JSON-only output with
+prose or fences, grader evidence that narrows a global assertion to a
+sub-artifact, and file/artifact claims without recorded artifact evidence.
+`--allow-suspicious-grading` records an explicit noncanonical opt-out; it does
+not erase findings.
+
+Current-contract runs also apply a metric-integrity audit. Non-positive token
+or duration values are invalid for complete proof, known placeholder pairs such
+as `30000ms/5000 tokens` and `60000ms/15000 tokens` are surfaced as warnings,
+and repeated known placeholder patterns block canonical aggregate/doctor proof
+unless the run set is explicitly treated as incomplete. `output_chars` remains
+separate from tokens and is never used to infer token counts.
+
+`aggregate` fails incomplete comparative runs by default; with
+`--allow-incomplete`, it writes `benchmark.json` and `benchmark.md` with
+analysis notes, grading-audit summaries, and incomplete-run blockers, including
+missing v5 grading materials or grading output. `doctor <iteration-dir>` reports
+iteration health and blocks current-contract complete proof on pending grading
+materials, audit errors, metric-integrity blockers, or suspicious grading/metric
+opt-outs; `record-batch` attaches metrics, usage, grading, and finalization
+metadata for multiple runs after prevalidation.
+`report` writes static `review.html` without starting a server and renders
+grading-audit findings near affected runs. `report --previous-iteration
 <iteration-dir>` or `auto` compares against a prior benchmark; feedback controls
 download a local `feedback.json` from the browser.
 

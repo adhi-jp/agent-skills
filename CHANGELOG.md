@@ -43,6 +43,45 @@ use `[Repository] - YYYY-MM-DD`.
   per-expectation previous-result display, conservative repeated-failure
   diagnostics, and narrow `record-batch` prevalidation for metrics, usage,
   grading, and finalization metadata.
+- Shared eval-runner infrastructure adds the `eval-runner-v3` grading-boundary
+  contract. Generated grader prompts now require whole-output grading, and
+  `record`, `record-batch`, `doctor`, `aggregate`, and `report` share a static
+  grading audit for high-confidence contradictions such as raw commit messages
+  inside Markdown fences, no-fence assertions with fences, prompt-local
+  standalone leaks, JSON-only output with prose or fences, boundary-narrowing
+  grader evidence, and unsupported file/artifact claims. Suspicious v3 grading
+  blocks canonical proof unless recorded with the explicit
+  `--allow-suspicious-grading` opt-out, which remains visible in doctor,
+  aggregate, and report output.
+- Shared eval-runner infrastructure adds the `eval-runner-v4` prompt-boundary
+  contract. Generated executor prompts no longer include eval `expected_output`
+  summaries, and `without_skill` prompts no longer receive the explicit target
+  skill name or supplied skill file path while metadata, grader prompts, prompt
+  receipts, recording instructions, reports, and baseline compatibility checks
+  remain available through the existing file-contract workflow.
+- Shared eval-runner infrastructure adds the `eval-runner-v5`
+  executor/grader-isolation contract. `prepare` now writes executor-safe prompts,
+  manifests, run indexes, next steps, outputs directories, and
+  `executor_metadata.json` without grader prompts, assertion-bearing
+  `eval_metadata.json`, `expected_output`, assertion text, or `without_skill`
+  target skill paths. The new `prepare-grading <run-dir|iteration-dir>` step
+  creates grader-only `grader_prompt.md` and assertion metadata after executor
+  receipts exist, uses `--evals-json <path>` for custom workspace roots, and
+  keeps the source eval path out of prepared workspace manifests. `grading-template`,
+  `record`, `doctor`, `aggregate`, and `report` understand pending
+  grading-material states without claiming benchmark improvement, and baseline
+  reuse now rejects same-contract legacy workspaces instead of recomputing their
+  fingerprints under the current contract.
+- Shared eval-runner infrastructure hardens metric integrity for current
+  contracts. `record`, `record-batch`, `doctor`, `aggregate`, `benchmark.md`,
+  and `report` now distinguish missing metrics from present-but-invalid or
+  suspicious metrics, reject non-positive token/duration values for complete
+  proof unless explicitly opted out, warn on known placeholder metric pairs,
+  and block canonical aggregate/doctor proof for repeated known placeholder
+  patterns without inferring token counts from `output_chars`.
+- `skill-quality` now documents the shared eval runner's v5 two-phase execution
+  and grading workflow, including `prepare-grading` before grader prompts,
+  templates, and recorded grading.
 - `vibe-requirements-spec` adds a Markdown requirements-spec drafting skill
   package and eval prompts for rough, ambiguous, contradictory, creative, or
   non-technical vibe-coding goals before implementation planning. It replaces

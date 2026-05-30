@@ -20,7 +20,7 @@ import shutil
 import statistics
 import sys
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Callable
 
 
 ALLOWED_TOP_LEVEL_FIELDS = {
@@ -48,8 +48,12 @@ ALLOWED_SCORING_FIELDS = {
     "pass_threshold",
     "notes",
 }
-RUN_CONTRACT_VERSION = "eval-runner-v2"
+RUN_CONTRACT_VERSION = "eval-runner-v5"
 RECEIPT_SCHEMA_VERSION = "eval-runner-receipt-v1"
+GRADING_AUDIT_STATUSES = ("clean", "warning", "error", "opted-out", "not-applicable")
+METRIC_AUDIT_STATUSES = ("clean", "warning", "error", "opted-out", "not-applicable")
+GRADER_MATERIAL_PENDING = "pending"
+GRADER_MATERIAL_READY = "ready"
 AGENT_LABEL_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 USAGE_FIELD_MAP = {
     "duration_ms": "duration_ms",
@@ -62,6 +66,21 @@ USAGE_FIELD_MAP = {
     "total_tool_calls": "total_tool_calls",
 }
 DURATION_KEYS = ("duration_ms", "duration_seconds", "total_duration_seconds", "executor_duration_seconds")
+SECOND_DURATION_KEYS = ("total_duration_seconds", "duration_seconds", "executor_duration_seconds")
+KNOWN_PLACEHOLDER_METRICS = (
+    {
+        "id": "placeholder-30000ms-5000tokens",
+        "duration_seconds": 30.0,
+        "total_tokens": 5000,
+        "display": "30000ms/5000 tokens",
+    },
+    {
+        "id": "placeholder-60000ms-15000tokens",
+        "duration_seconds": 60.0,
+        "total_tokens": 15000,
+        "display": "60000ms/15000 tokens",
+    },
+)
 
 
 class CommandError(Exception):
@@ -476,6 +495,44 @@ def build_eval_fingerprint(suite: EvalSuite, case: EvalCase) -> tuple[str, dict[
     return sha256_bytes(canonical_json_bytes(inputs)), inputs
 
 
+def build_executor_metadata(suite: EvalSuite, case: EvalCase, eval_fingerprint: str) -> dict[str, Any]:
+    return {
+        "schema_version": "eval-runner-executor-metadata-v1",
+        "run_contract_version": RUN_CONTRACT_VERSION,
+        "eval_id": case.eval_id,
+        "eval_name": case.name,
+        "project_class": case.project_class,
+        "archetype": case.archetype,
+        "prompt": case.prompt,
+        "files": case.files,
+        "fixtures": fixture_fingerprint_entries(suite, case),
+        "eval_fingerprint": eval_fingerprint,
+    }
+
+
+def build_grader_metadata(
+    suite: EvalSuite,
+    case: EvalCase,
+    eval_fingerprint: str,
+    fingerprint_inputs: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "eval_id": case.eval_id,
+        "eval_name": case.name,
+        "skill_name": suite.skill_name,
+        "project_class": case.project_class,
+        "archetype": case.archetype,
+        "prompt": case.prompt,
+        "expected_output": case.expected_output,
+        "files": case.files,
+        "common_assertions": suite.common_assertions,
+        "expectations": case.expectations,
+        "assertions": suite.common_assertions + case.expectations,
+        "eval_fingerprint": eval_fingerprint,
+        "fingerprint_inputs": fingerprint_inputs,
+    }
+
+
 def run_fingerprint_inputs(
     eval_fingerprint: str,
     configuration: str,
@@ -533,12 +590,19 @@ def load_previous_prepare_signature(iteration_dir: Path) -> dict[str, Any]:
     if not isinstance(manifest, dict):
         raise CommandError(f"{manifest_path}: expected object")
     eval_fingerprints: dict[str, str] = {}
-    for eval_dir in sorted(path for path in iteration_dir.iterdir() if path.is_dir() and path.name.startswith("eval-")):
-        metadata = read_eval_metadata(eval_dir)
-        eval_id = metadata.get("eval_id")
-        eval_fingerprint = metadata.get("eval_fingerprint")
-        if isinstance(eval_id, str) and isinstance(eval_fingerprint, str):
-            eval_fingerprints[eval_id] = eval_fingerprint
+    manifest_fingerprints = manifest.get("eval_fingerprints")
+    if isinstance(manifest_fingerprints, dict) and all(
+        isinstance(key, str) and isinstance(value, str)
+        for key, value in manifest_fingerprints.items()
+    ):
+        eval_fingerprints = dict(manifest_fingerprints)
+    else:
+        for eval_dir in sorted(path for path in iteration_dir.iterdir() if path.is_dir() and path.name.startswith("eval-")):
+            metadata = read_eval_metadata(eval_dir)
+            eval_id = metadata.get("eval_id")
+            eval_fingerprint = metadata.get("eval_fingerprint")
+            if isinstance(eval_id, str) and isinstance(eval_fingerprint, str):
+                eval_fingerprints[eval_id] = eval_fingerprint
     return {
         "agent": manifest.get("agent"),
         "configs": manifest.get("configs"),
@@ -580,13 +644,29 @@ def compare_prepare_signatures(current: dict[str, Any], previous: dict[str, Any]
     return differences
 
 
+def default_evals_json_for_iteration(iteration_dir: Path) -> Path | None:
+    resolved_parts = iteration_dir.resolve().parts
+    if len(resolved_parts) >= 4 and resolved_parts[-3] == "workspace":
+        candidate = iteration_dir.parents[2] / "evals.json"
+        if candidate.exists():
+            return candidate
+    return None
+
+
+def prepare_grading_command_for_run(run_dir: Path) -> str:
+    evals_json_arg = " --evals-json <evals.json>"
+    if len(run_dir.parents) >= 3 and default_evals_json_for_iteration(run_dir.parents[2]) is not None:
+        evals_json_arg = ""
+    return f"python3 scripts/eval_runner.py prepare-grading {run_dir}{evals_json_arg}"
+
+
 def build_run_index(root: Path, iteration_manifest: dict[str, Any], manifests: list[dict[str, Any]]) -> dict[str, Any]:
     entries: list[dict[str, Any]] = []
     for manifest in manifests:
         record_command = (
             "python3 scripts/eval_runner.py record "
             f"{manifest['run_dir']} --outputs <outputs-dir> --total-tokens <N> "
-            "--duration-ms <N> --output-chars <N> --grading <grading.json>"
+            "--duration-ms <N> --output-chars <N>"
         )
         receipt_payload = {
             "schema_version": RECEIPT_SCHEMA_VERSION,
@@ -594,6 +674,13 @@ def build_run_index(root: Path, iteration_manifest: dict[str, Any], manifests: l
             "prompt_sha256": manifest.get("prompt_sha256"),
             "run_fingerprint": manifest.get("run_fingerprint"),
         }
+        grader_material_status = str(manifest.get("grader_material_status") or GRADER_MATERIAL_READY)
+        grader_prompt = manifest.get("grader_prompt") if isinstance(manifest.get("grader_prompt"), str) else None
+        grading_json = str(Path(str(manifest["run_dir"])) / "grading.json")
+        record_grading_command = (
+            "python3 scripts/eval_runner.py record "
+            f"{manifest['run_dir']} --grading <grading.json>"
+        )
         entries.append(
             {
                 "eval_id": manifest.get("eval_id"),
@@ -603,12 +690,17 @@ def build_run_index(root: Path, iteration_manifest: dict[str, Any], manifests: l
                 "run_number": manifest.get("run_number"),
                 "run_dir": manifest.get("run_dir"),
                 "prompt": manifest.get("executor_prompt"),
-                "grader_prompt": manifest.get("grader_prompt"),
+                "executor_metadata": manifest.get("executor_metadata"),
+                "grader_material_status": grader_material_status,
+                "grader_prompt": grader_prompt,
                 "outputs_dir": manifest.get("outputs_dir"),
-                "grading_json": str(Path(str(manifest["run_dir"])) / "grading.json"),
+                "grading_json": grading_json,
                 "receipt_json": str(Path(str(manifest["run_dir"])) / "outputs" / "run_receipt.json"),
                 "receipt_payload": receipt_payload,
                 "record_command": record_command,
+                "prepare_grading_command": prepare_grading_command_for_run(Path(str(manifest["run_dir"]))),
+                "grading_template_command": f"python3 scripts/eval_runner.py grading-template {manifest['run_dir']}",
+                "record_grading_command": record_grading_command,
             }
         )
     return {
@@ -617,7 +709,6 @@ def build_run_index(root: Path, iteration_manifest: dict[str, Any], manifests: l
         "iteration_dir": str(root),
         "agent": iteration_manifest.get("agent"),
         "skill_name": iteration_manifest.get("skill_name"),
-        "source_evals_json": iteration_manifest.get("source_evals_json"),
         "selected_eval_ids": iteration_manifest.get("evals"),
         "configs": iteration_manifest.get("configs"),
         "runs_per_config": iteration_manifest.get("runs"),
@@ -633,25 +724,30 @@ def render_next_steps(run_index: dict[str, Any]) -> str:
         "",
         f"- Iteration: `{run_index['iteration_dir']}`",
         f"- Agent: `{run_index.get('agent')}`",
-        f"- Evals JSON: `{run_index.get('source_evals_json')}`",
         f"- Run contract: `{run_index.get('run_contract_version')}`",
         "",
-        "Read this iteration's `eval_metadata.json`, `prompt.md`, and `grader_prompt.md` files directly. Do not reuse prompt text from a prior iteration.",
+        "Run each executor from its `prompt.md` only. Do not reuse prompt text from a prior iteration.",
+        "After executor outputs and `outputs/run_receipt.json` exist, run `prepare-grading` before any grader pass.",
+        "Record only parent-captured or usage-derived token/duration metrics. Placeholder, guessed, reused, or executor-estimated token/duration values are invalid for complete proof.",
+        "If real token/duration metrics are unavailable, record the run as incomplete with the explicit missing or suspicious metric opt-out instead of inventing numbers.",
         "",
         "## Runs",
         "",
     ]
     for entry in run_index.get("run_entries", []):
+        grader_ready = entry.get("grader_material_status") == GRADER_MATERIAL_READY
         lines.extend(
             [
                 f"### {entry['eval_id']} / {entry['configuration']} / run-{entry['run_number']}",
                 "",
                 f"- Run dir: `{entry['run_dir']}`",
                 f"- Prompt: `{entry['prompt']}`",
-                f"- Grader prompt: `{entry['grader_prompt']}`",
+                f"- Executor metadata: `{entry['executor_metadata']}`",
+                f"- Grader materials: `{entry['grader_material_status']}`",
                 f"- Outputs dir: `{entry['outputs_dir']}`",
                 f"- Receipt path: `{entry['receipt_json']}`",
-                f"- Record command: `{entry['record_command']}`",
+                f"- Record executor metrics/output command: `{entry['record_command']}`",
+                f"- Prepare grading command: `{entry['prepare_grading_command']}`",
                 "- Receipt payload:",
                 "",
                 "```json",
@@ -660,6 +756,15 @@ def render_next_steps(run_index: dict[str, Any]) -> str:
                 "",
             ]
         )
+        if grader_ready:
+            lines.extend(
+                [
+                    f"- Grader prompt: `{entry['grader_prompt']}`",
+                    f"- Grading template command: `{entry['grading_template_command']}`",
+                    f"- Record grading command: `{entry['record_grading_command']}`",
+                    "",
+                ]
+            )
     return "\n".join(lines).rstrip() + "\n"
 
 
@@ -672,22 +777,24 @@ def render_run_prompt(
     skill_path: str | None,
     agent: str,
 ) -> str:
-    lines = [
-        "# Eval Run Prompt",
-        "",
-        f"- Skill: `{suite.skill_name}`",
-        f"- Agent: `{agent}`",
-        f"- Eval id: `{case.eval_id}`",
-        f"- Eval name: {case.name}",
-        f"- Configuration: `{config}`",
-        f"- Run: `{run_number}`",
-        f"- Output directory: `{run_dir / 'outputs'}`",
-    ]
-    if skill_path:
+    lines = ["# Eval Run Prompt", ""]
+    if config == "with_skill":
+        lines.append(f"- Skill: `{suite.skill_name}`")
+    lines.extend(
+        [
+            f"- Agent: `{agent}`",
+            f"- Eval id: `{case.eval_id}`",
+            f"- Eval name: {case.name}",
+            f"- Configuration: `{config}`",
+            f"- Run: `{run_number}`",
+            f"- Output directory: `{run_dir / 'outputs'}`",
+        ]
+    )
+    if config == "with_skill" and skill_path:
         lines.append(f"- Skill path: `{skill_path}`")
     lines.extend(["", "## Configuration Contract", ""])
     if config == "without_skill":
-        lines.append("Do not use the target skill for this run. Use only the base agent behavior and the prompt below.")
+        lines.append("Do not use any skill package or local skill file for this run. Use only the base agent behavior and the prompt below.")
     elif config == "with_skill":
         lines.append("Use the target skill through the invoking agent's normal skill mechanism for this run.")
     else:
@@ -697,8 +804,6 @@ def render_run_prompt(
         lines.extend(["## Fixture Files", ""])
         lines.extend(f"- `{file_name}`" for file_name in case.files)
         lines.append("")
-    if case.expected_output:
-        lines.extend(["## Expected Output Summary", "", case.expected_output.strip(), ""])
     lines.extend(
         [
             "## Recording Contract",
@@ -711,8 +816,9 @@ def render_run_prompt(
             f"  `python3 scripts/eval_runner.py record {run_dir} --total-tokens <N> --duration-ms <N> --output-chars <N>`",
             "- Parent metric flags also include `--total-duration-seconds`.",
             "- Accepted timing keys are `duration_ms`, `duration_seconds`, `total_duration_seconds`, `executor_duration_seconds`, and `total_tokens`.",
-            f"- If external artifacts exist, attach them with `record {run_dir} --outputs <path> --timing <timing.json>`.",
-            f"- A separate grader should read `{run_dir / 'grader_prompt.md'}` and write `{run_dir / 'grading.json'}`.",
+            "- The executor should not estimate tokens or duration. Placeholder, guessed, reused, or self-reported token/duration values are invalid for complete proof.",
+            f"- If external artifacts exist, attach them with `python3 scripts/eval_runner.py record {run_dir} --outputs <path> --timing <timing.json>`.",
+            f"- After outputs and the prompt receipt exist, prepare grader-only materials with `{prepare_grading_command_for_run(run_dir)}`.",
         ]
     )
     return "\n".join(lines) + "\n"
@@ -745,6 +851,15 @@ def render_grader_prompt(
         "Grade this run in a separate pass or agent from the executor when the host environment supports it.",
         "Read the eval metadata, run manifest, and run outputs before grading.",
         "Use programmatic checks when an expectation is objectively checkable from files.",
+        "",
+        "## Grading Boundary Rules",
+        "",
+        "- Grade the whole primary response, not only the intended artifact inside it.",
+        "- Wrapper text, headings, Markdown fences, explanations, and meta-notes are part of the recorded output.",
+        "- Do not narrow a global `Output ...` assertion to a sub-artifact unless that assertion explicitly scopes it that way.",
+        "- Do not treat executor claims such as \"the real artifact would be different\" as evidence that the recorded output complies.",
+        "- Requests to show, inspect, or answer in multiple parts do not automatically authorize Markdown fences or prompt-local references.",
+        "- Use byte-level or parser-level checks for exact JSON, verbatim output, raw commit-message, and no-fence assertions.",
         "",
         "## Required grading.json schema",
         "",
@@ -795,11 +910,9 @@ def command_prepare(args: argparse.Namespace) -> int:
         raise CommandError(f"unknown eval id(s): {', '.join(unknown_ids)}")
 
     current_eval_fingerprints: dict[str, str] = {}
-    current_fingerprint_inputs: dict[str, dict[str, Any]] = {}
     for eval_id in selected_ids:
-        eval_fingerprint, fingerprint_inputs = build_eval_fingerprint(suite, cases_by_id[eval_id])
+        eval_fingerprint, _fingerprint_inputs = build_eval_fingerprint(suite, cases_by_id[eval_id])
         current_eval_fingerprints[eval_id] = eval_fingerprint
-        current_fingerprint_inputs[eval_id] = fingerprint_inputs
 
     workspace_root = Path(args.workspace_root) if args.workspace_root else suite.path.parent / "workspace"
     agent_root = workspace_root / agent
@@ -839,24 +952,9 @@ def command_prepare(args: argparse.Namespace) -> int:
         eval_slug_mapping.append((eval_id, eval_dir.name))
         eval_dir.mkdir(parents=True, exist_ok=True)
         eval_fingerprint = current_eval_fingerprints[eval_id]
-        fingerprint_inputs = current_fingerprint_inputs[eval_id]
-        metadata = {
-            "eval_id": case.eval_id,
-            "eval_name": case.name,
-            "skill_name": suite.skill_name,
-            "project_class": case.project_class,
-            "archetype": case.archetype,
-            "prompt": case.prompt,
-            "expected_output": case.expected_output,
-            "files": case.files,
-            "common_assertions": suite.common_assertions,
-            "expectations": case.expectations,
-            "assertions": suite.common_assertions + case.expectations,
-            "eval_fingerprint": eval_fingerprint,
-            "fingerprint_inputs": fingerprint_inputs,
-        }
-        write_json(eval_dir / "eval_metadata.json", metadata)
-        eval_metadata_sha256 = file_sha256(eval_dir / "eval_metadata.json")
+        executor_metadata_path = eval_dir / "executor_metadata.json"
+        write_json(executor_metadata_path, build_executor_metadata(suite, case, eval_fingerprint))
+        executor_metadata_sha256 = file_sha256(executor_metadata_path)
 
         for config in configs:
             for run_number in range(1, args.runs + 1):
@@ -876,7 +974,7 @@ def command_prepare(args: argparse.Namespace) -> int:
                     "iteration": number,
                     "iteration_dir": str(root),
                     "skill_name": suite.skill_name,
-                    "skill_path": args.skill_path,
+                    "skill_path": args.skill_path if config == "with_skill" else None,
                     "model": args.model,
                     "grader_model": args.grader_model,
                     "eval_id": case.eval_id,
@@ -886,21 +984,26 @@ def command_prepare(args: argparse.Namespace) -> int:
                     "run_dir": str(run_dir),
                     "outputs_dir": str(outputs_dir),
                     "executor_prompt": str(run_dir / "prompt.md"),
-                    "grader_prompt": str(run_dir / "grader_prompt.md"),
-                    "eval_metadata": str(eval_dir / "eval_metadata.json"),
+                    "executor_metadata": str(executor_metadata_path),
+                    "grader_prompt": None,
+                    "grader_metadata": None,
+                    "eval_metadata": None,
+                    "grader_material_status": GRADER_MATERIAL_PENDING,
                     "run_contract_version": RUN_CONTRACT_VERSION,
                     "eval_fingerprint": eval_fingerprint,
-                    "fingerprint_inputs": fingerprint_inputs,
                     "run_fingerprint": run_fingerprint,
                     "run_fingerprint_inputs": run_inputs,
+                    "executor_visible_files": [
+                        str(run_dir / "prompt.md"),
+                        str(run_dir / "run_manifest.json"),
+                        str(outputs_dir),
+                        str(executor_metadata_path),
+                    ],
                 }
                 prompt = render_run_prompt(suite, case, config, run_number, run_dir, args.skill_path, agent)
-                grader_prompt = render_grader_prompt(suite, case, config, run_number, run_dir, agent)
                 write_text(run_dir / "prompt.md", prompt)
-                write_text(run_dir / "grader_prompt.md", grader_prompt)
                 manifest["prompt_sha256"] = file_sha256(run_dir / "prompt.md")
-                manifest["grader_prompt_sha256"] = file_sha256(run_dir / "grader_prompt.md")
-                manifest["eval_metadata_sha256"] = eval_metadata_sha256
+                manifest["executor_metadata_sha256"] = executor_metadata_sha256
                 write_json(run_dir / "run_manifest.json", manifest)
                 manifests.append(manifest)
 
@@ -908,7 +1011,6 @@ def command_prepare(args: argparse.Namespace) -> int:
         "created_at": utc_now(),
         "agent": agent,
         "skill_name": suite.skill_name,
-        "source_evals_json": str(suite.path),
         "iteration": number,
         "configs": configs,
         "runs": args.runs,
@@ -917,6 +1019,7 @@ def command_prepare(args: argparse.Namespace) -> int:
         "model": args.model,
         "grader_model": args.grader_model,
         "run_contract_version": RUN_CONTRACT_VERSION,
+        "eval_fingerprints": current_eval_fingerprints,
     }
     if args.rerun_of:
         iteration_manifest["rerun_of"] = str(Path(args.rerun_of))
@@ -931,6 +1034,162 @@ def command_prepare(args: argparse.Namespace) -> int:
         print("evals:")
         for eval_id, slug in eval_slug_mapping:
             print(f"  {eval_id}: {slug}")
+    return 0
+
+
+def iteration_dir_for_run(run_dir: Path, manifest: dict[str, Any] | None = None) -> Path:
+    manifest = manifest if isinstance(manifest, dict) else load_json_if_exists(run_dir / "run_manifest.json")
+    if isinstance(manifest, dict) and isinstance(manifest.get("iteration_dir"), str):
+        return Path(manifest["iteration_dir"])
+    if len(run_dir.parents) >= 3:
+        return run_dir.parents[2]
+    raise CommandError(f"{run_dir}: cannot determine iteration directory")
+
+
+def load_iteration_manifest(iteration_dir: Path) -> dict[str, Any]:
+    manifest_path = iteration_dir / "iteration_manifest.json"
+    data = read_json(manifest_path)
+    if not isinstance(data, dict):
+        raise CommandError(f"{manifest_path}: expected object")
+    return data
+
+
+def load_suite_for_iteration(iteration_dir: Path, evals_json: str | None = None) -> EvalSuite:
+    if evals_json:
+        return load_eval_suite(Path(evals_json))
+    iteration_manifest = load_iteration_manifest(iteration_dir)
+    source = iteration_manifest.get("source_evals_json")
+    if not isinstance(source, str) or not source:
+        default_source = default_evals_json_for_iteration(iteration_dir)
+        if default_source is not None:
+            return load_eval_suite(default_source)
+        raise CommandError(
+            f"{iteration_dir}: cannot determine evals.json for grading materials; "
+            "pass --evals-json <path> to prepare-grading"
+        )
+    return load_eval_suite(Path(source))
+
+
+def manifests_for_iteration(iteration_dir: Path) -> list[dict[str, Any]]:
+    manifests: list[dict[str, Any]] = []
+    for run_dir in discover_prepared_run_dirs(iteration_dir):
+        manifest = load_json_if_exists(run_dir / "run_manifest.json")
+        if isinstance(manifest, dict):
+            manifests.append(manifest)
+    return manifests
+
+
+def refresh_iteration_operator_files(iteration_dir: Path) -> None:
+    iteration_manifest = load_iteration_manifest(iteration_dir)
+    run_index = build_run_index(iteration_dir, iteration_manifest, manifests_for_iteration(iteration_dir))
+    write_json(iteration_dir / "run_index.json", run_index)
+    write_text(iteration_dir / "next_steps.md", render_next_steps(run_index))
+
+
+def grading_materials_missing_message(run_dir: Path) -> str:
+    return (
+        f"{run_dir}: grading materials are not prepared; run "
+        f"`python3 scripts/eval_runner.py prepare-grading {run_dir}` after executor outputs and "
+        "`outputs/run_receipt.json` exist"
+    )
+
+
+def current_run_requires_grading_materials(run_dir: Path, manifest: dict[str, Any]) -> bool:
+    return is_current_run(manifest) and manifest.get("grader_material_status") != GRADER_MATERIAL_READY
+
+
+def validate_prepare_grading_preconditions(run_dirs: list[Path], allow_missing_receipt: bool) -> list[str]:
+    errors: list[str] = []
+    for run_dir in run_dirs:
+        manifest = load_run_manifest(run_dir)
+        if not is_current_run(manifest):
+            errors.append(
+                f"{run_dir}: prepare-grading only supports {RUN_CONTRACT_VERSION} runs; "
+                "legacy workspaces already contain their grading materials"
+            )
+            continue
+        if manifest.get("grader_material_status") == GRADER_MATERIAL_READY:
+            continue
+        if not allow_missing_receipt:
+            receipt_errors = validate_prompt_receipt(run_dir, manifest)
+            if receipt_errors:
+                errors.append(
+                    f"{run_dir}: executor receipt is required before preparing grader materials:\n"
+                    + "\n".join(f"  - {error}" for error in receipt_errors)
+                )
+    return errors
+
+
+def write_grading_materials_for_run(run_dir: Path, suite: EvalSuite) -> None:
+    manifest = load_run_manifest(run_dir)
+    cases_by_id = {case.eval_id: case for case in suite.evals}
+    eval_id = manifest.get("eval_id")
+    if not isinstance(eval_id, str) or eval_id not in cases_by_id:
+        raise CommandError(f"{run_dir}: eval id {eval_id!r} is not present in {suite.path}")
+    case = cases_by_id[eval_id]
+    eval_fingerprint, fingerprint_inputs = build_eval_fingerprint(suite, case)
+    if manifest.get("eval_fingerprint") != eval_fingerprint:
+        raise CommandError(
+            f"{run_dir}: eval fingerprint changed since prepare; rerun prepare instead of preparing grader materials"
+        )
+
+    eval_dir = run_dir.parents[1]
+    metadata_path = eval_dir / "eval_metadata.json"
+    write_json(metadata_path, build_grader_metadata(suite, case, eval_fingerprint, fingerprint_inputs))
+    grader_prompt_path = run_dir / "grader_prompt.md"
+    write_text(
+        grader_prompt_path,
+        render_grader_prompt(
+            suite,
+            case,
+            str(manifest.get("configuration") or ""),
+            int(manifest.get("run_number") or parse_run_number(run_dir)),
+            run_dir,
+            str(manifest.get("agent") or ""),
+        ),
+    )
+
+    manifest.update(
+        {
+            "grader_prompt": str(grader_prompt_path),
+            "grader_metadata": str(metadata_path),
+            "eval_metadata": str(metadata_path),
+            "grader_material_status": GRADER_MATERIAL_READY,
+            "grader_prompt_sha256": file_sha256(grader_prompt_path),
+            "eval_metadata_sha256": file_sha256(metadata_path),
+            "grader_material_files": [
+                str(grader_prompt_path),
+                str(metadata_path),
+            ],
+        }
+    )
+    write_json(run_dir / "run_manifest.json", manifest)
+
+
+def command_prepare_grading(args: argparse.Namespace) -> int:
+    target = Path(args.target)
+    if not target.exists():
+        raise CommandError(f"{target}: target does not exist")
+    if (target / "run_manifest.json").exists():
+        run_dirs = [target]
+        iteration_dir = iteration_dir_for_run(target)
+    else:
+        parse_iteration_context(target)
+        iteration_dir = target
+        run_dirs = discover_prepared_run_dirs(iteration_dir)
+    if not run_dirs:
+        raise CommandError(f"{target}: no prepared run directories found")
+
+    precondition_errors = validate_prepare_grading_preconditions(run_dirs, args.allow_missing_receipt)
+    if precondition_errors:
+        raise CommandError("prepare-grading preconditions failed:\n" + "\n".join(f"- {error}" for error in precondition_errors))
+
+    suite = load_suite_for_iteration(iteration_dir, args.evals_json)
+    for run_dir in run_dirs:
+        write_grading_materials_for_run(run_dir, suite)
+    refresh_iteration_operator_files(iteration_dir)
+    print(f"prepared_grading: {target}")
+    print(f"runs: {len(run_dirs)}")
     return 0
 
 
@@ -999,8 +1258,17 @@ def eval_metadata_path_for_run(run_dir: Path) -> Path | None:
     manifest_path = run_dir / "run_manifest.json"
     if manifest_path.exists():
         manifest = read_json(manifest_path)
-        if isinstance(manifest, dict) and isinstance(manifest.get("eval_metadata"), str):
-            return Path(manifest["eval_metadata"])
+        if isinstance(manifest, dict):
+            if is_current_run(manifest):
+                if manifest.get("grader_material_status") != GRADER_MATERIAL_READY:
+                    return None
+                for key in ("grader_metadata", "eval_metadata"):
+                    if isinstance(manifest.get(key), str):
+                        return Path(manifest[key])
+                return None
+            for key in ("grader_metadata", "eval_metadata"):
+                if isinstance(manifest.get(key), str):
+                    return Path(manifest[key])
     if len(run_dir.parents) >= 2:
         fallback = run_dir.parents[1] / "eval_metadata.json"
         if fallback.exists():
@@ -1044,6 +1312,673 @@ def validate_grading_completeness(
         if expected != actual:
             errors.append(f"{source}.expectations[{index}].text: expected {expected!r}, got {actual!r}")
     return errors
+
+
+CONVENTIONAL_COMMIT_SUBJECT_RE = re.compile(
+    r"(?m)^\s*(build|chore|ci|docs|feat|fix|perf|refactor|revert|style|test)(\([^)]+\))?!?:\s+\S"
+)
+MARKDOWN_FENCE_RE = re.compile(r"```[^\n]*\n?(.*?)```", re.DOTALL)
+PROMPT_LOCAL_ERROR_PHRASES = (
+    "the fenced block above",
+    "this eval",
+    "this prompt",
+)
+PROMPT_LOCAL_WARNING_PHRASES = (
+    "the provided text",
+    "as requested",
+)
+BOUNDARY_NARROWING_PHRASES = (
+    "the committed artifact",
+    "inside the fence",
+    "outside the artifact",
+    "outside the code block",
+    "does not count",
+    "would be raw",
+    "real command would",
+    "real commit",
+)
+
+
+def grading_expectations(data: Any) -> list[dict[str, Any]]:
+    if not isinstance(data, dict) or not isinstance(data.get("expectations"), list):
+        return []
+    return [item for item in data["expectations"] if isinstance(item, dict)]
+
+
+def read_text_or_none(path: Path) -> str | None:
+    try:
+        return path.read_text(encoding="utf-8")
+    except (UnicodeDecodeError, OSError):
+        return None
+
+
+def auditable_output_files(outputs_dir: Path) -> list[Path]:
+    if not outputs_dir.is_dir():
+        return []
+    return sorted(
+        path
+        for path in outputs_dir.rglob("*")
+        if path.is_file() and path.name != "run_receipt.json"
+    )
+
+
+def audit_output_bundle(outputs_dir: Path) -> dict[str, Any]:
+    files = auditable_output_files(outputs_dir)
+    text_files: list[dict[str, str]] = []
+    primary_response: str | None = None
+    for path in files:
+        text = read_text_or_none(path)
+        if text is None:
+            continue
+        rel_path = str(path.relative_to(outputs_dir))
+        text_files.append({"path": rel_path, "text": text})
+        if rel_path == "response.md":
+            primary_response = text
+    combined_text = primary_response
+    if combined_text is None and text_files:
+        combined_text = "\n\n".join(f"# {item['path']}\n{item['text']}" for item in text_files)
+    return {
+        "files": [str(path.relative_to(outputs_dir)) for path in files],
+        "text_files": text_files,
+        "primary_response": primary_response,
+        "combined_text": combined_text,
+    }
+
+
+def markdown_fence_blocks(text: str) -> list[str]:
+    return [match.group(1) for match in MARKDOWN_FENCE_RE.finditer(text)]
+
+
+def has_markdown_fence(text: str | None) -> bool:
+    return bool(text and "```" in text)
+
+
+def fenced_conventional_commit_blocks(text: str | None) -> list[str]:
+    if not text:
+        return []
+    return [block for block in markdown_fence_blocks(text) if CONVENTIONAL_COMMIT_SUBJECT_RE.search(block.strip())]
+
+
+def prose_without_fences_or_quotes(text: str) -> str:
+    without_fences = MARKDOWN_FENCE_RE.sub("", text)
+    lines = [line for line in without_fences.splitlines() if not line.lstrip().startswith(">")]
+    return "\n".join(lines)
+
+
+def audit_snippet(text: str, needle: str | None = None, max_chars: int = 180) -> str:
+    if not text:
+        return ""
+    start = 0
+    if needle:
+        index = text.lower().find(needle.lower())
+        if index >= 0:
+            start = max(0, index - 40)
+    snippet = text[start : start + max_chars].replace("\n", "\\n")
+    if start > 0:
+        snippet = "..." + snippet
+    if start + max_chars < len(text):
+        snippet += "..."
+    return snippet
+
+
+def assertion_has_no_fence_contract(assertion: str) -> bool:
+    lower = assertion.lower()
+    return any(
+        phrase in lower
+        for phrase in (
+            "does not wrap",
+            "do not wrap",
+            "no markdown fence",
+            "no markdown code fence",
+            "without markdown fence",
+            "without a markdown fence",
+            "not wrapped in markdown",
+        )
+    )
+
+
+def assertion_has_raw_commit_contract(assertion: str) -> bool:
+    lower = assertion.lower()
+    return (
+        "commit message" in lower
+        and (
+            "raw" in lower
+            or assertion_has_no_fence_contract(assertion)
+            or "plain text" in lower
+            or "standalone conventional commit" in lower
+        )
+    )
+
+
+def prompt_has_raw_commit_contract(prompt: str) -> bool:
+    lower = prompt.lower()
+    return "commit message" in lower and any(
+        phrase in lower
+        for phrase in (
+            "raw",
+            "plain text",
+            "no markdown",
+            "without markdown",
+            "do not wrap",
+            "don't wrap",
+        )
+    )
+
+
+def prompt_explicitly_allows_fenced_commit(prompt: str) -> bool:
+    lower = prompt.lower()
+    if "commit message" not in lower:
+        return False
+    if "no markdown" in lower or "without markdown" in lower or "do not wrap" in lower:
+        return False
+    return "fenced" in lower or "markdown fence" in lower or "code block" in lower
+
+
+def assertion_is_standalone_contract(assertion: str) -> bool:
+    lower = assertion.lower()
+    return any(
+        phrase in lower
+        for phrase in (
+            "standalone",
+            "stands alone",
+            "self-contained",
+            "prompt-only",
+            "without relying on the prompt",
+            "without prompt context",
+        )
+    )
+
+
+def assertion_is_json_only_contract(assertion: str) -> bool:
+    lower = assertion.lower()
+    return "json" in lower and any(
+        phrase in lower
+        for phrase in (
+            "valid json only",
+            "json only",
+            "exact json",
+            "machine-readable",
+            "no surrounding prose",
+            "without surrounding prose",
+            "nothing but json",
+        )
+    )
+
+
+def assertion_is_verbatim_no_wrapper_contract(assertion: str) -> bool:
+    lower = assertion.lower()
+    exactish = "verbatim" in lower or "exact output" in lower or "exactly" in lower
+    wrapperless = any(
+        phrase in lower
+        for phrase in (
+            "no wrapper",
+            "without wrapper",
+            "does not wrap",
+            "no surrounding prose",
+            "without surrounding prose",
+            "raw text",
+            "no markdown",
+        )
+    )
+    return exactish and wrapperless
+
+
+def assertion_is_file_artifact_claim(assertion: str) -> bool:
+    lower = assertion.lower()
+    return bool(re.search(r"\b(file|artifact|path)\b", lower)) and any(
+        phrase in lower
+        for phrase in (
+            "exists",
+            "created",
+            "written",
+            "changed",
+            "modified",
+            "produced",
+            "no extra",
+            "only the",
+        )
+    )
+
+
+def response_has_obvious_wrapper(text: str | None) -> bool:
+    if not text:
+        return False
+    stripped_lines = [line.strip() for line in text.splitlines() if line.strip()]
+    if not stripped_lines:
+        return False
+    first = stripped_lines[0].lower()
+    return (
+        first.startswith("#")
+        or first.startswith("here is")
+        or first.startswith("here's")
+        or first.startswith("as requested")
+        or first.startswith("the requested")
+        or has_markdown_fence(text)
+    )
+
+
+def add_audit_finding(
+    findings: list[dict[str, Any]],
+    *,
+    severity: str,
+    rule_id: str,
+    assertion_index: int,
+    assertion_text: str,
+    message: str,
+    evidence: str,
+    recommendation: str,
+) -> None:
+    findings.append(
+        {
+            "severity": severity,
+            "rule_id": rule_id,
+            "assertion_index": assertion_index,
+            "assertion_text": assertion_text,
+            "message": message,
+            "evidence": evidence,
+            "recommendation": recommendation,
+        }
+    )
+
+
+def grading_audit_status(findings: list[dict[str, Any]], *, opted_out: bool, applicable: bool) -> str:
+    if opted_out:
+        return "opted-out"
+    if any(finding.get("severity") == "error" for finding in findings):
+        return "error"
+    if any(finding.get("severity") == "warning" for finding in findings):
+        return "warning"
+    return "clean" if applicable else "not-applicable"
+
+
+def audit_grading_for_run(
+    run_dir: Path,
+    grading_data: dict[str, Any] | None = None,
+    *,
+    outputs_dir: Path | None = None,
+    record_metadata: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    run_dir = Path(run_dir)
+    outputs_dir = outputs_dir or run_dir / "outputs"
+    record_metadata = record_metadata if isinstance(record_metadata, dict) else {}
+    grading_path = run_dir / "grading.json"
+    if grading_data is None:
+        if not grading_path.exists():
+            return {
+                "status": "not-applicable",
+                "opted_out": bool(record_metadata.get("allow_suspicious_grading")),
+                "applicable": False,
+                "errors": 0,
+                "warnings": 0,
+                "findings": [],
+                "reason": "grading.json is missing",
+            }
+        loaded = read_json(grading_path)
+        grading_data = loaded if isinstance(loaded, dict) else None
+    expectations = grading_expectations(grading_data)
+    if not expectations:
+        return {
+            "status": "not-applicable",
+            "opted_out": bool(record_metadata.get("allow_suspicious_grading")),
+            "applicable": False,
+            "errors": 0,
+            "warnings": 0,
+            "findings": [],
+            "reason": "grading expectations are missing",
+        }
+
+    metadata_path = eval_metadata_path_for_run(run_dir)
+    metadata = read_json(metadata_path) if metadata_path and metadata_path.exists() else {}
+    metadata = metadata if isinstance(metadata, dict) else {}
+    prompt = str(metadata.get("prompt") or "")
+    prompt_lower = prompt.lower()
+    output_bundle = audit_output_bundle(outputs_dir)
+    response_text = output_bundle.get("primary_response")
+    combined_text = output_bundle.get("combined_text")
+    scan_text = response_text if isinstance(response_text, str) else combined_text
+    scan_text = scan_text if isinstance(scan_text, str) else None
+    prose_text = prose_without_fences_or_quotes(scan_text) if scan_text is not None else ""
+    output_files = output_bundle.get("files") if isinstance(output_bundle.get("files"), list) else []
+    non_response_outputs = [
+        path for path in output_files if path not in {"response.md", "run_receipt.json"}
+    ]
+    findings: list[dict[str, Any]] = []
+    applicable = bool(scan_text)
+    fenced_commit_blocks = fenced_conventional_commit_blocks(scan_text)
+
+    for index, item in enumerate(expectations):
+        if item.get("passed") is not True:
+            continue
+        assertion = item.get("text") if isinstance(item.get("text"), str) else ""
+        evidence_text = item.get("evidence") if isinstance(item.get("evidence"), str) else ""
+        assertion_lower = assertion.lower()
+        evidence_lower = evidence_text.lower()
+
+        if scan_text and fenced_commit_blocks and "commit message" in assertion_lower:
+            raw_assertion = assertion_has_raw_commit_contract(assertion)
+            raw_prompt = prompt_has_raw_commit_contract(prompt)
+            if raw_assertion or raw_prompt:
+                severity = "error" if raw_assertion else "warning"
+                add_audit_finding(
+                    findings,
+                    severity=severity,
+                    rule_id="raw-commit-message-fence",
+                    assertion_index=index,
+                    assertion_text=assertion,
+                    message="A passed commit-message assertion conflicts with a Markdown-fenced Conventional Commit subject in the recorded response.",
+                    evidence=audit_snippet(fenced_commit_blocks[0]),
+                    recommendation="Fail the assertion unless the prompt and assertion explicitly allow a fenced commit-message example.",
+                )
+            elif "commit message" in prompt_lower and not prompt_explicitly_allows_fenced_commit(prompt):
+                add_audit_finding(
+                    findings,
+                    severity="warning",
+                    rule_id="raw-commit-message-fence",
+                    assertion_index=index,
+                    assertion_text=assertion,
+                    message="The response fences a Conventional Commit-like subject even though the prompt only asks for a commit message.",
+                    evidence=audit_snippet(fenced_commit_blocks[0]),
+                    recommendation="Check whether the assertion should require raw commit-message output.",
+                )
+
+        if scan_text and assertion_has_no_fence_contract(assertion) and has_markdown_fence(scan_text):
+            add_audit_finding(
+                findings,
+                severity="error",
+                rule_id="no-fence-assertion-fence",
+                assertion_index=index,
+                assertion_text=assertion,
+                message="A passed no-fence assertion conflicts with Markdown fence bytes in the recorded response.",
+                evidence=audit_snippet(scan_text, "```"),
+                recommendation="Fail the assertion or narrow it only if the assertion itself excludes wrapper text.",
+            )
+
+        if scan_text and assertion_is_standalone_contract(assertion):
+            for phrase in PROMPT_LOCAL_ERROR_PHRASES:
+                if phrase in prose_text.lower():
+                    add_audit_finding(
+                        findings,
+                        severity="error",
+                        rule_id="standalone-prompt-local-reference",
+                        assertion_index=index,
+                        assertion_text=assertion,
+                        message=f"A passed standalone-output assertion conflicts with prompt-local phrase {phrase!r}.",
+                        evidence=audit_snippet(prose_text, phrase),
+                        recommendation="Fail the assertion unless the phrase is required verbatim source content.",
+                    )
+                    break
+            else:
+                for phrase in PROMPT_LOCAL_WARNING_PHRASES:
+                    if phrase in prose_text.lower():
+                        add_audit_finding(
+                            findings,
+                            severity="warning",
+                            rule_id="standalone-prompt-local-reference",
+                            assertion_index=index,
+                            assertion_text=assertion,
+                            message=f"The response contains prompt-local phrase {phrase!r} under a passed standalone-output assertion.",
+                            evidence=audit_snippet(prose_text, phrase),
+                            recommendation="Verify the output stands alone without prompt context.",
+                        )
+                        break
+
+        if scan_text and any(phrase in evidence_lower for phrase in BOUNDARY_NARROWING_PHRASES):
+            severity = "error" if has_markdown_fence(scan_text) or any(phrase in prose_text.lower() for phrase in PROMPT_LOCAL_ERROR_PHRASES) else "warning"
+            add_audit_finding(
+                findings,
+                severity=severity,
+                rule_id="evidence-boundary-narrowing",
+                assertion_index=index,
+                assertion_text=assertion,
+                message="Grader evidence appears to narrow a passed global assertion to a sub-artifact or hypothetical artifact.",
+                evidence=audit_snippet(evidence_text),
+                recommendation="Regrade against the full recorded output set instead of executor intent or a selected sub-artifact.",
+            )
+
+        if scan_text and assertion_is_json_only_contract(assertion):
+            stripped = scan_text.strip()
+            json_error: str | None = None
+            if stripped.startswith("```"):
+                json_error = "response starts with a Markdown fence"
+            else:
+                try:
+                    json.loads(stripped)
+                except json.JSONDecodeError as exc:
+                    json_error = f"entire stripped response is not valid JSON: {exc.msg}"
+            if json_error:
+                add_audit_finding(
+                    findings,
+                    severity="error",
+                    rule_id="json-only-contract",
+                    assertion_index=index,
+                    assertion_text=assertion,
+                    message=f"A passed JSON-only assertion conflicts with the recorded response: {json_error}.",
+                    evidence=audit_snippet(scan_text),
+                    recommendation="Fail the assertion unless the whole recorded response is parseable JSON with no surrounding prose or fences.",
+                )
+
+        if scan_text and assertion_is_verbatim_no_wrapper_contract(assertion) and response_has_obvious_wrapper(scan_text):
+            add_audit_finding(
+                findings,
+                severity="error",
+                rule_id="verbatim-no-wrapper",
+                assertion_index=index,
+                assertion_text=assertion,
+                message="A passed exact/verbatim no-wrapper assertion conflicts with obvious wrapper text or Markdown fences.",
+                evidence=audit_snippet(scan_text),
+                recommendation="Fail the assertion unless the expected verbatim payload includes the wrapper.",
+            )
+
+        if assertion_is_file_artifact_claim(assertion):
+            applicable = True
+            if not non_response_outputs:
+                add_audit_finding(
+                    findings,
+                    severity="warning",
+                    rule_id="file-artifact-boundary",
+                    assertion_index=index,
+                    assertion_text=assertion,
+                    message="A passed file/artifact assertion lacks a recorded non-response artifact to verify the claim.",
+                    evidence=f"recorded output files: {', '.join(output_files) if output_files else 'none'}",
+                    recommendation="Record the relevant artifact or downgrade the grading evidence to a manual/unsupported claim.",
+                )
+
+    opted_out = bool(record_metadata.get("allow_suspicious_grading"))
+    errors = sum(1 for finding in findings if finding.get("severity") == "error")
+    warnings = sum(1 for finding in findings if finding.get("severity") == "warning")
+    return {
+        "status": grading_audit_status(findings, opted_out=opted_out, applicable=applicable),
+        "opted_out": opted_out,
+        "applicable": applicable,
+        "errors": errors,
+        "warnings": warnings,
+        "findings": findings,
+        "output_files_checked": output_files,
+    }
+
+
+def grading_audit_blocking_messages(run_dir: Path, audit: dict[str, Any]) -> list[str]:
+    messages: list[str] = []
+    for finding in audit.get("findings", []):
+        if not isinstance(finding, dict) or finding.get("severity") != "error":
+            continue
+        assertion_number = int(finding.get("assertion_index", 0)) + 1
+        messages.append(
+            f"{run_dir}: grading audit {finding.get('rule_id')} assertion {assertion_number}: "
+            f"{finding.get('message')} Evidence: {finding.get('evidence')}"
+        )
+    return messages
+
+
+def audit_status_counts(runs: list[dict[str, Any]]) -> dict[str, int]:
+    counts = {status: 0 for status in GRADING_AUDIT_STATUSES}
+    for run in runs:
+        audit = run.get("grading_audit") if isinstance(run, dict) else None
+        status = audit.get("status") if isinstance(audit, dict) else "not-applicable"
+        if status not in counts:
+            status = "not-applicable"
+        counts[str(status)] += 1
+    return counts
+
+
+def format_audit_counts(counts: dict[str, int] | None) -> str:
+    counts = counts if isinstance(counts, dict) else {}
+    return ", ".join(f"{status}={int(counts.get(status, 0))}" for status in GRADING_AUDIT_STATUSES)
+
+
+def metric_audit_status(findings: list[dict[str, Any]], *, opted_out: bool, applicable: bool) -> str:
+    if not applicable:
+        return "not-applicable"
+    if opted_out:
+        return "opted-out"
+    if any(finding.get("severity") == "error" for finding in findings):
+        return "error"
+    if any(finding.get("severity") == "warning" for finding in findings):
+        return "warning"
+    return "clean"
+
+
+def resolve_duration_seconds(timing_data: dict[str, Any] | None) -> tuple[float | None, str | None]:
+    timing_data = timing_data if isinstance(timing_data, dict) else {}
+    duration_ms = first_number(timing_data.get("duration_ms"))
+    if duration_ms is not None:
+        return duration_ms / 1000.0, "duration_ms"
+    for key in SECOND_DURATION_KEYS:
+        seconds = first_number(timing_data.get(key))
+        if seconds is not None:
+            return seconds, key
+    return None, None
+
+
+def known_placeholder_metric(duration_seconds: float | None, total_tokens: float | None) -> dict[str, Any] | None:
+    if duration_seconds is None or total_tokens is None:
+        return None
+    if duration_seconds <= 0 or total_tokens <= 0:
+        return None
+    for placeholder in KNOWN_PLACEHOLDER_METRICS:
+        if (
+            abs(duration_seconds - float(placeholder["duration_seconds"])) < 1e-9
+            and abs(total_tokens - float(placeholder["total_tokens"])) < 1e-9
+        ):
+            return placeholder
+    return None
+
+
+def audit_metric_integrity(
+    timing_data: dict[str, Any] | None,
+    *,
+    current_contract: bool,
+    record_metadata: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    record_metadata = record_metadata if isinstance(record_metadata, dict) else {}
+    findings: list[dict[str, Any]] = []
+    duration_seconds, duration_key = resolve_duration_seconds(timing_data)
+    total_tokens = first_number((timing_data or {}).get("total_tokens")) if isinstance(timing_data, dict) else None
+    if current_contract and duration_seconds is not None and duration_seconds <= 0:
+        findings.append(
+            {
+                "severity": "error",
+                "rule_id": "non-positive-duration",
+                "message": f"Resolved duration from {duration_key} must be greater than zero for complete proof.",
+                "evidence": f"{duration_key} resolved to {format_number(duration_seconds)} seconds",
+            }
+        )
+    if current_contract and total_tokens is not None and total_tokens <= 0:
+        findings.append(
+            {
+                "severity": "error",
+                "rule_id": "non-positive-total-tokens",
+                "message": "total_tokens must be greater than zero for complete proof.",
+                "evidence": f"total_tokens={format_number(total_tokens, digits=0)}",
+            }
+        )
+    placeholder = known_placeholder_metric(duration_seconds, total_tokens)
+    if current_contract and placeholder is not None:
+        findings.append(
+            {
+                "severity": "warning",
+                "rule_id": "known-placeholder-metrics",
+                "placeholder_id": placeholder["id"],
+                "display": placeholder["display"],
+                "duration_seconds": placeholder["duration_seconds"],
+                "total_tokens": placeholder["total_tokens"],
+                "message": f"Metrics match the known placeholder pair {placeholder['display']}.",
+                "evidence": f"duration={format_number(duration_seconds)}s, total_tokens={format_number(total_tokens, digits=0)}",
+            }
+        )
+    errors = sum(1 for finding in findings if finding.get("severity") == "error")
+    warnings = sum(1 for finding in findings if finding.get("severity") == "warning")
+    opted_out = bool(record_metadata.get("allow_suspicious_metrics"))
+    return {
+        "status": metric_audit_status(findings, opted_out=opted_out, applicable=current_contract),
+        "opted_out": opted_out,
+        "applicable": current_contract,
+        "errors": errors,
+        "warnings": warnings,
+        "duration_seconds": duration_seconds,
+        "duration_source": duration_key,
+        "total_tokens": total_tokens,
+        "findings": findings,
+    }
+
+
+def metric_audit_blocking_messages(run_dir: Path, audit: dict[str, Any]) -> list[str]:
+    messages: list[str] = []
+    for finding in audit.get("findings", []):
+        if not isinstance(finding, dict) or finding.get("severity") != "error":
+            continue
+        messages.append(
+            f"{run_dir}: metric audit {finding.get('rule_id')}: "
+            f"{finding.get('message')} Evidence: {finding.get('evidence')}"
+        )
+    return messages
+
+
+def metric_audit_status_counts(runs: list[dict[str, Any]]) -> dict[str, int]:
+    counts = {status: 0 for status in METRIC_AUDIT_STATUSES}
+    for run in runs:
+        audit = run.get("metrics_audit") if isinstance(run, dict) else None
+        status = audit.get("status") if isinstance(audit, dict) else "not-applicable"
+        if status not in counts:
+            status = "not-applicable"
+        counts[str(status)] += 1
+    return counts
+
+
+def format_metric_audit_counts(counts: dict[str, int] | None) -> str:
+    counts = counts if isinstance(counts, dict) else {}
+    return ", ".join(f"{status}={int(counts.get(status, 0))}" for status in METRIC_AUDIT_STATUSES)
+
+
+def repeated_known_placeholder_metric_reasons(
+    items: list[dict[str, Any]],
+    label_for_item: Callable[[dict[str, Any]], str],
+) -> list[str]:
+    grouped: dict[str, dict[str, Any]] = {}
+    for item in items:
+        if item.get("run_contract_version") != RUN_CONTRACT_VERSION:
+            continue
+        audit = item.get("metrics_audit") if isinstance(item.get("metrics_audit"), dict) else {}
+        for finding in audit.get("findings", []):
+            if not isinstance(finding, dict) or finding.get("rule_id") != "known-placeholder-metrics":
+                continue
+            placeholder_id = str(finding.get("placeholder_id") or finding.get("display") or "known-placeholder")
+            group = grouped.setdefault(
+                placeholder_id,
+                {
+                    "display": finding.get("display") or placeholder_id,
+                    "labels": [],
+                },
+            )
+            group["labels"].append(label_for_item(item))
+    reasons: list[str] = []
+    for group in grouped.values():
+        labels = group["labels"]
+        if len(labels) > 1:
+            reasons.append(
+                f"repeated known placeholder metrics {group['display']} for {len(labels)} current-contract run(s): {', '.join(labels[:5])}"
+            )
+    return reasons
 
 
 def load_timing_data(path: Path) -> dict[str, Any]:
@@ -1125,6 +2060,12 @@ def metric_flags_to_timing(args: argparse.Namespace) -> dict[str, int | float]:
     return metrics
 
 
+def timing_metrics_for_record(args: argparse.Namespace) -> dict[str, int | float]:
+    timing_metrics = usage_inputs_to_timing(args)
+    timing_metrics.update(metric_flags_to_timing(args))
+    return timing_metrics
+
+
 def load_run_manifest(run_dir: Path) -> dict[str, Any]:
     manifest = read_json(run_dir / "run_manifest.json")
     if not isinstance(manifest, dict):
@@ -1132,7 +2073,7 @@ def load_run_manifest(run_dir: Path) -> dict[str, Any]:
     return manifest
 
 
-def is_v2_run(manifest: dict[str, Any]) -> bool:
+def is_current_run(manifest: dict[str, Any]) -> bool:
     return manifest.get("run_contract_version") == RUN_CONTRACT_VERSION
 
 
@@ -1199,25 +2140,50 @@ def write_record_metadata(
     finalized: bool,
     allow_missing_prompt_receipt: bool,
     allow_missing_metrics: bool,
+    allow_suspicious_grading: bool,
+    allow_suspicious_metrics: bool,
     missing_metrics: list[str],
+    grading_audit: dict[str, Any] | None = None,
+    metrics_audit: dict[str, Any] | None = None,
 ) -> None:
     existing = load_json_if_exists(run_dir / "record_metadata.json")
     metadata = existing if isinstance(existing, dict) else {}
+    existing_allow_suspicious = bool(metadata.get("allow_suspicious_grading"))
+    existing_allow_suspicious_metrics = bool(metadata.get("allow_suspicious_metrics"))
     metadata.update(
         {
             "updated_at": utc_now(),
             "finalized": bool(finalized or metadata.get("finalized")),
             "allow_missing_prompt_receipt": bool(allow_missing_prompt_receipt or metadata.get("allow_missing_prompt_receipt")),
             "allow_missing_metrics": bool(allow_missing_metrics or metadata.get("allow_missing_metrics")),
+            "allow_suspicious_grading": bool(allow_suspicious_grading or existing_allow_suspicious),
+            "allow_suspicious_metrics": bool(allow_suspicious_metrics or existing_allow_suspicious_metrics),
             "missing_metrics": missing_metrics,
             "noncanonical": bool(
                 allow_missing_prompt_receipt
                 or allow_missing_metrics
+                or allow_suspicious_grading
+                or allow_suspicious_metrics
                 or metadata.get("allow_missing_prompt_receipt")
                 or metadata.get("allow_missing_metrics")
+                or existing_allow_suspicious
+                or existing_allow_suspicious_metrics
             ),
         }
     )
+    if grading_audit is not None:
+        metadata["grading_audit"] = {
+            "status": grading_audit.get("status"),
+            "errors": grading_audit.get("errors", 0),
+            "warnings": grading_audit.get("warnings", 0),
+        }
+    if metrics_audit is not None:
+        metadata["metrics_audit"] = {
+            "status": metrics_audit.get("status"),
+            "errors": metrics_audit.get("errors", 0),
+            "warnings": metrics_audit.get("warnings", 0),
+            "findings": metrics_audit.get("findings", []),
+        }
     write_json(run_dir / "record_metadata.json", metadata)
 
 
@@ -1246,57 +2212,75 @@ def command_record(args: argparse.Namespace) -> int:
         else:
             copy_path_into(source, outputs_dir / source.name)
 
-    timing_metrics = usage_inputs_to_timing(args)
-    timing_metrics.update(metric_flags_to_timing(args))
     timing_destination = run_dir / "timing.json"
-    timing_data: dict[str, Any] | None = None
-    if args.timing:
-        timing_path = Path(args.timing)
-        if not timing_path.exists():
-            raise CommandError(f"{timing_path}: timing file does not exist")
-        timing_data = load_timing_data(timing_path)
-        if not paths_are_same_file(timing_path, timing_destination):
-            write_json(timing_destination, timing_data)
-    elif timing_metrics and timing_destination.exists():
-        timing_data = load_timing_data(timing_destination)
-    if timing_metrics:
-        if timing_data is None:
-            timing_data = {}
-        if args.total_duration_seconds is not None and args.duration_ms is None:
-            for key in ("duration_ms", "duration_seconds", "executor_duration_seconds"):
-                timing_data.pop(key, None)
-        timing_data.update(timing_metrics)
+    finalizing = bool(args.finalize or args.grading)
+    timing_data, timing_changed = candidate_timing_for_record(run_dir, args, autofill_output_chars=finalizing)
+    if timing_changed and not finalizing and timing_data is not None:
         write_json(timing_destination, timing_data)
 
     grading_data: dict[str, Any] | None = None
+    grading_destination = run_dir / "grading.json"
+    grading_source_path: Path | None = None
     if args.grading:
         grading_path = Path(args.grading)
         if not grading_path.exists():
             raise CommandError(f"{grading_path}: grading file does not exist")
+        expected_assertions = load_expected_assertions_for_run(run_dir)
+        if is_current_run(manifest) and expected_assertions is None:
+            raise CommandError(grading_materials_missing_message(run_dir))
+        grading_source_path = grading_path
         raw_grading_data = read_json(grading_path)
         grading_data = raw_grading_data if isinstance(raw_grading_data, dict) else None
         grading_errors = validate_grading_data(grading_data, grading_path)
         grading_errors.extend(
             validate_grading_completeness(
                 grading_data,
-                load_expected_assertions_for_run(run_dir),
+                expected_assertions,
                 grading_path,
             )
         )
         if grading_errors:
             raise CommandError("\n".join(grading_errors))
-        grading_destination = run_dir / "grading.json"
-        if not paths_are_same_file(grading_path, grading_destination):
-            write_json(grading_destination, grading_data)
 
-    finalizing = bool(args.finalize or args.grading)
     missing_metrics: list[str] = []
+    grading_audit: dict[str, Any] | None = None
+    metrics_audit: dict[str, Any] | None = None
     if finalizing:
-        if timing_data is None and timing_destination.exists():
-            timing_data = load_timing_data(timing_destination)
-        timing_data = ensure_output_chars_from_response(run_dir, timing_data)
+        record_metadata = load_json_if_exists(run_dir / "record_metadata.json")
+        record_metadata = record_metadata if isinstance(record_metadata, dict) else {}
+        if args.allow_suspicious_grading:
+            record_metadata = dict(record_metadata)
+            record_metadata["allow_suspicious_grading"] = True
+        if args.allow_suspicious_metrics:
+            record_metadata = dict(record_metadata)
+            record_metadata["allow_suspicious_metrics"] = True
+        if grading_data is None and grading_destination.exists():
+            expected_assertions = load_expected_assertions_for_run(run_dir)
+            if is_current_run(manifest) and expected_assertions is None:
+                raise CommandError(grading_materials_missing_message(run_dir))
+            existing_grading = read_json(grading_destination)
+            grading_data = existing_grading if isinstance(existing_grading, dict) else None
+            grading_errors = validate_grading_data(grading_data, grading_destination)
+            grading_errors.extend(
+                validate_grading_completeness(
+                    grading_data,
+                    expected_assertions,
+                    grading_destination,
+                )
+            )
+            if grading_errors:
+                raise CommandError("\n".join(grading_errors))
+        if grading_data is not None:
+            grading_audit = audit_grading_for_run(run_dir, grading_data, record_metadata=record_metadata)
+            audit_blockers = grading_audit_blocking_messages(run_dir, grading_audit)
+            if audit_blockers and is_current_run(manifest) and not args.allow_suspicious_grading:
+                raise CommandError(
+                    "record finalization found suspicious grading:\n"
+                    + "\n".join(f"- {message}" for message in audit_blockers)
+                    + "\nPass --allow-suspicious-grading only for legacy/manual smoke runs."
+                )
         receipt_errors: list[str] = []
-        if is_v2_run(manifest):
+        if is_current_run(manifest):
             receipt_errors = validate_prompt_receipt(run_dir, manifest)
         if receipt_errors and not args.allow_missing_prompt_receipt:
             raise CommandError("\n".join(receipt_errors) + "\nPass --allow-missing-prompt-receipt only for legacy/manual smoke runs.")
@@ -1307,12 +2291,32 @@ def command_record(args: argparse.Namespace) -> int:
                 + "\n".join(f"- {error}" for error in missing_metrics)
                 + "\nPass --allow-missing-metrics only for partial or smoke runs."
             )
+        metrics_audit = audit_metric_integrity(
+            timing_data,
+            current_contract=is_current_run(manifest),
+            record_metadata=record_metadata,
+        )
+        metric_blockers = metric_audit_blocking_messages(run_dir, metrics_audit)
+        if metric_blockers and is_current_run(manifest) and not args.allow_suspicious_metrics:
+            raise CommandError(
+                "record finalization found invalid or suspicious metrics:\n"
+                + "\n".join(f"- {message}" for message in metric_blockers)
+                + "\nPass --allow-suspicious-metrics only for legacy/manual smoke runs with present-but-invalid metrics."
+            )
+    if finalizing and timing_changed and timing_data is not None:
+        write_json(timing_destination, timing_data)
+    if grading_data is not None and grading_source_path is not None and not paths_are_same_file(grading_source_path, grading_destination):
+        write_json(grading_destination, grading_data)
     write_record_metadata(
         run_dir,
         finalized=finalizing,
         allow_missing_prompt_receipt=bool(finalizing and args.allow_missing_prompt_receipt),
         allow_missing_metrics=bool(finalizing and args.allow_missing_metrics),
+        allow_suspicious_grading=bool(finalizing and args.allow_suspicious_grading),
+        allow_suspicious_metrics=bool(finalizing and args.allow_suspicious_metrics),
         missing_metrics=missing_metrics,
+        grading_audit=grading_audit,
+        metrics_audit=metrics_audit,
     )
     print(f"recorded: {run_dir}")
     return 0
@@ -1324,6 +2328,9 @@ def command_grading_template(args: argparse.Namespace) -> int:
         raise CommandError(f"{run_dir}: run directory does not exist")
     assertions = load_expected_assertions_for_run(run_dir)
     if assertions is None:
+        manifest = load_json_if_exists(run_dir / "run_manifest.json")
+        if isinstance(manifest, dict) and is_current_run(manifest):
+            raise CommandError(grading_materials_missing_message(run_dir))
         raise CommandError(f"{run_dir}: cannot find eval_metadata.json.assertions")
     template = {
         "expectations": [
@@ -1495,7 +2502,7 @@ def discover_runs(iteration_dir: Path, allow_legacy: bool) -> list[dict[str, Any
                 grading_errors.extend(
                     validate_grading_completeness(
                         grading,
-                        expected_assertions_from_metadata(metadata),
+                        load_expected_assertions_for_run(run_dir),
                         grading_path,
                     )
                 )
@@ -1519,7 +2526,18 @@ def discover_runs(iteration_dir: Path, allow_legacy: bool) -> list[dict[str, Any
                 }
                 record_metadata = load_json_if_exists(run_dir / "record_metadata.json")
                 record_metadata = record_metadata if isinstance(record_metadata, dict) else {}
-                receipt_errors = validate_prompt_receipt(run_dir, manifest) if is_v2_run(manifest) else []
+                metrics_audit = audit_metric_integrity(
+                    timing if isinstance(timing, dict) else None,
+                    current_contract=is_current_run(manifest),
+                    record_metadata=record_metadata,
+                )
+                grading_audit = audit_grading_for_run(
+                    run_dir,
+                    grading,
+                    outputs_dir=outputs_dir,
+                    record_metadata=record_metadata,
+                )
+                receipt_errors = validate_prompt_receipt(run_dir, manifest) if is_current_run(manifest) else []
                 runs.append(
                     {
                         "eval_id": eval_id,
@@ -1532,13 +2550,18 @@ def discover_runs(iteration_dir: Path, allow_legacy: bool) -> list[dict[str, Any
                         "layout": layout,
                         "result": result,
                         "expectations": grading.get("expectations", []),
+                        "grading_audit": grading_audit,
+                        "metrics_audit": metrics_audit,
                         "reused": False,
                         "run_contract_version": manifest.get("run_contract_version"),
                         "record_metadata": record_metadata,
-                        "prompt_receipt_status": "valid" if is_v2_run(manifest) and not receipt_errors else ("not-required" if not is_v2_run(manifest) else "missing-or-invalid"),
+                        "prompt_receipt_status": "valid" if is_current_run(manifest) and not receipt_errors else ("not-required" if not is_current_run(manifest) else "missing-or-invalid"),
                         "prompt_receipt_errors": receipt_errors,
                         "prompt_receipt_opt_out": bool(record_metadata.get("allow_missing_prompt_receipt")),
                         "metrics_opt_out": bool(record_metadata.get("allow_missing_metrics")),
+                        "metrics_audit_opt_out": bool(record_metadata.get("allow_suspicious_metrics")),
+                        "grading_audit_opt_out": bool(record_metadata.get("allow_suspicious_grading")),
+                        "grader_material_status": manifest.get("grader_material_status"),
                         "eval_fingerprint": manifest.get("eval_fingerprint") or metadata.get("eval_fingerprint"),
                         "run_fingerprint": manifest.get("run_fingerprint"),
                         "model": manifest.get("model"),
@@ -1561,6 +2584,10 @@ def clone_reused_run(source_run: dict[str, Any], source_iteration: Path) -> dict
     reused = dict(source_run)
     reused["result"] = dict(source_run.get("result", {}))
     reused["expectations"] = list(source_run.get("expectations", []))
+    if isinstance(source_run.get("grading_audit"), dict):
+        reused["grading_audit"] = json.loads(json.dumps(source_run["grading_audit"]))
+    if isinstance(source_run.get("metrics_audit"), dict):
+        reused["metrics_audit"] = json.loads(json.dumps(source_run["metrics_audit"]))
     reused["reused"] = True
     reused["source_iteration"] = str(source_iteration)
     reused["source_run_dir"] = str(source_run.get("run_dir"))
@@ -1589,6 +2616,16 @@ def validate_baseline_reuse(
     source_run_fingerprint = source_run.get("run_fingerprint")
     current_agent = current_run.get("agent")
     source_agent = source_run.get("agent")
+    current_contract = current_run.get("run_contract_version")
+    source_contract = source_run.get("run_contract_version")
+    if current_contract != source_contract:
+        errors.append(f"{source_label} run contract mismatch: source {source_contract!r} != current {current_contract!r}")
+    if current_contract != RUN_CONTRACT_VERSION:
+        errors.append(
+            f"{current_label} baseline reuse for run contract {current_contract!r} is unsupported by this runner; "
+            f"current contract is {RUN_CONTRACT_VERSION!r}"
+        )
+        return errors
     if not current_agent:
         errors.append(f"{current_label} missing fingerprint metadata: agent")
         return errors
@@ -1843,6 +2880,49 @@ def build_analysis(runs: list[dict[str, Any]], configs: list[str], comparisons: 
                 }
             )
 
+    metric_tuple_groups: dict[tuple[float, int], list[str]] = {}
+    for run in runs:
+        if run.get("run_contract_version") != RUN_CONTRACT_VERSION:
+            continue
+        result = run.get("result", {})
+        result = result if isinstance(result, dict) else {}
+        seconds = result.get("time_seconds")
+        tokens = result.get("tokens")
+        if not isinstance(seconds, (int, float)) or isinstance(seconds, bool):
+            continue
+        if not isinstance(tokens, (int, float)) or isinstance(tokens, bool):
+            continue
+        if seconds <= 0 or tokens <= 0:
+            continue
+        key = (round(float(seconds), 9), int(tokens))
+        metric_tuple_groups.setdefault(key, []).append(
+            f"{run.get('eval_id')} `{run.get('configuration')}` run-{run.get('run_number')}"
+        )
+    for (seconds, tokens), labels in sorted(metric_tuple_groups.items()):
+        if len(labels) <= 1:
+            continue
+        placeholder = known_placeholder_metric(seconds, tokens)
+        if placeholder is not None:
+            notes.append(
+                {
+                    "kind": "known_placeholder_metric_repetition",
+                    "duration_seconds": seconds,
+                    "total_tokens": tokens,
+                    "runs": labels,
+                    "message": f"Repeated known placeholder metrics {placeholder['display']}: {', '.join(labels[:5])}.",
+                }
+            )
+        else:
+            notes.append(
+                {
+                    "kind": "repeated_metric_tuple",
+                    "duration_seconds": seconds,
+                    "total_tokens": tokens,
+                    "runs": labels,
+                    "message": f"Repeated identical metric tuple {format_number(seconds)}s/{tokens} tokens: {', '.join(labels[:5])}. Verify the metrics are parent-captured, not reused placeholders.",
+                }
+            )
+
     for comparison in comparisons:
         pass_delta = comparison.get("pass_rate_delta")
         time_delta = comparison.get("time_seconds_delta")
@@ -1900,16 +2980,58 @@ def aggregate_runs(
     baseline_from: str | None = None,
     baseline_config: str | None = None,
     baseline_reuse_errors: list[str] | None = None,
+    prepared_incomplete_reasons: list[str] | None = None,
 ) -> dict[str, Any]:
-    if not runs:
-        raise CommandError(f"{iteration_dir}: no graded runs found")
-
     context = parse_iteration_context(iteration_dir)
     baseline_reuse_errors = baseline_reuse_errors or []
+    prepared_incomplete_reasons = prepared_incomplete_reasons or []
+    if not runs:
+        incomplete_reasons = ["no graded runs found", *baseline_reuse_errors, *prepared_incomplete_reasons]
+        if not allow_incomplete:
+            raise CommandError(
+                "incomplete benchmark: "
+                + "; ".join(incomplete_reasons)
+                + "; pass --allow-incomplete for a smoke/incomplete aggregate"
+            )
+        metadata: dict[str, Any] = {
+            "timestamp": utc_now(),
+            "iteration_dir": str(iteration_dir),
+            "agent": context.agent,
+            "skill_name": skill_name or context.skill_name or derive_skill_name(iteration_dir),
+            "configs": [],
+            "evals_run": [],
+            "runs_per_configuration": {},
+            "incomplete": True,
+            "smoke": True,
+            "incomplete_reasons": incomplete_reasons,
+            "allow_incomplete": allow_incomplete,
+            "legacy_layout_allowed": allow_legacy,
+            "baseline_from": baseline_from,
+            "baseline_config": baseline_config,
+            "baseline_reuse_errors": baseline_reuse_errors,
+            "baseline_reused_runs": 0,
+            "grading_audit": audit_status_counts([]),
+            "metrics_audit": metric_audit_status_counts([]),
+        }
+        if skill_path:
+            metadata["skill_path"] = skill_path
+        if model:
+            metadata["executor_model"] = model
+        if grader_model:
+            metadata["grader_model"] = grader_model
+        return {
+            "metadata": metadata,
+            "configs": {},
+            "comparisons": [],
+            "analysis": {"notes": []},
+            "runs": [],
+        }
+
     configs = sorted({run["configuration"] for run in runs}, key=config_sort_key)
     counts = {config: sum(1 for run in runs if run["configuration"] == config) for config in configs}
     incomplete_reasons: list[str] = []
     incomplete_reasons.extend(baseline_reuse_errors)
+    incomplete_reasons.extend(prepared_incomplete_reasons)
     smoke = False
     if len(configs) < 2:
         smoke = True
@@ -1949,28 +3071,80 @@ def aggregate_runs(
         if run.get("run_contract_version") == RUN_CONTRACT_VERSION and run["result"].get("output_chars") is None
     ]
     if missing_output_chars:
-        incomplete_reasons.append(f"missing output_chars for {len(missing_output_chars)} v2 run(s): {', '.join(missing_output_chars[:5])}")
+        incomplete_reasons.append(f"missing output_chars for {len(missing_output_chars)} current-contract run(s): {', '.join(missing_output_chars[:5])}")
     missing_receipts = [
         f"{run['eval_id']} {run['configuration']} run-{run['run_number']}"
         for run in runs
         if run.get("run_contract_version") == RUN_CONTRACT_VERSION and run.get("prompt_receipt_status") != "valid"
     ]
     if missing_receipts:
-        incomplete_reasons.append(f"missing or invalid prompt receipt for {len(missing_receipts)} v2 run(s): {', '.join(missing_receipts[:5])}")
+        incomplete_reasons.append(f"missing or invalid prompt receipt for {len(missing_receipts)} current-contract run(s): {', '.join(missing_receipts[:5])}")
     receipt_opt_outs = [
         f"{run['eval_id']} {run['configuration']} run-{run['run_number']}"
         for run in runs
         if run.get("run_contract_version") == RUN_CONTRACT_VERSION and run.get("prompt_receipt_opt_out")
     ]
     if receipt_opt_outs:
-        incomplete_reasons.append(f"prompt receipt opt-out for {len(receipt_opt_outs)} v2 run(s): {', '.join(receipt_opt_outs[:5])}")
+        incomplete_reasons.append(f"prompt receipt opt-out for {len(receipt_opt_outs)} current-contract run(s): {', '.join(receipt_opt_outs[:5])}")
     metric_opt_outs = [
         f"{run['eval_id']} {run['configuration']} run-{run['run_number']}"
         for run in runs
         if run.get("run_contract_version") == RUN_CONTRACT_VERSION and run.get("metrics_opt_out")
     ]
     if metric_opt_outs:
-        incomplete_reasons.append(f"missing-metrics opt-out for {len(metric_opt_outs)} v2 run(s): {', '.join(metric_opt_outs[:5])}")
+        incomplete_reasons.append(f"missing-metrics opt-out for {len(metric_opt_outs)} current-contract run(s): {', '.join(metric_opt_outs[:5])}")
+    metric_audit_errors = [
+        f"{run['eval_id']} {run['configuration']} run-{run['run_number']}"
+        for run in runs
+        if run.get("run_contract_version") == RUN_CONTRACT_VERSION
+        and isinstance(run.get("metrics_audit"), dict)
+        and run["metrics_audit"].get("status") == "error"
+    ]
+    if metric_audit_errors:
+        incomplete_reasons.append(f"metric integrity error for {len(metric_audit_errors)} current-contract run(s): {', '.join(metric_audit_errors[:5])}")
+    metric_audit_opt_outs = [
+        f"{run['eval_id']} {run['configuration']} run-{run['run_number']}"
+        for run in runs
+        if run.get("run_contract_version") == RUN_CONTRACT_VERSION
+        and (
+            run.get("metrics_audit_opt_out")
+            or (
+                isinstance(run.get("metrics_audit"), dict)
+                and run["metrics_audit"].get("status") == "opted-out"
+            )
+        )
+    ]
+    if metric_audit_opt_outs:
+        incomplete_reasons.append(f"suspicious-metrics opt-out for {len(metric_audit_opt_outs)} current-contract run(s): {', '.join(metric_audit_opt_outs[:5])}")
+    incomplete_reasons.extend(
+        repeated_known_placeholder_metric_reasons(
+            runs,
+            lambda run: f"{run['eval_id']} {run['configuration']} run-{run['run_number']}",
+        )
+    )
+    audit_errors = [
+        f"{run['eval_id']} {run['configuration']} run-{run['run_number']}"
+        for run in runs
+        if run.get("run_contract_version") == RUN_CONTRACT_VERSION
+        and isinstance(run.get("grading_audit"), dict)
+        and run["grading_audit"].get("status") == "error"
+    ]
+    if audit_errors:
+        incomplete_reasons.append(f"grading audit error for {len(audit_errors)} current-contract run(s): {', '.join(audit_errors[:5])}")
+    audit_opt_outs = [
+        f"{run['eval_id']} {run['configuration']} run-{run['run_number']}"
+        for run in runs
+        if run.get("run_contract_version") == RUN_CONTRACT_VERSION
+        and (
+            run.get("grading_audit_opt_out")
+            or (
+                isinstance(run.get("grading_audit"), dict)
+                and run["grading_audit"].get("status") == "opted-out"
+            )
+        )
+    ]
+    if audit_opt_outs:
+        incomplete_reasons.append(f"suspicious-grading opt-out for {len(audit_opt_outs)} current-contract run(s): {', '.join(audit_opt_outs[:5])}")
 
     if incomplete_reasons and not allow_incomplete:
         raise CommandError(
@@ -1995,6 +3169,8 @@ def aggregate_runs(
             "failed_expectations_total": sum(int(run["result"].get("failed") or 0) for run in config_runs),
             "total_expectations": sum(int(run["result"].get("total") or 0) for run in config_runs),
             "errors_total": sum(int(run["result"].get("errors") or 0) for run in config_runs),
+            "grading_audit": audit_status_counts(config_runs),
+            "metrics_audit": metric_audit_status_counts(config_runs),
         }
 
     comparisons: list[dict[str, Any]] = []
@@ -2039,6 +3215,8 @@ def aggregate_runs(
         "baseline_config": baseline_config,
         "baseline_reuse_errors": baseline_reuse_errors,
         "baseline_reused_runs": sum(1 for run in runs if run.get("reused")),
+        "grading_audit": audit_status_counts(runs),
+        "metrics_audit": metric_audit_status_counts(runs),
     }
     if skill_path:
         metadata["skill_path"] = skill_path
@@ -2077,12 +3255,12 @@ def render_benchmark_markdown(benchmark: dict[str, Any]) -> str:
         "",
         "## Summary",
         "",
-        "| Config | Runs | Reused | Mean pass rate | Total time | Mean tokens | Total tokens | Output chars | Failed expectations | Errors |",
-        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |",
+        "| Config | Runs | Reused | Mean pass rate | Total time | Mean tokens | Total tokens | Output chars | Failed expectations | Errors | Grading audit | Metric integrity |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |",
     ]
     for config, stats in benchmark["configs"].items():
         lines.append(
-            "| {config} | {runs} | {reused} | {pass_rate} | {time_total} | {tokens_mean} | {tokens_total} | {output_chars} | {failed}/{total_expectations} | {errors} |".format(
+            "| {config} | {runs} | {reused} | {pass_rate} | {time_total} | {tokens_mean} | {tokens_total} | {output_chars} | {failed}/{total_expectations} | {errors} | {audit} | {metric_audit} |".format(
                 config=config,
                 runs=stats["runs"],
                 reused=stats.get("reused_runs", 0),
@@ -2094,8 +3272,59 @@ def render_benchmark_markdown(benchmark: dict[str, Any]) -> str:
                 failed=stats.get("failed_expectations_total", 0),
                 total_expectations=stats.get("total_expectations", 0),
                 errors=stats["errors_total"],
+                audit=format_audit_counts(stats.get("grading_audit")),
+                metric_audit=format_metric_audit_counts(stats.get("metrics_audit")),
             )
         )
+
+    lines.extend(["", "## Grading Audit", ""])
+    lines.append(f"- Overall: {format_audit_counts(metadata.get('grading_audit'))}")
+    audit_findings = [
+        (run, finding)
+        for run in benchmark["runs"]
+        if isinstance(run.get("grading_audit"), dict)
+        for finding in run["grading_audit"].get("findings", [])
+        if isinstance(finding, dict)
+    ]
+    if audit_findings:
+        for run, finding in audit_findings:
+            lines.append(
+                "- {severity} `{rule}` in {eval_id} `{config}` run-{run_number} assertion {assertion}: {message}".format(
+                    severity=finding.get("severity"),
+                    rule=finding.get("rule_id"),
+                    eval_id=run.get("eval_id"),
+                    config=run.get("configuration"),
+                    run_number=run.get("run_number"),
+                    assertion=int(finding.get("assertion_index", 0)) + 1,
+                    message=finding.get("message"),
+                )
+            )
+    else:
+        lines.append("- No grading audit findings.")
+
+    lines.extend(["", "## Metric Integrity", ""])
+    lines.append(f"- Overall: {format_metric_audit_counts(metadata.get('metrics_audit'))}")
+    metric_findings = [
+        (run, finding)
+        for run in benchmark["runs"]
+        if isinstance(run.get("metrics_audit"), dict)
+        for finding in run["metrics_audit"].get("findings", [])
+        if isinstance(finding, dict)
+    ]
+    if metric_findings:
+        for run, finding in metric_findings:
+            lines.append(
+                "- {severity} `{rule}` in {eval_id} `{config}` run-{run_number}: {message}".format(
+                    severity=finding.get("severity"),
+                    rule=finding.get("rule_id"),
+                    eval_id=run.get("eval_id"),
+                    config=run.get("configuration"),
+                    run_number=run.get("run_number"),
+                    message=finding.get("message"),
+                )
+            )
+    else:
+        lines.append("- No metric-integrity findings.")
 
     lines.extend(["", "## Comparison", ""])
     if benchmark["comparisons"]:
@@ -2130,14 +3359,14 @@ def render_benchmark_markdown(benchmark: dict[str, Any]) -> str:
             "",
             "## Runs",
             "",
-            "| Eval | Config | Run | Reused | Pass rate | Time | Tokens | Output chars | Layout |",
-            "| --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- |",
+            "| Eval | Config | Run | Reused | Pass rate | Time | Tokens | Output chars | Audit | Metric integrity | Layout |",
+            "| --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- | --- |",
         ]
     )
     for run in benchmark["runs"]:
         result = run["result"]
         lines.append(
-            "| {eval_id} | {config} | {run_number} | {reused} | {pass_rate} | {time} | {tokens} | {output_chars} | {layout} |".format(
+            "| {eval_id} | {config} | {run_number} | {reused} | {pass_rate} | {time} | {tokens} | {output_chars} | {audit} | {metric_audit} | {layout} |".format(
                 eval_id=run["eval_id"],
                 config=run["configuration"],
                 run_number=run["run_number"],
@@ -2146,6 +3375,8 @@ def render_benchmark_markdown(benchmark: dict[str, Any]) -> str:
                 time=format_number(result.get("time_seconds")),
                 tokens=format_number(result.get("tokens"), digits=0),
                 output_chars=format_number(result.get("output_chars"), digits=0),
+                audit=(run.get("grading_audit") if isinstance(run.get("grading_audit"), dict) else {}).get("status", "not-applicable"),
+                metric_audit=(run.get("metrics_audit") if isinstance(run.get("metrics_audit"), dict) else {}).get("status", "not-applicable"),
                 layout=run["layout"],
             )
         )
@@ -2168,10 +3399,41 @@ def benchmark_output_paths(iteration_dir: Path, output: str | None) -> tuple[Pat
     return json_path_out, json_path_out.with_suffix(".md")
 
 
+def summarize_prepared_incomplete_reasons(iteration_dir: Path) -> list[str]:
+    run_dirs = discover_prepared_run_dirs(iteration_dir)
+    if not run_dirs:
+        return []
+    statuses = [inspect_prepared_run(run_dir) for run_dir in run_dirs]
+    missing_materials = [
+        f"{Path(status['run_dir']).parents[1].name} {Path(status['run_dir']).parents[0].name} {Path(status['run_dir']).name}"
+        for status in statuses
+        if status.get("run_contract_version") == RUN_CONTRACT_VERSION
+        and status.get("grader_material_status") != GRADER_MATERIAL_READY
+    ]
+    missing_grading = [
+        f"{Path(status['run_dir']).parents[1].name} {Path(status['run_dir']).parents[0].name} {Path(status['run_dir']).name}"
+        for status in statuses
+        if status.get("run_contract_version") == RUN_CONTRACT_VERSION
+        and status.get("grader_material_status") == GRADER_MATERIAL_READY
+        and status.get("grading") == "missing"
+    ]
+    reasons: list[str] = []
+    if missing_materials:
+        reasons.append(
+            f"missing grading materials for {len(missing_materials)} current-contract run(s): {', '.join(missing_materials[:5])}"
+        )
+    if missing_grading:
+        reasons.append(
+            f"missing grading output for {len(missing_grading)} current-contract run(s): {', '.join(missing_grading[:5])}"
+        )
+    return reasons
+
+
 def command_aggregate(args: argparse.Namespace) -> int:
     iteration_dir = Path(args.iteration_dir)
     current_context = parse_iteration_context(iteration_dir)
     runs = discover_runs(iteration_dir, args.allow_legacy)
+    prepared_incomplete_reasons = summarize_prepared_incomplete_reasons(iteration_dir)
     baseline_errors: list[str] = []
     if args.baseline_from:
         baseline_from = Path(args.baseline_from)
@@ -2202,6 +3464,7 @@ def command_aggregate(args: argparse.Namespace) -> int:
         baseline_from=args.baseline_from,
         baseline_config=args.baseline_config if args.baseline_from else None,
         baseline_reuse_errors=baseline_errors,
+        prepared_incomplete_reasons=prepared_incomplete_reasons,
     )
     json_path_out, markdown_path = benchmark_output_paths(iteration_dir, args.output)
     write_json(json_path_out, benchmark)
@@ -2427,12 +3690,14 @@ def render_report_html(
                 f"<p>Skill: <code>{html.escape(str(metadata.get('skill_name') or 'unknown'))}</code></p>",
                 f"<p>Agent: <code>{html.escape(str(metadata.get('agent') or 'unknown'))}</code></p>",
                 f"<p>Status: <code>{html.escape('incomplete' if metadata.get('incomplete') else 'complete')}</code></p>",
-                "<table><thead><tr><th>Config</th><th>Runs</th><th>Reused</th><th>Mean pass rate</th><th>Total time</th><th>Mean tokens</th><th>Total tokens</th><th>Output chars</th><th>Failed expectations</th></tr></thead><tbody>",
+                f"<p>Grading audit: <code>{html.escape(format_audit_counts(metadata.get('grading_audit')))}</code></p>",
+                f"<p>Metric integrity: <code>{html.escape(format_metric_audit_counts(metadata.get('metrics_audit')))}</code></p>",
+                "<table><thead><tr><th>Config</th><th>Runs</th><th>Reused</th><th>Mean pass rate</th><th>Total time</th><th>Mean tokens</th><th>Total tokens</th><th>Output chars</th><th>Failed expectations</th><th>Grading audit</th><th>Metric integrity</th></tr></thead><tbody>",
             ]
         )
         for config, stats in benchmark["configs"].items():
             parts.append(
-                "<tr><td><code>{}</code></td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}/{}</td></tr>".format(
+                "<tr><td><code>{}</code></td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}/{}</td><td>{}</td><td>{}</td></tr>".format(
                     html.escape(config),
                     stats["runs"],
                     stats.get("reused_runs", 0),
@@ -2443,9 +3708,18 @@ def render_report_html(
                     html.escape(format_number(stats.get("output_chars", {}).get("total"), digits=0)),
                     stats.get("failed_expectations_total", 0),
                     stats.get("total_expectations", 0),
+                    html.escape(format_audit_counts(stats.get("grading_audit"))),
+                    html.escape(format_metric_audit_counts(stats.get("metrics_audit"))),
                 )
             )
         parts.extend(["</tbody></table>", "</section>"])
+
+        incomplete_reasons = metadata.get("incomplete_reasons") if isinstance(metadata.get("incomplete_reasons"), list) else []
+        if incomplete_reasons:
+            parts.extend(["<section>", "<h2>Incomplete Reasons</h2>", "<ul>"])
+            for reason in incomplete_reasons:
+                parts.append(f"<li>{html.escape(str(reason))}</li>")
+            parts.extend(["</ul>", "</section>"])
 
         analysis_notes = benchmark.get("analysis", {}).get("notes", [])
         parts.extend(["<section>", "<h2>Benchmark Analysis</h2>"])
@@ -2547,6 +3821,61 @@ def render_report_html(
                 else:
                     parts.append('<p class="muted">No previous output files found for this run.</p>')
                 parts.append("</details>")
+            audit = run.get("grading_audit") if isinstance(run.get("grading_audit"), dict) else {}
+            parts.extend(["<h4>Grading Audit</h4>"])
+            parts.append(
+                "<p>Status: <code>{}</code>; errors: {}; warnings: {}; opted out: <code>{}</code></p>".format(
+                    html.escape(str(audit.get("status", "not-applicable"))),
+                    html.escape(str(audit.get("errors", 0))),
+                    html.escape(str(audit.get("warnings", 0))),
+                    html.escape(str(bool(audit.get("opted_out"))).lower()),
+                )
+            )
+            findings = audit.get("findings") if isinstance(audit.get("findings"), list) else []
+            if findings:
+                parts.append("<ul>")
+                for finding in findings:
+                    if not isinstance(finding, dict):
+                        continue
+                    parts.append(
+                        "<li><strong>{}</strong> <code>{}</code> assertion {}: {}<br><span class=\"muted\">{}</span></li>".format(
+                            html.escape(str(finding.get("severity", ""))),
+                            html.escape(str(finding.get("rule_id", ""))),
+                            html.escape(str(int(finding.get("assertion_index", 0)) + 1)),
+                            html.escape(str(finding.get("message", ""))),
+                            html.escape(str(finding.get("evidence", ""))),
+                        )
+                    )
+                parts.append("</ul>")
+            else:
+                parts.append('<p class="muted">No grading audit findings.</p>')
+            metric_audit = run.get("metrics_audit") if isinstance(run.get("metrics_audit"), dict) else {}
+            parts.extend(["<h4>Metric Integrity</h4>"])
+            parts.append(
+                "<p>Status: <code>{}</code>; errors: {}; warnings: {}; opted out: <code>{}</code></p>".format(
+                    html.escape(str(metric_audit.get("status", "not-applicable"))),
+                    html.escape(str(metric_audit.get("errors", 0))),
+                    html.escape(str(metric_audit.get("warnings", 0))),
+                    html.escape(str(bool(metric_audit.get("opted_out"))).lower()),
+                )
+            )
+            metric_findings = metric_audit.get("findings") if isinstance(metric_audit.get("findings"), list) else []
+            if metric_findings:
+                parts.append("<ul>")
+                for finding in metric_findings:
+                    if not isinstance(finding, dict):
+                        continue
+                    parts.append(
+                        "<li><strong>{}</strong> <code>{}</code>: {}<br><span class=\"muted\">{}</span></li>".format(
+                            html.escape(str(finding.get("severity", ""))),
+                            html.escape(str(finding.get("rule_id", ""))),
+                            html.escape(str(finding.get("message", ""))),
+                            html.escape(str(finding.get("evidence", ""))),
+                        )
+                    )
+                parts.append("</ul>")
+            else:
+                parts.append('<p class="muted">No metric-integrity findings.</p>')
             parts.extend(["<h4>Grades</h4>", "<table><thead><tr><th>Status</th><th>Expectation</th><th>Evidence</th><th>Previous</th></tr></thead><tbody>"])
             for index, expectation in enumerate(run.get("expectations", [])):
                 if not isinstance(expectation, dict):
@@ -2589,6 +3918,86 @@ def render_report_html(
     return "\n".join(parts) + "\n"
 
 
+def timing_data_for_benchmark_run(run: dict[str, Any]) -> dict[str, Any] | None:
+    run_dir_value = run.get("run_dir")
+    if isinstance(run_dir_value, str):
+        timing_path = Path(run_dir_value) / "timing.json"
+        timing = load_json_if_exists(timing_path)
+        if isinstance(timing, dict):
+            return timing
+    result = run.get("result") if isinstance(run.get("result"), dict) else {}
+    timing: dict[str, Any] = {}
+    if isinstance(result.get("time_seconds"), (int, float)) and not isinstance(result.get("time_seconds"), bool):
+        timing["total_duration_seconds"] = result["time_seconds"]
+    if isinstance(result.get("tokens"), (int, float)) and not isinstance(result.get("tokens"), bool):
+        timing["total_tokens"] = result["tokens"]
+    if isinstance(result.get("output_chars"), (int, float)) and not isinstance(result.get("output_chars"), bool):
+        timing["output_chars"] = result["output_chars"]
+    return timing or None
+
+
+def benchmark_with_metric_audit(benchmark: dict[str, Any] | None) -> dict[str, Any] | None:
+    if not isinstance(benchmark, dict):
+        return benchmark
+    updated = json.loads(json.dumps(benchmark))
+    runs = updated.get("runs") if isinstance(updated.get("runs"), list) else []
+    for run in runs:
+        if not isinstance(run, dict) or isinstance(run.get("metrics_audit"), dict):
+            continue
+        run_dir_value = run.get("run_dir")
+        record_metadata = {}
+        if isinstance(run_dir_value, str):
+            loaded_metadata = load_json_if_exists(Path(run_dir_value) / "record_metadata.json")
+            record_metadata = loaded_metadata if isinstance(loaded_metadata, dict) else {}
+        timing = timing_data_for_benchmark_run(run)
+        current_contract = run.get("run_contract_version") == RUN_CONTRACT_VERSION
+        if timing is None and current_contract:
+            run["metrics_audit"] = {
+                "status": "warning",
+                "opted_out": False,
+                "applicable": True,
+                "errors": 0,
+                "warnings": 1,
+                "findings": [
+                    {
+                        "severity": "warning",
+                        "rule_id": "metric-audit-unverified",
+                        "message": "Metric integrity could not be re-audited from benchmark data or timing.json.",
+                        "evidence": f"run_dir={run_dir_value!r}",
+                    }
+                ],
+            }
+        else:
+            run["metrics_audit"] = audit_metric_integrity(
+                timing,
+                current_contract=current_contract,
+                record_metadata=record_metadata,
+            )
+        run["metrics_audit_opt_out"] = bool(record_metadata.get("allow_suspicious_metrics"))
+    metadata = updated.get("metadata") if isinstance(updated.get("metadata"), dict) else {}
+    metadata["metrics_audit"] = metric_audit_status_counts([run for run in runs if isinstance(run, dict)])
+    reasons = metadata.get("incomplete_reasons") if isinstance(metadata.get("incomplete_reasons"), list) else []
+    reasons = list(reasons)
+    if not any("repeated known placeholder metrics" in str(reason) for reason in reasons):
+        reasons.extend(
+            repeated_known_placeholder_metric_reasons(
+                [run for run in runs if isinstance(run, dict)],
+                lambda run: f"{run.get('eval_id')} {run.get('configuration')} run-{run.get('run_number')}",
+            )
+        )
+    metadata["incomplete_reasons"] = reasons
+    if reasons:
+        metadata["incomplete"] = True
+    updated["metadata"] = metadata
+    configs = updated.get("configs") if isinstance(updated.get("configs"), dict) else {}
+    for config, stats in configs.items():
+        if not isinstance(stats, dict):
+            continue
+        config_runs = [run for run in runs if isinstance(run, dict) and run.get("configuration") == config]
+        stats["metrics_audit"] = metric_audit_status_counts(config_runs)
+    return updated
+
+
 def command_report(args: argparse.Namespace) -> int:
     iteration_dir = Path(args.iteration_dir)
     parse_iteration_context(iteration_dir)
@@ -2596,6 +4005,7 @@ def command_report(args: argparse.Namespace) -> int:
     benchmark = load_json_if_exists(benchmark_path)
     if benchmark is not None and not isinstance(benchmark, dict):
         raise CommandError(f"{benchmark_path}: expected benchmark object")
+    benchmark = benchmark_with_metric_audit(benchmark)
     previous_feedback = find_previous_feedback(args.previous_workspace)
     previous_iteration = args.previous_iteration
     if previous_iteration == "auto":
@@ -2628,6 +4038,27 @@ def discover_prepared_run_dirs(iteration_dir: Path) -> list[Path]:
     return result
 
 
+def run_phase_status(status: dict[str, Any]) -> str:
+    if status.get("run_contract_version") != RUN_CONTRACT_VERSION:
+        return "legacy"
+    if status.get("grader_material_status") != GRADER_MATERIAL_READY:
+        if status.get("prompt_receipt") == "valid":
+            return "pending-grading-material"
+        return "executor-prepared"
+    if status.get("grading") == "valid":
+        if (
+            status.get("prompt_receipt") == "valid"
+            and status.get("metrics") == "complete"
+            and status.get("metrics_audit") not in {"error", "opted-out"}
+            and status.get("grading_audit") not in {"error", "opted-out"}
+        ):
+            return "complete"
+        return "graded"
+    if status.get("grading") == "missing":
+        return "grading-material-ready"
+    return "incomplete"
+
+
 def inspect_prepared_run(run_dir: Path) -> dict[str, Any]:
     status: dict[str, Any] = {
         "run_dir": str(run_dir),
@@ -2639,13 +4070,18 @@ def inspect_prepared_run(run_dir: Path) -> dict[str, Any]:
     manifest = manifest if isinstance(manifest, dict) else {}
     status["has_run_manifest"] = bool(manifest)
     status["run_contract_version"] = manifest.get("run_contract_version")
+    status["grader_material_status"] = manifest.get("grader_material_status") or (
+        GRADER_MATERIAL_READY if manifest.get("grader_prompt") else "legacy-or-missing"
+    )
     outputs_dir = run_dir / "outputs"
     status["outputs_present"] = outputs_dir.exists() and any(outputs_dir.iterdir())
     status["primary_response"] = "present" if (outputs_dir / "response.md").exists() else "missing"
     record_metadata = load_json_if_exists(run_dir / "record_metadata.json")
     record_metadata = record_metadata if isinstance(record_metadata, dict) else {}
     status["prompt_receipt_opt_out"] = bool(record_metadata.get("allow_missing_prompt_receipt"))
-    if is_v2_run(manifest):
+    status["grading_audit_opt_out"] = bool(record_metadata.get("allow_suspicious_grading"))
+    status["metrics_audit_opt_out"] = bool(record_metadata.get("allow_suspicious_metrics"))
+    if is_current_run(manifest):
         receipt_errors = validate_prompt_receipt(run_dir, manifest)
         if receipt_errors:
             status["prompt_receipt"] = "opted-out" if status["prompt_receipt_opt_out"] else "missing-or-invalid"
@@ -2668,15 +4104,47 @@ def inspect_prepared_run(run_dir: Path) -> dict[str, Any]:
         )
         status["grading"] = "invalid" if grading_errors else "valid"
         status["errors"].extend(grading_errors)
+        if grading_errors:
+            status["grading_audit"] = "not-applicable"
+            status["grading_audit_errors"] = 0
+            status["grading_audit_warnings"] = 0
+            status["grading_audit_findings"] = []
+        else:
+            grading_audit = audit_grading_for_run(run_dir, grading_data if isinstance(grading_data, dict) else None, record_metadata=record_metadata)
+            status["grading_audit"] = grading_audit.get("status", "not-applicable")
+            status["grading_audit_errors"] = grading_audit.get("errors", 0)
+            status["grading_audit_warnings"] = grading_audit.get("warnings", 0)
+            status["grading_audit_findings"] = grading_audit.get("findings", [])
     else:
         status["grading"] = "missing"
+        status["grading_audit"] = "not-applicable"
+        status["grading_audit_errors"] = 0
+        status["grading_audit_warnings"] = 0
+        status["grading_audit_findings"] = []
 
     timing_data = load_json_if_exists(run_dir / "timing.json")
     timing_data = timing_data if isinstance(timing_data, dict) else None
     metric_errors = final_metric_errors(timing_data)
-    status["metrics"] = "complete" if not metric_errors else "missing"
+    metrics_audit = audit_metric_integrity(
+        timing_data,
+        current_contract=is_current_run(manifest),
+        record_metadata=record_metadata,
+    )
+    status["metrics_audit"] = metrics_audit.get("status", "not-applicable")
+    status["metrics_audit_errors"] = metrics_audit.get("errors", 0)
+    status["metrics_audit_warnings"] = metrics_audit.get("warnings", 0)
+    status["metrics_audit_findings"] = metrics_audit.get("findings", [])
+    if metric_errors:
+        status["metrics"] = "missing"
+    elif status["metrics_audit"] == "error":
+        status["metrics"] = "invalid"
+    elif status["metrics_audit"] == "opted-out":
+        status["metrics"] = "opted-out"
+    else:
+        status["metrics"] = "complete"
     status["missing_metrics"] = metric_errors
     status["metrics_opt_out"] = bool(record_metadata.get("allow_missing_metrics"))
+    status["phase"] = run_phase_status(status)
     return status
 
 
@@ -2703,9 +4171,18 @@ def command_doctor(args: argparse.Namespace) -> int:
     print(f"primary_response_present: {sum(1 for status in statuses if status['primary_response'] == 'present')}")
     print(f"prompt_receipts_valid: {sum(1 for status in statuses if status['prompt_receipt'] == 'valid')}")
     print(f"prompt_receipt_opt_outs: {sum(1 for status in statuses if status.get('prompt_receipt_opt_out'))}")
+    print(f"grading_material_ready: {sum(1 for status in statuses if status.get('grader_material_status') == GRADER_MATERIAL_READY)}")
+    print(f"grading_material_pending: {sum(1 for status in statuses if status.get('run_contract_version') == RUN_CONTRACT_VERSION and status.get('grader_material_status') != GRADER_MATERIAL_READY)}")
     print(f"grading_valid: {sum(1 for status in statuses if status['grading'] == 'valid')}")
     print(f"grading_missing: {sum(1 for status in statuses if status['grading'] == 'missing')}")
+    for audit_status in GRADING_AUDIT_STATUSES:
+        print(f"grading_audit_{audit_status}: {sum(1 for status in statuses if status.get('grading_audit') == audit_status)}")
     print(f"metrics_complete: {sum(1 for status in statuses if status['metrics'] == 'complete')}")
+    for audit_status in METRIC_AUDIT_STATUSES:
+        print(f"metrics_audit_{audit_status}: {sum(1 for status in statuses if status.get('metrics_audit') == audit_status)}")
+    phases = sorted({str(status.get("phase")) for status in statuses})
+    for phase in phases:
+        print(f"phase_{phase}: {sum(1 for status in statuses if status.get('phase') == phase)}")
     invalid_errors: list[str] = []
     completion_blockers: list[str] = []
     for status in statuses:
@@ -2714,12 +4191,47 @@ def command_doctor(args: argparse.Namespace) -> int:
         if status["prompt_receipt"] == "missing-or-invalid" and receipt_path.exists():
             invalid_errors.extend(f"{status['run_dir']}: {error}" for error in status["blockers"])
         if args.require_complete:
+            if (
+                status.get("run_contract_version") == RUN_CONTRACT_VERSION
+                and status.get("grader_material_status") != GRADER_MATERIAL_READY
+            ):
+                completion_blockers.append(f"{status['run_dir']}: grading materials pending")
             if status["grading"] != "valid":
                 completion_blockers.append(f"{status['run_dir']}: grading {status['grading']}")
             if status["metrics"] != "complete":
-                completion_blockers.append(f"{status['run_dir']}: {', '.join(status['missing_metrics'])}")
+                metric_details = [
+                    f"{finding.get('rule_id')}: {finding.get('message')}"
+                    for finding in status.get("metrics_audit_findings", [])
+                    if isinstance(finding, dict) and finding.get("severity") == "error"
+                ]
+                if status.get("metrics") == "opted-out":
+                    metric_details.append("suspicious metrics opted-out")
+                completion_blockers.append(
+                    f"{status['run_dir']}: {', '.join(status['missing_metrics'] or metric_details)}"
+                )
             if status["prompt_receipt"] in {"missing-or-invalid", "opted-out"}:
                 completion_blockers.append(f"{status['run_dir']}: prompt receipt {status['prompt_receipt']}")
+        require_audit = args.require_clean_grading_audit or (
+            args.require_complete and status.get("run_contract_version") == RUN_CONTRACT_VERSION
+        )
+        if require_audit and status.get("grading_audit") in {"error", "opted-out"}:
+            completion_blockers.append(f"{status['run_dir']}: grading audit {status.get('grading_audit')}")
+
+    if args.require_complete:
+        metric_items = [
+            {
+                "run_contract_version": status.get("run_contract_version"),
+                "metrics_audit": {"findings": status.get("metrics_audit_findings", [])},
+                "run_dir": status.get("run_dir"),
+            }
+            for status in statuses
+        ]
+        completion_blockers.extend(
+            repeated_known_placeholder_metric_reasons(
+                metric_items,
+                lambda item: str(item.get("run_dir")),
+            )
+        )
 
     if args.baseline_from:
         current_runs = discover_runs(iteration_dir, args.allow_legacy)
@@ -2768,6 +4280,8 @@ def batch_entry_namespace(entry: dict[str, Any]) -> argparse.Namespace:
         "finalize",
         "allow_missing_prompt_receipt",
         "allow_missing_metrics",
+        "allow_suspicious_grading",
+        "allow_suspicious_metrics",
     }
     unknown = sorted(set(entry) - allowed)
     if unknown:
@@ -2797,33 +4311,51 @@ def batch_entry_namespace(entry: dict[str, Any]) -> argparse.Namespace:
         finalize=bool(entry.get("finalize", False)),
         allow_missing_prompt_receipt=bool(entry.get("allow_missing_prompt_receipt", False)),
         allow_missing_metrics=bool(entry.get("allow_missing_metrics", False)),
+        allow_suspicious_grading=bool(entry.get("allow_suspicious_grading", False)),
+        allow_suspicious_metrics=bool(entry.get("allow_suspicious_metrics", False)),
     )
 
 
-def candidate_timing_for_record(run_dir: Path, args: argparse.Namespace) -> dict[str, Any] | None:
+def candidate_timing_for_record(
+    run_dir: Path,
+    args: argparse.Namespace,
+    *,
+    autofill_output_chars: bool = False,
+) -> tuple[dict[str, Any] | None, bool]:
     timing_data: dict[str, Any] | None = None
     timing_destination = run_dir / "timing.json"
+    changed = False
     if args.timing:
-        timing_data = load_timing_data(Path(args.timing))
+        timing_path = Path(args.timing)
+        if not timing_path.exists():
+            raise CommandError(f"{timing_path}: timing file does not exist")
+        timing_data = load_timing_data(timing_path)
+        if not paths_are_same_file(timing_path, timing_destination):
+            changed = True
     elif timing_destination.exists():
         timing_data = load_timing_data(timing_destination)
-    timing_metrics = usage_inputs_to_timing(args)
-    timing_metrics.update(metric_flags_to_timing(args))
+    timing_metrics = timing_metrics_for_record(args)
     if timing_metrics:
         if timing_data is None:
             timing_data = {}
+        if args.total_duration_seconds is not None and args.duration_ms is None:
+            for key in ("duration_ms", "duration_seconds", "executor_duration_seconds"):
+                timing_data.pop(key, None)
         timing_data.update(timing_metrics)
-    if timing_data is not None and first_number(timing_data.get("output_chars")) is None:
+        changed = True
+    if autofill_output_chars and (timing_data is None or first_number(timing_data.get("output_chars")) is None):
         response_path = run_dir / "outputs" / "response.md"
         if response_path.exists():
-            timing_data = dict(timing_data)
+            timing_data = dict(timing_data or {})
             timing_data["output_chars"] = len(response_path.read_text(encoding="utf-8"))
-    return timing_data
+            changed = True
+    return timing_data, changed
 
 
 def validate_record_batch_namespaces(namespaces: list[argparse.Namespace]) -> list[str]:
     errors: list[str] = []
     seen: set[str] = set()
+    batch_metric_items: list[dict[str, Any]] = []
     for index, namespace in enumerate(namespaces):
         label = f"records[{index}]"
         run_dir = Path(namespace.run_dir)
@@ -2840,32 +4372,89 @@ def validate_record_batch_namespaces(namespaces: list[argparse.Namespace]) -> li
             continue
         try:
             manifest = load_run_manifest(run_dir)
-            candidate_timing = candidate_timing_for_record(run_dir, namespace)
+            candidate_timing, _ = candidate_timing_for_record(
+                run_dir,
+                namespace,
+                autofill_output_chars=bool(namespace.finalize or namespace.grading),
+            )
+            grading_data: dict[str, Any] | None = None
             if namespace.grading:
                 grading_path = Path(namespace.grading)
                 if not grading_path.exists():
                     errors.append(f"{label}: grading file does not exist: {grading_path}")
                 else:
-                    grading_data = read_json(grading_path)
+                    expected_assertions = load_expected_assertions_for_run(run_dir)
+                    if is_current_run(manifest) and expected_assertions is None:
+                        errors.append(f"{label}: {grading_materials_missing_message(run_dir)}")
+                        continue
+                    raw_grading_data = read_json(grading_path)
+                    grading_data = raw_grading_data if isinstance(raw_grading_data, dict) else None
                     grading_errors = validate_grading_data(grading_data, grading_path)
                     grading_errors.extend(
                         validate_grading_completeness(
                             grading_data,
-                            load_expected_assertions_for_run(run_dir),
+                            expected_assertions,
                             grading_path,
                         )
                     )
                     errors.extend(f"{label}: {error}" for error in grading_errors)
             finalizing = bool(namespace.finalize or namespace.grading)
             if finalizing:
-                receipt_errors = validate_prompt_receipt(run_dir, manifest) if is_v2_run(manifest) else []
+                record_metadata = load_json_if_exists(run_dir / "record_metadata.json")
+                record_metadata = record_metadata if isinstance(record_metadata, dict) else {}
+                if namespace.allow_suspicious_grading:
+                    record_metadata = dict(record_metadata)
+                    record_metadata["allow_suspicious_grading"] = True
+                if namespace.allow_suspicious_metrics:
+                    record_metadata = dict(record_metadata)
+                    record_metadata["allow_suspicious_metrics"] = True
+                if grading_data is None and (run_dir / "grading.json").exists():
+                    expected_assertions = load_expected_assertions_for_run(run_dir)
+                    if is_current_run(manifest) and expected_assertions is None:
+                        errors.append(f"{label}: {grading_materials_missing_message(run_dir)}")
+                        continue
+                    raw_existing_grading = read_json(run_dir / "grading.json")
+                    grading_data = raw_existing_grading if isinstance(raw_existing_grading, dict) else None
+                    grading_errors = validate_grading_data(grading_data, run_dir / "grading.json")
+                    grading_errors.extend(
+                        validate_grading_completeness(
+                            grading_data,
+                            expected_assertions,
+                            run_dir / "grading.json",
+                        )
+                    )
+                    errors.extend(f"{label}: {error}" for error in grading_errors)
+                if grading_data is not None:
+                    grading_audit = audit_grading_for_run(run_dir, grading_data, record_metadata=record_metadata)
+                    audit_blockers = grading_audit_blocking_messages(run_dir, grading_audit)
+                    if audit_blockers and is_current_run(manifest) and not namespace.allow_suspicious_grading:
+                        errors.extend(f"{label}: {error}" for error in audit_blockers)
+                receipt_errors = validate_prompt_receipt(run_dir, manifest) if is_current_run(manifest) else []
                 if receipt_errors and not namespace.allow_missing_prompt_receipt:
                     errors.extend(f"{label}: {error}" for error in receipt_errors)
                 metric_errors = final_metric_errors(candidate_timing)
                 if metric_errors and not namespace.allow_missing_metrics:
                     errors.extend(f"{label}: {error}" for error in metric_errors)
+                metrics_audit = audit_metric_integrity(
+                    candidate_timing,
+                    current_contract=is_current_run(manifest),
+                    record_metadata=record_metadata,
+                )
+                metric_blockers = metric_audit_blocking_messages(run_dir, metrics_audit)
+                if metric_blockers and is_current_run(manifest) and not namespace.allow_suspicious_metrics:
+                    errors.extend(f"{label}: {error}" for error in metric_blockers)
+                if is_current_run(manifest) and not record_metadata.get("allow_suspicious_metrics"):
+                    batch_metric_items.append(
+                        {
+                            "run_contract_version": RUN_CONTRACT_VERSION,
+                            "metrics_audit": metrics_audit,
+                            "label": f"{label} {run_dir.name}",
+                        }
+                    )
         except CommandError as exc:
             errors.append(f"{label}: {exc}")
+    for reason in repeated_known_placeholder_metric_reasons(batch_metric_items, lambda item: str(item["label"])):
+        errors.append(f"record-batch metric integrity: {reason}; set allow_suspicious_metrics for affected partial or smoke records")
     return errors
 
 
@@ -2915,6 +4504,12 @@ def build_parser() -> argparse.ArgumentParser:
     prepare.add_argument("--accept-input-changes", action="store_true", help="Prepare despite --rerun-of input changes and record the differences.")
     prepare.set_defaults(func=command_prepare)
 
+    prepare_grading = subcommands.add_parser("prepare-grading", help="Create grader-only prompts and assertion metadata after executor output exists.")
+    prepare_grading.add_argument("target", help="Run directory or iteration directory to prepare for grading.")
+    prepare_grading.add_argument("--evals-json", help="Eval suite path when the iteration is outside evals/<skill-name>/workspace/<agent>/iteration-N.")
+    prepare_grading.add_argument("--allow-missing-receipt", action="store_true", help="Prepare grader materials without a valid executor prompt receipt for legacy/manual smoke workflows.")
+    prepare_grading.set_defaults(func=command_prepare_grading)
+
     record = subcommands.add_parser("record", help="Attach external outputs, timing, and grading to a prepared run.")
     record.add_argument("run_dir")
     record.add_argument("--outputs")
@@ -2929,9 +4524,15 @@ def build_parser() -> argparse.ArgumentParser:
     record.add_argument("--finalize", action="store_true", help="Validate receipt and final metrics without attaching grading.")
     record.add_argument("--allow-missing-prompt-receipt", action="store_true", help="Mark a finalized run as noncanonical when no matching prompt receipt is available.")
     record.add_argument("--allow-missing-metrics", action="store_true", help="Mark a finalized run as partial when required metrics are unavailable.")
+    record.add_argument("--allow-suspicious-grading", action="store_true", help="Mark a finalized run as noncanonical when static grading audit errors are intentionally accepted.")
+    record.add_argument("--allow-suspicious-metrics", action="store_true", help="Mark a finalized run as noncanonical when present metrics are invalid or known to be placeholder data.")
     record.set_defaults(func=command_record)
 
-    grading_template = subcommands.add_parser("grading-template", help="Write a grading.json template for a prepared run.")
+    grading_template = subcommands.add_parser(
+        "grading-template",
+        help="Write a grading.json template for a run after prepare-grading.",
+        description="Write a grading.json template for a run after prepare-grading.",
+    )
     grading_template.add_argument("run_dir")
     grading_template.add_argument("--output")
     grading_template.set_defaults(func=command_grading_template)
@@ -2967,6 +4568,7 @@ def build_parser() -> argparse.ArgumentParser:
     doctor.add_argument("--baseline-config", default="without_skill")
     doctor.add_argument("--allow-legacy", action="store_true")
     doctor.add_argument("--require-complete", action="store_true")
+    doctor.add_argument("--require-clean-grading-audit", action="store_true", help="Fail on grading audit errors or opt-outs for any readable run contract.")
     doctor.set_defaults(func=command_doctor)
 
     return parser

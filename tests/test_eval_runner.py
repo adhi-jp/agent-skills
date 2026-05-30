@@ -167,6 +167,8 @@ class EvalRunnerTests(unittest.TestCase):
             timing_data["total_tokens"] = tokens
         timing_data["output_chars"] = output_chars
         self.write_json(timing, timing_data)
+        self.run_cli("record", run_dir, "--outputs", external, "--timing", timing)
+        self.run_cli("prepare-grading", run_dir)
         metadata = json.loads((run_dir.parents[1] / "eval_metadata.json").read_text(encoding="utf-8"))
         assertions = metadata.get("assertions") or ["Expectation text"]
         passed_count = len(assertions) if passed else 0
@@ -192,6 +194,54 @@ class EvalRunnerTests(unittest.TestCase):
             },
         )
         self.run_cli("record", run_dir, "--outputs", external, "--timing", timing, "--grading", grading)
+
+    def write_boundary_suite(self, prompt, assertions):
+        return self.write_suite(
+            {
+                "schema_version": "1.0.0",
+                "skill_name": "demo",
+                "purpose": "boundary audit suite",
+                "common_assertions": [],
+                "evals": [
+                    {
+                        "id": "E01",
+                        "name": "Boundary eval",
+                        "prompt": prompt,
+                        "expected_output": "Boundary-sensitive output.",
+                        "files": [],
+                        "expectations": assertions,
+                    }
+                ],
+                "scoring": {
+                    "common_assertion_weight": 0,
+                    "per_eval_expectation_weight": 1,
+                    "pass_threshold": 1,
+                },
+            }
+        )
+
+    def write_record_inputs(self, run_dir, *, output_text, evidence="ok", passed=True):
+        suffix = "_".join(run_dir.parts[-4:])
+        external = self.root / "external" / f"audit-{suffix}"
+        external.mkdir(parents=True, exist_ok=True)
+        (external / "response.md").write_text(output_text, encoding="utf-8")
+        self.write_receipt(run_dir, external / "run_receipt.json")
+        timing = self.root / "external" / f"audit-{suffix}-timing.json"
+        self.write_json(timing, {"duration_ms": 10, "total_tokens": 11, "output_chars": len(output_text)})
+        self.run_cli("record", run_dir, "--outputs", external, "--timing", timing)
+        self.run_cli("prepare-grading", run_dir)
+        grading = self.root / "external" / f"audit-{suffix}-grading.json"
+        metadata = json.loads((run_dir.parents[1] / "eval_metadata.json").read_text(encoding="utf-8"))
+        self.write_json(
+            grading,
+            {
+                "expectations": [
+                    {"text": assertion, "passed": passed, "evidence": evidence}
+                    for assertion in metadata["assertions"]
+                ]
+            },
+        )
+        return external, timing, grading
 
     def test_validate_success_reports_counts(self):
         suite = self.write_suite()
@@ -235,6 +285,11 @@ class EvalRunnerTests(unittest.TestCase):
         result = self.run_cli("prepare", suite, "--eval", "E01", "--config", "with_skill", check=False)
         self.assertNotEqual(0, result.returncode)
         self.assertIn("--agent", result.stderr)
+
+    def test_grading_template_help_mentions_prepare_grading(self):
+        result = self.run_cli("grading-template", "--help")
+
+        self.assertIn("after prepare-grading", result.stdout)
 
     def test_prepare_rejects_invalid_agent_labels(self):
         suite = self.write_suite()
@@ -287,41 +342,87 @@ class EvalRunnerTests(unittest.TestCase):
                 run_dir = eval_dirs[0] / config / f"run-{run_number}"
                 self.assertTrue((run_dir / "outputs").is_dir())
                 self.assertTrue((run_dir / "prompt.md").is_file())
-                self.assertTrue((run_dir / "grader_prompt.md").is_file())
+                self.assertFalse((run_dir / "grader_prompt.md").exists())
                 self.assertTrue((run_dir / "run_manifest.json").is_file())
                 prompt = (run_dir / "prompt.md").read_text(encoding="utf-8")
-                grader_prompt = (run_dir / "grader_prompt.md").read_text(encoding="utf-8")
                 manifest = json.loads((run_dir / "run_manifest.json").read_text(encoding="utf-8"))
+                executor_metadata = json.loads((eval_dirs[0] / "executor_metadata.json").read_text(encoding="utf-8"))
                 self.assertIn("Agent: `codex`", prompt)
                 self.assertIn(f"Configuration: `{config}`", prompt)
-                self.assertIn("skills/demo/SKILL.md", prompt)
+                if config == "with_skill":
+                    self.assertIn("Skill: `demo`", prompt)
+                    self.assertIn("skills/demo/SKILL.md", prompt)
+                    self.assertEqual("skills/demo/SKILL.md", manifest["skill_path"])
+                else:
+                    self.assertNotIn("Skill: `demo`", prompt)
+                    self.assertNotIn("Skill path:", prompt)
+                    self.assertNotIn("skills/demo/SKILL.md", prompt)
+                    self.assertIsNone(manifest["skill_path"])
+                    self.assertIn("Do not use any skill package or local skill file", prompt)
+                self.assertNotIn("## Expected Output Summary", prompt)
+                self.assertNotIn("A useful result.", prompt)
+                self.assertNotIn("grader_prompt.md", prompt)
                 self.assertNotIn("## Assertions For Grading", prompt)
                 self.assertIn("separate grader pass", prompt)
                 self.assertIn("duration_seconds", prompt)
                 self.assertIn("--output-chars <N>", prompt)
                 self.assertIn("--total-duration-seconds", prompt)
+                self.assertIn(f"python3 scripts/eval_runner.py record {run_dir} --outputs <path> --timing <timing.json>", prompt)
                 self.assertIn("run_receipt.json", prompt)
                 self.assertIn("response.md", prompt)
-                self.assertIn("common assertion", grader_prompt)
-                self.assertIn("per-eval assertion", grader_prompt)
-                self.assertIn(str(run_dir / "outputs"), grader_prompt)
-                self.assertIn(str(run_dir / "grading.json"), grader_prompt)
-                self.assertEqual(str(run_dir / "grader_prompt.md"), manifest["grader_prompt"])
-                self.assertEqual("eval-runner-v2", manifest["run_contract_version"])
-                self.assertEqual("eval-runner-v2", manifest["run_fingerprint_inputs"]["run_contract_version"])
+                self.assertNotIn("common assertion", json.dumps(manifest))
+                self.assertNotIn("per-eval assertion", json.dumps(manifest))
+                self.assertNotIn("A useful result.", json.dumps(manifest))
+                self.assertNotIn("common assertion", json.dumps(executor_metadata))
+                self.assertNotIn("per-eval assertion", json.dumps(executor_metadata))
+                self.assertNotIn("A useful result.", json.dumps(executor_metadata))
+                self.assertIsNone(manifest["grader_prompt"])
+                self.assertEqual("pending", manifest["grader_material_status"])
+                self.assertEqual("eval-runner-v5", manifest["run_contract_version"])
+                self.assertEqual("eval-runner-v5", manifest["run_fingerprint_inputs"]["run_contract_version"])
                 self.assertEqual(64, len(manifest["prompt_sha256"]))
-                self.assertEqual(64, len(manifest["grader_prompt_sha256"]))
-                self.assertEqual(64, len(manifest["eval_metadata_sha256"]))
-        metadata = json.loads((eval_dirs[0] / "eval_metadata.json").read_text(encoding="utf-8"))
+                self.assertEqual(64, len(manifest["executor_metadata_sha256"]))
+                self.assertNotIn("grader_prompt_sha256", manifest)
+                self.assertNotIn("eval_metadata_sha256", manifest)
+                self.write_receipt(run_dir)
+        metadata = json.loads((eval_dirs[0] / "executor_metadata.json").read_text(encoding="utf-8"))
         self.assertTrue(metadata["eval_fingerprint"])
-        self.assertIn("fingerprint_inputs", metadata)
-        self.assertTrue((eval_dirs[0] / "eval_metadata.json").is_file())
+        self.assertNotIn("expected_output", metadata)
+        self.assertFalse((eval_dirs[0] / "eval_metadata.json").exists())
         run_index = json.loads((iteration / "run_index.json").read_text(encoding="utf-8"))
         self.assertEqual(4, run_index["run_count"])
-        self.assertEqual("eval-runner-v2", run_index["run_contract_version"])
+        self.assertEqual("eval-runner-v5", run_index["run_contract_version"])
         next_steps = (iteration / "next_steps.md").read_text(encoding="utf-8")
         self.assertIn("Do not reuse prompt text", next_steps)
         self.assertIn("eval-runner-receipt-v1", next_steps)
+        self.assertIn("prepare-grading", next_steps)
+        self.assertNotIn("grader_prompt.md", next_steps)
+
+        iteration_manifest_text = (iteration / "iteration_manifest.json").read_text(encoding="utf-8")
+        self.assertNotIn("source_evals_json", iteration_manifest_text)
+        self.assertNotIn(str(suite), iteration_manifest_text)
+        self.run_cli("prepare-grading", iteration)
+        for config in ("with_skill", "without_skill"):
+            for run_number in (1, 2):
+                run_dir = eval_dirs[0] / config / f"run-{run_number}"
+                self.assertTrue((run_dir / "grader_prompt.md").is_file())
+                grader_prompt = (run_dir / "grader_prompt.md").read_text(encoding="utf-8")
+                manifest = json.loads((run_dir / "run_manifest.json").read_text(encoding="utf-8"))
+                self.assertIn("common assertion", grader_prompt)
+                self.assertIn("per-eval assertion", grader_prompt)
+                self.assertIn("## Grading Boundary Rules", grader_prompt)
+                self.assertIn("Grade the whole primary response", grader_prompt)
+                self.assertIn("Markdown fences", grader_prompt)
+                self.assertIn("show, inspect", grader_prompt)
+                self.assertIn(str(run_dir / "outputs"), grader_prompt)
+                self.assertIn(str(run_dir / "grading.json"), grader_prompt)
+                self.assertEqual(str(run_dir / "grader_prompt.md"), manifest["grader_prompt"])
+                self.assertEqual("ready", manifest["grader_material_status"])
+                self.assertEqual(64, len(manifest["grader_prompt_sha256"]))
+                self.assertEqual(64, len(manifest["eval_metadata_sha256"]))
+        grader_metadata = json.loads((eval_dirs[0] / "eval_metadata.json").read_text(encoding="utf-8"))
+        self.assertEqual("A useful result.", grader_metadata["expected_output"])
+        self.assertIn("fingerprint_inputs", grader_metadata)
 
         iteration_manifest = json.loads((iteration / "iteration_manifest.json").read_text(encoding="utf-8"))
         self.assertEqual("codex", iteration_manifest["agent"])
@@ -357,6 +458,36 @@ class EvalRunnerTests(unittest.TestCase):
 
         self.assertTrue((workspace_root / "gemini" / "iteration-1").is_dir())
         self.assertFalse((workspace_root / "iteration-1").exists())
+
+    def test_prepare_grading_custom_workspace_requires_evals_json(self):
+        suite = self.write_suite()
+        workspace_root = self.root / "custom-workspace"
+        self.run_cli(
+            "prepare",
+            suite,
+            "--workspace-root",
+            workspace_root,
+            "--agent",
+            "gemini",
+            "--eval",
+            "E01",
+            "--config",
+            "with_skill",
+        )
+        run_dir = self.prepared_run_dir(self.agent_iteration("gemini", 1, workspace_root), "with_skill")
+        self.write_receipt(run_dir)
+
+        failed = self.run_cli("prepare-grading", run_dir, check=False)
+
+        self.assertNotEqual(0, failed.returncode)
+        self.assertIn("pass --evals-json", failed.stderr)
+        next_steps = (self.agent_iteration("gemini", 1, workspace_root) / "next_steps.md").read_text(encoding="utf-8")
+        self.assertIn("prepare-grading", next_steps)
+        self.assertIn("--evals-json <evals.json>", next_steps)
+        prompt = (run_dir / "prompt.md").read_text(encoding="utf-8")
+        self.assertIn("--evals-json <evals.json>", prompt)
+        self.run_cli("prepare-grading", run_dir, "--evals-json", suite)
+        self.assertTrue((run_dir / "grader_prompt.md").is_file())
 
     def test_prepare_writes_stable_fingerprints_and_fixture_changes_affect_them(self):
         suite = self.write_suite()
@@ -402,21 +533,21 @@ class EvalRunnerTests(unittest.TestCase):
         first = self.agent_iteration("codex", 1)
         second = self.agent_iteration("codex", 2)
         claude = self.agent_iteration("claude", 1)
-        first_metadata = json.loads((self.first_eval_dir(first) / "eval_metadata.json").read_text(encoding="utf-8"))
-        second_metadata = json.loads((self.first_eval_dir(second) / "eval_metadata.json").read_text(encoding="utf-8"))
+        first_metadata = json.loads((self.first_eval_dir(first) / "executor_metadata.json").read_text(encoding="utf-8"))
+        second_metadata = json.loads((self.first_eval_dir(second) / "executor_metadata.json").read_text(encoding="utf-8"))
         first_manifest = json.loads((self.prepared_run_dir(first, "with_skill") / "run_manifest.json").read_text(encoding="utf-8"))
         second_manifest = json.loads((self.prepared_run_dir(second, "with_skill") / "run_manifest.json").read_text(encoding="utf-8"))
         claude_manifest = json.loads((self.prepared_run_dir(claude, "with_skill") / "run_manifest.json").read_text(encoding="utf-8"))
         self.assertEqual(first_metadata["eval_fingerprint"], second_metadata["eval_fingerprint"])
         self.assertEqual(first_manifest["run_fingerprint"], second_manifest["run_fingerprint"])
         self.assertNotEqual(first_manifest["run_fingerprint"], claude_manifest["run_fingerprint"])
-        self.assertEqual("eval-runner-v2", first_manifest["run_contract_version"])
-        self.assertEqual("eval-runner-v2", first_manifest["run_fingerprint_inputs"]["run_contract_version"])
+        self.assertEqual("eval-runner-v5", first_manifest["run_contract_version"])
+        self.assertEqual("eval-runner-v5", first_manifest["run_fingerprint_inputs"]["run_contract_version"])
         self.assertEqual("codex", first_manifest["agent"])
         self.assertEqual("codex", first_manifest["run_fingerprint_inputs"]["agent"])
         self.assertEqual("claude", claude_manifest["agent"])
         self.assertEqual("grader-model", first_manifest["grader_model"])
-        fixture_entry = first_metadata["fingerprint_inputs"]["fixtures"][0]
+        fixture_entry = first_metadata["fixtures"][0]
         self.assertEqual("evals/demo/fixtures/input.txt", fixture_entry["path"])
         self.assertEqual(64, len(fixture_entry["sha256"]))
 
@@ -440,7 +571,7 @@ class EvalRunnerTests(unittest.TestCase):
             "grader-model",
         )
         third = self.agent_iteration("codex", 3)
-        third_metadata = json.loads((self.first_eval_dir(third) / "eval_metadata.json").read_text(encoding="utf-8"))
+        third_metadata = json.loads((self.first_eval_dir(third) / "executor_metadata.json").read_text(encoding="utf-8"))
         third_manifest = json.loads((self.prepared_run_dir(third, "with_skill") / "run_manifest.json").read_text(encoding="utf-8"))
         self.assertNotEqual(first_metadata["eval_fingerprint"], third_metadata["eval_fingerprint"])
         self.assertNotEqual(first_manifest["run_fingerprint"], third_manifest["run_fingerprint"])
@@ -468,6 +599,22 @@ class EvalRunnerTests(unittest.TestCase):
         self.assertNotEqual(0, force.returncode)
         self.assertIn("cannot be combined with --force", force.stderr)
 
+    def test_prepare_rerun_of_rejects_v4_v5_contract_mismatch(self):
+        suite = self.write_suite()
+        self.run_cli("prepare", suite, "--agent", "codex", "--iteration", "1", "--eval", "E01", "--config", "with_skill", "--runs", "1")
+        first = self.agent_iteration("codex", 1)
+        manifest_path = first / "iteration_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["run_contract_version"] = "eval-runner-v4"
+        self.write_json(manifest_path, manifest)
+
+        failed = self.run_cli("prepare", suite, "--agent", "codex", "--iteration", "2", "--eval", "E01", "--config", "with_skill", "--runs", "1", "--rerun-of", first, check=False)
+
+        self.assertNotEqual(0, failed.returncode)
+        self.assertIn("run contract", failed.stderr)
+        self.assertIn("eval-runner-v4", failed.stderr)
+        self.assertIn("eval-runner-v5", failed.stderr)
+
     def test_record_copies_outputs_and_validates_grading_schema(self):
         suite = self.write_suite()
         self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill", "--runs", "1")
@@ -492,6 +639,8 @@ class EvalRunnerTests(unittest.TestCase):
         )
         self.write_json(invalid_grading, {"expectations": [{"text": "common assertion", "passed": True}]})
 
+        self.run_cli("record", run_dir, "--outputs", external, "--timing", timing)
+        self.run_cli("prepare-grading", run_dir)
         self.run_cli("record", run_dir, "--outputs", external, "--timing", timing, "--grading", grading)
         self.assertEqual("answer\n", (run_dir / "outputs" / "answer.md").read_text(encoding="utf-8"))
         self.assertTrue((run_dir / "timing.json").is_file())
@@ -505,6 +654,8 @@ class EvalRunnerTests(unittest.TestCase):
         suite = self.write_suite()
         self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill", "--runs", "1")
         run_dir = self.prepared_run_dir(self.agent_iteration("codex", 1), "with_skill")
+        self.write_receipt(run_dir)
+        self.run_cli("prepare-grading", run_dir)
         grading = self.root / "changed-grading.json"
         self.write_json(
             grading,
@@ -549,7 +700,7 @@ class EvalRunnerTests(unittest.TestCase):
         self.assertEqual(33, merged["total_tokens"])
         self.assertEqual(9, merged["total_duration_seconds"])
 
-    def test_record_finalize_requires_receipt_and_metrics_for_v2_runs(self):
+    def test_record_finalize_requires_receipt_and_metrics_for_current_contract_runs(self):
         suite = self.write_suite()
         self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill", "--runs", "1")
         run_dir = self.prepared_run_dir(self.agent_iteration("codex", 1), "with_skill")
@@ -568,12 +719,78 @@ class EvalRunnerTests(unittest.TestCase):
         self.assertTrue(metadata["finalized"])
         self.assertFalse(metadata["noncanonical"])
 
+    def test_record_finalize_rejects_non_positive_metrics_without_writing_timing(self):
+        suite = self.write_suite()
+        self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill", "--runs", "1")
+        run_dir = self.prepared_run_dir(self.agent_iteration("codex", 1), "with_skill")
+        self.write_receipt(run_dir)
+
+        failed = self.run_cli("record", run_dir, "--total-tokens", "0", "--duration-ms", "0", "--output-chars", "0", "--finalize", check=False)
+
+        self.assertNotEqual(0, failed.returncode)
+        self.assertIn("non-positive-duration", failed.stderr)
+        self.assertIn("non-positive-total-tokens", failed.stderr)
+        self.assertFalse((run_dir / "timing.json").exists())
+
+    def test_record_finalize_preserves_existing_timing_when_metric_audit_fails(self):
+        suite = self.write_suite()
+        self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill", "--runs", "1")
+        run_dir = self.prepared_run_dir(self.agent_iteration("codex", 1), "with_skill")
+        self.write_receipt(run_dir)
+        self.write_json(run_dir / "timing.json", {"duration_ms": 10, "total_tokens": 11, "output_chars": 12})
+
+        failed = self.run_cli("record", run_dir, "--total-tokens", "0", "--duration-ms", "0", "--output-chars", "0", "--finalize", check=False)
+
+        self.assertNotEqual(0, failed.returncode)
+        timing = json.loads((run_dir / "timing.json").read_text(encoding="utf-8"))
+        self.assertEqual({"duration_ms": 10, "total_tokens": 11, "output_chars": 12}, timing)
+
+    def test_record_finalize_allows_suspicious_metric_opt_out_as_noncanonical(self):
+        suite = self.write_suite()
+        self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill", "--runs", "1")
+        run_dir = self.prepared_run_dir(self.agent_iteration("codex", 1), "with_skill")
+        self.write_receipt(run_dir)
+
+        self.run_cli("record", run_dir, "--total-tokens", "0", "--duration-ms", "0", "--output-chars", "0", "--finalize", "--allow-suspicious-metrics")
+
+        metadata = json.loads((run_dir / "record_metadata.json").read_text(encoding="utf-8"))
+        self.assertTrue(metadata["allow_suspicious_metrics"])
+        self.assertTrue(metadata["noncanonical"])
+        self.assertEqual("opted-out", metadata["metrics_audit"]["status"])
+
+    def test_record_finalize_warns_on_single_known_placeholder_metric_pair(self):
+        suite = self.write_suite()
+        self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill", "--runs", "1")
+        run_dir = self.prepared_run_dir(self.agent_iteration("codex", 1), "with_skill")
+        self.write_receipt(run_dir)
+
+        self.run_cli("record", run_dir, "--total-tokens", "5000", "--duration-ms", "30000", "--output-chars", "0", "--finalize")
+
+        metadata = json.loads((run_dir / "record_metadata.json").read_text(encoding="utf-8"))
+        self.assertFalse(metadata["noncanonical"])
+        self.assertEqual("warning", metadata["metrics_audit"]["status"])
+        self.assertEqual("known-placeholder-metrics", metadata["metrics_audit"]["findings"][0]["rule_id"])
+
+    def test_record_finalize_allows_zero_output_chars_with_real_metrics(self):
+        suite = self.write_suite()
+        self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill", "--runs", "1")
+        run_dir = self.prepared_run_dir(self.agent_iteration("codex", 1), "with_skill")
+        self.write_receipt(run_dir)
+
+        self.run_cli("record", run_dir, "--total-tokens", "1", "--duration-ms", "1", "--output-chars", "0", "--finalize")
+
+        metadata = json.loads((run_dir / "record_metadata.json").read_text(encoding="utf-8"))
+        self.assertFalse(metadata["noncanonical"])
+        timing = json.loads((run_dir / "timing.json").read_text(encoding="utf-8"))
+        self.assertEqual(0, timing["output_chars"])
+
     def test_record_allows_missing_receipt_and_marks_aggregate_incomplete(self):
         suite = self.write_suite()
         self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill,without_skill", "--runs", "1")
         iteration = self.agent_iteration("codex", 1)
         for config in ("with_skill", "without_skill"):
             run_dir = self.prepared_run_dir(iteration, config)
+            self.run_cli("prepare-grading", run_dir, "--allow-missing-receipt")
             metadata = json.loads((run_dir.parents[1] / "eval_metadata.json").read_text(encoding="utf-8"))
             self.write_json(
                 run_dir / "grading.json",
@@ -585,6 +802,138 @@ class EvalRunnerTests(unittest.TestCase):
         self.assertNotEqual(0, failed.returncode)
         self.assertIn("prompt receipt opt-out", failed.stderr)
         self.run_cli("aggregate", iteration, "--allow-incomplete")
+
+    def test_record_grading_rejects_passed_raw_commit_message_with_fence(self):
+        suite = self.write_boundary_suite(
+            "Show the raw commit message as plain text. Do not wrap it in Markdown.",
+            ["Output is a raw commit message and does not wrap it in a Markdown code fence."],
+        )
+        self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill", "--runs", "1")
+        run_dir = self.prepared_run_dir(self.agent_iteration("codex", 1), "with_skill")
+        external, timing, grading = self.write_record_inputs(
+            run_dir,
+            output_text="```text\nfix(demo): correct behavior\n```\n",
+            evidence="The commit message is raw inside the fence.",
+        )
+
+        failed = self.run_cli("record", run_dir, "--outputs", external, "--timing", timing, "--grading", grading, check=False)
+
+        self.assertNotEqual(0, failed.returncode)
+        self.assertIn("suspicious grading", failed.stderr)
+        self.assertIn("raw-commit-message-fence", failed.stderr)
+        self.assertFalse((run_dir / "grading.json").exists())
+
+    def test_record_finalize_audits_existing_grading_json(self):
+        suite = self.write_boundary_suite(
+            "Return a standalone answer without prompt-local references.",
+            ["Output stands alone without prompt context."],
+        )
+        self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill", "--runs", "1")
+        run_dir = self.prepared_run_dir(self.agent_iteration("codex", 1), "with_skill")
+        self.write_receipt(run_dir)
+        (run_dir / "outputs" / "response.md").write_text("Use the fenced block above.\n", encoding="utf-8")
+        self.write_json(run_dir / "timing.json", {"duration_ms": 10, "total_tokens": 11, "output_chars": 28})
+        self.run_cli("prepare-grading", run_dir)
+        self.write_json(
+            run_dir / "grading.json",
+            {"expectations": [{"text": "Output stands alone without prompt context.", "passed": True, "evidence": "ok"}]},
+        )
+
+        failed = self.run_cli("record", run_dir, "--finalize", check=False)
+
+        self.assertNotEqual(0, failed.returncode)
+        self.assertIn("standalone-prompt-local-reference", failed.stderr)
+
+    def test_record_grading_allows_suspicious_opt_out_and_surfaces_in_outputs(self):
+        suite = self.write_boundary_suite(
+            "Show the raw commit message as plain text. Do not wrap it in Markdown.",
+            ["Output is a raw commit message and does not wrap it in a Markdown code fence."],
+        )
+        self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill", "--runs", "1")
+        iteration = self.agent_iteration("codex", 1)
+        run_dir = self.prepared_run_dir(iteration, "with_skill")
+        external, timing, grading = self.write_record_inputs(
+            run_dir,
+            output_text="```text\nfix(demo): correct behavior\n```\n",
+            evidence="The real command would receive raw text inside the fence.",
+        )
+
+        self.run_cli(
+            "record",
+            run_dir,
+            "--outputs",
+            external,
+            "--timing",
+            timing,
+            "--grading",
+            grading,
+            "--allow-suspicious-grading",
+        )
+
+        metadata = json.loads((run_dir / "record_metadata.json").read_text(encoding="utf-8"))
+        self.assertTrue(metadata["allow_suspicious_grading"])
+        self.assertTrue(metadata["noncanonical"])
+        doctor = self.run_cli("doctor", iteration, "--require-complete", check=False)
+        self.assertNotEqual(0, doctor.returncode)
+        self.assertIn("grading_audit_opted-out: 1", doctor.stdout)
+        self.assertIn("grading audit opted-out", doctor.stdout)
+        aggregate_failed = self.run_cli("aggregate", iteration, check=False)
+        self.assertNotEqual(0, aggregate_failed.returncode)
+        self.assertIn("suspicious-grading opt-out", aggregate_failed.stderr)
+        self.run_cli("aggregate", iteration, "--allow-incomplete")
+        benchmark = json.loads((iteration / "benchmark.json").read_text(encoding="utf-8"))
+        self.assertEqual("opted-out", benchmark["runs"][0]["grading_audit"]["status"])
+        review = self.root / "review-audit.html"
+        self.run_cli("report", iteration, "--output", review)
+        html_text = review.read_text(encoding="utf-8")
+        self.assertIn("raw-commit-message-fence", html_text)
+        self.assertIn("Grading Audit", html_text)
+
+    def test_record_grading_rejects_json_only_response_with_prose(self):
+        suite = self.write_boundary_suite(
+            "Return valid JSON only.",
+            ["Output is valid JSON only with no surrounding prose."],
+        )
+        self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill", "--runs", "1")
+        run_dir = self.prepared_run_dir(self.agent_iteration("codex", 1), "with_skill")
+        external, timing, grading = self.write_record_inputs(
+            run_dir,
+            output_text="Here is the JSON:\n{\"ok\": true}\n",
+            evidence="It is JSON.",
+        )
+
+        failed = self.run_cli("record", run_dir, "--outputs", external, "--timing", timing, "--grading", grading, check=False)
+
+        self.assertNotEqual(0, failed.returncode)
+        self.assertIn("json-only-contract", failed.stderr)
+
+    def test_record_batch_prevalidates_grading_audit_without_partial_writes(self):
+        suite = self.write_boundary_suite(
+            "Show the raw commit message as plain text. Do not wrap it in Markdown.",
+            ["Output is a raw commit message and does not wrap it in a Markdown code fence."],
+        )
+        self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill", "--runs", "1")
+        run_dir = self.prepared_run_dir(self.agent_iteration("codex", 1), "with_skill")
+        (run_dir / "outputs" / "response.md").write_text("```text\nfix(demo): correct behavior\n```\n", encoding="utf-8")
+        self.write_receipt(run_dir)
+        self.run_cli("prepare-grading", run_dir)
+        grading = self.root / "batch-grading.json"
+        self.write_json(
+            grading,
+            {"expectations": [{"text": "Output is a raw commit message and does not wrap it in a Markdown code fence.", "passed": True, "evidence": "inside the fence"}]},
+        )
+        records = self.root / "records-audit.json"
+        self.write_json(
+            records,
+            {"records": [{"run_dir": str(run_dir), "grading": str(grading), "total_tokens": 1, "duration_ms": 2, "output_chars": 3}]},
+        )
+
+        failed = self.run_cli("record-batch", records, check=False)
+
+        self.assertNotEqual(0, failed.returncode)
+        self.assertIn("raw-commit-message-fence", failed.stderr)
+        self.assertFalse((run_dir / "timing.json").exists())
+        self.assertFalse((run_dir / "grading.json").exists())
 
     def test_record_auto_fills_output_chars_and_parses_usage(self):
         suite = self.write_suite()
@@ -609,6 +958,11 @@ class EvalRunnerTests(unittest.TestCase):
         run_dir = self.prepared_run_dir(self.agent_iteration("codex", 1), "with_skill")
         template = self.root / "template.json"
 
+        missing = self.run_cli("grading-template", run_dir, "--output", template, check=False)
+        self.assertNotEqual(0, missing.returncode)
+        self.assertIn("grading materials are not prepared", missing.stderr)
+        self.write_receipt(run_dir)
+        self.run_cli("prepare-grading", run_dir)
         self.run_cli("grading-template", run_dir, "--output", template)
 
         data = json.loads(template.read_text(encoding="utf-8"))
@@ -649,6 +1003,7 @@ class EvalRunnerTests(unittest.TestCase):
         suite = self.write_suite()
         self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill", "--runs", "1")
         run_dir = self.prepared_run_dir(self.agent_iteration("codex", 1), "with_skill")
+        self.run_cli("prepare-grading", run_dir, "--allow-missing-receipt")
         self.write_json(run_dir / "timing.json", {"duration_ms": 1, "total_tokens": 1})
         self.write_json(
             run_dir / "grading.json",
@@ -692,6 +1047,7 @@ class EvalRunnerTests(unittest.TestCase):
         run_dir = self.prepared_run_dir(self.agent_iteration("codex", 1), "with_skill")
         self.write_receipt(run_dir)
         self.write_json(run_dir / "timing.json", {"duration_ms": 100, "total_tokens": 2, "output_chars": 3})
+        self.run_cli("prepare-grading", run_dir)
         self.write_json(
             run_dir / "grading.json",
             {
@@ -893,6 +1249,49 @@ class EvalRunnerTests(unittest.TestCase):
         self.assertIn("model mismatch", result.stderr)
         self.assertIn("run fingerprint mismatch", result.stderr)
 
+    def test_aggregate_baseline_from_rejects_v4_v5_contract_mismatch(self):
+        suite = self.write_suite()
+        self.run_cli("prepare", suite, "--agent", "codex", "--iteration", "1", "--eval", "E01", "--config", "without_skill", "--runs", "1", "--model", "exec-model", "--grader-model", "grader-model")
+        source = self.agent_iteration("codex", 1)
+        source_run = self.prepared_run_dir(source, "without_skill")
+        self.record_prepared_run(source_run)
+        manifest_path = source_run / "run_manifest.json"
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        manifest["run_contract_version"] = "eval-runner-v4"
+        self.write_json(manifest_path, manifest)
+        self.run_cli("prepare", suite, "--agent", "codex", "--iteration", "2", "--eval", "E01", "--config", "with_skill", "--runs", "1", "--model", "exec-model", "--grader-model", "grader-model")
+        current = self.agent_iteration("codex", 2)
+        self.record_prepared_run(self.prepared_run_dir(current, "with_skill"))
+
+        result = self.run_cli("aggregate", current, "--baseline-from", source, check=False)
+
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("run contract mismatch", result.stderr)
+        self.assertIn("eval-runner-v4", result.stderr)
+        self.assertIn("eval-runner-v5", result.stderr)
+
+    def test_aggregate_baseline_from_rejects_same_legacy_contract_without_v5_recompute(self):
+        suite = self.write_suite()
+        self.run_cli("prepare", suite, "--agent", "codex", "--iteration", "1", "--eval", "E01", "--config", "without_skill", "--runs", "1", "--model", "exec-model", "--grader-model", "grader-model")
+        source = self.agent_iteration("codex", 1)
+        source_run = self.prepared_run_dir(source, "without_skill")
+        self.record_prepared_run(source_run)
+        self.run_cli("prepare", suite, "--agent", "codex", "--iteration", "2", "--eval", "E01", "--config", "with_skill", "--runs", "1", "--model", "exec-model", "--grader-model", "grader-model")
+        current = self.agent_iteration("codex", 2)
+        current_run = self.prepared_run_dir(current, "with_skill")
+        self.record_prepared_run(current_run)
+        for run_dir in (source_run, current_run):
+            manifest_path = run_dir / "run_manifest.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["run_contract_version"] = "eval-runner-v4"
+            self.write_json(manifest_path, manifest)
+
+        result = self.run_cli("aggregate", current, "--baseline-from", source, check=False)
+
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("baseline reuse for run contract 'eval-runner-v4' is unsupported", result.stderr)
+        self.assertNotIn("run fingerprint mismatch", result.stderr)
+
     def test_aggregate_baseline_reuse_rejects_agent_mismatch(self):
         suite = self.write_suite()
         self.run_cli("prepare", suite, "--agent", "claude", "--iteration", "1", "--eval", "E01", "--config", "without_skill", "--runs", "1", "--model", "exec-model", "--grader-model", "grader-model")
@@ -920,6 +1319,56 @@ class EvalRunnerTests(unittest.TestCase):
         markdown = (iteration / "benchmark.md").read_text(encoding="utf-8")
         self.assertIn("321", markdown)
         self.assertIn("n/a", markdown)
+
+    def test_aggregate_blocks_repeated_known_placeholder_metrics(self):
+        suite = self.write_suite()
+        self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill,without_skill", "--runs", "1")
+        iteration = self.agent_iteration("codex", 1)
+        self.record_prepared_run(self.prepared_run_dir(iteration, "with_skill"), seconds=30, tokens=5000, output_chars=123)
+        self.record_prepared_run(self.prepared_run_dir(iteration, "without_skill"), seconds=30, tokens=5000, output_chars=456)
+
+        failed = self.run_cli("aggregate", iteration, check=False)
+
+        self.assertNotEqual(0, failed.returncode)
+        self.assertIn("repeated known placeholder metrics 30000ms/5000 tokens", failed.stderr)
+        self.run_cli("aggregate", iteration, "--allow-incomplete")
+        benchmark = json.loads((iteration / "benchmark.json").read_text(encoding="utf-8"))
+        self.assertTrue(benchmark["metadata"]["incomplete"])
+        self.assertEqual("warning", benchmark["runs"][0]["metrics_audit"]["status"])
+        markdown = (iteration / "benchmark.md").read_text(encoding="utf-8")
+        self.assertIn("Metric Integrity", markdown)
+        self.assertIn("known-placeholder-metrics", markdown)
+        review = self.root / "placeholder-review.html"
+        self.run_cli("report", iteration, "--output", review)
+        html_text = review.read_text(encoding="utf-8")
+        self.assertIn("Metric Integrity", html_text)
+        self.assertIn("repeated known placeholder metrics", html_text)
+
+    def test_aggregate_blocks_alternate_repeated_known_placeholder_metrics(self):
+        suite = self.write_suite()
+        self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill,without_skill", "--runs", "1")
+        iteration = self.agent_iteration("codex", 1)
+        self.record_prepared_run(self.prepared_run_dir(iteration, "with_skill"), seconds=60, tokens=15000)
+        self.record_prepared_run(self.prepared_run_dir(iteration, "without_skill"), seconds=60, tokens=15000)
+
+        failed = self.run_cli("aggregate", iteration, check=False)
+
+        self.assertNotEqual(0, failed.returncode)
+        self.assertIn("repeated known placeholder metrics 60000ms/15000 tokens", failed.stderr)
+
+    def test_aggregate_notes_generic_repeated_metrics_without_blocking(self):
+        suite = self.write_suite()
+        self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill,without_skill", "--runs", "1")
+        iteration = self.agent_iteration("codex", 1)
+        self.record_prepared_run(self.prepared_run_dir(iteration, "with_skill"), seconds=12, tokens=345)
+        self.record_prepared_run(self.prepared_run_dir(iteration, "without_skill"), seconds=12, tokens=345)
+
+        self.run_cli("aggregate", iteration)
+
+        benchmark = json.loads((iteration / "benchmark.json").read_text(encoding="utf-8"))
+        self.assertFalse(benchmark["metadata"]["incomplete"])
+        kinds = {note["kind"] for note in benchmark["analysis"]["notes"]}
+        self.assertIn("repeated_metric_tuple", kinds)
 
     def test_aggregate_writes_analyzer_notes_for_equal_always_passing_and_failing_expectations(self):
         iteration = self.agent_iteration("codex", 1)
@@ -968,6 +1417,31 @@ class EvalRunnerTests(unittest.TestCase):
         self.assertIn("Repeated-run pass-rate variance", messages)
         self.assertIn("Repeated-run metric variance", messages)
         self.assertIn("Time/token tradeoff", messages)
+
+    def test_aggregate_surfaces_file_artifact_boundary_warning_without_changing_pass_rate(self):
+        suite = self.write_boundary_suite(
+            "Produce plan.md as an artifact.",
+            ["Output records that file `plan.md` exists as a produced artifact."],
+        )
+        self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill", "--runs", "1")
+        iteration = self.agent_iteration("codex", 1)
+        run_dir = self.prepared_run_dir(iteration, "with_skill")
+        external, timing, grading = self.write_record_inputs(
+            run_dir,
+            output_text="Created plan.md.\n",
+            evidence="The file exists.",
+        )
+        self.run_cli("record", run_dir, "--outputs", external, "--timing", timing, "--grading", grading)
+
+        self.run_cli("aggregate", iteration, "--allow-incomplete")
+
+        benchmark = json.loads((iteration / "benchmark.json").read_text(encoding="utf-8"))
+        run = benchmark["runs"][0]
+        self.assertEqual(1.0, run["result"]["pass_rate"])
+        self.assertEqual("warning", run["grading_audit"]["status"])
+        self.assertEqual(1, benchmark["metadata"]["grading_audit"]["warning"])
+        markdown = (iteration / "benchmark.md").read_text(encoding="utf-8")
+        self.assertIn("file-artifact-boundary", markdown)
 
     def test_aggregate_single_config_requires_allow_incomplete(self):
         iteration = self.agent_iteration("codex", 1)
@@ -1094,11 +1568,85 @@ class EvalRunnerTests(unittest.TestCase):
 
         info = self.run_cli("doctor", iteration)
         self.assertIn("prepared_runs: 1", info.stdout)
+        self.assertIn("grading_material_pending: 1", info.stdout)
         self.assertIn("grading_missing: 1", info.stdout)
+        self.assertIn("phase_executor-prepared: 1", info.stdout)
 
         strict = self.run_cli("doctor", iteration, "--require-complete", check=False)
         self.assertNotEqual(0, strict.returncode)
         self.assertIn("completion_blockers", strict.stdout)
+        self.assertIn("grading materials pending", strict.stdout)
+
+    def test_doctor_require_complete_blocks_repeated_known_placeholder_metrics(self):
+        suite = self.write_suite()
+        self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill,without_skill", "--runs", "1")
+        iteration = self.agent_iteration("codex", 1)
+        self.record_prepared_run(self.prepared_run_dir(iteration, "with_skill"), seconds=30, tokens=5000)
+        self.record_prepared_run(self.prepared_run_dir(iteration, "without_skill"), seconds=30, tokens=5000)
+
+        strict = self.run_cli("doctor", iteration, "--require-complete", check=False)
+
+        self.assertNotEqual(0, strict.returncode)
+        self.assertIn("metrics_audit_warning: 2", strict.stdout)
+        self.assertIn("repeated known placeholder metrics 30000ms/5000 tokens", strict.stdout)
+
+    def test_prepare_grading_requires_completed_executor_receipt(self):
+        suite = self.write_suite()
+        self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill", "--runs", "1")
+        run_dir = self.prepared_run_dir(self.agent_iteration("codex", 1), "with_skill")
+
+        failed = self.run_cli("prepare-grading", run_dir, check=False)
+
+        self.assertNotEqual(0, failed.returncode)
+        self.assertIn("executor receipt is required", failed.stderr)
+        self.assertFalse((run_dir / "grader_prompt.md").exists())
+        self.write_receipt(run_dir)
+        self.run_cli("prepare-grading", run_dir)
+        self.assertTrue((run_dir / "grader_prompt.md").is_file())
+
+    def test_prepare_grading_one_run_does_not_enable_pending_sibling_grading(self):
+        suite = self.write_suite()
+        self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill,without_skill", "--runs", "1")
+        iteration = self.agent_iteration("codex", 1)
+        with_run = self.prepared_run_dir(iteration, "with_skill")
+        without_run = self.prepared_run_dir(iteration, "without_skill")
+        self.write_receipt(with_run)
+        self.run_cli("prepare-grading", with_run)
+        self.assertTrue((with_run / "grader_prompt.md").is_file())
+        self.assertFalse((without_run / "grader_prompt.md").exists())
+        without_manifest = json.loads((without_run / "run_manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual("pending", without_manifest["grader_material_status"])
+
+        template_failed = self.run_cli("grading-template", without_run, check=False)
+
+        self.assertNotEqual(0, template_failed.returncode)
+        self.assertIn("grading materials are not prepared", template_failed.stderr)
+        grading = self.root / "pending-sibling-grading.json"
+        self.write_json(
+            grading,
+            {
+                "expectations": [
+                    {"text": "common assertion", "passed": True, "evidence": "ok"},
+                    {"text": "per-eval assertion", "passed": True, "evidence": "ok"},
+                ]
+            },
+        )
+        record_failed = self.run_cli("record", without_run, "--grading", grading, check=False)
+        self.assertNotEqual(0, record_failed.returncode)
+        self.assertIn("grading materials are not prepared", record_failed.stderr)
+
+    def test_aggregate_blocks_v5_missing_grading_materials_without_allow_incomplete(self):
+        suite = self.write_suite()
+        self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill", "--runs", "1")
+        iteration = self.agent_iteration("codex", 1)
+
+        failed = self.run_cli("aggregate", iteration, check=False)
+
+        self.assertNotEqual(0, failed.returncode)
+        self.assertIn("missing grading materials", failed.stderr)
+        self.run_cli("aggregate", iteration, "--allow-incomplete")
+        benchmark = json.loads((iteration / "benchmark.json").read_text(encoding="utf-8"))
+        self.assertTrue(benchmark["metadata"]["incomplete"])
 
     def test_record_batch_prevalidates_before_writing(self):
         suite = self.write_suite()
@@ -1120,6 +1668,48 @@ class EvalRunnerTests(unittest.TestCase):
         self.assertNotEqual(0, failed.returncode)
         self.assertIn("duplicate run_dir", failed.stderr)
         self.assertFalse((run_dir / "timing.json").exists())
+
+    def test_record_batch_rejects_non_positive_metrics_before_writing(self):
+        suite = self.write_suite()
+        self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill", "--runs", "1")
+        run_dir = self.prepared_run_dir(self.agent_iteration("codex", 1), "with_skill")
+        self.write_receipt(run_dir)
+        records = self.root / "records-invalid-metrics.json"
+        self.write_json(records, {"records": [{"run_dir": str(run_dir), "total_tokens": 0, "duration_ms": 0, "output_chars": 3, "finalize": True}]})
+
+        failed = self.run_cli("record-batch", records, check=False)
+
+        self.assertNotEqual(0, failed.returncode)
+        self.assertIn("non-positive-duration", failed.stderr)
+        self.assertIn("non-positive-total-tokens", failed.stderr)
+        self.assertFalse((run_dir / "timing.json").exists())
+
+    def test_record_batch_rejects_repeated_known_placeholder_metrics_before_writing(self):
+        suite = self.write_suite()
+        self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill,without_skill", "--runs", "1")
+        iteration = self.agent_iteration("codex", 1)
+        with_run = self.prepared_run_dir(iteration, "with_skill")
+        without_run = self.prepared_run_dir(iteration, "without_skill")
+        self.write_receipt(with_run)
+        self.write_receipt(without_run)
+        records = self.root / "records-placeholder-metrics.json"
+        self.write_json(
+            records,
+            {
+                "records": [
+                    {"run_dir": str(with_run), "total_tokens": 5000, "duration_ms": 30000, "output_chars": 3, "finalize": True},
+                    {"run_dir": str(without_run), "total_tokens": 5000, "duration_ms": 30000, "output_chars": 4, "finalize": True},
+                ]
+            },
+        )
+
+        failed = self.run_cli("record-batch", records, check=False)
+
+        self.assertNotEqual(0, failed.returncode)
+        self.assertIn("record-batch metric integrity", failed.stderr)
+        self.assertIn("30000ms/5000 tokens", failed.stderr)
+        self.assertFalse((with_run / "timing.json").exists())
+        self.assertFalse((without_run / "timing.json").exists())
 
     def test_record_batch_records_valid_entries(self):
         suite = self.write_suite()
