@@ -11,360 +11,232 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
-### Added
-
-- Repository infrastructure adds `scripts/eval_runner.py`, a shared stdlib eval
-  CLI for validating repo eval definitions, preparing required agent-scoped
-  `evals/<skill-name>/workspace/<agent>/` run directories, recording external
-  outputs and grades, aggregating benchmarks, and writing static review HTML
-  without starting a server by default. `AGENTS.md` documents the shared Codex,
-  Claude Code, and Gemini-compatible eval workflow, and root `CLAUDE.md` points
-  Claude Code agents to `AGENTS.md` as the repository policy source. The eval
-  CLI now records deterministic eval/run fingerprints with agent identity,
-  supports explicit same-agent compatible baseline reuse through `aggregate
-  --baseline-from`, separates token counts from output character counts, and
-  reports richer benchmark debug summaries. It also generates separate
-  `grader_prompt.md` files, sets the initial run contract to `eval-runner-v1`,
-  validates `grading.json` expectation text against prepared assertions,
-  computes pass/fail summaries from the validated expectation rows instead of
-  trusting optional grader-provided summary fields,
-  records parent-captured metrics through `record --total-tokens`,
-  `--duration-ms`, `--total-duration-seconds`, and `--output-chars`, treats
-  same-file `record` inputs as no-ops after validation, rejects output copy
-  sources that contain the destination output directory, adds aggregate analyzer
-  notes, and writes static report feedback download controls plus
-  `report --previous-iteration` comparisons.
-- Shared eval-runner infrastructure adds the `eval-runner-v2` run contract with
-  `run_index.json`, `next_steps.md`, artifact hashes, prompt receipt
-  validation, `prepare --rerun-of` input guards, `record --finalize`, usage
-  blob parsing, output-character auto-fill from `outputs/response.md`, grading
-  template generation, v2 aggregate incompleteness blockers, actionable
-  `doctor` iteration checks, `report --previous-iteration auto`,
-  per-expectation previous-result display, conservative repeated-failure
-  diagnostics, and narrow `record-batch` prevalidation for metrics, usage,
-  grading, and finalization metadata.
-- Shared eval-runner infrastructure adds the `eval-runner-v3` grading-boundary
-  contract. Generated grader prompts now require whole-output grading, and
-  `record`, `record-batch`, `doctor`, `aggregate`, and `report` share a static
-  grading audit for high-confidence contradictions such as raw commit messages
-  inside Markdown fences, no-fence assertions with fences, prompt-local
-  standalone leaks, JSON-only output with prose or fences, boundary-narrowing
-  grader evidence, and unsupported file/artifact claims. Suspicious v3 grading
-  blocks canonical proof unless recorded with the explicit
-  `--allow-suspicious-grading` opt-out, which remains visible in doctor,
-  aggregate, and report output.
-- Shared eval-runner infrastructure adds the `eval-runner-v4` prompt-boundary
-  contract. Generated executor prompts no longer include eval `expected_output`
-  summaries, and `without_skill` prompts no longer receive the explicit target
-  skill name or supplied skill file path while metadata, grader prompts, prompt
-  receipts, recording instructions, reports, and baseline compatibility checks
-  remain available through the existing file-contract workflow.
-- Shared eval-runner infrastructure adds the `eval-runner-v5`
-  executor/grader-isolation contract. `prepare` now writes executor-safe prompts,
-  manifests, run indexes, next steps, outputs directories, and
-  `executor_metadata.json` without grader prompts, assertion-bearing
-  `eval_metadata.json`, `expected_output`, assertion text, or `without_skill`
-  target skill paths. The new `prepare-grading <run-dir|iteration-dir>` step
-  creates grader-only `grader_prompt.md` and assertion metadata after executor
-  receipts exist, uses `--evals-json <path>` for custom workspace roots, and
-  keeps the source eval path out of prepared workspace manifests. `grading-template`,
-  `record`, `doctor`, `aggregate`, and `report` understand pending
-  grading-material states without claiming benchmark improvement, and baseline
-  reuse now rejects same-contract legacy workspaces instead of recomputing their
-  fingerprints under the current contract.
-- Shared eval-runner infrastructure hardens metric integrity for current
-  contracts. `record`, `record-batch`, `doctor`, `aggregate`, `benchmark.md`,
-  and `report` now distinguish missing metrics from present-but-invalid or
-  suspicious metrics, reject non-positive token/duration values for complete
-  proof unless explicitly opted out, warn on known placeholder metric pairs,
-  and block canonical aggregate/doctor proof for repeated known placeholder
-  patterns without inferring token counts from `output_chars`.
-- `skill-quality` now documents the shared eval runner's v5 two-phase execution
-  and grading workflow, including `prepare-grading` before grader prompts,
-  templates, and recorded grading.
-- `vibe-requirements-spec` adds a Markdown requirements-spec drafting skill
-  package and eval prompts for rough, ambiguous, contradictory, creative, or
-  non-technical vibe-coding goals before implementation planning. It replaces
-  the unreleased `vibe-clarify-requirements` package direction with the concise
-  canonical name and a spec-artifact contract. While active, it writes or
-  updates only the current requirements spec artifact, separates confirmed
-  requirements, proposed defaults, ideas or options, decisions, assumptions,
-  out-of-scope items, acceptance criteria, open risks, approval state, and
-  revision notes, and does not require a named downstream workflow.
-- `vibe-writing` adds a consolidated writing skill package and eval prompts for
-  vibe-coding development text, source-code comments and docstrings,
-  README/docs, CHANGELOG and release notes, PR descriptions, UI copy, chat
-  replies, progress updates, final summaries, and commit messages.
-- `skill-quality` adds a skill package, session-derived pattern reference, and
-  eval prompts for creating or improving skills from benchmark results, grader
-  feedback, review comments, trigger failures, session-history patterns, and
-  quality regressions. It focuses on evidence intake, no-change gates,
-  failure-to-contract translation, narrow coupled artifact changes,
-  discriminating eval prompts and assertions, shared eval-runner hygiene, wording
-  preservation, current-proposal evidence maps, expected-output prompt leak
-  control, evidence-bound cost claims, and degeneration checks.
-- `vibe-review` adds the integrated user-facing vibe-coding review skill and
-  eval suite. The skill owns startup review contracts, review target handling,
-  delegated adversarial or explicit normal review, multi-angle execution,
-  normalized findings, validity checking, lightweight specification gaps,
-  DoD/scope triage, stop signals, rejected-ledger behavior, secret hygiene,
-  cascade containment, final-cycle assessment, terminal audit, and explicit
-  history-operation consent in one coordinator workflow.
-- `vibe-coding` adds an explicit top-level orchestration skill package and eval
-  suite for multi-turn vibe-coding workflows. The skill activates only through
-  explicit `vibe-coding` invocation or instruction, tracks routing state through
-  conversation context and artifact paths, routes to one verified visible
-  specialist `vibe-*` phase at a time, preserves downstream phase boundaries,
-  distinguishes matched-but-unavailable specialists from no matching specialist,
-  keeps unrelated ordinary requests from retaining live routing state, and keeps
-  auxiliary skills from weakening primary workflow gates. Its eval suite covers
-  representative host-specific invocations, host-provided invocation signals,
-  direct use instructions, lifecycle cleanup, and boundary-preserving fallback
-  paths while keeping executor-visible expected-output summaries high level.
-  Follow-up eval-result review tightened invocation-only handling so bare
-  activation asks narrowly for the missing instruction, and scoped common
-  availability and boundary assertions to turns where a downstream phase or
-  route decision exists. A later iteration review added harder natural-language
-  eval prompts for Japanese approved-spec continuation and unavailable
-  `vibe-review` routing to improve benchmark discrimination after the baseline
-  passed most existing checks.
+## [vibe-planning 4.0.0] - 2026-05-30
 
 ### Changed
 
-- `vibe-coding` eval suite now consolidates duplicate activation-boundary,
-  requirements-lifecycle, and execution-gating cases, removing regression-only
-  natural-language variants while preserving contract-level coverage for
-  activation, route state, availability, specialist precedence, cancellation,
-  fallback, and auxiliary-skill containment. The language-preservation common
-  assertion now avoids a false `file-artifact-boundary` static grading-audit
-  warning without changing the intended route-output contract, and eval names
-  are scenario-oriented so executor-visible metadata does not leak target route
-  decisions to baseline runs.
-- `skill-quality` now clarifies high-baseline and both-config-pass benchmark
-  interpretation, prepared-artifact versus actual prompt-delivery proof,
-  session-history audit filters, common assertion applicability preflights,
-  compact delegated quality handoffs, pure-grader ownership boundaries, and
-  narrow auxiliary use for planning/spec or eval-runner evidence decisions. Its
-  eval suite strengthens the existing non-discriminating benchmark,
-  eval-runner workflow, session-history, and assertion-hardening cases, narrows
-  executor-visible expected-output summaries and common assertions, and keeps
-  the frontmatter trigger evidence-driven without adding release work.
-- `vibe-debug-fix` now separates verified repair closure from repository history
-  mutation. Staging, commits, stashes, resets, amends, release work, and cleanup
-  require operation-specific consent after dirty worktree and index preflight;
-  eval coverage now pressures unrelated dirty-path protection and scopes common
-  proof, disconfirmation, and user-handoff assertions so verified repair-ledger
-  history consent, scope-blocker, and continuity-triage cases are not graded
-  against non-applicable retest duties.
+- `vibe-planning` now starts only from implementation-ready inputs. Draft,
+  awaiting-approval, or reopened requirements specs block
+  implementation-ready planning, while approved specs map confirmed
+  requirements, acceptance criteria, open risks, and approval evidence into the
+  generated implementation plan.
+- `vibe-planning` now owns the high-risk planning safeguards formerly split out
+  in `vibe-planning-guard`, including behavior-contract inventory before
+  equivalence analysis, known-good recovery checks, diagnostic-scope controls,
+  selective failure-pattern checks, and blocked proceed conditions while
+  current-slice implementation facts remain unproven.
+- Plan artifacts now declare `light` or `strict` depth, require per-step skill
+  routing for discovery, implementation, verification, review, self-review, and
+  commit-checkpoint steps, and run a post-draft multi-perspective review before
+  final self-review.
+- Parser, serializer, money/amount, public API, and input-grammar plans now
+  keep unproven input forms, output representation, precision, rounding, and
+  locale behavior out of acceptance criteria and tests until proven or visibly
+  deferred.
+- Plan outputs now keep `response.md` or the saved primary text answer concise
+  when a separate plan artifact exists, re-check accepted-risk local facts in
+  the first dependent step, and keep proposed checkpoint commit messages out of
+  Markdown fences.
+
+## [vibe-plan-execution 2.0.0] - 2026-05-30
+
+### Changed
+
 - `vibe-plan-execution` now treats plan commit checkpoints as proposed
-  boundaries unless commit execution is separately authorized, binds
-  `Skill usage plan` rows when present, and re-checks plan-authored `Local
-  investigation` as current `Local evidence` before relying on it. Missing
-  commit consent no longer blocks an otherwise authorized implementation slice;
-  execution stops before repository history mutation instead. Its commit
-  checkpoint eval now uses fixture-backed ledger files so baseline runs cannot
-  pass the route and commit checks only by stopping on missing paths. Follow-up
-  eval-result review hardens checkpoint communication so proposed commit
-  messages are not wrapped in Markdown fences, execution summaries replace
-  prompt-local or eval-harness phrases with durable plan or workspace facts, and
-  targeted eval assertions check both behaviors. A later iteration review
-  clarifies that planned code-inspection blockers stop before unverified code or
-  test templates, and narrows the no-fence eval assertion so static grading
-  audits do not treat unrelated implementation code fences as commit-message
-  failures. A further iteration review clarifies that inline plans should be
-  named by title or goal in user-facing output instead of `current conversation`,
-  `current instruction`, or `this eval workspace` phrasing.
-- `vibe-planning` now clarifies its boundary with requirements-spec drafting:
-  draft, awaiting-approval, or reopened requirements specs block
-  implementation-ready planning, while approved specs map their confirmed
-  requirements, acceptance criteria, and open risks into the implementation
-  plan. Eval coverage includes a fixture-backed requirements-spec approval-state
-  case with the blocking decision kept in grader-only assertions. Its commit
-  checkpoints are proposed later-execution boundaries only.
-- `vibe-planning` now runs a post-draft multi-perspective plan review before
-  final self-review. Verified review-only subagents are used when available and
-  authorized; otherwise the plan records a coordinator fallback. Review must
-  include `vibe-planning` contract compliance, classify material findings, and
-  keep reviewer suggestions behind existing plan-boundary controls. Benchmark
-  follow-up tightened eval validity by allowing conservative amount-normalization
-  plans to defer concrete examples until accepted formats are proven, and by
-  reducing executor-visible leakage in the delegated-review capability eval.
-- `vibe-planning` now treats parser, serializer, money/amount, and public API
-  normalization grammars as contract facts: unproven input/output examples,
-  precision, rounding, locale behavior, and representations stay unproven or
-  visibly deferred instead of becoming acceptance criteria or tests, and the
-  generality gate maps those examples to relevant planning dimensions.
-- `vibe-planning` eval coverage now uses 15 representative cases instead of 25,
-  renumbers active eval IDs contiguously, narrows common assertions to broadly
-  applicable plan-artifact obligations, and folds local CLI/config migration
-  coverage into the selective high-risk persisted-config case instead of keeping
-  separate project-class or regression-only prompts.
-- `vibe-planning` now clarifies that eval `response.md` output is the concise
-  user-facing summary when a separate plan artifact exists, that accepted-risk
-  re-checks for named local facts must appear in the first dependent step, and
-  that proposed checkpoint commit messages must not be wrapped in Markdown
-  fences. Eval assertions now reject fenced checkpoint messages and allow
-  known-good repo-scan evidence to be labeled as either `Primary source` or
-  `Local investigation`.
-- `vibe-coding` now records post-approval routing to `vibe-planning` as
-  orchestrator state without requiring standalone `vibe-requirements-spec` to
-  name a downstream workflow, narrows review routing to git-backed plan or
-  document changes, and adds an explicit eval scoring block. Auxiliary-skill
-  boundary checks now preserve plan binding, acceptance criteria, required
-  documentation or changelog coupling, verification, release policy, and commit
-  rules for the selected primary phase. Its output-language
-  contract now selects simulated user-facing summary language from explicit
-  output-language instructions, then represented current user turns including
-  quoted instructions and labeled or enumerated represented-turn examples, then
-  active conversation language, so benchmark or executor-session language does
-  not override the represented turn being routed. Its eval common assertions now
-  distinguish current-turn activation from active-state continuation and
-  workflow-continuation prompts from independent route-classification prompts,
-  and route descriptions now briefly name current-turn activation sources
-  without inventing them for continuation turns.
-- `vibe-review` now narrows plan and document review to non-empty git-backed
-  review targets. Standalone plan or document artifacts are inert context, not
-  `vibe-review` targets, and eval coverage checks that artifact-only requests do
-  not over-trigger the review workflow. Its eval suite now uses 10 fixture-backed
-  JSON-only representative cases instead of 22, removes broad nondiscriminating
-  common assertions, and hardens canonical schema, enum, and stop-gate checks for
-  startup, backend fallback, normal mode, dirty isolation, normalization, DoD,
-  secret hygiene, cascade, terminal, and artifact-only boundaries. Follow-up
-  benchmark review clarifies defaulted startup reviewer counts and decision
-  ledger rendering, rejected DoD evidence-source recording, dirty-isolation
-  exclusion from final history staging, and Phase 6 note-field retention for
-  blocked pre-edit cascade records, while loosening eval-only shape assumptions
-  for startup wrappers, decision-ledger sibling placement, and frozen-target
-  diff-list field names, and removing executor-facing `canonical` hints from
-  targeted prompts.
-- `vibe-writing` now distinguishes primary writing deliverables from incidental
-  wording inside active workflows, keeping progress updates, final summaries,
-  checkpoint message polish, and documentation phrasing auxiliary to the active
-  workflow's gates while still emitting the requested brief message when the
-  active workflow has supplied the facts. It separates meta questions about how
-  the skill applies from requests to send the incidental message itself, and
-  clarifies that "not a standalone writing deliverable" preserves workflow
-  authority rather than withholding the brief message. Its eval coverage keeps
-  the release-action boundary out of executor-visible summaries, with
-  nondiscriminating chat, release-note citation, thin-commit, and other narrow
-  regression-only wording cases removed or folded into representative coverage.
-- `vibe-writing` now hardens commit-message execution guidance by making
-  multi-line transport a top-level hard stop, requiring body commit messages to
-  apply `references/commit-messages.md` before execution, requiring stored
-  message inspection after created or amended body commits, and clarifying the
-  boundary with commit-execution skills. Its commit-message reference now shows
-  the repeated `Verification: ...` paragraph anti-pattern and the corrected
-  bullet section, and consolidated eval coverage pressures the active commit
-  workflow case without keeping every narrow commit-message variant as a
-  separate regression.
-- `vibe-requirements-spec` now distinguishes chat-only ideation from spec
-  artifact drafting, avoids surprise file writes when the user only wants
-  brainstorming or declines edits, and defines chat fallback behavior when spec
-  file writing is unavailable, unsafe, or declined. Chat-only use of an existing
-  spec now preserves the visible approval state as unchanged context, and its
-  eval keeps the executor-visible prompt and expected-output summary less
-  prescriptive so baseline runs are not handed the target no-write decision.
-- `vibe-requirements-spec` eval coverage now scopes approval-state expectations
-  to artifact mode or chat-only exploration with existing-spec context, and
-  hardens same-spec update checks so response-only claims or inline drafts do
-  not count as recorded spec artifact updates.
-- `vibe-requirements-spec` keeps the same spec artifact active across related
-  turns until the user explicitly approves it, cancels it, or replaces it.
-  Ambiguous readiness or handoff wording such as "looks good", "ready",
-  "continue", or "go ahead" does not approve the spec unless it clearly approves
-  the current artifact; requirement changes after approval reopen drafting and
-  require renewed explicit approval.
-- `vibe-requirements-spec` preserves requirement discipline in the spec
-  artifact: small requests ask at most three direct questions with recommended
-  defaults, broader unclear requests use grouped confirmation checklists,
-  creative exploration returns two to five optional directions, and unconfirmed
-  adjacent capabilities stay out of confirmed first-slice requirements.
-- `vibe-requirements-spec` classifies bulk-data and irreversible-write safety,
-  local evidence that can change scope or data contracts, and auditability for
-  billing, permission, security, account-setting, recipient, and routing changes
-  as requirement-spec dimensions before approval.
-- `vibe-requirements-spec` now blocks a delivery-log loophole in broad
-  notification specs: structured per-send records, timestamp/user/channel/outcome
-  fields, retention, queryability, and viewer behavior stay out of first-slice
-  defaults and acceptance criteria unless the user selected delivery logs or
-  approved that record behavior as first-slice scope.
-- `vibe-planning` now owns the safeguards formerly split out in the retired
-  `vibe-planning-guard`: behavior-contract inventory before behavioral
-  equivalence analysis for existing-behavior work, known-good recovery checks
-  for replacement/restoration/rollback/rewrite planning, success-criteria freeze
-  and plan-body firewall for diagnostic-finding-driven plans, selective
-  failure-pattern checks for high-risk surfaces, and blocked proceed conditions
-  for unproven current-slice implementation blockers.
-- `vibe-planning` now requires per-step skill routing in generated plan
-  artifacts, covering discovery, implementation, verification, self-review, and
-  commit-checkpoint steps with a verified matching skill, explicit no-match, or
-  no-skill route plus fallback. Plans also require a corrective self-review gate
-  before the concise user summary.
-- `vibe-planning` now distinguishes `light` compact rendering from `strict`
-  high-risk planning, and triages `Unproven` items into current-slice blockers,
-  proof-before-implementation work, deferred decisions, or non-implementation
-  follow-ups so optional future decisions do not block bounded slices.
-- `vibe-plan-execution` now treats bound high-risk plan sections for behavior
-  inventory, behavioral equivalence, known-good recovery, diagnostic-scope
-  controls, and selected failure-pattern checks as execution contract that
-  cannot be skipped or weakened without the existing Plan Deviation Gate.
-- `vibe-plan-execution` now describes plan sources with neutral planning
-  workflow wording, preserving artifact-backed plan binding without naming a
-  companion planning skill as special or required.
-- `vibe-plan-execution` eval prompts now keep executor-visible expected-output
-  summaries less prescriptive, leaving target decisions in grader assertions
-  instead of handing them to both compared configs.
-- `vibe-plan-execution` eval assertions now keep high-risk planning-section
-  checks scenario-specific instead of counting them as mostly not-applicable
-  common assertions.
-- `vibe-plan-execution` commit-checkpoint eval input now states the contact
-  import data-handling, permission, and external-contract assumptions so the
-  scenario tests commit discipline instead of ambiguous plan concreteness.
-- Vibe-coding review now uses `vibe-review` as the active user-facing workflow.
-  The prior review loop, DoD triage, rejected-ledger, secret-hygiene,
-  cascade-gate, final-cycle, and history-operation contracts are preserved as
-  internal `vibe-review` stages while adding platform-neutral delegated-review
-  behavior, common finding normalization, provenance-preserving deduplication,
-  and separate lightweight specification-gap output.
-- `vibe-review` tightens dirty-path isolation verification, stale plan-evidence
-  digest handling, weak DoD proposal anchors, explicit project-context
-  filtering, and zero-selectable termination so those paths fail closed before
-  scope triage, edits, terminal rendering, or history operations.
-- `vibe-review` evals now grade terminal-audit and stash-restore cases against
-  retained dirty-isolation metadata, recovery breadcrumbs, and history-operation
-  blocking so generic restore advice cannot mask isolation recovery regressions.
-- `vibe-writing` consolidates the key behavior from `vibe-commit-message` and
-  `writing-style-guide`: LLM-first development text by default, human-reader
-  exceptions, meaning and modality preservation, language and exact-format
-  precedence, explicit absence, useful local anchors, hollow-transition
-  removal, command-inference restraint, durable references, chat-reply rules,
-  source-code documentation guidance, CHANGELOG restraint, and commit-message
-  durability. Deeper commit-message rules now live in
-  `skills/vibe-writing/references/commit-messages.md`.
-- `vibe-writing` now tightens inference restraint for capability statements,
-  commands, and mechanical sync commit messages, and clarifies that requested
-  commit messages should be returned as raw commit text rather than Markdown
-  fenced blocks. Commit-message guidance also now calls out preserving
-  migration and compatibility modality such as `should`, `may`, and `must`,
-  commit-body preserve/cut selection, and performance-message restraint for
-  prior-state inference and implementation-mechanics inventories.
-- `vibe-writing` now clarifies concise boundaries for verbatim tool/log output,
-  bare acknowledgments, support/policy warmth without service promises, and
-  commit-message pre-draft context checks with optional non-trivial body labels.
+  boundaries unless the user or approved plan text separately authorizes commit
+  execution. "Execute this plan", "implement the plan", or a checkpoint section
+  alone is not commit consent; authorized implementation proceeds to a verified
+  uncommitted state and reports the proposed checkpoint message.
+- Execution now binds `Skill usage plan` rows when present, re-checks
+  plan-authored `Local investigation` as current `Local evidence`, and treats
+  bound high-risk planning sections as execution contract that cannot be skipped
+  or weakened without the existing Plan Deviation Gate.
+- Plan sources are now described with neutral planning-workflow wording, and
+  planned code-inspection blockers stop execution before unverified code, test
+  templates, helper names, schemas, assertions, or implementation details are
+  drafted.
+- Execution summaries and proposed commit messages now use durable plan, file,
+  workspace, or instruction facts instead of prompt-local or eval-harness
+  phrases; proposed commit-message bytes are not wrapped in Markdown fences.
 
-### Removed
+## [vibe-debug-fix 2.0.0] - 2026-05-30
 
-- Repository maintenance removed the retired `vibe-planning-guard` skill package
-  and live README references after moving its non-overlapping safeguards into
-  the active `vibe-*` workflows.
-- The old standalone review skill packages (`codex-review-cycle`,
-  `review-scope-guard`, and `review-fix-cascade-guard`) and their active eval
-  owners under `evals/` were removed after their user-facing behavior moved into
-  `vibe-review`.
-- `vibe-writing` removes the standalone `vibe-commit-message` and
-  `writing-style-guide` skill packages and their live eval owners after moving
-  their selected writing and commit-message contracts into the consolidated
-  skill.
+### Changed
+
+- `vibe-debug-fix` now separates verified repair closure from repository
+  history mutation. Debug proof does not authorize staging, commits, stashes,
+  resets, amends, version changes, release preparation, or cleanup; those
+  operations require a fresh dirty-worktree and index preflight plus explicit
+  operation-specific user consent.
+- Debug/fix eval coverage now pressures unrelated dirty-path protection and
+  scopes common proof, disconfirmation, and user-handoff assertions to the
+  scenarios where those duties apply.
+
+## [vibe-coding 1.0.0] - 2026-05-30
+
+### Added
+
+- `vibe-coding` adds a top-level orchestration skill and eval suite for
+  explicitly invoked multi-turn vibe-coding workflows. It activates only through
+  host-specific invocation, host-provided invocation signals, or direct
+  instructions such as "use `vibe-coding`"; bare style mentions do not activate
+  it.
+- The orchestrator tracks routing state through conversation context and
+  artifact paths, selects one verified visible `vibe-*` specialist for the
+  immediate next phase, distinguishes matched-but-unavailable specialists from
+  no matching specialist, and keeps auxiliary skills from weakening the selected
+  phase's approval, planning, execution, review, writing, release, or commit
+  gates.
+- Routing covers requirements drafting, approved-spec planning, concrete plan
+  execution, debug/fix work, git-backed review targets, and wording-only
+  deliverables while preserving downstream specialist boundaries and output
+  language selection from represented user turns.
+
+### Changed
+
+- `vibe-coding` eval coverage uses representative activation, route-state,
+  availability, cancellation, fallback, language-selection, approved-spec
+  continuation, unavailable-review routing, and auxiliary-skill boundary cases
+  without leaking target route decisions into executor-visible metadata.
+
+## [vibe-requirements-spec 1.0.0] - 2026-05-30
+
+### Added
+
+- `vibe-requirements-spec` adds a Markdown requirements-spec drafting skill and
+  eval suite for rough, ambiguous, contradictory, creative, non-technical, or
+  underspecified vibe-coding goals before implementation planning.
+- While active, it writes or updates only the current requirements spec
+  artifact, keeps confirmed requirements separate from proposed defaults, ideas,
+  decisions, assumptions, out-of-scope items, acceptance criteria, open risks,
+  approval state, and revision notes, and does not require a named downstream
+  workflow.
+- The workflow keeps one spec active across related turns until explicit
+  approval, cancellation, or replacement; ambiguous readiness or handoff wording
+  does not approve the current artifact, and requirement changes after approval
+  reopen the spec.
+- Chat-only ideation avoids surprise file writes, preserves existing spec
+  approval state as context, and returns chat fallback content when spec-file
+  writing is unavailable, unsafe, or declined.
+- Requirement drafting now covers at-most-three-question small requests, grouped
+  confirmation checklists for broader unclear requests, optional creative
+  directions, bulk-data and irreversible-write safety, auditability for
+  sensitive account or routing changes, and explicit exclusion of delivery-log
+  record behavior unless selected for first-slice scope.
+
+## [vibe-writing 1.0.0] - 2026-05-30
+
+### Added
+
+- `vibe-writing` adds a consolidated writing skill and eval suite for
+  vibe-coding development text, source-code comments and docstrings,
+  README/docs, CHANGELOG and release notes, PR descriptions, UI copy, chat
+  replies, progress updates, final summaries, and git commit messages.
+- The skill replaces the standalone `vibe-commit-message` and
+  `writing-style-guide` packages by consolidating LLM-first development text,
+  human-reader exceptions, meaning and modality preservation, language and
+  exact-format precedence, explicit absence, useful local anchors, command
+  inference restraint, durable references, chat-reply rules, source-code
+  documentation guidance, CHANGELOG restraint, and commit-message durability.
+- Commit-message guidance now lives in
+  `skills/vibe-writing/references/commit-messages.md` and covers
+  fresh-clone-readable Conventional Commit messages, body preserve/cut
+  decisions, verification provenance, release commits, multi-package changes,
+  i18n, dependency updates, CI/build/publishing, security/privacy/data-loss,
+  performance restraint, thin-evidence cases, mechanical syncs, trailers,
+  compact bullets, and multi-line transport.
+- The workflow distinguishes primary writing deliverables from incidental
+  wording inside active workflows. Progress updates, final summaries, checkpoint
+  message polish, and documentation phrasing stay subordinate to the active
+  workflow's gates, while requested brief messages are still emitted when the
+  active workflow has supplied the facts.
+- Body commit messages now require the commit-message reference before
+  execution, one complete message transport instead of repeated body-line
+  `git commit -m` arguments, and stored-message inspection after created or
+  amended body commits.
+
+## [vibe-review 1.0.0] - 2026-05-30
+
+### Added
+
+- `vibe-review` adds the integrated user-facing vibe-coding review workflow and
+  eval suite. It replaces `codex-review-cycle`, `review-scope-guard`, and
+  `review-fix-cascade-guard` as separate user-facing review skills while
+  preserving their review-loop, DoD triage, rejected-ledger, secret-hygiene,
+  cascade-containment, final-cycle, and history-operation responsibilities as
+  coordinator-owned stages.
+- The workflow owns startup review contracts, git-backed target handling,
+  delegated adversarial review or explicit normal review, multi-angle
+  execution, normalized findings, validity checks, lightweight specification
+  gaps, scope triage, stop signals, rejected-ledger behavior, cascade gates,
+  terminal audit, dirty-path isolation, and explicit history-operation consent.
+- Plan and document review now requires a non-empty git-backed review target.
+  Standalone plan or document artifacts are inert context, not review targets by
+  themselves.
+- Review safety now fails closed for unverified dirty-path isolation, stale
+  plan-evidence digests, weak DoD proposal anchors, explicit project-context
+  filtering, zero-selectable termination, terminal-audit recovery, and
+  stash-restore history-operation blocking.
+
+## [skill-quality 1.0.0] - 2026-05-30
+
+### Added
+
+- `skill-quality` adds a skill package, session-derived pattern reference, and
+  eval suite for improving skills from benchmark results, grader feedback,
+  review comments, trigger failures, session-history patterns, quality
+  regressions, and eval-runner evidence.
+- The workflow focuses on evidence intake, no-change gates,
+  failure-to-contract translation, narrow coupled artifact changes,
+  discriminating eval prompts and assertions, shared eval-runner hygiene,
+  wording preservation, current-proposal evidence maps, expected-output prompt
+  leak control, evidence-bound cost claims, and degeneration checks.
+- The skill documents the shared eval runner's v5 two-phase execution and
+  grading workflow, including `prepare-grading`, grading templates, and recorded
+  grading after executor output exists.
+
+## [Repository] - 2026-05-30
+
+### Added
+
+- Repository infrastructure adds `scripts/eval_runner.py`, a shared stdlib CLI
+  for validating repo eval definitions, preparing agent-scoped
+  `evals/<skill-name>/workspace/<agent>/` run directories, recording external
+  outputs and grades, aggregating benchmarks, and writing static review HTML
+  without starting a server by default.
+- The eval runner now uses the `eval-runner-v5` executor/grader isolation
+  contract. `prepare` writes executor-safe prompts, manifests, run indexes,
+  next steps, output directories, and `executor_metadata.json` without grader
+  prompts, assertion-bearing metadata, expected output, assertion text, or
+  `without_skill` target skill paths; `prepare-grading` creates grader-only
+  materials after executor receipts exist.
+- The eval runner records deterministic eval fingerprints and agent-scoped run
+  fingerprints, supports compatible same-agent baseline reuse through
+  `aggregate --baseline-from`, separates token counts from output character
+  counts, supports `prepare --rerun-of` input guards, validates prompt receipts,
+  writes grading templates, and supports `record-batch` for metrics, usage,
+  grading, and finalization metadata after prevalidation.
+- Current-contract recording, doctor, and aggregate paths enforce static
+  grading-boundary audits for whole-output grading contradictions,
+  prompt-local leaks, unsupported artifact claims, and suspicious grading
+  opt-outs. Metric-integrity checks surface missing metrics, invalid
+  non-positive metrics, and known placeholder metric patterns in recording,
+  doctor, aggregate, benchmark, and report output.
+
+### Changed
+
+- `AGENTS.md` documents the shared Codex, Claude Code, Gemini, and other-agent
+  eval workflow, including `prepare-grading`, prompt receipts, metric
+  integrity, grading-audit expectations, baseline reuse, doctor/aggregate/report
+  completeness, and generated workspace placement under
+  `evals/<skill-name>/workspace/<agent>/`.
+- Root `CLAUDE.md` points Claude Code agents to `AGENTS.md` as the repository
+  policy source, README documents the active skill packages and shared eval
+  runner, and `.gitignore` excludes generated Python bytecode caches.
+- Reports remain static artifacts by default: `report` writes `review.html`,
+  supports previous-iteration comparison, renders grading-audit findings near
+  affected runs, and exposes client-side feedback downloads without starting a
+  server.
 
 ## [vibe-debug-fix 1.0.0] - 2026-05-13
 

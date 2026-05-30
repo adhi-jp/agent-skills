@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: vibe-requirements-spec
 description: Use when a user wants to draft, revise, save, approve, or explicitly explore requirements for a rough, ambiguous, contradictory, creative, non-technical, or underspecified coding goal before implementation planning or coding, including chat-only requirements exploration.
 ---

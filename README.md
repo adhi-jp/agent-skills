@@ -5,15 +5,17 @@ specs, plans, review loops, writing, skill quality, and Minecraft modding.
 
 ## Current Skill Versions
 
-Unreleased skills without a `version` field are documented below but omitted
-from this table until release preparation.
-
 | Skill | Version |
 | --- | --- |
 | `minecraft-modding-workbench` | `1.2.1` |
-| `vibe-planning` | `3.0.0` |
-| `vibe-plan-execution` | `1.3.0` |
-| `vibe-debug-fix` | `1.0.0` |
+| `vibe-coding` | `1.0.0` |
+| `vibe-requirements-spec` | `1.0.0` |
+| `vibe-planning` | `4.0.0` |
+| `vibe-plan-execution` | `2.0.0` |
+| `vibe-debug-fix` | `2.0.0` |
+| `vibe-writing` | `1.0.0` |
+| `skill-quality` | `1.0.0` |
+| `vibe-review` | `1.0.0` |
 
 ## Included Skills
 
@@ -30,8 +32,8 @@ reference routing for task-relevant playbooks.
 
 ### `vibe-coding`
 
-Unreleased top-level orchestration skill for explicitly invoked multi-turn
-vibe-coding workflows. It activates only through an explicit host-specific
+Top-level orchestration skill for explicitly invoked multi-turn vibe-coding
+workflows. It activates only through an explicit host-specific
 `vibe-coding` invocation, host-provided invocation signal, or direct instruction
 such as "use `vibe-coding`"; merely mentioning "vibe coding" as a style, label,
 or quote does not activate it. If activation lacks a concrete coding
