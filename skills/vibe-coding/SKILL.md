@@ -198,6 +198,16 @@ fix loop. Progress updates, final summaries, and commit-message checkpoints
 inside another primary phase may use writing guidance only as auxiliary help
 when the primary phase allows it.
 
+Commit execution requests are not a primary `vibe-writing` route. When a
+`vibe-coding` turn prepares or inspects a git commit message and `vibe-writing`
+metadata is verified available, use `vibe-writing` as mandatory auxiliary
+guidance for the message artifact. History authority stays with the applicable
+commit workflow, project rules, and explicit user consent; `vibe-writing`
+controls only message wording, body value, verification wording, durable
+references, trailers, and multi-line transport. If `vibe-writing` is
+unavailable, state the fallback when that affects user expectations and use
+repository commit rules, recent local history, and supplied checkpoint messages.
+
 ## Boundary Rules
 
 Downstream specialist boundaries are authoritative:
@@ -215,6 +225,9 @@ Downstream specialist boundaries are authoritative:
   scope triage, gated fixes, terminal audit, and history-operation consent.
 - `vibe-writing` owns wording and text-quality deliverables; it does not
   authorize release, commit, staging, or workflow shortcuts.
+- Commit-message artifacts during `vibe-coding` must use verified available
+  `vibe-writing` as auxiliary guidance without making it the authority for
+  staging, committing, release, or other history mutation.
 
 Do not skip phases in the same turn when the selected downstream skill requires
 stopping after an artifact, summary, approval, or proceed-condition boundary.
@@ -279,5 +292,8 @@ Before acting under `vibe-coding`, confirm:
 - Specialist write, approval, stop, plan-binding, proceed,
   acceptance-criteria, review, changelog-coupling, verification, release, and
   commit boundaries remain intact.
+- Commit-message preparation or inspection used verified available
+  `vibe-writing` as auxiliary guidance when a message artifact was part of the
+  `vibe-coding` turn.
 - Cancellation, replacement, unrelated top-level invocation, and finish-gate
   end conditions clear or suspend live routing state.

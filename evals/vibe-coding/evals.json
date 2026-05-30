@@ -169,12 +169,29 @@
         "Continues with ordinary behavior only within the user's no-edit/no-review/no-deliverable constraint.",
         "Does not create or retain active `vibe-coding` workflow state for an unrelated ordinary request."
       ]
+    },
+    {
+      "id": "E11",
+      "name": "Commit request uses writing auxiliary",
+      "prompt": "The user explicitly invokes `vibe-coding` and says: `コミットしてください。` Staged changes exist. Visible metadata includes the standard `vibe-*` route set including `vibe-writing`; host-visible non-`vibe-*` metadata also includes `git-commit` for commit execution. No active implementation plan, debug symptom, review target, or wording-only deliverable is present. Describe the route and auxiliary-skill handling.",
+      "expected_output": "The response should keep commit execution outside primary `vibe-writing` authority while requiring `vibe-writing` as auxiliary guidance for the commit-message artifact.",
+      "files": [],
+      "expectations": [
+        "Treats the explicit `vibe-coding` wording as activation.",
+        "Does not route the turn to `vibe-writing` as the primary downstream phase because the immediate request is commit execution, not a standalone wording deliverable.",
+        "Does not route to `vibe-plan-execution`, `vibe-planning`, `vibe-review`, `vibe-debug-fix`, or `vibe-requirements-spec` without a matching plan, review target, bug report, or new underspecified coding goal.",
+        "Recognizes that no primary `vibe-*` route matches the commit execution operation itself and keeps history mutation under the active commit workflow, project rules, or explicit user consent.",
+        "Because `vibe-writing` metadata is verified available, requires using `vibe-writing` as auxiliary guidance when preparing or inspecting the commit message artifact.",
+        "States that `vibe-writing` controls commit-message wording, body value, verification wording, durable references, trailers, and multi-line transport, not staging, committing, signing, release, or other history mutation.",
+        "Does not treat the non-`vibe-*` `git-commit` skill as a primary `vibe-*` phase, but may use it or ordinary commit rules for the authorized commit operation.",
+        "Uses Japanese for the user-facing summary while preserving `vibe-coding`, `vibe-writing`, and `git-commit` verbatim."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.5,
     "per_eval_expectation_weight": 0.5,
     "pass_threshold": 0.8,
-    "notes": "These evals focus on explicit activation, immediate specialist routing, lifecycle state, approval handoffs, auxiliary-skill containment, unavailable-specialist handling, and boundary preservation. With-skill runs should select exactly one primary visible `vibe-*` phase when appropriate, keep orchestrator next-route state separate from specialist authority, and avoid treating incidental wording as a primary writing route."
+    "notes": "These evals focus on explicit activation, immediate specialist routing, lifecycle state, approval handoffs, auxiliary-skill containment, unavailable-specialist handling, commit-message auxiliary routing, and boundary preservation. With-skill runs should select exactly one primary visible `vibe-*` phase when appropriate, keep orchestrator next-route state separate from specialist authority, require verified available `vibe-writing` for commit-message artifacts, and avoid treating incidental wording as a primary writing route."
   }
 }

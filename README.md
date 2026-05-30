@@ -52,6 +52,9 @@ writing-only scope, release policy, or commit authorization. It also
 distinguishes matched-but-unavailable specialists from no matching specialist
 and treats non-`vibe-*` domain skills as auxiliary only in this first
 implementation.
+Commit execution is not a primary `vibe-writing` route, but when `vibe-coding`
+prepares or inspects a commit message and `vibe-writing` is verified available,
+`vibe-writing` is mandatory auxiliary guidance for the message artifact.
 
 ### `vibe-requirements-spec`
 
@@ -435,6 +438,9 @@ specific to the skill.
   staging, commit execution, PR submission, template changes, or release
   actions. Project-specific workflows and the repo's release rules take
   precedence; `vibe-writing` applies to the words inside those constraints.
+  Under `vibe-coding`, verified available `vibe-writing` must be used as
+  auxiliary guidance whenever a commit message is prepared or inspected, while
+  commit authorization and history mutation remain outside `vibe-writing`.
 - `vibe-review` runs only when the current directory is a git repository and
   the chosen review target resolves to a non-empty diff. It is platform-neutral:
   Claude Code with the `codex` plugin can be documented as a special backend,

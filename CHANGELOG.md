@@ -26,6 +26,11 @@ use `[Repository] - YYYY-MM-DD`.
   are script-managed skill snapshots: agents may read them for reference but
   must make repository edits against `skills/` rather than editing or staging
   the snapshots.
+- `vibe-coding` now requires verified available `vibe-writing` as auxiliary
+  guidance whenever a `vibe-coding` turn prepares or inspects a git commit
+  message, while keeping commit execution and history mutation outside
+  `vibe-writing` authority.
+
 ## [vibe-planning 4.0.0] - 2026-05-30
 
 ### Changed
