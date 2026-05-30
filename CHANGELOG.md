@@ -11,6 +11,15 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Added
+
+- Repository-local development script `scripts/sync_dev_agent_skills.py` manages
+  selected `skills/` packages with explicit `add`, `update`, and `remove`
+  subcommands, copying script-owned snapshots into ignored `.agents/skills/`,
+  maintaining `.claude/skills/` symlinks, honoring global or subcommand
+  `--dry-run`, and refusing add/update when the selected source skill has
+  working-tree changes.
+
 ## [vibe-planning 4.0.0] - 2026-05-30
 
 ### Changed
