@@ -240,6 +240,23 @@ Verification:
 Co-Authored-By: Codex <noreply@openai.com>
 ```
 
+Do not split multiple verification commands into separated `Verification: ...`
+paragraphs:
+
+```text
+Verification: python3 -m unittest tests/test_eval_runner.py
+
+Verification: python3 scripts/eval_runner.py validate evals/skill-quality/evals.json
+```
+
+Use one `Verification:` section with adjacent bullets instead:
+
+```text
+Verification:
+- `python3 -m unittest tests/test_eval_runner.py`
+- `python3 scripts/eval_runner.py validate evals/skill-quality/evals.json`
+```
+
 When passing a multi-line message to commit execution, use one message buffer,
 message file, editor buffer, or equivalent transport. Do not pass one
 `git commit -m` argument per line or per bullet; each `-m` value becomes a

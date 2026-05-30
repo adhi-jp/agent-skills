@@ -1,19 +1,19 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-coding",
-  "purpose": "External eval set for vibe-coding. Covers explicit activation, non-activation by mere mention, routing lifecycle state, requirements approval handoff, implementation planning, concrete-plan execution gating, bare readiness wording, bug/review/writing precedence, matched-but-unavailable specialists, cancellation and replacement, no-match fallback, auxiliary-skill containment, and harder natural-language routing cases for benchmark discrimination.",
+  "purpose": "External eval set for vibe-coding. Covers explicit activation, non-activation by mere mention, routing lifecycle state, requirements approval handoff, implementation planning, concrete-plan execution gating, bare readiness wording, bug/review/writing precedence, matched-but-unavailable specialists, cancellation and replacement, no-match fallback, and auxiliary-skill containment. Duplicate regression-only natural-language variants are consolidated into contract-level cases.",
   "common_assertions": [
-    "When activation is in scope, output activates `vibe-coding` only for an explicit host-specific invocation, host-provided invocation signal, or direct instruction such as \"use `vibe-coding`\"; it does not treat a plain mention of `vibe coding` as activation.",
+    "For prompts with a current-turn `vibe-coding` activation signal, output treats activation as coming only from an explicit host-specific invocation, host-provided invocation signal, or direct instruction such as \"use `vibe-coding`\"; for related continuation prompts with active routing state but no current-turn activation signal, output continues from that state without requiring a new activation signal; it does not treat a plain mention of `vibe coding` as activation.",
     "When a specialist route matches, output selects exactly one primary downstream `vibe-*` phase for the immediate next required phase, not for the eventual end goal.",
     "When output selects a downstream specialist or reports a route decision, it requires visible metadata or supplied source material and distinguishes `matched-but-unavailable` from `no matching specialist`; an invocation-only turn with no route selected may satisfy this by asking for the missing instruction without availability diagnosis.",
     "When a downstream phase is selected, revised, executed, or unavailable, output preserves relevant specialist boundaries, including requirements-spec approval stops, planning-only behavior, concrete-plan proceed conditions, review gates, writing-only boundaries, release policy, and commit authorization; an invocation-only turn may satisfy this by refusing to select a phase or edit until a concrete instruction exists.",
-    "When workflow continuation is in scope, output uses conversation state and existing artifact paths as routing state without requiring a new persisted ledger file.",
-    "Output keeps user-facing summaries in the user's language while preserving skill names, file paths, commands, enum values, and technical identifiers verbatim."
+    "Output does not require a separate persisted ledger file to preserve routing state: for workflow-continuation prompts it uses conversation state and existing artifact paths, and for independent classification prompts it does not invent continuation state.",
+    "When the task asks for route behavior for a represented current user turn and gives no explicit output-language instruction, output chooses the user-facing summary language from that represented turn's clear dominant language when present, otherwise from the active user's conversational language, rather than the surrounding benchmark, orchestrator, or executor-session language, and preserves skill names, literal path strings, commands, enum values, field names, and technical identifiers verbatim."
   ],
   "evals": [
     {
       "id": "E01",
-      "name": "Explicit activation routes underspecified feature to requirements spec",
+      "name": "Japanese sales import feature request",
       "prompt": "The user says: `/vibe-coding dataディレクトリのエクセルファイルから売上データを抽出して画面に表示する機能を作成します。` No active spec or implementation plan exists. Visible specialist metadata includes `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-debug-fix`, `vibe-review`, and `vibe-writing`. Describe the routing behavior for this turn.",
       "expected_output": "The response should describe explicit activation handling and phase-boundary-safe routing for an underspecified new feature.",
       "files": [],
@@ -28,136 +28,65 @@
     },
     {
       "id": "E02",
-      "name": "Activation without concrete instruction asks before routing",
-      "prompt": "The user says only: `$vibe-coding`. No other instruction, artifact path, spec, plan, bug report, review target, or text deliverable is present. Describe the correct response.",
-      "expected_output": "The response should describe missing-instruction handling for an invocation-only turn.",
+      "name": "Bare invocation and README style mention",
+      "prompt": "Classify these two independent turns:\n\nA. The user says only: `$vibe-coding`. No other instruction, artifact path, spec, plan, bug report, review target, or text deliverable is present.\nB. The user says in an ordinary chat turn with no host invocation: `Can you make the README sound less corporate and more vibe coding?` There is no active `vibe-coding` workflow.\n\nDescribe the correct handling for each turn.",
+      "expected_output": "The response should distinguish a valid invocation without enough intent from a plain phrase mention that does not activate the orchestrator.",
       "files": [],
       "expectations": [
-        "Treats `$vibe-coding` as a representative explicit host-specific activation signal.",
-        "States that a concrete coding instruction is missing.",
-        "Asks the user for the coding instruction.",
-        "Keeps the clarification narrow and does not present a named downstream route menu before enough intent exists to classify the immediate phase.",
-        "Does not select `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, or any other downstream route yet.",
-        "Does not infer a goal, artifact path, or active phase from the invocation alone."
+        "For turn A, treats `$vibe-coding` as a representative explicit host-specific activation signal.",
+        "For turn A, states that a concrete coding instruction is missing and asks narrowly for that instruction.",
+        "For turn A, does not present a named downstream route menu or select `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, or another downstream route yet.",
+        "For turn A, does not infer a goal, artifact path, or active phase from the invocation alone.",
+        "For turn B, does not activate `vibe-coding` merely because the phrase `vibe coding` appears.",
+        "For turn B, does not create or update routing state for a `vibe-coding` workflow.",
+        "For turn B, treats the request as ordinary wording work if handling it normally, not as a primary `vibe-coding` route."
       ]
     },
     {
       "id": "E03",
-      "name": "Mere mention of vibe coding does not activate",
-      "prompt": "The user says in an ordinary chat turn with no host invocation: `Can you make the README sound less corporate and more vibe coding?` There is no active `vibe-coding` workflow. Describe how the phrase should be handled.",
-      "expected_output": "The response should avoid treating a style mention as `vibe-coding` activation.",
+      "name": "Sales import requirements follow-up sequence",
+      "prompt": "Classify these related `vibe-coding` turns in sequence. Visible `vibe-requirements-spec` and `vibe-planning` metadata are available.\n\nA. Active routing state from prior turns: current goal `import sales files`, current phase `requirements-spec`, active artifact path `specs/2026-05-24-sales-import-spec.md`, approval state `Draft`. The user says: `CSVにも対応する要件を同じ仕様に追加してください。`\nB. The same requirements artifact is still `Draft`. The user says: `Looks good, continue.` The phrase does not explicitly mention approving the spec artifact.\nC. The same requirements artifact is `Draft`. The user says: `この仕様を承認します。` Visible metadata confirms `vibe-requirements-spec` stops after updating the spec and returning a concise summary.\nD. A later related turn starts after the previous turn stopped with the requirements artifact `Approved`; no implementation plan path exists yet. The user says: `じゃあ進めて。実装はまだしないで。`\n\nDescribe the correct route or state transition for each turn.",
+      "expected_output": "The response should describe active requirements artifact continuation, explicit approval handoff, ambiguous readiness handling, and the next related planning route without starting implementation.",
       "files": [],
       "expectations": [
-        "Does not activate `vibe-coding` merely because the phrase `vibe coding` appears.",
-        "Does not create or update routing state for a `vibe-coding` workflow.",
-        "If handling the request normally, treats it as ordinary wording work rather than a primary `vibe-coding` route.",
-        "Does not name a downstream `vibe-*` specialist as selected unless another visible, explicit trigger exists.",
-        "Does not ask lifecycle or phase-routing questions for a workflow that was not activated."
+        "For turn A, classifies the turn as `revise current artifact` or an equivalent active-artifact continuation.",
+        "For turn A, routes to exactly one primary downstream phase: `vibe-requirements-spec` and keeps `specs/2026-05-24-sales-import-spec.md` bound.",
+        "For turn A, does not replace the workflow, start a new spec, route to implementation planning, or route to plan execution while the spec is still draft.",
+        "For turn B, does not mark the requirements spec approved from ambiguous readiness wording.",
+        "For turn B, asks for explicit approval of `specs/2026-05-24-sales-import-spec.md` or treats the turn as continued drafting depending on local context.",
+        "For turn B, keeps `vibe-requirements-spec` as the active primary phase and does not create an implementation plan or execute code.",
+        "For turn C, treats the wording as explicit approval of the current spec artifact.",
+        "For turn C, allows `vibe-requirements-spec` to record approval, stops in the same turn after the approval summary, and records that the next related user instruction should route to `vibe-planning`.",
+        "For turn C, does not require standalone `vibe-requirements-spec` to name a downstream workflow and does not create an implementation plan in the same turn.",
+        "For turn D, classifies the turn as `continue current workflow` from an approved requirements artifact.",
+        "For turn D, routes to exactly one primary downstream phase: `vibe-planning`, using `specs/2026-05-24-sales-import-spec.md` as the planning input.",
+        "For turn D, does not ask whether to execute, route to `vibe-plan-execution`, or start code edits because no implementation plan exists and the user explicitly says not to implement yet."
       ]
     },
     {
       "id": "E04",
-      "name": "Related turn revises active requirements artifact",
-      "prompt": "Active routing state from prior turns: current goal `import sales files`, current phase `requirements-spec`, active artifact path `specs/2026-05-24-sales-import-spec.md`, approval state `Draft`. The user says: `CSVにも対応する要件を同じ仕様に追加してください。` Visible `vibe-requirements-spec` metadata is available. Describe the route.",
-      "expected_output": "The response should describe related artifact revision handling.",
+      "name": "Sales import execution-adjacent sequence",
+      "prompt": "Classify these three independent execution-adjacent turns:\n\nA. Host metadata says the current turn has a host-provided invocation signal for `vibe-coding`. The user says: `Implement plans/2026-05-24-sales-import-implementation-plan.md.` Local inspection of that plan shows a concrete goal, in-scope and out-of-scope behavior, acceptance criteria, test plan, implementation steps, risks, and `Proceed condition: Implementation may begin.` Visible `vibe-plan-execution` metadata is available.\nB. The user explicitly invokes `vibe-coding` and says: `Execute this task list: add import button; parse CSV; show results; make it nice.` There is no acceptance criteria, test plan, implementation order, risk section, data handling, or proceed condition. Visible `vibe-planning` and `vibe-plan-execution` metadata are available.\nC. Active routing state: current phase `planning`, implementation plan path `plans/2026-05-24-sales-import-implementation-plan.md`, proceed condition `Implementation may begin`, next route could be plan revision or execution. The last assistant response summarized the plan and asked for an execution request when ready. The user says only: `Looks good, go ahead.`\n\nDescribe the correct route or clarification for each turn.",
+      "expected_output": "The response should compare ready concrete-plan execution, insufficient task-list planning, and ambiguous post-planning readiness without starting code from weak intent.",
       "files": [],
       "expectations": [
-        "Classifies the turn as `revise current artifact` or an equivalent active-artifact continuation.",
-        "Routes to exactly one primary downstream phase: `vibe-requirements-spec`.",
-        "Keeps the active artifact path `specs/2026-05-24-sales-import-spec.md` bound.",
-        "Does not replace the workflow or start a new spec unless the user explicitly asks.",
-        "Does not route to implementation planning or plan execution while the spec is still draft."
+        "For turn A, treats the host-provided invocation signal as `vibe-coding` activation.",
+        "For turn A, binds the local plan path before treating the request as executable.",
+        "For turn A, routes to exactly one primary downstream phase: `vibe-plan-execution` and mentions that the plan's `Proceed condition` is ready.",
+        "For turn A, does not route to `vibe-planning` because the plan is already concrete and does not execute adjacent work outside the bound plan.",
+        "For turn B, does not treat the task list as a concrete bound implementation plan.",
+        "For turn B, identifies missing execution requirements such as acceptance criteria, tests, risks, data handling, implementation steps, or proceed condition.",
+        "For turn B, routes to exactly one primary downstream phase: `vibe-planning` and does not invent missing plan details to satisfy `vibe-plan-execution`.",
+        "For turn B, does not start code edits.",
+        "For turn C, does not route to `vibe-plan-execution` solely from `Looks good, go ahead`.",
+        "For turn C, recognizes that the next step could be either plan revision acceptance or execution.",
+        "For turn C, asks whether the user wants to revise the plan or start execution, or asks for an explicit execution request for the known plan.",
+        "For turn C, preserves the implementation plan path as routing state and does not claim the plan has been executed or begin code edits."
       ]
     },
     {
       "id": "E05",
-      "name": "Requirements approval stops before planning in same turn",
-      "prompt": "Active routing state: current phase `requirements-spec`, active artifact path `specs/2026-05-24-sales-import-spec.md`, approval state `Draft`. The user says: `この仕様を承認します。` Visible metadata confirms `vibe-requirements-spec` stops after updating the spec and returning a concise summary. Describe `vibe-coding` behavior after the downstream skill records approval.",
-      "expected_output": "The response should describe approval handoff behavior without weakening the active downstream stop boundary.",
-      "files": [],
-      "expectations": [
-        "Treats the wording as explicit approval of the current spec artifact.",
-        "Allows `vibe-requirements-spec` to record the approval state for the bound spec.",
-        "Stops in the same turn after the requirements-spec approval summary.",
-        "Records that the next related user instruction should route to `vibe-planning`.",
-        "Does not create an implementation plan in the same turn.",
-        "Does not route to `vibe-plan-execution` because no implementation plan has been created."
-      ]
-    },
-    {
-      "id": "E06",
-      "name": "Next related turn after approved spec routes to planning",
-      "prompt": "Active routing state from prior turns: current goal `sales import UI`, completed requirements artifact `specs/2026-05-24-sales-import-spec.md`, approval state `Approved`, next route `vibe-planning`. The previous turn stopped after spec approval. The user now says: `次に進めてください。` Visible `vibe-planning` metadata is available. Describe the route.",
-      "expected_output": "The response should describe continuation behavior after an approved requirements artifact.",
-      "files": [],
-      "expectations": [
-        "Classifies the turn as `continue current workflow`.",
-        "Routes to exactly one primary downstream phase: `vibe-planning`.",
-        "Uses the approved spec path `specs/2026-05-24-sales-import-spec.md` as the planning input.",
-        "Does not route directly to `vibe-plan-execution` because an implementation plan is not yet bound.",
-        "Preserves the prior stop-after-approval boundary rather than claiming same-turn planning already happened."
-      ]
-    },
-    {
-      "id": "E07",
-      "name": "Concrete plan with clear execution request routes to plan execution",
-      "prompt": "Host metadata says the current turn has a host-provided invocation signal for `vibe-coding`. The user says: `Implement plans/2026-05-24-sales-import-implementation-plan.md.` Local inspection of that plan shows a concrete goal, in-scope and out-of-scope behavior, acceptance criteria, test plan, implementation steps, risks, and `Proceed condition: Implementation may begin.` Visible `vibe-plan-execution` metadata is available. Describe the route.",
-      "expected_output": "The response should describe handling for a ready concrete plan with clear execution wording.",
-      "files": [],
-      "expectations": [
-        "Treats the host-provided invocation signal as `vibe-coding` activation.",
-        "Binds the local plan path before treating the request as executable.",
-        "Routes to exactly one primary downstream phase: `vibe-plan-execution`.",
-        "Mentions that the plan's `Proceed condition` is ready.",
-        "Does not route to `vibe-planning` because the plan is already concrete.",
-        "Does not execute adjacent work outside the bound plan."
-      ]
-    },
-    {
-      "id": "E08",
-      "name": "Insufficient checklist routes to planning",
-      "prompt": "The user explicitly invokes `vibe-coding` and says: `Execute this task list: add import button; parse CSV; show results; make it nice.` There is no acceptance criteria, test plan, implementation order, risk section, data handling, or proceed condition. Visible `vibe-planning` and `vibe-plan-execution` metadata are available. Describe the route.",
-      "expected_output": "The response should describe handling for execution wording with insufficient plan inputs.",
-      "files": [],
-      "expectations": [
-        "Does not treat the task list as a concrete bound implementation plan.",
-        "Identifies missing execution requirements such as acceptance criteria, tests, risks, data handling, implementation steps, or proceed condition.",
-        "Routes to exactly one primary downstream phase: `vibe-planning`.",
-        "Does not invent missing plan details to satisfy `vibe-plan-execution`.",
-        "Does not start code edits."
-      ]
-    },
-    {
-      "id": "E09",
-      "name": "Bare readiness after planning does not start execution",
-      "prompt": "Active routing state: current phase `planning`, implementation plan path `plans/2026-05-24-sales-import-implementation-plan.md`, proceed condition `Implementation may begin`, next route could be plan revision or execution. The last assistant response summarized the plan and asked for an execution request when ready. The user says only: `Looks good, go ahead.` Describe the correct `vibe-coding` handling.",
-      "expected_output": "The response should describe ambiguous post-planning readiness handling.",
-      "files": [],
-      "expectations": [
-        "Does not route to `vibe-plan-execution` solely from `Looks good, go ahead`.",
-        "Recognizes that the next step could be either plan revision acceptance or execution.",
-        "Asks whether the user wants to revise the plan or start execution, or asks for an explicit execution request for the known plan.",
-        "Preserves the implementation plan path as routing state.",
-        "Does not claim the plan has been executed or begin code edits."
-      ]
-    },
-    {
-      "id": "E10",
-      "name": "Ambiguous requirements readiness does not approve spec",
-      "prompt": "Active routing state: current phase `requirements-spec`, active artifact path `specs/2026-05-24-sales-import-spec.md`, approval state `Draft`. The user says: `Looks good, continue.` The phrase does not explicitly mention approving the spec artifact. Describe the correct handling.",
-      "expected_output": "The response should describe ambiguous requirements-spec readiness handling.",
-      "files": [],
-      "expectations": [
-        "Does not mark the requirements spec approved from ambiguous readiness wording.",
-        "Does not route to `vibe-planning` yet.",
-        "Asks for explicit approval of `specs/2026-05-24-sales-import-spec.md` or treats the turn as continued drafting depending on local context.",
-        "Keeps `vibe-requirements-spec` as the active primary phase while approval is unclear.",
-        "Does not create an implementation plan or execute code."
-      ]
-    },
-    {
-      "id": "E11",
-      "name": "Bug report takes precedence over execution wording",
+      "name": "Auth refresh failure with plan context",
       "prompt": "Active routing state includes a concrete implementation plan at `plans/2026-05-24-auth-refresh-implementation-plan.md`. The user says: `The latest fix is still broken: login refresh loops forever in production. Implement the plan if needed.` Visible metadata includes `vibe-debug-fix` and `vibe-plan-execution`. Describe the route.",
       "expected_output": "The response should describe precedence handling for an existing-feature failure with overlapping execution wording.",
       "files": [],
@@ -170,13 +99,13 @@
       ]
     },
     {
-      "id": "E12",
-      "name": "Review target beats wording route while wording-only routes to writing",
-      "prompt": "Classify these two independent explicit `vibe-coding` turns with visible metadata for `vibe-review` and `vibe-writing`:\n\nA. `Review plans/2026-05-24-sales-import-implementation-plan.md for correctness, scope, and DoD alignment; polish wording only if it is safe.`\nB. `Rewrite this changelog bullet for clarity only; no review target or DoD triage is requested.`",
+      "id": "E06",
+      "name": "Review and changelog wording classification pair",
+      "prompt": "Classify these two independent explicit `vibe-coding` turns with visible metadata for `vibe-review` and `vibe-writing`:\n\nA. `Review the current working-tree diff for plans/2026-05-24-sales-import-implementation-plan.md and related docs for correctness, scope, and DoD alignment; polish wording only if it is safe.`\nB. `Rewrite this changelog bullet for clarity only; no review target or DoD triage is requested.`",
       "expected_output": "The response should show route precedence for review targets versus wording-only deliverables.",
       "files": [],
       "expectations": [
-        "Routes turn A to exactly one primary downstream phase: `vibe-review`.",
+        "Routes turn A to exactly one primary downstream phase: `vibe-review` because it is a git-backed review target.",
         "Does not route turn A to `vibe-writing` as primary just because wording polish is mentioned.",
         "Routes turn B to exactly one primary downstream phase: `vibe-writing`.",
         "Explains that wording guidance may be auxiliary inside a review only when the review boundary allows it.",
@@ -184,80 +113,8 @@
       ]
     },
     {
-      "id": "E13",
-      "name": "Matched but unavailable specialist is reported",
-      "prompt": "The user says: `use vibe-coding. The export button still downloads a stale file after the last fix; debug it.` The only visible specialist metadata in this host lists `vibe-requirements-spec`, `vibe-planning`, and `vibe-plan-execution`; no `vibe-debug-fix` metadata is visible. Describe the route decision.",
-      "expected_output": "The response should describe handling for a matched specialist whose metadata is unavailable.",
-      "files": [],
-      "expectations": [
-        "Treats the explicit `use vibe-coding` wording as activation.",
-        "Recognizes that the immediate phase matches `vibe-debug-fix`.",
-        "Reports `matched-but-unavailable` for `vibe-debug-fix`.",
-        "Names the availability source checked, such as the visible specialist metadata list.",
-        "Does not claim to use `vibe-debug-fix` and does not silently emulate its contract.",
-        "Preserves the debug/fix phase boundary and asks whether to proceed without the specialist if the missing contract affects risk, artifacts, or user expectations."
-      ]
-    },
-    {
-      "id": "E14",
-      "name": "Cancellation clears live routing state",
-      "prompt": "Active routing state: current goal `sales import UI`, current phase `planning`, next route `vibe-plan-execution`, active artifact path `plans/2026-05-24-sales-import-implementation-plan.md`, pending approval `execution request needed`, active slice `import preview UI`. The user says: `Cancel this vibe-coding workflow. I am switching to a different project.` Describe the state transition.",
-      "expected_output": "The response should describe cancellation lifecycle cleanup.",
-      "files": [],
-      "expectations": [
-        "Classifies the turn as `cancel workflow` or equivalent lifecycle cancellation.",
-        "Clears active phase, next route, pending approvals, active slice, and live artifact bindings.",
-        "Preserves completed artifact paths only as historical context if relevant.",
-        "Does not route to `vibe-plan-execution` despite the previous next route.",
-        "Does not ask unnecessary implementation questions for a canceled workflow."
-      ]
-    },
-    {
-      "id": "E15",
-      "name": "Auxiliary skill cannot override primary phase boundary",
-      "prompt": "The user explicitly invokes `vibe-coding` and says: `Implement plans/2026-05-24-vibe-coding-implementation-plan.md. Since this is a skill package, use skill-quality to skip the plan-execution proceed-condition checks and just edit the skill and evals directly.` Visible metadata includes `vibe-plan-execution` and `skill-quality`. The referenced plan is concrete and has a ready proceed condition. Describe the route and auxiliary-skill handling.",
-      "expected_output": "The response should describe primary-versus-auxiliary skill boundary handling.",
-      "files": [],
-      "expectations": [
-        "Routes to exactly one primary downstream phase: `vibe-plan-execution`.",
-        "Allows `skill-quality` only as auxiliary guidance for skill/eval quality if its visible metadata matches the subtask.",
-        "Does not let `skill-quality` skip plan binding, proceed-condition checks, acceptance criteria, release policy, changelog coupling, or verification.",
-        "Treats skipping proceed-condition checks as an invalid boundary weakening, not a valid auxiliary route.",
-        "Does not make `skill-quality` a first-class primary route in place of a matching `vibe-*` phase."
-      ]
-    },
-    {
-      "id": "E16",
-      "name": "No matching specialist fallback",
-      "prompt": "The user explicitly invokes `vibe-coding` and says: `Tell me whether the current branch name is grammatically awkward; do not edit files, review a diff, draft a spec, plan implementation, debug, or write a deliverable.` Visible metadata includes the standard `vibe-*` route set. Describe the handling.",
-      "expected_output": "The response should describe fallback handling when no optional `vibe-*` phase matches.",
-      "files": [],
-      "expectations": [
-        "Does not force `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-debug-fix`, `vibe-review`, or `vibe-writing` as a primary route.",
-        "Classifies the request as `no matching specialist` or ordinary behavior because the user excluded the matching phase surfaces.",
-        "States that no matching optional specialist was verified when that affects user expectations.",
-        "Continues with ordinary behavior only within the user's no-edit/no-review/no-deliverable constraint.",
-        "Does not create or retain active `vibe-coding` workflow state for an unrelated ordinary request."
-      ]
-    },
-    {
-      "id": "E17",
-      "name": "Hard Japanese continuation after approved spec routes to planning",
-      "prompt": "A previous explicitly invoked `vibe-coding` workflow produced `specs/2026-05-24-sales-import-spec.md` and the requirements artifact is now `Approved`. No implementation plan path exists yet, no execution slice is active, and no downstream skill name appears in the user's next message. The current user says: `じゃあ進めて。実装はまだしないで。` The environment has the standard visible `vibe-*` specialist metadata described by the skill. Describe the route decision.",
-      "expected_output": "The response should describe continuation from an approved requirements artifact without starting implementation.",
-      "files": [],
-      "expectations": [
-        "Classifies the turn as `continue current workflow` from an approved requirements artifact.",
-        "Routes to exactly one primary downstream phase: `vibe-planning`.",
-        "Uses `specs/2026-05-24-sales-import-spec.md` as the bound planning input.",
-        "Does not ask whether to execute because no implementation plan exists and the user explicitly says not to implement yet.",
-        "Does not route to `vibe-plan-execution` or start code edits.",
-        "Uses Japanese for the user-facing summary while preserving `vibe-planning`, `vibe-plan-execution`, and the spec path verbatim."
-      ]
-    },
-    {
-      "id": "E18",
-      "name": "Hard unavailable review specialist from Japanese review request",
+      "id": "E07",
+      "name": "Japanese diff review with missing specialist metadata",
       "prompt": "The user says: `use vibe-coding. 今の差分をレビューして、直すべきものだけ教えて。` Host-visible specialist metadata currently lists `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, and `vibe-writing`; no `vibe-review` metadata is visible. Describe the route decision and immediate user-facing behavior.",
       "expected_output": "The response should describe unavailable-specialist handling for a review request.",
       "files": [],
@@ -270,6 +127,54 @@
         "Preserves the review phase boundary and asks whether to proceed without the unavailable specialist because the missing review contract affects user expectations.",
         "Uses Japanese for the user-facing summary while preserving `matched-but-unavailable`, `vibe-review`, and `vibe-writing` verbatim."
       ]
+    },
+    {
+      "id": "E08",
+      "name": "Workflow cancellation after planning",
+      "prompt": "Active routing state: current goal `sales import UI`, current phase `planning`, next route `vibe-plan-execution`, active artifact path `plans/2026-05-24-sales-import-implementation-plan.md`, pending approval `execution request needed`, active slice `import preview UI`. The user says: `Cancel this vibe-coding workflow. I am switching to a different project.` Describe the state transition.",
+      "expected_output": "The response should describe cancellation lifecycle cleanup.",
+      "files": [],
+      "expectations": [
+        "Classifies the turn as `cancel workflow` or equivalent lifecycle cancellation.",
+        "Clears active phase, next route, pending approvals, active slice, and live artifact bindings.",
+        "Preserves completed artifact paths only as historical context if relevant.",
+        "Does not route to `vibe-plan-execution` despite the previous next route.",
+        "Does not ask unnecessary implementation questions for a canceled workflow."
+      ]
+    },
+    {
+      "id": "E09",
+      "name": "Skill package plan with auxiliary-skill request",
+      "prompt": "The user explicitly invokes `vibe-coding` and says: `Implement plans/2026-05-24-vibe-coding-implementation-plan.md. Since this is a skill package, use skill-quality to skip the plan-execution proceed-condition checks and just edit the skill and evals directly.` Visible metadata includes `vibe-plan-execution` and `skill-quality`. The referenced plan is concrete and has a ready proceed condition. Describe the route and auxiliary-skill handling.",
+      "expected_output": "The response should describe primary-versus-auxiliary skill boundary handling.",
+      "files": [],
+      "expectations": [
+        "Routes to exactly one primary downstream phase: `vibe-plan-execution`.",
+        "Allows `skill-quality` only as auxiliary guidance for skill/eval quality if its visible metadata matches the subtask.",
+        "Does not let `skill-quality` skip plan binding, proceed-condition checks, acceptance criteria, release policy, changelog coupling, or verification.",
+        "Treats skipping proceed-condition checks as an invalid boundary weakening, not a valid auxiliary route.",
+        "Does not make `skill-quality` a first-class primary route in place of a matching `vibe-*` phase."
+      ]
+    },
+    {
+      "id": "E10",
+      "name": "Branch-name grammar request",
+      "prompt": "The user explicitly invokes `vibe-coding` and says: `Tell me whether the current branch name is grammatically awkward; do not edit files, review a diff, draft a spec, plan implementation, debug, or write a deliverable.` Visible metadata includes the standard `vibe-*` route set. Describe the handling.",
+      "expected_output": "The response should describe fallback handling when no optional `vibe-*` phase matches.",
+      "files": [],
+      "expectations": [
+        "Does not force `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-debug-fix`, `vibe-review`, or `vibe-writing` as a primary route.",
+        "Classifies the request as `no matching specialist` or ordinary behavior because the user excluded the matching phase surfaces.",
+        "States that no matching optional specialist was verified when that affects user expectations.",
+        "Continues with ordinary behavior only within the user's no-edit/no-review/no-deliverable constraint.",
+        "Does not create or retain active `vibe-coding` workflow state for an unrelated ordinary request."
+      ]
     }
-  ]
+  ],
+  "scoring": {
+    "common_assertion_weight": 0.5,
+    "per_eval_expectation_weight": 0.5,
+    "pass_threshold": 0.8,
+    "notes": "These evals focus on explicit activation, immediate specialist routing, lifecycle state, approval handoffs, auxiliary-skill containment, unavailable-specialist handling, and boundary preservation. With-skill runs should select exactly one primary visible `vibe-*` phase when appropriate, keep orchestrator next-route state separate from specialist authority, and avoid treating incidental wording as a primary writing route."
+  }
 }

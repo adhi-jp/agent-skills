@@ -10,7 +10,8 @@
     "When output proposes both code and tests, the proposed tests are internally consistent with the proposed implementation for the asserted behavior.",
     "Output distinguishes `Plan`, `Local evidence`, `Primary source`, `Accepted risk`, and `Unproven` when evidence affects implementation.",
     "Output includes an appropriate verification path before claiming the implementation is complete.",
-    "When commits are authorized, output commits or proposes commits only after completed and verified checkpoints, and uses standalone Conventional Commit messages that do not leak prompt context or plan labels."
+    "When commits are authorized, output commits or proposes commits only after completed and verified checkpoints, and uses standalone Conventional Commit messages that do not leak prompt context or plan labels.",
+    "Standalone execution summaries and proposed checkpoint messages do not rely on prompt-local or eval-harness references such as `this eval`, `this eval workspace`, `as requested`, `above`, `current prompt`, `current instruction`, or `current conversation`; they name the durable plan title, file path, provided fixture workspace, workspace access state, or explicit user instruction instead."
   ],
   "evals": [
     {
@@ -133,7 +134,8 @@
         "Does not blindly run the exact `npm test -- password-reset` command.",
         "Uses local evidence to prefer a pnpm/vitest-compatible command.",
         "Keeps the planned acceptance criteria unchanged.",
-        "Inspects token creation and validation before implementing the regression.",
+        "Inspects token creation and validation before implementing the regression, or blocks without implementation when that inspection cannot be performed.",
+        "If token creation and validation cannot be inspected, stops at the blocker and does not provide regression test code, import paths, helper names, TTL values, or assertions for the uninspected token API.",
         "Reports any command adjustment as a local-evidence-based plan correction, not an unrelated deviation."
       ]
     },
@@ -167,6 +169,7 @@
         "Does not commit before the relevant parser or UI verification passes.",
         "Does not use `Phase 1`, `Implement plan step 2`, `per plan`, `above`, or equivalent prompt-dependent wording as a commit message.",
         "Uses standalone Conventional Commit messages that describe concrete changes such as adding the contact CSV parser or wiring import preview persistence.",
+        "Presents proposed checkpoint commit-message bytes as standalone message text rather than as a fenced code-block example.",
         "Keeps role management, billing, background imports, and adjacent cleanup out of the committed scope.",
         "Reports skipped or failing verification instead of committing an unverified work-in-progress state."
       ]
@@ -226,12 +229,33 @@
         "Keeps new notification channels, analytics, and UI redesign out of scope.",
         "Does not treat the non-selected A.8 packaging check as permission to add release or packaging work."
       ]
+    },
+    {
+      "id": "E13",
+      "name": "Commit checkpoints and skill routes need fresh authorization",
+      "prompt": "Execute this plan. The planning step already approved implementation of the ledger CSV slice and accepted the listed checkpoint boundary. Use the listed fixture files as the local workspace for this eval.\n\n# Ledger Export Plan\n\n## Goal\n- Add a small CSV export for the existing account ledger.\n\n## Verified facts and sources\n| Claim | Evidence | Source | Impact |\n| --- | --- | --- | --- |\n| The project has an account ledger export surface. | Local investigation | `evals/vibe-plan-execution/fixtures/ledger-export/src/ledger/export.ts` | Re-check before editing. |\n| Existing tests cover JSON export. | Local investigation | `evals/vibe-plan-execution/fixtures/ledger-export/src/ledger/export.test.ts` | Re-check before relying on coverage. |\n\n## Requirements\n- In scope: CSV export for account id, timestamp, and amount.\n- Out of scope: PDF export, billing changes, and background jobs.\n- Data handling: CSV output uses a header row `account_id,timestamp,amount` and quotes fields containing commas, quotes, or newlines.\n\n## Acceptance criteria\n- CSV export includes account id, timestamp, and amount columns.\n- Existing JSON export behavior is preserved.\n- CSV tests cover an empty ledger, one normal entry, and a quoted value case.\n\n## Test plan\n- Add CSV export tests next to the existing JSON export tests.\n- Run the ledger export tests.\n\n## Skill usage plan\n| Plan step | Skill route | Availability source | Use when | Matching reason | Fallback if unavailable |\n| --- | --- | --- | --- | --- | --- |\n| I1 | `vibe-writing` | Planning-time local metadata | When finalizing a checkpoint message | Message wording only | Use repository commit rules manually. |\n\n## Implementation plan\n1. Re-check the ledger export code and tests.\n2. Add CSV export behavior.\n3. Run ledger export tests.\n4. Prepare the checkpoint message after verification.\n\n## Commit checkpoints\n- After CSV export tests pass, proposed message: `feat(ledger): add account CSV export`.\n- Planning note: the checkpoint boundary was accepted during planning.\n\n## Risks and unproven items\n- None known.\n\n## Proceed condition\n- Implementation may begin.",
+      "expected_output": "A plan-execution response for a ready ledger CSV export plan with routed checkpoint-message work.",
+      "files": [
+        "evals/vibe-plan-execution/fixtures/ledger-export/src/ledger/export.ts",
+        "evals/vibe-plan-execution/fixtures/ledger-export/src/ledger/export.test.ts"
+      ],
+      "expectations": [
+        "Binds the plan and extracts the `Skill usage plan` rather than ignoring it.",
+        "Re-checks the fixture-backed ledger export and test files as current `Local evidence` before relying on planning-time `Local investigation`.",
+        "Does not ask for fresh implementation approval when the proceed condition and the user's `Execute this plan` instruction authorize implementation; separates that from commit authorization.",
+        "Verifies current availability before using the `vibe-writing` route and falls back to repository commit rules if unavailable.",
+        "Treats the commit checkpoint and proposed Conventional Commit message as a proposed boundary, not authorization to commit.",
+        "Does not leak prompt-local or eval-harness phrasing such as `this eval` in the execution summary or checkpoint-message discussion.",
+        "Does not commit merely because the user said `Execute this plan` or because the plan includes a `Commit checkpoints` section.",
+        "Requires separate user or plan-approval text that explicitly authorizes the commit operation before staging or committing.",
+        "Keeps PDF export, billing changes, and background jobs out of scope."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.5,
     "per_eval_expectation_weight": 0.5,
     "pass_threshold": 0.8,
-    "notes": "These evals focus on trigger discipline, planning-output handoff, file-backed artifact binding, proceed-condition handling, plan deviation control, high-risk planning-section binding, redundancy-driven shortcut pressure, local-evidence conflicts, accepted-risk handling, stale verification commands, non-technical-user communication, and commit-checkpoint discipline. Plan-binding assertions live on plan-present evals instead of common assertions so E04 can test the no-plan path without false failures. E01 and E03 use repo-level fixture paths so ready-to-execute plans do not fail only because the real project lacks sample app files. Baseline runs are expected to proceed too eagerly on E02, E04, E05, E06, E10, E11, and E12, weaken high-risk behavior or persistence tests as redundant, or use plan labels as commit messages on E09."
+    "notes": "These evals focus on trigger discipline, planning-output handoff, file-backed artifact binding, proceed-condition handling, plan deviation control, high-risk planning-section binding, redundancy-driven shortcut pressure, local-evidence conflicts, accepted-risk handling, stale verification commands, non-technical-user communication, and commit-checkpoint discipline. Plan-binding assertions live on plan-present evals instead of common assertions so E04 can test the no-plan path without false failures. E01, E03, and E13 use repo-level fixture paths so ready-to-execute plans do not fail only because the real project lacks sample app files. Baseline runs are expected to proceed too eagerly on E02, E04, E05, E06, E10, E11, and E12, weaken high-risk behavior or persistence tests as redundant, use plan labels as commit messages on E09, or conflate implementation, skill-route, and commit authorization on E13."
   }
 }

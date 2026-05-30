@@ -1,0 +1,48 @@
+{
+  "case": "terminal-audit",
+  "user_message": "end and squash it",
+  "review_run": {
+    "target_kind": "branch",
+    "base_ref": "origin/main",
+    "frozen_base_sha": "3333333333333333333333333333333333333333",
+    "head_sha_after_fixes": "4444444444444444444444444444444444444444",
+    "cycle": 2,
+    "applied_findings": [
+      {
+        "display_id": "F1",
+        "phase6_note": {
+          "invariant": "Import rejects rows without email.",
+          "surfaces_checked": [
+            "src/import.ts",
+            "src/import.test.ts"
+          ],
+          "verification": "targeted parser test passed",
+          "residuals": "none recorded",
+          "next_cycle_attack": "empty email with quoted comma"
+        }
+      },
+      {
+        "display_id": "F3",
+        "phase6_note": null
+      }
+    ],
+    "batch_receipt_present": true
+  },
+  "dirty_isolation": {
+    "accepted": true,
+    "restore_status": "pending",
+    "isolated_paths": [
+      "tmp/local-notes.md",
+      "scratch.json"
+    ],
+    "recovery_reference": "stash@{0}",
+    "metadata_digest": "sha256:dirty-isolation-terminal"
+  },
+  "history_operation_request": {
+    "operation": "squash",
+    "operation_specific_consent": false,
+    "diff_preview_rendered": false,
+    "dirty_ownership_audit_rendered": false,
+    "conflict_preconditions_checked": false
+  }
+}

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-writing",
-  "purpose": "External eval set for vibe-writing. Prompts live outside skills/ so they are not bundled as skill content. Covers LLM-first development text, human-reader exceptions, source-code comments and docstrings, README/docs, CHANGELOG restraint, exact-format output, verbatim-output boundaries, durable references, chat replies, workflow boundaries, locale precedence, policy and support-promise restraint, hollow-transition cleanup, local-anchor preservation, and commit-message pressure cases including pre-draft context, thin evidence, mechanical syncs, release commits, monorepo changes, i18n/localization, dependency updates, performance, CI/build/publishing, security/privacy/data-loss, preserve/cut body selection, trailer separation, compact bullets, and multi-line message transport.",
+  "purpose": "External eval set for vibe-writing. Prompts live outside skills/ so they are not bundled as skill content. Covers representative LLM-first development text, human-reader exceptions, source-code comments and docstrings, README/docs, CHANGELOG restraint, exact-format output, verbatim-output boundaries, durable references, workflow boundaries, locale precedence, policy and support-promise restraint, hollow-transition cleanup, local-anchor preservation, and commit-message contracts including release trailers, body preserve/cut selection, verification formatting, multi-line transport, active commit workflows, and stored-message inspection.",
   "common_assertions": [
     "Output preserves source facts, scope, terminology, audience, modality, conditions, exceptions, warnings, limitations, required actions, and order that matters whenever source text is edited or summarized.",
     "Output does not invent unsupported reasons, goals, outcomes, roadmap claims, business value, user impact, implementation rationale, tests, rollout status, or performance/security/risk-reduction claims.",
@@ -18,16 +18,19 @@
     {
       "id": "E01",
       "name": "LLM-first handoff keeps contracts dense",
-      "prompt": "Rewrite this handoff for future coding agents. Main reader: LLM. Keep all constraints.\n\nThe save path currently formats JSON only. XML and HTML must stay manual because whitespace can change wire bytes. The next implementation should preserve Cmd+S behavior and should not add upload preview work. Tests were not run.",
-      "expected_output": "The agent writes compact LLM-optimized development text that preserves the JSON-only behavior, XML/HTML whitespace constraint, Cmd+S preservation, out-of-scope upload preview work, and tests-not-run status.",
+      "prompt": "Rewrite this handoff for future coding agents. Main reader: LLM. Keep all constraints and local search anchors.\n\nThe request-editor save path runs in this order: save path, header handoff, sample refresh. `BodyEditor headers prop` is the search anchor for the current wiring. The save path currently formats JSON only. XML and HTML must stay manual because whitespace can change wire bytes. The next implementation should preserve Cmd+S behavior and should not add upload preview work. Tests were not run.",
+      "expected_output": "The agent writes compact LLM-optimized development text that preserves the save-path order, local search anchor, JSON-only behavior, XML/HTML whitespace constraint, Cmd+S preservation, out-of-scope upload preview work, and tests-not-run status.",
       "files": [],
       "expectations": [
         "Prioritizes precise contract language over warm or marketing prose.",
+        "Preserves the local labels `save path`, `header handoff`, and `sample refresh` in that order.",
+        "Preserves `BodyEditor headers prop` exactly as a search anchor.",
         "Preserves that JSON is formatted and XML/HTML remain manual.",
         "Preserves the whitespace/wire-byte reason for XML/HTML.",
         "Preserves that Cmd+S behavior should be kept.",
         "Preserves that upload preview work is out of scope.",
         "Preserves that tests were not run.",
+        "Does not replace useful local anchors with generic labels such as `request metadata flow`.",
         "Does not add unsupported user benefit, roadmap, rollout, reliability, or implementation rationale."
       ]
     },
@@ -126,8 +129,8 @@
     {
       "id": "E08",
       "name": "PR template with thin evidence",
-      "prompt": "Write a PR description using exactly this template and no extra sections. If a section has no supplied evidence, say `Not provided` instead of filling from assumptions.\n\n## Summary\n## Testing\n## Risk\n\nContext:\n- Diff: changed `Retry-After` parsing from `parseInt` to `Number` so fractional seconds are preserved.\n- Tests: not run.\n- Risk: parser change only; no production incidents, customer reports, benchmarks, or rollout plan are supplied.",
-      "expected_output": "The agent fills only the three requested PR template sections, names the fractional Retry-After parser change, reports tests as not run, keeps risk to the supplied parser-change-only evidence, and avoids unsupported incident, benchmark, or rollout claims.",
+      "prompt": "Write a PR description using exactly this template and no extra sections. If a section has no supplied evidence, say `Not provided` instead of filling from assumptions. Remove hollow transitions from the draft wording.\n\n## Summary\n## Testing\n## Risk\n\nContext:\n- Diff: changed `Retry-After` parsing from `parseInt` to `Number` so fractional seconds are preserved.\n- Tests: not run.\n- Risk: parser change only; no production incidents, customer reports, benchmarks, or rollout plan are supplied.\n- Draft filler to remove: `It's worth noting that`, `Ultimately`, and `This should be low risk`.",
+      "expected_output": "The agent fills only the three requested PR template sections, names the fractional Retry-After parser change, reports tests as not run, removes hollow transitions, keeps risk to the supplied parser-change-only evidence, and avoids unsupported incident, benchmark, or rollout claims.",
       "files": [],
       "expectations": [
         "Uses exactly the three requested headings: `## Summary`, `## Testing`, and `## Risk`.",
@@ -135,72 +138,12 @@
         "Summary mentions preserving fractional seconds in `Retry-After` parsing or the `parseInt` to `Number` change.",
         "Testing explicitly states that tests were not run; it does not say only `Not provided`, and it does not claim tests passed.",
         "Risk reflects that the supplied risk evidence is limited to a parser change only, or states that no production incidents, customer reports, benchmarks, or rollout plan were supplied.",
+        "Removes hollow transitions such as `It's worth noting that`, `Ultimately`, or `In conclusion`.",
         "Risk does not claim `low risk`, `safe`, `no risk`, production incident mitigation, customer impact, benchmarks, or rollout readiness without supplied evidence."
       ]
     },
     {
       "id": "E09",
-      "name": "Concise chat test result reply",
-      "prompt": "The user asks: `Did the tests pass?`\n\nThe command output was:\n`cargo test -p api --lib: 42 passed, 0 failed`\n\nWrite the chat reply.",
-      "expected_output": "The agent gives a concise answer that says the tests passed and includes the command result, with no preamble, headings, or ritual follow-up offer.",
-      "files": [],
-      "expectations": [
-        "Starts with the answer, such as `Yes` or `They passed`.",
-        "Includes `cargo test -p api --lib` or otherwise identifies the tested command.",
-        "Includes `42 passed, 0 failed`.",
-        "Does not start with `Sure`, `Absolutely`, `Great question`, or another meta-acknowledgment.",
-        "Does not add headings, a `Summary / Testing / Notes` template, or unrelated next steps.",
-        "Does not end with a generic offer such as `Let me know if you need anything else`."
-      ]
-    },
-    {
-      "id": "E10",
-      "name": "Durable issue citation without scratch-note leak",
-      "prompt": "Turn this scratch note into a release-note bullet. Include the durable issue ID, but do not mention the scratch file path.\n\nScratch source: notes/auth-copy.md\nIssue: AUTH-742\nRefresh-token replay attempts now return 401. This does not rotate existing tokens and does not change access-token TTL.",
-      "expected_output": "The agent writes a standalone release-note bullet that includes AUTH-742, states the replay-attempt behavior, preserves the no-rotation and no-TTL-change limits, and omits the scratch file path.",
-      "files": [],
-      "expectations": [
-        "Includes `AUTH-742` as a durable issue citation.",
-        "Mentions that refresh-token replay attempts now return 401.",
-        "Preserves that existing tokens are not rotated.",
-        "Preserves that access-token TTL does not change.",
-        "Does not mention `notes/auth-copy.md`, `scratch source`, `scratch note`, `above`, or similar prompt-production context.",
-        "Does not inflate the note into broad authentication hardening, replay protection completeness, incident response, or security posture claims.",
-        "Formats the result as a release-note bullet or similarly concise changelog-style entry."
-      ]
-    },
-    {
-      "id": "E11",
-      "name": "Commit thin evidence avoids invented incident",
-      "prompt": "Write a commit message from this diff summary only: changed Retry-After parsing from parseInt to Number so fractional seconds are preserved. Tests were not run. No issue, incident, rollout plan, benchmark, or customer report was supplied.",
-      "expected_output": "The agent writes a concise message that states fractional Retry-After preservation and tests-not-run status without inventing a production incident or benefit.",
-      "files": [],
-      "expectations": [
-        "Subject names preserving fractional `Retry-After` values or equivalent behavior.",
-        "Body, if present, stays brief.",
-        "Mentions tests were not run if verification is included.",
-        "Does not claim a production incident, customer impact, benchmark result, rollout readiness, reliability improvement, or standards compliance unless supplied.",
-        "Does not ask for more context unless it says the current message would otherwise be misleading."
-      ]
-    },
-    {
-      "id": "E12",
-      "name": "Mechanical sync avoids oversized body",
-      "prompt": "Write a commit message. Diff summary: refreshed bundled skills from upstream catalog, replaced one deprecated skill with its successor, updated skills-lock hashes. No behavior details are known beyond the upstream sync.",
-      "expected_output": "The agent writes a short chore commit message with no body, or with only a one-sentence absent-context note, preserving the supplied refresh, replacement, and lock-update scope without inventing unknown upstream behavior.",
-      "files": [],
-      "expectations": [
-        "Subject uses a chore-style scope such as `skills`.",
-        "Message says this is a skill catalog refresh, deprecated-skill replacement, and lock update, either in the subject or one short body sentence.",
-        "Body is absent, or limited to one short sentence that adds missing-context or limited-scope information.",
-        "Does not use the body only to repeat `refresh`, `replace`, and `update locks` in longer prose.",
-        "Does not invent detailed behavior changes for upstream skills.",
-        "Does not list every changed file or hash.",
-        "Does not claim the sync improves quality, reliability, or capabilities beyond what is supplied."
-      ]
-    },
-    {
-      "id": "E13",
       "name": "Release commit keeps trailers separate",
       "prompt": "Write a commit message. Context: preparing release `v1.4.0` from the changelog. Release includes a contact CSV import parser and upload preview UI. Breaking changes: none. Migration: none. Verification: `pnpm test` and `pnpm build` passed. Repository requirement: include `Co-Authored-By: Codex <noreply@openai.com>` as a final commit trailer. Diff summary: `package.json` version set to `1.4.0`, `CHANGELOG.md` moves `Unreleased` to `[1.4.0] - 2026-05-04`, and generated lock metadata updates.",
       "expected_output": "The agent writes a release commit message that follows release convention, names the version, summarizes release scope and no-breaking/no-migration status, includes verification without duplicating the changelog or claiming publication, and keeps the required co-author trailer in a separated footer block.",
@@ -218,132 +161,7 @@
       ]
     },
     {
-      "id": "E14",
-      "name": "Monorepo packages share one contract",
-      "prompt": "Write a commit message. Diff summary: `packages/api`, `packages/web`, and `packages/sdk` update the exported `UserProfile.displayName` field to be nullable; generated API types and the workspace lock update. Context: the backend already returns `null` for SSO-only accounts; clients previously treated it as `string` and rendered `undefined`. Migration: callers should handle `null` or fall back to email. Verification: `pnpm -w test` passed.",
-      "expected_output": "The agent writes a monorepo commit message that explains the shared nullable display-name contract, runtime/client impact, migration path, and verification without listing every package edit.",
-      "files": [],
-      "expectations": [
-        "Subject names the profile/display-name contract rather than a generic multi-package update.",
-        "Body explains why multiple packages belong together through the shared API/client contract.",
-        "Body mentions the existing backend `null` behavior or the prior `undefined` rendering issue.",
-        "Body preserves the source migration modality, such as `callers should handle null or fall back to email`, without upgrading it to `must`.",
-        "Body includes `pnpm -w test` if verification is included.",
-        "Does not list every changed package file or portray the packages as unrelated edits.",
-        "Does not claim a broad monorepo refactor or unrelated profile improvements."
-      ]
-    },
-    {
-      "id": "E15",
-      "name": "Compact bullets and multi-line transport",
-      "prompt": "Revise this existing commit message without changing its subject or final trailer. Also say, outside the commit message, how to pass the multi-line message to git without changing list spacing.\n\nSubject: `fix(vibe-writing): preserve compact list bodies`\nBody: `Behavior:\\n- Keep adjacent Markdown bullets dense.\\n\\n- Warn that line-by-line commit transport changes list shape.\\n\\nVerification:\\n- python -m json.tool evals/vibe-writing/evals.json passed.\\n\\nCo-Authored-By: Codex <noreply@openai.com>`\n\nRequirement: remove unintended blank lines between adjacent bullets in the same list, but keep a blank line before the required final trailer.",
-      "expected_output": "The agent rewrites the body so adjacent Behavior bullets are consecutive lines, the Verification section remains readable, the final trailer stays unchanged in a separated footer block, and the transport note recommends one message buffer/file/editor instead of one git -m argument per line.",
-      "files": [],
-      "expectations": [
-        "Subject remains exactly `fix(vibe-writing): preserve compact list bodies`.",
-        "Final trailer remains exactly `Co-Authored-By: Codex <noreply@openai.com>` and is separated from the prose body by a blank line.",
-        "The two `Behavior:` bullets appear on consecutive lines with no blank line between them.",
-        "The `Verification:` section remains separate from the `Behavior:` list.",
-        "Does not remove the supplied JSON validation result.",
-        "Transport guidance uses one message buffer, message file, editor buffer, or equivalent.",
-        "Transport guidance does not recommend one `git commit -m` argument per line or per bullet."
-      ]
-    },
-    {
-      "id": "E16",
-      "name": "Commit i18n scope stays narrow",
-      "prompt": "Write a commit message. Diff summary: updated `docs/README-ja.md` and `src/locales/ja.json` for password-reset expiry copy. English source strings and code are unchanged. Context: Japanese users read the old copy as implying an expired link could be reused later; the new copy says expired links require requesting a new email. Tests were not run.",
-      "expected_output": "The agent writes a concise i18n or docs commit message that captures the Japanese-copy ambiguity and unchanged source/code scope without claiming password-reset behavior changed.",
-      "files": [],
-      "expectations": [
-        "Subject uses an i18n, docs, locale, or password-reset copy scope and names the copy outcome rather than file edits.",
-        "Body, if present, mentions the Japanese copy ambiguity or that expired links require a new email.",
-        "Preserves locale/file identifiers such as `ja`, `README-ja.md`, or `src/locales/ja.json` when useful; does not translate identifiers.",
-        "States or preserves that English source strings and code are unchanged when discussing scope.",
-        "Mentions tests were not run if verification is included.",
-        "Does not wrap the commit message in a Markdown code fence.",
-        "Does not claim password-reset logic, token expiry behavior, security posture, or all locales changed."
-      ]
-    },
-    {
-      "id": "E17",
-      "name": "Dependency update keeps supplied rationale",
-      "prompt": "Write a commit message. Diff summary: bump `@acme/payments` from 2.4.1 to 2.5.0 and update `pnpm-lock.yaml`. Context: 2.5.0 adds Node 22 support required by current CI runners. No security advisory was supplied. Release notes say the API is backward compatible. Verification: `pnpm test:payments` passed.",
-      "expected_output": "The agent writes a dependency-update commit message that preserves the Node 22 CI rationale, backward-compatibility evidence, and test signal without inventing a security or performance reason.",
-      "files": [],
-      "expectations": [
-        "Subject uses a dependency or payments scope and names Node 22 or CI compatibility rather than only `update lockfile`.",
-        "Body includes the supplied Node 22 CI-runner rationale.",
-        "Body preserves the absence of a security advisory if security is discussed.",
-        "Body mentions backward compatibility only as release-note evidence, not as an invented guarantee.",
-        "Body includes `pnpm test:payments` if verification is included.",
-        "Does not wrap the commit message in a Markdown code fence.",
-        "Does not claim a security fix, performance improvement, bug fix, rollout, or broader dependency modernization.",
-        "Does not list lockfile mechanics beyond the relevant dependency/version anchor."
-      ]
-    },
-    {
-      "id": "E18",
-      "name": "Performance work preserves constraints",
-      "prompt": "Write a commit message. Diff summary: `compile_many` queues finalized outputs and writes files in parallel; parent directory creation is deduped; worker pool cap increases from 8 to 16; regression test covers failed output writes. Context: QuestVM serialization must remain input-ordered for Asterfall save compatibility, and the compile cache must only warm after a successful output write. No benchmark delta was supplied.",
-      "expected_output": "The agent writes a performance commit message that names the output-write workload and the preserved ordering/cache constraints without inventing benchmark results or listing implementation mechanics.",
-      "files": [],
-      "expectations": [
-        "Subject uses a performance-oriented type or scope and names `compile_many` output writes or equivalent workload.",
-        "Body mentions the preserved input ordering or Asterfall save compatibility contract.",
-        "Body mentions that cache warming remains gated on successful output writes if discussing the cache.",
-        "Body mentions the failed-write regression test if verification is included.",
-        "Does not invent benchmark numbers, speedup percentages, throughput claims, or broad performance results.",
-        "Does not turn the body into a step-by-step thread pool, queue, or filesystem operation inventory."
-      ]
-    },
-    {
-      "id": "E19",
-      "name": "CI publishing fix keeps toolchain constraint",
-      "prompt": "Write a commit message. Diff summary: GitHub Actions publish workflow uses `npm exec npm@^11.5.1 publish` for the publish step, removes the global npm upgrade, and leaves the rest of the pnpm workflow unchanged. Context: Node 22.22.2 runners bundle npm 10.9.7, which cannot do OIDC token exchange for scoped packages; globally installing npm@latest failed with `MODULE_NOT_FOUND` for `promise-retry`. No package was published in this change.",
-      "expected_output": "The agent writes a CI commit message that preserves the Node/npm/OIDC failure context and narrow publish-step decision without claiming a release happened or listing workflow edits.",
-      "files": [],
-      "expectations": [
-        "Subject uses a CI, publish, or release-automation scope and names OIDC, trusted publishing, Node 22, or npm 11.",
-        "Body mentions the Node 22.22.2 / npm 10.9.7 runner constraint or OIDC token-exchange failure.",
-        "Body explains the narrow npm@11 publish-step decision rather than only saying the workflow changed.",
-        "Body mentions the global npm upgrade failure or `MODULE_NOT_FOUND` if explaining the alternative.",
-        "Does not claim a package was published, deployed, released, or rolled out.",
-        "Does not list YAML edits such as permissions, steps, or package-manager commands without the runner/toolchain rationale."
-      ]
-    },
-    {
-      "id": "E20",
-      "name": "Data-loss fix keeps failure ordering",
-      "prompt": "Write a commit message. Diff summary: `clear_local_data` now renames `store.enc` to `store.enc.removing` before deleting key files, sweeps leftover `.removing` files, and adds two regression tests. Context: deleting master keys before removing `store.enc` could leave an encrypted store on disk that a later fresh key could not open if store removal failed. Verification: `cargo test` passed; release artifact guard passed. No external incident or vulnerability advisory was supplied.",
-      "expected_output": "The agent writes a security/data-loss-sensitive commit message that explains the destructive ordering failure, quarantine decision, verification, and lack of advisory without claiming a broad security fix.",
-      "files": [],
-      "expectations": [
-        "Subject names the local data, secure store, or key/store cleanup outcome rather than generic refactoring.",
-        "Body explains the key-before-store deletion failure mode or unrecoverable encrypted store risk.",
-        "Body explains the quarantine or rename-first decision.",
-        "Body includes `cargo test` and release artifact guard if verification is included.",
-        "Does not claim an external incident, CVE, vulnerability advisory, exploit, or broad security hardening.",
-        "Does not list every helper, filename, or test unless `store.enc` / `store.enc.removing` is used as a recovery anchor."
-      ]
-    },
-    {
-      "id": "E21",
-      "name": "Writing boundary does not perform release actions",
-      "prompt": "Using `vibe-writing`, draft a release note for this change and also bump the package version to 2.0.0. Source facts: the CLI now rejects unknown flags with exit code 2. Breaking changes: unknown flags no longer continue with a warning. Migration: remove unsupported flags from scripts. Tests: `cargo test -p cli` passed.",
-      "expected_output": "The agent writes the release-note text or clearly separates it from the requested release action, preserves the breaking-change and migration facts, and does not claim to bump versions or perform release workflow steps from a writing-only skill.",
-      "files": [],
-      "expectations": [
-        "Drafts release-note wording for the unknown-flag exit-code change.",
-        "Preserves that this is a breaking change.",
-        "Preserves the migration guidance to remove unsupported flags from scripts.",
-        "Preserves `cargo test -p cli` if verification is included.",
-        "Does not claim the version was bumped, files were edited, a release was prepared, or a commit was made.",
-        "Identifies the version bump as outside writing-content control or requiring the active release workflow."
-      ]
-    },
-    {
-      "id": "E22",
+      "id": "E10",
       "name": "Verbatim tool output stays exact",
       "prompt": "Return this command output exactly. Do not summarize, clean up, or wrap it.\n\nFAIL tests/api/cache.test.ts::evicts_stale_entry\nexpected 2, got 3\nseed=1842",
       "expected_output": "The agent returns the supplied command output unchanged, without prose summary, Markdown fence, normalization, or inferred cause.",
@@ -358,71 +176,7 @@
       ]
     },
     {
-      "id": "E23",
-      "name": "Support copy warmth avoids promises",
-      "prompt": "Make this support README paragraph warmer for end users, but do not add promises or change the policy.\n\nSupport usually responds within two business days. Enterprise customers may request a faster SLA if their contract includes one. We do not provide emergency phone support. Do not send access tokens in support tickets.",
-      "expected_output": "The agent makes the support paragraph warmer while preserving the qualified response time, enterprise contract condition, no emergency phone support rule, and access-token warning.",
-      "files": [],
-      "expectations": [
-        "Preserves `usually` or an equivalent qualifier on the two-business-day response time.",
-        "Preserves `two business days` exactly or equivalently.",
-        "Preserves that faster SLA requests are available only for enterprise customers whose contract includes one.",
-        "Preserves that emergency phone support is not provided.",
-        "Preserves the instruction not to send access tokens in support tickets.",
-        "Does not add unsupported promises or reassurance claims such as guaranteed response, priority handling, immediate help, `we read every ticket`, or `our team is here for you`.",
-        "Does not add new support-channel or escalation instructions.",
-        "Does not add unsupported security reasons for the access-token warning."
-      ]
-    },
-    {
-      "id": "E24",
-      "name": "Commit message uses supplied context and local style",
-      "prompt": "Write a commit message. Recent local style: `docs(vibe-writing): tighten command inference`; `fix(vibe-writing): preserve compact commit messages`. Diff summary: `vibe-writing` adds a verbatim-output boundary, support-promise restraint, and commit-message drafting guidance; `references/commit-messages.md` adds pre-draft context checks and optional body labels; evals add coverage. Verification: `python -m json.tool evals/vibe-writing/evals.json` passed. No skill version changed.",
-      "expected_output": "The agent writes a repo-style `vibe-writing` commit message that names the behavior contracts, uses the supplied context and verification, and avoids a file-inventory narrative or release/version claim.",
-      "files": [],
-      "expectations": [
-        "Subject follows the supplied local style with a Conventional Commit type and `vibe-writing` scope.",
-        "Subject names the writing or commit-message contract outcome rather than a generic file update.",
-        "Body, if present, uses the supplied behavior context instead of listing changed files only.",
-        "Body includes `python -m json.tool evals/vibe-writing/evals.json` if verification is included.",
-        "Preserves that no skill version changed if version or release scope is discussed.",
-        "Does not claim a release, version bump, benchmark result, rollout, or user impact beyond the supplied context.",
-        "Does not mention same-session or plan provenance as the reason the changes belong together."
-      ]
-    },
-    {
-      "id": "E25",
-      "name": "PR risk copy removes hollow transitions",
-      "prompt": "Rewrite this PR note for an LLM reviewer. Keep the requested headings and supplied facts, remove filler, and do not make unsupported risk claims.\n\n## Summary\nIt's worth noting that this changes `Retry-After` parsing from `parseInt` to `Number` so fractional seconds are preserved.\n\n## Testing\nUltimately, tests were not run.\n\n## Risk\nThis should be low risk because it is a parser change only. No production incidents, customer reports, benchmarks, or rollout plan were supplied.",
-      "expected_output": "The agent fills the three PR sections directly, preserves the parser change and tests-not-run status, removes hollow transitions, and keeps risk to the supplied parser-change-only and absence evidence without claiming low risk or safety.",
-      "files": [],
-      "expectations": [
-        "Uses the requested headings `## Summary`, `## Testing`, and `## Risk` without adding extra sections.",
-        "Summary mentions preserving fractional seconds in `Retry-After` parsing or the `parseInt` to `Number` change.",
-        "Testing states that tests were not run.",
-        "Risk reflects that the supplied risk evidence is limited to a parser change only, or states that no production incidents, customer reports, benchmarks, or rollout plan were supplied.",
-        "Removes hollow transitions such as `It's worth noting that`, `Ultimately`, or `In conclusion`.",
-        "Does not claim `low risk`, `safe`, `no risk`, production incident mitigation, customer impact, benchmark proof, or rollout readiness without supplied evidence."
-      ]
-    },
-    {
-      "id": "E26",
-      "name": "Local-anchor polish preserves workflow labels",
-      "prompt": "Polish this handoff for the next coding agent. Keep local terms, search anchors, and order intact.\n\nThe request-editor save path runs in this order: save path, header handoff, sample refresh. `BodyEditor headers prop` is the search anchor for the current wiring. Keep JSON auto-format only; XML and HTML stay manual because formatting can change wire bytes. Upload preview is out of scope.",
-      "expected_output": "The agent writes a concise handoff that preserves the save-path order, local labels, `BodyEditor headers prop` search anchor, JSON-only formatting rule, XML/HTML wire-byte constraint, and upload-preview exclusion without replacing them with generic wording.",
-      "files": [],
-      "expectations": [
-        "Preserves the local labels `save path`, `header handoff`, and `sample refresh`.",
-        "Preserves their order: save path before header handoff before sample refresh.",
-        "Preserves `BodyEditor headers prop` exactly as a search anchor.",
-        "Preserves that only JSON is auto-formatted.",
-        "Preserves that XML and HTML stay manual because formatting can change wire bytes.",
-        "Preserves that upload preview is out of scope.",
-        "Does not replace the local anchors with generic labels such as `request metadata flow`, `internal header configuration`, or `example update workflow`."
-      ]
-    },
-    {
-      "id": "E27",
+      "id": "E11",
       "name": "Commit body preserves context and cuts inventory",
       "prompt": "Write a commit message. Recent local style: `feat(requests): add empty-state onboarding and JSON save formatting`; `fix(requests): preserve header handoff on save`.\n\nDiff summary: changed `src/request-editor/save.ts`, `src/request-editor/BodyEditor.tsx`, `src/request-editor/samples.ts`, `tests/request-editor/save.test.ts`, and `pnpm-lock.yaml`.\n\nContext: Review finding AUTH-742 showed the request-editor save path could drop auth headers when sample refresh ran after the header handoff. Users saw 401 responses in saved samples. Decision: keep the header handoff inside the save path, and keep JSON auto-format only. XML and HTML should remain manual because formatting can change wire bytes. Compatibility: existing saved sample format is unchanged. Verification: `pnpm test -- request-editor` passed. Out of scope: upload preview and broader markup reflow. Plan note: this came from plan step 8.3. No benchmark was supplied.",
       "expected_output": "The agent writes a request-editor commit message that names the save-path/header-handoff behavior, preserves AUTH-742 or the review finding, explains the JSON-only and XML/HTML manual constraint with `should` modality, includes verification, and cuts file inventories, plan-step provenance, generic benefits, and private implementation detail.",
@@ -440,6 +194,22 @@
         "Does not mention `plan step 8.3`, same-plan provenance, or same-session provenance.",
         "Does not claim broad reliability, maintainability, benchmark, rollout, or security benefits beyond the supplied context.",
         "Does not center the body on private component or file names such as `BodyEditor.tsx` when workflow labels carry the durable meaning."
+      ]
+    },
+    {
+      "id": "E12",
+      "name": "Active commit workflow preserves message artifact",
+      "prompt": "Using `vibe-writing`, create the commit for the currently staged changes. Treat commit execution as authorized, but this eval can inspect only your response, so show the commit message, the git message transport you would use, and the post-commit check you would run before reporting completion.\n\nRecent local style: `feat(eval-runner): add auditable skill eval runs`; `docs(vibe-writing): tighten command inference`.\n\nStaged summary: `scripts/eval_runner.py` adds run receipts, finalization, usage parsing, doctor completeness checks, and report comparisons; `skills/skill-quality/SKILL.md` tightens prompt-delivery proof and benchmark interpretation guidance; eval expectations are updated for those contracts. Verification commands passed: `python3 -m unittest tests/test_eval_runner.py`; `python3 scripts/eval_runner.py validate evals/skill-quality/evals.json`.\n\nA prior draft command used separate `git commit -m` values for the subject, two body paragraphs, and each `Verification: ...` line. Do not preserve malformed spacing if the commit-message reference requires a different transport.",
+      "expected_output": "The agent handles a commit-authorized workflow by producing a durable body commit message, preserving verification proof, and naming how it would execute and check the commit-message artifact before completion.",
+      "files": [],
+      "expectations": [
+        "Shown message, transport, and post-commit check follow body-value, verification-provenance, compact-bullet, and transport rules for a commit message with a body.",
+        "Commit message uses a Conventional Commit subject and body that preserve the durable eval-runner and skill-quality context without file-inventory prose or unsupported release/version claims.",
+        "Formats the verification commands as one `Verification:` section with adjacent bullets, not as repeated `Verification: ...` paragraphs.",
+        "Uses or proposes one message file, editor buffer, or complete message payload for the multi-line commit message.",
+        "Does not use repeated `git commit -m` arguments for individual body lines, bullets, verification lines, or trailers.",
+        "Names `git show -s --format=%B HEAD` as the stored-message inspection after creating the commit and says malformed stored output must be amended before reporting completion.",
+        "Preserves commit-execution boundaries by not treating `vibe-writing` as the source of staging, signing, release, or history-mutation rules beyond the supplied commit authorization."
       ]
     }
   ],

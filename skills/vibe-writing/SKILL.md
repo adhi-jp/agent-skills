@@ -1,6 +1,6 @@
 ---
 name: vibe-writing
-description: Use when writing, revising, reviewing, or critiquing vibe-coding development text, source-code comments or docstrings, README/docs, CHANGELOG/release notes, PR descriptions, UI copy, chat replies, progress updates, final summaries, or git commit messages, especially when text must be LLM-readable, meaning-preserving, format-bound, language-aware, or evidence-bound.
+description: Use when the primary task is writing, revising, reviewing, or critiquing vibe-coding development text, source-code comments or docstrings, README/docs, CHANGELOG/release notes, PR descriptions, UI copy, chat replies, progress updates, final summaries, or git commit messages, especially when text must be LLM-readable, meaning-preserving, format-bound, language-aware, or evidence-bound. Treat incidental wording inside another active workflow as auxiliary.
 ---
 
 # Vibe Writing
@@ -15,6 +15,13 @@ artifact's main reader is human.
 This skill controls wording quality and message content. It does not authorize
 commits, releases, staging, PR submission, template changes, or workflow
 shortcuts.
+
+When another workflow is active, use this skill only as auxiliary wording
+guidance unless the user asks for a standalone writing deliverable. Incidental
+progress updates, final summaries, checkpoint message polish, or README/changelog
+phrasing inside planning, execution, review, debug, or release work remain
+subordinate to that workflow's authority, stop gates, verification, release
+policy, and commit rules.
 
 ## Scope Boundaries
 
@@ -143,6 +150,20 @@ depth when the user asks for rationale, verification, limitations, recovery, or
 comparison. Avoid ritual closing offers, generic next steps, and template
 sections when a short answer resolves the request.
 
+Do not turn every progress update or final summary in an active workflow into a
+separate primary writing workflow. Apply the writing rules to the text only
+after the active workflow has determined what can be said.
+When the active workflow has supplied the facts for an incidental progress
+update or final summary and the user asks to send it, write the requested brief
+message directly. Do not replace it with a skill-routing explanation or a
+checklist about how writing should apply.
+Answer how `vibe-writing` applies only when the user asks a meta question about
+skill routing. When the user asks to send, draft, or return the progress update
+or final summary itself, the deliverable is that message.
+Do not treat "not a standalone writing deliverable" as a reason to withhold the
+brief message; it only means the active workflow keeps authority over what the
+message may say.
+
 ### Commit messages
 
 For commit-message work, read `references/commit-messages.md` when the task
@@ -152,6 +173,20 @@ i18n/localization, performance, CI/build/publishing, security/privacy/data-loss,
 thin evidence, mechanical syncs, required trailers, compact bullets, or
 multi-line commit-message transport.
 
+For a multi-line commit message, use one message file, one editor buffer, or one
+complete message payload. Do not use repeated `git commit -m` arguments for body
+lines, bullets, verification lines, or trailers.
+
+Before running `git commit` or an amendment for a message with a body while this
+skill is active, apply `references/commit-messages.md` to the subject shape, body
+value, verification provenance, durable references, compact bullets, trailers,
+and transport.
+
+After creating or amending a commit with a body, inspect the stored message with
+`git show -s --format=%B HEAD`. If the stored message violates this skill, amend
+it before reporting completion. Pure message-drafting tasks do not need this Git
+inspection because no stored commit artifact was created.
+
 When the requested deliverable is the commit message itself, return raw commit
 message text: no Markdown fence, example label, or explanatory prose unless the
 user explicitly asks for that wrapper.
@@ -159,9 +194,11 @@ user explicitly asks for that wrapper.
 Markdown fences become commit-message bytes when pasted into `git commit`, so
 they contaminate subjects, bodies, and trailers.
 
-Keep the boundary clear: this skill may help write the message, but repository
-staging rules, commit authorization, signing, release processes, and workflow
-commands still come from the active project instructions.
+When used with a commit-execution skill, that skill controls staging,
+authorization, command safety, signing, release processes, and history mutation.
+`vibe-writing` controls the commit message artifact: subject wording, body value,
+verification wording, durable references, trailers, compact bullets, and
+multi-line transport.
 
 ## Durable References
 
@@ -208,3 +245,6 @@ Before returning text, check:
 - Did exact-format output stay exact?
 - Did locale and technical-token preservation rules hold?
 - Did durable references replace prompt-only or machine-local context?
+- If text was written through a tool, did the stored artifact match the intended
+  artifact? For created or amended commits with a body, inspect the stored
+  message, not only the command used to create it.

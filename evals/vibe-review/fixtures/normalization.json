@@ -1,0 +1,43 @@
+{
+  "case": "normalization",
+  "target_evidence": {
+    "kind": "working tree against HEAD",
+    "changed_paths": [
+      "src/import.ts",
+      "src/import.test.ts"
+    ],
+    "patch_digest": "sha256:normalization-target"
+  },
+  "review_mode_requested": "adversarial",
+  "raw_reviewer_outputs": [
+    {
+      "backend": "Reviewer A",
+      "angle": "correctness/regression",
+      "id": "A-7",
+      "title": "CSV header aliases are not trimmed",
+      "recommendation": "Normalize header names before matching required columns.",
+      "severity": "high",
+      "confidence": "medium",
+      "location": "src/import.ts:42"
+    },
+    {
+      "backend": "Reviewer B",
+      "angle": "scope/specification alignment",
+      "message": "The importer appears to miss whitespace around headers; this may reject valid files.",
+      "notes": "No source id, location, severity, or confidence was emitted by this backend."
+    },
+    {
+      "backend": "Reviewer C",
+      "angle": "edge-case/security/data-safety",
+      "id": "C-14",
+      "title": "Whitespace in CSV headers breaks required-column detection",
+      "recommendation": "Trim header cells before lookup and add an edge-case test.",
+      "confidence": "high",
+      "location": "src/import.test.ts:18"
+    }
+  ],
+  "pipeline_context": {
+    "user_has_not_selected_findings_yet": true,
+    "ledger_before_run": []
+  }
+}

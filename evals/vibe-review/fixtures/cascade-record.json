@@ -1,0 +1,43 @@
+{
+  "case": "cascade-record",
+  "selected_finding": {
+    "display_id": "F4",
+    "scope_category": "minimal-hygiene",
+    "location": "src/parser.ts:88",
+    "summary": "The CSV parser accepts blank header names after trimming.",
+    "source_reviewer_labels": [
+      "boundary-leak",
+      "architecture"
+    ],
+    "source_reviewer_gate_word": "BLOCKED"
+  },
+  "proposed_fix": {
+    "description": "Replace the parser state machine, change schema inference, update CLI import behavior, and rewrite docs.",
+    "files": [
+      "src/parser.ts",
+      "src/schema.ts",
+      "src/cli/import.ts",
+      "docs/import.md",
+      "tests/import.test.ts"
+    ],
+    "flow_changing": true
+  },
+  "local_evidence": {
+    "reported_case": "empty CSV header cell in contacts.csv",
+    "likely_sibling_case": "header containing only tabs",
+    "callers": [
+      "src/cli/import.ts",
+      "src/api/import.ts"
+    ],
+    "docs": [
+      "docs/import.md"
+    ],
+    "existing_tests": [
+      "tests/import.test.ts"
+    ]
+  },
+  "user_decision": {
+    "reclassify_to_must_fix": "not yet asked",
+    "accept_residuals": "not yet asked"
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "case": "normal-mode",
+  "user_request": "Please run a normal review, not adversarial, for the current working tree.",
+  "target_evidence": {
+    "kind": "working tree against HEAD",
+    "changed_paths": [
+      "src/import.ts",
+      "src/import.test.ts"
+    ],
+    "patch_digest": "sha256:normal-mode-working-tree"
+  },
+  "host_capability": {
+    "adversarial_delegated_path_available": true,
+    "normal_review_backend_available": true,
+    "review_only_behavior": "coordinator reads and reviews without write tools"
+  },
+  "user_choices": {
+    "normal_review_requested": true,
+    "reviewer_count": "not reduced",
+    "angle_set": "not customized",
+    "pipeline_reduction": "not requested"
+  },
+  "raw_backend_output_example": {
+    "backend": "normal coordinator pass",
+    "finding_text": "src/import.ts does not trim header names before lookup.",
+    "format": "free form"
+  }
+}

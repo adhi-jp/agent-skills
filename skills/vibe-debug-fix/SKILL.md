@@ -41,7 +41,7 @@ requirement for unrelated bugs.
 - Greenfield feature work with no existing behavior or reported symptom.
 - Pure review cycles where an active review workflow is already sufficient.
 - General commit, history rewrite, or release decisions unless they are part of
-  debug/fix closure.
+  debug/fix closure and separately authorized for the exact operation.
 - One-line mechanical edits where no symptom, regression, or existing behavior
   is at stake.
 
@@ -70,6 +70,28 @@ Stop before implementation when the current issue lacks any of these:
 
 Explain blockers in user-impact terms: what the user could still see, lose,
 misconfigure, trust incorrectly, or be unable to verify.
+
+## Repository History Boundary
+
+Debug proof authorizes only the verified repair slice. It does not authorize
+staging, committing, stashing, resetting, amending, version changes, release
+preparation, or any other index or history operation.
+
+When debug/fix closure includes a request for repository mutation, first run a
+dirty worktree and index preflight:
+
+- Refresh staged, unstaged, and untracked state.
+- Identify the paths that belong to the verified repair slice.
+- Surface unrelated or ambiguous dirty paths before staging or cleanup.
+- Require explicit operation-specific user consent naming the operation, such
+  as stage, commit, stash, reset, squash, amend, release preparation, or version
+  bump.
+
+Generic permission to "fix it", a completed debug ledger, or a passing test is
+not consent for repository history mutation. Do not stage, stash, reset, amend,
+or otherwise mutate unrelated user changes. If ownership is ambiguous or a
+release/history operation is requested without exact consent, stop with the
+preflight evidence and the smallest decision needed.
 
 ## Reference Routing
 
@@ -248,6 +270,14 @@ Read these bundled references only when their details are needed:
     - Add at least one disconfirming or negative check for the neighboring case
       most likely to have been missed.
 
+16. **Close repository operations separately**
+    - If no staging, commit, stash, reset, amend, release, or other history
+      operation was requested, say none was performed when that matters for
+      closure.
+    - If such an operation was requested, perform the repository history
+      preflight, get operation-specific consent, and keep the operation scoped
+      to paths proven to belong to the repair slice.
+
 ## Stop Conditions
 
 Stop and report a blocker or ask the smallest plan-changing question when:
@@ -278,3 +308,6 @@ Before ending:
   or an explicit residual.
 - Skipped or degraded checks are reported as non-proof with next action.
 - User-side retests, when needed, include exact steps and expected observations.
+- Staging, commit, stash, reset, amend, release, or other history operations
+  were either absent, or explicitly consented after dirty worktree and index
+  preflight and scoped to the verified repair slice.

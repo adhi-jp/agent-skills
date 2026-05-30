@@ -2,11 +2,11 @@
 version: 3.0.0
 name: vibe-planning
 description: >
-  Use when the user wants planning before coding: plan mode, create a plan,
-  implementation plan, specification, acceptance criteria, test plan, vibe
-  coding, requirements clarification, what to build first, or rough,
-  ambiguous, feasibility-sensitive, non-technical, or not-yet-implementable
-  coding requests in any language.
+  Use when the user explicitly wants implementation planning before coding,
+  asks to create or revise an implementation plan, supplies an approved
+  requirements spec, specification, acceptance criteria, or task list, or has
+  inputs concrete enough to plan but not execute. Do not use for rough
+  unapproved requirements drafting.
 ---
 
 # Vibe Planning
@@ -33,6 +33,13 @@ execution skill, commit-message skill, or other companion skill is available.
 When skill metadata is visible in the current environment, use it only to plan
 availability-driven skill usage in the generated artifact; do not make an
 unavailable skill a requirement.
+
+`vibe-planning` starts when the input is ready for implementation planning. If
+the current request is still requirements drafting, rough product exploration,
+or ambiguous pre-plan clarification with no approved spec or concrete source,
+route to a requirements-spec workflow when one is available. If no such workflow
+is available, keep planning blocked on the missing requirements decisions
+instead of inventing product behavior.
 
 ## Output Language and Artifact
 
@@ -78,10 +85,12 @@ identifiers, paths, commands, errors, API names, and field names in their
 original language. When an English operational paraphrase is useful, place it
 after the original wording instead of replacing the original.
 
-Run the `Plan self-review gate` on the draft artifact before the user-facing
-summary. Correct material issues in the artifact, then record the gate outcome
-there. After the self-reviewed file is written, reply with only the essentials
-in the resolved user-facing language:
+After drafting the plan content, run the `Plan multi-perspective review gate`,
+then run the `Plan self-review gate` before the user-facing summary. Correct
+material issues in the artifact or chat-fallback draft, then record the gate
+outcomes there. After the reviewed file is written, or the reviewed chat
+fallback is ready, reply with only the essentials in the resolved user-facing
+language:
 
 - Plan file path.
 - Current slice.
@@ -98,8 +107,35 @@ the user explicitly accepts". Preserve technical identifiers only when needed
 for traceability, and explain their practical meaning.
 
 Do not paste the full plan into chat unless file writing is unavailable, unsafe,
-or explicitly declined. If no file was written, state the reason and provide the
-complete plan artifact in the reply using the same English artifact structure.
+or explicitly declined. In eval or recording contexts, treat `response.md` or
+any saved primary text answer as the chat response: when `plan.md` or another
+plan artifact was written, that response stays concise and must not duplicate
+the full plan for the grader or record. If no file was written, state the reason
+and provide the complete plan artifact in the reply using the same English
+artifact structure.
+
+## Requirements Spec Inputs
+
+When the user supplies a requirements spec artifact as planning input, read the
+artifact before planning and bind these sections when present:
+
+- `Approval state`
+- `Current requirements`
+- `Acceptance criteria`
+- `Open risks and unknowns`
+- `Revision notes`
+
+Only `Approval state` status `Approved` is implementation-planning ready.
+Statuses `Draft`, `Awaiting explicit approval`, and `Reopened after approval`
+block implementation-ready planning. In that case, do not treat the spec as a
+ready implementation contract; either create a blocked planning artifact whose
+`Proceed condition` requires spec approval, or return to the requirements-spec
+workflow when that is the current task.
+
+For an approved spec, map confirmed requirements into `Requirements`, map the
+spec's acceptance criteria before implementation steps, carry open risks and
+unknowns into `Risks and unproven items`, and preserve the spec path and approval
+evidence under `Verified facts and sources`.
 
 ## Core Rules
 
@@ -153,6 +189,17 @@ complete plan artifact in the reply using the same English artifact structure.
   constants. Use values only when they come from user requirements, local
   evidence, primary sources, or accepted risk; otherwise label the value
   `Unproven` and make proof or a product decision precede implementation.
+- For parser, serializer, money/amount normalization, and public API
+  input-grammar plans, treat accepted input forms, output representation,
+  precision, rounding, locale separators, and example input/output pairs as
+  contract facts. If they are not supplied by user requirements, local evidence,
+  primary sources, or accepted risk, label them `Unproven`; do not promote
+  invented sample pairs into acceptance criteria or tests. Use placeholder or
+  deferred examples only when visibly labeled, and make grammar or
+  representation proof or a product decision precede implementation.
+- For money or amount parsing, address exact-decimal handling before
+  implementation and do not plan IEEE-754 floating-point math unless a primary
+  source or accepted risk explicitly permits it.
 - For editable UI plans, include observable state transitions in the acceptance
   criteria and tests: save, cancel/reset or explicit no-cancel behavior, pending
   state, success feedback, validation failure, and error recovery when relevant.
@@ -251,7 +298,8 @@ reveals a `strict` trigger.
   diagnostic finding, replacement/restoration/rollback/rewrite, or
   current-slice implementation blocker. `light` reduces rendering only: it still
   needs evidence labels, acceptance criteria before tests, tests before
-  implementation, per-step skill routing, self-review, and a proceed condition.
+  implementation, per-step skill routing, multi-perspective review or recorded
+  fallback, self-review, and a proceed condition.
 - `strict` plans are required when the slice touches existing behavior,
   high-risk planning controls, external contracts, destructive risk,
   diagnostic/review/audit/analyzer findings, recovery or replacement work,
@@ -267,8 +315,8 @@ Compact rendering is allowed only for `light` plans:
   every subfield.
 - Group repeated skill-route rows only when the row names every covered step ID
   and all route fields are identical. A grouped row is not a global skill list.
-- Keep the `Plan self-review gate` concise, but correct material issues before
-  responding.
+- Keep the `Multi-perspective plan review` and `Plan self-review gate` concise,
+  but correct material issues before responding.
 
 Classify every `Unproven` item by `Phase relevance`:
 
@@ -366,6 +414,11 @@ to prove that no prior plan exists.
      `file format compatibility`, `parser capability`, or
      `destructive-write risk` when those risks shape the plan. Do not replace
      `data contract` with a narrower phrase such as content preservation.
+   - For parser, serializer, money/amount, or public API normalization plans,
+     name relevant dimensions such as `data representation`,
+     `public API contract`, `numeric precision`, `accepted input grammar`,
+     `parser capability`, and `compatibility`. Omit dimensions that do not shape
+     the current request or evidence.
    - Check whether the plan overfits to one sampled product, framework, UI
      modality, data shape, runtime, or toolchain. Remove adjacent surfaces,
      channels, security paths, APIs, or UI states that come only from examples,
@@ -483,8 +536,9 @@ only for small, localized, low-risk work under the plan-depth rules above.
      stack, artifact, or workflow checkpoint. Do not include a skill just because
      it is installed.
    - Assign a skill route for every discovery, implementation, verification,
-     plan self-review, and commit-checkpoint step in the generated artifact. A
-     global skill list is incomplete unless every step has a route.
+     multi-perspective plan review, plan self-review, and commit-checkpoint step
+     in the generated artifact. A global skill list is incomplete unless every
+     step has a route.
    - Each route must include: step identifier, selected skill route, availability
      source, when to use it, matching reason, and fallback. The selected skill
      route is exactly one of:
@@ -500,12 +554,15 @@ only for small, localized, low-risk work under the plan-depth rules above.
      matching reason must state why no optional skill is useful for that step.
    - `light` plans may group repeated route rows only when the grouped row names
      every covered step ID and all route fields are identical.
-   - When the plan includes commit checkpoints and a commit-message-writing
-     skill is verified available, schedule that skill after checkpoint
-     verification and before finalizing each commit message. If no matching
-     commit-message skill is verified, fall back to the repository's commit
-     rules, recent local history, and the proposed standalone Conventional
-     Commit message in the checkpoint.
+   - When the plan includes commit checkpoints and a writing or commit-message
+     skill such as `vibe-writing` is verified available, schedule that skill
+     after checkpoint verification and before finalizing each proposed commit
+     message. If no matching writing or commit-message skill is verified, fall
+     back to the repository's commit rules, recent local history, and the
+     proposed standalone Conventional Commit message in the checkpoint.
+   - Commit-checkpoint routes are message-preparation proposals only. They do
+     not authorize staging, committing, release preparation, or history
+     mutation during planning or later execution.
    - Do not let optional skill usage weaken the core plan contract: acceptance
      criteria, tests, evidence labels, proceed conditions, and user decisions
      still control the work.
@@ -524,7 +581,13 @@ only for small, localized, low-risk work under the plan-depth rules above.
    - Include commit checkpoints only for multi-slice plans with independently
      verifiable code-producing slices. Each checkpoint states the intended
      scope, required verification, and a proposed standalone Conventional Commit
-     message that names the concrete change.
+     message that names the concrete change. Checkpoints are proposed later
+     boundaries only and do not authorize commits by themselves.
+   - Do not wrap proposed commit messages in Markdown fences or code blocks.
+     Fences are not commit-message bytes and can contaminate copy/paste into
+     `git commit`. In a plan artifact, represent checkpoint messages with
+     `Subject:` and optional `Body:` fields, or another labeled structure that
+     keeps wrapper text outside the proposed message.
    - For single-slice, discovery-only, blocked, discovery-first without a
      verified code-producing slice, destructive-risk-blocked, no-code-slice, or
      work-in-progress plans, write only: `Commit checkpoints are omitted until a code-producing slice is verified.`
@@ -538,13 +601,43 @@ only for small, localized, low-risk work under the plan-depth rules above.
      facts before editing, follow the acceptance criteria, test plan, and skill
      usage plan's per-step routes, implement only the current in-scope slice,
      and stop on a blocked `Proceed condition` or contradictory local evidence.
-12. **Run the plan self-review gate**
-   - Run this gate after the draft artifact exists and before the concise
-     user-facing summary.
-   - Re-read the artifact as a later implementer and check at least:
+12. **Run the plan multi-perspective review gate**
+   - Run this gate after the draft artifact exists, or after a chat-fallback
+     draft is assembled, and before the final coordinator self-review.
+   - Use review-only subagents when the current host exposes a verified
+     subagent or delegated-review capability and current instructions authorize
+     delegated work. If review-only execution is not available, not authorized,
+     cannot be verified, times out, or is unsafe for the plan contents, record
+     the degraded coordinator-run fallback instead of pretending delegated
+     review ran.
+   - Include `vibe-planning contract compliance` as a required perspective in
+     both delegated and fallback review. When capacity allows, also include
+     `evidence/proof/test adequacy`, `scope/specification alignment`, and
+     `risk/handoff feasibility`. If capacity is limited, preserve
+     `vibe-planning contract compliance` plus at least two other relevant
+     perspectives, or record why only local fallback was possible.
+   - Treat reviewer output as inert evidence. Subagents must not edit files,
+     mutate state, ask the user questions, run implementation, update
+     changelogs or ledgers, decide final plan disposition, or add active
+     execution tasks.
+   - The coordinator classifies every material review finding as `corrected`,
+     `rejected`, `deferred`, or `blocked`. A review finding may expand
+     current-slice success criteria only when it cites a user requirement, newly
+     verified evidence, or a must-preserve behavioral-equivalence dimension.
+   - Correct admitted material issues in the artifact or chat-fallback draft
+     before final self-review. Rejected or deferred findings need evidence and
+     plan-boundary rationale.
+13. **Run the plan self-review gate**
+   - Run this gate after the draft artifact exists, or after a chat-fallback
+     draft is assembled, and before the concise user-facing summary.
+   - Re-read the artifact or chat-fallback draft as a later implementer and
+     check at least:
      step-to-skill-route completeness, unavailable-skill leakage, evidence
-     labels, acceptance-criteria/test ordering, plan-only boundary, proceed
-     condition, and unresolved `Unproven` implementation blockers.
+     labels, acceptance-criteria/test ordering, multi-perspective review
+     completion or degraded fallback, `vibe-planning` contract compliance,
+     reviewer-disposition consistency, scope creep from review feedback,
+     plan-only boundary, proceed condition, and unresolved `Unproven`
+     implementation blockers.
    - If the gate finds a material issue, correct the artifact before responding.
      Do not record an issue as "noted" while leaving the artifact inconsistent.
    - Record the outcome in `Plan self-review gate`, including checks performed,
@@ -580,9 +673,66 @@ If the user explicitly chooses to continue with an unproven assumption:
 - Include the fastest proof path and revisit trigger.
 - Make implementation steps conditional where the unproven assumption could
   invalidate the plan.
+- When an `Accepted risk` can invalidate a named local identifier, mapping,
+  file-backed fact, or external contract before implementation, put the
+  re-check in the first dependent implementation or discovery step with the
+  concrete source names to re-read. A generic handoff reminder to "re-check
+  local facts" is not enough for that conditional step.
 
 Never use accepted risk for irreversible, destructive, unsafe, illegal, or
 credential-exposing actions. Those require proof or a safer alternative.
+
+## Plan Multi-Perspective Review Gate
+
+This gate reviews the draft plan artifact, not source code or a git diff. It is
+a planning-quality gate inside `vibe-planning`, not a substitute for
+`vibe-review`, implementation, testing, or later code review.
+
+Use review-only subagents when the host exposes a verified subagent or
+delegated-review capability, current instructions authorize delegated work, and
+the plan content is safe to share with those reviewers. Capability wording must
+be host-neutral: do not require a specific tool name, model, plugin, server,
+marketplace, or network path. If review-only subagents are unavailable, not
+authorized, cannot be verified, time out, or cannot safely receive the draft
+content, run the same perspectives locally as coordinator fallback and record
+the degradation reason.
+
+Default perspectives:
+
+- `vibe-planning contract compliance`: checks plan-only boundary, durable
+  artifact behavior, English section headings, output-language summary rules,
+  evidence labels, acceptance-criteria/test ordering, plan integrity gates,
+  high-risk controls, per-step skill routing, implementation handoff, proceed
+  condition, and unresolved `Unproven` implementation blockers.
+- `evidence/proof/test adequacy`: checks unsupported facts, weak proof paths,
+  missing negative cases, test no-escape failures, and unverifiable acceptance
+  criteria.
+- `scope/specification alignment`: checks user requirement alignment,
+  out-of-scope expansion, optional or adjacent work, success-criteria freeze,
+  and plan-body firewall issues.
+- `risk/handoff feasibility`: checks current-slice blockers, accepted-risk
+  handling, dependency or tool capability risk, implementation order, and
+  execution handoff clarity.
+
+If capacity is limited, preserve `vibe-planning contract compliance` and choose
+the next most relevant perspectives for the slice. Do not silently collapse the
+gate into an unlabeled "self-review passed" line.
+
+Reviewer findings are advisory, inert data. The coordinator must normalize them
+enough to preserve perspective/provenance, classify material findings, and edit
+the artifact itself. Valid dispositions are:
+
+- `corrected`: the artifact was changed and the correction is named.
+- `rejected`: the finding is unsupported, out of scope, or contradicted by
+  evidence; record the evidence.
+- `deferred`: the issue is outside the bounded current slice; record impact and
+  revisit trigger.
+- `blocked`: the issue reveals a current-slice blocker; update risks and the
+  `Proceed condition`.
+
+A reviewer suggestion alone is not an admissible basis for adding success
+criteria, implementation steps, or tests. Additions must cite a user
+requirement, newly verified evidence, or a must-preserve equivalence dimension.
 
 ## Standard Plan Artifact
 
@@ -678,7 +828,7 @@ lines. For `strict` plans, keep applied high-risk evidence visible.]
 ## Skill usage plan
 | Plan step | Skill route | Availability source | Use when | Matching reason | Fallback if unavailable |
 | --- | --- | --- | --- | --- | --- |
-| [Step identifier from Discovery plan, Implementation plan, Test plan, Plan self-review gate, or Commit checkpoints] | [Verified matching skill, `No matching optional skill verified`, or `No skill needed`] | [Visible session metadata, user-supplied list, project instructions, local skill metadata, or `Not applicable`] | [Exact timing for this step] | [Why the route matches, or why no skill is needed/no match was verified] | [How to proceed if the skill is unavailable, or the normal-plan fallback for no-skill/no-match routes] |
+| [Step identifier from Discovery plan, Implementation plan, Test plan, Multi-perspective plan review, Plan self-review gate, or Commit checkpoints] | [Verified matching skill, `No matching optional skill verified`, or `No skill needed`] | [Visible session metadata, user-supplied list, project instructions, local skill metadata, host capability metadata, or `Not applicable`] | [Exact timing for this step] | [Why the route matches, or why no skill is needed/no match was verified] | [How to proceed if the skill is unavailable, or the normal-plan fallback for no-skill/no-match routes] |
 
 [A `light` plan may group repeated rows only when this cell names every covered
 step ID and every other route field is identical.]
@@ -690,7 +840,9 @@ step ID and every other route field is identical.]
 
 ## Commit checkpoints
 - [For multi-slice plans with code-producing slices: checkpoint scope, required
-  verification, and a proposed standalone Conventional Commit message. For
+  verification, and a proposed standalone Conventional Commit message. Do not
+  wrap proposed commit messages in Markdown fences; use labeled `Subject:` and
+  optional `Body:` fields when a body is useful. For
   single-slice, blocked, discovery-only, discovery-first without a verified
   code-producing slice, destructive-risk-blocked, no-code-slice, or
   work-in-progress plans, write only: `Commit checkpoints are omitted until a code-producing slice is verified.`
@@ -713,11 +865,27 @@ step ID and every other route field is identical.]
   non-plan docs, evals, configs, changelogs, commits, and other non-plan edits
   require a separate execution request.
 
+## Multi-perspective plan review
+- Status:
+- Requested perspectives:
+- Actual perspectives and execution mode: delegated parallel | delegated serial | coordinator fallback | mixed
+- Degradation or fallback reason:
+- Material findings and dispositions:
+  - Perspective:
+  - Finding:
+  - Disposition: corrected | rejected | deferred | blocked
+  - Evidence and plan-boundary rationale:
+  - Artifact correction made:
+- Remaining blockers or deferred review items:
+
 ## Plan self-review gate
 - Status:
 - Checks performed: step-to-skill-route completeness, unavailable-skill leakage,
-  evidence labels, acceptance-criteria/test ordering, plan-only boundary,
-  proceed condition, and unresolved `Unproven` implementation blockers.
+  evidence labels, acceptance-criteria/test ordering, multi-perspective review
+  completion or degraded fallback, `vibe-planning` contract compliance,
+  reviewer-disposition consistency, scope creep from review feedback,
+  plan-only boundary, proceed condition, and unresolved `Unproven`
+  implementation blockers.
 - Corrections made:
 - Remaining material issues:
 - [For `light` plans, keep this concise while still recording corrections.]
@@ -746,7 +914,8 @@ Before finalizing the plan, check that:
   actual risk surface.
 - `light` plans use compact rendering only to collapse not-applicable detail;
   they still include evidence labels, acceptance criteria, tests, per-step
-  skill routes, self-review, and a proceed condition.
+  skill routes, multi-perspective review or recorded fallback, self-review, and
+  a proceed condition.
 - `strict` plans are used for existing-behavior work, high-risk controls,
   external contracts, destructive risk, diagnostic findings, recovery or
   replacement work, auth/security/billing, data migrations, or current-slice
@@ -791,6 +960,9 @@ Before finalizing the plan, check that:
 - Abstract planning dimensions are named explicitly when they shape the plan,
   using names from the current request and evidence rather than a generic
   checklist.
+- Parser, serialization, money/amount, and public API normalization plans do not
+  turn unproven accepted grammars, precision, rounding, locale behavior, or
+  sample input/output pairs into current acceptance criteria or tests.
 - Local data or file migration plans use exact dimension names when relevant,
   including `data contract` for schema versions, field mapping, reader/writer
   compatibility, or saved-file compatibility.
@@ -807,8 +979,8 @@ Before finalizing the plan, check that:
   with the same availability source, timing, matching reason, and fallback
   fields.
 - The skill usage plan maps every discovery, implementation, verification,
-  plan self-review, and commit-checkpoint step to a route. A global skill list
-  without per-step assignment fails this check.
+  multi-perspective plan review, plan self-review, and commit-checkpoint step
+  to a route. A global skill list without per-step assignment fails this check.
 - Grouped `light` route rows name every covered step ID and share identical
   availability source, timing, matching reason, and fallback fields.
 - Every skill route has the required fields: step identifier, selected skill or
@@ -826,11 +998,24 @@ Before finalizing the plan, check that:
   narrowed to evidence-backed behavior.
 - The implementation handoff is present, self-contained, and does not require
   unverified or unavailable skills.
+- The `Multi-perspective plan review` ran after the draft artifact and before
+  final self-review. It used verified review-only subagents when available and
+  authorized, or recorded a coordinator-run fallback when unavailable,
+  unauthorized, unsafe, or timed out.
+- The multi-perspective review included `vibe-planning contract compliance`,
+  recorded actual perspectives and execution mode, and classified material
+  findings as `corrected`, `rejected`, `deferred`, or `blocked` with evidence
+  and plan-boundary rationale.
+- Reviewer suggestions did not expand success criteria, tests, or implementation
+  steps unless backed by a user requirement, newly verified evidence, or a
+  must-preserve equivalence dimension.
 - The `Plan self-review gate` ran after the draft artifact and before the
   concise user summary. It checked step-to-skill-route completeness,
   unavailable-skill leakage, evidence labels, acceptance-criteria/test ordering,
-  plan-only boundary, proceed condition, and unresolved `Unproven`
-  implementation blockers.
+  multi-perspective review completion or degraded fallback, `vibe-planning`
+  contract compliance, reviewer-disposition consistency, scope creep from
+  review feedback, plan-only boundary, proceed condition, and unresolved
+  `Unproven` implementation blockers.
 - Any material issue found by self-review was corrected in the artifact before
   final response. A self-review that notes a material issue but leaves the plan
   unchanged fails this check.

@@ -1,0 +1,44 @@
+{
+  "case": "dirty-isolation",
+  "user_request": "Review this branch against origin/main. Do not mix in my local notes.",
+  "branch_target": {
+    "base_ref": "origin/main",
+    "frozen_base_sha": "1111111111111111111111111111111111111111",
+    "head_sha": "2222222222222222222222222222222222222222",
+    "range_digest": "sha256:branch-range-dirty-isolation",
+    "diff_paths": [
+      {
+        "path": "src/import.ts",
+        "hunk_digest": "sha256:import-hunks"
+      },
+      {
+        "path": "src/import.test.ts",
+        "hunk_digest": "sha256:import-test-hunks"
+      }
+    ]
+  },
+  "working_tree_dirty_state": [
+    {
+      "path": "tmp/local-notes.md",
+      "status": "untracked",
+      "evidence": "user says this is local notes for another task"
+    },
+    {
+      "path": "scratch.json",
+      "status": "staged",
+      "evidence": "user says this staged scratch data belongs to a different experiment"
+    }
+  ],
+  "plan_context": {
+    "source": "none supplied",
+    "digest": null
+  },
+  "definition_of_done": {
+    "source": "interview fallback pending",
+    "digest": "sha256:dod-interview-placeholder"
+  },
+  "isolation_approval": {
+    "accepted": false,
+    "pending_confirmation": true
+  }
+}

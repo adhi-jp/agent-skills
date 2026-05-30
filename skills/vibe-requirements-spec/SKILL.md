@@ -1,6 +1,6 @@
 ---
 name: vibe-requirements-spec
-description: Use when a user wants to draft, revise, or approve a Markdown requirements spec for a rough, ambiguous, contradictory, creative, non-technical, or underspecified coding goal before implementation planning or coding.
+description: Use when a user wants to draft, revise, save, approve, or explicitly explore requirements for a rough, ambiguous, contradictory, creative, non-technical, or underspecified coding goal before implementation planning or coding, including chat-only requirements exploration.
 ---
 
 # Vibe Requirements Spec
@@ -20,6 +20,13 @@ The spec is input to a later implementation-planning phase. This skill may mark
 the spec approved, but it stops after the spec artifact and concise summary. Do
 not require or name a specific downstream planning workflow unless the user
 named one as context.
+
+Idea exploration alone does not imply permission to write a spec file. If the
+user asks only to brainstorm, compare directions, or explore possibilities and
+does not ask to draft, save, update, or approve a spec artifact, answer in chat
+only or ask a narrow confirmation before writing. If the user declines file
+writing, preserve the discussion as options and the exact next action needed to
+create or update a spec later.
 
 ## When to Use
 
@@ -49,6 +56,8 @@ Do not use this skill when:
   review with no requirement ambiguity.
 - A bug report needs diagnosis of existing behavior rather than pre-plan
   requirement specification.
+- The user explicitly wants a casual answer, factual explanation, or
+  brainstorming unrelated to a coding requirements thread.
 
 ## Core Rules
 
@@ -73,6 +82,8 @@ Do not use this skill when:
   that affect requirements should be recorded as open unknowns or user decisions
   for a later phase unless the user explicitly asked this skill to inspect
   already-provided source material for the spec.
+- Do not write a new spec artifact for chat-only exploration unless the user
+  asks to save the result or confirms that a spec file should be created.
 
 ## Spec Path Rules
 
@@ -96,6 +107,12 @@ new path is shown in the summary.
 When the user provides new information for an existing spec, update the same
 file instead of creating a new unrelated spec. Revision history belongs in the
 spec's `Revision notes` section, not in separate files.
+
+If file writing is unavailable, unsafe, or declined, do not simulate a file
+write. If the user requested a spec artifact, return the complete spec in chat,
+state the intended path or path-selection blocker, and say no file was changed.
+If the user requested chat-only exploration, return options or decisions in
+chat without assigning a spec path.
 
 ## Spec Template
 
@@ -153,6 +170,14 @@ For broad unclear requests, use a grouped confirmation checklist inside
 ```
 
 ## Drafting Workflow
+
+0. **Choose artifact or chat-only mode**
+   - If the user asked to draft, save, update, or approve a requirements spec,
+     proceed with artifact mode.
+   - If the user asked only for ideas, directions, or exploration and did not
+     ask for a saved spec, use chat-only mode or ask before creating a file.
+   - If file writing is unavailable, unsafe, or declined, use the fallback in
+     `Spec Path Rules` and state that no file was changed.
 
 1. **Capture the user's intent**
    - Preserve the user's wording for goals, product terms, audience, examples,
@@ -260,8 +285,14 @@ For broad unclear requests, use a grouped confirmation checklist inside
 
 8. **Return a concise localized summary**
    - Use the user's language for the chat response unless they ask otherwise.
-   - Include the spec path, approval state, blocking decisions or unknowns, and
-     the exact user action needed next.
+   - In artifact mode, include the spec path, approval state, blocking decisions
+     or unknowns, and the exact user action needed next.
+   - In chat-only mode, state that no spec file was written and name the exact
+     user action that would create or update one.
+   - If chat-only mode used an existing spec artifact as context, preserve the
+     current spec path and visible approval state as unchanged context. Do not
+     mark the spec approved, reopened, or planning-ready from brainstorming
+     alone.
    - Stop after the spec summary.
    - If the user explicitly approved the spec and also asked to plan or
      implement, mark the spec approved and say the approved file can be used by
@@ -289,6 +320,8 @@ this skill is active.
 ## Common Mistakes
 
 - Creating a new spec when the current conversation already has a spec path.
+- Writing a spec file for chat-only brainstorming when the user did not ask to
+  save or approve an artifact.
 - Treating "looks good" or "go ahead" as spec approval without clear approval of
   the current artifact.
 - Writing an implementation plan, task breakdown, verification command
@@ -328,17 +361,21 @@ this skill is active.
 
 Before responding, check:
 
-- Did you create or update only the requirements spec artifact?
-- Did you reuse the current spec path when one was available?
-- Does the spec use the stable headings, including `Approval state`?
+- In artifact mode, did you create or update only the requirements spec
+  artifact?
+- In chat-only mode, did you avoid writing a spec artifact and state the next
+  action needed to create one?
+- In artifact mode, did you reuse the current spec path when one was available?
+- In artifact mode, does the spec use the stable headings, including
+  `Approval state`?
 - Are confirmed requirements, proposed defaults, options, decisions,
   assumptions, out-of-scope items, acceptance criteria, and unknowns separated?
-- Is approval state one of `Draft`, `Awaiting explicit approval`, `Approved`, or
-  `Reopened after approval`?
-- If approval is marked `Approved`, did the user explicitly approve the current
-  spec artifact?
-- If requirements changed after approval, did you reopen the spec and require
-  renewed explicit approval?
+- In artifact mode, is approval state one of `Draft`, `Awaiting explicit
+  approval`, `Approved`, or `Reopened after approval`?
+- In artifact mode, if approval is marked `Approved`, did the user explicitly
+  approve the current spec artifact?
+- In artifact mode, if requirements changed after approval, did you reopen the
+  spec and require renewed explicit approval?
 - If brainstorming was used, are ideas clearly marked as options rather than
   confirmed requirements, and are there two to five options?
 - Did every build-changing dimension named or implied by the user appear in one
@@ -361,7 +398,12 @@ Before responding, check:
 - For billing, permission, security, account-setting, recipient, or routing
   changes, did you still classify auditability as required, deferred, or a user
   decision?
-- Does the chat summary include the spec path, approval state, blockers or
-  unknowns, and exact next user action?
-- Does the response stop after the spec artifact and summary even if the user
-  approved the spec, said to go ahead, or the next phase seems obvious?
+- In artifact mode, does the chat summary include the spec path, approval state,
+  blockers or unknowns, and exact next user action?
+- In chat-only mode, does the response state that no spec file was written and
+  name the exact next user action for artifact drafting or approval?
+- In chat-only mode with an existing spec artifact, did you preserve the current
+  spec path and visible approval state as unchanged context?
+- Does the response stop after the spec artifact and summary, or after the
+  chat-only exploration response, even if the user approved the spec, said to go
+  ahead, or the next phase seems obvious?

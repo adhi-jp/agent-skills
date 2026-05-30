@@ -1,0 +1,17 @@
+{
+  "case": "artifact-only-request",
+  "user_request": "Use the review workflow on evals/vibe-review/fixtures/artifact-only/implementation-plan.md.",
+  "available_evidence": {
+    "listed_context_path": "evals/vibe-review/fixtures/artifact-only/implementation-plan.md",
+    "context_path_contains_plan_text": true,
+    "working_tree_diff_supplied": false,
+    "branch_range_supplied": false,
+    "base_ref_supplied": false,
+    "non_empty_git_backed_target_supplied": false
+  },
+  "user_supplied_target_description": "the plan document itself",
+  "notes": [
+    "No patch, committed range, or base-ref comparison is provided in this fixture.",
+    "The plan text may be useful context for ordinary planning or document review."
+  ]
+}

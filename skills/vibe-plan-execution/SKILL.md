@@ -25,7 +25,7 @@ for this skill.
 
 This skill executes any concrete bound implementation plan. The plan may come
 from a planning workflow, a hand-written specification, an issue, a task list,
-or the current conversation.
+or an inline plan supplied by the user.
 
 Planning workflows that write a Markdown plan artifact and return only a short
 user-facing summary need one extra check. For any plan source, when a local plan
@@ -35,10 +35,15 @@ directly:
 
 - `Goal`, `Requirements`, and `Acceptance criteria` define the behavior
   contract for the current slice.
-- `Verified facts and sources` is reusable evidence; re-check workspace facts
-  that may have changed since planning.
+- `Verified facts and sources` is reusable plan evidence. Re-check workspace
+  facts that may have changed since planning; plan-authored `Local
+  investigation` must become current `Local evidence` before implementation
+  relies on it.
 - `Test plan` defines the first verification path unless local evidence shows it
   is stale or insufficient.
+- `Skill usage plan`, when present, defines per-step route intent. Bind it,
+  verify the relevant skill availability in the current environment before use,
+  and keep the plan's fallback when a route is unavailable.
 - `Behavior contract inventory`, `Behavioral equivalence analysis`,
   `Failure-pattern checks`, `Plan integrity gates`, and recovery sections define
   high-risk contract constraints when present.
@@ -99,6 +104,11 @@ Do not use this skill for:
 - Do not implement outside the plan unless the Plan Deviation Gate has passed
   and the user explicitly agrees. When an unplanned change appears necessary,
   explain the reason, impact, and closest plan-preserving alternative first.
+- Missing commit authorization does not block an otherwise authorized
+  implementation slice. When the plan's proceed condition and the user's
+  instruction to execute or implement the plan allow implementation but do not
+  authorize commits, implement and verify the slice, then stop before staging,
+  committing, or other history mutation.
 - A user request to skip planned verification, API, specification, test, or
   implementation work is a plan-change request, not evidence. Verify first or
   stop for a planning update when the skipped work affects correctness, data,
@@ -139,7 +149,7 @@ whether implementation may proceed:
 - `Primary source`: official documentation, authoritative specifications,
   upstream source, vendor docs, or user-provided source material.
 - `Accepted risk`: an `Unproven` item explicitly accepted in the bound plan or
-  current conversation, with impact and revisit trigger preserved.
+  by the user for the active request, with impact and revisit trigger preserved.
 - `Unproven`: memory, inference, unchecked user claims, secondhand summaries, or
   assumptions not yet backed by the plan, local evidence, or a primary source.
 
@@ -191,6 +201,8 @@ deviation.
      dimensions, recovery or known-good evidence, diagnostic-scope controls,
      failure-pattern applicability, plan integrity gates, and current-slice
      `Unproven` or `Accepted risk` items.
+   - Extract `Skill usage plan` rows when present and map them to the current
+     implementation, proof, review, and communication steps.
    - Quote or paraphrase the plan's `Proceed condition` when it has one. For
      artifact-backed planning outputs, read the `Proceed condition` before other
      sections.
@@ -201,10 +213,21 @@ deviation.
      implementation, stop and ask for a planning update instead of filling it in.
 2. **Verify before editing**
    - Inspect the relevant files, tests, configuration, schemas, and docs.
+   - Re-check any plan-authored `Local investigation` that affects the current
+     slice and record the current workspace result as `Local evidence` before
+     using it.
+   - Verify current availability for any `Skill usage plan` route before
+     relying on that route; if unavailable, use the plan's fallback instead of
+     inventing a companion workflow.
    - Use official docs or upstream source for external APIs, framework rules,
      product limits, permissions, data contracts, and unstable facts.
    - Compare the plan with local reality. Record conflicts before choosing an
      implementation path.
+   - If a planned inspection step is required before code or tests and the
+     relevant files cannot be read, stop at the blocker and proof path. Do not
+     draft implementation code, test templates, import paths, helper names, TTL
+     values, schemas, or assertions for that slice until the inspection becomes
+     current `Local evidence`.
    - Treat omitted or stale high-risk sections as plan problems when their
      preconditions still apply locally; do not silently replace them with a
      weaker proof path.
@@ -237,8 +260,17 @@ deviation.
    - Review the final diff against the plan's acceptance criteria and non-goals.
    - Report any skipped check with the reason and residual risk.
 7. **Commit verified checkpoints when authorized**
-   - Commit only when the user explicitly authorized commits or the bound plan
-     includes commit checkpoints the user asked to execute.
+   - Treat commit checkpoints in a bound plan as proposed commit boundaries, not
+     commit authorization.
+   - Commit only when the user explicitly authorizes the exact commit operation,
+     or the bound plan approval text separately and explicitly authorizes commit
+     execution for the requested work.
+   - "Execute this plan", "implement the plan", or a `Commit checkpoints`
+     section alone is not commit consent.
+   - If implementation is authorized but commit execution is not, continue the
+     planned implementation and verification work, then report the verified
+     uncommitted state and the proposed checkpoint message. Do not stop before
+     editing merely to ask whether to commit later.
    - Commit after each completed and verified phase, slice, or checkpoint. Keep
      each commit logically scoped to the verified change.
    - Do not commit discovery-only, unverified, failing, or work-in-progress states
@@ -249,6 +281,10 @@ deviation.
      or plan labels. Avoid references like `per the plan`, `above`,
      `as requested`, `Phase 1`, `step 2`, or `implementation plan`; name the
      concrete change instead.
+   - When reporting a proposed commit message, write the commit-message bytes as
+     raw message lines or inline text. Do not wrap the message itself in
+     Markdown fences, labels, or explanatory wrappers that could be copied into
+     the commit.
 
 ## Stop Conditions
 
@@ -271,6 +307,10 @@ Stop before implementation, or pause an in-progress implementation, when:
 - The only available path is destructive, irreversible, credential-exposing, or
   unsafe without additional proof or permission.
 
+Missing commit authorization by itself is not a stop condition for an
+implementation-ready slice. It only blocks staging, committing, amending,
+stashing, resetting, release work, or other repository history mutation.
+
 When stopping, explain:
 
 1. What part of the plan is blocked.
@@ -285,6 +325,10 @@ When stopping, explain:
   conflicts with acceptance criterion 3."
 - When bound to a plan file, include the path in the initial binding note so the
   user can see which artifact controls the work.
+- When bound to an inline plan, name the plan title or goal, such as `inline
+  Payment Webhook Plan` or `inline password-reset regression plan`. Do not
+  describe the source as the current conversation, current prompt, current
+  instruction, or eval workspace in user-facing output.
 - Include the plan's `Proceed condition` in the initial binding note or the
   first blocker notice, even when later local evidence overrides it.
 - When no concrete plan exists, say implementation is blocked and planning is
@@ -296,6 +340,11 @@ When stopping, explain:
 - Do not bury plan deviations in the final summary. Call them out before editing
   with the exact plan item, checks performed, evidence, impact, closest
   plan-preserving alternative, and decision needed.
+- Keep execution summaries durable. Replace prompt-local or harness-local
+  phrases such as `this eval`, `as requested`, `above`, `current prompt`, or
+  `current conversation`, `current instruction`, and `this eval workspace` with
+  the concrete plan title, file path, provided fixture workspace, workspace
+  access state, or explicit user instruction they refer to.
 - In the final response, include the implemented slice, verification performed,
   plan deviations or blockers, and any remaining planned steps.
 
@@ -317,8 +366,19 @@ Before finalizing:
 - Every implementation-affecting or decision-affecting claim came from `Plan`,
   `Local evidence`, `Primary source`, or scoped `Accepted risk`, and user-facing
   decisions used those labels even when no code was edited.
+- Planned inspection blockers stopped before code or test templates for the
+  affected slice.
 - False or infeasible plan items were challenged with evidence and alternatives.
 - Tests or proof checks matched the plan's acceptance criteria.
 - The final diff was reviewed against plan scope and non-goals.
+- `Skill usage plan` rows, when present, were bound and route availability was
+  re-checked before use.
+- Commit checkpoints were treated as proposals unless explicit user or
+  plan-approval commit authorization named the operation.
+- Missing commit authorization, when that was the only missing authorization,
+  did not block an otherwise ready implementation slice; execution stopped
+  before repository history mutation instead.
 - Authorized commits, if any, were made only after verified checkpoints and used
   standalone Conventional Commit messages without prompt or plan-label leaks.
+- Proposed commit messages were not wrapped in Markdown fences, and execution
+  summaries did not rely on prompt-local or harness-local references.

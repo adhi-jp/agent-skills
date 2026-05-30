@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-requirements-spec",
-  "purpose": "External eval set for vibe-requirements-spec. Prompts live outside skills/ so they are not bundled as skill content. Covers Markdown requirements-spec artifact drafting before implementation planning, same-spec revision, explicit approval persistence, small-request question limits, broad confirmation checklists, creative requirement exploration, downstream-workflow neutrality, non-technical communication, scope boundaries, defaults versus decisions, write-safety, auditability, contradiction handling, and stop behavior after approval or handoff wording.",
+  "purpose": "External eval set for vibe-requirements-spec. Prompts live outside skills/ so they are not bundled as skill content. Covers Markdown requirements-spec artifact drafting before implementation planning, same-spec revision, explicit approval persistence, small-request question limits, broad confirmation checklists, creative requirement exploration, chat-only ideation, downstream-workflow neutrality, non-technical communication, scope boundaries, defaults versus decisions, write-safety, auditability, contradiction handling, and stop behavior after approval or handoff wording.",
   "common_assertions": [
-    "Output creates or updates a Markdown requirements spec artifact at an explicit path and returns a concise chat summary with spec path, approval state, blockers or unknowns, and exact next user action.",
+    "When spec-artifact drafting is in scope, output creates or updates a Markdown requirements spec artifact at an explicit path and returns a concise chat summary with spec path, approval state, blockers or unknowns, and exact next user action; when chat-only exploration or declined writing is in scope, output clearly says no spec file was changed and gives the exact next action to create or update one.",
     "While the skill is active, output does not create implementation plans, implementation task entries, code changes, tests, verification command lists, commits, release work, changelog edits, or unrelated files.",
     "Output separates confirmed requirements, proposed defaults, ideas or options, user decisions, assumptions, out-of-scope items, acceptance criteria, open risks or unknowns, and approval state instead of blending them into a single recommendation.",
-    "Output uses an approval state such as Draft, Awaiting explicit approval, Approved, or Reopened after approval; it does not use planning-readiness labels as the handoff contract.",
+    "When artifact mode applies, output uses an approval state such as Draft, Awaiting explicit approval, Approved, or Reopened after approval; when chat-only mode uses an existing spec artifact as context, output preserves the visible approval state as unchanged context; it does not use planning-readiness labels as the handoff contract.",
     "Readiness, confirmation, completed checklist, handoff, or `go ahead` wording is not treated as approval unless it clearly approves the current spec artifact.",
     "If the conversation or artifact already identifies a spec path, output updates that same spec instead of creating a new unrelated spec.",
     "Output does not require, name, or route to a specific downstream skill or workflow; it may refer generically to a later implementation-planning phase after approval.",
@@ -127,7 +127,7 @@
       "id": "E07",
       "name": "Creative dashboard brainstorming stays optional",
       "prompt": "The direction is not decided yet. I want a team activity dashboard that people actually want to check every morning. Use a few creative ideas while clarifying the requirements.",
-      "expected_output": "The agent drafts a requirements spec with a small set of creative dashboard directions, keeps them as options until the user chooses, and asks which direction should become the requirement basis.",
+      "expected_output": "The agent presents a small set of creative dashboard directions, keeps them as options until the user chooses, avoids implementation planning, and asks which direction should become the requirement basis before any approval or saved spec.",
       "files": [],
       "expectations": [
         "Uses the user's active language for the user-facing summary.",
@@ -138,7 +138,7 @@
         "Does not treat all brainstormed ideas as confirmed requirements.",
         "Does not write an implementation plan.",
         "Asks which option, combination, or direction the user wants to adopt before approval.",
-        "Keeps approval state unapproved until the user chooses a direction and approves the spec."
+        "Does not mark the exploration approved or planning-ready before the user chooses a direction and approves any spec artifact."
       ]
     },
     {
@@ -167,6 +167,7 @@
         "Uses the existing path specs/report-rename-spec.md as the current spec path.",
         "Does not create a new unrelated spec path.",
         "Adds archived-report blocking as a confirmed requirement or decision based on wording.",
+        "Produces a recorded non-response spec artifact at `specs/report-rename-spec.md`; a claim in `response.md` or an inline fenced draft alone is not enough.",
         "Records the update in Revision notes.",
         "Keeps approval state Draft or Awaiting explicit approval rather than Approved.",
         "Returns a concise summary with spec path, approval state, and exact next user action."
@@ -201,12 +202,31 @@
         "Asks for renewed explicit approval tied to the current spec.",
         "Does not continue into implementation planning or coding."
       ]
+    },
+    {
+      "id": "E12",
+      "name": "Chat-only ideation does not surprise-write spec",
+      "prompt": "We have an existing draft at `specs/product-experiments-spec.md`. Before deciding whether the spec should change, I want to brainstorm two or three directions for the experiment workflow. Use the listed fixture file as the current spec context.",
+      "expected_output": "The response should handle requirements exploration against an existing draft using the supplied fixture context.",
+      "files": [
+        "evals/vibe-requirements-spec/fixtures/chat-only-existing-spec/product-experiments-spec.md"
+      ],
+      "expectations": [
+        "Treats the request as chat-only exploration because the user asks to brainstorm before deciding whether the spec should change, without asking to draft, save, update, or approve the spec.",
+        "Does not claim to create, update, or write `specs/product-experiments-spec.md` or another spec artifact.",
+        "Uses the existing spec fixture only as context for optional directions.",
+        "Presents two or three candidate directions as ideas or options, not confirmed requirements.",
+        "States that no spec file was changed.",
+        "States that the current spec path and visible approval state `Awaiting explicit approval` remain unchanged.",
+        "Names the exact next user action needed to update or approve the spec later.",
+        "Does not continue into implementation planning, tests, code edits, commits, release work, or changelog edits."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.45,
     "per_eval_expectation_weight": 0.55,
     "pass_threshold": 0.8,
-    "notes": "These evals focus on observable requirements-spec artifact behavior rather than subjective writing quality. They pressure the skill's main contracts: spec file creation or update, same-spec continuity, explicit approval persistence, question-load control, broad checklist mode, downstream-workflow neutrality, scope separation, write-safety, auditability, and stop behavior after approval or handoff wording."
+    "notes": "These evals focus on observable requirements-spec behavior rather than subjective writing quality. They pressure the skill's main contracts: spec file creation or update, chat-only no-write exploration, same-spec continuity, explicit approval persistence, question-load control, broad checklist mode, downstream-workflow neutrality, scope separation, write-safety, auditability, and stop behavior after approval or handoff wording."
   }
 }

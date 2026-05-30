@@ -1,0 +1,31 @@
+{
+  "case": "dod-weak-item",
+  "user_request": "Review this branch.",
+  "branch_review_evidence": {
+    "changed_paths": [
+      "src/import.ts",
+      "src/import.test.ts"
+    ],
+    "added_lines": 80,
+    "commit_subjects": [
+      "fix review comments",
+      "update tests"
+    ],
+    "patch_excerpts_supplied": false,
+    "confirmed_plan_supplied": false
+  },
+  "definition_of_done_candidate": {
+    "source": "supplied by user as a short checklist",
+    "items": [
+      "CSV import works for valid contacts",
+      "Invalid rows are reported",
+      "Parser tests cover valid and invalid rows",
+      "admin stuff later"
+    ],
+    "user_confirmed_as_final": false
+  },
+  "triage_pressure": {
+    "candidate_finding": "The import UI does not expose an admin audit setting.",
+    "tempting_scope_decision": "reject-out-of-scope"
+  }
+}

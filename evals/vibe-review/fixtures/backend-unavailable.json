@@ -1,0 +1,32 @@
+{
+  "case": "backend-unavailable",
+  "user_request": "Run the default adversarial review on this branch.",
+  "target_evidence": {
+    "kind": "branch range",
+    "base_ref": "origin/main",
+    "head_ref": "feature/import",
+    "changed_paths": [
+      "src/import.ts",
+      "src/import.test.ts"
+    ],
+    "range_digest": "sha256:branch-range"
+  },
+  "host_capability": {
+    "selected_adversarial_delegated_path_available": false,
+    "selected_path_unavailable_reason": "delegated reviewer launcher is disabled in this host",
+    "review_only_delegation_enforceable": "not applicable because the selected path cannot start",
+    "other_possible_paths": [
+      "ask user for another available backend",
+      "ask user whether to opt in to normal review"
+    ],
+    "codex_plugin_configured": false
+  },
+  "user_choices": {
+    "normal_review_opt_in": false,
+    "fallback_backend_approval": null
+  },
+  "evidence_limits": [
+    "No exact host command contract is supplied.",
+    "No review-only enforcement guarantee is supplied for a fallback path."
+  ]
+}

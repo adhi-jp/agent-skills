@@ -1,6 +1,6 @@
 ---
 name: vibe-review
-description: Use when the user asks for vibe-coding review of a git diff, branch, base ref, implementation plan, or review/fix loop where scope triage, delegated reviewers, specification gaps, or cascade-safe fixes may matter.
+description: Use when the user asks for vibe-coding review of a git diff, working tree, branch, base ref, git-backed plan or document change, or review/fix loop where scope triage, delegated reviewers, specification gaps, or cascade-safe fixes may matter.
 ---
 
 # Vibe Review
@@ -37,14 +37,16 @@ Use this skill when the user asks to review:
 - A current working tree diff.
 - A branch against its base branch.
 - An explicit base ref, commit, tag, or branch comparison.
-- A code, document, or plan change that needs iterative review and selected
-  fixes.
+- A code, document, or plan change represented in one of those git-backed
+  targets and needing iterative review or selected fixes.
 - Findings from another review backend that need validity checking, DoD triage,
   rejected-ledger handling, cascade gates, or terminal audit.
 
 Do not use this skill for:
 
 - Drafting requirements or implementation plans from scratch.
+- Standalone plan or document artifact review with no git-backed diff target.
+  This skill does not define an artifact-only review mode.
 - One-shot lint cleanup where no review target or DoD/scope judgment is needed.
 - Background or automatic checks that the user did not ask to run.
 - Empty review targets. Stop and report that there is no diff to review.
@@ -95,6 +97,12 @@ include:
 - `dirty_path_isolation_candidates`: paths, status, reason, and evidence.
 - `review_focus`: target kind, user-stated focus, and excluded surfaces.
 
+When rendering a structured startup contract, wrapper keys are allowed only if
+the contract fields remain unambiguous. Record effective/defaulted contract
+values, not only raw user input: when no user override exists and host capacity
+allows three reviewers, requested and actual reviewer count are both 3. Include
+the run-level decision ledger in the startup record.
+
 Ask about backend selection only when the user customizes the contract, requests
 another backend, or the selected adversarial delegated path is unavailable.
 Normal review is an explicit opt-in alternative, not a competing default.
@@ -120,6 +128,10 @@ The first supported target modes are:
   frozen base SHA.
 - `base-ref`: `HEAD` against a user-supplied ref, resolved once to a frozen base
   SHA.
+
+Plan, spec, or document artifacts may inform DoD and scope only when they are
+bound as inert context to a git-backed review target. They are not a
+`review_target` by themselves.
 
 Freeze one coordinator-owned `review_target` before review. Its identity must
 include scope, base ref and frozen base SHA where applicable, target head where
@@ -155,6 +167,9 @@ NUL-safe, and recovery-oriented:
   or recovery handoff. Restore multiple stash records in recorded safe order,
   halt on conflict or verification failure, and do not drop any stash record
   until every record applies and verifies.
+- Keep isolated paths out of final squash, commit, amend, or reset staging
+  unless the user gives operation-specific consent after restore and dirty-state
+  ownership audit.
 - On cancellation or abort before normal termination, ask whether to restore
   isolated files now or leave the stash for manual recovery. If the user does
   not explicitly choose restore, leave every stash record intact and print
@@ -366,6 +381,10 @@ changed implementation cannot define its own expected behavior. Each material
 DoD item needs a non-diff anchor or inherited anchor-strength proof.
 Short or vague commit subjects, filenames, ambient repository state, and
 reviewer findings are not material DoD anchors by themselves.
+When rejecting proposal mode, record every material rejected evidence source
+that is present, including short or vague commit subjects and missing content
+excerpts; do not stop at the first blocking source when other weak sources would
+otherwise look accepted.
 
 Before using confirmed plan or conversation evidence, recompute its digest from
 the current local or pasted content. A digest mismatch is a trust-binding
@@ -534,6 +553,9 @@ per-finding and batch gates before edits.
 After edits, write a Phase 6 note for every applied finding with invariant,
 surfaces checked, tests or verification, known residuals, and likely next-review
 attack. Missing Phase 6 notes abort the next cycle and terminal audit.
+Pre-edit cascade records that discuss a proposed edit must name those Phase 6
+note fields even when the current gate blocks editing, so the later edit path
+does not lose the post-edit record contract.
 
 ## Cycles, Terminal Audit, And History Operations
 

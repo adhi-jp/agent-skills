@@ -32,6 +32,10 @@ Activate this skill only when the current turn has one of these signals:
 Do not activate when the user merely mentions "vibe coding" as a style,
 repository label, quoted text, background concept, or example.
 
+After `vibe-coding` is already active, later related turns may continue through
+Routing State without a new activation signal. Do not treat that continuation as
+a fresh activation.
+
 If activation lacks a concrete coding instruction, ask for the instruction and
 do not select a downstream skill yet. Keep this clarification narrow: do not
 present a route menu, availability diagnosis, or specialist boundary summary
@@ -143,7 +147,10 @@ unless it clearly approves the current spec artifact.
 
 After `vibe-requirements-spec` records explicit approval, preserve its current
 stop-after-approval boundary. Stop in that turn and record that the next related
-user instruction routes to `vibe-planning`.
+user instruction routes to `vibe-planning`. That next route is orchestrator
+state owned by `vibe-coding`; it does not require standalone
+`vibe-requirements-spec` to name a downstream workflow or continue into planning
+in the same turn.
 
 ### Implementation Planning
 
@@ -180,8 +187,9 @@ feedback, rough repair requests, tool failures, and runtime artifact mismatches
 to `vibe-debug-fix`.
 
 Route review targets and review/fix loops to `vibe-review`, including requests
-to review a diff, working tree, branch, base ref, implementation plan, document
-change, findings, scope, Definition of Done alignment, or gated fixes.
+to review a diff, working tree, branch, base ref, git-backed implementation
+plan or document change, findings, scope, Definition of Done alignment, or
+gated fixes.
 
 Route wording, message content, localization, or text-format deliverables to
 `vibe-writing` when there is no review target, Definition-of-Done triage, or
@@ -194,11 +202,13 @@ when the primary phase allows it.
 Downstream specialist boundaries are authoritative:
 
 - `vibe-requirements-spec` writes or updates only the current requirements spec
-  artifact and stops after approval.
+  artifact, stays downstream-neutral while active, and stops after approval.
 - `vibe-planning` writes implementation-plan artifacts only and does not
   authorize same-turn implementation.
 - `vibe-plan-execution` requires a concrete bound plan and its proceed or
-  accepted-risk condition before code execution.
+  accepted-risk condition before code execution, then preserves the bound plan's
+  scope, acceptance criteria, required documentation or changelog coupling,
+  release policy, and verification path.
 - `vibe-debug-fix` owns existing-feature diagnosis and repair proof.
 - `vibe-review` owns review target selection, delegated review coordination,
   scope triage, gated fixes, terminal audit, and history-operation consent.
@@ -210,18 +220,39 @@ stopping after an artifact, summary, approval, or proceed-condition boundary.
 
 Auxiliary skills are allowed only when their visible description matches a
 subtask and they do not weaken the selected primary phase's write boundary,
-approval boundary, stop condition, proceed condition, release policy, or commit
-rules. Non-`vibe-*` domain skills are auxiliary only in this first
-implementation; they are not first-class primary routes.
+approval boundary, stop condition, plan binding, proceed condition, acceptance
+criteria, required documentation or changelog coupling, verification path,
+release policy, or commit rules. Non-`vibe-*` domain skills are auxiliary only
+in this first implementation; they are not first-class primary routes.
 
 ## User-Facing Output
 
-Use the user's language for chat summaries. Preserve skill names, file paths,
-commands, enum values, field names, and technical identifiers verbatim.
+Before writing a route description, apply this language gate.
+
+Choose the user-facing route-description or summary language in this order:
+
+1. An explicit output-language instruction in the current prompt.
+2. The clear dominant language of a represented current user turn, including
+   quoted current-user instructions and labeled or enumerated represented-turn
+   examples, when the task asks you to classify or describe route behavior for
+   that represented turn. If all represented turns share one clear language, use
+   it for the whole route response, including headings.
+3. The active user's conversational language.
+
+Do not inherit the surrounding benchmark, orchestrator, or executor-session
+language when it differs from a represented current user instruction whose
+route behavior you are simulating. Apply the selected language to headings,
+bullets, rationale, and summaries. Preserve skill names, file paths, commands,
+enum values, field names, and technical identifiers verbatim.
 
 Show concise routing rationale when the phase changes, the selected route is not
 obvious, a specialist is unavailable, or no matching specialist was verified and
 that affects user expectations. Avoid ceremony on ordinary same-phase turns.
+When a route description is for a current-turn activation signal, name the
+activation source briefly, such as explicit invocation, host-provided signal, or
+direct instruction. For continuation turns with active routing state but no
+current-turn activation signal, continue from that state without inventing a new
+activation source.
 
 Ask only for decisions that materially affect scope, behavior, data handling,
 permissions, verification, accepted risk, or workflow safety and cannot be
@@ -231,15 +262,21 @@ determined from local evidence or the active artifact.
 
 Before acting under `vibe-coding`, confirm:
 
-- Activation is explicit and includes a concrete coding instruction, or the next
-  response asks for that instruction without routing.
+- The turn has explicit current activation, or it is a later related turn in an
+  active workflow, or the next response asks for the missing instruction without
+  routing.
+- Current-turn activation route descriptions name the activation source, while
+  active-state continuation turns do not invent one.
 - The current turn is classified against the active routing state.
 - Any named downstream route has visible metadata.
 - Exactly one primary downstream `vibe-*` phase is selected when a specialist
   matches.
 - Ambiguous approval or readiness wording has not been upgraded into approval or
   execution.
-- Specialist write, approval, stop, proceed, review, release, and commit
-  boundaries remain intact.
+- Route descriptions for represented user turns use the output-language gate,
+  not the surrounding benchmark, orchestrator, or executor-session language.
+- Specialist write, approval, stop, plan-binding, proceed,
+  acceptance-criteria, review, changelog-coupling, verification, release, and
+  commit boundaries remain intact.
 - Cancellation, replacement, unrelated top-level invocation, and finish-gate
   end conditions clear or suspend live routing state.

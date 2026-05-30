@@ -1,0 +1,34 @@
+{
+  "case": "startup-contract",
+  "user_request": "Review my current uncommitted changes.",
+  "target_evidence": {
+    "kind": "working tree against HEAD",
+    "changed_paths": [
+      "src/import.ts",
+      "src/import.test.ts"
+    ],
+    "patch_digest": "sha256:startup-fixture-working-tree",
+    "dirty_paths_outside_target": []
+  },
+  "plan_context": {
+    "confirmed": true,
+    "source": "docs/import-plan.md",
+    "digest": "sha256:confirmed-plan"
+  },
+  "definition_of_done": {
+    "confirmed": true,
+    "source": "user accepted checklist",
+    "digest": "sha256:confirmed-dod"
+  },
+  "host_capability": {
+    "default_adversarial_path_available": true,
+    "review_only_delegation_enforceable": true,
+    "parallel_reviewers_available": 3
+  },
+  "user_choices": {
+    "mode": "not specified",
+    "backend": "not specified",
+    "reviewer_count": "not specified",
+    "cycle_policy": "not specified"
+  }
+}

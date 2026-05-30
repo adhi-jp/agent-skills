@@ -71,6 +71,14 @@ Changes after approval reopen the spec and require renewed approval. Approved
 specs can feed a later implementation-planning phase, but this skill still stops
 after updating the spec and returning a concise localized summary with the spec
 path, approval state, blockers or unknowns, and exact next user action.
+Chat-only ideation does not write a spec artifact unexpectedly: when the user
+only asks to brainstorm or explicitly declines file edits, it keeps ideas in
+chat, states that no spec file changed, and names the action needed to create or
+update a spec later. When an existing spec artifact is used as context, the
+current spec path and visible approval state remain unchanged context rather
+than a new approval or planning handoff. If file writing is unavailable, unsafe,
+or declined after a spec artifact was requested, it returns the spec content in
+chat with the fallback reason instead of claiming a file write.
 
 Small requests ask no more than three direct questions, mark recommended
 defaults for option sets, and move lower-impact unknowns into defaults,
@@ -109,6 +117,12 @@ shape could affect the symptom, and keep unreproduced symptoms and causal
 hypotheses labeled as unproven. It separates current-slice blockers from
 deferred decisions so optional product constants or future enhancements do not
 block a bounded slice after acceptance criteria are narrowed.
+It starts only when inputs are ready for implementation planning: explicit
+planning requests, approved requirements specs, or concrete specs, acceptance
+criteria, and task lists. Draft, awaiting-approval, or reopened requirements
+specs block implementation-ready planning; the plan reads their approval state,
+maps confirmed sections only as unapproved input, and keeps the proceed
+condition blocked or returns to requirements-spec work.
 `vibe-planning` is plan-only: it writes or updates implementation-plan artifacts
 and must not continue into code, tests, non-plan docs, evals, changelogs,
 commits, or other non-plan edits. Its active task lists and checklists must also
@@ -137,19 +151,27 @@ Editable UI plans also cover state transitions such as save, cancel/reset,
 pending, validation, success, and error recovery, and prefer completing verified
 existing surfaces before expanding into adjacent unproven channels or modes.
 Multi-slice plans include commit checkpoints only after independently verifiable
-code-producing phases or slices, with standalone proposed messages. Single-slice,
+code-producing phases or slices, with standalone proposed messages. These
+checkpoints are proposed later boundaries and do not authorize staging,
+committing, release preparation, or history mutation. Single-slice,
 blocked, discovery-only, discovery-first, destructive-risk-blocked,
 work-in-progress, and no-verified-code-producing-slice plans omit commit
 messages until a code-producing slice is verified, rather than splitting one
 slice into test/fix/docs checkpoints. At plan creation time, the skill records
 matching visible skills in a per-step skill usage plan. Every discovery,
-implementation, verification, self-review, and commit-checkpoint step gets a
-route to a verified matching skill, `No matching optional skill verified`, or
-`No skill needed`, with availability source, timing, matching reason, and
-fallback. Plans also include an implementation handoff and a final self-review
-gate that checks route completeness, unavailable-skill leakage, evidence labels,
-test ordering, plan-only boundaries, proceed conditions, and unresolved
-implementation blockers before returning the concise summary.
+implementation, verification, multi-perspective review, self-review, and
+commit-checkpoint step gets a route to a verified matching skill, `No matching
+optional skill verified`, or `No skill needed`, with availability source,
+timing, matching reason, and fallback. After the draft artifact exists, plans
+run a multi-perspective review. Verified review-only subagents are used when
+available and authorized; otherwise the planner records a coordinator-run
+fallback. That review always includes a `vibe-planning` contract-compliance
+perspective and dispositions for material findings before final self-review.
+Plans also include an implementation handoff and a final self-review gate that
+checks route completeness, unavailable-skill leakage, evidence labels, test
+ordering, multi-perspective review completion or fallback, plan-only boundaries,
+proceed conditions, and unresolved implementation blockers before returning the
+concise summary.
 
 ### `vibe-plan-execution`
 
@@ -170,7 +192,20 @@ When a bound plan includes high-risk planning sections, execution treats them as
 contract and does not weaken them without the Plan Deviation Gate. When commits
 are authorized, it commits only completed and verified checkpoints and uses
 standalone Conventional Commit messages that describe the actual change without
-prompt or plan-label references.
+prompt or plan-label references. Proposed checkpoint messages are not wrapped in
+Markdown fences, and execution summaries name durable plan, file, workspace, or
+instruction facts instead of prompt-local harness phrases such as `this eval` or
+`current instruction`; inline plans are named by title or goal. Commit
+checkpoints inside a plan are proposals unless the user or explicit plan
+approval separately authorizes commit execution; "execute this plan" alone is
+not commit consent. Missing commit consent does not block an otherwise
+authorized implementation slice: execution implements and verifies the slice,
+then stops before staging, committing, or other history mutation. When a plan
+contains a `Skill usage plan`, execution binds it, re-checks route availability,
+and turns planning-time `Local investigation` into current `Local evidence`
+before relying on it. If a plan requires inspecting code before writing code or
+tests and those files cannot be read, execution stops at the blocker and proof
+path instead of drafting unverified code or test templates.
 
 ### `vibe-debug-fix`
 
@@ -186,6 +221,10 @@ stalled or over-broad source-only debugging to focused probes after bounded
 triage, handles degraded verification as non-proof, gives exact user retest
 contracts as soon as local proof is unavailable, and keeps unresolved symptoms
 alive across resume or recurrence.
+Repair proof does not authorize repository history mutation. Staging, commits,
+stashes, resets, amends, release work, and cleanup require operation-specific
+consent after a dirty worktree and index preflight that separates repair-owned
+paths from unrelated or ambiguous user changes.
 
 ### `vibe-writing`
 
@@ -201,6 +240,15 @@ reader is human; docs and guides can still be LLM-first for agent-facing workflo
 Verbatim tool or log output and bare acknowledgments stay exact, hollow
 transitions are removed when they add no operational value, and support or
 policy warmth must not add service promises.
+It is primary only when the task is a standalone writing or revision
+deliverable. Progress updates, final summaries, checkpoint message polish, and
+wording inside planning, execution, review, debug, or release work are auxiliary
+and remain subordinate to the active workflow's authority and gates. When the
+active workflow has supplied facts for an incidental update or summary,
+`vibe-writing` emits the requested brief message instead of a routing
+explanation; routing explanations are only for meta questions about how the
+skill applies. "Not a standalone writing deliverable" means the active workflow
+keeps authority over content, not that the brief message should be withheld.
 Commit-message guidance lives in `references/commit-messages.md` and covers
 outcome-focused Conventional Commit subjects, commit-body preserve/cut selection,
 pre-draft context checks, optional non-trivial body labels,
@@ -208,7 +256,13 @@ fresh-clone-readable references, verification provenance, monorepo and
 multiple-package cohesion, i18n/localization scope, dependency updates,
 performance work, CI/build/publishing changes, security/privacy/data-loss fixes,
 release commits, thin-evidence cases, mechanical syncs, trailer separation,
-compact bullets, and multi-line message transport.
+compact bullets, and multi-line message transport. When `vibe-writing` is active
+for a body commit that is actually created or amended, it applies the reference
+before execution, uses one message file, editor buffer, or complete payload
+instead of repeated `git commit -m` body-line arguments, and inspects
+`git show -s --format=%B HEAD` before reporting completion. Commit-execution
+skills still own staging, authorization, command safety, signing, and history
+mutation.
 
 ### `skill-quality`
 
@@ -237,6 +291,9 @@ The default mode is adversarial delegated review where the host supports a
 review-only delegated path; normal review is an explicit opt-in mode that runs
 through the same normalization, validity, DoD triage, rejected-ledger,
 specification-gap, cascade, residual, and terminal-audit pipeline.
+Plan and document changes are reviewed only when represented by a non-empty
+git-backed target; standalone plan or document files are inert context, not a
+`vibe-review` target by themselves.
 
 `vibe-review` preserves the previous review loop, scope-triage, and
 cascade-containment responsibilities inside one coordinator-owned workflow.
@@ -368,7 +425,7 @@ specific to the skill.
   skills remain optional and get an explicit fallback.
 - `vibe-plan-execution` is for implementing from an already-bound concrete plan.
   The plan can come from a planning workflow, a specification, an issue, a task
-  list, or the current conversation. If a
+  list, or an inline plan supplied by the user. If a
   summary names a local plan file, read that file as the authoritative
   implementation contract. If no concrete plan exists, return to planning before
   coding.
