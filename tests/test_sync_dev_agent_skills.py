@@ -612,6 +612,66 @@ class SyncDevAgentSkillsTests(unittest.TestCase):
         self.assertFalse(sync.backup_destination.exists())
         self.assertEqual(os.readlink(sync.claude_link), "../../.agents/skills/foo")
 
+    def test_add_results_report_snapshot_copied_and_link_created(self):
+        self.prepare_repo()
+
+        result = self.run_cli("add", "foo")
+
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Added 1 skill package", result.stdout)
+        self.assertIn("foo: snapshot copied, link created", result.stdout)
+        self.assertNotIn("none", result.stdout)
+
+    def test_update_results_report_link_already_up_to_date_without_contradiction(self):
+        self.prepare_repo()
+        self.run_cli("add", "foo")
+
+        result = self.run_cli("update", "foo")
+
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Updated 1 skill package", result.stdout)
+        self.assertIn("foo: snapshot copied, link already up to date", result.stdout)
+        self.assertNotIn("skipped:", result.stdout)
+        self.assertNotIn("copied:", result.stdout)
+        skill_lines = [line for line in result.stdout.splitlines() if "foo" in line]
+        self.assertEqual(len(skill_lines), 1)
+
+    def test_update_results_report_link_refreshed_when_link_repaired(self):
+        self.prepare_repo()
+        self.run_cli("add", "foo")
+        link = self.root / ".claude" / "skills" / "foo"
+        link.unlink()
+        make_dir_symlink("../../wrong", link)
+
+        result = self.run_cli("update", "foo")
+
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Updated 1 skill package", result.stdout)
+        self.assertIn("foo: snapshot copied, link refreshed", result.stdout)
+
+    def test_remove_results_report_snapshot_and_link_removed(self):
+        self.prepare_repo()
+        self.run_cli("add", "foo")
+
+        result = self.run_cli("remove", "foo")
+
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Removed 1 skill package", result.stdout)
+        self.assertIn("foo: snapshot removed, link removed", result.stdout)
+        self.assertNotIn("none", result.stdout)
+
+    def test_add_multiple_results_list_one_line_per_skill(self):
+        self.prepare_repo()
+
+        result = self.run_cli("add", "foo", "bar")
+
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Added 2 skill package", result.stdout)
+        self.assertIn("foo: snapshot copied, link created", result.stdout)
+        self.assertIn("bar: snapshot copied, link created", result.stdout)
+        per_skill_lines = [line for line in result.stdout.splitlines() if line.startswith("  ")]
+        self.assertEqual(len(per_skill_lines), 2)
+
 
 if __name__ == "__main__":
     unittest.main()

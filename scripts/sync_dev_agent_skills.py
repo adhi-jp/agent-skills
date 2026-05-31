@@ -114,7 +114,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: {exc}", file=sys.stderr)
         return 1
 
-    print_results(results)
+    print_results(args.command, results)
     return 0
 
 
@@ -748,31 +748,50 @@ def tree_digest(root: Path, skill_name: str | None = None) -> str:
     return digest.hexdigest()
 
 
+RESULT_HEADER_VERBS = {"add": "Added", "update": "Updated", "remove": "Removed"}
+
+
+def format_skill_package_count(count: int) -> str:
+    noun = "skill package" if count == 1 else "skill packages"
+    return f"{count} {noun}"
+
+
 def print_dry_run(command: str, syncs: list[SkillSync], repo_root: Path) -> None:
-    print(f"Dry run: {command} {len(syncs)} skill package(s).")
+    print(f"Dry run: {command} {format_skill_package_count(len(syncs))}.")
     for sync in syncs:
         if command == "remove":
-            print(f"  remove {sync.destination.relative_to(repo_root).as_posix()}")
-            print(f"  unlink {sync.claude_link.relative_to(repo_root).as_posix()}")
+            print(f"  snapshot: remove {sync.destination.relative_to(repo_root).as_posix()}")
+            print(f"  link: unlink {sync.claude_link.relative_to(repo_root).as_posix()}")
         else:
             print(
-                "  copy "
+                "  snapshot: copy "
                 f"{sync.source.relative_to(repo_root).as_posix()} -> "
                 f"{sync.destination.relative_to(repo_root).as_posix()}"
             )
             print(
-                "  link "
+                "  link: link "
                 f"{sync.claude_link.relative_to(repo_root).as_posix()} -> "
                 f"{sync.claude_target}"
             )
 
 
-def print_results(results: dict[str, list[str]]) -> None:
-    total = len(results["copied"]) + len(results["removed"])
-    print(f"Processed {total} skill package(s).")
-    for label in ("copied", "linked", "skipped", "removed"):
-        values = results[label]
-        print(f"{label}: {', '.join(values) if values else 'none'}")
+def print_results(command: str, results: dict[str, list[str]]) -> None:
+    processed = results["removed"] if command == "remove" else results["copied"]
+    verb = RESULT_HEADER_VERBS.get(command, "Processed")
+    print(f"{verb} {format_skill_package_count(len(processed))}.")
+    if command == "remove":
+        for name in processed:
+            print(f"  {name}: snapshot removed, link removed")
+        return
+    skipped = set(results["skipped"])
+    for name in processed:
+        if name in skipped:
+            link_result = "link already up to date"
+        elif command == "add":
+            link_result = "link created"
+        else:
+            link_result = "link refreshed"
+        print(f"  {name}: snapshot copied, {link_result}")
 
 
 def path_exists_no_follow(path: Path) -> bool:

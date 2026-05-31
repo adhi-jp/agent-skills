@@ -22,6 +22,13 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `scripts/sync_dev_agent_skills.py` now reports each processed skill on a
+  single line that names both the snapshot result and the Claude link result
+  (for example, `vibe-coding: snapshot copied, link already up to date`) under a
+  command-specific `Added`/`Updated`/`Removed` count header, instead of the
+  earlier `copied`/`linked`/`skipped`/`removed` buckets that listed the same
+  skill under labels that looked contradictory. The `--dry-run` listing uses the
+  matching `snapshot:`/`link:` wording.
 - Agent instructions now clarify that `.agents/skills/` and `.claude/skills/`
   are script-managed skill snapshots: agents may read them for reference but
   must make repository edits against `skills/` rather than editing or staging
