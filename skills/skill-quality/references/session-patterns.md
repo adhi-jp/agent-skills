@@ -20,6 +20,11 @@ into skill outputs.
   skill to invent unsupported product facts.
 - A 100 percent pass rate did not end review when grader notes exposed
   false-positive risk; hardening assertions and rerunning was more reliable.
+- Improvement claims held up only after a closing rerun on a clean, complete
+  run with per-eval isolation, complete metrics, and both configs. Batched
+  executor passes that collapsed per-eval metrics, and runs where the runner was
+  absent, were treated as contaminated or incomplete rather than proof, and the
+  effect stayed labeled until a clean rerun existed.
 - Evidence labels were useful only when they applied to the current proposal's
   claims, not just to a future extraction or grading format.
 - Token and time deltas were cost signals, not standalone proof of improvement
@@ -63,6 +68,16 @@ into skill outputs.
 - Agents overclaimed improvement when a run passed without a meaningful
   baseline difference, when grader text was ambiguous, or when only a subset of
   newly affected evals ran.
+- Self-authored contract deltas and assertions degraded when they copied a
+  grader assertion's wording or a literal prompt phrase verbatim. The leakage
+  lens had to cover the change owner's own assertions, not only delegated eval
+  work, so the rule named an abstract dimension and kept the concrete phrase as
+  an example.
+- Loosening or deleting assertions to clear a failure raised the headline pass
+  rate while lowering discrimination. Durable practice recorded the
+  discrimination lost with a compensating assertion or an accepted risk, and a
+  deletion or merge of an eval case triggered a check that the contracts it
+  guarded were still covered elsewhere.
 
 ## Practical Synthesis
 

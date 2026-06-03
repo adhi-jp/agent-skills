@@ -278,10 +278,14 @@ small failure-to-contract delta, labels the current proposal's evidence,
 leaves artifacts unchanged when there is no evidence-backed contract gap,
 chooses the smallest coupled artifact set, updates discriminating repo-level
 evals, and uses the shared eval runner honestly. It keeps executor-visible eval
-summaries high-level, keeps token/time claims evidence-bound, and blocks common
-regressions such as broad rewrites, universal checklists, fake baselines,
-self-grading bias, weak proof substitutes, companion-skill requirements,
-generated workspace commits, wording-only churn, and release/version changes
+summaries high-level, applies the same leakage check to its own self-authored
+assertions, keeps token/time claims evidence-bound, requires a closing rerun on
+a clean, complete run before any improvement claim, records the discrimination
+lost and the coverage that must remain when an assertion or eval case is
+loosened or deleted, and blocks common regressions such as broad rewrites,
+universal checklists, fake baselines, self-grading bias, weak proof substitutes,
+companion-skill requirements, generated workspace commits, wording-only churn,
+contaminated or unrerun runs counted as proof, and release/version changes
 without explicit release instruction. Its reference notes summarize local
 session-derived patterns for efficient skill improvement and skill degradation.
 

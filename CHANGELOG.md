@@ -22,6 +22,17 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skill-quality` now requires a closing rerun on a clean, complete run (same
+  eval set, per-eval isolation, complete metrics, both configs) before any
+  `improved` or `optimized` claim, treats abnormal aggregate-metric shifts such
+  as a collapsed `mean_tokens` and executor batching that loses per-eval
+  isolation as stop-and-verify conditions, extends the expected-output leakage
+  check to the change owner's own contract deltas and self-authored assertions
+  while forbidding verbatim echo of grader wording or literal prompt phrases,
+  and adds a loosening ledger plus a coverage-continuity check when an assertion
+  or eval case is relaxed, deleted, or merged. Three discriminating meta-evals
+  (`E07`-`E09`) cover the closing-rerun, self-authored-leakage, and
+  loosening/coverage contracts.
 - `scripts/sync_dev_agent_skills.py` now reports each processed skill on a
   single line that names both the snapshot result and the Claude link result
   (for example, `vibe-coding: snapshot copied, link already up to date`) under a

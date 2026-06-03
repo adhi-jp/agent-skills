@@ -137,13 +137,21 @@ discriminating, observable, and hard to pass with the old failure mode.
   output category, not the target decision or named contract. Put
   discriminating answer details only in grader-only assertions, fixtures, or
   hidden grader material so the baseline is not handed the target behavior.
+- Apply that leakage discipline to your own contract delta and self-authored
+  assertions, not only to delegated eval work: a `SKILL.md` line or
+  self-authored assertion must not copy a grader assertion's wording or a
+  literal prompt phrase verbatim. Name the abstract dimension (Failure To
+  Contract) and keep the concrete phrase only as a labeled example.
 - Include negative pressure for the degeneration that motivated the change:
   global skill lists, fake baselines, universal checklists, weak proof
   substitutes, unsupported claims, stale assumptions, or overfit fixture names.
 - Keep baselines meaningful. A 100 percent pass rate for both `with_skill` and
   `without_skill` usually means the assertion is not discriminating.
 - Do not hide grader ambiguity by loosening expectations. Clarify the assertion
-  or add a programmatic check when the property is mechanical.
+  or add a programmatic check when the property is mechanical. When you relax or
+  delete an assertion or a both-config-pass eval to clear a failure, record the
+  discrimination lost and add a compensating assertion or an explicit `Accepted
+  risk`.
 - If an eval expectation encodes an unsupported product fact, correct the eval
   instead of teaching the skill to invent that fact.
 
@@ -178,9 +186,11 @@ assertion text exactly once, in order, with `text`, `passed`, and `evidence`.
 
 Reuse baselines only through compatible same-agent fingerprints. Treat missing
 timing, missing grades, missing configs, or reused legacy artifacts without
-fingerprints as incomplete proof, not as a pass. `report` is static by default;
-do not start a server or leave a background process unless the user requested an
-opt-in server workflow.
+fingerprints as incomplete proof, not as a pass. Also treat an abnormal
+aggregate-metric shift between runs — for example `mean_tokens` collapsing — or
+executor batching that loses per-eval isolation as a stop-and-verify condition,
+not a pass. `report` is static by default; do not start a server or leave a
+background process unless the user requested an opt-in server workflow.
 
 Prepared runner artifacts prove intended runner state, and saved outputs prove
 what was recorded. Actual prompt delivery for manual agent runs requires an
@@ -205,10 +215,11 @@ Compare behavior before declaring improvement:
 - Which failures changed from fail to pass, and which old passes stayed intact?
 - Did the baseline also pass? If yes, the eval may not prove the skill helped.
 - Did a new or targeted eval have a high `without_skill` pass rate, both
-  configs pass, or a baseline improve after an eval edit? Inspect prompt
-  leakage, expected-output summaries, named capability hints, assertion
-  applicability, and whether the eval is regression-only before claiming skill
-  value.
+  configs pass, a high `with_skill` rate whose magnitude of help is unreadable
+  because the baseline delta was not measured or read, or a baseline improve
+  after an eval edit? Inspect prompt leakage, expected-output summaries, named
+  capability hints, assertion applicability, and whether the eval is
+  regression-only before claiming skill value.
 - Did token or time cost increase? Treat deltas as cost signals. Call them
   regressions only when transcript evidence, run data, or a predefined budget
   proves the cost is not justified by useful behavior.
@@ -216,9 +227,16 @@ Compare behavior before declaring improvement:
 - Did the skill overfit to a fixture, phrase, project class, or old session?
 - Did the change create new obligations, dependencies, or workflow authority
   beyond the user's goal?
+- When converting or deleting an eval case, did you confirm the contract lines
+  the old case guarded are still covered by another eval? Lost coverage is a
+  regression even when every remaining eval passes.
 
 Do not claim quality, token, time, reliability, safety, or trigger improvement
-unless the run data or review evidence proves that exact claim.
+unless the run data or review evidence proves that exact claim. Writing
+`improved` or `optimized` specifically requires a closing rerun on a clean,
+complete run — same eval set, per-eval isolation, complete metrics, both
+configs; without it, label the effect `Unproven` or `Accepted risk` rather than
+a pass.
 
 ## Degeneration Checks
 
@@ -227,6 +245,9 @@ Before finalizing, reject these common regressions:
 - Broad rewrites that erase known-good contracts to fix one eval.
 - Copying an old skill wholesale instead of recovering the minimal useful rule.
 - Turning examples, fixtures, or session anecdotes into universal requirements.
+- Echoing grader-assertion wording or a literal prompt phrase verbatim into
+  `SKILL.md` or a self-authored assertion instead of naming the abstract
+  dimension.
 - Pasting universal checklists into every workflow.
 - Requiring a companion skill, model, server, browser, or network path when the
   skill should be self-contained or provider-neutral.
@@ -237,6 +258,8 @@ Before finalizing, reject these common regressions:
   become impossible to satisfy.
 - Counting skipped, flaky, unavailable, self-graded, or incomplete evals as
   proof.
+- Counting an unrerun or contaminated run — no closing rerun, collapsed
+  aggregate metrics, or lost per-eval isolation — as proof of improvement.
 
 ## Self-Check
 

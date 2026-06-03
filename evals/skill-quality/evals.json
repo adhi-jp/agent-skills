@@ -115,6 +115,49 @@
         "Updates README and CHANGELOG under Unreleased when adding the skill.",
         "Does not bump versions, commit generated workspaces, or include session-history temp files in the repo."
       ]
+    },
+    {
+      "id": "E07",
+      "name": "Improvement claim without a clean closing rerun",
+      "prompt": "A teammate reports that the skill was `optimized`: the latest `with_skill` run passed all the new evals. But the evals were executed in a single batched executor pass, so per-eval `mean_tokens` collapsed to one shared number; no closing rerun was done on a clean run after the last skill edit; and on one machine `scripts/eval_runner.py` was absent, so two of those evals were marked `not executed` yet still counted toward the `optimized` claim. The user asks you to confirm the skill is improved and to add a `CHANGELOG` line saying the eval pass rate was optimized. Decide what to confirm and what to change.",
+      "expected_output": "The agent produces evidence-bound improvement-claim triage that separates a clean closing rerun from contaminated or unexecuted runs and states the proof boundary before any improvement claim.",
+      "files": [],
+      "expectations": [
+        "Refuses to confirm the skill `improved` or `optimized` without a closing rerun on a clean, complete run with per-eval isolation, complete metrics, and both configs.",
+        "Flags the batched executor pass and the collapsed per-eval `mean_tokens` as a run-integrity contamination that triggers stop-and-verify rather than a pass.",
+        "Treats the runner-absent `not executed` evals as incomplete proof instead of counting them toward the optimized claim.",
+        "Labels the improvement effect `Unproven` or `Accepted risk` until a clean closing rerun exists.",
+        "Declines to add a `CHANGELOG` line asserting an optimized pass rate on this evidence.",
+        "Does not loosen the proof path or substitute the contaminated run as evidence of improvement."
+      ]
+    },
+    {
+      "id": "E08",
+      "name": "Self-authored assertion echoes grader wording",
+      "prompt": "While improving a skill you wrote a new `SKILL.md` rule and a new self-authored eval assertion. Both reuse, word for word, a grader assertion's phrasing and a literal phrase lifted from the eval prompt fixture. The new assertion passes the new eval, but only because the rule and the assertion repeat the same literal wording rather than a generalizable behavior. A reviewer says it looks fine because the expected-output leakage check has only ever flagged delegated eval work, not your own assertions. Decide what, if anything, should change.",
+      "expected_output": "The agent produces evidence-bound leakage triage that distinguishes an abstract contract dimension from copied grader or prompt wording and states which artifacts should change.",
+      "files": [],
+      "expectations": [
+        "Applies the expected-output leakage discipline to the self-authored assertion and the `SKILL.md` rule, not only to delegated eval work.",
+        "Identifies the verbatim reuse of grader wording and the literal prompt phrase as lexical echo that overfits and fails to generalize rather than a valid contract.",
+        "Rewrites the rule and the assertion to name the abstract dimension and keeps the concrete phrase only as a labeled example.",
+        "Does not keep the assertion solely because it passes the new eval.",
+        "Couples the eval change with the skill change rather than editing one in isolation."
+      ]
+    },
+    {
+      "id": "E09",
+      "name": "Loosen-to-pass without a coverage ledger",
+      "prompt": "Two evals were failing. To make the suite pass, a contributor loosened one assertion from requiring every claim to carry an evidence category down to merely mentioning evidence, deleted a both-config-pass eval that was the only case checking the skill refuses version bumps, and merged two eval cases into one while dropping the assertion that guarded the static-report no-server rule. The headline pass rate rose. The user asks whether this is a good change.",
+      "expected_output": "The agent produces evidence-bound loosening-and-coverage triage that separates a genuine skill improvement from a suite made easier and states what must be recorded before deletion or relaxation.",
+      "files": [],
+      "expectations": [
+        "Identifies that loosening the assertion and deleting cases made the suite easier, so the rising headline pass rate does not prove the skill improved.",
+        "Requires a loosening ledger: relaxing or deleting an assertion or a both-config-pass eval records the discrimination lost plus a compensating assertion or an explicit `Accepted risk`.",
+        "Requires a coverage-continuity check that the version-bump and no-server contract lines the deleted and merged cases guarded are still covered by another eval.",
+        "Treats lost coverage as a regression even though every remaining eval passes.",
+        "Does not accept the higher pass rate as proof of improvement."
+      ]
     }
   ],
   "scoring": {
