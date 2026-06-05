@@ -27,6 +27,17 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `scripts/eval_runner.py` now uses a new run contract that requires
+  host- or parent-captured tool, sub-agent, delegated-review, or other
+  invocation traces as non-response output artifacts when output claims rely on
+  those records, and tells graders not to treat executor-authored trace
+  reconstructions, final-response prose, copied IDs, or self-reported call
+  counts as host execution proof without recorded host or runner evidence.
+  Aggregation now reads `outputs/tool_trace.json` as a
+  fallback source for `tool_calls` metrics when timing or grading metrics do not
+  already provide a tool-call count, validates those counts as non-negative
+  integers, accepts generic invocation trace keys, and surfaces `tool_calls` in
+  generated benchmark Markdown and HTML reports.
 - `vibe-brainstorm` now uses English `Practical` / `Unconventional` /
   `Challenging` idea-family labels in its skill, README, and eval contracts
   while preserving the three-way creative-direction distinction.

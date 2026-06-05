@@ -385,7 +385,12 @@ creates `run_index.json`, `next_steps.md`, executor-safe `prompt.md`,
 `grader_prompt.md` or assertion-bearing `eval_metadata.json` during the
 executor phase. Run the current `prompt.md` with the named agent, write
 `outputs/run_receipt.json` from the current run manifest or next-steps payload,
+attach any host- or parent-captured tool, sub-agent, delegated-review, or other
+invocation trace that supports output claims as a non-response artifact under `outputs/`,
 then run `prepare-grading <run-dir|iteration-dir>` after executor output exists.
+Executor-authored trace reconstructions, final-response prose, copied
+invocation IDs, and self-reported call counts do not prove host/tool/delegation
+execution unless corroborated by recorded host or runner evidence.
 That step creates the grader-only `grader_prompt.md` and assertion-bearing
 `eval_metadata.json` for a separate grading pass when supported. For custom
 workspace roots outside `evals/<skill-name>/workspace/<agent>/iteration-N`, pass
@@ -397,7 +402,14 @@ come from parent-captured or usage-derived metrics, not placeholders, guesses,
 reused defaults, or executor estimates. `record --finalize` validates the prompt
 receipt, required final metrics, and metric-integrity findings; explicit
 `--allow-missing-*` or `--allow-suspicious-metrics` flags mark partial or smoke
-runs as incomplete.
+runs as incomplete. When timing or grading metrics do not provide a tool-call
+count, `aggregate` reads `outputs/tool_trace.json` as the fallback source for
+`tool_calls`. Timing and grading metrics take precedence. The trace fallback
+accepts non-negative integer counts from `total_tool_calls`,
+`tool_call_count`, `invocation_count`, or `delegated_invocation_count`; list
+lengths from `tool_calls`, `tool_invocations`, `invocations`,
+`delegated_invocations`, or `delegated_reviews`; and count maps from
+`tool_calls`.
 
 `grading.json` must preserve every `eval_metadata.json.assertions` text exactly
 once, in order. Use `grading-template <run-dir>` after `prepare-grading` to

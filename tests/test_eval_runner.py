@@ -378,8 +378,8 @@ class EvalRunnerTests(unittest.TestCase):
                 self.assertNotIn("A useful result.", json.dumps(executor_metadata))
                 self.assertIsNone(manifest["grader_prompt"])
                 self.assertEqual("pending", manifest["grader_material_status"])
-                self.assertEqual("eval-runner-v5", manifest["run_contract_version"])
-                self.assertEqual("eval-runner-v5", manifest["run_fingerprint_inputs"]["run_contract_version"])
+                self.assertEqual("eval-runner-v6", manifest["run_contract_version"])
+                self.assertEqual("eval-runner-v6", manifest["run_fingerprint_inputs"]["run_contract_version"])
                 self.assertEqual(64, len(manifest["prompt_sha256"]))
                 self.assertEqual(64, len(manifest["executor_metadata_sha256"]))
                 self.assertNotIn("grader_prompt_sha256", manifest)
@@ -391,7 +391,7 @@ class EvalRunnerTests(unittest.TestCase):
         self.assertFalse((eval_dirs[0] / "eval_metadata.json").exists())
         run_index = json.loads((iteration / "run_index.json").read_text(encoding="utf-8"))
         self.assertEqual(4, run_index["run_count"])
-        self.assertEqual("eval-runner-v5", run_index["run_contract_version"])
+        self.assertEqual("eval-runner-v6", run_index["run_contract_version"])
         next_steps = (iteration / "next_steps.md").read_text(encoding="utf-8")
         self.assertIn("Do not reuse prompt text", next_steps)
         self.assertIn("eval-runner-receipt-v1", next_steps)
@@ -541,8 +541,8 @@ class EvalRunnerTests(unittest.TestCase):
         self.assertEqual(first_metadata["eval_fingerprint"], second_metadata["eval_fingerprint"])
         self.assertEqual(first_manifest["run_fingerprint"], second_manifest["run_fingerprint"])
         self.assertNotEqual(first_manifest["run_fingerprint"], claude_manifest["run_fingerprint"])
-        self.assertEqual("eval-runner-v5", first_manifest["run_contract_version"])
-        self.assertEqual("eval-runner-v5", first_manifest["run_fingerprint_inputs"]["run_contract_version"])
+        self.assertEqual("eval-runner-v6", first_manifest["run_contract_version"])
+        self.assertEqual("eval-runner-v6", first_manifest["run_fingerprint_inputs"]["run_contract_version"])
         self.assertEqual("codex", first_manifest["agent"])
         self.assertEqual("codex", first_manifest["run_fingerprint_inputs"]["agent"])
         self.assertEqual("claude", claude_manifest["agent"])
@@ -599,7 +599,7 @@ class EvalRunnerTests(unittest.TestCase):
         self.assertNotEqual(0, force.returncode)
         self.assertIn("cannot be combined with --force", force.stderr)
 
-    def test_prepare_rerun_of_rejects_v4_v5_contract_mismatch(self):
+    def test_prepare_rerun_of_rejects_legacy_current_contract_mismatch(self):
         suite = self.write_suite()
         self.run_cli("prepare", suite, "--agent", "codex", "--iteration", "1", "--eval", "E01", "--config", "with_skill", "--runs", "1")
         first = self.agent_iteration("codex", 1)
@@ -613,7 +613,7 @@ class EvalRunnerTests(unittest.TestCase):
         self.assertNotEqual(0, failed.returncode)
         self.assertIn("run contract", failed.stderr)
         self.assertIn("eval-runner-v4", failed.stderr)
-        self.assertIn("eval-runner-v5", failed.stderr)
+        self.assertIn("eval-runner-v6", failed.stderr)
 
     def test_record_copies_outputs_and_validates_grading_schema(self):
         suite = self.write_suite()
@@ -1086,8 +1086,79 @@ class EvalRunnerTests(unittest.TestCase):
         self.assertIn("without_skill", markdown)
         self.assertIn("Total tokens", markdown)
         self.assertIn("Output chars", markdown)
+        self.assertIn("Tool calls", markdown)
         self.assertIn("Failed expectations", markdown)
         self.assertNotIn("Config B", markdown)
+
+    def test_aggregate_uses_tool_trace_when_tool_call_metrics_missing(self):
+        iteration = self.agent_iteration("codex", 1)
+        with_run = self.write_run(iteration, "with_skill", passed=True, seconds=10, tokens=100)
+        without_run = self.write_run(iteration, "without_skill", passed=True, seconds=20, tokens=200)
+        for run_dir in (with_run, without_run):
+            grading_path = run_dir / "grading.json"
+            grading = json.loads(grading_path.read_text(encoding="utf-8"))
+            grading["execution_metrics"].pop("total_tool_calls")
+            self.write_json(grading_path, grading)
+        self.write_json(
+            with_run / "outputs" / "tool_trace.json",
+            {
+                "source": "parent-captured host trace",
+                "delegated_invocation_count": 7,
+                "delegated_invocations": [{"id": "ignored"}],
+            },
+        )
+        self.write_json(
+            without_run / "outputs" / "tool_trace.json",
+            {
+                "source": "parent-captured host trace",
+                "tool_invocations": [{"id": "one"}, {"id": "two"}],
+            },
+        )
+
+        self.run_cli("aggregate", iteration)
+
+        benchmark = json.loads((iteration / "benchmark.json").read_text(encoding="utf-8"))
+        by_config = {run["configuration"]: run for run in benchmark["runs"]}
+        self.assertEqual(7, by_config["with_skill"]["result"]["tool_calls"])
+        self.assertEqual(2, by_config["without_skill"]["result"]["tool_calls"])
+        self.assertEqual(7, benchmark["configs"]["with_skill"]["tool_calls"]["total"])
+        self.assertEqual(2, benchmark["configs"]["without_skill"]["tool_calls"]["total"])
+
+    def test_aggregate_rejects_invalid_tool_call_counts(self):
+        iteration = self.agent_iteration("codex", 1)
+        with_run = self.write_run(iteration, "with_skill", passed=True)
+        self.write_run(iteration, "without_skill", passed=True)
+        grading_path = with_run / "grading.json"
+        grading = json.loads(grading_path.read_text(encoding="utf-8"))
+        grading["execution_metrics"].pop("total_tool_calls")
+        grading["execution_metrics"]["tool_calls"] = {"Agent": True}
+        self.write_json(grading_path, grading)
+
+        failed = self.run_cli("aggregate", iteration, check=False)
+
+        self.assertNotEqual(0, failed.returncode)
+        self.assertIn("tool_calls.Agent must be a non-negative integer", failed.stderr)
+
+    def test_aggregate_rejects_invalid_tool_trace_count(self):
+        iteration = self.agent_iteration("codex", 1)
+        with_run = self.write_run(iteration, "with_skill", passed=True)
+        self.write_run(iteration, "without_skill", passed=True)
+        grading_path = with_run / "grading.json"
+        grading = json.loads(grading_path.read_text(encoding="utf-8"))
+        grading["execution_metrics"].pop("total_tool_calls")
+        self.write_json(grading_path, grading)
+        self.write_json(
+            with_run / "outputs" / "tool_trace.json",
+            {
+                "source": "parent-captured host trace",
+                "delegated_invocation_count": 1.5,
+            },
+        )
+
+        failed = self.run_cli("aggregate", iteration, check=False)
+
+        self.assertNotEqual(0, failed.returncode)
+        self.assertIn("delegated_invocation_count must be a non-negative integer", failed.stderr)
 
     def test_aggregate_computes_summary_from_expectations_not_grader_summary(self):
         iteration = self.agent_iteration("codex", 1)
@@ -1249,7 +1320,7 @@ class EvalRunnerTests(unittest.TestCase):
         self.assertIn("model mismatch", result.stderr)
         self.assertIn("run fingerprint mismatch", result.stderr)
 
-    def test_aggregate_baseline_from_rejects_v4_v5_contract_mismatch(self):
+    def test_aggregate_baseline_from_rejects_legacy_current_contract_mismatch(self):
         suite = self.write_suite()
         self.run_cli("prepare", suite, "--agent", "codex", "--iteration", "1", "--eval", "E01", "--config", "without_skill", "--runs", "1", "--model", "exec-model", "--grader-model", "grader-model")
         source = self.agent_iteration("codex", 1)
@@ -1268,9 +1339,9 @@ class EvalRunnerTests(unittest.TestCase):
         self.assertNotEqual(0, result.returncode)
         self.assertIn("run contract mismatch", result.stderr)
         self.assertIn("eval-runner-v4", result.stderr)
-        self.assertIn("eval-runner-v5", result.stderr)
+        self.assertIn("eval-runner-v6", result.stderr)
 
-    def test_aggregate_baseline_from_rejects_same_legacy_contract_without_v5_recompute(self):
+    def test_aggregate_baseline_from_rejects_same_legacy_contract_without_current_recompute(self):
         suite = self.write_suite()
         self.run_cli("prepare", suite, "--agent", "codex", "--iteration", "1", "--eval", "E01", "--config", "without_skill", "--runs", "1", "--model", "exec-model", "--grader-model", "grader-model")
         source = self.agent_iteration("codex", 1)
@@ -1506,6 +1577,7 @@ class EvalRunnerTests(unittest.TestCase):
         self.assertIn("Expectation text", html_text)
         self.assertIn("Benchmark Summary", html_text)
         self.assertIn("Benchmark Analysis", html_text)
+        self.assertIn("Tool calls", html_text)
         self.assertIn("Download feedback.json", html_text)
         self.assertIn("textarea data-feedback-run", html_text)
         self.assertIn("feedback.json", html_text)
@@ -1635,7 +1707,7 @@ class EvalRunnerTests(unittest.TestCase):
         self.assertNotEqual(0, record_failed.returncode)
         self.assertIn("grading materials are not prepared", record_failed.stderr)
 
-    def test_aggregate_blocks_v5_missing_grading_materials_without_allow_incomplete(self):
+    def test_aggregate_blocks_current_contract_missing_grading_materials_without_allow_incomplete(self):
         suite = self.write_suite()
         self.run_cli("prepare", suite, "--agent", "codex", "--eval", "E01", "--config", "with_skill", "--runs", "1")
         iteration = self.agent_iteration("codex", 1)

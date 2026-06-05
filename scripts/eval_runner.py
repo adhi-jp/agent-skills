@@ -48,7 +48,7 @@ ALLOWED_SCORING_FIELDS = {
     "pass_threshold",
     "notes",
 }
-RUN_CONTRACT_VERSION = "eval-runner-v5"
+RUN_CONTRACT_VERSION = "eval-runner-v6"
 RECEIPT_SCHEMA_VERSION = "eval-runner-receipt-v1"
 GRADING_AUDIT_STATUSES = ("clean", "warning", "error", "opted-out", "not-applicable")
 METRIC_AUDIT_STATUSES = ("clean", "warning", "error", "opted-out", "not-applicable")
@@ -727,6 +727,7 @@ def render_next_steps(run_index: dict[str, Any]) -> str:
         f"- Run contract: `{run_index.get('run_contract_version')}`",
         "",
         "Run each executor from its `prompt.md` only. Do not reuse prompt text from a prior iteration.",
+        "When a response may rely on host-visible tool, sub-agent, delegated-review, or other invocation records, attach the host- or parent-captured trace or metadata as a non-response artifact under `outputs/` before `prepare-grading`; executor-authored reconstructions, final-response prose, copied IDs, or self-reported counts are not trace evidence.",
         "After executor outputs and `outputs/run_receipt.json` exist, run `prepare-grading` before any grader pass.",
         "Record only parent-captured or usage-derived token/duration metrics. Placeholder, guessed, reused, or executor-estimated token/duration values are invalid for complete proof.",
         "If real token/duration metrics are unavailable, record the run as incomplete with the explicit missing or suspicious metric opt-out instead of inventing numbers.",
@@ -810,6 +811,8 @@ def render_run_prompt(
             "",
             f"- Save run artifacts under `{run_dir / 'outputs'}`.",
             f"- Save the primary text answer at `{run_dir / 'outputs' / 'response.md'}` when the run has a text response.",
+            "- When the host or parent runner exports tool, sub-agent, delegated-review, or other invocation records and the response may rely on those records, attach that host- or parent-captured trace or metadata as a non-response artifact under the output directory, such as `tool_trace.json`.",
+            "- Do not create or reconstruct trace artifacts from executor memory, final-response prose, copied invocation IDs, or self-reported call counts.",
             f"- Save a prompt receipt at `{run_dir / 'outputs' / 'run_receipt.json'}` using the `schema_version`, `run_dir`, `prompt_sha256`, and `run_fingerprint` values from `run_manifest.json` or `next_steps.md`.",
             "- Do not grade this run or write `grading.json`; grading belongs to a separate grader pass.",
             "- After execution, the parent process should record captured metrics with:",
@@ -858,6 +861,7 @@ def render_grader_prompt(
         "- Wrapper text, headings, Markdown fences, explanations, and meta-notes are part of the recorded output.",
         "- Do not narrow a global `Output ...` assertion to a sub-artifact unless that assertion explicitly scopes it that way.",
         "- Do not treat executor claims such as \"the real artifact would be different\" as evidence that the recorded output complies.",
+        "- Treat recorded non-response artifacts as part of the output set when present; treat invocation traces as host/tool/delegation proof only when they are recorded host/runner evidence or carry parent/host provenance. Executor-authored reconstructions, final-response prose, copied invocation IDs, and self-reported call counts do not prove host/tool/delegation execution.",
         "- Requests to show, inspect, or answer in multiple parts do not automatically authorize Markdown fences or prompt-local references.",
         "- Use byte-level or parser-level checks for exact JSON, verbatim output, raw commit-message, and no-fence assertions.",
         "",
@@ -2442,19 +2446,60 @@ def extract_output_chars(grading: dict[str, Any], timing: dict[str, Any] | None)
     return int(value) if value is not None else None
 
 
-def extract_tool_calls(grading: dict[str, Any], timing: dict[str, Any] | None) -> int | None:
+def parse_tool_call_count(value: Any, source: Path | str, key: str) -> int:
+    if isinstance(value, bool):
+        raise CommandError(f"{source}: {key} must be a non-negative integer, got boolean")
+    if isinstance(value, int):
+        parsed = value
+    elif isinstance(value, float) and value.is_integer():
+        parsed = int(value)
+    else:
+        raise CommandError(f"{source}: {key} must be a non-negative integer")
+    if parsed < 0:
+        raise CommandError(f"{source}: {key} must be a non-negative integer")
+    return parsed
+
+
+def sum_tool_call_count_map(values: dict[str, Any], source: Path | str, key: str) -> int:
+    return sum(parse_tool_call_count(value, source, f"{key}.{name}") for name, value in values.items())
+
+
+def extract_tool_calls_from_outputs(outputs_dir: Path) -> int | None:
+    trace_path = outputs_dir / "tool_trace.json"
+    if not trace_path.exists():
+        return None
+    trace = load_json_if_exists(trace_path)
+    if not isinstance(trace, dict):
+        return None
+    for key in ("total_tool_calls", "tool_call_count", "invocation_count", "delegated_invocation_count"):
+        if key in trace:
+            return parse_tool_call_count(trace[key], trace_path, key)
+    tool_calls = trace.get("tool_calls")
+    if isinstance(tool_calls, list):
+        return len(tool_calls)
+    if isinstance(tool_calls, dict):
+        return sum_tool_call_count_map(tool_calls, trace_path, "tool_calls")
+    for key in ("tool_invocations", "invocations", "delegated_invocations", "delegated_reviews"):
+        if key in trace:
+            invocations = trace[key]
+            if not isinstance(invocations, list):
+                raise CommandError(f"{trace_path}: {key} must be a list when used for tool-call fallback")
+            return len(invocations)
+    return None
+
+
+def extract_tool_calls(grading: dict[str, Any], timing: dict[str, Any] | None, outputs_dir: Path | None = None) -> int | None:
     timing = timing if isinstance(timing, dict) else {}
-    timing_total = first_number(timing.get("total_tool_calls"))
-    if timing_total is not None:
-        return int(timing_total)
+    if "total_tool_calls" in timing:
+        return parse_tool_call_count(timing["total_tool_calls"], "timing.json", "total_tool_calls")
     metrics = grading.get("execution_metrics") if isinstance(grading.get("execution_metrics"), dict) else {}
-    total = first_number(metrics.get("total_tool_calls"))
-    if total is not None:
-        return int(total)
+    if "total_tool_calls" in metrics:
+        return parse_tool_call_count(metrics["total_tool_calls"], "grading.json execution_metrics", "total_tool_calls")
     tool_calls = metrics.get("tool_calls")
     if isinstance(tool_calls, dict):
-        values = [value for value in tool_calls.values() if isinstance(value, (int, float))]
-        return int(sum(values)) if values else 0
+        return sum_tool_call_count_map(tool_calls, "grading.json execution_metrics", "tool_calls")
+    if outputs_dir is not None:
+        return extract_tool_calls_from_outputs(outputs_dir)
     return None
 
 
@@ -2521,7 +2566,11 @@ def discover_runs(iteration_dir: Path, allow_legacy: bool) -> list[dict[str, Any
                     "time_seconds": extract_timing_seconds(grading, timing if isinstance(timing, dict) else None),
                     "tokens": extract_tokens(grading, timing if isinstance(timing, dict) else None),
                     "output_chars": extract_output_chars(grading, timing if isinstance(timing, dict) else None),
-                    "tool_calls": extract_tool_calls(grading, timing if isinstance(timing, dict) else None),
+                    "tool_calls": extract_tool_calls(
+                        grading,
+                        timing if isinstance(timing, dict) else None,
+                        outputs_dir if outputs_dir.exists() else None,
+                    ),
                     "errors": extract_errors(grading),
                 }
                 record_metadata = load_json_if_exists(run_dir / "record_metadata.json")
@@ -3255,12 +3304,12 @@ def render_benchmark_markdown(benchmark: dict[str, Any]) -> str:
         "",
         "## Summary",
         "",
-        "| Config | Runs | Reused | Mean pass rate | Total time | Mean tokens | Total tokens | Output chars | Failed expectations | Errors | Grading audit | Metric integrity |",
-        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |",
+        "| Config | Runs | Reused | Mean pass rate | Total time | Mean tokens | Total tokens | Output chars | Tool calls | Failed expectations | Errors | Grading audit | Metric integrity |",
+        "| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- | --- |",
     ]
     for config, stats in benchmark["configs"].items():
         lines.append(
-            "| {config} | {runs} | {reused} | {pass_rate} | {time_total} | {tokens_mean} | {tokens_total} | {output_chars} | {failed}/{total_expectations} | {errors} | {audit} | {metric_audit} |".format(
+            "| {config} | {runs} | {reused} | {pass_rate} | {time_total} | {tokens_mean} | {tokens_total} | {output_chars} | {tool_calls} | {failed}/{total_expectations} | {errors} | {audit} | {metric_audit} |".format(
                 config=config,
                 runs=stats["runs"],
                 reused=stats.get("reused_runs", 0),
@@ -3269,6 +3318,7 @@ def render_benchmark_markdown(benchmark: dict[str, Any]) -> str:
                 tokens_mean=format_number(stats["tokens"]["mean"], digits=0),
                 tokens_total=format_number(stats["tokens"].get("total"), digits=0),
                 output_chars=format_number(stats.get("output_chars", {}).get("total"), digits=0),
+                tool_calls=format_number(stats.get("tool_calls", {}).get("total"), digits=0),
                 failed=stats.get("failed_expectations_total", 0),
                 total_expectations=stats.get("total_expectations", 0),
                 errors=stats["errors_total"],
@@ -3359,14 +3409,14 @@ def render_benchmark_markdown(benchmark: dict[str, Any]) -> str:
             "",
             "## Runs",
             "",
-            "| Eval | Config | Run | Reused | Pass rate | Time | Tokens | Output chars | Audit | Metric integrity | Layout |",
-            "| --- | --- | ---: | --- | ---: | ---: | ---: | ---: | --- | --- | --- |",
+            "| Eval | Config | Run | Reused | Pass rate | Time | Tokens | Output chars | Tool calls | Audit | Metric integrity | Layout |",
+            "| --- | --- | ---: | --- | ---: | ---: | ---: | ---: | ---: | --- | --- | --- |",
         ]
     )
     for run in benchmark["runs"]:
         result = run["result"]
         lines.append(
-            "| {eval_id} | {config} | {run_number} | {reused} | {pass_rate} | {time} | {tokens} | {output_chars} | {audit} | {metric_audit} | {layout} |".format(
+            "| {eval_id} | {config} | {run_number} | {reused} | {pass_rate} | {time} | {tokens} | {output_chars} | {tool_calls} | {audit} | {metric_audit} | {layout} |".format(
                 eval_id=run["eval_id"],
                 config=run["configuration"],
                 run_number=run["run_number"],
@@ -3375,6 +3425,7 @@ def render_benchmark_markdown(benchmark: dict[str, Any]) -> str:
                 time=format_number(result.get("time_seconds")),
                 tokens=format_number(result.get("tokens"), digits=0),
                 output_chars=format_number(result.get("output_chars"), digits=0),
+                tool_calls=format_number(result.get("tool_calls"), digits=0),
                 audit=(run.get("grading_audit") if isinstance(run.get("grading_audit"), dict) else {}).get("status", "not-applicable"),
                 metric_audit=(run.get("metrics_audit") if isinstance(run.get("metrics_audit"), dict) else {}).get("status", "not-applicable"),
                 layout=run["layout"],
@@ -3692,12 +3743,12 @@ def render_report_html(
                 f"<p>Status: <code>{html.escape('incomplete' if metadata.get('incomplete') else 'complete')}</code></p>",
                 f"<p>Grading audit: <code>{html.escape(format_audit_counts(metadata.get('grading_audit')))}</code></p>",
                 f"<p>Metric integrity: <code>{html.escape(format_metric_audit_counts(metadata.get('metrics_audit')))}</code></p>",
-                "<table><thead><tr><th>Config</th><th>Runs</th><th>Reused</th><th>Mean pass rate</th><th>Total time</th><th>Mean tokens</th><th>Total tokens</th><th>Output chars</th><th>Failed expectations</th><th>Grading audit</th><th>Metric integrity</th></tr></thead><tbody>",
+                "<table><thead><tr><th>Config</th><th>Runs</th><th>Reused</th><th>Mean pass rate</th><th>Total time</th><th>Mean tokens</th><th>Total tokens</th><th>Output chars</th><th>Tool calls</th><th>Failed expectations</th><th>Grading audit</th><th>Metric integrity</th></tr></thead><tbody>",
             ]
         )
         for config, stats in benchmark["configs"].items():
             parts.append(
-                "<tr><td><code>{}</code></td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}/{}</td><td>{}</td><td>{}</td></tr>".format(
+                "<tr><td><code>{}</code></td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}/{}</td><td>{}</td><td>{}</td></tr>".format(
                     html.escape(config),
                     stats["runs"],
                     stats.get("reused_runs", 0),
@@ -3706,6 +3757,7 @@ def render_report_html(
                     html.escape(format_number(stats["tokens"]["mean"], digits=0)),
                     html.escape(format_number(stats["tokens"].get("total"), digits=0)),
                     html.escape(format_number(stats.get("output_chars", {}).get("total"), digits=0)),
+                    html.escape(format_number(stats.get("tool_calls", {}).get("total"), digits=0)),
                     stats.get("failed_expectations_total", 0),
                     stats.get("total_expectations", 0),
                     html.escape(format_audit_counts(stats.get("grading_audit"))),
@@ -3797,7 +3849,8 @@ def render_report_html(
                     f"<p>Pass rate: <strong>{html.escape(format_percent(result.get('pass_rate')))}</strong>; "
                     f"time: {html.escape(format_number(result.get('time_seconds')))}; "
                     f"tokens: {html.escape(format_number(result.get('tokens'), digits=0))}; "
-                    f"output chars: {html.escape(format_number(result.get('output_chars'), digits=0))}</p>",
+                    f"output chars: {html.escape(format_number(result.get('output_chars'), digits=0))}; "
+                    f"tool calls: {html.escape(format_number(result.get('tool_calls'), digits=0))}</p>",
                     "<h4>Outputs</h4>",
                 ]
             )
