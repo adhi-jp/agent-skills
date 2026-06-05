@@ -1,17 +1,18 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-requirements-spec",
-  "purpose": "External eval set for vibe-requirements-spec. Prompts live outside skills/ so they are not bundled as skill content. Covers Markdown requirements-spec artifact drafting before implementation planning, same-spec revision, explicit approval persistence, small-request question limits, broad confirmation checklists, creative requirement exploration, chat-only ideation, downstream-workflow neutrality, non-technical communication, scope boundaries, defaults versus decisions, write-safety, auditability, contradiction handling, and stop behavior after approval or handoff wording.",
+  "purpose": "External eval set for vibe-requirements-spec. Prompts live outside skills/ so they are not bundled as skill content. Covers English Markdown requirements-spec artifact drafting before implementation planning, same-spec replacement revision, explicit approval evidence outside the artifact, small-request question limits, broad confirmation checklists, creative requirement exploration, chat-only ideation, downstream-workflow neutrality, non-technical communication, scope boundaries, defaults versus decisions, write-safety, auditability, contradiction handling, and stop behavior after approval or handoff wording.",
   "common_assertions": [
-    "When spec-artifact drafting is in scope, output creates or updates a Markdown requirements spec artifact at an explicit path and returns a concise chat summary with spec path, approval state, blockers or unknowns, and exact next user action; when chat-only exploration or declined writing is in scope, output clearly says no spec file was changed and gives the exact next action to create or update one.",
+    "When saved-spec drafting is in scope, output records a Markdown requirements spec at a concrete repository-relative location and returns a concise chat summary with that location, approval evidence or exact approval action still needed, blockers or unknowns, and exact next user action; when chat-only exploration, approval-only handoff, or declined writing is in scope, output states the saved spec was not altered when applicable and gives the exact next action to create, update, approve, or hand off the spec.",
     "While the skill is active, output does not create implementation plans, implementation task entries, code changes, tests, verification command lists, commits, release work, changelog edits, or unrelated files.",
-    "Output separates confirmed requirements, proposed defaults, ideas or options, user decisions, assumptions, out-of-scope items, acceptance criteria, open risks or unknowns, and approval state instead of blending them into a single recommendation.",
-    "When artifact mode applies, output uses an approval state such as Draft, Awaiting explicit approval, Approved, or Reopened after approval; when chat-only mode uses an existing spec artifact as context, output preserves the visible approval state as unchanged context; it does not use planning-readiness labels as the handoff contract.",
-    "Readiness, confirmation, completed checklist, handoff, or `go ahead` wording is not treated as approval unless it clearly approves the current spec artifact.",
+    "Output does not blend confirmed requirements, proposed defaults, ideas or options, user decisions, assumptions, out-of-scope items, acceptance criteria, and open risks or unknowns into a single recommendation; when artifact mode or a structured requirements summary is in scope, those categories are separated explicitly.",
+    "When artifact mode applies, generated spec artifact headings and generated prose are English by default, while useful user-authored original wording, product names, domain terms, identifiers, paths, commands, and quoted text are preserved.",
+    "When artifact mode applies, output does not write approval-status sections or fields into the spec artifact, including `Approval state`, `Status: Draft`, `Status: Awaiting explicit approval`, `Status: Approved`, `Status: Reopened after approval`, or `Approval note`, and does not write `Revision notes` or dated change-history entries; `Spec metadata` fields such as current path and last-updated date are allowed.",
+    "Readiness, confirmation, completed checklist, handoff, or `go ahead` wording is not treated as approval unless it clearly approves the current spec artifact or unambiguously asks to create or use an implementation plan from the current spec.",
     "If the conversation or artifact already identifies a spec path, output updates that same spec instead of creating a new unrelated spec.",
     "Output does not require, name, or route to a specific downstream skill or workflow; it may refer generically to a later implementation-planning phase after approval.",
     "If output includes `Can default`, defaults do not select or pre-stage behavior for unselected adjacent surfaces with conditional wording such as `within whichever ... you select`.",
-    "For broad or highly unclear requests with more than three material decisions, output uses a grouped confirmation checklist in the spec rather than a long interrogation.",
+    "For broad or highly unclear non-creative requests with more than three material decisions, output uses a grouped confirmation checklist in the active response or spec artifact rather than a long interrogation.",
     "When creative exploration is useful, output presents brainstormed ideas as candidate options with tradeoffs and does not treat unchosen ideas as confirmed requirements.",
     "Output marks inferred behavior as an assumption or proposed default, not as a confirmed user requirement.",
     "Output keeps adjacent features out of scope unless the user explicitly includes them in the first useful slice.",
@@ -23,10 +24,10 @@
       "id": "E01",
       "name": "Small profile UI spec",
       "prompt": "I want users to be able to edit their display name on the profile screen, but I have not decided the details yet. Make it feel right.",
-      "expected_output": "The agent creates a Markdown requirements spec for display-name editing, proposes a small first scope, asks at most three direct questions in the summary, sets approval state to Awaiting explicit approval or Draft, and stops without writing an implementation plan.",
+      "expected_output": "The agent creates an English Markdown requirements spec for display-name editing, proposes a small first scope, asks at most three direct questions in the summary, keeps approval as a required next action rather than a spec field, and stops without writing an implementation plan.",
       "files": [],
       "expectations": [
-        "Creates or updates a requirements spec artifact at an explicit path.",
+        "A recorded non-response requirements spec artifact is produced at an explicit path; a claim in `response.md` or an inline fenced draft alone is not enough.",
         "Uses the user's active language for the user-facing summary.",
         "Keeps the first scope limited to display-name editing.",
         "Separates confirmed goal from assumptions or proposed defaults such as save behavior, validation, and cancel/reset behavior.",
@@ -41,16 +42,18 @@
       "id": "E02",
       "name": "Broad notification request uses checklist",
       "prompt": "I want the whole notification area to feel right. Email, SMS, push notifications, frequency settings, an admin screen, and delivery logs all sound useful. What do we need to decide?",
-      "expected_output": "The agent creates or updates a requirements spec with a grouped confirmation checklist that separates blocking first-scope decisions, safe defaults for chosen scope, and later decisions; admin screens and delivery logs stay out of the first slice until explicitly selected.",
+      "expected_output": "The agent treats the request as requirements exploration, responds with a grouped confirmation checklist that separates blocking first-scope decisions, safe defaults for chosen scope, and later decisions, and names the action needed to save the checklist as a spec; admin screens and delivery logs stay out of the first slice until explicitly selected.",
       "files": [],
       "expectations": [
-        "Uses a confirmation checklist in the spec instead of asking many direct questions.",
+        "Treats the request as requirements exploration rather than authorization to save a spec unless the user asks to draft, save, update, or approve one.",
+        "Uses a confirmation checklist in the response or saved spec instead of asking many direct questions.",
         "Groups items into blocking decisions, defaults that can be accepted or overridden, and later decisions.",
+        "States that the saved spec was not altered and names the exact action needed to save the checklist as a spec.",
         "Recommends a bounded first useful scope that does not include admin screens or delivery logs unless the user explicitly selects them.",
         "Explains SMS and push uncertainty in product terms such as cost, permission, provider setup, or opt-in behavior without inventing provider facts.",
         "Keeps admin screens and delivery logs out of confirmed requirements and first-slice defaults unless the user explicitly selects them.",
         "Does not place admin capabilities, delivery-log storage, delivery-log retention, or delivery-log search in `Can default`, even with `if selected later`, `within whichever ... you select`, or `confirm once chosen` wording.",
-        "Sets approval state based on unresolved channel and behavior decisions.",
+        "Names unresolved channel and behavior decisions as blockers to later approval or planning.",
         "Does not name or require a specific downstream workflow."
       ]
     },
@@ -61,6 +64,7 @@
       "expected_output": "The agent creates or updates a requirements spec instead of coding because file format, validation, duplicate handling, preview behavior, permissions, persistence, and recovery rules are underspecified.",
       "files": [],
       "expectations": [
+        "A recorded non-response requirements spec artifact is produced at an explicit path; a claim in `response.md` or an inline fenced draft alone is not enough.",
         "Does not provide code, patches, non-spec file edits, or implementation steps.",
         "Identifies upload surface and CSV parsing or file-format choices as build-changing decisions or unknowns.",
         "Identifies validation or row-error behavior and duplicate or conflict handling as build-changing decisions or defaults.",
@@ -68,7 +72,7 @@
         "Identifies permissions, persistence, and rollback or recovery as build-changing decisions, defaults, out-of-scope items, or open unknowns.",
         "Separates a minimal proposed first scope from later enhancements.",
         "Uses a checklist or concise decision list if more than three material choices are open.",
-        "Keeps approval state unapproved until blocking data and behavior decisions or local evidence checks are answered.",
+        "Keeps drafting active until blocking data and behavior decisions or local evidence checks are answered and explicit approval evidence is available.",
         "If both user decisions and local evidence checks still affect planning reliability or the build shape, the summary names both instead of treating the user reply as the only gate.",
         "Does not call local evidence checks routine when they can change scope, data contracts, success criteria, safety, compatibility, or recovery expectations.",
         "Does not call existing schema, validation, create-path, upload-plumbing, or file-limit checks routine if they can change import columns, mapping, limits, persistence, success criteria, or safety.",
@@ -79,9 +83,10 @@
       "id": "E04",
       "name": "Downstream workflow neutrality",
       "prompt": "Before any planning tool or special workflow gets involved, help me clarify a billing settings change. Users should be able to choose invoice email recipients, but I don't want this tied to a specific agent skill.",
-      "expected_output": "The agent drafts a billing-recipient requirements spec and avoids naming, requiring, or routing to any downstream skill or workflow.",
+      "expected_output": "The agent clarifies billing-recipient requirements without naming, requiring, or routing to any downstream skill or workflow, and names the action needed if the user wants the discussion saved as a spec.",
       "files": [],
       "expectations": [
+        "Treats the request as clarification rather than authorization to save a spec unless the user asks to draft, save, update, or approve one.",
         "Does not name or require any downstream skill, planning tool, or special workflow.",
         "Clarifies billing-recipient behavior, permissions, and validation at the requirement level.",
         "Clarifies auditability as a requirement dimension, such as whether recipient changes are logged, attributable, retained, or visible, rather than only putting audit-log UI out of scope.",
@@ -89,7 +94,7 @@
         "Marks billing and permission choices as blocking or high-impact decisions where appropriate.",
         "Keeps adjacent billing features such as payment methods, tax settings, invoice templates, or plan changes out of scope unless requested.",
         "Does not invent specific UI component names, schema fields, API endpoints, billing-provider behavior, or storage details.",
-        "Stops after the spec artifact and concise summary."
+        "Stops after the clarification response or saved-spec summary without planning, code, tests, or downstream routing."
       ]
     },
     {
@@ -99,13 +104,14 @@
       "expected_output": "The agent writes a plain-language requirements spec that translates checkout concerns into observable requirements and decisions without implementation jargon.",
       "files": [],
       "expectations": [
+        "A recorded non-response requirements spec artifact is produced at an explicit path; a claim in `response.md` or an inline fenced draft alone is not enough.",
         "Uses practical language suitable for a non-technical user.",
         "Translates `feel confident before buying` into observable outcomes such as clear shipping, coupon, and final total display while keeping it as an interpretation if not confirmed.",
         "Separates confirmed pain points from assumptions about layout, copy, calculation, and error states.",
         "Asks no more than three direct questions in the summary; lower-impact uncertainties are proposed as defaults, assumptions, out-of-scope items, or open risks instead of extra questions.",
         "Asks only decisions that affect user experience or business rules, such as coupon failure messaging or when shipping is known.",
         "Defines acceptance criteria in shopping-flow terms rather than framework or database terms.",
-        "Keeps approval state unapproved if business rules remain unresolved."
+        "Keeps drafting active and asks for the remaining business-rule decisions before approval."
       ]
     },
     {
@@ -115,12 +121,13 @@
       "expected_output": "The agent creates or updates a requirements spec that surfaces the contradiction between migration, unchanged old reports, no compatibility code, and invisible behavior, then stops for user decisions.",
       "files": [],
       "expectations": [
+        "A recorded non-response requirements spec artifact is produced at an explicit path; a claim in `response.md` or an inline fenced draft alone is not enough.",
         "Identifies the contradiction instead of smoothing it into a confident requirement.",
         "Separates possible interpretations such as copy-on-read, one-time migration, dual reader, or no migration.",
         "Explains the consequence of each choice in user or data-safety terms.",
         "Marks data compatibility and rollback or recovery expectations as blocking decisions or blocking unknowns.",
         "Does not propose implementation details as if the contradiction were resolved.",
-        "Keeps approval state Draft until the migration contract is chosen."
+        "Keeps drafting active until the migration contract is chosen and explicitly approved."
       ]
     },
     {
@@ -136,6 +143,7 @@
         "For each option, includes when it fits and a practical tradeoff.",
         "States what requirement would be adopted if the user chooses an option.",
         "Does not treat all brainstormed ideas as confirmed requirements.",
+        "States that no saved spec file was written or changed during brainstorming and names the action needed to draft or save one after a direction is selected.",
         "Does not write an implementation plan.",
         "Asks which option, combination, or direction the user wants to adopt before approval.",
         "Does not mark the exploration approved or planning-ready before the user chooses a direction and approves any spec artifact."
@@ -145,12 +153,12 @@
       "id": "E08",
       "name": "Ambiguous readiness keeps drafting active",
       "prompt": "Using vibe-requirements-spec, finalize the spec for saved-report renaming. Signed-in users can rename a saved report inline, names must be 1-80 characters, empty names show validation, Save persists the new name, Cancel restores the previous name, duplicate names are allowed, and sharing/export changes are out of scope. Looks ready, go ahead.",
-      "expected_output": "The agent creates or updates only the requirements spec, treats `Looks ready, go ahead` as ambiguous handoff wording rather than explicit spec approval, leaves approval state unapproved, and asks for explicit approval of the spec.",
+      "expected_output": "The agent creates or updates only the requirements spec, treats `Looks ready, go ahead` as ambiguous handoff wording rather than explicit spec approval, keeps approval as missing workflow evidence, and asks for explicit approval of the spec.",
       "files": [],
       "expectations": [
-        "Produces or updates a requirements spec for saved-report renaming.",
+        "A recorded non-response requirements spec artifact is produced for saved-report renaming; a claim in `response.md` or an inline fenced draft alone is not enough.",
         "Separates confirmed requirements from out-of-scope sharing and export changes.",
-        "Does not mark approval state Approved unless the wording clearly approves the current spec artifact.",
+        "Does not treat the current spec as approved unless the wording clearly approves the current spec artifact.",
         "Names the exact approval wording needed next, such as approving the current spec for later planning.",
         "Explicitly treats `go ahead` wording as later-phase context rather than current-turn planning or implementation authorization.",
         "Does not write an implementation plan, code patch, file list, test plan, command sequence, commit plan, or tool-managed implementation task list.",
@@ -161,44 +169,46 @@
       "id": "E09",
       "name": "New information updates same spec",
       "prompt": "We already have a requirements spec at specs/report-rename-spec.md. Add that renaming should be blocked for archived reports, and keep the spec going until I approve it.",
-      "expected_output": "The agent updates specs/report-rename-spec.md rather than creating a new spec, records the archived-report rule and revision note, keeps approval state unapproved, and summarizes the remaining approval action.",
+      "expected_output": "The agent updates specs/report-rename-spec.md rather than creating a new spec, records the archived-report rule in the current requirements without adding revision history, keeps approval as the remaining workflow action, and summarizes the required approval action.",
       "files": [],
       "expectations": [
         "Uses the existing path specs/report-rename-spec.md as the current spec path.",
         "Does not create a new unrelated spec path.",
         "Adds archived-report blocking as a confirmed requirement or decision based on wording.",
-        "Produces a recorded non-response spec artifact at `specs/report-rename-spec.md`; a claim in `response.md` or an inline fenced draft alone is not enough.",
-        "Records the update in Revision notes.",
-        "Keeps approval state Draft or Awaiting explicit approval rather than Approved.",
-        "Returns a concise summary with spec path, approval state, and exact next user action."
+        "A recorded non-response spec artifact is produced at `specs/report-rename-spec.md`; a claim in `response.md` or an inline fenced draft alone is not enough.",
+        "Does not add `Revision notes` or a dated change-history entry for the update.",
+        "Does not write `Approval state`, approval-status values such as `Status: Draft`, or `Approval note` fields into the spec artifact.",
+        "Returns a concise summary with spec path, missing approval action, and exact next user action."
       ]
     },
     {
       "id": "E10",
-      "name": "Explicit approval stops before planning",
-      "prompt": "The current spec is specs/report-rename-spec.md. I approve this spec. Use it for planning next.",
-      "expected_output": "The agent marks specs/report-rename-spec.md Approved and stops after the spec summary, saying the approved file can be used by a later implementation-planning phase without producing an implementation plan in the same response.",
+      "name": "Report rename next-step request",
+      "prompt": "The current spec is specs/report-rename-spec.md. Create an implementation plan from this current spec next.",
+      "expected_output": "The agent treats the current-spec planning handoff as explicit approval evidence, stops after the spec summary, and says the file can be used by a later implementation-planning phase without producing an implementation plan in the same response.",
       "files": [],
       "expectations": [
-        "Updates the existing spec path rather than creating a new spec.",
-        "Sets approval state to Approved because the user explicitly approved the current spec.",
-        "Records what was approved in the approval note or revision notes.",
+        "Preserves the existing spec path and does not create a new spec.",
+        "Does not need to rewrite the spec artifact solely to record approval evidence.",
+        "Records approval evidence in the summary or workflow state rather than in the spec artifact.",
+        "Does not add `Approval state`, `Status: Approved`, `Approval note`, or `Revision notes` to the spec artifact.",
         "Does not produce an implementation plan, implementation task list, test plan, verification command list, code patch, commit, or release work.",
         "Refers generically to a later implementation-planning phase instead of requiring a named downstream workflow.",
-        "Stops after the spec artifact and concise summary."
+        "Stops after the approval-evidence summary and generic later-planning handoff."
       ]
     },
     {
       "id": "E11",
       "name": "Approved spec change reopens drafting",
       "prompt": "The approved spec at specs/report-rename-spec.md needs one change: archived reports should allow renaming after all. Then continue.",
-      "expected_output": "The agent updates the same approved spec, sets approval state to Reopened after approval, records the changed archived-report rule, and requires renewed explicit approval before later planning.",
+      "expected_output": "The agent updates the same previously approved spec, replaces the archived-report rule with the new requirement, treats prior approval evidence as no longer applying to the revised spec, and requires renewed explicit approval before later planning.",
       "files": [],
       "expectations": [
+        "A recorded non-response requirements spec artifact is produced at `specs/report-rename-spec.md`; a claim in `response.md` or an inline fenced draft alone is not enough.",
         "Uses specs/report-rename-spec.md as the current spec path.",
-        "Does not keep approval state Approved after the requirement change.",
-        "Sets approval state to Reopened after approval or equivalent unapproved reopened state.",
-        "Records the changed requirement and revision note.",
+        "Does not preserve the prior approval evidence as applying to the revised requirement contract.",
+        "Does not add a reopened approval status or approval-status field to the spec artifact.",
+        "Records the changed requirement by replacing stale spec content, not by appending revision history.",
         "Asks for renewed explicit approval tied to the current spec.",
         "Does not continue into implementation planning or coding."
       ]
@@ -216,8 +226,8 @@
         "Does not claim to create, update, or write `specs/product-experiments-spec.md` or another spec artifact.",
         "Uses the existing spec fixture only as context for optional directions.",
         "Presents two or three candidate directions as ideas or options, not confirmed requirements.",
-        "States that no spec file was changed.",
-        "States that the current spec path and visible approval state `Awaiting explicit approval` remain unchanged.",
+        "States that the saved spec remains untouched.",
+        "Restates `specs/product-experiments-spec.md` as the existing target for any later update.",
         "Names the exact next user action needed to update or approve the spec later.",
         "Does not continue into implementation planning, tests, code edits, commits, release work, or changelog edits."
       ]
@@ -227,6 +237,6 @@
     "common_assertion_weight": 0.45,
     "per_eval_expectation_weight": 0.55,
     "pass_threshold": 0.8,
-    "notes": "These evals focus on observable requirements-spec behavior rather than subjective writing quality. They pressure the skill's main contracts: spec file creation or update, chat-only no-write exploration, same-spec continuity, explicit approval persistence, question-load control, broad checklist mode, downstream-workflow neutrality, scope separation, write-safety, auditability, and stop behavior after approval or handoff wording."
+    "notes": "These evals focus on observable requirements-spec behavior rather than subjective writing quality. They pressure the skill's main contracts: English spec file creation or update, chat-only no-write exploration, same-spec continuity, approval evidence outside the spec artifact, replacement updates without revision history, question-load control, broad checklist mode, downstream-workflow neutrality, scope separation, write-safety, auditability, and stop behavior after approval or handoff wording."
   }
 }

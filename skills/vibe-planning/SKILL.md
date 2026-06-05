@@ -3,10 +3,10 @@ version: 4.0.0
 name: vibe-planning
 description: >
   Use when the user explicitly wants implementation planning before coding,
-  asks to create or revise an implementation plan, supplies an approved
-  requirements spec, specification, acceptance criteria, or task list, or has
-  inputs concrete enough to plan but not execute. Do not use for rough
-  unapproved requirements drafting.
+  asks to create or revise an implementation plan, supplies requirements with
+  explicit approval evidence, a specification, acceptance criteria, or task
+  list, or has inputs concrete enough to plan but not execute. Do not use for
+  rough unapproved requirements drafting.
 ---
 
 # Vibe Planning
@@ -36,10 +36,10 @@ unavailable skill a requirement.
 
 `vibe-planning` starts when the input is ready for implementation planning. If
 the current request is still requirements drafting, rough product exploration,
-or ambiguous pre-plan clarification with no approved spec or concrete source,
-route to a requirements-spec workflow when one is available. If no such workflow
-is available, keep planning blocked on the missing requirements decisions
-instead of inventing product behavior.
+or ambiguous pre-plan clarification with no approval-evidenced spec or concrete
+source, route to a requirements-spec workflow when one is available. If no such
+workflow is available, keep planning blocked on the missing requirements
+decisions instead of inventing product behavior.
 
 ## Output Language and Artifact
 
@@ -119,23 +119,40 @@ artifact structure.
 When the user supplies a requirements spec artifact as planning input, read the
 artifact before planning and bind these sections when present:
 
-- `Approval state`
+- `Spec metadata`
 - `Current requirements`
 - `Acceptance criteria`
 - `Open risks and unknowns`
-- `Revision notes`
+- Legacy `Approval state` or `Revision notes`, when present.
 
-Only `Approval state` status `Approved` is implementation-planning ready.
-Statuses `Draft`, `Awaiting explicit approval`, and `Reopened after approval`
-block implementation-ready planning. In that case, do not treat the spec as a
-ready implementation contract; either create a blocked planning artifact whose
-`Proceed condition` requires spec approval, or return to the requirements-spec
-workflow when that is the current task.
+For legacy specs that contain `Approval state`, only status `Approved` is
+implementation-planning ready. Statuses `Draft`, `Awaiting explicit approval`,
+and `Reopened after approval` block implementation-ready planning. In that
+case, do not treat the spec as a ready implementation contract; either create a
+blocked planning artifact whose `Proceed condition` requires spec approval, or
+return to the requirements-spec workflow when that is the current task.
 
-For an approved spec, map confirmed requirements into `Requirements`, map the
-spec's acceptance criteria before implementation steps, carry open risks and
-unknowns into `Risks and unproven items`, and preserve the spec path and approval
-evidence under `Verified facts and sources`.
+For current requirements specs that omit `Approval state`, readiness must come
+from explicit approval evidence outside the artifact, such as the current user
+instruction, active routing state, or another concrete approval source tied to
+the current spec. An unambiguous current-spec planning handoff such as "create
+an implementation plan from this spec" or "use this spec for planning" counts
+as explicit approval evidence. Ambiguous "looks good", "ready", "continue", or
+"go ahead" wording is not enough. When approval evidence is absent, block
+implementation-ready planning because approval evidence is missing, not because
+the artifact contains an unapproved status.
+Do not ask the user to add legacy `Approval state`, `Status: Approved`, or
+`Approval note` fields only to store approval evidence for a current no-field
+spec; record the approval evidence in the plan instead.
+When a current no-field spec is used, record the artifact's `Approval state`
+absence as a verified absence alongside the spec path and approval evidence, so
+later implementers can distinguish the current no-field contract from a legacy
+unapproved artifact.
+
+For an approval-evidenced spec, map confirmed requirements into `Requirements`,
+map the spec's acceptance criteria before implementation steps, carry open risks
+and unknowns into `Risks and unproven items`, and preserve the spec path plus
+approval evidence under `Verified facts and sources`.
 
 ## Core Rules
 
@@ -157,6 +174,11 @@ evidence under `Verified facts and sources`.
   user-provided source material for claims about external systems. Use local
   reproduction or direct repository inspection for claims about the current
   workspace.
+- When direct repository inspection is unavailable, concrete user-provided local
+  artifacts such as repo-scan excerpts, command output, file excerpts, logs, or
+  test results can count as `Local investigation` for the stated facts. Preserve
+  the supplied source, do not add unstated facts, and downgrade contradicted or
+  bare asserted facts to `Unproven`.
 - Do not present memory, inference, forum summaries, or unchecked assumptions as
   fact. Mark them as `Unproven`.
 - Do not accept user claims blindly. If a claim is false, stale, unsupported, or
@@ -334,6 +356,11 @@ Classify every `Unproven` item by `Phase relevance`:
   current slice on it.
 - `non-implementation follow-up`: the item affects rollout, monitoring,
   product copy, or future hardening but not the current implementation contract.
+
+If the plan is discovery-first, label unknowns cleared by the discovery step as
+`proof before implementation`. Use `current-slice implementation blocker` inside
+a discovery-first plan only when the item requires a user/product decision or
+accepted-risk choice before acceptance criteria can be frozen.
 
 When unknown product constants, numeric limits, or adjacent enhancements are
 outside the current slice, do not invent them or block planning on them.
@@ -550,16 +577,19 @@ only for small, localized, low-risk work under the plan-depth rules above.
        core plan, repository rules, or local commands.
    - For `No matching optional skill verified`, the fallback must say how to do
      that step with the normal plan, repository rules, local evidence, and
-     proposed checkpoint messages when relevant. For `No skill needed`, the
-     matching reason must state why no optional skill is useful for that step.
+     proposed checkpoint messages when relevant. Ineligible checkpoint routes
+     are not relevant for message drafting: their fallback states only that
+     commit checkpoints are omitted until a code-producing slice is verified.
+     For `No skill needed`, the matching reason must state why no optional skill
+     is useful for that step.
    - `light` plans may group repeated route rows only when the grouped row names
      every covered step ID and all route fields are identical.
-   - When the plan includes commit checkpoints and a writing or commit-message
-     skill such as `vibe-writing` is verified available, schedule that skill
-     after checkpoint verification and before finalizing each proposed commit
-     message. If no matching writing or commit-message skill is verified, fall
-     back to the repository's commit rules, recent local history, and the
-     proposed standalone Conventional Commit message in the checkpoint.
+   - When the plan includes eligible commit checkpoints and a writing or
+     commit-message skill such as `vibe-writing` is verified available, schedule
+     that skill after checkpoint verification and before finalizing each
+     proposed commit message. If no matching writing or commit-message skill is
+     verified, fall back to the repository's commit rules, recent local history,
+     and the proposed standalone Conventional Commit message in the checkpoint.
    - Commit-checkpoint routes are message-preparation proposals only. They do
      not authorize staging, committing, release preparation, or history
      mutation during planning or later execution.
@@ -583,6 +613,11 @@ only for small, localized, low-risk work under the plan-depth rules above.
      scope, required verification, and a proposed standalone Conventional Commit
      message that names the concrete change. Checkpoints are proposed later
      boundaries only and do not authorize commits by themselves.
+   - Check checkpoint eligibility before message shaping. A planned single
+     implementation slice is still ineligible even if it will produce code
+     during later execution; a verified code-producing slice means a completed,
+     independently verified slice boundary, not a future implementation step or
+     an implementation-ready plan.
    - Do not wrap proposed commit messages in Markdown fences or code blocks.
      Fences are not commit-message bytes and can contaminate copy/paste into
      `git commit`. In a plan artifact, represent checkpoint messages with
@@ -591,6 +626,12 @@ only for small, localized, low-risk work under the plan-depth rules above.
    - For single-slice, discovery-only, blocked, discovery-first without a
      verified code-producing slice, destructive-risk-blocked, no-code-slice, or
      work-in-progress plans, write only: `Commit checkpoints are omitted until a code-producing slice is verified.`
+     Do not include `Subject:`, `Body:`, a Conventional Commit example, a
+     proposed message, or conditional future commit text anywhere in the plan,
+     including route-table fallbacks, implementation steps, handoff text, review
+     findings, or self-review. If self-review finds commit-message bytes for an
+     ineligible checkpoint, delete those bytes before final output instead of
+     reformatting or relocating them.
    - Do not split a single current slice into artificial test, fix, docs, or
      changelog checkpoints only to create commit messages. Red or failing-test
      proof work is not a verified code-producing checkpoint.
@@ -681,6 +722,11 @@ If the user explicitly chooses to continue with an unproven assumption:
 
 Never use accepted risk for irreversible, destructive, unsafe, illegal, or
 credential-exposing actions. Those require proof or a safer alternative.
+For destructive, auth/session, credential, permission, billing, or data-migration
+plans, acceptance criteria and tests/proof must cover auditability or
+traceability sufficient to identify what changed, who or what was affected, and
+how rollback or recovery can be verified. Do not invent an audit-log UI or
+retention feature unless the user requested it.
 
 ## Plan Multi-Perspective Review Gate
 
@@ -736,288 +782,12 @@ requirement, newly verified evidence, or a must-preserve equivalence dimension.
 
 ## Standard Plan Artifact
 
-Use this structure for the implementation-ready plan file. Keep `light` plans
-compact, but preserve the order: requirements and tests come before
-implementation. Compact output reduces rendering, not planning discipline.
+Before drafting, revising, or finalizing a plan artifact, read
+`references/plan-artifact-output.md`. That reference defines the required
+section order, compact `light` rendering rules, route-table fields,
+commit-checkpoint shape, implementation handoff, review/self-review records,
+proceed-condition wording, and final quality checklist.
 
-The `Implementation plan` section is handoff for a later execution request. It
-does not authorize the planner to add active implementation tasks or edit
-non-plan files in the same response.
-
-```markdown
-# [Plan title]
-
-## Goal
-- [What the user wants to accomplish and for whom]
-
-## Plan depth
-- Mode: `light` | `strict`
-- Rationale:
-- Escalation trigger checked:
-
-## Verified facts and sources
-| Claim | Evidence | Source | Impact |
-| --- | --- | --- | --- |
-
-## Requirements
-- In scope:
-- Out of scope:
-- Constraints:
-
-## Ambiguities, questions, and decisions
-- Item:
-- Options or decision:
-- Evidence:
-- Phase relevance: current-slice implementation blocker | proof before implementation | deferred decision | non-implementation follow-up
-- Recommended path:
-
-## Acceptance criteria
-- [Observable pass/fail criterion]
-
-[For `strict` plans, insert only matching high-risk sections before the test
-plan. For `light` plans, omit non-applicable sections and record the
-evidence-backed reason in `Plan integrity gates`.]
-
-## Behavior contract inventory
-- [Only when the slice touches existing behavior.]
-
-## Behavioral equivalence analysis
-- [Include only when the slice touches existing behavior.]
-
-## Failure-pattern checks
-- [Include only when high-risk checklist sections apply; select matching
-  sections and record near-miss non-selections.]
-
-## Test plan
-- Acceptance tests:
-- Regression tests:
-- Negative and edge cases:
-- Manual or visual checks:
-
-## Plan integrity gates
-[For `light` plans, collapse not-applicable gates into concise evidence-backed
-lines. For `strict` plans, keep applied high-risk evidence visible.]
-
-- Fact cleanup gate:
-  - Status or not-applicable reason:
-  - Search scope:
-  - Stale `Unproven`, old API names, old field names, old commands, and old
-    implementation proposals removed or rewritten:
-- Evidence downgrade gate:
-  - Status or not-applicable reason:
-  - Visual, performance, packet-volume, responsiveness, and UX claims without
-    measurement downgraded to `Unproven` or `Accepted risk`:
-- Test no-escape gate:
-  - Status or not-applicable reason:
-  - Important contracts:
-  - Blockers before implementation or alternative proof paths:
-- High-risk controls:
-  - Status or not-applicable reason:
-  - Behavior inventory / equivalence / recovery controls applied:
-  - Diagnostic-finding restraint, success-criteria freeze, plan-body firewall,
-    and failure-pattern applicability record:
-- Generality gate:
-  - Status or not-applicable reason:
-  - Concrete examples, fixtures, memories, or historical cases that influenced
-    the plan:
-  - Abstract planning dimensions derived from those examples:
-  - Explicit dimension names that shaped scope, acceptance criteria, tests, or
-    implementation order:
-  - Overfit risks and scope corrections:
-
-## Skill usage plan
-| Plan step | Skill route | Availability source | Use when | Matching reason | Fallback if unavailable |
-| --- | --- | --- | --- | --- | --- |
-| [Step identifier from Discovery plan, Implementation plan, Test plan, Multi-perspective plan review, Plan self-review gate, or Commit checkpoints] | [Verified matching skill, `No matching optional skill verified`, or `No skill needed`] | [Visible session metadata, user-supplied list, project instructions, local skill metadata, host capability metadata, or `Not applicable`] | [Exact timing for this step] | [Why the route matches, or why no skill is needed/no match was verified] | [How to proceed if the skill is unavailable, or the normal-plan fallback for no-skill/no-match routes] |
-
-[A `light` plan may group repeated rows only when this cell names every covered
-step ID and every other route field is identical.]
-
-## Implementation plan
-1. [Proof or setup step, if needed]
-2. [Implementation step]
-3. [Verification and diff-review step]
-
-## Commit checkpoints
-- [For multi-slice plans with code-producing slices: checkpoint scope, required
-  verification, and a proposed standalone Conventional Commit message. Do not
-  wrap proposed commit messages in Markdown fences; use labeled `Subject:` and
-  optional `Body:` fields when a body is useful. For
-  single-slice, blocked, discovery-only, discovery-first without a verified
-  code-producing slice, destructive-risk-blocked, no-code-slice, or
-  work-in-progress plans, write only: `Commit checkpoints are omitted until a code-producing slice is verified.`
-  Do not list future, red-test-only, docs-only, or changelog-only checkpoints.]
-
-## Risks and unproven items
-- Item:
-- Evidence label: `Unproven` | `Accepted risk`
-- Impact:
-- Phase relevance: current-slice implementation blocker | proof before implementation | deferred decision | non-implementation follow-up
-- Fastest proof path:
-- Revisit trigger:
-
-## Implementation handoff
-- When implementing this plan, treat this document as authoritative. Re-check
-  local facts before editing, follow the acceptance criteria, test plan, and
-  skill usage plan's per-step routes, implement only the current in-scope slice,
-  and stop if the `Proceed condition` is blocked or local evidence contradicts
-  the plan. This plan artifact is not implementation authorization; code, tests,
-  non-plan docs, evals, configs, changelogs, commits, and other non-plan edits
-  require a separate execution request.
-
-## Multi-perspective plan review
-- Status:
-- Requested perspectives:
-- Actual perspectives and execution mode: delegated parallel | delegated serial | coordinator fallback | mixed
-- Degradation or fallback reason:
-- Material findings and dispositions:
-  - Perspective:
-  - Finding:
-  - Disposition: corrected | rejected | deferred | blocked
-  - Evidence and plan-boundary rationale:
-  - Artifact correction made:
-- Remaining blockers or deferred review items:
-
-## Plan self-review gate
-- Status:
-- Checks performed: step-to-skill-route completeness, unavailable-skill leakage,
-  evidence labels, acceptance-criteria/test ordering, multi-perspective review
-  completion or degraded fallback, `vibe-planning` contract compliance,
-  reviewer-disposition consistency, scope creep from review feedback,
-  plan-only boundary, proceed condition, and unresolved `Unproven`
-  implementation blockers.
-- Corrections made:
-- Remaining material issues:
-- [For `light` plans, keep this concise while still recording corrections.]
-
-## Proceed condition
-- [State whether implementation is ready, conditional on accepted risk, or
-  blocked pending proof/user decision. Deferred decisions outside the current
-  slice do not block implementation after acceptance criteria are narrowed.]
-```
-
-For discovery-only phases, replace `Implementation plan` with `Discovery plan`
-and list proof tasks, exit criteria, and the next decision point.
-
-## Quality Checklist
-
-Before finalizing the plan, check that:
-
-- Discoverable facts were investigated before asking the user.
-- Technical jargon is explained or avoided when the user may be non-technical.
-- The full plan was written to a durable Markdown artifact, or the fallback
-  reason for chat-only output is stated.
-- The plan artifact uses stable English section headings and preserves
-  user-authored intent, requirements, quoted material, and domain terms in their
-  original language.
-- The plan states `light` or `strict` depth, and the selected depth matches the
-  actual risk surface.
-- `light` plans use compact rendering only to collapse not-applicable detail;
-  they still include evidence labels, acceptance criteria, tests, per-step
-  skill routes, multi-perspective review or recorded fallback, self-review, and
-  a proceed condition.
-- `strict` plans are used for existing-behavior work, high-risk controls,
-  external contracts, destructive risk, diagnostic findings, recovery or
-  replacement work, auth/security/billing, data migrations, or current-slice
-  implementation blockers.
-- The user-facing reply is a concise summary in the resolved language and does
-  not duplicate the full artifact unless file output was unavailable or declined.
-- Every implementation-affecting claim has an evidence label.
-- False or infeasible requirements are challenged with evidence and alternatives.
-- Acceptance criteria are observable.
-- Tests come before implementation steps.
-- The plan-only boundary is respected: no non-plan files were edited, no patches
-  were provided, no commits were made, no implementation completion was claimed,
-  and no active implementation tasks, phases, or follow-up execution items were
-  added while using `vibe-planning`.
-- `Commit checkpoints` matches the `Proceed condition`: ineligible plans do not
-  include proposed commit messages, and single-slice work was not split into
-  artificial checkpoints.
-- The `Fact cleanup gate` removed stale `Unproven` text, old API names, old
-  field names, old commands, and superseded implementation proposals after facts
-  changed.
-- The `Evidence downgrade gate` keeps unmeasured appearance, performance, packet
-  volume, responsiveness, and UX claims as `Unproven` or `Accepted risk`.
-- The `Test no-escape gate` blocks implementation or defines an equivalent
-  proof path when an important contract cannot be verified as planned.
-- The `Generality gate` treats examples, fixtures, project memories, and past
-  failures as sampled cases, not exhaustive lists or mandatory branches.
-- When existing behavior is touched, the plan includes a behavior contract
-  inventory before behavioral equivalence analysis, or an evidence-backed
-  not-applicable rationale.
-- Replacement, restoration, rollback, and rewrite plans are anchored to
-  known-good evidence, or the plan is reframed as discovery or net-new behavior
-  design with implementation blocked.
-- Diagnostic-finding, review, audit, and analyzer-driven plans apply the
-  success-criteria freeze and plan-body firewall so the current slice corrects
-  the finding without importing adjacent hardening by default.
-- Failure-pattern checks are selective: applicable high-risk sections are
-  answered and near-miss non-selections are recorded, but the full checklist is
-  not pasted into ordinary plans.
-- Concrete examples that affect the plan are mapped to abstract planning
-  dimensions before they influence scope, acceptance criteria, tests, or
-  implementation order.
-- Abstract planning dimensions are named explicitly when they shape the plan,
-  using names from the current request and evidence rather than a generic
-  checklist.
-- Parser, serialization, money/amount, and public API normalization plans do not
-  turn unproven accepted grammars, precision, rounding, locale behavior, or
-  sample input/output pairs into current acceptance criteria or tests.
-- Local data or file migration plans use exact dimension names when relevant,
-  including `data contract` for schema versions, field mapping, reader/writer
-  compatibility, or saved-file compatibility.
-- Bug reports keep the reported symptom, local facts, and root-cause hypothesis
-  separately labeled; no unproven cause is presented as the root cause.
-- Plans do not expand into adjacent surfaces, channels, APIs, security paths, or
-  UI states only because examples mention them.
-- Plans do not ignore non-web, non-UI, non-product, CLI, library, data,
-  infrastructure, runtime, or domain-specific work.
-- Generality checks do not weaken local evidence, erase supplied domain details,
-  or make the plan less specific to the user's current request.
-- The skill usage plan names only verified available skills with timing and
-  fallback, or records `No matching optional skill verified` / `No skill needed`
-  with the same availability source, timing, matching reason, and fallback
-  fields.
-- The skill usage plan maps every discovery, implementation, verification,
-  multi-perspective plan review, plan self-review, and commit-checkpoint step
-  to a route. A global skill list without per-step assignment fails this check.
-- Grouped `light` route rows name every covered step ID and share identical
-  availability source, timing, matching reason, and fallback fields.
-- Every skill route has the required fields: step identifier, selected skill or
-  explicit no-skill/no-match value, availability source, when to use it,
-  matching reason, and fallback.
-- The skill usage plan does not require unavailable skills, hard-code a fixed
-  companion skill set, or route a step to an installed skill whose description
-  does not match that step.
-- Implementation steps do not rely on unlabeled assumptions.
-- The proceed condition blocks implementation whenever a current-slice
-  implementation blocker remains `Unproven`, unless the plan records an
-  explicit scoped `Accepted risk` that supports only that conditional step.
-- Optional product constants, future enhancements, and adjacent decisions are
-  deferred instead of blocking the current slice after acceptance criteria are
-  narrowed to evidence-backed behavior.
-- The implementation handoff is present, self-contained, and does not require
-  unverified or unavailable skills.
-- The `Multi-perspective plan review` ran after the draft artifact and before
-  final self-review. It used verified review-only subagents when available and
-  authorized, or recorded a coordinator-run fallback when unavailable,
-  unauthorized, unsafe, or timed out.
-- The multi-perspective review included `vibe-planning contract compliance`,
-  recorded actual perspectives and execution mode, and classified material
-  findings as `corrected`, `rejected`, `deferred`, or `blocked` with evidence
-  and plan-boundary rationale.
-- Reviewer suggestions did not expand success criteria, tests, or implementation
-  steps unless backed by a user requirement, newly verified evidence, or a
-  must-preserve equivalence dimension.
-- The `Plan self-review gate` ran after the draft artifact and before the
-  concise user summary. It checked step-to-skill-route completeness,
-  unavailable-skill leakage, evidence labels, acceptance-criteria/test ordering,
-  multi-perspective review completion or degraded fallback, `vibe-planning`
-  contract compliance, reviewer-disposition consistency, scope creep from
-  review feedback, plan-only boundary, proceed condition, and unresolved
-  `Unproven` implementation blockers.
-- Any material issue found by self-review was corrected in the artifact before
-  final response. A self-review that notes a material issue but leaves the plan
-  unchanged fails this check.
-- Accepted risks are explicit, scoped, and revisitable.
-- The user-facing summary language follows the configured precedence.
+The reference is mandatory output guidance, not optional background. Use it to
+shape the artifact; do not paste the full checklist into chat or into ordinary
+plans. Compact output reduces rendering, not planning discipline.

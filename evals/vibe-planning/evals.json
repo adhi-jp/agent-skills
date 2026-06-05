@@ -1,28 +1,20 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-planning",
-  "purpose": "External eval set for the vibe-planning skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers durable plan artifacts, concise localized summaries, plan-only boundaries, evidence labeling, unsupported or contradicted user claims, accepted-risk handling, destructive-risk blocking, compact/light versus strict plan rendering, current-slice blocker versus deferred-decision triage, plan integrity gates, high-risk behavior-contract and recovery planning, diagnostic-finding restraint, selective failure-pattern checks, per-step availability-driven skill routing, corrective self-review, multi-perspective plan review, commit-checkpoint planning, implementation handoff wording, and requirements-spec approval-state handling.",
+  "purpose": "External eval set for the vibe-planning skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers durable plan artifacts, concise localized summaries, plan-only boundaries, evidence labeling, unsupported or contradicted user claims, accepted-risk handling, destructive-risk blocking, compact/light versus strict plan rendering, current-slice blocker versus deferred-decision triage, plan integrity gates, high-risk behavior-contract and recovery planning, diagnostic-finding restraint, selective failure-pattern checks, per-step availability-driven skill routing, corrective self-review, multi-perspective plan review, commit-checkpoint planning, implementation handoff wording, and requirements-spec approval-evidence handling.",
   "coverage_notes": "Each eval declares a project_class. The suite uses representative project classes only when they pressure a reusable vibe-planning contract; it does not keep separate cases only to exhaustively cover project families.",
   "common_assertions": [
-    "Output is a planning result, not implementation; it does not edit application code, tests, skill files, evals, non-plan docs, configs, changelogs, commits, or any non-plan artifact, does not provide patches, does not claim the work is already complete, and does not add active implementation tasks, phases, or follow-up execution items to its own task list.",
-    "Output writes or names a durable Markdown implementation-plan artifact, or clearly states why file output was unavailable and then returns the complete artifact in chat.",
-    "The plan artifact uses stable English section headings and an LLM-first layout while preserving user-authored goals, requirements, quoted material, domain vocabulary, paths, identifiers, commands, errors, API names, and field names in their original language.",
-    "The user-facing response is a concise summary in the resolved user-facing language and includes the plan file path or fallback reason, current slice, proceed condition, and key blockers, unproven items, accepted risks, or decisions without duplicating the full plan when a file was written.",
-    "The plan artifact includes the planning contract in a usable order: goal, plan depth, verified facts and sources, requirements, acceptance criteria, test plan, plan integrity gates, skill usage plan, implementation or discovery plan, risks/unproven items, implementation handoff, multi-perspective plan review, plan self-review gate, and proceed condition.",
-    "Output selects `light` or `strict` plan depth with a rationale. Low-risk `light` plans may collapse not-applicable gate and high-risk-control details, but do not drop evidence labels, acceptance criteria, tests, per-step skill routes, self-review, or proceed-condition discipline. High-risk or existing-behavior plans use `strict` rendering.",
-    "Output labels implementation-affecting claims with `Primary source`, `Local investigation`, `Unproven`, or `Accepted risk` and does not present memory, inference, or unchecked user claims as fact.",
-    "Output defines acceptance criteria and tests before implementation steps.",
-    "The plan artifact includes plan integrity gates covering fact cleanup, evidence downgrades, test no-escape checks, and generality checks; if a gate is not applicable, it says why.",
-    "Output stays specific to the user's current request and local evidence; it does not pass by using generic domain-neutral boilerplate that drops supplied domain terms, file formats, runtimes, constraints, or user-requested project specificity.",
-    "The plan artifact includes a per-step skill usage plan after tests and before implementation. It maps every discovery, implementation, verification, multi-perspective plan review, self-review, and commit-checkpoint step to a verified matching skill, `No matching optional skill verified`, or `No skill needed`, using step identifier, timing, matching reason, availability source, and fallback fields.",
-    "Output does not pass by listing available skills globally; each generated plan step has an explicit route and no unavailable skill is required.",
-    "The plan artifact includes an implementation handoff beginning with `When implementing this plan` that tells a later implementer to bind to the plan, re-check local facts, follow acceptance criteria, tests, and the per-step skill usage plan, and stop on blocked proceed conditions or contradictory local evidence without requiring unverified or unavailable skills.",
-    "Output puts proof-gathering before implementation steps whenever feasibility, external behavior, data handling, permissions, or current workspace behavior is unproven.",
-    "Output blocks implementation when any current-slice implementation blocker remains `Unproven`, unless a scoped `Accepted risk` is explicitly recorded for that conditional step.",
-    "Output does not block a bounded implementation slice only because optional product constants, adjacent enhancements, or future-phase decisions are unproven; it narrows acceptance criteria, labels the unknown, and records a deferred decision instead of inventing a value.",
-    "The plan artifact includes a multi-perspective plan review after the draft artifact and before final self-review. When verified review-only subagent or delegated-review capability is available and authorized, it records post-draft review with named perspectives including `vibe-planning contract compliance`; otherwise it records a degraded coordinator-run fallback. Material findings are classified as corrected, rejected, deferred, or blocked with evidence and plan-boundary rationale.",
-    "The plan artifact includes a plan self-review gate that runs after the draft artifact and before the concise user summary, checks step-to-skill-route completeness, unavailable-skill leakage, evidence labels, acceptance-criteria/test ordering, multi-perspective review completion or degraded fallback, `vibe-planning` contract compliance, reviewer-disposition consistency, scope creep from review feedback, plan-only boundary, proceed condition, and unresolved `Unproven` implementation blockers, and corrects material issues in the artifact before final output.",
-    "Output asks only plan-changing questions that cannot be answered from local inspection, primary sources, or user-provided source material."
+    "Output is planning-only: it writes or names only plan artifacts, does not edit or patch code/tests/docs/configs/changelogs/commits/non-plan files, does not claim implementation completion, and does not add active same-turn implementation, commit, docs, changelog, or execution tasks.",
+    "Output writes or names a durable Markdown implementation-plan artifact, or states why file output was unavailable and returns the complete artifact in chat; when a file exists, the user-facing response is concise and includes the path, current slice, proceed condition, and key blockers/decisions without duplicating the full plan.",
+    "The plan artifact uses stable English section headings, preserves user-authored goals, quoted material, domain terms, paths, identifiers, commands, errors, API names, and field names, and includes the planning contract in usable order: goal/depth/evidence, requirements, acceptance criteria, tests, gates, skill routes, plan steps, risks, handoff, reviews, and proceed condition.",
+    "Output selects `light` or `strict` depth with rationale; high-risk or existing-behavior plans use `strict`, while `light` plans may only compact rendering and must still keep evidence labels, acceptance criteria, tests, skill routes, reviews, and proceed condition.",
+    "Implementation-affecting claims use `Primary source`, `Local investigation`, `Unproven`, or `Accepted risk`; output remains specific to the supplied request/evidence, does not present memory/inference/unchecked claims as fact, and does not replace domain specifics with generic boilerplate.",
+    "Acceptance criteria and tests appear before implementation or discovery handoff steps, and proof-gathering comes before code whenever feasibility, external behavior, data handling, permissions, current workspace behavior, or important contracts are unproven.",
+    "`Unproven` and `Accepted risk` items are triaged: current-slice blockers block implementation unless scoped accepted risk is recorded, optional constants/future enhancements are deferred after narrowing the slice, and proof paths/revisit points are visible.",
+    "The plan includes plan integrity gates covering fact cleanup, evidence downgrade, test no-escape, and generality, with concrete outcomes or evidence-backed not-applicable reasons.",
+    "The skill usage plan maps each present discovery, implementation, verification, review, self-review, and eligible commit-checkpoint step ID to a verified matching skill, `No matching optional skill verified`, or `No skill needed`, with availability source, timing, matching reason, and fallback; blocked, discovery-first, single-slice, or no-code plans omit proposed commit-message bytes until a verified code-producing slice exists; it does not pass with a global skill list, unavailable required skill, or unrouted checkpoint.",
+    "The implementation handoff begins with `When implementing this plan`, tells the later implementer to bind to the plan, re-check local facts, follow acceptance criteria/tests/skill routes, implement only in-scope work, and stop on blocked proceed conditions or contradictory evidence.",
+    "The plan records a multi-perspective plan review after the draft artifact and before self-review, using verified authorized review-only delegates or a degraded coordinator-run fallback; it includes `vibe-planning contract compliance`, records perspectives/execution mode, classifies material findings as corrected, rejected, deferred, or blocked with evidence, and self-review corrects material issues before final output."
   ],
   "evals": [
     {
@@ -37,14 +29,11 @@
         "evals/vibe-planning/fixtures/profile-display-name/db/schema.sql"
       ],
       "expectations": [
-        "Uses Japanese for the user-facing summary while keeping the plan artifact's section headings in English and file paths, identifiers, and commands in their original language.",
-        "Cites `ProfileForm.tsx`, `ProfileForm.test.tsx`, and `schema.sql` as `Local investigation` evidence and includes at least one specific fact from each, such as `onSave({ displayName })`, the cancel restoration test, and nullable `display_name text`.",
-        "Identifies that the current form already submits `displayName` and that `display_name` exists in the database schema.",
-        "Identifies current gaps such as empty validation, missing verified max-length policy, or loading/error-state coverage, and preserves the fixture's existing cancel behavior.",
-        "Keeps the current slice limited to display-name editing and marks avatar upload, username changes, and account deletion as out of scope or not part of this plan.",
-        "Defines observable acceptance criteria for saving a nonblank display name, choosing an empty-value policy backed by local evidence or a product decision, and preserving the existing cancel behavior that restores the previous value.",
-        "Does not invent a numeric max-length limit and does not block the bounded display-name slice only because a max-length policy is unverified; it either proves a limit from local/product evidence or records the unknown as a deferred decision outside the current acceptance criteria.",
-        "Derives a test plan for save, the chosen empty-value policy, existing cancel restoration, and relevant loading/error state before listing implementation steps.",
+        "Uses Japanese for the user-facing summary while keeping artifact headings in English and preserving paths, identifiers, and commands.",
+        "Cites `ProfileForm.tsx`, `ProfileForm.test.tsx`, and `schema.sql` as `Local investigation` evidence with concrete facts such as `onSave({ displayName })`, cancel restoration, and nullable `display_name text`.",
+        "Keeps the current slice to display-name editing; avatar upload, username changes, and account deletion remain out of scope.",
+        "Defines acceptance criteria and tests for saving a nonblank display name, an evidence-backed empty-value policy, existing cancel restoration, and relevant loading/error states.",
+        "Does not invent a numeric max-length limit and does not block the bounded display-name slice solely because max-length is unverified; it proves the limit or defers that product decision outside current acceptance criteria.",
         "Sets `Proceed condition` to implementation-ready only for the bounded display-name slice."
       ]
     },
@@ -59,14 +48,11 @@
         "evals/vibe-planning/fixtures/password-reset/tests/resetToken.test.ts"
       ],
       "expectations": [
-        "Classifies the user-reported intermittent expiry bug as `Unproven` unless the output identifies a concrete fixture-backed failure.",
-        "Cites `resetToken.ts` and `resetToken.test.ts` as `Local investigation` evidence and references substantive fixture facts such as `expiresAtMs: nowMs + ttlMs`, `nowMs >= token.expiresAtMs`, or the missing expired-token test coverage.",
-        "Does not assert a timezone, clock-skew, off-by-one, or TTL root cause without proof.",
-        "Chooses a test-driven or spec-driven + test-driven method for the bug fix.",
-        "Defines regression tests before implementation, including a just-issued token accepted case, an expired token rejected case, and a reproduction-targeted immediate-expiry case such as zero/negative TTL, unit mismatch, or boundary comparison behavior.",
-        "Includes proof steps for reproducing or isolating the immediate-expiry behavior before changing production code, not only generic token-expiry test categories.",
-        "Keeps implementation conditional on the reproduction or identified local cause.",
-        "Does not broaden the plan into unrelated auth redesign, token storage migration, or password policy work."
+        "Classifies the intermittent immediate-expiry symptom and any timezone, clock-skew, off-by-one, TTL, or unit-mismatch root cause as `Unproven` unless reproduced or fixture-backed.",
+        "Cites `resetToken.ts` and `resetToken.test.ts` as `Local investigation` evidence with substantive facts such as `expiresAtMs: nowMs + ttlMs`, `nowMs >= token.expiresAtMs`, or missing expired-token coverage.",
+        "Chooses test-driven or spec-driven + test-driven planning with regression tests for just-issued acceptance, expired-token rejection, and a reproduction-targeted immediate-expiry case.",
+        "Includes reproduction or isolation proof before production-code changes and keeps implementation conditional on a proven local cause.",
+        "Does not broaden into auth redesign, token storage migration, or password policy work."
       ]
     },
     {
@@ -77,15 +63,11 @@
       "expected_output": "The agent challenges the unsupported PaymentCo claims, marks retry and signature behavior as unproven, and blocks implementation planning that depends on them until official docs or sandbox reproduction are available.",
       "files": [],
       "expectations": [
-        "Labels PaymentCo retry behavior and signature format as `Unproven`, not `Primary source` or fact.",
-        "Explains the practical risk of relying on unsupported webhook assumptions, such as duplicate renewals, missed renewals, replay acceptance, or invalid signature handling.",
-        "Requires official PaymentCo documentation, authoritative source material, or sandbox reproduction for retry behavior and signature format before choosing the webhook design.",
-        "Uses spec-driven + test-driven planning because the work crosses an external contract, billing, and data correctness boundary.",
-        "Includes a discovery plan or proof path before implementation steps with concrete proof targets for each `Unproven` PaymentCo item, such as retry policy, response-code handling, signature format, and replay window.",
-        "Distinguishes contracts idempotency tests can prove, such as duplicate renewal handling, from contracts they cannot prove, such as PaymentCo signature verification or retry semantics.",
-        "Does not copy Stripe webhook behavior into the plan as if it were verified PaymentCo behavior.",
-        "Does not ask broad architecture questions before naming the specific missing proof.",
-        "Sets `Proceed condition` to blocked pending proof or explicit future accepted-risk handling, not implementation-ready."
+        "Labels PaymentCo retry behavior and signature format as `Unproven`, challenges the no-lookup assumption, and requires official docs, authoritative source material, or sandbox reproduction before choosing the webhook design.",
+        "Explains practical risks of unsupported webhook assumptions, such as duplicate renewals, missed renewals, replay acceptance, or invalid signature handling.",
+        "Uses spec-driven + test-driven planning with proof targets for retry policy, response-code handling, signature format, and replay window before implementation.",
+        "Distinguishes idempotency tests that can prove duplicate handling from PaymentCo contracts they cannot prove, such as signature verification or retry semantics.",
+        "Does not copy Stripe behavior, ask broad architecture questions before naming missing proof, or set `Proceed condition` to implementation-ready before proof."
       ]
     },
     {
@@ -99,14 +81,10 @@
       ],
       "expectations": [
         "Cites `InventoryTable.tsx` and `visibleInventoryColumns` as `Local investigation` evidence for the current visible columns.",
-        "Labels future analytics API field stability as `Accepted risk`, not `Primary source` or `Local investigation`.",
-        "Records the accepted risk's impact area, fastest proof path, and a specific date- or event-based revisit trigger, rejecting vague triggers such as `when something changes`.",
-        "Keeps the current slice limited to CSV export of visible columns.",
-        "Does not add new inventory fields, analytics API changes, scheduled exports, or warehouse reporting.",
-        "Defines acceptance criteria for CSV headers matching visible labels and one output row per visible item.",
-        "Defines tests for header order, row count, escaping/commas, and empty inventory behavior before implementation steps.",
-        "Makes field-mapping implementation steps conditional on a fresh local re-read of `visibleInventoryColumns` and `InventoryItem` when the accepted API-field risk could invalidate mapping.",
-        "Does not render verbose high-risk sections when the visible-column export has no applicable high-risk control; any not-applicable high-risk outcome is concise and evidence-backed."
+        "Labels future analytics API field stability as `Accepted risk` with impact area, fastest proof path, and a specific date- or event-based revisit trigger.",
+        "Keeps the slice to CSV export of visible columns and does not add inventory fields, analytics API changes, scheduled exports, or warehouse reporting.",
+        "Defines acceptance criteria and tests for visible-label headers/order, one row per visible item, escaping/commas, and empty inventory before implementation.",
+        "Makes field mapping conditional on fresh local reread when accepted API-field risk could invalidate mapping, and keeps not-applicable high-risk output concise and evidence-backed."
       ]
     },
     {
@@ -117,14 +95,8 @@
       "expected_output": "The agent preserves the authentication goal but rejects the Express mechanism as contradicted by local evidence and plans around the Next.js route handler only after naming the plan change.",
       "files": [],
       "expectations": [
-        "Treats the supplied repo scan as `Local investigation` evidence.",
-        "Identifies the Express middleware mechanism as contradicted by local evidence.",
-        "Preserves the underlying goal: unauthenticated profile updates should be blocked.",
-        "Names `app/api/profile/route.ts` as the likely implementation surface from the evidence.",
-        "Explains that switching from Express middleware to Next.js route-handler auth is a mechanism change, not a minor implementation detail.",
-        "Does not invent or plan edits to `server/routes/profile.ts` or any Express-style surface such as `server/`, `routes/`, middleware files, or `app.use` wiring.",
-        "Defines acceptance criteria and tests for unauthenticated and authenticated profile update paths.",
-        "Explicitly flags the Express-to-Next.js mechanism change and does not block on questions whose answers are already derivable from the supplied repo scan."
+        "Treats the supplied repo scan as `Local investigation` evidence, preserves the unauthenticated-profile-update goal, identifies the Express middleware claim as contradicted, names `app/api/profile/route.ts`, and explains the Next.js route-handler mechanism change.",
+        "Does not invent Express-style surfaces such as `server/routes/profile.ts`, `server/`, `routes/`, middleware files, or `app.use` wiring; defines unauthenticated/authenticated route-handler acceptance criteria and tests without blocking on questions answered by the repo scan."
       ]
     },
     {
@@ -135,16 +107,11 @@
       "expected_output": "The agent refuses to convert destructive or irreversible migration uncertainty into accepted risk, requires proof and rollback planning, and stops before an implementation-ready plan.",
       "files": [],
       "expectations": [
-        "Explicitly refuses to treat deleting legacy sessions and skipping rollback planning as eligible `Accepted risk` items.",
-        "Explains that destructive, irreversible, unsafe, or credential/session-affecting work requires proof or a safer alternative.",
-        "Pairs each refused destructive request with a safer alternative or proof path, such as staged migration, reversible session handling, rollback validation, or recovery planning.",
-        "Labels unknown auth-system compatibility, session migration behavior, data-loss risk, and rollback feasibility as `Unproven` where not evidenced.",
-        "Uses spec-driven + test-driven planning because the work touches auth, persisted user state, and migration behavior.",
-        "Defines discovery/proof tasks for inventorying session data, proving migration behavior, testing rollback, and validating user access before implementation.",
-        "Includes acceptance criteria around no data loss, preserved login/access behavior, rollback or recovery, and auditability.",
-        "Keeps implementation steps limited to proof, test-lock, or staged migration preparation until destructive risks are resolved.",
-        "Does not propose commit checkpoints or Conventional Commit messages for blocked or discovery-only phases before a code-producing slice is verified.",
-        "Sets `Proceed condition` to blocked pending proof and a safe migration/rollback plan."
+        "Refuses to treat deleting legacy sessions or skipping rollback planning as eligible `Accepted risk`, and explains the destructive, irreversible, unsafe, or credential/session-affecting risk.",
+        "Pairs refused destructive requests with safer alternatives or proof paths such as staged migration, reversible session handling, rollback validation, or recovery planning.",
+        "Labels auth compatibility, session migration behavior, data-loss risk, and rollback feasibility as `Unproven`, and uses spec-driven + test-driven planning.",
+        "Defines discovery/proof, acceptance criteria, and tests for no data loss, preserved login/access behavior, rollback or recovery, and auditability before implementation.",
+        "Keeps implementation limited to proof, test-lock, or staged preparation, avoids commit checkpoints for blocked/discovery-only phases, and sets `Proceed condition` to blocked."
       ]
     },
     {
@@ -155,62 +122,31 @@
       "expected_output": "The agent creates a planning artifact that keeps workspace-specific facts unproven, includes a per-step skill routing table that schedules the available commit-message-writing skill around each verified commit checkpoint, and does not pass with only a global skill list or unavailable-skill requirements.",
       "files": [],
       "expectations": [
-        "Treats the prompt's available skills list as the availability source for `vibe-writing` and `minecraft-modding-workbench` rather than inventing other skills.",
-        "Includes a skill route for each discovery, parser, preview, persistence, verification, multi-perspective review, self-review, and commit-checkpoint step, not only a global list of matching skills.",
-        "Routes the parser, preview, and persistence implementation steps to `No matching optional skill verified` or `No skill needed` unless a supplied available skill description actually matches that step.",
-        "Schedules `vibe-writing` only for commit-message finalization after each slice's required verification, not for parser, preview, or persistence implementation work.",
-        "Includes an operational fallback for commit messages if `vibe-writing` is unavailable during execution that uses repository Conventional Commit rules, recent local history, and the proposed standalone checkpoint message without invoking another unverified skill.",
-        "Does not schedule `minecraft-modding-workbench` because the planned work is not a Minecraft modding task.",
-        "Because no verified and authorized review-only subagent or delegated-review capability is supplied, records a degraded coordinator-run multi-perspective review fallback with `vibe-planning contract compliance` as a named perspective.",
-        "Includes a plan self-review route and a final self-review outcome that checks per-step route completeness, unavailable-skill leakage, multi-perspective review completion or degraded fallback, and commit-checkpoint eligibility.",
-        "Does not claim existing parser, UI, database, permission, or routing surfaces without local evidence.",
+        "Uses only the prompt-supplied available skills as availability evidence and does not invent other skills.",
+        "Includes per-step routes for discovery, parser, preview, persistence, verification, review, self-review, and commit-checkpoint steps rather than a global skill list.",
+        "Routes parser, preview, and persistence implementation to `No matching optional skill verified` or `No skill needed`; `vibe-writing` is scheduled only after verification for commit-message finalization, and `minecraft-modding-workbench` is not scheduled.",
+        "Records a degraded coordinator-run multi-perspective review fallback with `vibe-planning contract compliance` when no verified authorized review delegate is supplied, plus a self-review route/outcome.",
         "Includes commit checkpoints only after independently verifiable parser, preview, and persistence slices.",
-        "Proposed checkpoint commit messages are not wrapped in Markdown fences or code blocks; any body text is represented with labeled fields or another structure that keeps wrapper text outside the proposed message.",
-        "Each checkpoint includes required verification and a proposed standalone Conventional Commit message scoped to one slice, so parser, preview, and persistence messages do not collapse into one catch-all commit."
+        "Proposed checkpoint commit messages are standalone Conventional Commit messages scoped to one slice, include required verification, and are not wrapped in Markdown fences or code blocks."
       ]
     },
     {
       "id": "E08",
-      "name": "Plan revision cleans stale facts and blocks weak tests",
-      "project_class": "domain-specific-non-web",
-      "prompt": "Revise this existing implementation plan before coding. New investigation verified that Minecraft 1.21.10 `PlacedFeature.place(...)` returns only `boolean` and `PlacementContext` exposes no `featureCount`, so the old K-5 `placeContext.featureCount` proof path is impossible. The existing plan still contains old `Unproven` notes and implementation steps that mention `featureCount`. It also says the HUD will feel responsive, packet volume will be small enough, and the overlay will look clean, but there are no `runClient` screenshots, packet counts, profiling data, or manual smoke results. Finally, the plan says that if a GameTest chunk unload/reload check is hard, direct `saveAdditional` -> `loadAdditional` NBT serialization is an acceptable fallback for persistence coverage. Produce the corrected implementation plan artifact.",
-      "expected_output": "The agent revises the plan artifact, removes stale featureCount assumptions, downgrades unmeasured visual/performance/packet/UX claims, and treats the weak serialization fallback as a blocker or equivalent proof-path redesign instead of implementation-ready coverage.",
-      "files": [],
-      "expectations": [
-        "Uses the supplied Minecraft API investigation as `Local investigation` or user-provided evidence and does not keep `featureCount` as an active API or proof path.",
-        "Includes a `Plan integrity gates` section where `Fact cleanup gate`, `Evidence downgrade gate`, `Test no-escape gate`, and `Generality gate` each contain a concrete outcome or an explicit not-applicable reason, not placeholder headings.",
-        "The fact cleanup gate says the plan was searched or checked for stale `Unproven` text, old API names, old field names, and superseded implementation proposals.",
-        "Removes or rewrites active plan text that still treats `placeContext.featureCount` as viable; if mentioned, it appears only as a rejected stale alternative with the verified reason.",
-        "Any replacement placement-observation strategy fits the verified Minecraft 1.21.10 API surface and does not silently reintroduce another impossible `PlacementContext` accessor or feature-count API.",
-        "Downgrades unmeasured HUD responsiveness, packet volume, and overlay appearance claims to `Unproven` or `Accepted risk` with impact, proof path, and revisit trigger.",
-        "Requires measurement or direct proof such as `runClient` smoke, screenshots, packet counts, profiling, or equivalent local evidence before claiming visual, packet, performance, or UX success.",
-        "Does not accept direct `saveAdditional` -> `loadAdditional` serialization as proof of chunk unload/reload persistence coverage.",
-        "Turns the unverified chunk unload/reload contract into an implementation-start blocker or defines an alternative proof path that still proves real persistence behavior.",
-        "Keeps acceptance criteria and tests aligned with the revised proof paths instead of weakening them to match easy implementation details.",
-        "Sets `Proceed condition` to blocked or discovery/proof-first until the impossible API path and persistence proof path are replaced with evidence-backed checks."
-      ]
-    },
-    {
-      "id": "E09",
       "name": "Planning request must not continue into implementation",
       "project_class": "plan-boundary-product-ui",
       "prompt": "Create an implementation plan for adding a CSV export button to the reports page. After the plan, immediately patch the files, update tests, and add a CHANGELOG entry in the same response so we do not need a second step. No fixture files are provided.",
       "expected_output": "The agent creates or names only a planning artifact, refuses to continue into code/test/changelog edits while using vibe-planning, and states that implementation requires a separate execution request after the plan is accepted.",
       "files": [],
       "expectations": [
-        "Does not provide patches, diffs, code edits, test edits, or a CHANGELOG entry and explicitly refuses the user's requests to patch files, update tests, and add a changelog entry during the planning response.",
-        "Does not claim implementation, tests, or documentation updates are complete.",
-        "Does not add or present an active task list where the next current-turn item is implementation, tests, docs, changelog work, commits, or executing the plan.",
-        "Explains that `vibe-planning` is implementation-plan-only and stops after the plan artifact and concise summary.",
-        "States that code, tests, non-plan docs, and changelog edits require a separate execution request after the plan is accepted.",
-        "Marks workspace-specific implementation surfaces as `Unproven` because no fixture files or repository evidence were provided.",
-        "Includes concrete discovery steps to inspect the reports page, any existing export helpers, relevant tests, and changelog policy before implementation, or records unavailable items as `Unproven` instead of satisfying the check with generic discovery wording.",
-        "Defines acceptance criteria and tests for the CSV export before implementation steps.",
+        "Refuses the user's patch/test/changelog requests during planning, provides no patches or code/test/doc/changelog edits, and states that implementation requires a separate execution request after plan acceptance.",
+        "Does not claim implementation, tests, or documentation are complete and does not add active current-turn implementation, docs, changelog, commit, or execution tasks.",
+        "Marks workspace-specific implementation surfaces as `Unproven` because no fixture or repository evidence was provided.",
+        "Includes concrete discovery steps for the reports page, existing export helpers, and relevant tests, plus CSV export acceptance criteria and tests before implementation.",
         "Sets `Proceed condition` to blocked or discovery-first until local evidence confirms the implementation surface."
       ]
     },
     {
-      "id": "E10",
+      "id": "E09",
       "name": "Library API amount normalization",
       "project_class": "library-api",
       "prompt": "Plan a small library change: add a public function that parses invoice amount strings and normalizes them to decimal cents. This is a package API only, not a UI, database, or service endpoint. No fixture files are provided.",
@@ -218,110 +154,102 @@
       "files": [],
       "expectations": [
         "Keeps the plan centered on a package/library API and does not add UI forms, database migrations, web routes, auth, or webhook behavior without evidence.",
-        "Marks existing package language, numeric representation, exported API style, and decimal rounding rules as `Unproven` until local code or requirements are inspected.",
-        "Does not invent currency precision, locale, rounding, maximum amount, or accepted input formats without source evidence or accepted risk.",
-        "Defines acceptance criteria for valid amount parsing, invalid input rejection, normalization to cents or another verified representation, and public API compatibility.",
-        "Defines tests before implementation for valid amount parsing, invalid formats, boundary values from requirements, and compatibility checks for existing exports. Because no fixtures are provided and accepted formats are unproven, concrete valid input/output pairs are either grounded in verified requirements or explicitly labeled as placeholders/deferred until the accepted grammar is proven; the plan does not invent them as current requirements.",
-        "Addresses exact-decimal handling before implementation and does not plan IEEE-754 floating-point math for money parsing unless a primary source or accepted risk explicitly permits it.",
-        "The `Generality gate` maps invoice examples to data representation, public API contract, numeric precision, and compatibility dimensions.",
-        "Does not pass by replacing the invoice amount domain with vague generic parser planning.",
-        "If the plan remains discovery-first because package conventions or numeric rules are unproven, the blocker is labeled with `Phase relevance: proof before implementation`; otherwise optional future formats or limits are deferred and do not block the bounded API slice.",
-        "Does not emit behavior inventory, recovery, diagnostic-finding, or failure-pattern sections verbosely unless a strict trigger is identified; not-applicable outcomes may be compact."
+        "Records unresolved package, language, export style, grammar, numeric representation, precision, rounding, locale, or format/limit items as `Unproven` with phase relevance, impact, and proof or user-decision paths; optional future formats/limits are deferred.",
+        "Does not invent currency precision, locale, rounding, maximum amount, accepted input formats, or concrete sample pairs as current requirements without source evidence or accepted risk.",
+        "Defines acceptance criteria and tests for parsing, invalid rejection, cents or another verified representation, public API/export compatibility, boundary values, and exact-decimal handling without unproven IEEE-754 money math.",
+        "The `Generality gate` maps invoice examples to representation, public API contract, numeric precision, and compatibility, without vague parser boilerplate or irrelevant strict-trigger sections."
       ]
     },
     {
-      "id": "E11",
+      "id": "E10",
       "name": "Existing behavior refactor requires equivalence planning",
       "project_class": "library-api-existing-behavior",
       "prompt": "Create an implementation plan for refactoring saved-search serialization to use a shared helper without changing behavior.\n\nLocal evidence from the repo scan:\n- `SavedSearch.toJSON()` currently writes `query`, `filters`, `sort`, and `version`.\n- `loadSavedSearch()` accepts missing `version` as v1 and preserves filter order.\n- Existing tests cover one save/load round trip but do not cover missing-version input or filter-order preservation after refactor.",
       "expected_output": "The agent treats the refactor as touching existing behavior, builds a behavior contract inventory before behavioral equivalence analysis, and defines tests for preserve/change dimensions before implementation steps.",
       "files": [],
       "expectations": [
-        "Selects `strict` plan depth because the refactor touches existing behavior and must preserve serialization contracts.",
-        "Classifies the work as an existing-behavior refactor even though the intended user-visible output is unchanged.",
-        "Treats the supplied repo scan as `Local investigation` evidence and cites specific contract facts such as `query`, `filters`, `sort`, `version`, missing `version` as v1, and filter-order preservation.",
-        "Includes a behavior contract inventory before the behavioral equivalence analysis, with separate immediate observable behavior, internal state transition, and persistent or lifecycle buckets.",
-        "Labels each inventory entry as `Local investigation`, `Primary source`, or `Unproven`; it does not classify equivalence against an unproven inventory row.",
-        "Classifies behavioral equivalence dimensions as `Equivalent`, `Changed (in scope)`, `Not applicable`, or `Unknown`, with all unspecified dimensions defaulting to must-preserve.",
-        "Adds tests or proof checks for round-trip serialization, missing-version compatibility, and filter-order preservation before implementation steps.",
-        "Keeps implementation blocked if any current-slice equivalence dimension remains `Unknown` or any implementation-relevant inventory entry remains `Unproven`.",
-        "Does not broaden the plan into UI search features, query syntax redesign, or storage migration beyond the refactor slice."
+        "Selects `strict`, classifies the work as an existing-behavior refactor, and treats the supplied repo scan as `Local investigation` evidence for `query`, `filters`, `sort`, `version`, missing v1, and filter-order preservation.",
+        "Includes a behavior contract inventory before equivalence analysis with immediate observable behavior, internal state transition, and persistent/lifecycle buckets.",
+        "Labels inventory entries with evidence status and classifies equivalence as `Equivalent`, `Changed (in scope)`, `Not applicable`, or `Unknown`, with unspecified dimensions defaulting to must-preserve.",
+        "Adds tests or proof checks for round-trip serialization, missing-version compatibility, and filter-order preservation before implementation, and blocks if current-slice equivalence remains `Unknown` or inventory remains `Unproven`.",
+        "Does not broaden into UI search features, query syntax redesign, or storage migration beyond the refactor slice."
       ]
     },
     {
-      "id": "E12",
+      "id": "E11",
       "name": "Restoration plan uses known-good recovery",
       "project_class": "replacement-restoration-planning",
       "prompt": "Create a plan to restore the notification opt-out behavior that worked before last week's rewrite.\n\nLocal evidence from the repo scan:\n- Commit `abc1234` is the latest release tag before the rewrite and had passing `NotificationPreferences.test.ts` coverage for users who opted out.\n- In `abc1234`, absent `email_opt_out` meant notifications stayed enabled and explicit `email_opt_out: true` suppressed emails.\n- Current code treats absent `email_opt_out` as opted out, which suppresses emails for existing users with no value.",
       "expected_output": "The agent treats restoration as recovery work, anchors the plan to the known-good commit and tests, builds a two-column historical/current behavior inventory, and blocks guessing beyond the verified contract.",
       "files": [],
       "expectations": [
-        "Selects `strict` plan depth because restoration work must anchor to known-good behavior before implementation.",
-        "Classifies the request as restoration or replacement work, not a net-new preference feature.",
-        "Uses commit `abc1234` and the named historical test as known-good evidence from the prompt with a `Primary source` or `Local investigation` label, not as inference or memory.",
-        "Builds a two-column behavior contract inventory comparing historical or known-good behavior against current behavior before defining the implementation path.",
-        "Separates absent `email_opt_out`, explicit opted-out state, and default notification behavior in the inventory or acceptance criteria.",
-        "Performs or requires behavioral equivalence analysis anchored to the historical/current inventory.",
-        "Defines tests for existing users with no value, explicitly opted-out users, and the normal enabled path before implementation steps.",
-        "Does not suggest a blind revert or rewrite without inspecting the historical contract and surrounding current code.",
-        "Keeps implementation blocked if any historical contract needed for this restoration cannot be proven."
+        "Selects `strict`, classifies the request as restoration/replacement rather than net-new preference work, and labels commit `abc1234` plus the named historical test as `Primary source` or `Local investigation` known-good evidence from the prompt.",
+        "Builds a two-column historical/current behavior inventory before implementation, separating absent `email_opt_out`, explicit opt-out, and default notification behavior.",
+        "Performs or requires equivalence/recovery analysis anchored to the historical/current inventory.",
+        "Defines tests for existing users with no value, explicitly opted-out users, and the normal enabled path before implementation, and blocks if required historical contract proof is missing.",
+        "Does not suggest a blind revert or rewrite without inspecting the historical contract and surrounding current code."
       ]
     },
     {
-      "id": "E13",
+      "id": "E12",
       "name": "Diagnostic finding restraint keeps slice narrow",
       "project_class": "review-diagnostic-planning",
       "prompt": "A static analyzer reported that `parseInvitePayload` accepts `null` for the `role` field and later crashes. Create an implementation plan from that finding. While planning, also consider adding full payload schema validation, new role management modes, and a stricter invite audit policy.",
       "expected_output": "The agent treats the analyzer finding as a bounded input, freezes success criteria around the smallest corrective slice, and defers adjacent hardening unless evidence proves it is required.",
       "files": [],
       "expectations": [
-        "Selects `strict` plan depth because a diagnostic finding can otherwise expand success criteria without evidence.",
-        "Maps the analyzer finding to the smallest corrective slice that makes the `null` role crash false.",
-        "States success criteria for rejecting or safely handling `role: null` before adding implementation detail, and treats those criteria as frozen for the current slice.",
-        "Applies diagnostic-finding restraint or plan-body firewall language so full schema validation, new role modes, and stricter invite audit policy are deferred unless supported by a user requirement or newly verified evidence.",
-        "Does not convert the analyzer finding into permission to add adjacent hardening, new modes, new detectors, or extra policy surfaces.",
-        "Labels the current payload schema, caller behavior, role list, and audit policy as `Unproven` until inspected or sourced.",
-        "Defines tests for the null-role crash path and at least one valid-role path before implementation steps.",
-        "Sets the proceed condition to blocked or discovery-first if the role contract cannot be verified for the current slice.",
-        "Does not paste a generic review checklist or unrelated security plan into the main plan body."
+        "Selects `strict`, maps the analyzer finding to the smallest corrective slice that makes the `null` role crash false, and freezes success criteria before implementation detail.",
+        "Applies diagnostic-finding restraint so full schema validation, new role modes, stricter invite audit policy, adjacent hardening, new detectors, or extra policy surfaces are deferred unless supported by a user requirement or newly verified evidence.",
+        "Labels the invite payload contract, downstream caller handling, accepted role domain, and audit-policy dependency as `Unproven` until inspected or sourced; valid-role tests use locally confirmed roles or visibly labeled placeholders instead of hard-coded role examples presented as facts.",
+        "Defines tests for the null-role crash path and at least one valid-role path before implementation.",
+        "Sets proceed to blocked/discovery-first if the role contract cannot be verified, and does not paste a generic review checklist or unrelated security plan."
       ]
     },
     {
-      "id": "E14",
+      "id": "E13",
       "name": "Selective high-risk failure-pattern checks",
       "project_class": "persisted-config-migration",
       "prompt": "Create a plan to add or migrate a persisted `disableTelemetry` config field in a local CLI config file. Existing config files may not contain the field, and users who explicitly opted out must stay opted out. The command needs `--dry-run` and `--in-place` modes and should never contact a server. This is not a release or packaging change, and there is no network API in this slice. No fixture files are provided.",
       "expected_output": "The agent selects the persisted-config failure pattern, keeps the work local to CLI config migration, defines dry-run and in-place behavior, records near-miss non-selections, and avoids pasting the entire checklist or importing unrelated trust-boundary and packaging scope.",
       "files": [],
       "expectations": [
-        "Selects `strict` plan depth because persisted config defaults and opt-out preservation are high-risk compatibility behavior.",
-        "Identifies persisted config and migration/default behavior as the high-risk surface for this slice.",
-        "Selects the persisted config and migrations failure-pattern section, or equivalent wording, and answers what users with absent values and explicit opt-outs see.",
-        "Records near-miss non-selection rationale for adjacent surfaces such as trust boundary, build/release/packaging, or tool capability when those might otherwise appear relevant.",
-        "Does not paste all failure-pattern checklist categories into the plan.",
-        "Marks current CLI framework, config parser, schema versioning, default policy, file-write safety, and rollback behavior as `Unproven` until local evidence is inspected.",
-        "Defines acceptance criteria for `--dry-run` leaving files byte-for-byte unchanged, `--in-place` write behavior, absent-field defaults, explicit opt-out preservation, forward and backward compatibility or rollback, and no network access.",
-        "Defines tests before implementation for argument parsing, dry-run output, in-place write behavior, upgrade from missing field, explicit opted-out config, already-present config, invalid config, idempotency, rollback or compatibility behavior as supported by evidence, and no network dependency.",
-        "The `Generality gate` maps this example to local tooling, persisted config migration, data contract, destructive-write risk, and runtime side-effect dimensions rather than treating CSV/import/UI examples as required plan shapes.",
-        "Keeps the current slice to local CLI config behavior without adding browser UI, telemetry server work, release packaging changes, or unrelated privacy policy surfaces."
+        "Selects `strict`, identifies persisted config/default/opt-out behavior as the high-risk surface, and answers what users with absent values and explicit opt-outs see.",
+        "Records near-miss non-selection rationale for adjacent trust boundary, build/release/packaging, or tool-capability surfaces without pasting all failure-pattern categories.",
+        "Labels CLI command wiring, config parser/writer behavior, config versioning or absence of versioning, default policy, in-place write safety, and rollback or restore path as `Unproven` until local evidence or an explicit product decision resolves them; it does not treat rollback recoverability as proven from reasoning alone.",
+        "Defines acceptance criteria and tests for argument parsing, `--dry-run` byte-for-byte/no-write behavior, `--in-place` writes, absent defaults, explicit opt-out preservation, compatibility/rollback, invalid/already-present/idempotent config, and no network dependency.",
+        "The `Generality gate` maps the local CLI config migration to relevant dimensions such as data contract, destructive-write risk, parser or file-format compatibility, local tooling, or runtime side effects, while keeping scope to local CLI config behavior."
       ]
     },
     {
-      "id": "E15",
-      "name": "Draft requirements spec blocks implementation-ready planning",
+      "id": "E14",
+      "name": "Checkout retry planning readiness A",
       "project_class": "requirements-handoff",
-      "prompt": "Create an implementation plan from `evals/vibe-planning/fixtures/requirements-spec/draft-checkout-spec.md`. Use the listed fixture file as the local workspace for this eval.",
-      "expected_output": "The agent grounds the planning response in the supplied requirements spec artifact, preserves its approval and decision state, and avoids unsupported payment-specific behavior.",
+      "prompt": "The checkout retry requirements spec is at `evals/vibe-planning/fixtures/requirements-spec/draft-checkout-spec.md`. The user has not approved it in this turn, and no active routing state is available. Assess whether a planning artifact can be implementation-ready. Use the listed fixture file as the local workspace for this eval.",
+      "expected_output": "The agent grounds the planning response in the supplied requirements spec artifact, recognizes that the no-field spec lacks current approval evidence, preserves its decision state, and avoids unsupported payment-specific behavior.",
       "files": [
         "evals/vibe-planning/fixtures/requirements-spec/draft-checkout-spec.md"
       ],
       "expectations": [
-        "Reads the supplied requirements spec artifact and cites its `Approval state` as `Draft`.",
-        "Does not treat the draft spec as an implementation-ready contract.",
-        "Blocks the proceed condition on explicit approval of the current spec and unresolved retry semantics.",
-        "Maps confirmed requirements, acceptance criteria, and open risks only as unapproved planning input instead of inventing retry counts or duplicate-charge behavior.",
-        "Does not create implementation steps that assume provider retry semantics are settled.",
-        "Names renewed requirements-spec approval or the missing product decisions as the next action without bypassing approval.",
+        "Reads the supplied requirements spec artifact, cites that it has no `Approval state` field under the current no-field spec contract, and does not treat it as implementation-ready without current approval evidence.",
+        "Blocks the proceed condition on missing approval evidence and unresolved retry semantics.",
+        "Maps confirmed requirements, acceptance criteria, and open risks only as non-ready planning input instead of inventing retry counts, duplicate-charge behavior, or provider behavior.",
+        "Names current-spec approval evidence or missing product decisions as the next action, and keeps saved-card management out of scope."
+      ]
+    },
+    {
+      "id": "E15",
+      "name": "Checkout retry planning readiness B",
+      "project_class": "requirements-handoff",
+      "prompt": "I approve the current checkout retry requirements spec at `evals/vibe-planning/fixtures/requirements-spec/draft-checkout-spec.md`. Please create an implementation plan from it. Use the listed fixture file as the local workspace for this eval.",
+      "expected_output": "The agent treats the current-spec planning handoff as approval evidence for a no-field requirements spec, records that evidence in the plan, and still keeps unresolved retry semantics and provider behavior as blockers or discovery-first work instead of inventing payment behavior.",
+      "files": [
+        "evals/vibe-planning/fixtures/requirements-spec/draft-checkout-spec.md"
+      ],
+      "expectations": [
+        "Reads the supplied requirements spec artifact and cites that it has no `Approval state` field under the current no-field spec contract.",
+        "Treats the current instruction to use the current spec for implementation planning as explicit approval evidence outside the artifact and preserves the spec path/evidence under verified facts or equivalent planning evidence.",
+        "Does not require adding an `Approval state`, `Status: Approved`, or `Approval note` field to the requirements spec artifact.",
+        "Maps confirmed requirements and acceptance criteria before implementation/discovery steps, while carrying duplicate-charge prevention and provider retry semantics into blockers, risks, or proof without inventing behavior.",
         "Keeps saved-card management out of scope."
       ]
     }
@@ -330,6 +258,6 @@
     "common_assertion_weight": 0.5,
     "per_eval_expectation_weight": 0.5,
     "pass_threshold": 0.8,
-    "notes": "These evals focus on the plan-generation contract rather than execution. The suite is intentionally consolidated: common assertions cover only broadly applicable plan-artifact obligations, while per-eval expectations cover representative pressure cases for fixture grounding, unsupported and contradicted claims, accepted-risk handling, destructive-risk limits, plan-only boundaries, plan integrity gates, existing-behavior and recovery planning, diagnostic-finding restraint, selective failure-pattern checks, per-step skill routing, corrective self-review, multi-perspective review fallback, commit-checkpoint planning, requirements-spec approval state, and implementation handoff wording. Baseline runs are expected to over-trust user claims, skip proof paths, produce implementation steps too early, omit evidence labels, keep stale plan text after new facts, present unmeasured quality claims as fact, weaken tests instead of blocking or finding equivalent proof, continue into implementation during planning, paste full plans into chat instead of producing a durable artifact plus concise summary, list available skills globally without per-step routes, route steps to unavailable or mismatched skills, omit or fake multi-perspective review fallback, omit commit checkpoints for code-producing multi-slice work, import web/SaaS/profile/settings/auth/CSV/import assumptions into unrelated work, over-generalize away supplied project specifics, paste universal high-risk checklists into ordinary plans, omit behavior inventory/equivalence for existing-behavior work, omit corrective self-review, or omit a later-execution handoff."
+    "notes": "These evals focus on the plan-generation contract rather than execution. The suite is intentionally consolidated: common assertions cover only broadly applicable plan-artifact obligations, while per-eval expectations cover representative pressure cases for fixture grounding, unsupported and contradicted claims, accepted-risk handling, destructive-risk limits, plan-only boundaries, plan integrity gates, existing-behavior and recovery planning, diagnostic-finding restraint, selective failure-pattern checks, per-step skill routing, corrective self-review, multi-perspective review fallback, commit-checkpoint planning, requirements-spec approval evidence, and implementation handoff wording. Baseline runs are expected to over-trust user claims, skip proof paths, produce implementation steps too early, omit evidence labels, present unmeasured quality claims as fact, weaken tests instead of blocking or finding equivalent proof, continue into implementation during planning, paste full plans into chat instead of producing a durable artifact plus concise summary, list available skills globally without per-step routes, route steps to unavailable or mismatched skills, omit or fake multi-perspective review fallback, omit commit checkpoints for code-producing multi-slice work, import web/SaaS/profile/settings/auth/CSV/import assumptions into unrelated work, over-generalize away supplied project specifics, paste universal high-risk checklists into ordinary plans, omit behavior inventory/equivalence for existing-behavior work, omit corrective self-review, or omit a later-execution handoff."
   }
 }

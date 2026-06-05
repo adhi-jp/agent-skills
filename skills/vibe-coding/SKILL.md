@@ -54,7 +54,7 @@ Track these fields when they are known:
 - Current phase.
 - Next route.
 - Active artifact paths.
-- Approval state.
+- Approval evidence or handoff state.
 - Implementation plan path.
 - Active execution slice.
 - Debug symptom.
@@ -131,8 +131,8 @@ Apply this precedence order:
    mismatches, and existing-feature repair.
 6. Wording-only deliverables with no review target or Definition-of-Done triage.
 7. Clear execution requests for concrete implementation plans.
-8. Implementation planning for approved specs or inputs that are insufficient
-   for plan execution.
+8. Implementation planning for approval-evidenced specs or inputs that are
+   insufficient for plan execution.
 9. Requirements specification for new vague, rough, contradictory, creative,
    non-technical, or underspecified coding goals.
 10. `no matching specialist` fallback.
@@ -146,19 +146,20 @@ During the requirements-spec phase, do not treat "looks good", "ready",
 "continue", "go ahead", completed checklists, or similar wording as approval
 unless it clearly approves the current spec artifact.
 
-After `vibe-requirements-spec` records explicit approval, preserve its current
-stop-after-approval boundary. Stop in that turn and record that the next related
-user instruction routes to `vibe-planning`. That next route is orchestrator
-state owned by `vibe-coding`; it does not require standalone
-`vibe-requirements-spec` to name a downstream workflow or continue into planning
-in the same turn.
+After `vibe-requirements-spec` records explicit approval evidence, or an
+unambiguous instruction to create or use an implementation plan from the current
+spec provides that evidence, preserve its stop-after-spec boundary. Stop in that
+turn and record that the next related user instruction routes to
+`vibe-planning`. That next route is orchestrator state owned by `vibe-coding`;
+it does not require standalone `vibe-requirements-spec` to name a downstream
+workflow or continue into planning in the same turn.
 
 ### Implementation Planning
 
 Route to `vibe-planning` when:
 
-- A requirements spec is approved and the next related instruction asks to move
-  forward.
+- A requirements spec has explicit approval evidence or a legacy `Approved`
+  state and the next related instruction asks to move forward.
 - The user supplies a specification, acceptance criteria, task list, or rough
   request that is not concrete enough for `vibe-plan-execution`.
 - The user clearly asks to create or revise an implementation plan.

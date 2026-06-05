@@ -45,20 +45,20 @@
     {
       "id": "E03",
       "name": "Sales import requirements follow-up sequence",
-      "prompt": "Classify these related `vibe-coding` turns in sequence. Visible `vibe-requirements-spec` and `vibe-planning` metadata are available.\n\nA. Active routing state from prior turns: current goal `import sales files`, current phase `requirements-spec`, active artifact path `specs/2026-05-24-sales-import-spec.md`, approval state `Draft`. The user says: `CSVにも対応する要件を同じ仕様に追加してください。`\nB. The same requirements artifact is still `Draft`. The user says: `Looks good, continue.` The phrase does not explicitly mention approving the spec artifact.\nC. The same requirements artifact is `Draft`. The user says: `この仕様を承認します。` Visible metadata confirms `vibe-requirements-spec` stops after updating the spec and returning a concise summary.\nD. A later related turn starts after the previous turn stopped with the requirements artifact `Approved`; no implementation plan path exists yet. The user says: `じゃあ進めて。実装はまだしないで。`\n\nDescribe the correct route or state transition for each turn.",
+      "prompt": "Classify these related `vibe-coding` turns in sequence. Visible `vibe-requirements-spec` and `vibe-planning` metadata are available.\n\nA. Active routing state from prior turns: current goal `import sales files`, current phase `requirements-spec`, active artifact path `specs/2026-05-24-sales-import-spec.md`, approval evidence `missing`. The user says: `CSVにも対応する要件を同じ仕様に追加してください。`\nB. The same requirements artifact still has no approval evidence. The user says: `Looks good, continue.` The phrase does not explicitly mention approving the spec artifact.\nC. The same requirements artifact still has no approval evidence. The user says: `この仕様を承認します。` Visible metadata confirms `vibe-requirements-spec` stops after updating the spec and returning a concise summary.\nD. A later related turn starts after the previous turn stopped with approval evidence for `specs/2026-05-24-sales-import-spec.md`; no implementation plan path exists yet. The user says: `じゃあ進めて。実装はまだしないで。`\n\nDescribe the correct route or state transition for each turn.",
       "expected_output": "The response should describe active requirements artifact continuation, explicit approval handoff, ambiguous readiness handling, and the next related planning route without starting implementation.",
       "files": [],
       "expectations": [
         "For turn A, classifies the turn as `revise current artifact` or an equivalent active-artifact continuation.",
         "For turn A, routes to exactly one primary downstream phase: `vibe-requirements-spec` and keeps `specs/2026-05-24-sales-import-spec.md` bound.",
-        "For turn A, does not replace the workflow, start a new spec, route to implementation planning, or route to plan execution while the spec is still draft.",
+        "For turn A, does not replace the workflow, start a new spec, route to implementation planning, or route to plan execution while approval evidence is still missing.",
         "For turn B, does not mark the requirements spec approved from ambiguous readiness wording.",
         "For turn B, asks for explicit approval of `specs/2026-05-24-sales-import-spec.md` or treats the turn as continued drafting depending on local context.",
         "For turn B, keeps `vibe-requirements-spec` as the active primary phase and does not create an implementation plan or execute code.",
         "For turn C, treats the wording as explicit approval of the current spec artifact.",
         "For turn C, allows `vibe-requirements-spec` to record approval, stops in the same turn after the approval summary, and records that the next related user instruction should route to `vibe-planning`.",
         "For turn C, does not require standalone `vibe-requirements-spec` to name a downstream workflow and does not create an implementation plan in the same turn.",
-        "For turn D, classifies the turn as `continue current workflow` from an approved requirements artifact.",
+        "For turn D, classifies the turn as `continue current workflow` from approval evidence tied to the requirements artifact.",
         "For turn D, routes to exactly one primary downstream phase: `vibe-planning`, using `specs/2026-05-24-sales-import-spec.md` as the planning input.",
         "For turn D, does not ask whether to execute, route to `vibe-plan-execution`, or start code edits because no implementation plan exists and the user explicitly says not to implement yet."
       ]

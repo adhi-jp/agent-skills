@@ -1,10 +1,8 @@
 # Checkout Retry Requirements Spec
 
-## Approval state
-- Status: Draft
+## Spec metadata
 - Current spec path: specs/checkout-retry-spec.md
 - Last updated: 2026-05-24
-- Approval note: Awaiting product decision on retry count and duplicate-charge behavior.
 
 ## Current requirements
 
@@ -30,7 +28,3 @@
 ## Open risks and unknowns
 - Duplicate-charge prevention is not approved.
 - Provider retry semantics are unverified.
-
-## Revision notes
-- Draft created from initial checkout-retry idea.
-

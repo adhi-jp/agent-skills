@@ -60,6 +60,15 @@ use `[Repository] - YYYY-MM-DD`.
   or eval case is relaxed, deleted, or merged. Three discriminating meta-evals
   (`E07`-`E09`) cover the closing-rerun, self-authored-leakage, and
   loosening/coverage contracts.
+- `evals/vibe-planning/` now keeps the compressed assertion count stable while
+  sharpening the checks for blocked or discovery-first commit checkpoints,
+  unverified accepted-value domains in diagnostic plans, and local-evidence or
+  product-decision proof requirements for persisted config migrations.
+- `vibe-planning` now makes ineligible commit-checkpoint plans suppress
+  conditional proposed commit messages and `Subject:`/`Body:` bytes across
+  checkpoint sections, route fallbacks, and self-review instead of reformatting
+  or relocating them, and clarifies that a future implementation step is not a
+  verified commit-checkpoint boundary.
 - `scripts/sync_dev_agent_skills.py` now reports each processed skill on a
   single line that names both the snapshot result and the Claude link result
   (for example, `vibe-coding: snapshot copied, link already up to date`) under a
@@ -75,6 +84,57 @@ use `[Repository] - YYYY-MM-DD`.
   guidance whenever a `vibe-coding` turn prepares or inspects a git commit
   message, while keeping commit execution and history mutation outside
   `vibe-writing` authority.
+- `vibe-requirements-spec` now writes English requirements spec artifacts
+  without approval-status or revision-history sections, treats approval as
+  workflow evidence, replaces stale spec content on requirement changes, and
+  updates `vibe-planning` and `vibe-coding` handoff behavior to use explicit
+  approval evidence while retaining legacy approval-state compatibility.
+- `vibe-planning` now records current no-field spec approval evidence and the
+  absence of legacy approval-state fields in the plan instead of requiring
+  legacy approval fields, treats concrete
+  user-provided repo scans or command output as local evidence when not
+  contradicted, distinguishes discovery-first proof blockers from user/product
+  contract decisions in `Phase relevance`, and requires auditability or
+  traceability criteria for destructive auth/session/data-migration plans.
+- `vibe-planning` now keeps the detailed plan artifact template and final
+  quality checklist in `references/plan-artifact-output.md`, while `SKILL.md`
+  keeps the mandatory read contract for that output guidance.
+- `vibe-planning` eval coverage now drops the non-discriminating plan-revision
+  case that passed both candidate and baseline in iteration-12, and drops the
+  legacy checkout retry matrix after iteration-13 showed its scenario-specific
+  assertions passed both candidate and baseline. The suite is reduced from 18 to
+  15 evals with contiguous `E01`-`E15` identifiers while keeping no-field
+  approval-evidence pressure. The library amount normalization eval now checks
+  unresolved contract triage without requiring a brittle exact `Phase relevance`
+  label that failed both candidate and baseline.
+- `vibe-planning` eval expectations are now compressed from 447 to 238 checks
+  per config by bundling repeated common planning-contract assertions and
+  merging scenario-specific checks, while preserving targeted pressure for
+  optional max-length blockers, CLI argument parsing tests, and no-field
+  approval evidence.
+- `vibe-planning` eval assertions now remove the over-specific changelog-policy
+  discovery requirement from the plan-only boundary case and accept equivalent
+  local CLI config-migration dimensions in the generality gate.
+- `vibe-requirements-spec` now calls out build-changing local evidence checks
+  in artifact summaries, surfaces channel-specific notification uncertainties,
+  marks high-impact billing and permission choices more explicitly, and keeps
+  clarification, decision-list, and chat-only exploration requests separate from
+  saved-spec artifact proof. Chat-only clarification now still preserves
+  high-impact billing, recipient, auditability, notification-consequence, and
+  validation dimensions without exceeding the direct-question limit.
+  Billing-email recipient clarification now explicitly covers the delivery-effect
+  window for future invoice emails, retries or reminders, and added or removed
+  recipient notifications, and keeps that coverage high-priority under the
+  direct-question limit.
+  Contradictory migration constraints now require explicit interpretation
+  options and per-option user-visible or data-safety consequences instead of
+  clarifying questions alone.
+  Approval-only current-spec handoffs are now explicit no-rewrite summaries and
+  avoid imperative workflow routing language. Creative brainstorming evals
+  require explicit saved-spec non-modification.
+  Spec artifact drafting now includes an explicit old-template scan for
+  approval-status and revision-history strings before writing, including
+  existing legacy spec updates.
 
 ## [vibe-planning 4.0.0] - 2026-05-30
 

@@ -1,10 +1,8 @@
 # Product Experiments Requirements Spec
 
-## Approval state
-- Status: Awaiting explicit approval
+## Spec metadata
 - Current spec path: specs/product-experiments-spec.md
 - Last updated: 2026-05-20
-- Approval note: Waiting for explicit approval of the current experiment setup.
 
 ## User goal
 Explore a small feature-flag experiment workflow.
@@ -30,11 +28,7 @@ Explore a small feature-flag experiment workflow.
 - Automatic statistical analysis.
 
 ## Acceptance criteria
-- Awaiting explicit approval.
+- Product managers can review the current experiment setup before later planning.
 
 ## Open risks and unknowns
 - Experiment dashboard scope is unresolved.
-
-## Revision notes
-- Existing draft before chat-only exploration.
-

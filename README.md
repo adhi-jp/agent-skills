@@ -43,8 +43,8 @@ instruction, it asks for the instruction before selecting a downstream route.
 The skill tracks workflow state through conversation context and existing
 artifact paths, then selects exactly one primary visible `vibe-*` specialist for
 the immediate next phase. It routes underspecified new goals to
-`vibe-requirements-spec`, approved specs or insufficient execution inputs to
-`vibe-planning`, concrete ready implementation plans to
+`vibe-requirements-spec`, approval-evidenced specs or insufficient execution
+inputs to `vibe-planning`, concrete ready implementation plans to
 `vibe-plan-execution`, bug reports and regressions to `vibe-debug-fix`, review
 targets to `vibe-review`, and wording-only deliverables to `vibe-writing`.
 Specialist boundaries remain authoritative: `vibe-coding` does not relax
@@ -61,30 +61,45 @@ prepares or inspects a commit message and `vibe-writing` is verified available,
 
 Markdown requirements-spec drafting skill for rough, ambiguous, contradictory,
 creative, or non-technical vibe-coding goals before implementation planning. It
-creates or updates one spec artifact with an approval state, current
+creates or updates one English requirements spec artifact with current
 requirements, proposed defaults, ideas or options, decisions, assumptions,
-out-of-scope items, acceptance criteria, open risks, and revision notes. While
-active, its only allowed write is the requirements spec artifact; it does not
-write implementation plans, implementation task entries, code, tests,
-verification command lists, commits, release work, changelog entries, or
-unrelated files.
+out-of-scope items, acceptance criteria, and open risks. It preserves useful
+user-authored wording, domain terms, identifiers, paths, commands, and quoted
+text in the original language. The spec artifact does not include approval
+status or revision-history sections; approval is workflow evidence from the
+current instruction or routing state. While active, its only allowed write is
+the requirements spec artifact; it does not write implementation plans,
+implementation task entries, code, tests, verification command lists, commits,
+release work, changelog entries, or unrelated files.
 
 The skill keeps the same spec active across related turns until the user
-explicitly approves it, cancels it, or replaces the effort. Ambiguous readiness
-or handoff wording such as "looks good", "ready", "continue", or "go ahead" is
-not enough to approve the current spec unless it clearly approves the artifact.
-Changes after approval reopen the spec and require renewed approval. Approved
-specs can feed a later implementation-planning phase, but this skill still stops
-after updating the spec and returning a concise localized summary with the spec
-path, approval state, blockers or unknowns, and exact next user action.
-Chat-only ideation does not write a spec artifact unexpectedly: when the user
-only asks to brainstorm or explicitly declines file edits, it keeps ideas in
-chat, states that no spec file changed, and names the action needed to create or
-update a spec later. When an existing spec artifact is used as context, the
-current spec path and visible approval state remain unchanged context rather
-than a new approval or planning handoff. If file writing is unavailable, unsafe,
-or declined after a spec artifact was requested, it returns the spec content in
-chat with the fallback reason instead of claiming a file write.
+explicitly approves it, gives an unambiguous current-spec planning handoff,
+cancels it, or replaces the effort. Ambiguous readiness or handoff wording such
+as "looks good", "ready", "continue", or "go ahead" is not enough to approve the
+current spec unless it clearly approves the artifact. Changes after approval
+replace superseded requirements, decisions, assumptions, acceptance criteria,
+and risks in the same spec and require renewed approval. Approval-evidenced
+specs can feed a later implementation-planning phase, but this skill still
+stops after the spec artifact, approval-evidence summary, or chat-only
+exploration response. Approval-only handoffs for an existing current spec do not
+rewrite the spec solely to store approval evidence; they preserve the spec path
+and return a concise localized summary with approval evidence or needed approval
+action, blockers or unknowns, and exact next user action. These summaries use
+generic later-phase wording and do not tell the user to invoke, run, start, or
+route to a named workflow, tool, skill, or planning process.
+Chat-only exploration does not write a spec artifact unexpectedly: when the user
+only asks to brainstorm, compare, clarify, list decisions, ask questions, or
+explicitly declines file edits, it keeps the discussion in chat, states that no
+spec file changed, and names the action needed to create or update a spec later.
+When an existing spec artifact is used as context, the current spec path remains
+unchanged context rather than a new approval or planning handoff. If a legacy
+artifact contains an approval state, that state is preserved as legacy context
+rather than updated from brainstorming alone. When a legacy spec is updated, old
+approval-status and revision-history sections are removed from the saved
+artifact and any useful lifecycle context stays in the chat summary. If file
+writing is unavailable, unsafe, or declined after a spec artifact was requested,
+it returns the spec content in chat with the fallback reason instead of claiming
+a file write.
 
 Small requests ask no more than three direct questions, mark recommended
 defaults for option sets, and move lower-impact unknowns into defaults,
@@ -96,9 +111,17 @@ confirmed scope or cross-cutting choices and do not select or conditionally
 pre-stage adjacent surfaces such as admin, reporting, audit views, diagnostic
 views, or log storage/retention/search. Bulk data or irreversible-write requests
 explicitly surface write-safety choices such as preview or review-before-write,
-duplicate handling, permissions, persistence, and recovery. Billing, permission,
+duplicate handling, permissions, persistence, and recovery. Mutually exclusive
+data migration, storage, compatibility, or destructive-write constraints list
+viable resolution options and user-visible or data-safety consequences instead
+of hiding the choice behind questions alone. Billing, permission,
 security, account-setting, recipient, and routing changes cover auditability as
-requirement behavior rather than only excluding audit-log UI work. For
+requirement behavior rather than only excluding audit-log UI work. Invoice or
+billing-email recipient changes also cover the delivery-effect window for next
+invoices, already-generated unsent invoices, retries or reminders, future
+billing-cycle emails, and added or removed recipient notifications; that
+delivery-effect coverage remains a high-priority dimension even under the
+three-question limit. For
 notification or messaging work, unselected delivery-log surfaces stay out of
 first-slice defaults and acceptance criteria, including structured per-send
 records, timestamp/user/channel/outcome fields, retention, queryability, and
@@ -123,11 +146,19 @@ shape could affect the symptom, and keep unreproduced symptoms and causal
 hypotheses labeled as unproven. It separates current-slice blockers from
 deferred decisions so optional product constants or future enhancements do not
 block a bounded slice after acceptance criteria are narrowed.
+Concrete user-provided repo scans, command output, file excerpts, logs, or test
+results can count as local evidence when direct inspection is unavailable and
+the supplied facts are not contradicted; bare assertions remain unproven.
 It starts only when inputs are ready for implementation planning: explicit
-planning requests, approved requirements specs, or concrete specs, acceptance
-criteria, and task lists. Draft, awaiting-approval, or reopened requirements
-specs block implementation-ready planning; the plan reads their approval state,
-maps confirmed sections only as unapproved input, and keeps the proceed
+planning requests with approval evidence, approval-evidenced requirements specs,
+or concrete specs, acceptance criteria, and task lists. Legacy requirements specs
+with `Draft`, `Awaiting explicit approval`, or `Reopened after approval` statuses
+block implementation-ready planning; current specs without an approval field
+require explicit approval evidence from the current request, routing state, or
+another concrete source. Plans record the spec path, the absence of the legacy
+approval field, and the external approval evidence instead of asking users to
+rewrite the spec solely to store approval state. When evidence is missing, the
+plan maps confirmed sections only as non-ready input and keeps the proceed
 condition blocked or returns to requirements-spec work.
 `vibe-planning` is plan-only: it writes or updates implementation-plan artifacts
 and must not continue into code, tests, non-plan docs, evals, changelogs,
@@ -153,6 +184,9 @@ split out in the retired planning guard: behavior-contract inventory before
 equivalence analysis, known-good recovery checks, diagnostic-scope controls,
 selective failure-pattern checks, and blocked proceed conditions while
 implementation blockers remain unproven.
+Destructive, auth/session, credential, permission, billing, and data-migration
+plans also require auditability or traceability criteria sufficient for recovery
+proof without inventing unrelated audit-log UI or retention scope.
 Editable UI plans also cover state transitions such as save, cancel/reset,
 pending, validation, success, and error recovery, and prefer completing verified
 existing surfaces before expanding into adjacent unproven channels or modes.
@@ -162,8 +196,10 @@ checkpoints are proposed later boundaries and do not authorize staging,
 committing, release preparation, or history mutation. Single-slice,
 blocked, discovery-only, discovery-first, destructive-risk-blocked,
 work-in-progress, and no-verified-code-producing-slice plans omit commit
-messages until a code-producing slice is verified, rather than splitting one
-slice into test/fix/docs checkpoints. At plan creation time, the skill records
+messages and `Subject:`/`Body:` bytes until a code-producing slice is verified,
+rather than treating a future implementation step as a verified checkpoint or
+moving message text into route fallbacks, review notes, or test/fix/docs
+pseudo-checkpoints. At plan creation time, the skill records
 matching visible skills in a per-step skill usage plan. Every discovery,
 implementation, verification, multi-perspective review, self-review, and
 commit-checkpoint step gets a route to a verified matching skill, `No matching
