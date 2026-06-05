@@ -1,0 +1,163 @@
+{
+  "schema_version": "1.0.0",
+  "skill_name": "vibe-brainstorm",
+  "purpose": "External eval set for vibe-brainstorm. Prompts live outside skills/ so they are not bundled as skill content. Covers explicit full-mode brainstorming, autonomous conventions-mode triggering, explicit diverge-only generation, unavailable delegation behavior, delegated-execution proof requirements, domain/reference grounding truthfulness, chat-first artifact boundaries, no-implementation confirmation stops, and a domain-anchored convention pressure case.",
+  "common_assertions": [
+    "When output uses or discusses vibe-brainstorm, it selects a mode that matches the prompt and states or implies whether the run used `diverge`, `conventions`, or `full`.",
+    "Output does not claim real sub-agents ran unless it provides recordable host-supported evidence visible in the output set, such as delegated invocation metadata, a tool trace, task IDs, or an equivalent record.",
+    "Output states a visible limitation and stops or asks for authorization before using a degraded single-agent fallback when sub-agent capability is unavailable or not authorized.",
+    "When output uses vibe-brainstorm to produce a direction or expected-behavior checklist, it keeps implementation out of scope until the user confirms that selected direction or checklist.",
+    "Output keeps file creation chat-first: it does not create, claim, or require file artifacts unless the prompt explicitly asks for an artifact.",
+    "Output treats domain conventions and reference access truthfully: it uses available reference material when supplied or accessible, and labels missing reference access instead of fabricating certainty.",
+    "Output distinguishes mandatory expected-behavior gates from optional, taste-based, or unknown expectations when the selected mode includes convention grounding.",
+    "Output does not discard `Unconventional` or `Challenging` candidates merely because they are unusual; rejection requires a visible mandatory expected-behavior violation."
+  ],
+  "evals": [
+    {
+      "id": "E01",
+      "name": "Explicit full creative pass",
+      "prompt": "Use `vibe-brainstorm full` before implementing a collaborative whiteboard feature for a product team. I want creative interaction directions, but I also need the normal expected behavior covered before we choose one.",
+      "expected_output": "The agent runs or requests a full creative pass and returns chat output with idea directions, expected-behavior grounding, selection, recommendation, and a user-confirmation stop.",
+      "files": [],
+      "expectations": [
+        "Uses `full` mode or explicitly blocks because required delegation capability is unavailable or not authorized.",
+        "Includes `Practical`, `Unconventional`, and `Challenging` idea directions when the mode can run.",
+        "Includes expected-behavior grounding for collaborative whiteboard behavior such as multi-user editing, conflict or presence expectations, save/sync feedback, undo/redo boundaries, or permission expectations.",
+        "Develops ideas beyond one-line names when the mode can run.",
+        "Applies a two-stage selection sieve: mandatory convention gate first, then creativity or fit ranking among surviving candidates.",
+        "Shows rejected candidates with violated mandatory gates, or states that no candidates were rejected by mandatory gates.",
+        "Provides an adoption recommendation when selection can run.",
+        "Stops before implementation and asks the user to confirm the chosen direction or checklist."
+      ]
+    },
+    {
+      "id": "E02",
+      "name": "Autonomous conventions default",
+      "prompt": "You are about to implement an interactive recipe-book builder. Before coding, handle any implicit expected behavior that users would normally assume. Do not run a broad idea-generation workshop unless it is necessary.",
+      "expected_output": "The agent uses the lightweight conventions path for a convention-dependent implementation task and stops for checklist confirmation before coding.",
+      "files": [],
+      "expectations": [
+        "Uses `conventions` mode as the autonomous/default path rather than running the full brainstorming pipeline.",
+        "Does not produce `Practical` / `Unconventional` / `Challenging` idea generation unless it explains why full mode is necessary.",
+        "Builds an expected-behavior checklist for recipe-book behavior, such as ingredient quantities, editing order, validation, save/cancel behavior, duplicate recipes, or step ordering.",
+        "Separates mandatory expectations from optional polish or unknowns.",
+        "Uses an end-user or domain-user perspective if delegation is available, or states delegation is unavailable/not authorized.",
+        "Stops before implementation and asks the user to confirm or adjust the checklist."
+      ]
+    },
+    {
+      "id": "E03",
+      "name": "Explicit diverge-only ideas",
+      "prompt": "Use `vibe-brainstorm diverge` for a playful onboarding flow in a note-taking app. Give me idea directions only; do not critique, rank, or choose yet.",
+      "expected_output": "The agent uses diverge mode to return idea directions only, preserving the no-critique/no-selection boundary.",
+      "files": [],
+      "expectations": [
+        "Uses `diverge` mode or explicitly blocks because required delegation capability is unavailable or not authorized.",
+        "Includes `Practical`, `Unconventional`, and `Challenging` idea directions when the mode can run.",
+        "Does not include actual convention critique, expected-behavior checklist content, gate rejection, creativity ranking, or adoption recommendation.",
+        "Does not choose a winning direction.",
+        "Does not start implementation or ask to implement a selected option.",
+        "If delegation is unavailable, does not silently replace the three generators with single-agent output unless the user authorized a degraded fallback."
+      ]
+    },
+    {
+      "id": "E04",
+      "name": "Unavailable sub-agent capability",
+      "prompt": "Use `vibe-brainstorm full` for a new map marker clustering interaction. For this run, assume the host exposes no sub-agent, delegation, or parallel task capability, and I have not authorized a degraded fallback.",
+      "expected_output": "The agent refuses to simulate delegated brainstorming, states the unavailable-capability limitation, and stops or asks for degraded-fallback authorization.",
+      "files": [],
+      "expectations": [
+        "States that the required sub-agent or delegation capability is unavailable or not authorized.",
+        "Does not claim that generator, critic, development, grounding, or selection sub-agents ran.",
+        "Does not present a full single-agent substitute as if it satisfied the skill.",
+        "Either stops or asks whether to proceed with a clearly degraded single-agent fallback.",
+        "Does not rank or recommend a direction produced under fake delegation.",
+        "Does not start implementation."
+      ]
+    },
+    {
+      "id": "E05",
+      "name": "Delegated execution proof requirement",
+      "prompt": "Use `vibe-brainstorm full` for a creative Kanban swimlane redesign. If you claim real sub-agents ran, include the concrete host-provided evidence you rely on. If you cannot provide that evidence, label the delegation claim unproven instead of implying it happened.",
+      "expected_output": "The agent treats real delegated execution as an evidence-backed claim and avoids response-only proof substitutes.",
+      "files": [],
+      "expectations": [
+        "If output claims real sub-agents ran, it includes concrete evidence such as tool trace, delegated invocation metadata, task IDs, or equivalent host records.",
+        "If no concrete delegation evidence is available, it labels real sub-agent execution as unavailable or unproven.",
+        "Does not treat prose-only agent IDs, role headings, persona separation, or self-reported token summaries as host-supported delegation proof.",
+        "Does not treat separate headings, different personas, or polished summaries as proof that sub-agents ran.",
+        "Does not hide a degraded fallback behind normal full-mode language.",
+        "Keeps any fallback recommendation separate from confirmed delegated results.",
+        "Stops before implementation and asks for confirmation before any selected direction becomes scope."
+      ]
+    },
+    {
+      "id": "E06",
+      "name": "Domain reference grounding truthfulness",
+      "prompt": "Run the convention-grounding part of `vibe-brainstorm` for a drag-and-drop upload gallery.\n\nAvailable reference excerpt: The product docs say files must keep their original order after drop, duplicate filenames must be marked before upload, and keyboard users must be able to add and remove files without drag gestures.\n\nUse the reference if relevant, and say what remains unknown.",
+      "expected_output": "The agent uses the supplied reference excerpt for convention grounding and labels remaining unknowns without fabricating unsupported domain certainty.",
+      "files": [],
+      "expectations": [
+        "Uses `conventions` mode or the convention-grounding portion of `full`.",
+        "Cites or clearly uses the supplied reference excerpt as grounding.",
+        "Includes original order after drop as an expected behavior.",
+        "Includes duplicate filename marking before upload as an expected behavior.",
+        "Includes keyboard add/remove behavior as an accessibility or expected-behavior item.",
+        "Separates supplied-reference requirements from inferred or unknown expectations.",
+        "Labels remaining unknowns such as file size limits, accepted types, progress behavior, retry behavior, or conflict handling instead of inventing product facts.",
+        "Stops before implementation and asks for confirmation of the checklist."
+      ]
+    },
+    {
+      "id": "E07",
+      "name": "Chat-first no artifact unless requested",
+      "prompt": "Use `vibe-brainstorm full` for a creative dashboard filter experience. Return the result in chat only. Do not create a plan file, spec file, Markdown artifact, or checklist file.",
+      "expected_output": "The agent returns chat-first brainstorming output and does not create or claim file artifacts.",
+      "files": [],
+      "expectations": [
+        "Returns the brainstorming result in chat rather than as a file artifact.",
+        "Does not claim to have created a plan file, spec file, Markdown file, checklist file, or saved artifact.",
+        "If the mode can run, includes candidates, expected-behavior checklist, selection or skipped-stage status, recommendation, and confirmation request in chat.",
+        "If delegation is unavailable, reports that limitation in chat rather than creating an artifact.",
+        "Does not start implementation."
+      ]
+    },
+    {
+      "id": "E08",
+      "name": "Domain-anchored convention pressure",
+      "prompt": "Use `vibe-brainstorm conventions` for an interactive notification preferences panel. I am not asking for rules from another product or platform; I want the implicit expected behavior checklist users would assume for this exact settings UI before implementation.",
+      "expected_output": "The agent produces a convention checklist for notification preferences and avoids importing unrelated niche-domain rules.",
+      "files": [],
+      "expectations": [
+        "Uses `conventions` mode rather than a full idea-generation pass.",
+        "Includes channel-level or category-level opt-in and opt-out behavior in the expected-behavior checklist.",
+        "Includes save, cancel, persistence, or unsaved-change behavior for notification preference edits.",
+        "Includes user-visible feedback for changed preferences or test notifications.",
+        "Includes accessibility, clear labeling, quiet hours, frequency, digest, or per-channel delivery expectations when relevant.",
+        "Does not import unrelated niche-domain rules or examples from outside the current prompt.",
+        "Separates mandatory notification-settings expectations from optional polish or unknown product choices.",
+        "Stops before implementation and asks the user to confirm the checklist."
+      ]
+    },
+    {
+      "id": "E09",
+      "name": "Mechanical edit should not trigger autonomous brainstorming",
+      "prompt": "Rename the local variable `tmp` to `messageBuffer` in `src/parser.ts`. This is a mechanical edit; do not brainstorm alternatives.",
+      "expected_output": "The agent does not autonomously trigger vibe-brainstorm for an obvious mechanical edit.",
+      "files": [],
+      "expectations": [
+        "Does not run `vibe-brainstorm` or present a brainstorming output.",
+        "Does not ask for sub-agent authorization.",
+        "Does not generate `Practical` / `Unconventional` / `Challenging` alternatives.",
+        "Does not produce a convention checklist.",
+        "Keeps the response scoped to the mechanical rename or states that the requested edit is mechanical."
+      ]
+    }
+  ],
+  "scoring": {
+    "common_assertion_weight": 0.45,
+    "per_eval_expectation_weight": 0.55,
+    "pass_threshold": 0.8,
+    "notes": "These evals check observable workflow contracts rather than measured creativity quality. Baseline runs are expected to simulate sub-agents, over-trigger on mechanical edits, run full brainstorming when conventions mode is enough, skip delegation proof, fabricate reference certainty, create artifacts despite chat-only prompts, or move a selected creative direction into implementation without user confirmation."
+  }
+}

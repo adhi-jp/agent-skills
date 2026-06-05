@@ -13,6 +13,11 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Added
 
+- `vibe-brainstorm` adds an unreleased creative implementation brainstorming
+  skill and eval suite for explicit and conservative autonomous use, covering
+  `diverge` / `conventions` / `full` modes, verified sub-agent delegation,
+  expected-behavior grounding, two-stage candidate selection, chat-first output,
+  and a user-confirmation stop before implementation.
 - Repository-local development script `scripts/sync_dev_agent_skills.py` manages
   selected `skills/` packages with explicit `add`, `update`, and `remove`
   subcommands, copying script-owned snapshots into ignored `.agents/skills/`,
@@ -22,6 +27,17 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-brainstorm` now uses English `Practical` / `Unconventional` /
+  `Challenging` idea-family labels in its skill, README, and eval contracts
+  while preserving the three-way creative-direction distinction.
+- `vibe-brainstorm` now requires recordable host evidence before claiming real
+  sub-agent execution, treats prose-only agent IDs and role headings as
+  unproven delegation, rejects private transcript references and self-reported
+  call counts as proof, requires independently recorded host or runner evidence
+  instead of assistant-authored tool-call references, and removes niche
+  pressure-pattern guidance from the skill body in favor of anchoring convention
+  checks to the current task,
+  supplied references, local code, and the user's stated domain.
 - `skill-quality` now requires a closing rerun on a clean, complete run (same
   eval set, per-eval isolation, complete metrics, both configs) before any
   `improved` or `optimized` claim, treats abnormal aggregate-metric shifts such

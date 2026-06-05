@@ -1,7 +1,8 @@
 # Agent Skills
 
-Agent skills and eval prompts for vibe-coding orchestration, requirements
-specs, plans, review loops, writing, skill quality, and Minecraft modding.
+Agent skills and eval prompts for vibe-coding orchestration, brainstorming,
+requirements specs, plans, review loops, writing, skill quality, and Minecraft
+modding.
 
 ## Current Skill Versions
 
@@ -212,6 +213,27 @@ before relying on it. If a plan requires inspecting code before writing code or
 tests and those files cannot be read, execution stops at the blocker and proof
 path instead of drafting unverified code or test templates.
 
+### `vibe-brainstorm`
+
+Unreleased brainstorming skill for creative or convention-dependent
+implementation tasks. It supports explicit use and conservative autonomous
+reference before coding when implicit expected behavior is easy to miss.
+Autonomous use defaults to lightweight `conventions` mode for expected-behavior
+checklists; explicit `diverge` mode produces `Practical` / `Unconventional` /
+`Challenging` idea directions only; explicit `full` mode combines idea
+generation, convention grounding, candidate development, a
+mandatory-expected-behavior gate, creativity ranking, and an adoption
+recommendation. The skill requires real verified sub-agent capability and
+recordable host evidence for delegated generation, critique, development,
+grounding, and selection roles. Evidence must come from an independently
+recorded host or runner surface visible to the later reader or grader; private
+transcript references, assistant-authored references to tool calls, prose-only
+agent IDs, and self-reported call counts are treated as unproven. It stops or
+asks for a clearly degraded fallback when capability or recordable evidence is
+unavailable or unauthorized, stays chat-first, creates files only on request, and
+stops before implementation until the user confirms the selected direction or
+expected-behavior checklist.
+
 ### `vibe-debug-fix`
 
 Self-contained debug/fix skill for rough vibe-coding bug reports, regressions,
@@ -330,6 +352,8 @@ only explicit user, DoD, or confirmed-plan evidence.
   prompts
 - `evals/vibe-planning/`: external planning eval prompts and fixtures
 - `evals/vibe-plan-execution/`: external plan-execution eval prompts and fixtures
+- `evals/vibe-brainstorm/`: external creative brainstorming and convention
+  grounding eval prompts
 - `evals/vibe-debug-fix/`: external debug/fix pressure prompts spanning rough
   reports, failed attempts, artifacts, auth, representation, tools, async
   lifecycle, runtime diagnostic probe escalation, continuity, and recurrence
@@ -341,6 +365,8 @@ only explicit user, DoD, or confirmed-plan evidence.
 - `skills/vibe-requirements-spec/`: Markdown requirements-spec drafting skill package
 - `skills/vibe-planning/`: standalone vibe-coding implementation-planning skill package
 - `skills/vibe-plan-execution/`: plan-bound vibe-coding implementation skill package
+- `skills/vibe-brainstorm/`: creative brainstorming and expected-behavior
+  grounding skill package
 - `skills/vibe-debug-fix/`: self-contained vibe-coding debug/fix skill package
 - `skills/vibe-writing/`: consolidated vibe-coding writing skill package
 - `skills/skill-quality/`: skill creation, improvement, and eval-hardening skill package
