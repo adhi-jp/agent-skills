@@ -419,7 +419,14 @@ creates `run_index.json`, `next_steps.md`, executor-safe `prompt.md`,
 `executor_metadata.json`, `outputs/`, and `run_manifest.json` under
 `evals/<skill-name>/workspace/<agent>/iteration-N/`. It does not create
 `grader_prompt.md` or assertion-bearing `eval_metadata.json` during the
-executor phase. Run the current `prompt.md` with the named agent, write
+executor phase. For `with_skill` runs, `prepare` resolves `--skill-path` or the
+default `skills/<skill-name>/SKILL.md` source file, resolves relative
+`--skill-path` values from the repo root, rejects paths outside
+`skills/<skill-name>/`, `.agents/skills` snapshots, `.claude/skills` links,
+other skill packages, and files not named `SKILL.md`, records a source-package
+fingerprint, and tells the executor to read the source skill package directly
+instead of using installed host skill tools or local snapshots. Run the current
+`prompt.md` with the named agent, write
 `outputs/run_receipt.json` from the current run manifest or next-steps payload,
 attach any host- or parent-captured tool, sub-agent, delegated-review, or other
 invocation trace that supports output claims as a non-response artifact under `outputs/`,

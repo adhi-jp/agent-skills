@@ -14,6 +14,7 @@ import hashlib
 import html
 import json
 import mimetypes
+import os
 from pathlib import Path
 import re
 import shutil
@@ -48,7 +49,7 @@ ALLOWED_SCORING_FIELDS = {
     "pass_threshold",
     "notes",
 }
-RUN_CONTRACT_VERSION = "eval-runner-v6"
+RUN_CONTRACT_VERSION = "eval-runner-v7"
 RECEIPT_SCHEMA_VERSION = "eval-runner-receipt-v1"
 GRADING_AUDIT_STATUSES = ("clean", "warning", "error", "opted-out", "not-applicable")
 METRIC_AUDIT_STATUSES = ("clean", "warning", "error", "opted-out", "not-applicable")
@@ -165,6 +166,26 @@ def find_repo_root(start: Path) -> Path:
         if (candidate / "evals").exists() and (candidate / "AGENTS.md").exists():
             return candidate
     return Path.cwd().resolve()
+
+
+def path_is_relative_to(path: Path, parent: Path) -> bool:
+    try:
+        path.resolve().relative_to(parent.resolve())
+        return True
+    except ValueError:
+        return False
+
+
+def normalize_lexical_path(path: Path) -> Path:
+    return Path(os.path.abspath(path))
+
+
+def path_is_lexically_relative_to(path: Path, parent: Path) -> bool:
+    try:
+        normalize_lexical_path(path).relative_to(normalize_lexical_path(parent))
+        return True
+    except ValueError:
+        return False
 
 
 def json_path(base: Path, *parts: Any) -> str:
@@ -539,6 +560,8 @@ def run_fingerprint_inputs(
     model: str | None,
     grader_model: str | None,
     agent: str,
+    skill_path: str | None = None,
+    skill_source_fingerprint: str | None = None,
 ) -> dict[str, Any]:
     return {
         "run_contract_version": RUN_CONTRACT_VERSION,
@@ -547,6 +570,8 @@ def run_fingerprint_inputs(
         "model": model,
         "grader_model": grader_model,
         "agent": agent,
+        "skill_path": skill_path if configuration == "with_skill" else None,
+        "skill_source_fingerprint": skill_source_fingerprint if configuration == "with_skill" else None,
     }
 
 
@@ -556,8 +581,18 @@ def build_run_fingerprint(
     model: str | None,
     grader_model: str | None,
     agent: str,
+    skill_path: str | None = None,
+    skill_source_fingerprint: str | None = None,
 ) -> tuple[str, dict[str, Any]]:
-    inputs = run_fingerprint_inputs(eval_fingerprint, configuration, model, grader_model, agent)
+    inputs = run_fingerprint_inputs(
+        eval_fingerprint,
+        configuration,
+        model,
+        grader_model,
+        agent,
+        skill_path,
+        skill_source_fingerprint,
+    )
     return sha256_bytes(canonical_json_bytes(inputs)), inputs
 
 
@@ -568,6 +603,8 @@ def build_prepare_signature(
     runs: int,
     model: str | None,
     grader_model: str | None,
+    skill_path: str | None,
+    skill_source_fingerprint: str | None,
     eval_fingerprints: dict[str, str],
 ) -> dict[str, Any]:
     return {
@@ -576,6 +613,8 @@ def build_prepare_signature(
         "runs": runs,
         "model": model,
         "grader_model": grader_model,
+        "skill_path": skill_path,
+        "skill_source_fingerprint": skill_source_fingerprint,
         "run_contract_version": RUN_CONTRACT_VERSION,
         "eval_fingerprints": eval_fingerprints,
     }
@@ -609,6 +648,8 @@ def load_previous_prepare_signature(iteration_dir: Path) -> dict[str, Any]:
         "runs": manifest.get("runs"),
         "model": manifest.get("model"),
         "grader_model": manifest.get("grader_model"),
+        "skill_path": manifest.get("skill_path"),
+        "skill_source_fingerprint": manifest.get("skill_source_fingerprint"),
         "run_contract_version": manifest.get("run_contract_version"),
         "eval_fingerprints": eval_fingerprints,
     }
@@ -622,6 +663,8 @@ def compare_prepare_signatures(current: dict[str, Any], previous: dict[str, Any]
         "runs": "run count",
         "model": "executor model",
         "grader_model": "grader model",
+        "skill_path": "skill path",
+        "skill_source_fingerprint": "skill source fingerprint",
         "run_contract_version": "run contract",
     }
     for key, label in labels.items():
@@ -660,6 +703,153 @@ def prepare_grading_command_for_run(run_dir: Path) -> str:
     return f"python3 scripts/eval_runner.py prepare-grading {run_dir}{evals_json_arg}"
 
 
+def normalize_skill_source_path(path: Path) -> Path:
+    candidate = path
+    if candidate.is_dir():
+        candidate = candidate / "SKILL.md"
+    if candidate.name != "SKILL.md":
+        raise CommandError(f"{path}: skill path must be a SKILL.md file or a skill package directory containing SKILL.md")
+    if not candidate.is_file():
+        raise CommandError(f"{path}: skill path must be a SKILL.md file or a skill package directory containing SKILL.md")
+    return candidate.resolve()
+
+
+def skill_source_candidate_file(path: Path) -> Path:
+    if path.is_dir():
+        return path / "SKILL.md"
+    return path
+
+
+def validate_skill_source_name(skill_name: str) -> None:
+    if (
+        not skill_name
+        or skill_name in {".", ".."}
+        or "/" in skill_name
+        or "\\" in skill_name
+        or Path(skill_name).is_absolute()
+    ):
+        raise CommandError(f"skill_name {skill_name!r}: with_skill requires a single skills/ path segment")
+
+
+def validate_authoritative_skill_source_path(
+    source_path: Path,
+    repo_root: Path,
+    skill_name: str,
+    requested_path: Path,
+) -> None:
+    disallowed_roots = [repo_root / ".agents" / "skills", repo_root / ".claude" / "skills"]
+    for disallowed_root in disallowed_roots:
+        if path_is_lexically_relative_to(requested_path, disallowed_root) or path_is_relative_to(
+            source_path, disallowed_root
+        ):
+            raise CommandError(
+                f"{source_path}: with_skill must use an authoritative source skill, not a local skill snapshot or Claude link"
+            )
+
+    expected_source = normalize_lexical_path(repo_root / "skills" / skill_name / "SKILL.md")
+    requested_source = normalize_lexical_path(skill_source_candidate_file(requested_path))
+    if requested_source != expected_source:
+        raise CommandError(f"{source_path}: with_skill must use the authoritative skills/{skill_name}/SKILL.md source")
+
+    skills_root = repo_root / "skills"
+    if not path_is_relative_to(source_path, skills_root):
+        raise CommandError(
+            f"{source_path}: with_skill must use an authoritative source skill under {skills_root}, not an external, cached, or host-installed skill path"
+        )
+    skill_root = repo_root / "skills" / skill_name
+    if not path_is_relative_to(source_path, skill_root):
+        raise CommandError(
+            f"{source_path}: with_skill must use an authoritative source skill under {skill_root}, not an external, cached, or host-installed skill path"
+        )
+
+
+def resolve_skill_source_path(suite: EvalSuite, raw_skill_path: str | None, configs: list[str]) -> str | None:
+    if "with_skill" not in configs:
+        return None
+
+    repo_root = find_repo_root(suite.path)
+    validate_skill_source_name(suite.skill_name)
+    if raw_skill_path:
+        requested = Path(raw_skill_path)
+        if requested.is_absolute():
+            candidates = [requested]
+        else:
+            candidates = [repo_root / requested]
+        source_path: Path | None = None
+        errors: list[str] = []
+        for candidate in candidates:
+            try:
+                normalized = normalize_skill_source_path(candidate)
+                validate_authoritative_skill_source_path(normalized, repo_root, suite.skill_name, candidate)
+                source_path = normalized
+                break
+            except CommandError as exc:
+                errors.append(str(exc))
+        if source_path is None:
+            raise CommandError(f"--skill-path {raw_skill_path!r}: " + "; ".join(errors))
+    else:
+        default_source = repo_root / "skills" / suite.skill_name / "SKILL.md"
+        if not default_source.is_file():
+            raise CommandError(
+                "with_skill requires --skill-path or an existing "
+                f"{(Path('skills') / suite.skill_name / 'SKILL.md').as_posix()} source file"
+            )
+        source_path = default_source.resolve()
+
+    validate_authoritative_skill_source_path(
+        source_path,
+        repo_root,
+        suite.skill_name,
+        repo_root / "skills" / suite.skill_name / "SKILL.md",
+    )
+    return str(source_path)
+
+
+def skill_source_fingerprint_entries(skill_path: Path) -> list[dict[str, Any]]:
+    package_root = skill_path.parent
+    resolved_package_root = package_root.resolve()
+    entries: list[dict[str, Any]] = []
+    for path in sorted(package_root.rglob("*"), key=lambda candidate: candidate.relative_to(package_root).as_posix()):
+        if path.is_dir():
+            continue
+        if not path.is_file():
+            raise CommandError(f"{path}: skill package entry is not a regular file")
+        resolved_path = path.resolve()
+        if not path_is_relative_to(resolved_path, resolved_package_root):
+            raise CommandError(f"{path}: skill package file resolves outside {package_root}")
+        entries.append(
+            {
+                "path": path.relative_to(package_root).as_posix(),
+                "sha256": file_sha256(path),
+                "size_bytes": path.stat().st_size,
+            }
+        )
+    return entries
+
+
+def build_skill_source_fingerprint(skill_path: str | None) -> tuple[str | None, list[dict[str, Any]]]:
+    if not skill_path:
+        return None, []
+    entries = skill_source_fingerprint_entries(Path(skill_path))
+    return sha256_bytes(canonical_json_bytes(entries)), entries
+
+
+def validate_current_skill_source_fingerprint(run_dir: Path, manifest: dict[str, Any]) -> list[str]:
+    if manifest.get("configuration") != "with_skill":
+        return []
+    skill_path = manifest.get("skill_path")
+    expected = manifest.get("skill_source_fingerprint")
+    if not isinstance(skill_path, str) or not isinstance(expected, str):
+        return [f"{run_dir}: missing skill source fingerprint metadata"]
+    try:
+        actual, _entries = build_skill_source_fingerprint(skill_path)
+    except CommandError as exc:
+        return [str(exc)]
+    if actual != expected:
+        return [f"{run_dir}: skill source fingerprint changed: expected {expected!r}, got {actual!r}"]
+    return []
+
+
 def build_run_index(root: Path, iteration_manifest: dict[str, Any], manifests: list[dict[str, Any]]) -> dict[str, Any]:
     entries: list[dict[str, Any]] = []
     for manifest in manifests:
@@ -687,6 +877,8 @@ def build_run_index(root: Path, iteration_manifest: dict[str, Any], manifests: l
                 "eval_name": manifest.get("eval_name"),
                 "eval_dir": str(Path(str(manifest["run_dir"])).parents[1]),
                 "configuration": manifest.get("configuration"),
+                "skill_path": manifest.get("skill_path"),
+                "skill_source_fingerprint": manifest.get("skill_source_fingerprint"),
                 "run_number": manifest.get("run_number"),
                 "run_dir": manifest.get("run_dir"),
                 "prompt": manifest.get("executor_prompt"),
@@ -727,6 +919,7 @@ def render_next_steps(run_index: dict[str, Any]) -> str:
         f"- Run contract: `{run_index.get('run_contract_version')}`",
         "",
         "Run each executor from its `prompt.md` only. Do not reuse prompt text from a prior iteration.",
+        "For `with_skill` runs, read the prepared Skill path from the source skill package directly; do not substitute an installed host skill tool, `.agents/skills` snapshot, `.claude/skills` link, or cached skill copy.",
         "When a response may rely on host-visible tool, sub-agent, delegated-review, or other invocation records, attach the host- or parent-captured trace or metadata as a non-response artifact under `outputs/` before `prepare-grading`; executor-authored reconstructions, final-response prose, copied IDs, or self-reported counts are not trace evidence.",
         "After executor outputs and `outputs/run_receipt.json` exist, run `prepare-grading` before any grader pass.",
         "Record only parent-captured or usage-derived token/duration metrics. Placeholder, guessed, reused, or executor-estimated token/duration values are invalid for complete proof.",
@@ -744,6 +937,8 @@ def render_next_steps(run_index: dict[str, Any]) -> str:
                 f"- Run dir: `{entry['run_dir']}`",
                 f"- Prompt: `{entry['prompt']}`",
                 f"- Executor metadata: `{entry['executor_metadata']}`",
+                f"- Skill path: `{entry['skill_path']}`" if entry.get("skill_path") else "- Skill path: n/a",
+                f"- Skill source fingerprint: `{entry['skill_source_fingerprint']}`" if entry.get("skill_source_fingerprint") else "- Skill source fingerprint: n/a",
                 f"- Grader materials: `{entry['grader_material_status']}`",
                 f"- Outputs dir: `{entry['outputs_dir']}`",
                 f"- Receipt path: `{entry['receipt_json']}`",
@@ -795,9 +990,17 @@ def render_run_prompt(
         lines.append(f"- Skill path: `{skill_path}`")
     lines.extend(["", "## Configuration Contract", ""])
     if config == "without_skill":
-        lines.append("Do not use any skill package or local skill file for this run. Use only the base agent behavior and the prompt below.")
+        lines.append("Do not use any skill package, local skill file, installed skill tool, `.agents/skills` snapshot, `.claude/skills` link, or cached skill copy for this run. Use only the base agent behavior and the prompt below.")
     elif config == "with_skill":
-        lines.append("Use the target skill through the invoking agent's normal skill mechanism for this run.")
+        if skill_path:
+            lines.extend(
+                [
+                    "Read the target skill directly from the Skill path listed above before answering. Treat that source file and referenced files in its skill package as the skill content for this run.",
+                    "Do not invoke an installed host skill tool, host skill picker, `.agents/skills` snapshot, `.claude/skills` link, or cached skill copy as a substitute for the listed source path.",
+                ]
+            )
+        else:
+            lines.append("Use the target skill content available to the invoking agent for this run. For repository skill evals, prepare with `--skill-path` so the prompt names the authoritative source file.")
     else:
         lines.append("Use the behavior implied by this configuration label. Do not assume a provider-specific adapter.")
     lines.extend(["", "## User Prompt", "", case.prompt.strip(), ""])
@@ -907,6 +1110,8 @@ def command_prepare(args: argparse.Namespace) -> int:
         raise CommandError("--runs must be at least 1")
     if not configs:
         raise CommandError("at least one --config value is required")
+    skill_path = resolve_skill_source_path(suite, args.skill_path, configs)
+    skill_source_fingerprint, skill_source_files = build_skill_source_fingerprint(skill_path)
 
     cases_by_id = {case.eval_id: case for case in suite.evals}
     unknown_ids = [eval_id for eval_id in selected_ids if eval_id not in cases_by_id]
@@ -933,6 +1138,8 @@ def command_prepare(args: argparse.Namespace) -> int:
             runs=args.runs,
             model=args.model,
             grader_model=args.grader_model,
+            skill_path=skill_path,
+            skill_source_fingerprint=skill_source_fingerprint,
             eval_fingerprints=current_eval_fingerprints,
         )
         previous_signature = load_previous_prepare_signature(Path(args.rerun_of))
@@ -971,6 +1178,8 @@ def command_prepare(args: argparse.Namespace) -> int:
                     args.model,
                     args.grader_model,
                     agent,
+                    skill_path,
+                    skill_source_fingerprint,
                 )
                 manifest = {
                     "created_at": utc_now(),
@@ -978,7 +1187,9 @@ def command_prepare(args: argparse.Namespace) -> int:
                     "iteration": number,
                     "iteration_dir": str(root),
                     "skill_name": suite.skill_name,
-                    "skill_path": args.skill_path if config == "with_skill" else None,
+                    "skill_path": skill_path if config == "with_skill" else None,
+                    "skill_source_fingerprint": skill_source_fingerprint if config == "with_skill" else None,
+                    "skill_source_files": skill_source_files if config == "with_skill" else [],
                     "model": args.model,
                     "grader_model": args.grader_model,
                     "eval_id": case.eval_id,
@@ -1004,7 +1215,7 @@ def command_prepare(args: argparse.Namespace) -> int:
                         str(executor_metadata_path),
                     ],
                 }
-                prompt = render_run_prompt(suite, case, config, run_number, run_dir, args.skill_path, agent)
+                prompt = render_run_prompt(suite, case, config, run_number, run_dir, skill_path, agent)
                 write_text(run_dir / "prompt.md", prompt)
                 manifest["prompt_sha256"] = file_sha256(run_dir / "prompt.md")
                 manifest["executor_metadata_sha256"] = executor_metadata_sha256
@@ -1022,6 +1233,9 @@ def command_prepare(args: argparse.Namespace) -> int:
         "run_count": len(manifests),
         "model": args.model,
         "grader_model": args.grader_model,
+        "skill_path": skill_path,
+        "skill_source_fingerprint": skill_source_fingerprint,
+        "skill_source_files": skill_source_files,
         "run_contract_version": RUN_CONTRACT_VERSION,
         "eval_fingerprints": current_eval_fingerprints,
     }
@@ -1114,6 +1328,12 @@ def validate_prepare_grading_preconditions(run_dirs: list[Path], allow_missing_r
             continue
         if manifest.get("grader_material_status") == GRADER_MATERIAL_READY:
             continue
+        source_errors = validate_current_skill_source_fingerprint(run_dir, manifest)
+        if source_errors:
+            errors.append(
+                f"{run_dir}: prepared skill source must match before preparing grader materials:\n"
+                + "\n".join(f"  - {error}" for error in source_errors)
+            )
         if not allow_missing_receipt:
             receipt_errors = validate_prompt_receipt(run_dir, manifest)
             if receipt_errors:
@@ -2613,6 +2833,8 @@ def discover_runs(iteration_dir: Path, allow_legacy: bool) -> list[dict[str, Any
                         "grader_material_status": manifest.get("grader_material_status"),
                         "eval_fingerprint": manifest.get("eval_fingerprint") or metadata.get("eval_fingerprint"),
                         "run_fingerprint": manifest.get("run_fingerprint"),
+                        "skill_path": manifest.get("skill_path"),
+                        "skill_source_fingerprint": manifest.get("skill_source_fingerprint"),
                         "model": manifest.get("model"),
                         "grader_model": manifest.get("grader_model"),
                         "has_run_manifest": bool(manifest),
@@ -2716,6 +2938,8 @@ def validate_baseline_reuse(
         expected_model,
         expected_grader_model,
         str(current_agent),
+        source_run.get("skill_path") if isinstance(source_run.get("skill_path"), str) else None,
+        source_run.get("skill_source_fingerprint") if isinstance(source_run.get("skill_source_fingerprint"), str) else None,
     )
     if source_run_fingerprint != expected_run_fingerprint:
         errors.append(f"{source_label} run fingerprint mismatch for {source_run.get('eval_id')} {baseline_config} run-{source_run.get('run_number')}")

@@ -47,6 +47,7 @@
 - Do not make the shared eval CLI depend on local-only `.agents/` assets.
 - `report` writes static `review.html` by default. Do not start a server, open a browser, bind a port, write a PID file, or leave a background process unless the user explicitly asks for an opt-in server workflow.
 - `prepare` requires `--agent <agent-name>` and creates `evals/<skill-name>/workspace/<agent-name>/iteration-N/`. Use stable labels such as `codex`, `claude`, or `gemini`; do not write canonical runs directly under `workspace/iteration-N`.
+- `with_skill` runs must execute from the prepared Skill path under the authoritative `skills/<skill-name>/` source package. The executor must read that source file and referenced package files directly; do not use an installed host skill tool, `.agents/skills` snapshot, `.claude/skills` link, cached skill copy, external path, or another skill package as a substitute. `prepare` resolves relative `--skill-path` values from the repo root, rejects paths outside `skills/<skill-name>/`, `.agents/skills` snapshots, `.claude/skills` links, and files not named `SKILL.md`, records a source-package fingerprint, and treats source changes as rerun input changes.
 - Standard command sequence:
 
 ```sh

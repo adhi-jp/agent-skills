@@ -38,6 +38,15 @@ use `[Repository] - YYYY-MM-DD`.
   already provide a tool-call count, validates those counts as non-negative
   integers, accepts generic invocation trace keys, and surfaces `tool_calls` in
   generated benchmark Markdown and HTML reports.
+- `scripts/eval_runner.py` now requires `with_skill` runs to use a prepared
+  source Skill path from `--skill-path` or `skills/<skill-name>/SKILL.md`,
+  resolves relative `--skill-path` values from the repo root, rejects paths
+  outside `skills/<skill-name>/`, other skill packages, `.agents/skills` and
+  `.claude/skills` paths, non-`SKILL.md` files, and path-traversing
+  `skill_name` values as skill sources, records the source path and
+  source-package fingerprint in run fingerprints, treats source content changes
+  as rerun input changes, and tells executors not to substitute installed host
+  skill tools, local snapshots, or cached copies for the source package.
 - `vibe-brainstorm` now uses English `Practical` / `Unconventional` /
   `Challenging` idea-family labels in its skill, README, and eval contracts
   while preserving the three-way creative-direction distinction.

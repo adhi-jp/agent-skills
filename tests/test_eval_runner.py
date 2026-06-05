@@ -16,14 +16,16 @@ class EvalRunnerTests(unittest.TestCase):
         (self.root / "AGENTS.md").write_text("# test policy\n", encoding="utf-8")
         (self.root / "evals" / "demo" / "fixtures").mkdir(parents=True)
         (self.root / "evals" / "demo" / "fixtures" / "input.txt").write_text("fixture\n", encoding="utf-8")
+        (self.root / "skills" / "demo").mkdir(parents=True)
+        (self.root / "skills" / "demo" / "SKILL.md").write_text("# Demo Skill\n", encoding="utf-8")
 
     def tearDown(self):
         self.tmp.cleanup()
 
-    def run_cli(self, *args, check=True):
+    def run_cli(self, *args, check=True, cwd=None):
         result = subprocess.run(
             [sys.executable, str(SCRIPT), *map(str, args)],
-            cwd=self.root,
+            cwd=cwd or self.root,
             text=True,
             capture_output=True,
             check=False,
@@ -309,6 +311,257 @@ class EvalRunnerTests(unittest.TestCase):
             self.assertIn("--agent", result.stderr)
         self.assertFalse((self.root / "evals" / "demo" / "workspace").exists())
 
+    def test_prepare_defaults_with_skill_to_source_skill_path(self):
+        suite = self.write_suite()
+
+        self.run_cli("prepare", suite, "--agent", "claude", "--eval", "E01", "--config", "with_skill")
+
+        run_dir = self.prepared_run_dir(self.agent_iteration("claude", 1), "with_skill")
+        manifest = json.loads((run_dir / "run_manifest.json").read_text(encoding="utf-8"))
+        prompt = (run_dir / "prompt.md").read_text(encoding="utf-8")
+        expected_source = str(self.root / "skills" / "demo" / "SKILL.md")
+        self.assertEqual(expected_source, manifest["skill_path"])
+        self.assertEqual(expected_source, manifest["run_fingerprint_inputs"]["skill_path"])
+        self.assertEqual(64, len(manifest["skill_source_fingerprint"]))
+        self.assertEqual(manifest["skill_source_fingerprint"], manifest["run_fingerprint_inputs"]["skill_source_fingerprint"])
+        self.assertIn(expected_source, prompt)
+        self.assertIn("Read the target skill directly", prompt)
+        self.assertNotIn("normal skill mechanism", prompt)
+
+    def test_prepare_rejects_local_skill_snapshot_paths(self):
+        suite = self.write_suite()
+        snapshot = self.root / ".agents" / "skills" / "demo" / "SKILL.md"
+        snapshot.parent.mkdir(parents=True)
+        snapshot.write_text("# Snapshot Skill\n", encoding="utf-8")
+
+        result = self.run_cli(
+            "prepare",
+            suite,
+            "--agent",
+            "claude",
+            "--eval",
+            "E01",
+            "--config",
+            "with_skill",
+            "--skill-path",
+            snapshot,
+            check=False,
+        )
+
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("local skill snapshot", result.stderr)
+        self.assertFalse((self.root / "evals" / "demo" / "workspace").exists())
+
+    def test_prepare_rejects_external_skill_paths(self):
+        suite = self.write_suite()
+        with tempfile.TemporaryDirectory() as external_root:
+            external_skill = Path(external_root) / "demo" / "SKILL.md"
+            external_skill.parent.mkdir(parents=True)
+            external_skill.write_text("# External Skill\n", encoding="utf-8")
+
+            result = self.run_cli(
+                "prepare",
+                suite,
+                "--agent",
+                "claude",
+                "--eval",
+                "E01",
+                "--config",
+                "with_skill",
+                "--skill-path",
+                external_skill,
+                check=False,
+            )
+
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("authoritative skills/demo/SKILL.md source", result.stderr)
+        self.assertFalse((self.root / "evals" / "demo" / "workspace").exists())
+
+    def test_prepare_resolves_relative_skill_path_from_repo_root_first(self):
+        suite = self.write_suite()
+        subdir = self.root / "subdir"
+        shadow_skill = subdir / "skills" / "demo" / "SKILL.md"
+        shadow_skill.parent.mkdir(parents=True)
+        shadow_skill.write_text("# Shadow Skill\n", encoding="utf-8")
+
+        self.run_cli(
+            "prepare",
+            suite,
+            "--agent",
+            "claude",
+            "--eval",
+            "E01",
+            "--config",
+            "with_skill",
+            "--skill-path",
+            "skills/demo/SKILL.md",
+            cwd=subdir,
+        )
+
+        run_dir = self.prepared_run_dir(self.agent_iteration("claude", 1), "with_skill")
+        manifest = json.loads((run_dir / "run_manifest.json").read_text(encoding="utf-8"))
+        self.assertEqual(str(self.root / "skills" / "demo" / "SKILL.md"), manifest["skill_path"])
+
+    def test_prepare_rejects_cwd_relative_skill_path_when_not_repo_relative(self):
+        suite = self.write_suite()
+
+        result = self.run_cli(
+            "prepare",
+            suite,
+            "--agent",
+            "claude",
+            "--eval",
+            "E01",
+            "--config",
+            "with_skill",
+            "--skill-path",
+            "../../skills/demo/SKILL.md",
+            cwd=self.root / "evals" / "demo",
+            check=False,
+        )
+
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("skill path must be a SKILL.md file", result.stderr)
+        self.assertFalse((self.root / "evals" / "demo" / "workspace").exists())
+
+    def test_prepare_rejects_non_skill_md_files_as_skill_path(self):
+        suite = self.write_suite()
+        readme = self.root / "skills" / "demo" / "README.md"
+        readme.write_text("# Not a skill source\n", encoding="utf-8")
+
+        result = self.run_cli(
+            "prepare",
+            suite,
+            "--agent",
+            "claude",
+            "--eval",
+            "E01",
+            "--config",
+            "with_skill",
+            "--skill-path",
+            readme,
+            check=False,
+        )
+
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("skill path must be a SKILL.md file", result.stderr)
+        self.assertFalse((self.root / "evals" / "demo" / "workspace").exists())
+
+    def test_prepare_rejects_wrong_skill_package_paths(self):
+        suite = self.write_suite()
+        other_skill = self.root / "skills" / "other" / "SKILL.md"
+        other_skill.parent.mkdir(parents=True)
+        other_skill.write_text("# Other Skill\n", encoding="utf-8")
+
+        result = self.run_cli(
+            "prepare",
+            suite,
+            "--agent",
+            "claude",
+            "--eval",
+            "E01",
+            "--config",
+            "with_skill",
+            "--skill-path",
+            "skills/other/SKILL.md",
+            check=False,
+        )
+
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("skills/demo/SKILL.md", result.stderr)
+        self.assertFalse((self.root / "evals" / "demo" / "workspace").exists())
+
+    def test_prepare_rejects_claude_link_path_even_when_it_points_to_source(self):
+        suite = self.write_suite()
+        link = self.root / ".claude" / "skills" / "demo"
+        link.parent.mkdir(parents=True)
+        try:
+            link.symlink_to("../../skills/demo", target_is_directory=True)
+        except OSError as exc:
+            self.skipTest(f"symlink unavailable: {exc}")
+
+        result = self.run_cli(
+            "prepare",
+            suite,
+            "--agent",
+            "claude",
+            "--eval",
+            "E01",
+            "--config",
+            "with_skill",
+            "--skill-path",
+            ".claude/skills/demo",
+            check=False,
+        )
+
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("local skill snapshot", result.stderr)
+        self.assertFalse((self.root / "evals" / "demo" / "workspace").exists())
+
+    def test_prepare_rejects_skill_source_symlink_escape(self):
+        suite = self.write_suite()
+        with tempfile.TemporaryDirectory() as external_root:
+            external_skill = Path(external_root) / "SKILL.md"
+            external_skill.write_text("# Escaped Skill\n", encoding="utf-8")
+            skill_path = self.root / "skills" / "demo" / "SKILL.md"
+            skill_path.unlink()
+            try:
+                skill_path.symlink_to(external_skill)
+            except OSError as exc:
+                self.skipTest(f"symlink unavailable: {exc}")
+
+            result = self.run_cli(
+                "prepare",
+                suite,
+                "--agent",
+                "claude",
+                "--eval",
+                "E01",
+                "--config",
+                "with_skill",
+                check=False,
+            )
+
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("authoritative source skill under", result.stderr)
+        self.assertFalse((self.root / "evals" / "demo" / "workspace").exists())
+
+    def test_prepare_rejects_path_traversal_skill_name_for_with_skill(self):
+        suite = self.write_suite(
+            {
+                "schema_version": "1.0.0",
+                "skill_name": "../outside",
+                "purpose": "test suite",
+                "evals": [
+                    {
+                        "id": "E01",
+                        "name": "First eval",
+                        "prompt": "Do the thing.",
+                        "files": ["evals/demo/fixtures/input.txt"],
+                        "expectations": ["per-eval assertion"],
+                    }
+                ],
+            }
+        )
+        (self.root / "outside").mkdir()
+        (self.root / "outside" / "SKILL.md").write_text("# Outside Skill\n", encoding="utf-8")
+
+        result = self.run_cli(
+            "prepare",
+            suite,
+            "--agent",
+            "claude",
+            "--eval",
+            "E01",
+            "--config",
+            "with_skill",
+            check=False,
+        )
+
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("with_skill requires a single skills/ path segment", result.stderr)
+        self.assertFalse((self.root / "evals" / "demo" / "workspace").exists())
+
     def test_prepare_creates_canonical_layout_and_refuses_overwrite(self):
         suite = self.write_suite()
         result = self.run_cli(
@@ -351,14 +604,30 @@ class EvalRunnerTests(unittest.TestCase):
                 self.assertIn(f"Configuration: `{config}`", prompt)
                 if config == "with_skill":
                     self.assertIn("Skill: `demo`", prompt)
-                    self.assertIn("skills/demo/SKILL.md", prompt)
-                    self.assertEqual("skills/demo/SKILL.md", manifest["skill_path"])
+                    self.assertIn(str(self.root / "skills" / "demo" / "SKILL.md"), prompt)
+                    self.assertIn("Read the target skill directly", prompt)
+                    self.assertIn("Do not invoke an installed host skill tool", prompt)
+                    self.assertEqual(str(self.root / "skills" / "demo" / "SKILL.md"), manifest["skill_path"])
+                    self.assertEqual(
+                        str(self.root / "skills" / "demo" / "SKILL.md"),
+                        manifest["run_fingerprint_inputs"]["skill_path"],
+                    )
+                    self.assertEqual(64, len(manifest["skill_source_fingerprint"]))
+                    self.assertEqual(
+                        manifest["skill_source_fingerprint"],
+                        manifest["run_fingerprint_inputs"]["skill_source_fingerprint"],
+                    )
+                    self.assertEqual("SKILL.md", manifest["skill_source_files"][0]["path"])
                 else:
                     self.assertNotIn("Skill: `demo`", prompt)
                     self.assertNotIn("Skill path:", prompt)
-                    self.assertNotIn("skills/demo/SKILL.md", prompt)
+                    self.assertNotIn(str(self.root / "skills" / "demo" / "SKILL.md"), prompt)
                     self.assertIsNone(manifest["skill_path"])
-                    self.assertIn("Do not use any skill package or local skill file", prompt)
+                    self.assertIsNone(manifest["run_fingerprint_inputs"]["skill_path"])
+                    self.assertIsNone(manifest["skill_source_fingerprint"])
+                    self.assertIsNone(manifest["run_fingerprint_inputs"]["skill_source_fingerprint"])
+                    self.assertEqual([], manifest["skill_source_files"])
+                    self.assertIn("Do not use any skill package, local skill file", prompt)
                 self.assertNotIn("## Expected Output Summary", prompt)
                 self.assertNotIn("A useful result.", prompt)
                 self.assertNotIn("grader_prompt.md", prompt)
@@ -378,8 +647,8 @@ class EvalRunnerTests(unittest.TestCase):
                 self.assertNotIn("A useful result.", json.dumps(executor_metadata))
                 self.assertIsNone(manifest["grader_prompt"])
                 self.assertEqual("pending", manifest["grader_material_status"])
-                self.assertEqual("eval-runner-v6", manifest["run_contract_version"])
-                self.assertEqual("eval-runner-v6", manifest["run_fingerprint_inputs"]["run_contract_version"])
+                self.assertEqual("eval-runner-v7", manifest["run_contract_version"])
+                self.assertEqual("eval-runner-v7", manifest["run_fingerprint_inputs"]["run_contract_version"])
                 self.assertEqual(64, len(manifest["prompt_sha256"]))
                 self.assertEqual(64, len(manifest["executor_metadata_sha256"]))
                 self.assertNotIn("grader_prompt_sha256", manifest)
@@ -391,9 +660,11 @@ class EvalRunnerTests(unittest.TestCase):
         self.assertFalse((eval_dirs[0] / "eval_metadata.json").exists())
         run_index = json.loads((iteration / "run_index.json").read_text(encoding="utf-8"))
         self.assertEqual(4, run_index["run_count"])
-        self.assertEqual("eval-runner-v6", run_index["run_contract_version"])
+        self.assertEqual("eval-runner-v7", run_index["run_contract_version"])
         next_steps = (iteration / "next_steps.md").read_text(encoding="utf-8")
         self.assertIn("Do not reuse prompt text", next_steps)
+        self.assertIn("read the prepared Skill path", next_steps)
+        self.assertIn("Skill source fingerprint", next_steps)
         self.assertIn("eval-runner-receipt-v1", next_steps)
         self.assertIn("prepare-grading", next_steps)
         self.assertNotIn("grader_prompt.md", next_steps)
@@ -426,6 +697,9 @@ class EvalRunnerTests(unittest.TestCase):
 
         iteration_manifest = json.loads((iteration / "iteration_manifest.json").read_text(encoding="utf-8"))
         self.assertEqual("codex", iteration_manifest["agent"])
+        self.assertEqual(str(self.root / "skills" / "demo" / "SKILL.md"), iteration_manifest["skill_path"])
+        self.assertEqual(64, len(iteration_manifest["skill_source_fingerprint"]))
+        self.assertEqual("SKILL.md", iteration_manifest["skill_source_files"][0]["path"])
 
         collision = self.run_cli("prepare", suite, "--agent", "codex", "--iteration", "1", check=False)
         self.assertNotEqual(0, collision.returncode)
@@ -489,6 +763,19 @@ class EvalRunnerTests(unittest.TestCase):
         self.run_cli("prepare-grading", run_dir, "--evals-json", suite)
         self.assertTrue((run_dir / "grader_prompt.md").is_file())
 
+    def test_prepare_grading_rejects_changed_skill_source_fingerprint(self):
+        suite = self.write_suite()
+        self.run_cli("prepare", suite, "--agent", "claude", "--eval", "E01", "--config", "with_skill")
+        run_dir = self.prepared_run_dir(self.agent_iteration("claude", 1), "with_skill")
+        self.write_receipt(run_dir)
+        (self.root / "skills" / "demo" / "SKILL.md").write_text("# Changed Demo Skill\n", encoding="utf-8")
+
+        result = self.run_cli("prepare-grading", run_dir, check=False)
+
+        self.assertNotEqual(0, result.returncode)
+        self.assertIn("skill source fingerprint changed", result.stderr)
+        self.assertFalse((run_dir / "grader_prompt.md").exists())
+
     def test_prepare_writes_stable_fingerprints_and_fixture_changes_affect_them(self):
         suite = self.write_suite()
         for iteration in ("1", "2"):
@@ -541,8 +828,8 @@ class EvalRunnerTests(unittest.TestCase):
         self.assertEqual(first_metadata["eval_fingerprint"], second_metadata["eval_fingerprint"])
         self.assertEqual(first_manifest["run_fingerprint"], second_manifest["run_fingerprint"])
         self.assertNotEqual(first_manifest["run_fingerprint"], claude_manifest["run_fingerprint"])
-        self.assertEqual("eval-runner-v6", first_manifest["run_contract_version"])
-        self.assertEqual("eval-runner-v6", first_manifest["run_fingerprint_inputs"]["run_contract_version"])
+        self.assertEqual("eval-runner-v7", first_manifest["run_contract_version"])
+        self.assertEqual("eval-runner-v7", first_manifest["run_fingerprint_inputs"]["run_contract_version"])
         self.assertEqual("codex", first_manifest["agent"])
         self.assertEqual("codex", first_manifest["run_fingerprint_inputs"]["agent"])
         self.assertEqual("claude", claude_manifest["agent"])
@@ -575,6 +862,18 @@ class EvalRunnerTests(unittest.TestCase):
         third_manifest = json.loads((self.prepared_run_dir(third, "with_skill") / "run_manifest.json").read_text(encoding="utf-8"))
         self.assertNotEqual(first_metadata["eval_fingerprint"], third_metadata["eval_fingerprint"])
         self.assertNotEqual(first_manifest["run_fingerprint"], third_manifest["run_fingerprint"])
+
+    def test_prepare_rerun_of_detects_skill_source_changes(self):
+        suite = self.write_suite()
+        self.run_cli("prepare", suite, "--agent", "codex", "--iteration", "1", "--eval", "E01", "--config", "with_skill", "--runs", "1")
+        first = self.agent_iteration("codex", 1)
+        (self.root / "skills" / "demo" / "SKILL.md").write_text("# Changed Demo Skill\n", encoding="utf-8")
+
+        failed = self.run_cli("prepare", suite, "--agent", "codex", "--iteration", "2", "--eval", "E01", "--config", "with_skill", "--runs", "1", "--rerun-of", first, check=False)
+
+        self.assertNotEqual(0, failed.returncode)
+        self.assertIn("skill source fingerprint", failed.stderr)
+        self.assertFalse(self.agent_iteration("codex", 2).exists())
 
     def test_prepare_rerun_of_compares_inputs_before_writing(self):
         suite = self.write_suite()
@@ -613,7 +912,7 @@ class EvalRunnerTests(unittest.TestCase):
         self.assertNotEqual(0, failed.returncode)
         self.assertIn("run contract", failed.stderr)
         self.assertIn("eval-runner-v4", failed.stderr)
-        self.assertIn("eval-runner-v6", failed.stderr)
+        self.assertIn("eval-runner-v7", failed.stderr)
 
     def test_record_copies_outputs_and_validates_grading_schema(self):
         suite = self.write_suite()
@@ -1339,7 +1638,7 @@ class EvalRunnerTests(unittest.TestCase):
         self.assertNotEqual(0, result.returncode)
         self.assertIn("run contract mismatch", result.stderr)
         self.assertIn("eval-runner-v4", result.stderr)
-        self.assertIn("eval-runner-v6", result.stderr)
+        self.assertIn("eval-runner-v7", result.stderr)
 
     def test_aggregate_baseline_from_rejects_same_legacy_contract_without_current_recompute(self):
         suite = self.write_suite()
@@ -1799,7 +2098,8 @@ class EvalRunnerTests(unittest.TestCase):
 
     def test_cli_does_not_import_ignored_agents_skill(self):
         source = SCRIPT.read_text(encoding="utf-8")
-        self.assertNotIn(".agents", source)
+        self.assertNotIn("import .agents", source)
+        self.assertNotIn("from .agents", source)
 
 
 if __name__ == "__main__":
