@@ -27,26 +27,25 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
-- `scripts/eval_runner.py` now uses a new run contract that requires
-  host- or parent-captured tool, sub-agent, delegated-review, or other
-  invocation traces as non-response output artifacts when output claims rely on
-  those records, and tells graders not to treat executor-authored trace
-  reconstructions, final-response prose, copied IDs, or self-reported call
-  counts as host execution proof without recorded host or runner evidence.
-  Aggregation now reads `outputs/tool_trace.json` as a
-  fallback source for `tool_calls` metrics when timing or grading metrics do not
-  already provide a tool-call count, validates those counts as non-negative
-  integers, accepts generic invocation trace keys, and surfaces `tool_calls` in
-  generated benchmark Markdown and HTML reports.
-- `scripts/eval_runner.py` now requires `with_skill` runs to use a prepared
-  source Skill path from `--skill-path` or `skills/<skill-name>/SKILL.md`,
-  resolves relative `--skill-path` values from the repo root, rejects paths
-  outside `skills/<skill-name>/`, other skill packages, `.agents/skills` and
-  `.claude/skills` paths, non-`SKILL.md` files, and path-traversing
-  `skill_name` values as skill sources, records the source path and
-  source-package fingerprint in run fingerprints, treats source content changes
-  as rerun input changes, and tells executors not to substitute installed host
-  skill tools, local snapshots, or cached copies for the source package.
+- `scripts/eval_runner.py` is slimmed to a runner-driven CLI with three commands
+  (`validate`, `run`, `report`). `run` executes the bounded eval matrix end to
+  end, spawning a fresh executor subprocess (prompt only) and a separate grader
+  subprocess (clean environment, executor output plus assertions) per
+  eval/config/run, then aggregating a `with_skill` vs `without_skill` raw
+  pass-rate comparison into `benchmark.json` and `benchmark.md`. Provider
+  selection is a registry (`claude` and `codex` built in); the core path runs on
+  Codex, with opt-in metric capture from machine-readable provider output (for
+  example `claude -p --output-format json`) as a Claude-only addition. All
+  validation runs before any subprocess launches, and `--runs` (1..5),
+  `--timeout`, and `--concurrency` bound total work; a timed-out or failed
+  executor is recorded as a failed run with no retries, and metric absence is
+  recorded as absence rather than a placeholder number. `with_skill` stays bound
+  to the authoritative `skills/<skill-name>/SKILL.md` source for every provider.
+  The previous `prepare` / `record` / `prepare-grading` / `grading-template` /
+  `record-batch` / `aggregate` / `doctor` file-contract flow, hand-typed metric
+  flags, `--allow-*` opt-outs, provenance proof, source and run fingerprinting,
+  schema versioning, rerun comparison, grading-audit, metric-integrity gates,
+  baseline reuse, and the `review.html` renderer are removed.
 - `vibe-brainstorm` now uses English `Practical` / `Unconventional` /
   `Challenging` idea-family labels in its skill, README, and eval contracts
   while preserving the three-way creative-direction distinction.

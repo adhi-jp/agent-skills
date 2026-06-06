@@ -407,85 +407,58 @@ only explicit user, DoD, or confirmed-plan evidence.
 - `skills/vibe-writing/`: consolidated vibe-coding writing skill package
 - `skills/skill-quality/`: skill creation, improvement, and eval-hardening skill package
 - `skills/vibe-review/`: integrated vibe-coding review workflow with delegated review, scope triage, cascade containment, and terminal audit
-- `scripts/eval_runner.py`: shared stdlib CLI for preparing agent-scoped repo
-  eval runs, recording outputs and parent-captured metrics, aggregating, and
-  statically reviewing results with grader prompts and client-side feedback
+- `scripts/eval_runner.py`: shared stdlib CLI that runs the bounded skill-eval
+  matrix end to end (executor and grader as separate subprocesses), then
+  aggregates a with_skill vs without_skill raw pass-rate comparison
 - `CHANGELOG.md`: repository-level change history
 
 ## Shared Eval Runner
 
-Use `python3 scripts/eval_runner.py` for repo-level skill eval runs. `prepare`
-creates `run_index.json`, `next_steps.md`, executor-safe `prompt.md`,
-`executor_metadata.json`, `outputs/`, and `run_manifest.json` under
-`evals/<skill-name>/workspace/<agent>/iteration-N/`. It does not create
-`grader_prompt.md` or assertion-bearing `eval_metadata.json` during the
-executor phase. For `with_skill` runs, `prepare` resolves `--skill-path` or the
-default `skills/<skill-name>/SKILL.md` source file, resolves relative
-`--skill-path` values from the repo root, rejects paths outside
-`skills/<skill-name>/`, `.agents/skills` snapshots, `.claude/skills` links,
-other skill packages, and files not named `SKILL.md`, records a source-package
-fingerprint, and tells the executor to read the source skill package directly
-instead of using installed host skill tools or local snapshots. Run the current
-`prompt.md` with the named agent, write
-`outputs/run_receipt.json` from the current run manifest or next-steps payload,
-attach any host- or parent-captured tool, sub-agent, delegated-review, or other
-invocation trace that supports output claims as a non-response artifact under `outputs/`,
-then run `prepare-grading <run-dir|iteration-dir>` after executor output exists.
-Executor-authored trace reconstructions, final-response prose, copied
-invocation IDs, and self-reported call counts do not prove host/tool/delegation
-execution unless corroborated by recorded host or runner evidence.
-That step creates the grader-only `grader_prompt.md` and assertion-bearing
-`eval_metadata.json` for a separate grading pass when supported. For custom
-workspace roots outside `evals/<skill-name>/workspace/<agent>/iteration-N`, pass
-`--evals-json <path>` to `prepare-grading`. Use `record` to attach outputs,
-parent-captured metrics such as `--total-tokens`,
-`--duration-ms`, and `--output-chars`, `--usage-file` or `--usage-text` usage
-blobs, and the grader-produced `grading.json`. Token and duration values must
-come from parent-captured or usage-derived metrics, not placeholders, guesses,
-reused defaults, or executor estimates. `record --finalize` validates the prompt
-receipt, required final metrics, and metric-integrity findings; explicit
-`--allow-missing-*` or `--allow-suspicious-metrics` flags mark partial or smoke
-runs as incomplete. When timing or grading metrics do not provide a tool-call
-count, `aggregate` reads `outputs/tool_trace.json` as the fallback source for
-`tool_calls`. Timing and grading metrics take precedence. The trace fallback
-accepts non-negative integer counts from `total_tool_calls`,
-`tool_call_count`, `invocation_count`, or `delegated_invocation_count`; list
-lengths from `tool_calls`, `tool_invocations`, `invocations`,
-`delegated_invocations`, or `delegated_reviews`; and count maps from
-`tool_calls`.
+Use `python3 scripts/eval_runner.py` for repo-level skill eval runs. It has
+three commands: `validate`, `run`, and `report`.
 
-`grading.json` must preserve every `eval_metadata.json.assertions` text exactly
-once, in order. Use `grading-template <run-dir>` after `prepare-grading` to
-generate a placeholder template. Current-contract runs also apply a static
-grading-boundary audit at
-`record --grading`, `record --finalize`, `record-batch`, `doctor`, and
-`aggregate`: the audit checks the whole recorded output set for deterministic
-contradictions such as raw commit messages inside Markdown fences, no-fence
-assertions with fences, prompt-local standalone leaks, JSON-only output with
-prose or fences, grader evidence that narrows a global assertion to a
-sub-artifact, and file/artifact claims without recorded artifact evidence.
-`--allow-suspicious-grading` records an explicit noncanonical opt-out; it does
-not erase findings.
+`run` drives the whole bounded matrix itself. For each eval, config, and run it
+spawns a fresh executor subprocess with the prompt only, then a fresh grader
+subprocess with a clean environment and only the executor output plus the
+assertions, then aggregates a `with_skill` vs `without_skill` raw pass-rate
+comparison. No agent hand-runs prompts or hand-records results.
 
-Current-contract runs also apply a metric-integrity audit. Non-positive token
-or duration values are invalid for complete proof, known placeholder pairs such
-as `30000ms/5000 tokens` and `60000ms/15000 tokens` are surfaced as warnings,
-and repeated known placeholder patterns block canonical aggregate/doctor proof
-unless the run set is explicitly treated as incomplete. `output_chars` remains
-separate from tokens and is never used to infer token counts.
+`--agent` selects a registered provider; `claude` and `codex` are built in. The
+core path (execute, grade, compare, aggregate, report) is provider-neutral and
+works on Codex; opt-in metric capture is a Claude-only addition that other
+providers skip.
 
-`aggregate` fails incomplete comparative runs by default; with
-`--allow-incomplete`, it writes `benchmark.json` and `benchmark.md` with
-analysis notes, grading-audit summaries, and incomplete-run blockers, including
-missing v5 grading materials or grading output. `doctor <iteration-dir>` reports
-iteration health and blocks current-contract complete proof on pending grading
-materials, audit errors, metric-integrity blockers, or suspicious grading/metric
-opt-outs; `record-batch` attaches metrics, usage, grading, and finalization
-metadata for multiple runs after prevalidation.
-`report` writes static `review.html` without starting a server and renders
-grading-audit findings near affected runs. `report --previous-iteration
-<iteration-dir>` or `auto` compares against a prior benchmark; feedback controls
-download a local `feedback.json` from the browser.
+All validation runs before any subprocess launches: suite shape, the
+authoritative `with_skill` source, provider availability, and run bounds.
+Invalid input exits non-zero with zero subprocess launches; an empty suite exits
+0 with an empty result. Total work is bounded by `--runs` (1..5, default 1),
+`--timeout` per subprocess (default 600s), and `--concurrency` (1..16, default
+4). A timed-out or failed executor is recorded as a failed run, not a pass, and
+the grader is skipped for it; there are no retries.
+
+For `with_skill`, the runner resolves `--skill-path` from the repo root (default
+`skills/<skill-name>/SKILL.md`) and, for every provider, rejects `.agents/skills`
+snapshots, `.claude/skills` links, files not named `SKILL.md`, and paths outside
+`skills/<skill-name>/`. The executor prompt tells the agent to read that source
+directly instead of a host skill tool, snapshot, link, or cached copy.
+
+Metrics are never hand-typed. No flag injects a token or duration value. When a
+provider exposes machine-readable usage (for example `claude -p --output-format
+json`), the runner captures it into `metrics.json` with its source; otherwise
+absence is recorded as absence, never a placeholder number.
+
+The grader subprocess returns a JSON verdict
+(`{"expectations": [{"text", "passed", "evidence"}]}`); the runner derives
+pass/fail from it, never from the executor's own claims, and grades the whole
+recorded output. An assertion the grader omits is recorded as failed.
+
+`run` writes per-run `prompt.md`, `grader_prompt.md`, `outputs/`, `grading.json`,
+`metrics.json`, and `run.json` under
+`evals/<skill-name>/workspace/<agent>/iteration-N/`, plus `benchmark.json` and
+`benchmark.md` (per-eval and overall raw pass rate with the
+`with_skill`/`without_skill` comparison) at the iteration root. `report
+<iteration-dir>` re-renders `benchmark.md` from `benchmark.json`; it does not
+start a server, open a browser, bind a port, or write a PID file.
 
 ## Package Contents
 
