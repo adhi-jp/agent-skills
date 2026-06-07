@@ -4,26 +4,71 @@ Agent skills and eval prompts for vibe-coding orchestration, brainstorming,
 requirements specs, plans, review loops, writing, skill quality, and Minecraft
 modding.
 
+## Start Here
+
+This README is a chooser and repository reference for the source skill packages
+under `skills/`. For the full workflow contract, read the matching
+`skills/<skill-name>/SKILL.md`.
+
+Use the skill chooser before reading the long skill summaries. Use the eval
+quickstart when changing a skill or its eval suite.
+
+## Which Skill Should I Use?
+
+| Task | Use | Output or stop boundary | Source package | Eval suite |
+| --- | --- | --- | --- | --- |
+| Build, debug, port, or inspect Minecraft Java Edition mods for Fabric, NeoForge, or Architectury | `minecraft-modding-workbench` | Produces implementation guidance or code while labeling MCP, workspace, source-jar, runtime, and unverified facts | `skills/minecraft-modding-workbench/` | `evals/minecraft-modding-workbench/` |
+| Route an explicit multi-turn vibe-coding workflow | `vibe-coding` | Selects one primary visible `vibe-*` specialist for the next phase; does not relax downstream gates | `skills/vibe-coding/` | `evals/vibe-coding/` |
+| Draft, revise, save, approve, or explore requirements before planning | `vibe-requirements-spec` | Writes only the requirements spec artifact, or stays in chat for chat-only exploration; stops before implementation planning | `skills/vibe-requirements-spec/` | `evals/vibe-requirements-spec/` |
+| Create or revise an implementation plan from approval-evidenced or concrete inputs | `vibe-planning` | Writes a plan artifact and concise summary; stops before code, tests, changelog edits, commits, and release work | `skills/vibe-planning/` | `evals/vibe-planning/` |
+| Implement an existing concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Edits only after binding the plan and checking proceed conditions; stops before commits unless separately authorized | `skills/vibe-plan-execution/` | `evals/vibe-plan-execution/` |
+| Brainstorm creative implementation ideas, alternatives, expected behavior, or convention checks | `vibe-brainstorm` | Returns chat-first directions or checklists and stops before implementation until the user confirms the direction | `skills/vibe-brainstorm/` | `evals/vibe-brainstorm/` |
+| Debug or repair existing behavior from rough bug reports, regressions, failed fixes, or runtime artifacts | `vibe-debug-fix` | Produces evidence-backed repairs or retest contracts; does not authorize history mutation | `skills/vibe-debug-fix/` | `evals/vibe-debug-fix/` |
+| Write or revise development text, docs, changelog entries, PR text, UI copy, summaries, or commit messages | `vibe-writing` | Controls wording only; staging, commits, releases, and workflow authority stay with the active workflow | `skills/vibe-writing/` | `evals/vibe-writing/` |
+| Decide what to change in a skill or eval from benchmark results, grader feedback, reviews, or regressions | `skill-quality` | Produces evidence-bound quality decisions; release/version changes still require explicit release instruction | `skills/skill-quality/` | `evals/skill-quality/` |
+| Review a git-backed working tree, branch, base ref, PR-style diff, or review/fix loop | `vibe-review` | Reviews only non-empty git-backed targets; history operations require separate consent and safety checks | `skills/vibe-review/` | `evals/vibe-review/` |
+
+`vibe-planning` is not for rough unapproved requirements drafting. Route those
+requests to `vibe-requirements-spec` first. `vibe-plan-execution` needs a
+concrete implementation input with a goal, in/out-of-scope behavior, acceptance
+criteria or pass/fail checks, a test or proof path, an implementation route or
+code area to inspect, and known risks or an explicit absence of known risks.
+
+## Run Skill Evals
+
+Use the shared runner for repo-level eval suites:
+
+```sh
+python3 scripts/eval_runner.py validate evals/vibe-planning/evals.json
+python3 scripts/eval_runner.py run evals/vibe-planning/evals.json --agent codex --config with_skill,without_skill --runs 1
+python3 scripts/eval_runner.py report evals/vibe-planning/workspace/codex/iteration-1
+```
+
+Generated eval workspaces live under `evals/<skill-name>/workspace/<agent>/`
+and are local artifacts unless explicitly requested for commit.
+
 ## Current Skill Versions
 
 | Skill | Version |
 | --- | --- |
-| `minecraft-modding-workbench` | `1.2.1` |
-| `vibe-coding` | `1.0.0` |
-| `vibe-requirements-spec` | `1.0.0` |
-| `vibe-planning` | `4.0.0` |
+| `minecraft-modding-workbench` | `2.0.0` |
+| `vibe-coding` | `1.1.0` |
+| `vibe-requirements-spec` | `2.0.0` |
+| `vibe-planning` | `4.1.0` |
 | `vibe-plan-execution` | `2.0.0` |
+| `vibe-brainstorm` | `1.0.0` |
 | `vibe-debug-fix` | `2.0.0` |
 | `vibe-writing` | `1.0.0` |
-| `skill-quality` | `1.0.0` |
+| `skill-quality` | `2.0.0` |
 | `vibe-review` | `1.0.0` |
 
 ## Included Skills
 
 ### `minecraft-modding-workbench`
 
-Version-aware Minecraft modding skill for Fabric, NeoForge, and Architectury
-projects. It is designed around the `minecraft-modding` MCP server from
+Use `minecraft-modding-workbench` when building, debugging, porting, or
+inspecting Minecraft Java Edition mods for Fabric, NeoForge, or Architectury. It
+is designed around the `minecraft-modding` MCP server from
 `@adhisang/minecraft-modding-mcp` and focuses on full implementation slices,
 version-aware debugging, mapping work, mod JAR inspection, and multi-loader
 project structure. It also defines MCP preflight and fallback behavior for
@@ -131,8 +176,10 @@ viewer behavior.
 
 ### `vibe-planning`
 
-Standalone planning skill for turning rough vibe-coding requests into
-implementation-ready plans. It supports both technical and non-technical users,
+Use `vibe-planning` for implementation planning from explicit plan requests,
+approval-evidenced requirements specs, supplied specs, acceptance criteria, or
+task lists. Do not use it for rough unapproved requirements drafting; route that
+to `vibe-requirements-spec`. It supports both technical and non-technical users,
 and emphasizes primary-source or local-investigation grounding, plain-language
 clarification, acceptance criteria before implementation, tests before code,
 explicit handling of unproven assumptions, and output-language selection via
@@ -227,7 +274,10 @@ plan's goal, requirements, acceptance criteria, test plan, risks, and proceed
 condition, and checks assumptions against local evidence or primary sources. It
 labels evidence for blockers, deviation notices, commit-checkpoint decisions,
 and execution summaries. It stops on contradictions or missing implementation
-facts and requires an evidence-backed gate before plan deviations, including
+facts. A concrete plan has a goal, in/out-of-scope behavior, acceptance criteria
+or pass/fail checks, a test or proof path, implementation steps or a code area to
+inspect, and risks or an explicit absence of known risks. It requires an
+evidence-backed gate before plan deviations, including
 shortcuts justified by perceived redundancy or a preferred smaller
 implementation. Agents must prove the affected plan item is contradicted,
 impossible, unsafe, stale, or already satisfied, then report the evidence,
@@ -253,9 +303,12 @@ path instead of drafting unverified code or test templates.
 
 ### `vibe-brainstorm`
 
-Unreleased brainstorming skill for creative or convention-dependent
-implementation tasks. It supports explicit use and conservative autonomous
-reference before coding when implicit expected behavior is easy to miss.
+Use `vibe-brainstorm` for explicit brainstorming, implementation ideas,
+alternatives, interaction concepts, implicit expected behavior, convention
+checks, or creative/convention-dependent implementation tasks. Do not use it for
+obvious mechanical edits, approved concrete directions, direct bug fixes with a
+concrete plan, or conventional review. It supports explicit use and conservative
+autonomous reference before coding when implicit expected behavior is easy to miss.
 Autonomous use defaults to lightweight `conventions` mode for expected-behavior
 checklists; explicit `diverge` mode produces `Practical` / `Unconventional` /
 `Challenging` idea directions only; explicit `full` mode combines idea
@@ -331,23 +384,24 @@ mutation.
 
 ### `skill-quality`
 
-Skill creation and improvement workflow for turning eval failures, benchmark
-results, grader feedback, review findings, trigger failures, and session-history
-patterns into narrow skill contract changes. It starts from evidence, writes a
-small failure-to-contract delta, labels the current proposal's evidence,
-leaves artifacts unchanged when there is no evidence-backed contract gap,
-chooses the smallest coupled artifact set, updates discriminating repo-level
-evals, and uses the shared eval runner honestly. It keeps executor-visible eval
-summaries high-level, applies the same leakage check to its own self-authored
-assertions, keeps token/time claims evidence-bound, requires a closing rerun on
-a clean, complete run before any improvement claim, records the discrimination
-lost and the coverage that must remain when an assertion or eval case is
-loosened or deleted, and blocks common regressions such as broad rewrites,
-universal checklists, fake baselines, self-grading bias, weak proof substitutes,
+Evidence-driven skill and eval quality decision workflow for benchmark results,
+grader feedback, review findings, session-history patterns, trigger failures,
+or quality regressions. It starts from evidence, writes a small
+failure-to-contract delta, labels the current proposal's evidence, leaves
+artifacts unchanged when there is no evidence-backed contract gap, chooses the
+smallest coupled artifact set, updates discriminating repo-level evals, and uses
+the shared eval runner honestly. It keeps executor-visible eval summaries
+high-level, applies the same leakage check to its own self-authored assertions,
+keeps token/time claims evidence-bound, requires a closing rerun on a clean,
+complete run before any improvement claim, records the discrimination lost and
+the coverage that must remain when an assertion or eval case is loosened or
+deleted, and blocks common regressions such as broad rewrites, universal
+checklists, fake baselines, self-grading bias, weak proof substitutes,
 companion-skill requirements, generated workspace commits, wording-only churn,
-contaminated or unrerun runs counted as proof, and release/version changes
-without explicit release instruction. Its reference notes summarize local
-session-derived patterns for efficient skill improvement and skill degradation.
+contaminated or unrerun runs counted as proof, release/version changes without
+explicit release instruction, and unrelated package rewrites. Its reference
+notes summarize local session-derived patterns for efficient skill improvement
+and skill degradation.
 
 ### `vibe-review`
 
@@ -383,6 +437,9 @@ only explicit user, DoD, or confirmed-plan evidence.
 
 - `evals/`: repo-level evaluation prompts, fixtures, and scoring notes kept
   outside skill packages
+- `evals/minecraft-modding-workbench/`: external Minecraft modding eval prompts
+  for MCP response shapes, fallback handling, dependency source lookup,
+  worldgen/resource validation, HUD checks, and GameTest/access-widener routing
 - `evals/vibe-coding/`: external orchestration eval prompts for activation,
   lifecycle routing, phase boundaries, specialist availability, and auxiliary
   skill containment

@@ -11,13 +11,127 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [minecraft-modding-workbench 2.0.0] - 2026-06-07
+
+### Changed
+
+- `minecraft-modding-workbench` now targets the
+  `@adhisang/minecraft-modding-mcp` 5.0.0 tool contract. Minecraft modding
+  answers use the current `detail` / `include[]` response controls, source
+  lookup target shapes, validator detail options, lifecycle bounds, class-member
+  descriptor guidance, and `retryClass: "server"` no-retry posture.
+- Implementation-guiding plans, debugging answers, MCP payload recovery, and
+  handoffs now show the project profile, MCP status, verification sources, and
+  reference route before version-sensitive recommendations. Unverified
+  workspace, class, mapping, version, and MCP facts stay labeled instead of
+  being mixed into verified advice.
+- Worldgen JSON routing, Fabric GameTest/access-widener troubleshooting,
+  invalid-payload recovery, and stale MCP response-shape guidance now stay
+  narrower and require the relevant vanilla anchors, runtime wiring facts, or
+  callable schema checks before recommending code or payload changes.
+
+## [skill-quality 2.0.0] - 2026-06-07
+
+### Changed
+
+- `skill-quality` now requires a clean closing rerun before an agent can claim a
+  skill is `improved` or `optimized`. Incomplete metrics, lost per-eval
+  isolation, or abnormal aggregate shifts keep the result `Unproven` or
+  `Accepted risk` instead of passing silently.
+- Skill and eval changes now apply leakage checks to the author's own contract
+  deltas and assertions, not only to delegated eval work. Grader wording and
+  literal prompt phrases must stay out of `SKILL.md` and self-authored
+  assertions unless they are clearly labeled examples.
+- Relaxing, deleting, or merging assertions or eval cases now requires a record
+  of the lost discrimination plus compensating coverage or an explicit accepted
+  risk, so a passing suite does not hide removed quality pressure.
+
+## [vibe-requirements-spec 2.0.0] - 2026-06-07
+
+### Changed
+
+- `vibe-requirements-spec` now writes current requirements spec artifacts in
+  English without approval-status or revision-history sections. Approval is
+  tracked as workflow evidence outside the saved spec, while legacy artifacts
+  with approval state remain readable as compatibility input.
+- Requirement changes after approval now replace stale requirements, decisions,
+  assumptions, acceptance criteria, and risks in the same spec instead of
+  preserving superseded content as if it were still current.
+- Chat-only clarification, decision-list, and brainstorming requests now stay in
+  chat unless the user asks to save a spec. When existing specs are only context,
+  the response states that no spec file changed and keeps approval or planning
+  handoff claims separate from that context.
+- High-impact billing, permission, notification, migration, and destructive-write
+  questions now surface the affected recipient, delivery, auditability,
+  validation, and data-safety consequences explicitly, while still respecting
+  the direct-question limit.
+
+## [vibe-planning 4.1.0] - 2026-06-07
+
+### Changed
+
+- `vibe-planning` now accepts current requirements specs that omit legacy
+  approval fields when explicit approval evidence exists in the instruction,
+  routing state, or another concrete source tied to the current spec. Plans
+  record that evidence and the absence of legacy fields instead of asking users
+  to add old approval fields back into the spec.
+- Concrete user-provided repository scans or command output can now count as
+  local evidence when not contradicted. Plans also distinguish proof blockers
+  from user or product decisions, and destructive auth, session, or data
+  migration plans must include auditability or traceability criteria.
+- Ineligible commit-checkpoint plans now omit conditional proposed commit
+  messages, Conventional Commit examples, and `Subject:` / `Body:` bytes across
+  checkpoint sections, fallback notes, and self-review. A future implementation
+  step is no longer treated as a verified commit-checkpoint boundary.
+- `vibe-planning` now keeps the detailed plan artifact template and final
+  quality checklist in `references/plan-artifact-output.md`, while `SKILL.md`
+  keeps the mandatory read contract for that output guidance.
+- `vibe-planning` eval coverage now focuses on the current user-visible
+  contracts: approval evidence for no-field specs, blocked or discovery-first
+  commit checkpoints, unverified accepted-value domains, and proof requirements
+  for persisted config migrations.
+
+## [vibe-coding 1.1.0] - 2026-06-07
+
+### Changed
+
+- `vibe-coding` now tracks requirements-spec approval evidence or handoff state
+  instead of relying only on saved approval fields. Approval-evidenced current
+  specs route to planning on the next related instruction while preserving the
+  requirements-spec stop-after-spec boundary.
+- `vibe-coding` now requires verified available `vibe-writing` as auxiliary
+  guidance whenever a `vibe-coding` turn prepares or inspects a git commit
+  message, while keeping commit execution and history mutation outside
+  `vibe-writing` authority.
+
+## [vibe-brainstorm 1.0.0] - 2026-06-07
+
 ### Added
 
-- `vibe-brainstorm` adds an unreleased creative implementation brainstorming
-  skill and eval suite for explicit and conservative autonomous use, covering
-  `diverge` / `conventions` / `full` modes, verified sub-agent delegation,
+- `vibe-brainstorm` adds a creative implementation brainstorming skill for
+  explicit idea generation and conservative autonomous convention checks before
+  code is written. It supports `diverge`, `conventions`, and `full` modes,
   expected-behavior grounding, two-stage candidate selection, chat-first output,
   and a user-confirmation stop before implementation.
+
+### Changed
+
+- `vibe-brainstorm` now uses English `Practical` / `Unconventional` /
+  `Challenging` idea-family labels in its skill, README, and eval contracts
+  while preserving the three-way creative-direction distinction.
+- `vibe-brainstorm` now requires recordable host evidence before claiming real
+  sub-agent execution. Prose-only agent IDs, role headings, private transcript
+  references, self-reported call counts, and assistant-authored tool-call claims
+  are treated as unproven unless the host or runner records evidence visible to
+  the later reader.
+- Convention checks are now anchored to the current task, supplied references,
+  local code, and the user's stated domain instead of niche pressure-pattern
+  guidance in the skill body.
+
+## [Repository] - 2026-06-07
+
+### Added
+
 - Repository-local development script `scripts/sync_dev_agent_skills.py` manages
   selected `skills/` packages with explicit `add`, `update`, and `remove`
   subcommands, copying script-owned snapshots into ignored `.agents/skills/`,
@@ -27,73 +141,21 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
-- `scripts/eval_runner.py` is slimmed to a runner-driven CLI with three commands
-  (`validate`, `run`, `report`). `run` executes the bounded eval matrix end to
-  end, spawning a fresh executor subprocess (prompt only) and a separate grader
-  subprocess (clean environment, executor output plus assertions) per
-  eval/config/run, then aggregating a `with_skill` vs `without_skill` raw
-  pass-rate comparison into `benchmark.json` and `benchmark.md`. Provider
-  selection is a registry (`claude` and `codex` built in); the core path runs on
-  Codex, with opt-in metric capture from machine-readable provider output (for
-  example `claude -p --output-format json`) as a Claude-only addition. All
-  validation runs before any subprocess launches, and `--runs` (1..5),
-  `--timeout`, and `--concurrency` bound total work; a timed-out or failed
-  executor is recorded as a failed run with no retries, and metric absence is
-  recorded as absence rather than a placeholder number. `with_skill` stays bound
-  to the authoritative `skills/<skill-name>/SKILL.md` source for every provider.
-  The previous `prepare` / `record` / `prepare-grading` / `grading-template` /
-  `record-batch` / `aggregate` / `doctor` file-contract flow, hand-typed metric
-  flags, `--allow-*` opt-outs, provenance proof, source and run fingerprinting,
-  schema versioning, rerun comparison, grading-audit, metric-integrity gates,
-  baseline reuse, and the `review.html` renderer are removed.
-- `vibe-brainstorm` now uses English `Practical` / `Unconventional` /
-  `Challenging` idea-family labels in its skill, README, and eval contracts
-  while preserving the three-way creative-direction distinction.
-- `vibe-brainstorm` now requires recordable host evidence before claiming real
-  sub-agent execution, treats prose-only agent IDs and role headings as
-  unproven delegation, rejects private transcript references and self-reported
-  call counts as proof, requires independently recorded host or runner evidence
-  instead of assistant-authored tool-call references, and removes niche
-  pressure-pattern guidance from the skill body in favor of anchoring convention
-  checks to the current task,
-  supplied references, local code, and the user's stated domain.
-- `skill-quality` now requires a closing rerun on a clean, complete run (same
-  eval set, per-eval isolation, complete metrics, both configs) before any
-  `improved` or `optimized` claim, treats abnormal aggregate-metric shifts such
-  as a collapsed `mean_tokens` and executor batching that loses per-eval
-  isolation as stop-and-verify conditions, extends the expected-output leakage
-  check to the change owner's own contract deltas and self-authored assertions
-  while forbidding verbatim echo of grader wording or literal prompt phrases,
-  and adds a loosening ledger plus a coverage-continuity check when an assertion
-  or eval case is relaxed, deleted, or merged. Three discriminating meta-evals
-  (`E07`-`E09`) cover the closing-rerun, self-authored-leakage, and
-  loosening/coverage contracts.
-- `minecraft-modding-workbench` now tracks the
-  `@adhisang/minecraft-modding-mcp` 5.0.0 contract, including v5 response
-  shaping with `detail` and `include[]`, updated response paths, source-lookup
-  target shapes, validator summary-first detail handling, lifecycle bounds,
-  class-member descriptor guidance, and `retryClass: "server"` no-retry
-  handling. It also makes project-profile, MCP-status, verification-source, and
-  reference-route records explicit for implementation-guiding answers, requires
-  MCP invalid-payload recovery explanations to keep payload-shape recovery
-  separate from unverified class, version, mapping, and workspace facts,
-  tightens MCP response-shape/retry-posture answers so they preserve callable
-  schema, member-lookup, verification-source, and narrow reference-route
-  details without expanding into broad fallback playbooks, tightens worldgen
-  codec routing by requiring both configured-feature and placed-feature vanilla
-  anchors even when the runtime log names only `configured_feature`, tightens
-  Fabric GameTest/access-widener routing, and updates the eval suite by
-  consolidating overlapping HUD-route and dependency API-route cases while
-  strengthening invalid-payload recovery and MCP 5.0.0 response-shape pressure.
-- `evals/vibe-planning/` now keeps the compressed assertion count stable while
-  sharpening the checks for blocked or discovery-first commit checkpoints,
-  unverified accepted-value domains in diagnostic plans, and local-evidence or
-  product-decision proof requirements for persisted config migrations.
-- `vibe-planning` now makes ineligible commit-checkpoint plans suppress
-  conditional proposed commit messages and `Subject:`/`Body:` bytes across
-  checkpoint sections, route fallbacks, and self-review instead of reformatting
-  or relocating them, and clarifies that a future implementation step is not a
-  verified commit-checkpoint boundary.
+- `scripts/eval_runner.py` is now a runner-driven CLI with three commands:
+  `validate`, `run`, and `report`. `run` executes the bounded eval matrix end to
+  end with a separate executor and grader subprocess for each eval/config/run,
+  then writes a `with_skill` vs `without_skill` raw pass-rate comparison to
+  `benchmark.json` and `benchmark.md`.
+- Eval runs now select providers through a registry (`claude` and `codex` are
+  built in), validate all inputs before launching subprocesses, cap runs,
+  timeout, and concurrency, record timed-out or failed executors as failed runs
+  with no retry, and record missing metrics as missing rather than invented
+  placeholders.
+- `with_skill` eval runs now stay bound to the authoritative
+  `skills/<skill-name>/SKILL.md` source package for every provider. The old
+  manual file-contract flow and related opt-out, provenance, fingerprint,
+  rerun-comparison, grading-audit, metric-integrity, baseline-reuse, and
+  `review.html` paths are removed.
 - `scripts/sync_dev_agent_skills.py` now reports each processed skill on a
   single line that names both the snapshot result and the Claude link result
   (for example, `vibe-coding: snapshot copied, link already up to date`) under a
@@ -105,61 +167,6 @@ use `[Repository] - YYYY-MM-DD`.
   are script-managed skill snapshots: agents may read them for reference but
   must make repository edits against `skills/` rather than editing or staging
   the snapshots.
-- `vibe-coding` now requires verified available `vibe-writing` as auxiliary
-  guidance whenever a `vibe-coding` turn prepares or inspects a git commit
-  message, while keeping commit execution and history mutation outside
-  `vibe-writing` authority.
-- `vibe-requirements-spec` now writes English requirements spec artifacts
-  without approval-status or revision-history sections, treats approval as
-  workflow evidence, replaces stale spec content on requirement changes, and
-  updates `vibe-planning` and `vibe-coding` handoff behavior to use explicit
-  approval evidence while retaining legacy approval-state compatibility.
-- `vibe-planning` now records current no-field spec approval evidence and the
-  absence of legacy approval-state fields in the plan instead of requiring
-  legacy approval fields, treats concrete
-  user-provided repo scans or command output as local evidence when not
-  contradicted, distinguishes discovery-first proof blockers from user/product
-  contract decisions in `Phase relevance`, and requires auditability or
-  traceability criteria for destructive auth/session/data-migration plans.
-- `vibe-planning` now keeps the detailed plan artifact template and final
-  quality checklist in `references/plan-artifact-output.md`, while `SKILL.md`
-  keeps the mandatory read contract for that output guidance.
-- `vibe-planning` eval coverage now drops the non-discriminating plan-revision
-  case that passed both candidate and baseline in iteration-12, and drops the
-  legacy checkout retry matrix after iteration-13 showed its scenario-specific
-  assertions passed both candidate and baseline. The suite is reduced from 18 to
-  15 evals with contiguous `E01`-`E15` identifiers while keeping no-field
-  approval-evidence pressure. The library amount normalization eval now checks
-  unresolved contract triage without requiring a brittle exact `Phase relevance`
-  label that failed both candidate and baseline.
-- `vibe-planning` eval expectations are now compressed from 447 to 238 checks
-  per config by bundling repeated common planning-contract assertions and
-  merging scenario-specific checks, while preserving targeted pressure for
-  optional max-length blockers, CLI argument parsing tests, and no-field
-  approval evidence.
-- `vibe-planning` eval assertions now remove the over-specific changelog-policy
-  discovery requirement from the plan-only boundary case and accept equivalent
-  local CLI config-migration dimensions in the generality gate.
-- `vibe-requirements-spec` now calls out build-changing local evidence checks
-  in artifact summaries, surfaces channel-specific notification uncertainties,
-  marks high-impact billing and permission choices more explicitly, and keeps
-  clarification, decision-list, and chat-only exploration requests separate from
-  saved-spec artifact proof. Chat-only clarification now still preserves
-  high-impact billing, recipient, auditability, notification-consequence, and
-  validation dimensions without exceeding the direct-question limit.
-  Billing-email recipient clarification now explicitly covers the delivery-effect
-  window for future invoice emails, retries or reminders, and added or removed
-  recipient notifications, and keeps that coverage high-priority under the
-  direct-question limit.
-  Contradictory migration constraints now require explicit interpretation
-  options and per-option user-visible or data-safety consequences instead of
-  clarifying questions alone.
-  Approval-only current-spec handoffs are now explicit no-rewrite summaries and
-  avoid imperative workflow routing language. Creative brainstorming evals
-  require explicit saved-spec non-modification.
-  Spec artifact drafting now includes an explicit old-template scan for
-  approval-status and revision-history strings before writing, including
-  existing legacy spec updates.
 
 ## [vibe-planning 4.0.0] - 2026-05-30
 
