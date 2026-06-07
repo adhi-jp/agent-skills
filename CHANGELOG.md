@@ -68,6 +68,23 @@ use `[Repository] - YYYY-MM-DD`.
   or eval case is relaxed, deleted, or merged. Three discriminating meta-evals
   (`E07`-`E09`) cover the closing-rerun, self-authored-leakage, and
   loosening/coverage contracts.
+- `minecraft-modding-workbench` now tracks the
+  `@adhisang/minecraft-modding-mcp` 5.0.0 contract, including v5 response
+  shaping with `detail` and `include[]`, updated response paths, source-lookup
+  target shapes, validator summary-first detail handling, lifecycle bounds,
+  class-member descriptor guidance, and `retryClass: "server"` no-retry
+  handling. It also makes project-profile, MCP-status, verification-source, and
+  reference-route records explicit for implementation-guiding answers, requires
+  MCP invalid-payload recovery explanations to keep payload-shape recovery
+  separate from unverified class, version, mapping, and workspace facts,
+  tightens MCP response-shape/retry-posture answers so they preserve callable
+  schema, member-lookup, verification-source, and narrow reference-route
+  details without expanding into broad fallback playbooks, tightens worldgen
+  codec routing by requiring both configured-feature and placed-feature vanilla
+  anchors even when the runtime log names only `configured_feature`, tightens
+  Fabric GameTest/access-widener routing, and updates the eval suite by
+  consolidating overlapping HUD-route and dependency API-route cases while
+  strengthening invalid-payload recovery and MCP 5.0.0 response-shape pressure.
 - `evals/vibe-planning/` now keeps the compressed assertion count stable while
   sharpening the checks for blocked or discovery-first commit checkpoints,
   unverified accepted-value domains in diagnostic plans, and local-evidence or

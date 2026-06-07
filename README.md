@@ -29,7 +29,9 @@ version-aware debugging, mapping work, mod JAR inspection, and multi-loader
 project structure. It also defines MCP preflight and fallback behavior for
 unavailable or unstable tool servers, dependency source lookup, resource/codec
 validation, GameTest wiring, HUD/client-rendering verification, and narrow
-reference routing for task-relevant playbooks.
+reference routing for task-relevant playbooks. It records project profile facts
+and verification sources when plans or debugging answers will guide later
+implementation.
 
 ### `vibe-coding`
 

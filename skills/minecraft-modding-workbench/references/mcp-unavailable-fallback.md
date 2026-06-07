@@ -8,15 +8,18 @@ skill recipes expect, stale, timing out, or repeatedly restarting.
 - If neither `inspect-minecraft` nor `analyze-symbol` is exposed by the host,
   report `minecraft-modding MCP unavailable` once and do not keep searching for
   unrelated tool names.
-- If a tool or argument from `SKILL.md` is rejected as unknown, classify the
-  installed MCP as older than the recipes, then use an older-compatible tool or
-  local fallback.
+- If a v5 tool, argument, or response-shaping field from `SKILL.md` is rejected
+  as unknown, classify the installed MCP as older than the recipes or
+  version-skewed, then use an older-compatible tool or local fallback.
 - If a high-level call restarts or times out, retry once with a narrower
   high-level payload. If that fails, stop using that tool for the current task.
 - If a validator restarts once, switch to `validator-fallbacks.md` for that
   validator. Do not loop validators.
 - If `ERR_INVALID_INPUT` occurs, fix the payload once using `mcp-recipes.md`.
   Invalid input is not the same as MCP unavailability.
+- If an error envelope has `retryClass: "server"`, do not retry the identical
+  payload as a transient failure. Record that MCP could not verify the fact and
+  continue with the narrowest reliable fallback.
 
 ## Project Profile
 

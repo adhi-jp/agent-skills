@@ -9,6 +9,11 @@ Do not loop a failing validator. After one restart or transport failure, record
 the validator as unavailable for the current task and perform the matching
 manual checks.
 
+MCP 5.0.0 validator output defaults to `summary-first`. Missing per-result
+`resolvedMembers`, `toolHealth`, or `resolutionTrace` in that default shape is
+not validator absence. When exact per-result detail matters, retry once with
+`reportMode: "full"` or `explain: true` before using these manual checks.
+
 ## Mixin Fallback
 
 Record these facts before editing:

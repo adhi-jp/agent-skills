@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "minecraft-modding-workbench",
-  "purpose": "External eval set for the minecraft-modding-workbench skill. Covers MCP availability preflight, bounded MCP failure handling, dependency source lookup, resource codec validation, HUD projection/FOV checks, GameTest/access-widener wiring, and narrow reference routing.",
+  "purpose": "External eval set for the minecraft-modding-workbench skill. Covers MCP availability preflight, MCP 5.0.0 response contracts, bounded MCP failure handling, dependency source lookup, resource codec validation, HUD projection/FOV checks, GameTest/access-widener wiring, and narrow reference routing.",
   "common_assertions": [
     "Output treats minecraft-modding MCP as the preferred source of truth when available, but does not invent MCP results when tools are missing or failing.",
     "Output records a project profile or explicitly identifies missing profile facts before making version, loader, mapping, or Java-version-sensitive claims.",
@@ -47,15 +47,18 @@
       "id": "E03",
       "name": "Architectury dependency source lookup",
       "prompt": "In an Architectury project, I need to use `CreativeTabRegistry`, but I am not sure which methods exist in our configured Architectury API version. MCP cannot return dependency class source. What should the workbench do?",
-      "expected_output": "The agent uses dependency lookup discipline: inspect Gradle versions, locate the Architectury API sources jar, fall back to jar listing or javap only if source is missing, and report the exact artifact used.",
+      "expected_output": "The agent uses dependency lookup discipline: inspect Gradle versions, prefer MCP or the exact Architectury API sources jar, fall back to jar listing or javap only if source is missing, report the exact artifact used, and avoid unrelated Minecraft loader references unless module placement affects the change.",
       "files": [],
       "expectations": [
         "Starts from the workspace's Gradle dependency and `architectury_api_version` rather than online examples.",
         "Prefers MCP or dependency source jar before bytecode inspection.",
+        "Reads or cites `references/dependency-jars.md` for source-jar and artifact reporting discipline.",
         "Looks in Gradle module caches for the exact group, artifact, and version.",
         "Uses `*-sources.jar` when available.",
         "Falls back to `jar tf` or `javap` only when source is unavailable.",
-        "Reports the artifact path and labels the fact as dependency source fallback when MCP did not verify it."
+        "Reports the exact group, artifact, version, and artifact path used as evidence.",
+        "Labels facts as dependency source fallback when MCP did not verify them.",
+        "Does not restate unrelated Fabric, NeoForge, HUD, GameTest, validator, worldgen, or MCP-unavailable fallback guidance unless module placement truly requires it."
       ]
     },
     {
@@ -76,16 +79,20 @@
     {
       "id": "E05",
       "name": "HUD projection and FOV",
-      "prompt": "A lock-on reticle sometimes flashes at the screen edge and disappears while drawing a bow. We changed projection math recently. Plan the debugging steps for a Minecraft 1.21.x client HUD.",
-      "expected_output": "The agent uses the rendering/HUD checklist, separates overlay math from world-to-screen projection, checks FOV degrees vs partial tick, GUI scale, behind-camera/off-screen behavior, and runtime visual evidence.",
+      "prompt": "A Minecraft 1.21.x client HUD lock-on reticle sometimes flashes at the screen edge and disappears while drawing a bow. The workspace is already known; no loader migration or registration change is requested. Plan the debugging steps.",
+      "expected_output": "The agent routes to HUD/client rendering guidance, separates overlay math from world-to-screen projection, verifies same-version projection helpers, checks FOV degrees vs partial tick, GUI scale, behind-camera/off-screen behavior, and avoids unrelated loader or fallback playbooks.",
       "files": [],
       "expectations": [
+        "Uses HUD, screens, or client rendering checklist guidance rather than a generic build-only plan.",
+        "Reads or cites `references/rendering-hud.md` for projection, GUI scale, FOV, behind-camera, and visual verification concerns.",
         "Separates fixed 2D overlay behavior from world-to-screen projection.",
         "Checks world position, camera position, front/behind-camera decision, projected coordinates, GUI-scaled pixels, and clamp behavior.",
+        "Verifies same-version client method signatures through MCP or workspace/source fallback before changing projection math.",
         "Mentions verifying `GameRenderer.projectPointToScreen(Vec3)` or equivalent same-version helper when available.",
         "States that `getProjectionMatrix(float)` takes FOV degrees and should not receive partial tick.",
         "Checks bow draw, FOV smoothing, GUI scale, off-screen, and behind-camera cases.",
-        "Does not treat unit tests alone as proof of runtime visual behavior."
+        "Does not restate unrelated Fabric/NeoForge registration, worldgen, GameTest, dependency-jar, validator, NBT, or MCP-unavailable fallback guidance.",
+        "Does not treat unit tests, unit-only math checks, or `./gradlew build` alone as proof of runtime visual behavior."
       ]
     },
     {
@@ -115,18 +122,19 @@
         "Uses the Simple Block or Item checklist for the requested feature slice.",
         "Uses Architectury placement guidance when workspace inspection shows a multi-loader common module, and uses Fabric-specific guidance only for Fabric project structure, registration, datagen, resources, or common pitfalls that apply to this slice.",
         "Does not restate unrelated Fabric/NeoForge platform-only, HUD, GameTest, validator, dependency-jar, NBT, mod-JAR, or MCP-unavailable fallback guidance.",
-        "Includes a compact reference-route record or equivalent explanation naming loaded and skipped reference categories."
+        "Includes a brief reference-route record or equivalent explanation naming loaded and skipped reference categories."
       ]
     },
     {
       "id": "E08",
       "name": "MCP invalid payload recovery without broad fallback",
-      "prompt": "`inspect-minecraft` is exposed while checking a vanilla class, but the first call is rejected with `ERR_INVALID_INPUT` for an unsupported field. Explain the next step.",
-      "expected_output": "The agent treats the error as a payload-shape issue, reads the MCP recipe only to correct the request shape, retries the same high-level tool once, and does not switch to MCP-unavailable fallback unless the corrected call fails under the failure budget.",
+      "prompt": "`inspect-minecraft` is exposed while checking a vanilla class in a Fabric 1.21.x workspace. A teammate copied an old payload with `compact: false` and `subject: { \"type\": \"class\", \"value\": \"net.minecraft.world.item.Item\" }`; MCP replies `ERR_INVALID_INPUT` for unsupported fields, and the teammate suggests treating MCP as unavailable and using Gradle caches. Explain the next step.",
+      "expected_output": "The agent treats the error as a payload-shape issue, reads the MCP recipe only to correct the request shape, retries the same high-level tool once with the current shape, and does not switch to MCP-unavailable fallback unless the corrected call fails under the failure budget.",
       "files": [],
       "expectations": [
         "Classifies `ERR_INVALID_INPUT` as invalid payload shape, not MCP unavailability.",
         "Reads or cites `references/mcp-recipes.md` only for the relevant payload shape and error recovery.",
+        "Corrects the old-shape request toward the current MCP 5.0.0 high-level shape, such as replacing unsupported `compact` response shaping with `detail` and `include[]` where needed.",
         "Corrects the payload once and retries the same high-level `inspect-minecraft` path before changing tools.",
         "Does not switch to `references/mcp-unavailable-fallback.md` unless the corrected call also fails under the stated failure budget.",
         "Does not guess alternate tool names or drop to low-level tools before the corrected high-level retry.",
@@ -136,46 +144,35 @@
     {
       "id": "E09",
       "name": "Older MCP fallback route",
-      "prompt": "The host exposes `inspect-minecraft`, but it rejects a named v3 argument from the current recipes as unknown while inspecting a Fabric 1.21.x workspace. Explain how to proceed.",
-      "expected_output": "The agent treats the installed MCP as older than the current recipes, says so once, uses the nearest older-compatible tool shape or workspace/source fallback, and avoids random tool-name guessing or unrelated recipe restatement.",
+      "prompt": "The host exposes `inspect-minecraft`, but it rejects a named MCP 5.0.0 argument from the current recipes as unknown while inspecting a Fabric 1.21.x workspace. Explain how to proceed.",
+      "expected_output": "The agent treats the installed MCP as older than the current v5 recipes or version-skewed, says so once, uses the nearest older-compatible tool shape or workspace/source fallback, and avoids random tool-name guessing or unrelated recipe restatement.",
       "files": [],
       "expectations": [
-        "States that the installed MCP appears older than the current recipes or does not support the named argument.",
+        "States that the installed MCP appears older than the current MCP 5.0.0 recipes, version-skewed, or does not support the named argument.",
         "Does not keep guessing random `minecraft-modding` tool names or argument names.",
         "Uses the nearest older-compatible path when one is known, otherwise switches to workspace/source fallback.",
         "Labels facts from the fallback path as workspace/source-jar fallback, not MCP-verified.",
         "Does not restate unrelated NBT, GameTest, HUD, loader-registration, or mod-JAR recipes.",
-        "Records the reference route or fallback reason compactly."
+        "Records the reference route or fallback reason briefly."
       ]
     },
     {
       "id": "E10",
-      "name": "HUD route without loader sprawl",
-      "prompt": "A Minecraft 1.21.x client HUD lock-on reticle flashes at the screen edge while drawing a bow. The workspace is already known; no loader migration or registration change is requested. Plan the debugging route.",
-      "expected_output": "The agent routes to HUD/client rendering guidance and the HUD task checklist, verifies same-version client projection helpers through MCP or source fallback, checks runtime visual states, and avoids unrelated loader registration, worldgen, GameTest, dependency, or fallback playbooks.",
+      "name": "MCP 5 response shape and server retry posture",
+      "prompt": "A Minecraft 1.21.x workspace is being debugged with MCP 5.0.0 tools exposed. While checking a Mixin target, an old note says to read `result.summary.subject.requested`, read warning text from `meta.warningDetails[].message`, call `get-class-members` with `compact: false` and `target: { type: \"artifact\", artifactId }`, then retry an `ERR_INTERNAL` response because it used to be transient. The default validator summary also omits per-result `resolvedMembers` and `resolutionTrace`. Explain the next MCP and fallback steps.",
+      "expected_output": "The agent updates stale response-shape assumptions to MCP 5.0.0, requests exact detail only where needed, and avoids retrying deterministic server faults while preserving fallback labels.",
       "files": [],
       "expectations": [
-        "Uses HUD, screens, or client rendering checklist guidance rather than a generic build-only plan.",
-        "Reads or cites `references/rendering-hud.md` for projection, GUI scale, FOV, behind-camera, and visual verification concerns.",
-        "Verifies same-version client method signatures through MCP or workspace/source fallback before changing projection math.",
-        "Checks bow draw, FOV smoothing, GUI scale, off-screen, edge clamp, and behind-camera cases.",
-        "Does not restate unrelated Fabric/NeoForge registration, worldgen, GameTest, dependency-jar, validator, or NBT guidance.",
-        "Does not treat unit tests or `./gradlew build` alone as proof of runtime visual behavior."
-      ]
-    },
-    {
-      "id": "E11",
-      "name": "Dependency API route",
-      "prompt": "In an Architectury workspace, I need the exact methods available on `CreativeTabRegistry` in our configured Architectury API dependency. MCP cannot return dependency class source. What should the workbench do?",
-      "expected_output": "The agent starts from the workspace Gradle dependency version, prefers MCP or the exact dependency sources jar, reads dependency lookup guidance, reports the artifact used, and does not scan unrelated Minecraft loader references unless module placement affects the change.",
-      "files": [],
-      "expectations": [
-        "Starts from the workspace's Gradle dependency declaration and exact Architectury API version.",
-        "Prefers MCP dependency lookup when available, then the exact `*-sources.jar`, before bytecode or decompiler fallback.",
-        "Reads or cites `references/dependency-jars.md` for source-jar and artifact reporting discipline.",
-        "Reports the exact group, artifact, version, and artifact path used as evidence.",
-        "Labels facts as dependency source fallback when MCP did not verify them.",
-        "Does not restate unrelated Fabric, NeoForge, HUD, GameTest, validator, worldgen, or MCP-unavailable fallback guidance unless module placement truly requires it."
+        "Inspects or relies on the exposed callable schema before sending the corrected MCP payload.",
+        "Uses `detail` plus `include[]` instead of expert or batch `compact` for response shaping.",
+        "Reads inspect request correlation from top-level `subject.requested` or `subject.resolved`, not `result.summary.subject.requested`.",
+        "Reads warning text via `meta.warningDetails[].index` into `meta.warnings[]`, not `warningDetails[].message`.",
+        "Uses `target: { kind: \"artifact\", artifactId }` for `get-class-members`, not `target: { type: \"artifact\", artifactId }`.",
+        "Mentions the 150-member default page size, `nextCursor`, `members.ownerFqn`, `javaSignature` modifiers, and `include: [\"descriptors\"]` or `includeDescriptors: true` when field descriptors are needed.",
+        "Treats missing default validator per-result detail as `summary-first` projection and requests `reportMode: \"full\"` or `explain: true` before manual validator fallback.",
+        "Does not retry the identical `ERR_INTERNAL` call when the envelope has `retryClass: \"server\"`; records MCP unable to verify that fact or switches to a narrow fallback.",
+        "Keeps `Verified by MCP`, `Verified by workspace/source jar fallback`, `Runtime/user-observed`, and `Unverified` labels distinct.",
+        "Does not restate unrelated loader, HUD, GameTest, NBT, worldgen, or dependency-jar guidance."
       ]
     }
   ],

@@ -24,6 +24,10 @@ Do not treat a unit test as proof of loader event wiring or runtime rendering.
   groups source sets through Loom in the established project pattern.
 - Confirm the test module sees common classes and resources before debugging
   individual test logic.
+- When a Fabric GameTest fails before tests run because an access widener cannot
+  resolve, validate the project/access widener with MCP if available; otherwise
+  inspect the run task, source-set grouping, and copied resources before
+  changing gameplay or feature code.
 
 ## Architectury Notes
 
@@ -44,6 +48,8 @@ Do not treat a unit test as proof of loader event wiring or runtime rendering.
 ## Verification Record
 
 ```text
+Project profile:
+MCP status:
 GameTest source set:
 Entrypoint/discovery:
 Loader runtime:

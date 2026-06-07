@@ -22,7 +22,9 @@ working code and assets.
 - Supports Fabric, NeoForge, and Architectury.
 - Requires the `minecraft-modding` MCP server from `@adhisang/minecraft-modding-mcp`.
 - Prefer project-aware MCP calls when a workspace exists. Reuse the repository root as `projectPath`.
-- Use the high-level v3 entry tools first: `inspect-minecraft`, `analyze-symbol`, `compare-minecraft`, `validate-project`, `analyze-mod`, and `manage-cache`.
+- Use the high-level MCP 5.0.0 workflow tools first: `inspect-minecraft`,
+  `analyze-symbol`, `compare-minecraft`, `validate-project`, `analyze-mod`,
+  and `manage-cache`.
 - Covers Forge-style access transformers through `validate-project` (task `access-transformer`) for NeoForge, in addition to Fabric-style access wideners.
 - Use the NBT helpers (`nbt-to-json`, `json-to-nbt`, `nbt-apply-json-patch`) when working with level.dat, chunk, playerdata, or command-driven NBT. Stay in typed JSON while editing and re-encode once at the end.
 
@@ -38,10 +40,33 @@ working code and assets.
   implementation: `Verified by MCP`, `Verified by workspace/source jar
   fallback`, `Runtime/user-observed`, and `Unverified`.
 
+## Implementation-Guiding Output Contract
+
+For plans, debugging explanations, MCP payload/error-recovery answers, eval
+answers, and handoffs that guide later implementation, make the provenance
+visible before giving version-sensitive recommendations:
+
+- `Project profile`: record confirmed workspace root, loader(s), Minecraft
+  version, mapping namespace, Java version, modid, and base package when they
+  matter. If no workspace or file evidence is available, explicitly mark the
+  missing or assumed fields before using prompt-provided versions as examples.
+- `MCP status`: record preflight/schema status before MCP-dependent claims. If
+  tools have not actually run, call the MCP step planned or unverified instead
+  of writing as if results are known.
+- `Verification sources`: separate implementation facts under `Verified by
+  MCP`, `Verified by workspace/source jar fallback`, `Runtime/user-observed`,
+  and `Unverified`. For fallback/error-recovery tasks or eval-style answers,
+  include empty categories as `none yet` when omitting them would blur the
+  source boundary.
+- `Reference route`: for substantial plans or debugging routes, name the
+  loaded references and the relevant skipped categories briefly.
+
 ## Quick Path
 
 1. Read or build the project profile: workspace root, loader, Minecraft
    version, mapping, Java version, modules, and normal verification commands.
+   If the workspace is absent, record the missing profile facts before making
+   version-, loader-, mapping-, or Java-sensitive claims.
 2. Run MCP preflight before assuming `minecraft-modding` tools are callable.
 3. Use one high-level MCP call first for the relevant fact.
 4. Choose a narrow reference route before loading bundled references. Once the
@@ -62,15 +87,16 @@ working code and assets.
 
 Run this once near the start of a Minecraft modding task, before the first MCP-dependent claim:
 
-1. Check whether the host exposes `minecraft-modding` tools, especially
-   `inspect-minecraft` and `analyze-symbol` or their transformed callable names.
+1. Check whether the host exposes `minecraft-modding` tools and inspect the
+   callable schema before the first request, especially `inspect-minecraft`,
+   `analyze-symbol`, and their transformed callable names.
 2. Record the available high-level tool names, workspace root to use as
    `projectPath`, detected Minecraft version, loader, mapping, and Java version.
 3. If neither `inspect-minecraft` nor `analyze-symbol` is available, say
    `minecraft-modding MCP unavailable` once and switch to
    `references/mcp-unavailable-fallback.md`.
-4. If a named tool or argument from this skill is rejected as unknown, treat the
-   installed MCP as older than these recipes and use the nearest
+4. If a named v5 tool or argument from this skill is rejected as unknown, treat
+   the installed MCP as older than these recipes or version-skewed and use the nearest
    older-compatible path or workspace fallback. Do not keep guessing tool names.
 5. If MCP is available, prefer project-aware calls with `projectPath`,
    `preferProjectVersion`, and `preferProjectMapping` when the current tool
@@ -92,6 +118,8 @@ Run this once near the start of a Minecraft modding task, before the first MCP-d
    - Drop to low-level tools only when the high-level answer still leaves the implementation ambiguous.
 
 If no project exists yet, ask only for loader, Minecraft version, modid, and package name.
+For explanation-only tasks with no workspace access, list those facts as missing
+or assumed before giving examples.
 If the task depends on an external generator or template that is not present, say so explicitly instead of fabricating generated files.
 
 ## Reference Routing
@@ -139,7 +167,7 @@ whole reference bundle just because this skill triggered.
     work to another agent.
 
 For substantial plans, debugging explanations, eval outputs, or handoffs where
-reference choices affect implementation facts, include a compact reference route
+reference choices affect implementation facts, include a brief reference-route
 record: loaded references with reasons, plus skipped reference categories with
 reasons. Keep it short; it is provenance, not a summary of every skipped file.
 
@@ -157,6 +185,36 @@ reasons. Keep it short; it is provenance, not a summary of every skipped file.
   - `get-runtime-metrics`: service counters and latency snapshots when cache, search, or index behaviour looks off.
   - `nbt-to-json`, `json-to-nbt`, `nbt-apply-json-patch`: typed-JSON round-trip and RFC6902-style in-place edits for Java Edition NBT payloads.
 - Drop to low-level tools only for exact code, exact descriptors, raw registry bodies, detailed validator output, or direct JAR/remap control.
+- Use the MCP 5.0.0 response contract when shaping expert or batch responses:
+  prefer `detail: "summary" | "standard" | "full"` plus `include[]`; treat
+  `compact` as an old-shape migration hint, not a current expert-tool argument.
+- Read v5 response paths directly. `inspect-minecraft` request echo lives at
+  top-level `subject.requested` / `subject.resolved`, not
+  `summary.subject`; `meta.warningDetails[]` points to `meta.warnings[]` by
+  `index`, not by a duplicated `message`.
+- For source lookups, `get-class-source` and `get-class-members` use
+  `target: { kind, value }` or `target: { kind: "artifact", artifactId }`.
+  Do not use the removed `target: { type: "artifact", artifactId }` shape.
+- For class member lookup, expect pagination at the 150-member default and
+  follow `nextCursor` when needed. Read the shared owner from
+  `members.ownerFqn` when present, derive modifiers from `javaSignature`, and
+  request `include: ["descriptors"]` when field `jvmDescriptor` values are
+  required for Mixins or access entries.
+- When explaining stale MCP response-shape or retry-posture notes, keep the
+  answer narrow: record project profile, MCP status, all four verification
+  source labels, and the reference route; say that callable schema must be
+  inspected before sending corrected payloads; include the `get-class-members`
+  pagination, owner, modifier, and descriptor cautions together with the target
+  shape; and only name the fallback gate unless MCP has actually failed in the
+  current task.
+- Validator summaries are summary-first by default. Missing per-result
+  `resolvedMembers`, `toolHealth`, or `resolutionTrace` is not proof that the
+  detail does not exist; pass `reportMode: "full"` or `explain: true` before
+  falling back when exact validator detail matters.
+- Bound lifecycle scans explicitly with `fromVersion`, `toVersion`,
+  `maxVersions`, `includeTimeline`, and `includeSnapshots` when the task needs
+  a narrow history. The v5 default scan is broad enough that old implicit
+  five-version assumptions are unsafe.
 - Keep version and mapping discipline.
   - Pass `projectPath`, `preferProjectVersion=true`, and `preferProjectMapping=true` when supported.
   - Still pass explicit `version` to tools that require it, such as `validate-mixin`, `validate-access-widener`, and `resolve-workspace-symbol`.
@@ -176,14 +234,21 @@ reasons. Keep it short; it is provenance, not a summary of every skipped file.
     `references/validator-fallbacks.md`.
   - If `ERR_INVALID_INPUT` occurs, read the reported field errors, correct the
     payload once using `references/mcp-recipes.md`, and retry the same
-    high-level tool before changing tools.
+    high-level tool before changing tools. When explaining this route without
+    actually running the corrected call, record profile assumptions, MCP status,
+    and verification-source labels first; target class, API, version, mapping,
+    and workspace facts remain unverified until the corrected call succeeds.
+  - If the error envelope carries `retryClass: "server"` such as
+    `ERR_INTERNAL` or `ERR_DB_FAILURE`, do not retry the identical call as a
+    transient failure. Record MCP as unable to verify that fact and use the
+    relevant fallback path.
   - If you fall back, mark facts from that path as fallback-verified, not MCP-verified.
 
 ## Unsupported or Risky Requests
 
 - Do not silently treat Quilt or legacy Forge as Fabric, NeoForge, or Architectury.
 - For legacy Forge-only or other unsupported loaders, limit help to verified workspace facts, logs, and migration boundaries. Say that full guidance is outside this skill.
-- If MCP is unavailable, misconfigured, or stale, say so immediately, fall back to workspace and log inspection, and keep any fix narrow. The same rule covers version skew: if a tool, task, or argument this skill names (for example, `manage-cache` `action: "verify"`, `validate-project` task `access-transformer`, `analyze-symbol` `api-overview` / `exact-map`, the nested `inspect-minecraft subject.kind: "artifact"` shape, or the NBT helpers) is rejected as unknown, treat it as evidence that the installed MCP is older than what this skill's recipes target, say so explicitly, and route the request through the nearest older-compatible tool or a workspace-only fallback rather than fabricating a different payload shape.
+- If MCP is unavailable, misconfigured, or stale, say so immediately, fall back to workspace and log inspection, and keep any fix narrow. The same rule covers version skew: if a v5 tool, task, response-shaping argument, or input shape this skill names (for example, `detail` / `include[]`, `manage-cache` `action: "verify"`, `validate-project` task `access-transformer`, `analyze-symbol` lifecycle range controls, `get-class-source` / `get-class-members` `target.kind`, or the NBT helpers) is rejected as unknown, treat it as evidence that the installed MCP is older than what this skill's recipes target, say so explicitly, and route the request through the nearest older-compatible tool or a workspace-only fallback rather than fabricating a different payload shape.
 - If workspace files contradict the prompt, call out the contradiction and resolve it from checked files before coding.
 - If the request depends on a symbol, event, registry entry, or vanilla hook you cannot verify, say that it is unverified or unsupported instead of inventing it. Offer the closest verified alternative.
 
@@ -251,13 +316,16 @@ At minimum, aim to leave the project in a state that passes `build` or has a con
 
 ## Fast Debugging Order
 
-- Mixin crash: start with `validate-project`, then `validate-mixin` if you need exact issue detail. Confirm the owner, method name, descriptor, and mapping namespace before patching code.
-- Access widener failure (Fabric): start with `validate-project`, then `validate-access-widener` with an explicit `version`. Confirm that the header namespace matches the entry names.
+- Mixin crash: start with `validate-project`, then `validate-mixin` if you need exact issue detail. Use `reportMode: "full"` or `explain: true` before deciding validator detail is unavailable. Confirm the owner, method name, descriptor, and mapping namespace before patching code.
+- Access widener failure (Fabric): start with `validate-project`, then `validate-access-widener` with an explicit `version`. Confirm that the header namespace matches the entry names. If Fabric GameTests fail before discovery because a common access widener is not found, treat it as test runtime wiring first: record the loader runtime, GameTest source set, `fabric-gametest` entrypoint/discovery path, Loom `mods` sourceSet grouping, and common resource visibility before changing feature code.
 - Access transformer failure (NeoForge): start with `validate-project` (task `access-transformer`), then `validate-access-transformer` with an explicit `version` and `atNamespace`. Confirm the file's entry namespace matches what the workspace expects (usually `mojang` on modern NeoForge, `srg` on legacy projects).
 - Registry or missing-content issue: inspect the existing registration flow, confirm registry IDs, then check required resource files. `get-registry-data` returns the vanilla-version entry list only; absence from its output is not evidence of a missing modded, dependency, or datapack entry, so fall back to workspace registration code, dependency metadata, and datagen output for those cases.
 - Registry loading error: treat `Failed to parse either`, `No key ...`, and
   `Unknown registry key ...` as resource codec or schema mismatch until proven
-  otherwise. Compare against same-version vanilla JSON before broad edits.
+  otherwise. For worldgen JSON, compare against one same-version vanilla
+  configured feature and one same-version vanilla placed feature even when the
+  log names only `configured_feature`, then record which fields were
+  intentionally changed before broad edits or replacement JSON examples.
 - Dependency API uncertainty: read `references/dependency-jars.md` before manual
   cache scanning.
 - HUD, screen, or projection bug: read `references/rendering-hud.md` before changing math or render registration.

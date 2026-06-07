@@ -20,7 +20,8 @@
 
 ## When to Read This
 
-Read this file when you already know which high-level MCP entry tool you need, but you want a payload shape that validates on the current v3 surface.
+Read this file when you already know which high-level MCP entry tool you need,
+but you want a payload shape that validates on the MCP 5.0.0 surface.
 
 This file uses the `minecraft-modding` MCP's canonical hyphenated tool names, such as `inspect-minecraft`, `validate-project`, and `nbt-to-json`.
 
@@ -32,6 +33,9 @@ These are starting points, not mandatory templates. Keep the first pass small an
 
 - Start with `detail: "summary"` unless you already know you need expanded blocks.
 - Add `include` only for the exact blocks you need in the same response.
+- Expert and batch tools use the same response-shaping vocabulary:
+  `detail: "summary" | "standard" | "full"` plus `include[]`. Treat
+  `compact` only as an old-shape migration clue.
 - Prefer workspace-aware calls when a real mod workspace exists.
 - When a tool still requires `version`, pass it explicitly even if you also pass `projectPath`.
 - If `summary` already answers the question, stop there instead of drilling down by default.
@@ -41,6 +45,8 @@ These are starting points, not mandatory templates. Keep the first pass small an
 - Worker restart, timeout, or transport failure gets one narrower high-level
   retry. If that fails, stop using that tool for the current task and record
   fallback evidence.
+- Do not retry identical calls with `retryClass: "server"`; record the MCP
+  server fault and use the relevant fallback path for the current fact.
 
 ## Common Error Shapes
 
@@ -73,6 +79,10 @@ What to do:
 - Read `fieldErrors` first.
 - Fix the missing or malformed field and retry the same entry tool.
 - Do not drop to a low-level tool just because the first payload was invalid.
+- If you are explaining the recovery instead of running the corrected call,
+  record MCP status and verification sources first. Payload-shape facts can be
+  recipe-grounded, but target class, version, mapping, and workspace facts stay
+  unverified until the corrected call returns.
 
 ### Missing file or bad local path: fix the path before changing tools
 
@@ -133,17 +143,54 @@ What to do:
 - Do not report MCP validator success unless a validator actually returned a
   usable result.
 
+### Deterministic server fault: do not retry the same call
+
+Observed shape:
+
+```json
+{
+  "error": {
+    "code": "ERR_INTERNAL",
+    "detail": "Unexpected server error.",
+    "retryClass": "server"
+  }
+}
+```
+
+What to do:
+
+- Treat `retryClass: "server"` like a permanent retry posture for the identical
+  call.
+- Do not spend the normal transient retry budget on the same payload.
+- Record that MCP could not verify the fact and switch to the narrow workspace,
+  source jar, Gradle, or log fallback for the task.
+
 ## Old Shape to Current Shape
 
-Use this section when an older example or model memory suggests a flat payload.
-The current recipes prefer nested `subject` objects.
+Use this section when an older example or model memory suggests a removed or
+stale payload or response path. The current recipes prefer MCP 5.0.0 shapes.
+
+When answering a stale-shape or retry-posture question, keep the response as an
+MCP-shape correction unless the current task already reached a real fallback
+condition. Include: callable schema must be inspected before corrected payloads;
+all four verification source labels; the relevant table rows below; and a
+brief reference route. Do not paste a full validator, loader, GameTest, source
+jar, or Gradle fallback playbook just because a fallback gate is named.
 
 | Old or risky shape | Current shape |
 | --- | --- |
+| expert or batch `compact: true` / `compact: false` | `detail: "summary"` / `detail: "full"` plus `include[]` for specific field groups |
 | `target: "1.21.1"` | `subject: { "kind": "version", "version": "1.21.1", ... }` where the tool supports a version subject |
 | flat artifact `target` under `inspect-minecraft` | `subject: { "kind": "artifact", "artifact": { "type": "resolve-target", "target": { "kind": "jar", "value": "/path.jar" } } }` |
 | bare class name passed as the whole subject | `subject: { "kind": "class", "name": "<fqcn>" }` or the tool-specific `focus` form |
 | workspace path as a top-level string | `subject: { "kind": "workspace", "projectPath": "/path/to/mod", ... }` where the tool expects a workspace subject |
+| reading requested inspect input from `result.summary.subject.requested` | read top-level `subject.requested` / `subject.resolved`, or correlate by `requestId` |
+| reading warning text from `meta.warningDetails[].message` | read `meta.warnings[detail.index]` |
+| `get-class-source` / `get-class-members` `target: { "type": "artifact", "artifactId": "..." }` | `target: { "kind": "artifact", "artifactId": "..." }`; for member reads also mention the 150-member default page, `nextCursor`, shared `members.ownerFqn`, modifiers from `javaSignature`, and `include: ["descriptors"]` or `includeDescriptors: true` when field descriptors matter |
+| relying on `get-class-members` per-member `accessFlags` or always-present `ownerFqn` | derive modifiers from `javaSignature`; read owner from `members.ownerFqn` and fall back to per-member `ownerFqn` only when inherited members expose multiple owners |
+| expecting field `jvmDescriptor` by default | pass `include: ["descriptors"]` or `includeDescriptors: true`; method and constructor descriptors remain present for overloads |
+| interpreting missing per-result validator `resolvedMembers`, `toolHealth`, or `resolutionTrace` as absence | pass `reportMode: "full"` or `explain: true`; default validator output is `summary-first` |
+| unbounded `analyze-symbol task="lifecycle"` using old five-version assumptions | pass `fromVersion`, `toVersion`, `maxVersions`, `includeTimeline`, and `includeSnapshots` for the intended range |
 | changing tools after `ERR_INVALID_INPUT` | fix `fieldErrors` and retry the same high-level tool once |
 
 Do not invent an intermediate payload shape to satisfy both old and current
@@ -344,6 +391,32 @@ If a direct namespace path returns `summary.status="partial"`, keep the same sym
 
 Use `api-overview` when you want a single mapping-aware class/members table without chaining `get-class-api-matrix` manually. For an exact-descriptor mapping, use `task: "exact-map"` with `owner`, `name`, `descriptor`, `sourceMapping`, and `targetMapping` populated.
 
+### Trace a symbol over a bounded version range
+
+```json
+{
+  "task": "lifecycle",
+  "detail": "summary",
+  "toVersion": "1.21.1",
+  "fromVersion": "1.20.6",
+  "maxVersions": 20,
+  "includeTimeline": false,
+  "includeSnapshots": false,
+  "sourceMapping": "mojang",
+  "subject": {
+    "kind": "method",
+    "owner": "net.minecraft.world.item.Item",
+    "name": "useOn",
+    "descriptor": "(Lnet/minecraft/world/item/context/UseOnContext;)Lnet/minecraft/world/InteractionResult;"
+  }
+}
+```
+
+For lifecycle work, always bound the range you intend. MCP 5.0.0 accepts
+`fromVersion`, `toVersion`, `maxVersions`, `includeTimeline`, and
+`includeSnapshots` only for `task: "lifecycle"`; the old implicit narrow scan is
+not the default.
+
 ## `compare-minecraft`
 
 ### Get a migration overview between two versions
@@ -409,6 +482,7 @@ Drop `access-transformers` from `discover` on Fabric-only workspaces, and drop `
   "detail": "summary",
   "version": "1.21.1",
   "mapping": "yarn",
+  "reportMode": "full",
   "preferProjectVersion": true,
   "preferProjectMapping": true,
   "subject": {
@@ -421,6 +495,11 @@ Drop `access-transformers` from `discover` on Fabric-only workspaces, and drop `
   "include": ["issues", "recovery"]
 }
 ```
+
+Use the default `summary-first` validator output for triage. When the work needs
+per-result `resolvedMembers`, per-result `toolHealth`, or `resolutionTrace`,
+request `reportMode: "full"` or `explain: true` before declaring the validator
+unable to provide detail.
 
 ### Validate a NeoForge Access Transformer directly
 
@@ -641,11 +720,18 @@ Switch to `executionMode: "apply"` only after the preview output is what you exp
 
 ## Recovery Moves
 
-- Validation error on an entry tool: fix the payload shape here before dropping to a low-level tool.
+- Validation error on an entry tool: fix the payload shape here before dropping
+  to a low-level tool. Keep payload-shape recovery separate from target
+  Minecraft facts; no class, API, version, mapping, or workspace fact is
+  MCP-verified until the corrected call succeeds.
 - Artifact context missing in `inspect-minecraft`: switch to a workspace subject with `focus`, or resolve the artifact explicitly with the nested `artifact: { type, ... }` shape first.
+- Inspect response correlation: use top-level `subject.requested` /
+  `subject.resolved`, not `summary.subject`.
 - Workspace mapping unresolved: keep `projectPath`, but also pass an explicit `version` and state that compile mapping detection was uncertain.
 - `summary.status="not_found"`: verify namespace and version once, then treat the symbol as absent and choose a verified alternative.
 - Access transformer namespace mismatch: set `atNamespace` to match the file header (`mojang` on modern NeoForge, `srg` on legacy projects) and re-run `validate-project` / `validate-access-transformer` before editing entries.
 - NBT decode fails with "invalid compression" or a truncated header: retry with `compression: "auto"`, then commit to the detected format when re-encoding.
+- Error envelope has `retryClass: "server"`: do not retry the identical call as
+  transient; use fallback evidence or report the MCP server fault.
 - Suspected stale MCP data: read `get-runtime-metrics`, then run `manage-cache` with `action: "verify"` before a mutating call.
 - File or jar path error: fix the path or say the fixture is missing. Do not pretend the file was analyzed.

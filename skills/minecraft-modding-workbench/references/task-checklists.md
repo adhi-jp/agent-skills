@@ -136,8 +136,12 @@ Vanilla anchors:
 - The nearest vanilla ore, structure, biome modifier, or placed feature path
 - The relevant registry entries and vanilla JSON layout
 - Before writing worldgen JSON, identify one same-version vanilla configured
-  feature and one same-version vanilla placed feature.
-- List the fields intentionally changed from vanilla.
+  feature and one same-version vanilla placed feature. Runtime logs often name
+  only `configured_feature`, but natural generation still depends on the placed
+  feature link and placement modifiers.
+- Before proposing replacement JSON for a codec or schema error, list the fields
+  intentionally changed from the vanilla anchors and keep those changes unless
+  the runtime log or codec evidence contradicts them.
 
 Verification:
 
