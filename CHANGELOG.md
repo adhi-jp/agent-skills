@@ -11,6 +11,65 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Added
+
+- New `vibe-commit` skill package: a commit-execution skill that turns a vague
+  instruction like "commit please" into one correctly scoped commit. It owns
+  file selection, exclusion of generated/workspace/ignored/secret paths, a
+  mandatory staged-set re-verification gate, explicit-path and partial-hunk
+  staging, safe multi-line message transport (single-quoted heredoc or `-F`),
+  authorship-trailer footer hygiene including the per-agent `Co-Authored-By`
+  forms, a least-destructive recovery ladder, and a reversible-safety boundary
+  that commits when asked but does not push or rewrite already-pushed history
+  without explicit consent. It defers message wording to `vibe-writing` when
+  available and applies compact fallback message rules otherwise. The guidance is
+  distilled from real Codex and Claude Code sessions across multiple
+  repositories. Adds the response-only `evals/vibe-commit/` suite (11 cases, 6
+  common assertions) and README chooser, version-table, skill-summary,
+  repository-layout, and precedence entries.
+
+### Changed
+
+- `vibe-commit` now clarifies that already-staged commit requests still require
+  staged-set and stored-commit verification, while ignored local config paths
+  absent from `git status` require `git check-ignore -v` diagnosis and explicit
+  override before any force-add. Its eval assertions now grade the shown command
+  sequence, least-destructive repair choice, and safety decision instead of
+  treating response-only runs as failed live git mutations or requiring one
+  valid recovery command shape.
+- `vibe-commit` now treats requests for an exact commit command as requests for
+  the exact `git commit ...` invocation inside the full safe command sequence,
+  so already-staged docs or trailer commits still include staged-set and
+  stored-commit verification.
+- `vibe-commit` now clarifies that supplied git excerpts do not replace showing
+  or running the matching inspection commands, executable commit commands must
+  not contain placeholder subjects, partial staging verification must show both
+  cached and unstaged file-specific diffs, and pushed-history rewrite warnings
+  must name the concrete divergence/rebase/reset risk for collaborators.
+- `vibe-commit` now resolves the lockfile exclusion rule so dependency
+  manifests and their matching lockfiles stay together when the selected
+  implementation requires the dependency change, while unrelated lockfiles still
+  stay out.
+- `vibe-commit` now strengthens subject and partial-staging stop gates:
+  executable commit commands must stop before `git commit` when the diff has not
+  been read closely enough to name the outcome, and partial-hunk commits must
+  show both cached and unstaged file-specific diff commands before committing.
+- `vibe-commit` now treats future-output subject text as a placeholder too:
+  response-only command plans that need `git diff -- <path>` before naming the
+  outcome must stop at that inspection step instead of embedding instructions
+  such as `<after reading diff>` inside a commit command.
+- `vibe-commit` now distinguishes supplied semantic intent from missing diff
+  evidence when forming commit subjects, so stated change outcomes produce
+  concrete Conventional Commit subjects while path-only or status-only cases
+  still inspect `git diff` before showing an executable commit.
+- `vibe-commit` E07 now supplies semantic intent for the visible route change,
+  so its subject assertion grades use of provided evidence instead of requiring
+  a response-only run to invent an outcome from path/status alone.
+- `vibe-commit` now clarifies that placeholder subjects are invalid even inside
+  illustrative command blocks or "replace before running" examples, and that
+  broad supplied intent should become a conservative concrete subject instead of
+  being deferred to future diff output.
+
 ## [minecraft-modding-workbench 2.0.0] - 2026-06-07
 
 ### Changed
