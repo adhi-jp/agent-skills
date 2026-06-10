@@ -18,7 +18,10 @@ readable usage in its CLI output the runner captures it and stores it with its
 source; absence is recorded as absence, never a placeholder number.
 
 The provider selector is a registry, so adding another agent CLI is a new
-adapter rather than a hard-coded branch. This script is stdlib-only.
+adapter rather than a hard-coded branch. An optional ``--model`` is passed
+through to the selected provider CLI verbatim (whatever model name that CLI
+accepts); when omitted each provider uses its own default model. This script is
+stdlib-only.
 """
 
 from __future__ import annotations
@@ -71,6 +74,11 @@ DEFAULT_TIMEOUT_SECONDS = 600.0
 DEFAULT_CONCURRENCY = 4
 MAX_CONCURRENCY = 16
 AGENT_LABEL_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
+# A model name is whatever the selected provider CLI accepts. Stay permissive
+# enough for vendor ids like `claude-sonnet-4-6`, `gpt-5.3-codex-spark`, or
+# `us.anthropic.claude-opus-4-1-20250805-v1:0`, while requiring a leading
+# alphanumeric so a value can never be mistaken for a CLI flag.
+MODEL_LABEL_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._:/-]*$")
 
 
 class CommandError(Exception):
@@ -215,6 +223,19 @@ def validate_agent_label(value: str | None) -> str:
     if not AGENT_LABEL_RE.match(label):
         raise CommandError(
             f"--agent {value!r}: label must match {AGENT_LABEL_RE.pattern}"
+        )
+    return label
+
+
+def validate_model_label(value: str | None) -> str | None:
+    if value is None:
+        return None
+    label = value.strip()
+    if not label:
+        return None
+    if not MODEL_LABEL_RE.match(label):
+        raise CommandError(
+            f"--model {value!r}: model must match {MODEL_LABEL_RE.pattern}"
         )
     return label
 
@@ -665,7 +686,7 @@ class Provider:
     def available(self) -> bool:  # pragma: no cover - overridden
         raise NotImplementedError
 
-    def build_invocation(self, prompt: str, *, run_dir: Path, role: str) -> Invocation:  # pragma: no cover
+    def build_invocation(self, prompt: str, *, run_dir: Path, role: str, model: str | None = None) -> Invocation:  # pragma: no cover
         raise NotImplementedError
 
     def parse(self, *, run_dir: Path, stdout: str, stderr: str, exit_code: int | None, role: str) -> tuple[str, dict[str, Any]]:  # pragma: no cover
@@ -678,9 +699,12 @@ class ClaudeProvider(Provider):
     def available(self) -> bool:
         return shutil.which("claude") is not None
 
-    def build_invocation(self, prompt: str, *, run_dir: Path, role: str) -> Invocation:
+    def build_invocation(self, prompt: str, *, run_dir: Path, role: str, model: str | None = None) -> Invocation:
+        argv = ["claude", "-p", prompt, "--output-format", "json"]
+        if model:
+            argv += ["--model", model]
         return Invocation(
-            argv=["claude", "-p", prompt, "--output-format", "json"],
+            argv=argv,
             env=base_env(),
             cwd=str(find_repo_root(run_dir)),
         )
@@ -733,19 +757,14 @@ class CodexProvider(Provider):
     def available(self) -> bool:
         return shutil.which("codex") is not None
 
-    def build_invocation(self, prompt: str, *, run_dir: Path, role: str) -> Invocation:
+    def build_invocation(self, prompt: str, *, run_dir: Path, role: str, model: str | None = None) -> Invocation:
         last_message = run_dir / f"{role}_codex_last.txt"
+        argv = ["codex", "exec", "-s", "read-only", "-o", str(last_message), "--json"]
+        if model:
+            argv += ["--model", model]
+        argv.append(prompt)
         return Invocation(
-            argv=[
-                "codex",
-                "exec",
-                "-s",
-                "read-only",
-                "-o",
-                str(last_message),
-                "--json",
-                prompt,
-            ],
+            argv=argv,
             env=base_env(),
             cwd=str(find_repo_root(run_dir)),
         )
@@ -829,7 +848,9 @@ class StubProvider(Provider):
     def available(self) -> bool:
         return bool(os.environ.get("EVAL_RUNNER_STUB_FILE"))
 
-    def build_invocation(self, prompt: str, *, run_dir: Path, role: str) -> Invocation:
+    def build_invocation(self, prompt: str, *, run_dir: Path, role: str, model: str | None = None) -> Invocation:
+        # The hermetic stub runs no real model, so `model` is accepted to honor
+        # the provider contract and then ignored.
         return Invocation(
             argv=[sys.executable, "-c", STUB_RUNNER_SOURCE, role],
             env=base_env(),
@@ -983,6 +1004,7 @@ def execute_run(
     task: RunTask,
     skill_path: str | None,
     timeout: float,
+    model: str | None = None,
 ) -> dict[str, Any]:
     case, config, run_number, run_dir = task.case, task.config, task.run_number, task.run_dir
     outputs_dir = run_dir / "outputs"
@@ -990,7 +1012,7 @@ def execute_run(
 
     executor_prompt = render_executor_prompt(suite, case, config, skill_path)
     write_text(run_dir / "prompt.md", executor_prompt)
-    executor_inv = provider.build_invocation(executor_prompt, run_dir=run_dir, role="executor")
+    executor_inv = provider.build_invocation(executor_prompt, run_dir=run_dir, role="executor", model=model)
     e_stdout, e_stderr, e_exit, e_timeout = run_invocation(executor_inv, timeout)
     executor_output, metrics = provider.parse(
         run_dir=run_dir, stdout=e_stdout, stderr=e_stderr, exit_code=e_exit, role="executor"
@@ -1013,7 +1035,7 @@ def execute_run(
     if status == "ok":
         grader_prompt = render_grader_prompt(suite, case, config, executor_output)
         write_text(run_dir / "grader_prompt.md", grader_prompt)
-        grader_inv = provider.build_invocation(grader_prompt, run_dir=run_dir, role="grader")
+        grader_inv = provider.build_invocation(grader_prompt, run_dir=run_dir, role="grader", model=model)
         g_stdout, g_stderr, g_exit, g_timeout = run_invocation(grader_inv, timeout)
         grader_output, grader_metrics = provider.parse(
             run_dir=run_dir, stdout=g_stdout, stderr=g_stderr, exit_code=g_exit, role="grader"
@@ -1089,6 +1111,7 @@ def aggregate_runs(
     *,
     agent: str,
     skill_path: str | None,
+    model: str | None = None,
 ) -> dict[str, Any]:
     rates_by_eval_config: dict[tuple[str, str], list[float]] = {}
     runs_by_eval_config: dict[tuple[str, str], list[dict[str, Any]]] = {}
@@ -1148,6 +1171,7 @@ def aggregate_runs(
     return {
         "skill_name": suite.skill_name,
         "agent": agent,
+        "model": model,
         "skill_path": skill_path,
         "generated_at": utc_now(),
         "configs": list(configs),
@@ -1173,10 +1197,12 @@ def render_benchmark_markdown(benchmark: dict[str, Any]) -> str:
     configs = list(benchmark.get("configs", []))
     sorted_configs = sorted(configs, key=config_sort_key)
     error_run_count = benchmark.get("error_run_count", 0)
+    model = benchmark.get("model")
     lines = [
         f"# Eval Benchmark: {benchmark.get('skill_name', 'unknown')}",
         "",
         f"- Agent: `{benchmark.get('agent', 'unknown')}`",
+        f"- Model: {f'`{model}`' if model else 'provider default'}",
         f"- Generated: {benchmark.get('generated_at', 'unknown')}",
         f"- Runs: {benchmark.get('run_count', 0)} "
         f"({benchmark.get('scored_run_count', 0)} scored, "
@@ -1247,6 +1273,7 @@ def command_run(args: argparse.Namespace) -> int:
         return 2
 
     agent = validate_agent_label(args.agent)
+    model = validate_model_label(args.model)
     configs = parse_csv_values(args.config, DEFAULT_CONFIGS)
 
     runs = args.runs
@@ -1278,7 +1305,7 @@ def command_run(args: argparse.Namespace) -> int:
     # Empty suite is not an error: exit 0 with an explicit empty result and zero
     # subprocess launches.
     if not suite.evals:
-        benchmark = aggregate_runs(suite, configs, [], agent=agent, skill_path=skill_path)
+        benchmark = aggregate_runs(suite, configs, [], agent=agent, skill_path=skill_path, model=model)
         write_json(iteration_dir / "benchmark.json", benchmark)
         write_text(iteration_dir / "benchmark.md", render_benchmark_markdown(benchmark))
         print(f"No evals in suite; wrote empty benchmark to {iteration_dir}")
@@ -1290,6 +1317,7 @@ def command_run(args: argparse.Namespace) -> int:
         {
             "skill_name": suite.skill_name,
             "agent": agent,
+            "model": model,
             "configs": configs,
             "runs": runs,
             "timeout_seconds": args.timeout,
@@ -1306,7 +1334,7 @@ def command_run(args: argparse.Namespace) -> int:
     results: list[dict[str, Any]] = [None] * len(tasks)  # type: ignore[list-item]
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.concurrency) as pool:
         future_to_index = {
-            pool.submit(execute_run, suite, provider, task, skill_path, args.timeout): index
+            pool.submit(execute_run, suite, provider, task, skill_path, args.timeout, model): index
             for index, task in enumerate(tasks)
         }
         for future in concurrent.futures.as_completed(future_to_index):
@@ -1336,7 +1364,7 @@ def command_run(args: argparse.Namespace) -> int:
                 }
 
     runs_records = [record for record in results if record is not None]
-    benchmark = aggregate_runs(suite, configs, runs_records, agent=agent, skill_path=skill_path)
+    benchmark = aggregate_runs(suite, configs, runs_records, agent=agent, skill_path=skill_path, model=model)
     write_json(iteration_dir / "benchmark.json", benchmark)
     write_text(iteration_dir / "benchmark.md", render_benchmark_markdown(benchmark))
 
@@ -1382,6 +1410,12 @@ def build_parser() -> argparse.ArgumentParser:
     )
     run.add_argument("evals_json", help="Path to an evals.json suite.")
     run.add_argument("--agent", default=DEFAULT_AGENT, help=f"Provider to run (default: {DEFAULT_AGENT}).")
+    run.add_argument(
+        "--model",
+        default=None,
+        help="Model name passed through to the provider CLI verbatim "
+        "(e.g. `claude-sonnet-4-6`, `gpt-5.3-codex-spark`). Omit to use the provider's default model.",
+    )
     run.add_argument(
         "--config",
         action="append",

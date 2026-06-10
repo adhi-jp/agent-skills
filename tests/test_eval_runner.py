@@ -302,6 +302,98 @@ class SeparationTests(BaseRunnerTest):
 
 
 # --------------------------------------------------------------------------- #
+# Model selection: --model is passed through to the provider CLI verbatim and
+# recorded in the manifest/benchmark; an absent model uses the provider default.
+# --------------------------------------------------------------------------- #
+class ModelSelectionTests(BaseRunnerTest):
+    def test_validate_model_label_accepts_vendor_ids(self):
+        for value in (
+            "sonnet",
+            "claude-sonnet-4-6",
+            "gpt-5.3-codex-spark",
+            "us.anthropic.claude-opus-4-1-20250805-v1:0",
+            "anthropic/claude-3",
+        ):
+            self.assertEqual(eval_runner.validate_model_label(value), value)
+
+    def test_validate_model_label_none_and_blank_pass_through(self):
+        self.assertIsNone(eval_runner.validate_model_label(None))
+        self.assertIsNone(eval_runner.validate_model_label("   "))
+
+    def test_validate_model_label_rejects_flag_like_and_spaced(self):
+        for bad in ("-bad", "--model", "has space", "weird$char"):
+            with self.assertRaises(eval_runner.CommandError):
+                eval_runner.validate_model_label(bad)
+
+    def test_claude_build_invocation_passes_model(self):
+        provider = eval_runner.ClaudeProvider()
+        without = provider.build_invocation("prompt", run_dir=self.root, role="executor")
+        self.assertNotIn("--model", without.argv)
+        with_model = provider.build_invocation(
+            "prompt", run_dir=self.root, role="executor", model="claude-sonnet-4-6"
+        )
+        self.assertEqual(with_model.argv[-2:], ["--model", "claude-sonnet-4-6"])
+
+    def test_codex_build_invocation_passes_model_before_prompt(self):
+        provider = eval_runner.CodexProvider()
+        without = provider.build_invocation("the prompt", run_dir=self.root, role="executor")
+        self.assertNotIn("--model", without.argv)
+        self.assertEqual(without.argv[-1], "the prompt")
+        with_model = provider.build_invocation(
+            "the prompt", run_dir=self.root, role="executor", model="gpt-5.3-codex-spark"
+        )
+        # The prompt stays positional/last; the model is an option before it.
+        self.assertEqual(with_model.argv[-1], "the prompt")
+        self.assertEqual(with_model.argv[-3:-1], ["--model", "gpt-5.3-codex-spark"])
+
+    def test_model_recorded_in_manifest_and_benchmark(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        self.run_cli(
+            "run", path, "--agent", "stub", "--model", "test-model-1", "--runs", "1",
+            env=self.stub_env(spec), check=True,
+        )
+        manifest = json.loads((self.iteration_dir() / "iteration_manifest.json").read_text())
+        self.assertEqual(manifest["model"], "test-model-1")
+        benchmark = json.loads((self.iteration_dir() / "benchmark.json").read_text())
+        self.assertEqual(benchmark["model"], "test-model-1")
+        self.assertIn("Model: `test-model-1`", (self.iteration_dir() / "benchmark.md").read_text())
+
+    def test_absent_model_recorded_as_provider_default(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        benchmark = json.loads((self.iteration_dir() / "benchmark.json").read_text())
+        self.assertIsNone(benchmark["model"])
+        self.assertIn("Model: provider default", (self.iteration_dir() / "benchmark.md").read_text())
+
+    def test_invalid_model_exits_without_launch(self):
+        # A value that clears argparse (not flag-like) but fails the model regex
+        # must be rejected by command_run's pre-flight with zero launches.
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        log = self.root / "launch.log"
+        result = self.run_cli(
+            "run", path, "--agent", "stub", "--model", "bad model", env=self.stub_env(spec, log=log)
+        )
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("model must match", result.stderr)
+        self.assertFalse(log.exists(), "a provider subprocess launched before model validation")
+
+    def test_flag_like_model_rejected_by_argparse_without_launch(self):
+        # argparse itself rejects a flag-like value (defense in depth before the
+        # regex even runs); still zero launches.
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        log = self.root / "launch.log"
+        result = self.run_cli(
+            "run", path, "--agent", "stub", "--model", "-bad", env=self.stub_env(spec, log=log)
+        )
+        self.assertEqual(result.returncode, 2)
+        self.assertFalse(log.exists(), "a provider subprocess launched before model validation")
+
+
+# --------------------------------------------------------------------------- #
 # Core pipeline + grading round-trip through the real dispatch path.
 # --------------------------------------------------------------------------- #
 class CorePipelineTests(BaseRunnerTest):

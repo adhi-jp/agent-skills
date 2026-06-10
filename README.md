@@ -528,7 +528,11 @@ comparison. No agent hand-runs prompts or hand-records results.
 `--agent` selects a registered provider; `claude` and `codex` are built in. The
 core path (execute, grade, compare, aggregate, report) is provider-neutral and
 works on Codex; opt-in metric capture is a Claude-only addition that other
-providers skip.
+providers skip. An optional `--model` is passed through to the selected provider
+CLI verbatim (whatever model name that CLI accepts, e.g. `claude-sonnet-4-6` or
+`gpt-5.3-codex-spark`); it is applied to both the executor and grader and
+recorded in the manifest and benchmark. Omit it to use the provider's default
+model.
 
 All validation runs before any subprocess launches: suite shape, the
 authoritative `with_skill` source, provider availability, and run bounds.

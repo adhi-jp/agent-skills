@@ -27,6 +27,13 @@ use `[Repository] - YYYY-MM-DD`.
   repositories. Adds the response-only `evals/vibe-commit/` suite (11 cases, 6
   common assertions) and README chooser, version-table, skill-summary,
   repository-layout, and precedence entries.
+- `scripts/eval_runner.py run` accepts an optional `--model` that is passed
+  through to the selected provider CLI verbatim (`claude --model …`,
+  `codex exec --model …`); whatever model name that CLI accepts is valid. When
+  omitted, each provider keeps its own default model. The chosen model is
+  validated before any subprocess launches, applied to both the executor and
+  grader subprocesses, and recorded in `iteration_manifest.json`,
+  `benchmark.json`, and `benchmark.md`. The hermetic stub provider ignores it.
 
 ### Changed
 
