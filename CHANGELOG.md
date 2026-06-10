@@ -69,6 +69,31 @@ use `[Repository] - YYYY-MM-DD`.
   illustrative command blocks or "replace before running" examples, and that
   broad supplied intent should become a conservative concrete subject instead of
   being deferred to future diff output.
+- `skill-quality` now requires an artifact-placement gate after mapping sampled
+  examples to abstract dimensions, keeping narrow pressure cases in evals or
+  applicability-scoped references instead of promoting one local pattern into
+  always-visible `SKILL.md` guidance. A new `E10` eval covers this sampled-case
+  promotion failure mode.
+- `skill-quality` now requires measurement-boundary triage before treating
+  surprising, repeated, tool-related, or artifact-related eval failures as skill
+  defects, checks whether the recorded output set contains the proof an
+  assertion requires, stops repeated wording-only tightening when targeted
+  failures do not move, requires a rerun before improvement claims after
+  proof-path changes, keeps truthful execution separate from missing recorded
+  proof, keeps eval workflow guidance provider-neutral and file-contract based,
+  aligns repository eval workflow guidance with the runner-driven
+  `validate` / `run` / `report` CLI, requires repository `with_skill` runs to
+  read the authoritative source Skill path instead of host skill tools or local
+  snapshots, adds `E11`-`E14` evals for evidence-surface, retry-stop,
+  eval-execution data-boundary, and description-field cases, strengthens `E10`
+  to also test the multiple-independent-evidence promotion threshold for
+  sampled patterns, and narrows existing eval assertions that previously treated
+  proposal-only artifact selection as proof of file changes.
+- `skill-quality` now treats a failure mechanism that moves across evals after
+  targeted wording fixes as one shared contract gap before another local patch,
+  keeps invalid placeholder text out of executable and user-copyable guidance,
+  records the sampled commit-execution convergence pattern in its reference
+  notes, and adds `E15` coverage for recurring placeholder leakage.
 
 ## [minecraft-modding-workbench 2.0.0] - 2026-06-07
 

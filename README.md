@@ -416,21 +416,28 @@ precedence over the skill's defaults.
 Evidence-driven skill and eval quality decision workflow for benchmark results,
 grader feedback, review findings, session-history patterns, trigger failures,
 or quality regressions. It starts from evidence, writes a small
-failure-to-contract delta, labels the current proposal's evidence, leaves
-artifacts unchanged when there is no evidence-backed contract gap, chooses the
-smallest coupled artifact set, updates discriminating repo-level evals, and uses
-the shared eval runner honestly. It keeps executor-visible eval summaries
-high-level, applies the same leakage check to its own self-authored assertions,
-keeps token/time claims evidence-bound, requires a closing rerun on a clean,
-complete run before any improvement claim, records the discrimination lost and
-the coverage that must remain when an assertion or eval case is loosened or
-deleted, and blocks common regressions such as broad rewrites, universal
+failure-to-contract delta, labels the current proposal's evidence,
+classifies surprising or repeated eval failures by skill-contract, assertion,
+recording, prompt, grader-boundary, and variance surfaces before changing skill
+text, leaves artifacts unchanged when there is no evidence-backed contract gap,
+chooses the smallest coupled artifact set, checks whether abstracted examples
+belong in `SKILL.md`, references, evals, or notes before adding standing
+guidance, updates discriminating repo-level evals, and uses the shared eval
+runner honestly. It keeps executor-visible eval summaries high-level, applies
+the same leakage check to its own self-authored assertions, keeps token/time
+claims evidence-bound, requires a closing rerun on a clean, complete run before
+any improvement claim, requires recorded host, runner, or equivalent artifact
+evidence for execution-proof assertions, treats authoritative source Skill paths
+as the `with_skill` target instead of host tools or snapshots, records lost
+discrimination and required coverage when an assertion or eval case is loosened
+or deleted, and blocks common regressions such as broad rewrites, universal
 checklists, fake baselines, self-grading bias, weak proof substitutes,
 companion-skill requirements, generated workspace commits, wording-only churn,
-contaminated or unrerun runs counted as proof, release/version changes without
-explicit release instruction, and unrelated package rewrites. Its reference
-notes summarize local session-derived patterns for efficient skill improvement
-and skill degradation.
+cross-eval moving failures treated as local fixes, copyable invalid placeholder
+guidance, contaminated or unrerun runs counted as proof, release/version changes
+without explicit release instruction, and unrelated package rewrites. Its
+reference notes summarize local session-derived patterns for efficient skill
+improvement and skill degradation.
 
 ### `vibe-review`
 

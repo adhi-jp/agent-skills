@@ -29,18 +29,25 @@ into skill outputs.
   claims, not just to a future extraction or grading format.
 - Token and time deltas were cost signals, not standalone proof of improvement
   or regression without transcript evidence, run data, or a predefined budget.
+- Some apparent skill failures were measurement-boundary defects: the intended
+  behavior happened, but the proof lived outside the recorded output set. Adding
+  recorded host, runner, or equivalent non-response evidence changed the grade
+  without proving that skill prose caused the improvement.
 - High-risk behavior stayed understandable when detailed controls moved into
   references and `SKILL.md` kept only trigger, routing, and stop-gate rules.
 - Session-history examples were useful only after being mapped to abstract
   dimensions such as `data contract`, `artifact freshness`, `benchmark
   completeness`, `current-slice blocker`, `tool capability`, or `local anchor`.
+- The abstract dimension still needed an artifact-placement decision: narrow
+  pressure cases stayed in evals or notes, heavier reusable guidance stayed in
+  applicability-scoped references, and only broadly applicable obligations
+  belonged in `SKILL.md`.
 - Doc-only guarantees repeatedly proved weak. Durable fixes moved important
   rules into structured outputs, script behavior, receipts, pre-edit gates, or
   concrete eval assertions.
 - Shared eval infrastructure improved when state moved from harness memory into
   files: agent-scoped workspaces, run manifests, grader prompts, parent-captured
-  metrics, exact grading assertion validation, static reports, and compatible
-  baseline fingerprints.
+  metrics, exact grading assertion validation, and static reports.
 - Consolidation helped when it preserved the high-value contracts from old
   skills while retiring duplicate packages, updating eval ownership, and moving
   heavy details into references.
@@ -55,12 +62,24 @@ into skill outputs.
   explicit absence statuses, local anchors, or the scope of an obligation.
 - Plans and skills degraded when they treated one fixture, one UI, or one
   domain as the whole skill boundary.
+- Plans and skills also degraded when one sampled case became a named pattern
+  section, domain branch, or fixture-derived checklist in `SKILL.md` after only
+  a single abstraction step.
 - Review-driven changes grew too large when every valid review note became a
   new requirement instead of being classified against the current goal.
 - Eval runs became misleading when missing baselines were rendered as zero,
   output characters were treated like model tokens, executor prompts contained
   grading assertions, or static review flows started server processes by
   default.
+- Repeated wording-only contract tightening degraded diagnosis when a stable
+  failure was really missing recorded proof, prompt-delivery evidence, grader
+  input alignment, assertion-scope clarity, or run-variance analysis.
+- In a commit-execution skill convergence session, residual failures that moved
+  across evals after local wording patches became clearer when treated as one
+  shared invalid-placeholder mechanism rather than separate per-eval fixes. The
+  pattern applies when the same user-copyable invalid template, future-output
+  placeholder, or equivalent mechanism reappears on different eval surfaces; it
+  does not make multi-run convergence mandatory for every skill-quality change.
 - Skill descriptions caused under-reading when they summarized workflow steps
   instead of only naming trigger conditions.
 - Eval automation created a data-boundary risk when private skill/eval content
@@ -84,8 +103,12 @@ into skill outputs.
 For every skill change, preserve this sequence:
 
 1. Identify the concrete failed behavior or ambiguous eval result.
-2. Translate it into a reusable contract dimension.
-3. Edit the smallest artifact set that owns that contract.
-4. Add or tighten discriminating eval expectations.
-5. Run or prepare the shared eval workflow honestly.
-6. Report proof, gaps, and generated artifacts without inflating claims.
+2. Classify the failure surface: skill contract, eval assertion, measurement or
+   recording, prompt or invocation, grader boundary, or variance.
+3. Translate any real skill or eval gap into a reusable contract dimension.
+4. Decide whether that dimension belongs in `SKILL.md`, a reference, an eval, or
+   notes.
+5. Edit the smallest artifact set that owns that contract.
+6. Add or tighten discriminating eval expectations.
+7. Run the shared eval workflow honestly, or label unrun proof as absent.
+8. Report proof, gaps, and generated artifacts without inflating claims.
