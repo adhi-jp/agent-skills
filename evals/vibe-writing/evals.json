@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-writing",
-  "purpose": "External eval set for vibe-writing. Prompts live outside skills/ so they are not bundled as skill content. Covers representative LLM-first development text, human-reader exceptions, source-code comments and docstrings, README/docs, CHANGELOG restraint, exact-format output, verbatim-output boundaries, durable references, workflow boundaries, locale precedence, policy and support-promise restraint, hollow-transition cleanup, local-anchor preservation, and commit-message contracts including release trailers, body preserve/cut selection, verification formatting, multi-line transport, active commit workflows, and stored-message inspection.",
+  "purpose": "External eval set for vibe-writing. Prompts live outside skills/ so they are not bundled as skill content. Covers representative LLM-first development text, human-reader exceptions, source-code comments and docstrings, README/docs, CHANGELOG restraint, exact-format output, verbatim-output boundaries, durable references, workflow boundaries, incidental progress and final-summary wording, locale precedence, policy and support-promise restraint, hollow-transition cleanup, local-anchor preservation, and commit-message contracts including release trailers, body preserve/cut selection, verification formatting, multi-line transport, active commit workflows, and stored-message inspection.",
   "common_assertions": [
     "Output preserves source facts, scope, terminology, audience, modality, conditions, exceptions, warnings, limitations, required actions, and order that matters whenever source text is edited or summarized.",
     "Output does not invent unsupported reasons, goals, outcomes, roadmap claims, business value, user impact, implementation rationale, tests, rollout status, or performance/security/risk-reduction claims.",
@@ -210,6 +210,23 @@
         "Does not use repeated `git commit -m` arguments for individual body lines, bullets, verification lines, or trailers.",
         "Names `git show -s --format=%B HEAD` as the stored-message inspection after creating the commit and says malformed stored output must be amended before reporting completion.",
         "Preserves commit-execution boundaries by not treating `vibe-writing` as the source of staging, signing, release, or history-mutation rules beyond the supplied commit authorization."
+      ]
+    },
+    {
+      "id": "E13",
+      "name": "Japanese progress update inside active workflow",
+      "prompt": "Using `vibe-writing`, write the short message to send to the user inside an active plan-execution workflow. Return the message itself, not an explanation of whether this is a standalone writing task.\n\nFacts allowed in the message:\n- Bound plan: `specs/2026-05-31-report-export-implementation-plan.md`\n- Current slice: CSV export button\n- Status: implementation and tests are complete\n- Verification passed: `pnpm test -- reports-export`\n- Commit authorization has not been given\n- No files were staged\n\nUse Japanese.",
+      "expected_output": "The agent returns a concise Japanese progress update that uses only the supplied workflow facts, includes the verification and uncommitted/no-staging status, and does not replace the requested message with skill-routing analysis.",
+      "files": [],
+      "expectations": [
+        "Returns the user-facing progress message itself rather than explaining how `vibe-writing` applies.",
+        "Uses Japanese for the message while preserving `specs/2026-05-31-report-export-implementation-plan.md` and `pnpm test -- reports-export` exactly.",
+        "States that the CSV export button implementation and tests are complete.",
+        "States that `pnpm test -- reports-export` passed.",
+        "States that commit authorization has not been given and no files were staged.",
+        "Does not claim a commit was made, staging was performed, or release work happened.",
+        "Does not add unsupported next steps, reassurance, risk reduction, rollout status, or broad quality claims.",
+        "Keeps the message brief, without a checklist, route menu, or meta-analysis about standalone versus auxiliary writing."
       ]
     }
   ],
