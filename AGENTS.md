@@ -30,8 +30,9 @@
 
 ## Local Skill Snapshot Rules
 
-- Local skill snapshot paths under `.agents/skills/` and `.claude/skills/` are managed copies, not source. Do not edit, sync, copy into, remove, recreate, stage, or commit them, and do not modify them as a side effect of other work. Reading them for reference (for example, to understand a skill that exists only as a snapshot) is allowed.
-- Use tracked skill packages under `skills/` as the authoritative source for repository changes and verification. Make repository edits against `skills/`, not against the snapshot copies, and do not treat `.agents/skills/` or `.claude/skills/` as the source of truth for parity or committed runtime state.
+- Local skill snapshot paths under `.agents/skills/` and `.claude/skills/` are managed copies, not source. Do not edit, copy into, remove, recreate, stage, or commit them directly, and do not modify them as a side effect of other work. Reading them for reference (for example, to understand a skill that exists only as a snapshot) is allowed.
+- Operate on `.agents/skills/` snapshots and `.claude/skills/` links only through `python3 scripts/sync_dev_agent_skills.py` when the user explicitly requests a local snapshot sync, update, add, or removal.
+- Use tracked skill packages under `skills/` as the authoritative source for repository changes and verification. Make repository edits against `skills/`, not against the snapshot copies, and do not treat `.agents/skills/` or `.claude/skills/` as the source of truth for parity or committed runtime state. Editing `skills/*` does not imply updating local snapshots.
 
 ## Evaluation Workspace Rules
 
