@@ -13,6 +13,16 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Added
 
+- `scripts/eval_runner.py` now computes a `sanity_checks` section into
+  `benchmark.json`/`benchmark.md` and prints a sanity line at the end of `run`,
+  surfacing infrastructure failures, scored-`0%` cells, and candidate-below-
+  baseline cells so a supervising agent cannot mistake a contaminated run for a
+  clean result. `AGENTS.md` adds a `Result Verification and Reporting` section
+  requiring the supervising agent to read the sanity status and `error_run_count`,
+  treat flagged cells as stop-and-verify, attribute failures to executor/grader/
+  runner before the skill, and always report a summary (agent, model, configs,
+  runs, scored vs excluded counts, overall pass rate, delta, and sanity status)
+  instead of only the headline delta.
 - New `vibe-commit` skill package: a commit-execution skill that turns a vague
   instruction like "commit please" into one correctly scoped commit. It owns
   file selection, exclusion of generated/workspace/ignored/secret paths, a
@@ -37,6 +47,16 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- The eval grader now returns a structured, schema-constrained verdict instead
+  of hand-written free-form JSON. `scripts/eval_runner.py` requests provider-
+  native structured output where the CLI supports it (`codex --output-schema`,
+  `claude --json-schema`) and keys verdicts by the assertion's 1-based `id`
+  (`{"verdicts": [{"id", "passed", "evidence"}]}`) rather than an echoed
+  assertion string, so a grader cannot break grading by malforming JSON or by
+  re-numbering/paraphrasing assertion text. The legacy text-keyed
+  `{"expectations": [...]}` shape stays accepted for backward compatibility, and
+  the tolerant parser/matcher remains as a fallback for providers that do not
+  enforce the schema.
 - `vibe-commit` now clarifies that already-staged commit requests still require
   staged-set and stored-commit verification, while ignored local config paths
   absent from `git status` require `git check-ignore -v` diagnosis and explicit
@@ -101,6 +121,23 @@ use `[Repository] - YYYY-MM-DD`.
   keeps invalid placeholder text out of executable and user-copyable guidance,
   records the sampled commit-execution convergence pattern in its reference
   notes, and adds `E15` coverage for recurring placeholder leakage.
+
+### Fixed
+
+- `scripts/eval_runner.py` no longer records a malformed or mis-serialized
+  grader verdict as a genuine scored `0%` that silently deflates the
+  `with_skill`/`without_skill` benchmark. Two grader-fidelity gaps are closed:
+  (1) `parse_grader_output` returned the first brace-balanced fragment even when
+  it carried no `expectations` list, so an unterminated evidence string (for
+  example one ended by backticks instead of a closing quote) slipped past the
+  `grading is None` guard and was scored `0%` instead of being excluded as
+  `grader_unparseable`; it now requires a recovered object to carry the grader
+  contract and otherwise reports the verdict unparseable. (2) `summarize_grading`
+  matched grader-returned assertion texts only by exact string, so a grader that
+  echoed the numbered "Assertions For Grading" list (`1. `, `2) `) matched zero
+  prepared assertions and recorded a false `0%`; matching now strips a leading
+  enumeration prefix before comparison while still requiring the assertion body
+  to match exactly. Adds regression tests for both failure modes.
 
 ## [minecraft-modding-workbench 2.0.0] - 2026-06-07
 

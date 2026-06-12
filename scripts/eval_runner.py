@@ -594,6 +594,35 @@ def assertions_for_case(suite: EvalSuite, case: EvalCase) -> list[str]:
     return assertions
 
 
+def grader_schema() -> dict[str, Any]:
+    """JSON Schema for the grader's structured verdict. Verdicts are keyed by the
+    assertion's 1-based ``id`` rather than an echoed assertion string, so a
+    grader cannot break grading by re-numbering or paraphrasing the assertion
+    text. Providers that enforce a response schema (codex ``--output-schema``,
+    claude ``--json-schema``) guarantee the shape; the prompt and the tolerant
+    parser carry the same contract for providers that do not."""
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["verdicts"],
+        "properties": {
+            "verdicts": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": ["id", "passed", "evidence"],
+                    "properties": {
+                        "id": {"type": "integer"},
+                        "passed": {"type": "boolean"},
+                        "evidence": {"type": "string"},
+                    },
+                },
+            }
+        },
+    }
+
+
 def render_grader_prompt(
     suite: EvalSuite,
     case: EvalCase,
@@ -628,14 +657,16 @@ def render_grader_prompt(
         "## Required response",
         "",
         "Respond with ONLY a JSON object and no other text:",
-        '`{"expectations": [{"text": <assertion>, "passed": <true|false>, "evidence": <string>}]}`',
-        "Emit every assertion below exactly once, in order, with its text unchanged.",
+        '`{"verdicts": [{"id": <assertion number>, "passed": <true|false>, "evidence": <string>}]}`',
+        "Emit exactly one verdict per assertion below, using the assertion's number as `id`.",
+        "Do not echo or restate the assertion text. Keep `evidence` to one short sentence,",
+        "and avoid backticks and line breaks inside it so the JSON stays well-formed.",
     ]
     if assertions:
         lines.extend(["", "## Assertions For Grading", ""])
         lines.extend(f"{index}. {assertion}" for index, assertion in enumerate(assertions, start=1))
     else:
-        lines.extend(["", "There are no assertions; respond with `{\"expectations\": []}`."])
+        lines.extend(["", "There are no assertions; respond with `{\"verdicts\": []}`."])
     return "\n".join(lines) + "\n"
 
 
@@ -686,7 +717,7 @@ class Provider:
     def available(self) -> bool:  # pragma: no cover - overridden
         raise NotImplementedError
 
-    def build_invocation(self, prompt: str, *, run_dir: Path, role: str, model: str | None = None) -> Invocation:  # pragma: no cover
+    def build_invocation(self, prompt: str, *, run_dir: Path, role: str, model: str | None = None, schema: dict[str, Any] | None = None) -> Invocation:  # pragma: no cover
         raise NotImplementedError
 
     def parse(self, *, run_dir: Path, stdout: str, stderr: str, exit_code: int | None, role: str) -> tuple[str, dict[str, Any]]:  # pragma: no cover
@@ -699,10 +730,16 @@ class ClaudeProvider(Provider):
     def available(self) -> bool:
         return shutil.which("claude") is not None
 
-    def build_invocation(self, prompt: str, *, run_dir: Path, role: str, model: str | None = None) -> Invocation:
+    def build_invocation(self, prompt: str, *, run_dir: Path, role: str, model: str | None = None, schema: dict[str, Any] | None = None) -> Invocation:
         argv = ["claude", "-p", prompt, "--output-format", "json"]
         if model:
             argv += ["--model", model]
+        # Constrain the grader's final response to the verdict schema when one is
+        # supplied, so the provider returns well-formed structured JSON instead
+        # of hand-written JSON that can break (for example a dropped closing
+        # quote inside an evidence string).
+        if schema is not None:
+            argv += ["--json-schema", json.dumps(schema)]
         return Invocation(
             argv=argv,
             env=base_env(),
@@ -721,8 +758,15 @@ class ClaudeProvider(Provider):
                 data = None
         if not isinstance(data, dict):
             return stdout, metrics_absent(self.name, "claude output was not a JSON envelope")
-        output = data.get("result")
-        if not isinstance(output, str):
+        result = data.get("result")
+        if isinstance(result, str):
+            output = result
+        elif isinstance(result, (dict, list)):
+            # Structured-output runs (``--json-schema``) can return the
+            # schema-conforming verdict as a nested object rather than a string;
+            # re-serialize it so the downstream grader parser sees JSON text.
+            output = json.dumps(result)
+        else:
             output = stdout
         usage = data.get("usage") if isinstance(data.get("usage"), dict) else {}
         metrics: dict[str, Any] = {
@@ -757,11 +801,19 @@ class CodexProvider(Provider):
     def available(self) -> bool:
         return shutil.which("codex") is not None
 
-    def build_invocation(self, prompt: str, *, run_dir: Path, role: str, model: str | None = None) -> Invocation:
+    def build_invocation(self, prompt: str, *, run_dir: Path, role: str, model: str | None = None, schema: dict[str, Any] | None = None) -> Invocation:
         last_message = run_dir / f"{role}_codex_last.txt"
         argv = ["codex", "exec", "-s", "read-only", "-o", str(last_message), "--json"]
         if model:
             argv += ["--model", model]
+        # Constrain the grader's final response to the verdict schema when one is
+        # supplied. codex reads the schema from a file, so write it next to the
+        # run before pointing ``--output-schema`` at it.
+        if schema is not None:
+            schema_path = run_dir / f"{role}_schema.json"
+            run_dir.mkdir(parents=True, exist_ok=True)
+            write_text(schema_path, json.dumps(schema, indent=2) + "\n")
+            argv += ["--output-schema", str(schema_path)]
         argv.append(prompt)
         return Invocation(
             argv=argv,
@@ -828,10 +880,11 @@ else:
     else:
         assertions = re.findall(r"^\d+\. (.+)$", prompt, re.M)
         default_pass = bool(grading_rule.get("pass", False))
-        expectations = [
-            {"text": text, "passed": default_pass, "evidence": "stub"} for text in assertions
+        verdicts = [
+            {"id": index, "passed": default_pass, "evidence": "stub"}
+            for index, _text in enumerate(assertions, start=1)
         ]
-        print(json.dumps({"expectations": expectations}))
+        print(json.dumps({"verdicts": verdicts}))
 
 record("exit")
 
@@ -848,9 +901,9 @@ class StubProvider(Provider):
     def available(self) -> bool:
         return bool(os.environ.get("EVAL_RUNNER_STUB_FILE"))
 
-    def build_invocation(self, prompt: str, *, run_dir: Path, role: str, model: str | None = None) -> Invocation:
-        # The hermetic stub runs no real model, so `model` is accepted to honor
-        # the provider contract and then ignored.
+    def build_invocation(self, prompt: str, *, run_dir: Path, role: str, model: str | None = None, schema: dict[str, Any] | None = None) -> Invocation:
+        # The hermetic stub runs no real model, so `model` and `schema` are
+        # accepted to honor the provider contract and then ignored.
         return Invocation(
             argv=[sys.executable, "-c", STUB_RUNNER_SOURCE, role],
             env=base_env(),
@@ -953,26 +1006,72 @@ def parse_grader_output(text: str) -> tuple[dict[str, Any] | None, str | None]:
             continue
         if isinstance(data, dict):
             parsed.append(data)
-    # Prefer a dict that actually carries the grader contract over an incidental
-    # object captured from surrounding prose.
+    # Only a dict that carries the grader contract counts as a verdict: the
+    # structured ``verdicts`` list (id-keyed, the current contract) or the legacy
+    # ``expectations`` list (text-keyed, still accepted for backward
+    # compatibility). A brace-balanced fragment salvaged from malformed output --
+    # for example a single ``{"text", "passed", "evidence"}`` entry recovered
+    # when an unterminated evidence string broke the enclosing array -- carries
+    # neither list. Returning such a fragment would slip past the caller's
+    # ``grading is None`` guard and let ``summarize_grading`` record a zero-match
+    # scored 0% instead of the intended ``grader_unparseable`` exclusion,
+    # silently deflating the benchmark.
     for data in parsed:
-        if isinstance(data.get("expectations"), list):
+        if grader_verdict_list(data) is not None:
             return data, None
-    if parsed:
-        return parsed[0], None
-    return None, "grader output was not parseable JSON"
+    return None, "grader output had no parseable verdict list"
+
+
+def grader_verdict_list(data: Any) -> list[Any] | None:
+    """Return the grader verdict list from either the structured ``verdicts``
+    contract or the legacy ``expectations`` contract, or None when the object
+    carries neither."""
+    if not isinstance(data, dict):
+        return None
+    verdicts = data.get("verdicts")
+    if isinstance(verdicts, list):
+        return verdicts
+    expectations = data.get("expectations")
+    if isinstance(expectations, list):
+        return expectations
+    return None
+
+
+_ENUM_PREFIX_RE = re.compile(r"^\s*\d+[.)]\s+")
+
+
+def normalize_assertion_text(text: str) -> str:
+    """Strip a leading enumeration prefix such as ``1. `` or ``2) `` that a
+    grader may prepend when it echoes the numbered "Assertions For Grading"
+    list instead of the verbatim assertion text. Only the leading list marker
+    is removed; the assertion body must still match exactly, so this recovers a
+    known grader serialization quirk without loosening any assertion."""
+    return _ENUM_PREFIX_RE.sub("", text).strip()
 
 
 def summarize_grading(grading: dict[str, Any] | None, assertions: list[str]) -> dict[str, Any]:
+    by_index: dict[int, dict[str, Any]] = {}
     by_text: dict[str, dict[str, Any]] = {}
-    if isinstance(grading, dict):
-        for item in grading.get("expectations", []):
-            if isinstance(item, dict) and isinstance(item.get("text"), str):
-                by_text.setdefault(item["text"], item)
+    by_norm: dict[str, dict[str, Any]] = {}
+    for item in grader_verdict_list(grading) or []:
+        if not isinstance(item, dict):
+            continue
+        ident = item.get("id")
+        if isinstance(ident, int) and not isinstance(ident, bool):
+            by_index.setdefault(ident, item)
+        if isinstance(item.get("text"), str):
+            by_text.setdefault(item["text"], item)
+            by_norm.setdefault(normalize_assertion_text(item["text"]), item)
     expectations: list[dict[str, Any]] = []
     passed = 0
-    for text in assertions:
-        item = by_text.get(text)
+    # Assertions are presented to the grader as a 1-based numbered list, so the
+    # structured ``id`` matches the assertion position. Prefer id matching (the
+    # current contract), then fall back to exact and enumeration-tolerant text
+    # matching for legacy text-keyed verdicts.
+    for position, text in enumerate(assertions, start=1):
+        item = by_index.get(position)
+        if item is None:
+            item = by_text.get(text) or by_norm.get(normalize_assertion_text(text))
         is_pass = bool(item and item.get("passed") is True)
         if is_pass:
             passed += 1
@@ -1035,7 +1134,9 @@ def execute_run(
     if status == "ok":
         grader_prompt = render_grader_prompt(suite, case, config, executor_output)
         write_text(run_dir / "grader_prompt.md", grader_prompt)
-        grader_inv = provider.build_invocation(grader_prompt, run_dir=run_dir, role="grader", model=model)
+        grader_inv = provider.build_invocation(
+            grader_prompt, run_dir=run_dir, role="grader", model=model, schema=grader_schema()
+        )
         g_stdout, g_stderr, g_exit, g_timeout = run_invocation(grader_inv, timeout)
         grader_output, grader_metrics = provider.parse(
             run_dir=run_dir, stdout=g_stdout, stderr=g_stderr, exit_code=g_exit, role="grader"
@@ -1168,6 +1269,7 @@ def aggregate_runs(
         status = str(run.get("status", "unknown"))
         status_counts[status] = status_counts.get(status, 0) + 1
     error_run_count = sum(count for status, count in status_counts.items() if status != "ok")
+    sanity_checks = compute_sanity_checks(configs, runs, per_eval)
     return {
         "skill_name": suite.skill_name,
         "agent": agent,
@@ -1182,8 +1284,55 @@ def aggregate_runs(
         "metrics_captured": metrics_present,
         "overall_pass_rate": overall,
         "comparison": comparison,
+        "sanity_checks": sanity_checks,
         "evals": per_eval,
         "runs": runs,
+    }
+
+
+def compute_sanity_checks(
+    configs: list[str], runs: list[dict[str, Any]], per_eval: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """Surface anomalies a supervising reviewer must inspect before reporting a
+    run as a clean result. These are deterministic signals derived from the run
+    records, not pass/fail judgments: a run that produced them may still be
+    fine, but it must not be summarized as ``+X% delta`` without explaining
+    them. Catches the failure that motivated this check -- a masked grader
+    failure or 0% cell silently folded into the comparison mean."""
+    infra: list[dict[str, Any]] = []
+    seen_infra: set[tuple[Any, Any, Any]] = set()
+    for run in runs:
+        if run.get("scored", False):
+            continue
+        key = (run.get("eval_id"), run.get("configuration"), run.get("status"))
+        if key in seen_infra:
+            continue
+        seen_infra.add(key)
+        infra.append({"eval_id": run.get("eval_id"), "configuration": run.get("configuration"), "status": run.get("status")})
+
+    zero_cells: list[dict[str, Any]] = []
+    for entry in per_eval:
+        for config, data in entry["configs"].items():
+            rate = data.get("pass_rate")
+            if isinstance(rate, (int, float)) and rate == 0.0 and data.get("scored_runs", 0) > 0:
+                zero_cells.append({"eval_id": entry["eval_id"], "configuration": config})
+
+    inversions: list[dict[str, Any]] = []
+    if len(configs) >= 2:
+        candidate, baseline = configs[0], configs[1]
+        for entry in per_eval:
+            cand = entry["configs"].get(candidate, {}).get("pass_rate")
+            base = entry["configs"].get(baseline, {}).get("pass_rate")
+            if isinstance(cand, (int, float)) and isinstance(base, (int, float)) and cand < base:
+                inversions.append(
+                    {"eval_id": entry["eval_id"], "candidate_pass_rate": cand, "baseline_pass_rate": base}
+                )
+
+    return {
+        "ok": not (infra or zero_cells or inversions),
+        "infrastructure_failures": infra,
+        "zero_scored_cells": zero_cells,
+        "candidate_below_baseline": inversions,
     }
 
 
@@ -1191,6 +1340,36 @@ def format_percent(value: Any) -> str:
     if isinstance(value, (int, float)):
         return f"{value * 100:.1f}%"
     return "n/a"
+
+
+def render_sanity_checks_markdown(sanity: Any) -> list[str]:
+    if not isinstance(sanity, dict):
+        return []
+    infra = sanity.get("infrastructure_failures") or []
+    zero = sanity.get("zero_scored_cells") or []
+    inversions = sanity.get("candidate_below_baseline") or []
+    total = len(infra) + len(zero) + len(inversions)
+    lines = ["", "## Sanity checks", ""]
+    if total == 0 and sanity.get("ok"):
+        lines.append("- Status: OK — no anomalies detected")
+        return lines
+    lines.append(
+        f"- Status: REVIEW REQUIRED — {total} anomaly signal(s); do not report this run "
+        "as a clean result without investigating and explaining each one"
+    )
+    if infra:
+        cells = ", ".join(f"{f['eval_id']}/{f['configuration']} ({f['status']})" for f in infra)
+        lines.append(f"- Infrastructure failures (excluded from pass rate): {cells}")
+    if zero:
+        cells = ", ".join(f"{c['eval_id']}/{c['configuration']}" for c in zero)
+        lines.append(f"- Scored 0% cells (verify grader verdict and executor output): {cells}")
+    if inversions:
+        cells = ", ".join(
+            f"{i['eval_id']} ({format_percent(i['candidate_pass_rate'])} < {format_percent(i['baseline_pass_rate'])})"
+            for i in inversions
+        )
+        lines.append(f"- Candidate below baseline (candidate < baseline): {cells}")
+    return lines
 
 
 def render_benchmark_markdown(benchmark: dict[str, Any]) -> str:
@@ -1217,6 +1396,7 @@ def render_benchmark_markdown(benchmark: dict[str, Any]) -> str:
             if status != "ok"
         )
         lines.append(f"- Infrastructure failure breakdown: {breakdown}")
+    lines.extend(render_sanity_checks_markdown(benchmark.get("sanity_checks")))
     lines.extend(["", "## Overall raw pass rate", ""])
     overall = benchmark.get("overall_pass_rate", {})
     for config in sorted_configs:
@@ -1374,6 +1554,20 @@ def command_run(args: argparse.Namespace) -> int:
         print(
             f"{comparison['candidate']}={format_percent(comparison['candidate_pass_rate'])} "
             f"{comparison['baseline']}={format_percent(comparison['baseline_pass_rate'])}"
+        )
+    sanity = benchmark.get("sanity_checks") or {}
+    if sanity.get("ok"):
+        print("Sanity checks: OK — no anomalies detected")
+    else:
+        counts = (
+            len(sanity.get("infrastructure_failures") or []),
+            len(sanity.get("zero_scored_cells") or []),
+            len(sanity.get("candidate_below_baseline") or []),
+        )
+        print(
+            f"Sanity checks: REVIEW REQUIRED — {counts[0]} infra failure(s), "
+            f"{counts[1]} zero-scored cell(s), {counts[2]} candidate-below-baseline cell(s); "
+            f"see Sanity checks in {iteration_dir / 'benchmark.md'}"
         )
     return 0
 

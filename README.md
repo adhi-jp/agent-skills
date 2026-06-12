@@ -553,18 +553,25 @@ provider exposes machine-readable usage (for example `claude -p --output-format
 json`), the runner captures it into `metrics.json` with its source; otherwise
 absence is recorded as absence, never a placeholder number.
 
-The grader subprocess returns a JSON verdict
-(`{"expectations": [{"text", "passed", "evidence"}]}`); the runner derives
-pass/fail from it, never from the executor's own claims, and grades the whole
-recorded output. An assertion the grader omits is recorded as failed.
+The grader subprocess returns a structured, schema-constrained verdict keyed by
+the assertion's 1-based `id` (`{"verdicts": [{"id", "passed", "evidence"}]}`),
+requested as provider-native structured output where the CLI supports it
+(`codex --output-schema`, `claude --json-schema`); the legacy text-keyed
+`{"expectations": [...]}` shape is still accepted. The runner derives pass/fail
+from it, never from the executor's own claims, and grades the whole recorded
+output. An assertion the grader omits is recorded as failed, and a verdict the
+runner cannot parse is recorded as `grader_unparseable` and excluded from the
+pass rate rather than scored as `0%`.
 
 `run` writes per-run `prompt.md`, `grader_prompt.md`, `outputs/`, `grading.json`,
 `metrics.json`, and `run.json` under
 `evals/<skill-name>/workspace/<agent>/iteration-N/`, plus `benchmark.json` and
 `benchmark.md` (per-eval and overall raw pass rate with the
-`with_skill`/`without_skill` comparison) at the iteration root. `report
-<iteration-dir>` re-renders `benchmark.md` from `benchmark.json`; it does not
-start a server, open a browser, bind a port, or write a PID file.
+`with_skill`/`without_skill` comparison, plus a `sanity_checks` section flagging
+infrastructure failures, scored-`0%` cells, and candidate-below-baseline cells)
+at the iteration root. `report <iteration-dir>` re-renders `benchmark.md` from
+`benchmark.json`; it does not start a server, open a browser, bind a port, or
+write a PID file.
 
 ## Package Contents
 

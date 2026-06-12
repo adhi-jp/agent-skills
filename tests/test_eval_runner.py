@@ -346,6 +346,32 @@ class ModelSelectionTests(BaseRunnerTest):
         self.assertEqual(with_model.argv[-1], "the prompt")
         self.assertEqual(with_model.argv[-3:-1], ["--model", "gpt-5.3-codex-spark"])
 
+    def test_codex_grader_invocation_writes_schema_file(self):
+        provider = eval_runner.CodexProvider()
+        run_dir = self.root / "rd"
+        run_dir.mkdir()
+        inv = provider.build_invocation(
+            "the prompt", run_dir=run_dir, role="grader", schema=eval_runner.grader_schema()
+        )
+        self.assertIn("--output-schema", inv.argv)
+        schema_path = run_dir / "grader_schema.json"
+        self.assertTrue(schema_path.is_file())
+        self.assertEqual(json.loads(schema_path.read_text())["required"], ["verdicts"])
+        # The executor invocation carries no schema.
+        ex = provider.build_invocation("p", run_dir=run_dir, role="executor")
+        self.assertNotIn("--output-schema", ex.argv)
+
+    def test_claude_grader_invocation_passes_json_schema(self):
+        provider = eval_runner.ClaudeProvider()
+        inv = provider.build_invocation(
+            "prompt", run_dir=self.root, role="grader", schema=eval_runner.grader_schema()
+        )
+        self.assertIn("--json-schema", inv.argv)
+        payload = inv.argv[inv.argv.index("--json-schema") + 1]
+        self.assertEqual(json.loads(payload)["required"], ["verdicts"])
+        ex = provider.build_invocation("prompt", run_dir=self.root, role="executor")
+        self.assertNotIn("--json-schema", ex.argv)
+
     def test_model_recorded_in_manifest_and_benchmark(self):
         path = self.write_suite()
         spec = self.write_stub_spec()
@@ -427,6 +453,17 @@ class CorePipelineTests(BaseRunnerTest):
             (self.iteration_dir() / "eval-first-eval" / "without_skill" / "run-1" / "grading.json").read_text()
         )
         self.assertEqual(baseline["passed"], 0)
+
+    def test_clean_run_reports_sanity_ok(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec(
+            {"executor_output": "answer", "grading": {"with_skill": {"pass": True}, "without_skill": {"pass": True}}}
+        )
+        result = self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        benchmark = json.loads((self.iteration_dir() / "benchmark.json").read_text())
+        self.assertTrue(benchmark["sanity_checks"]["ok"])
+        self.assertIn("Sanity checks: OK", result.stdout)
+        self.assertIn("## Sanity checks", (self.iteration_dir() / "benchmark.md").read_text())
 
     def test_report_re_renders_from_benchmark_json(self):
         path = self.write_suite()
@@ -566,6 +603,19 @@ class NegativeTests(BaseRunnerTest):
         benchmark = json.loads((self.iteration_dir() / "benchmark.json").read_text())
         self.assertIsNone(benchmark["overall_pass_rate"]["with_skill"])
 
+    def test_sanity_checks_flag_infrastructure_failure(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec(
+            {"executor_output": "answer", "grading": {"with_skill": {"unparseable": True}, "without_skill": {"pass": True}}}
+        )
+        result = self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        benchmark = json.loads((self.iteration_dir() / "benchmark.json").read_text())
+        sc = benchmark["sanity_checks"]
+        self.assertFalse(sc["ok"])
+        self.assertTrue(any(f["status"] == "grader_unparseable" for f in sc["infrastructure_failures"]))
+        self.assertIn("REVIEW REQUIRED", result.stdout)
+        self.assertIn("REVIEW REQUIRED", (self.iteration_dir() / "benchmark.md").read_text())
+
     def test_default_grading_failure_records_zero_pass(self):
         path = self.write_suite()
         spec = self.write_stub_spec({"executor_output": "answer", "grading": {}})
@@ -663,6 +713,43 @@ class ProviderParserTests(unittest.TestCase):
         self.assertEqual(len(data["expectations"]), 1)
         self.assertEqual(data["expectations"][0]["text"], "a")
 
+    def test_parse_grader_output_rejects_non_contract_fragment(self):
+        # An unterminated evidence string (here ended by backticks instead of a
+        # closing quote) merges array entries, so json.loads fails on the whole
+        # object and only per-entry ``{"text","passed","evidence"}`` fragments
+        # are brace-balanced. None of those fragments carries an ``expectations``
+        # list, so the verdict is unparseable and must be reported as None --
+        # returning a fragment would slip past the caller's ``grading is None``
+        # guard and be scored as a false 0%.
+        malformed = (
+            '{"expectations": [{"text": "a", "passed": true, "evidence": "ok"},'
+            '{"text": "b", "passed": true, "evidence": "broke `gate`.},'
+            '{"text": "c", "passed": true, "evidence": "ok2"}]}'
+        )
+        data, err = eval_runner.parse_grader_output(malformed)
+        self.assertIsNone(data)
+        self.assertIsNotNone(err)
+
+    def test_summarize_grading_recovers_enumerated_assertion_texts(self):
+        # A grader that echoes the numbered "Assertions For Grading" list
+        # (``1. ``, ``2) ``) prepends list markers to each text. Matching must
+        # strip that leading marker so real verdicts are not lost to an exact
+        # text mismatch and recorded as a false 0%; the assertion body still
+        # has to match exactly.
+        grading = {
+            "expectations": [
+                {"text": "1. Uses conventions mode.", "passed": True, "evidence": "e1"},
+                {"text": "2) Stops before implementation.", "passed": False, "evidence": "e2"},
+            ]
+        }
+        summary = eval_runner.summarize_grading(
+            grading, ["Uses conventions mode.", "Stops before implementation."]
+        )
+        self.assertEqual(summary["passed"], 1)
+        self.assertEqual(summary["total"], 2)
+        self.assertEqual(summary["expectations"][0]["evidence"], "e1")
+        self.assertFalse(summary["expectations"][1]["passed"])
+
     def test_summarize_grading_marks_missing_assertions_failed(self):
         grading = {"expectations": [{"text": "a", "passed": True}]}
         summary = eval_runner.summarize_grading(grading, ["a", "b"])
@@ -682,6 +769,85 @@ class ProviderParserTests(unittest.TestCase):
         self.assertEqual(summary["total"], 1)
         self.assertEqual(summary["passed"], 1)
         self.assertEqual([e["text"] for e in summary["expectations"]], ["a"])
+
+    def test_grader_schema_is_index_keyed_verdict_contract(self):
+        schema = eval_runner.grader_schema()
+        self.assertEqual(schema["required"], ["verdicts"])
+        item = schema["properties"]["verdicts"]["items"]
+        self.assertEqual(sorted(item["required"]), ["evidence", "id", "passed"])
+        self.assertEqual(item["properties"]["id"]["type"], "integer")
+        self.assertEqual(item["properties"]["passed"]["type"], "boolean")
+        self.assertIs(item["additionalProperties"], False)
+
+    def test_parse_grader_output_accepts_structured_verdicts(self):
+        verdict = '{"verdicts": [{"id": 1, "passed": true, "evidence": "x"}]}'
+        data, err = eval_runner.parse_grader_output(verdict)
+        self.assertIsNone(err)
+        self.assertEqual(eval_runner.grader_verdict_list(data)[0]["id"], 1)
+
+    def test_summarize_grading_maps_structured_verdicts_by_id(self):
+        # Verdicts carry no assertion text at all; matching is by 1-based id, and
+        # out-of-order verdicts still land on the right assertion.
+        grading = {
+            "verdicts": [
+                {"id": 2, "passed": True, "evidence": "e2"},
+                {"id": 1, "passed": False, "evidence": "e1"},
+            ]
+        }
+        summary = eval_runner.summarize_grading(grading, ["first", "second"])
+        self.assertEqual(summary["total"], 2)
+        self.assertFalse(summary["expectations"][0]["passed"])
+        self.assertEqual(summary["expectations"][0]["evidence"], "e1")
+        self.assertTrue(summary["expectations"][1]["passed"])
+        self.assertEqual(summary["expectations"][1]["text"], "second")
+
+    def test_claude_parse_serializes_structured_result_object(self):
+        # With --json-schema the result can come back as a nested object; the
+        # parser must re-serialize it so the grader parser sees JSON text.
+        sample = json.dumps(
+            {"result": {"verdicts": [{"id": 1, "passed": True, "evidence": "x"}]},
+             "usage": {"input_tokens": 1, "output_tokens": 1}}
+        )
+        output, _metrics = eval_runner.ClaudeProvider().parse(
+            run_dir=Path("."), stdout=sample, stderr="", exit_code=0, role="grader"
+        )
+        data, err = eval_runner.parse_grader_output(output)
+        self.assertIsNone(err)
+        self.assertEqual(eval_runner.grader_verdict_list(data)[0]["passed"], True)
+
+    def test_compute_sanity_checks_flags_anomalies(self):
+        configs = ["with_skill", "without_skill"]
+        runs = [
+            {"eval_id": "E1", "configuration": "with_skill", "scored": False, "status": "grader_unparseable"},
+            {"eval_id": "E1", "configuration": "without_skill", "scored": True, "status": "ok"},
+        ]
+        per_eval = [
+            {"eval_id": "E1", "eval_name": "n", "configs": {
+                "with_skill": {"pass_rate": None, "scored_runs": 0},
+                "without_skill": {"pass_rate": 0.0, "scored_runs": 1},
+            }},
+            {"eval_id": "E2", "eval_name": "n", "configs": {
+                "with_skill": {"pass_rate": 0.2, "scored_runs": 1},
+                "without_skill": {"pass_rate": 0.6, "scored_runs": 1},
+            }},
+        ]
+        s = eval_runner.compute_sanity_checks(configs, runs, per_eval)
+        self.assertFalse(s["ok"])
+        self.assertEqual(s["infrastructure_failures"][0]["eval_id"], "E1")
+        self.assertEqual(s["zero_scored_cells"][0], {"eval_id": "E1", "configuration": "without_skill"})
+        self.assertEqual(s["candidate_below_baseline"][0]["eval_id"], "E2")
+
+    def test_compute_sanity_checks_ok_when_clean(self):
+        s = eval_runner.compute_sanity_checks(
+            ["with_skill", "without_skill"],
+            [{"eval_id": "E1", "configuration": "with_skill", "scored": True, "status": "ok"}],
+            [{"eval_id": "E1", "eval_name": "n", "configs": {
+                "with_skill": {"pass_rate": 1.0, "scored_runs": 1},
+                "without_skill": {"pass_rate": 0.5, "scored_runs": 1},
+            }}],
+        )
+        self.assertTrue(s["ok"])
+        self.assertEqual(s["infrastructure_failures"], [])
 
     def test_assertions_for_case_dedups_preserving_order(self):
         suite = eval_runner.EvalSuite(
