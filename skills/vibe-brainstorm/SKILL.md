@@ -38,6 +38,9 @@ Do not use this skill for:
   only wants execution.
 - Conventional code review after implementation; use the relevant review or
   debug workflow instead.
+- Drafting, saving, or approving a durable requirements specification artifact.
+  Brainstormed directions become requirements only after the user confirms them
+  and a requirements-capture workflow records them.
 
 ## Mode Selection
 
@@ -72,6 +75,19 @@ Before running any mode or stage that requires sub-agents:
    clearly degraded single-agent fallback.
 6. If the user authorizes a degraded fallback, label it as degraded and do not
    claim sub-agents ran.
+
+A delegation mechanism may be ad-hoc per-role sub-agent invocation or one
+scripted orchestration run: a host mechanism that fans out several roles under
+a single deterministic, independently recorded run and returns their results.
+Both satisfy check 1, and an orchestration run's host-recorded run identity,
+per-role task records, or run journal satisfies check 3 when the later reader
+can inspect it. A scripted run cannot pause for user input, so schedule only
+generator, critic, development, grounding, and selection stages inside it;
+checklist confirmation and final direction confirmation stay in the
+conversation after the run returns. Ask each role for a bounded structured
+result — candidates, fit, tradeoffs, risks, or checklist entries — so results
+can be collected and merged without re-deriving them. Do not require a specific
+host orchestration tool.
 
 Any claim that real sub-agents ran must be backed by recordable host-provided
 evidence. A polished response, role headings, prose-only agent IDs, self-reported

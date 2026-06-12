@@ -318,7 +318,10 @@ generation, convention grounding, candidate development, a
 mandatory-expected-behavior gate, creativity ranking, and an adoption
 recommendation. The skill requires real verified sub-agent capability and
 recordable host evidence for delegated generation, critique, development,
-grounding, and selection roles. Evidence must come from an independently
+grounding, and selection roles. Ad-hoc per-role sub-agents and one scripted,
+independently recorded orchestration run that fans out the roles both satisfy
+the capability and evidence checks; checklist and direction confirmation stay
+in the conversation after the run returns. Evidence must come from an independently
 recorded host or runner surface visible to the later reader or grader; private
 transcript references, assistant-authored references to tool calls, prose-only
 agent IDs, and self-reported call counts are treated as unproven. It stops or

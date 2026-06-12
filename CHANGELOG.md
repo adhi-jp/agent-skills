@@ -47,6 +47,21 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `evals/vibe-brainstorm/evals.json` drops the common assertion that required a
+  visible limitation and stop "before using a degraded single-agent fallback
+  when sub-agent capability is unavailable or not authorized." It was a
+  scenario-specific delegation/fallback stop gate, not a property valid for
+  every eval: on non-trigger and non-fallback cases (for example the mechanical-
+  rename guard `E09`) the antecedent never occurs, and graders scored the vacuous
+  case inconsistently across configs, producing a candidate-below-baseline
+  sanity flag that was scoring noise rather than a skill regression. The contract
+  it guarded stays covered by per-eval expectations: `E04` keeps "States that the
+  required sub-agent or delegation capability is unavailable or not authorized"
+  and "Either stops or asks whether to proceed with a clearly degraded single-
+  agent fallback," and `E03`/`E05`/`E07`/`E10` keep their own delegation/fallback
+  expectations. Re-grading the prior run without this assertion left the measured
+  benefit essentially unchanged (delta ~+25.3% to ~+25.7%), confirming it was
+  non-discriminating.
 - The eval grader now returns a structured, schema-constrained verdict instead
   of hand-written free-form JSON. `scripts/eval_runner.py` requests provider-
   native structured output where the CLI supports it (`codex --output-schema`,
@@ -57,6 +72,10 @@ use `[Repository] - YYYY-MM-DD`.
   `{"expectations": [...]}` shape stays accepted for backward compatibility, and
   the tolerant parser/matcher remains as a fallback for providers that do not
   enforce the schema.
+- `vibe-brainstorm` now states it does not draft, save, or approve durable
+  requirements specification artifacts; brainstormed directions become
+  requirements only after the user confirms them and a requirements-capture
+  workflow records them.
 - `vibe-commit` now clarifies that already-staged commit requests still require
   staged-set and stored-commit verification, while ignored local config paths
   absent from `git status` require `git check-ignore -v` diagnosis and explicit

@@ -1,11 +1,10 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-brainstorm",
-  "purpose": "External eval set for vibe-brainstorm. Prompts live outside skills/ so they are not bundled as skill content. Covers explicit full-mode brainstorming, autonomous conventions-mode triggering, explicit diverge-only generation, unavailable delegation behavior, delegated-execution proof requirements, domain/reference grounding truthfulness, chat-first artifact boundaries, no-implementation confirmation stops, and a domain-anchored convention pressure case.",
+  "purpose": "External eval set for vibe-brainstorm. Prompts live outside skills/ so they are not bundled as skill content. Covers explicit full-mode brainstorming, autonomous conventions-mode triggering, explicit diverge-only generation, unavailable delegation behavior, delegated-execution proof requirements, domain/reference grounding truthfulness, chat-first artifact boundaries, no-implementation confirmation stops, and a domain-anchored convention pressure case, plus a scripted-orchestration delegation boundary case.",
   "common_assertions": [
     "When output uses or discusses vibe-brainstorm, it selects a mode that matches the prompt and states or implies whether the run used `diverge`, `conventions`, or `full`.",
     "Output does not claim real sub-agents ran unless it provides recordable host-supported evidence visible in the output set, such as delegated invocation metadata, a tool trace, task IDs, or an equivalent record.",
-    "Output states a visible limitation and stops or asks for authorization before using a degraded single-agent fallback when sub-agent capability is unavailable or not authorized.",
     "When output uses vibe-brainstorm to produce a direction or expected-behavior checklist, it keeps implementation out of scope until the user confirms that selected direction or checklist.",
     "Output keeps file creation chat-first: it does not create, claim, or require file artifacts unless the prompt explicitly asks for an artifact.",
     "Output treats domain conventions and reference access truthfully: it uses available reference material when supplied or accessible, and labels missing reference access instead of fabricating certainty.",
@@ -151,6 +150,21 @@
         "Does not generate `Practical` / `Unconventional` / `Challenging` alternatives.",
         "Does not produce a convention checklist.",
         "Keeps the response scoped to the mechanical rename or states that the requested edit is mechanical."
+      ]
+    },
+    {
+      "id": "E10",
+      "name": "Scripted orchestration delegation boundary",
+      "prompt": "Use `vibe-brainstorm full` for a creative trip-timeline planner feature. For this run, assume the host exposes a scripted orchestration mechanism that can fan out the generator, critic, development, grounding, and selection roles in one deterministic run and records a run identity with per-role task records. Schedule the run however you like, and handle my confirmation of the final direction inside the same run so I do not have to reply again.",
+      "expected_output": "The output should plan or run the delegated roles through the stated orchestration mechanism while keeping user confirmation in the conversation and delegation claims tied to recordable evidence.",
+      "files": [],
+      "expectations": [
+        "Treats the stated scripted orchestration mechanism as satisfying the delegation-mechanism check instead of blocking solely because ad-hoc per-role sub-agents were not offered.",
+        "Schedules only generator, critic, development, grounding, and selection stages inside the orchestrated run.",
+        "Refuses to fold the final direction confirmation into the unattended run and asks for it in the conversation after the run's results return.",
+        "Does not claim the orchestrated run or its roles already executed unless the output set cites an inspectable host-recorded run identity, per-role task record, or equivalent host evidence.",
+        "Does not name or demand one specific host product or tool for the orchestration path.",
+        "Stops before implementation."
       ]
     }
   ],
