@@ -71,6 +71,54 @@ Stop before implementation when the current issue lacks any of these:
 Explain blockers in user-impact terms: what the user could still see, lose,
 misconfigure, trust incorrectly, or be unable to verify.
 
+## Minimum Visible Output
+
+Keep the workflow visible even when the immediate answer is short, blocked,
+refuses an unsafe shortcut, has no local files to inspect, or handles only
+debug/fix closure such as repository history. Do not replace the ledger with
+general advice or a promise to fill it in later.
+
+Before asking a narrowing question, stopping, delegating, or handing a check to
+the user, include a compact current-scope record:
+
+- Current slice: preserve the user's wording, then state the observable
+  behavior or operation decision, expected source or missing source, unknowns,
+  proof or preflight path, and closure criteria.
+- Ledger: one row per unresolved symptom, hypothesis, failed tool decision, or
+  closure decision. Use the debug-ledger fields when the row is a repair
+  symptom. When repair is already verified and only repository mutation or
+  cleanup remains, do not reopen the repair; record a closure-decision row with
+  source evidence, owned and ambiguous paths, affected history/index state,
+  required consent, preflight path, and status.
+- Claim labels: separate verified facts, hypotheses, expert judgment, expected
+  outcomes, and proof results for implementation-affecting claims.
+- Existing behavior or state: name the user-visible output, internal state,
+  persistence/lifecycle, external contract, runtime artifact, tool contract, or
+  repository history/index state that must be preserved, changed
+  intentionally, is unknown, or is not applicable.
+
+If the only available evidence is the prompt, plan, or supplied fixture, say
+that explicitly and reason from it before asking for the smallest missing
+decision. A narrow question is not a substitute for the current-scope record.
+
+## Delegated Diagnosis
+
+When several independent hypotheses each need bounded read-only investigation
+and the host exposes a delegation or sub-agent capability, fan the
+investigations out instead of reading everything serially. The fan-out may run
+as ad-hoc sub-agent calls or as one scripted orchestration run: a host
+mechanism that runs the investigators under a single deterministic,
+independently recorded run and returns their results. Do not require a
+specific host orchestration tool.
+
+Give each delegated unit one hypothesis-shaped question and a read-only
+boundary: inspect code, tests, logs, artifacts, and history, and return
+evidence with sources suitable for the debug ledger. Probes that mutate state,
+temporary instrumentation, user-environment retests, edits, and ledger
+ownership stay with the coordinator. A delegated finding enters the ledger as
+recorded evidence for a hypothesis, not as the proven cause; the disconfirming
+check and closure decisions still run in this workflow.
+
 ## Repository History Boundary
 
 Debug proof authorizes only the verified repair slice. It does not authorize
@@ -251,6 +299,11 @@ Read these bundled references only when their details are needed:
       are not proof.
     - For each degraded check, choose alternate proof, narrower local proof plus
       explicit residual, user retest contract, accepted residual, or blocker.
+      Choose the strongest path that can observe the current contract now:
+      alternate proof first, then narrower proof with stated residual, then a
+      user retest contract when the user can observe the missing behavior,
+      otherwise blocker. Use accepted residual only when the user explicitly
+      accepts that risk.
     - Do not count "manual smoke skipped", "not locally reproducible", or "test
       environment cannot observe this" as a pass.
 
@@ -258,9 +311,19 @@ Read these bundled references only when their details are needed:
     - When local proof cannot observe current-scope behavior, choose now:
       alternate proof, blocker, accepted residual, or a full user retest
       contract. Do not defer with "if needed" or promise steps later.
+    - Do not present the proof paths as a menu for the user to choose when the
+      available evidence already determines the least risky path. If the user
+      asks what to test and their environment is the only credible observation
+      path, select a user retest contract and leave the ledger item blocked
+      until evidence returns.
     - A user retest contract names exact setup, action sequence, expected
       observation, artifact/version freshness marker, failure evidence to
       capture, and the ledger item or matrix row each check closes.
+    - When exact specifics such as the command, prompts, inputs, or paths are
+      unknown, deliver the contract now with explicit stated assumptions or
+      clearly labeled placeholders and say how to adapt them. Do not gate the
+      contract on clarifying questions the user cannot answer; asking for those
+      specifics before writing it is the same banned defer.
     - Avoid vague requests such as "please retest" or "try it again".
 
 15. **Review recurrence before finishing**

@@ -33,6 +33,13 @@ non-proof. For each degraded check, choose exactly one:
 - Accepted residual: the user explicitly accepts the remaining risk.
 - Blocker: no credible proof path exists yet.
 
+Choose the strongest proof path that can observe the current contract now:
+alternate proof first, then narrow local proof plus residual, then a user
+retest contract when the user can observe the missing behavior, otherwise
+blocker. Accepted residual requires explicit user acceptance. Do not hand the
+user a menu of proof paths when the available evidence already determines the
+least risky path.
+
 Do not mark a check as passed because it was skipped or impossible in the
 current environment.
 
@@ -42,6 +49,10 @@ When local proof cannot observe current-scope behavior, choose now: alternate
 proof, blocker, accepted residual, or a concrete user retest contract. Do not
 defer with "if needed".
 
+If the user asks what to test and their environment is the only credible
+observation path, select the user retest contract now and keep the ledger item
+blocked until evidence returns.
+
 1. Setup: environment, version, account, feature flag, data, artifact freshness
    marker, and any cache/restart condition.
 2. Actions: exact sequence to perform, including variants if the matrix needs
@@ -50,6 +61,11 @@ defer with "if needed".
 4. Failure evidence: screenshot, log line, request ID, timestamp, input value,
    exported file, artifact hash, or reproduction notes to capture.
 5. Ledger closure: which symptom or matrix row each check closes.
+
+When exact specifics such as the command, prompts, inputs, or paths are unknown,
+fill the contract now with explicit stated assumptions or clearly labeled
+placeholders and say how to adapt them, rather than asking the user to supply
+those specifics before you write it.
 
 Avoid "please retest", "try it again", and promises to provide steps later. The
 user should know exactly what to do and what result would prove or reopen the

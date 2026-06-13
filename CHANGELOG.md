@@ -47,6 +47,64 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skills/vibe-debug-fix/SKILL.md` step 14 and
+  `references/verification-handoff.md` now state that when exact retest
+  specifics such as the command, prompts, inputs, or paths are unknown, the
+  skill delivers the user retest contract immediately with explicit stated
+  assumptions or clearly labeled placeholders and how to adapt them, rather than
+  asking the user to supply those specifics first — the same defer the step
+  already prohibits. Motivated by the degraded-verification eval `E12`, where
+  the `with_skill` run reproducibly asked the user for the command and prompts
+  before writing the contract while the `without_skill` baseline delivered a
+  concrete one. A sonnet-4-6 with/without rerun after the change moved `E12`
+  from candidate-below-baseline (`with_skill` 42–47% vs `without_skill` 53–90%
+  across two runs) to `with_skill` 89.5% (17/19) vs `without_skill` 36.8%, and
+  the `with_skill` output now emits a labeled-placeholder contract instead of
+  clarifying questions.
+- `evals/vibe-debug-fix/evals.json` rewords common assertion #3 from "performs
+  local/source investigation before asking the user for a full technical
+  reproduction" to "investigates the available evidence, including the provided
+  prompt, plan, described symptoms, and any supplied code, tests, logs, or
+  artifacts, and reasons from it before asking ..., and asks only questions that
+  change the fix or proof path." Most evals in the suite ship no fixture code, so
+  the prior wording was graded literally as "no file reads" and penalized the
+  rigorous agent for asking narrow proof-path questions when there was nothing
+  local to read. Across sonnet-4-6 with/without reruns the reworded assertion
+  moved from non-discriminating (`with_skill` 12/18 = `without_skill` 12/18) to
+  `with_skill` 18/18 vs `without_skill` 13–15/18, and cleared the `E02`/`E14`
+  candidate-below-baseline flags the literal grading had caused. The guarded
+  failure mode is preserved: a response that demands a full reproduction or asks
+  broad non-proof-changing questions before engaging the available evidence
+  still fails.
+- `vibe-debug-fix` now requires a compact current-scope record even for short
+  blocker, refusal, no-local-file, delegated-diagnosis, or verified-repair
+  closure responses. The visible record preserves the user's wording, states the
+  current behavior or operation decision, expected source or authorization,
+  unknowns, proof or preflight path, closure criteria, one ledger row per
+  unresolved symptom or closure decision, claim labels, and the relevant
+  existing behavior or operation state. For verified repairs that have moved to
+  repository history or cleanup, the skill records a closure-decision ledger row
+  without reopening the repair. The degraded-verification gate now chooses the
+  strongest currently observable proof path instead of presenting proof options
+  as a user menu; when the user asks what to test and only their environment can
+  observe the behavior, the skill selects a user retest contract and leaves the
+  ledger blocked until evidence returns. The eval common assertions now apply
+  to the current debug/fix or closure slice, distinguish unresolved repair rows
+  from verified-repair closure rows, scope probe escalation to prompts or
+  investigations that already show bounded triage, allow prompt-specific domain
+  steps, and keep user-run handoff requirements only when the agent asks the user
+  to perform the proof path. This targets the iter-7 pattern where `with_skill`
+  repeatedly lost points for omitted ledger/current-scope structure, while E18's
+  history-boundary case was penalized by repair-symptom assertions despite
+  passing its operation-consent checks. A clean sonnet-4-6 with/without rerun
+  after this change (`evals/vibe-debug-fix/workspace/claude/iteration-8`) scored
+  `with_skill` 92.0% vs `without_skill` 60.7% (delta +31.4%) with 36/36 scored
+  runs, `error_run_count=0`, metrics captured, and sanity checks OK with no
+  candidate-below-baseline, scored-0%, infrastructure, or grader anomalies. E18
+  moved to 100%, E12 to 94.7%, and E08/E10 to 83.3%; remaining `with_skill`
+  failures cluster around existing-state marking and exact user-run handoff
+  detail, so they are tracked as residual contract pressure rather than a reason
+  for another broad eval rewrite.
 - `evals/vibe-brainstorm/evals.json` drops the common assertion that required a
   visible limitation and stop "before using a degraded single-agent fallback
   when sub-agent capability is unavailable or not authorized." It was a

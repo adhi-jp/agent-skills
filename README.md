@@ -336,14 +336,20 @@ Self-contained debug/fix skill for rough vibe-coding bug reports, regressions,
 failed prior attempts, repeated "still broken" feedback, environment-specific
 failures, runtime artifact mismatches, tool-confidence issues, and
 existing-feature repair. It preserves the user's wording, turns symptoms into a
-debug ledger, analyzes existing behavior to preserve or intentionally change,
-routes unfamiliar external or tool behavior to authoritative sources, separates
+debug ledger, keeps a compact current-scope record even for blockers, missing
+local evidence, delegated diagnosis, or verified-repair closure decisions,
+analyzes existing behavior to preserve or intentionally change, routes
+unfamiliar external or tool behavior to authoritative sources, separates
 hypotheses from proof, expands examples into domain-general state-space
 dimensions before domain-specific cases, verifies artifact freshness, escalates
 stalled or over-broad source-only debugging to focused probes after bounded
 triage, handles degraded verification as non-proof, gives exact user retest
 contracts as soon as local proof is unavailable, and keeps unresolved symptoms
-alive across resume or recurrence.
+alive across resume or recurrence. Independent hypotheses may be investigated
+through delegated read-only units — ad-hoc sub-agents or one scripted,
+independently recorded orchestration run — whose findings enter the ledger as
+recorded evidence, not proven cause; probes, edits, and ledger ownership stay
+with the coordinator.
 Repair proof does not authorize repository history mutation. Staging, commits,
 stashes, resets, amends, release work, and cleanup require operation-specific
 consent after a dirty worktree and index preflight that separates repair-owned

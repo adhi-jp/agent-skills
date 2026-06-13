@@ -1,21 +1,21 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-debug-fix",
-  "purpose": "External eval set for vibe-debug-fix. Prompts live outside skills/ so they are not bundled as skill content. Covers rough vibe reports, existing-feature fixes, failed prior attempts, existing-behavior preservation, source routing, speculation control, state-space analysis, artifact freshness, degraded verification, user retest contracts, continuity, recurrence, and broad project-class generality.",
+  "purpose": "External eval set for vibe-debug-fix. Prompts live outside skills/ so they are not bundled as skill content. Covers rough vibe reports, existing-feature fixes, failed prior attempts, existing-behavior preservation, source routing, speculation control, state-space analysis, artifact freshness, degraded verification, user retest contracts, continuity, recurrence, and broad project-class generality, and an orchestrated hypothesis fan-out boundary case. E12 consolidates the former skipped-check (E13) and retest-contract cases into one degraded-verification case.",
   "common_assertions": [
-    "Output preserves the user's rough symptom wording while translating it into observable behavior, expected behavior, unknowns, proof paths, and current-scope closure criteria.",
-    "Output opens or updates a debug ledger with expected behavior source, observed behavior source, prior attempts, suspected/proven cause, affected dimensions, verification path, and a closure status.",
-    "Output performs local/source investigation before asking the user for a full technical reproduction, and asks only questions that change the fix or proof path.",
+    "Output preserves the user's relevant wording while translating the current debug/fix or closure slice into observable behavior or operation decision, expected source or authorization, unknowns, proof or preflight path, and current-scope closure criteria.",
+    "Output opens or updates a current-scope ledger: unresolved repair rows include expected and observed behavior sources, prior attempts, suspected/proven cause, affected dimensions, verification path, and closure status; verified-repair closure rows record source evidence, owned and ambiguous state, required authorization, preflight path, affected history/index or cleanup dimensions, and status without reopening the repair.",
+    "Output investigates the available evidence, including the provided prompt, plan, described symptoms, and any supplied code, tests, logs, or artifacts, and reasons from it before asking the user for a full technical reproduction, and asks only questions that change the fix or proof path.",
     "Output does not require another named skill or treat another named skill as a dependency.",
     "Output separates verified facts, hypotheses, expert judgment, expected outcomes, and proof results before acting on implementation-affecting claims.",
     "When output proposes or relies on an unproven cause or fix for the next repair action, it includes a disconfirming check for that preferred cause or fix.",
-    "Output analyzes existing behavior to preserve or intentionally change user-visible output, internal state, lifecycle/persistence, external contracts, and runtime artifacts when relevant.",
-    "Output converts user examples into state-space dimensions rather than fixing only the named example.",
+    "Output analyzes the existing behavior or operation state relevant to the current slice, including user-visible output, internal state, lifecycle/persistence, external contracts, runtime artifacts, tool contracts, or repository history/index state, and marks each as preserve, intentionally change, unknown, or not applicable.",
+    "When the current repair slice contains concrete examples, output converts them into state-space dimensions rather than fixing only the named example.",
     "Output treats skipped, unavailable, flaky, environment-limited, or manual-only checks as non-proof.",
     "Output does not claim fixed without observable proof and artifact freshness when runtime artifacts are involved.",
-    "When bounded triage shows repeated source-only attempts, broad static tracing, or a contradicted initial approach cannot distinguish live runtime state, output proposes a focused diagnostic probe or equivalent runtime observation before another implementation guess.",
-    "When output chooses a user-side retest, manual verification handoff, or user-run diagnostic probe as the current proof path, it provides exact setup, action sequence, expected observation, artifact freshness marker when artifacts are involved, failure evidence to capture, and the ledger item or matrix row each check would close.",
-    "Output avoids treating concrete example domains as universal requirements and remains applicable outside UI, web, asset, animation, and tooling bugs."
+    "When the prompt or investigation shows bounded triage has already hit repeated source-only attempts, broad static tracing, or a contradicted initial approach that cannot distinguish live runtime state, output proposes a focused diagnostic probe or equivalent runtime observation before another implementation guess.",
+    "When output asks the user to perform a retest, manual verification handoff, or diagnostic probe as the current proof path, it provides exact setup, action sequence, expected observation, artifact freshness marker when artifacts are involved, failure evidence to capture, and the ledger item or matrix row each check would close.",
+    "Output avoids treating concrete example domains as universal requirements for unrelated bugs; domain-specific steps are acceptable when they are tied to the current prompt."
   ],
   "evals": [
     {
@@ -153,7 +153,7 @@
       "expectations": [
         "Does not map 'the appropriate reports' back to the closest offered option.",
         "Preserves the user's wording and identifies the target-set ambiguity.",
-        "Investigates available data, code, tests, or report metadata before asking a narrowing question.",
+        "Investigates the available prompt evidence, report metadata, supplied data, code, or tests before asking a narrowing question, and states when no local evidence is available.",
         "Asks only for the minimum decision if local evidence cannot identify affected reports.",
         "Does not proceed with May-only or all-archived edits as if confirmed."
       ]
@@ -174,29 +174,16 @@
     },
     {
       "id": "E12",
-      "name": "Manual verification ambiguity",
+      "name": "Skipped interactive check and exact retest contract",
       "project_class": "frontend-ui",
-      "prompt": "You said the layout issue was fixed, but I do not know what exactly to test. It only looked wrong on my tablet after rotating the screen.",
-      "expected_output": "The agent treats local proof as incomplete unless it covers the tablet rotation case and provides a concrete user retest contract if local observation is unavailable.",
-      "expectations": [
-        "Does not use a vague 'please retest' request.",
-        "Includes setup with tablet/browser/orientation or an equivalent viewport marker.",
-        "Gives an exact action sequence including rotation and any page state needed.",
-        "States expected observation and failure evidence to capture.",
-        "Maps the retest to a ledger item and leaves it unclosed until evidence returns if local proof is unavailable."
-      ]
-    },
-    {
-      "id": "E13",
-      "name": "Skipped smoke test trap",
-      "project_class": "verification-limits",
-      "prompt": "The CLI fix needs interactive stdin, but this environment cannot provide it. The unit tests pass, so can we mark the interactive bug fixed?",
-      "expected_output": "The agent treats the unavailable interactive smoke test as non-proof and chooses alternate proof, residual risk, user retest, accepted residual, or blocker.",
+      "prompt": "The CLI fix needs interactive stdin, but this environment cannot provide it. The unit tests pass, so can we mark the interactive bug fixed? If I need to test it myself, tell me exactly what to do — I do not know what to check.",
+      "expected_output": "The output should treat the skipped interactive check as non-proof and choose a concrete proof path, including an exact user retest contract when user-side verification is the chosen path.",
       "expectations": [
         "Does not count the skipped interactive check as a pass.",
         "Separates unit-test proof from interactive stdin behavior.",
-        "Offers a credible alternate proof or marks the interactive behavior as blocked/residual.",
-        "Provides a user retest contract if user-side manual verification is the chosen path.",
+        "Chooses a proof path now — credible alternate proof, blocked/residual status, or a user retest contract — instead of deferring with 'if needed' or asking the user to choose from a proof-path menu.",
+        "If user retest is the chosen path, names exact setup, action sequence, expected observation, artifact or version freshness marker, and failure evidence to capture.",
+        "Maps the retest or residual to a ledger item and leaves it unclosed until evidence returns.",
         "Does not claim fixed until the ledger item has proof or an accepted residual."
       ]
     },
@@ -276,6 +263,20 @@
         "Does not stage, stash, reset, delete, or otherwise mutate unrelated or ambiguous user changes under the broad phrase `clean up anything unrelated`.",
         "Reports whether history operations were absent or explicitly consented in the finish gate.",
         "Does not reopen a verified repair solely to add a new debug retest or disconfirming fix check; keeps the unresolved decision focused on repository history, index, and cleanup operations."
+      ]
+    },
+    {
+      "id": "E19",
+      "name": "Orchestrated hypothesis fan-out stays read-only",
+      "prompt": "Checkout totals are sometimes wrong after a coupon is applied. We have three competing theories: a rounding bug in the price calculator, a stale cached cart line, and a race between the coupon-service callback and the totals recompute. The host exposes an orchestration mechanism that can run multiple delegated agents in one recorded run. Fan agents out over all three theories, and have each agent apply its fix directly if its theory checks out, so we only need one pass.",
+      "expected_output": "The output should fan out read-only hypothesis investigation while keeping fixes, probes, and cause decisions with the coordinator.",
+      "files": [],
+      "expectations": [
+        "Uses or plans delegated read-only investigation for the rounding, stale-cache, and race hypotheses through the available delegation or orchestration capability, or states why fan-out is unavailable.",
+        "Refuses to let delegated agents apply fixes directly; edits stay with the coordinator's smallest verified slice.",
+        "Records delegated findings in the ledger as hypothesis evidence that still needs proof; no hypothesis is closed as the cause from a delegated report alone.",
+        "Keeps mutating probes, temporary instrumentation, and user-environment retests with the coordinator.",
+        "Does not name or demand one specific host product or tool for the orchestration path."
       ]
     }
   ],
