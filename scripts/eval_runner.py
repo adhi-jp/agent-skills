@@ -526,6 +526,35 @@ def unique_eval_dir_name(case: EvalCase, used: set[str]) -> str:
     return name
 
 
+# Upper bound on written-artifact bytes folded into the grader prompt. Real plan
+# artifacts run tens of KB; the cap only guards against a pathological file
+# blowing up the grader context, and truncation is recorded, never silent.
+ARTIFACT_MAX_CHARS = 400_000
+
+
+def collect_written_artifact(artifact_file: Path) -> tuple[str | None, dict[str, Any]]:
+    """Read a file the executor wrote to the designated artifact path, if any.
+
+    Returns ``(artifact_text, info)``. ``artifact_text`` is ``None`` when no file
+    was written (the common case for skills whose deliverable is the chat reply),
+    so the grader prompt is unchanged for those runs. ``info`` records presence,
+    byte/char counts, and whether the text was truncated for the grader.
+    """
+    if not artifact_file.is_file():
+        return None, {"captured": False}
+    raw = artifact_file.read_text(encoding="utf-8", errors="replace")
+    info: dict[str, Any] = {
+        "captured": True,
+        "path": str(artifact_file),
+        "chars": len(raw),
+        "truncated": False,
+    }
+    if len(raw) > ARTIFACT_MAX_CHARS:
+        raw = raw[:ARTIFACT_MAX_CHARS] + "\n[...artifact truncated for grading...]\n"
+        info["truncated"] = True
+    return raw, info
+
+
 # --------------------------------------------------------------------------- #
 # Prompt rendering: executor gets the task only; grader gets output + assertions.
 # --------------------------------------------------------------------------- #
@@ -534,6 +563,7 @@ def render_executor_prompt(
     case: EvalCase,
     config: str,
     skill_path: str | None,
+    artifact_path: str | None = None,
 ) -> str:
     lines = ["# Eval Run Prompt", ""]
     if config == "with_skill":
@@ -578,6 +608,20 @@ def render_executor_prompt(
             "- Do not grade your own output, score it, or judge pass/fail; a separate grader handles that.",
         ]
     )
+    if artifact_path:
+        # Config-symmetric capture hook: when a workflow's deliverable is a
+        # written file (an implementation plan, spec, or other primary Markdown
+        # artifact) rather than the chat reply, the grader otherwise only sees
+        # the concise chat summary and cannot credit the artifact's contents.
+        # Naming a fixed path lets the runner fold the written file into the
+        # grader's recorded output without leaking any target behavior.
+        lines.append(
+            "- If your workflow writes a plan, specification, or other primary Markdown "
+            f"artifact to a file as its deliverable, write that file to this exact path: `{artifact_path}`. "
+            "The grader is shown both your final response and the contents of any file written to that "
+            "path, so a concise final response that points to that file is graded together with the "
+            "file's contents."
+        )
     return "\n".join(lines) + "\n"
 
 
@@ -628,8 +672,22 @@ def render_grader_prompt(
     case: EvalCase,
     config: str,
     executor_output: str,
+    artifact_text: str | None = None,
 ) -> str:
     assertions = assertions_for_case(suite, case)
+    boundary_rules = [
+        "- Grade the whole recorded output, not only the intended artifact inside it.",
+        "- Wrapper text, headings, Markdown fences, explanations, and meta-notes are part of the output.",
+        "- Do not narrow a global `Output ...` assertion to a sub-artifact unless the assertion explicitly scopes it.",
+        "- Use byte-level or parser-level checks for exact JSON, verbatim output, raw commit-message, and no-fence assertions.",
+    ]
+    if artifact_text is not None:
+        boundary_rules.append(
+            "- The agent wrote its primary artifact to a file. Both the chat response and the written "
+            "artifact below are the agent's output: grade them together. Assertions about the chat "
+            "response (for example concise-summary or no-duplication rules) apply to the recorded "
+            "response, and assertions about the plan/spec artifact apply to the written artifact."
+        )
     lines = [
         "# Eval Grader Prompt",
         "",
@@ -643,16 +701,31 @@ def render_grader_prompt(
         "",
         "## Grading Boundary Rules",
         "",
-        "- Grade the whole recorded output, not only the intended artifact inside it.",
-        "- Wrapper text, headings, Markdown fences, explanations, and meta-notes are part of the output.",
-        "- Do not narrow a global `Output ...` assertion to a sub-artifact unless the assertion explicitly scopes it.",
-        "- Use byte-level or parser-level checks for exact JSON, verbatim output, raw commit-message, and no-fence assertions.",
+        *boundary_rules,
         "",
         "## Recorded Output",
         "",
         "```",
         executor_output.rstrip("\n"),
         "```",
+    ]
+    if artifact_text is not None:
+        # The written artifact is itself Markdown with its own ``` fences, so a
+        # fenced block would nest ambiguously; bracket it with explicit sentinels
+        # the grader can read as a single verbatim section.
+        lines.extend(
+            [
+                "",
+                "## Written Plan Artifact",
+                "",
+                "The agent wrote its primary artifact to the designated file path. Its full contents:",
+                "",
+                "----- BEGIN WRITTEN ARTIFACT -----",
+                artifact_text.rstrip("\n"),
+                "----- END WRITTEN ARTIFACT -----",
+            ]
+        )
+    lines += [
         "",
         "## Required response",
         "",
@@ -759,12 +832,19 @@ class ClaudeProvider(Provider):
         if not isinstance(data, dict):
             return stdout, metrics_absent(self.name, "claude output was not a JSON envelope")
         result = data.get("result")
-        if isinstance(result, str):
+        structured = data.get("structured_output")
+        if isinstance(structured, (dict, list)):
+            # Newer claude CLIs (for example 2.1.x) place ``--json-schema``
+            # output under ``structured_output`` and leave ``result`` an empty
+            # string. Prefer the structured envelope and re-serialize it so the
+            # downstream grader parser sees JSON text. Executor runs carry no
+            # schema, so this key is absent and the ``result`` paths below apply.
+            output = json.dumps(structured)
+        elif isinstance(result, str):
             output = result
         elif isinstance(result, (dict, list)):
-            # Structured-output runs (``--json-schema``) can return the
-            # schema-conforming verdict as a nested object rather than a string;
-            # re-serialize it so the downstream grader parser sees JSON text.
+            # Older CLIs returned the schema-conforming verdict as a nested
+            # object inside ``result``; re-serialize it for the grader parser.
             output = json.dumps(result)
         else:
             output = stdout
@@ -873,6 +953,15 @@ if role == "executor":
     if config == "with_skill" and float(os.environ.get("EVAL_RUNNER_STUB_TIMEOUT", "0") or 0):
         time.sleep(float(os.environ["EVAL_RUNNER_STUB_TIMEOUT"]))
     text = spec.get("executor_output", "stub output")
+    # When the spec asks for it, emulate a skill whose deliverable is a written
+    # file: parse the designated artifact path out of the Response Contract and
+    # write there, so the runner's artifact-collection path is exercised.
+    artifact = (spec.get("write_artifact") or {}).get(config)
+    if artifact is not None:
+        match = re.search(r"exact path: `([^`]*)`", prompt)
+        if match:
+            with open(match.group(1), "w", encoding="utf-8") as handle:
+                handle.write(artifact)
     print("%s [%s/%s]" % (text, field("Eval id"), config))
 else:
     if grading_rule.get("unparseable"):
@@ -1109,7 +1198,16 @@ def execute_run(
     outputs_dir = run_dir / "outputs"
     assertions = assertions_for_case(suite, case)
 
-    executor_prompt = render_executor_prompt(suite, case, config, skill_path)
+    # Designate a fixed, run-local path for a file deliverable. The executor runs
+    # with cwd at the repo root, so the path must be absolute; create the parent
+    # up front so even an agent that does not auto-create directories can write
+    # there. After execution the runner folds any file written here into the
+    # grader's recorded output (see ARTIFACT_MAX_CHARS).
+    outputs_dir.mkdir(parents=True, exist_ok=True)
+    artifact_file = outputs_dir / "plan.md"
+    artifact_path = str(artifact_file.resolve())
+
+    executor_prompt = render_executor_prompt(suite, case, config, skill_path, artifact_path)
     write_text(run_dir / "prompt.md", executor_prompt)
     executor_inv = provider.build_invocation(executor_prompt, run_dir=run_dir, role="executor", model=model)
     e_stdout, e_stderr, e_exit, e_timeout = run_invocation(executor_inv, timeout)
@@ -1117,6 +1215,7 @@ def execute_run(
         run_dir=run_dir, stdout=e_stdout, stderr=e_stderr, exit_code=e_exit, role="executor"
     )
     write_text(outputs_dir / "output.txt", executor_output)
+    artifact_text, artifact_info = collect_written_artifact(artifact_file)
 
     status = "ok"
     grader_inv: Invocation | None = None
@@ -1132,7 +1231,7 @@ def execute_run(
         grader_error = f"executor provider error: {metrics['error']}"
 
     if status == "ok":
-        grader_prompt = render_grader_prompt(suite, case, config, executor_output)
+        grader_prompt = render_grader_prompt(suite, case, config, executor_output, artifact_text)
         write_text(run_dir / "grader_prompt.md", grader_prompt)
         grader_inv = provider.build_invocation(
             grader_prompt, run_dir=run_dir, role="grader", model=model, schema=grader_schema()
@@ -1176,6 +1275,7 @@ def execute_run(
         "pass_rate": summary["pass_rate"] if scored else None,
         "expectations": summary["expectations"],
         "metrics": metrics,
+        "written_artifact": artifact_info,
         "executor_invocation": {
             "argv": executor_inv.argv,
             "env_keys": sorted(executor_inv.env),

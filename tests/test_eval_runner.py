@@ -288,6 +288,51 @@ class SeparationTests(BaseRunnerTest):
         self.assertIn("per-eval assertion", grader_delivered)
         self.assertIn("common assertion", grader_delivered)
 
+    def test_executor_artifact_path_is_symmetric_across_configs(self):
+        # The written-artifact capture hook must be config-symmetric: the only
+        # intended difference between with_skill and without_skill is skill
+        # availability, so both executors are told the same designated path.
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        for config in ("with_skill", "without_skill"):
+            prompt = (
+                self.iteration_dir() / "eval-first-eval" / config / "run-1" / "prompt.md"
+            ).read_text()
+            self.assertIn("exact path:", prompt)
+            self.assertIn("outputs/plan.md", prompt)
+
+    def test_written_artifact_is_folded_into_grader_prompt(self):
+        # End-to-end: a stub executor that writes a file to the designated path
+        # must have that file's contents reach the grader prompt, delimited, and
+        # recorded as captured in run.json -- so a file deliverable is graded,
+        # not just the chat summary.
+        path = self.write_suite()
+        spec = self.write_stub_spec({
+            "executor_output": "answer",
+            "grading": {"with_skill": {"pass": True}, "without_skill": {"pass": False}},
+            "write_artifact": {
+                "with_skill": "# Plan\n\n## Acceptance criteria\nMARKER_ARTIFACT_BODY\n",
+                "without_skill": None,
+            },
+        })
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+
+        ws_dir = self.iteration_dir() / "eval-first-eval" / "with_skill" / "run-1"
+        grader_prompt = (ws_dir / "grader_prompt.md").read_text()
+        self.assertIn("## Written Plan Artifact", grader_prompt)
+        self.assertIn("BEGIN WRITTEN ARTIFACT", grader_prompt)
+        self.assertIn("MARKER_ARTIFACT_BODY", grader_prompt)
+        record = json.loads((ws_dir / "run.json").read_text())
+        self.assertTrue(record["written_artifact"]["captured"])
+
+        # without_skill wrote no file here, so its grader prompt stays unchanged.
+        wos_dir = self.iteration_dir() / "eval-first-eval" / "without_skill" / "run-1"
+        wos_prompt = (wos_dir / "grader_prompt.md").read_text()
+        self.assertNotIn("## Written Plan Artifact", wos_prompt)
+        wos_record = json.loads((wos_dir / "run.json").read_text())
+        self.assertFalse(wos_record["written_artifact"]["captured"])
+
     def test_claude_strips_claudecode_for_nesting(self):
         os.environ["CLAUDECODE"] = "1"
         try:
@@ -814,6 +859,84 @@ class ProviderParserTests(unittest.TestCase):
         data, err = eval_runner.parse_grader_output(output)
         self.assertIsNone(err)
         self.assertEqual(eval_runner.grader_verdict_list(data)[0]["passed"], True)
+
+    def test_claude_parse_reads_structured_output_envelope(self):
+        # Newer claude CLIs return --json-schema output under
+        # ``structured_output`` and leave ``result`` an empty string; the parser
+        # must read the structured envelope so the verdict is not lost and the
+        # cell recorded as a false ``grader_unparseable``.
+        sample = json.dumps(
+            {
+                "result": "",
+                "structured_output": {
+                    "verdicts": [{"id": 1, "passed": True, "evidence": "x"}]
+                },
+                "usage": {"input_tokens": 4, "output_tokens": 12},
+            }
+        )
+        output, metrics = eval_runner.ClaudeProvider().parse(
+            run_dir=Path("."), stdout=sample, stderr="", exit_code=0, role="grader"
+        )
+        data, err = eval_runner.parse_grader_output(output)
+        self.assertIsNone(err)
+        self.assertEqual(eval_runner.grader_verdict_list(data)[0]["passed"], True)
+        self.assertTrue(metrics["captured"])
+
+    def test_claude_parse_executor_ignores_absent_structured_output(self):
+        # Executor runs carry no schema, so ``structured_output`` is absent and
+        # the parser must still return the plain ``result`` text unchanged.
+        sample = json.dumps(
+            {
+                "result": "the plan text",
+                "structured_output": None,
+                "usage": {"input_tokens": 2, "output_tokens": 9},
+            }
+        )
+        output, _metrics = eval_runner.ClaudeProvider().parse(
+            run_dir=Path("."), stdout=sample, stderr="", exit_code=0, role="executor"
+        )
+        self.assertEqual(output, "the plan text")
+
+    def test_collect_written_artifact_absent_present_and_truncated(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            target = Path(tmp) / "plan.md"
+            # Absent file -> no artifact, capture flag false, grader unchanged.
+            text, info = eval_runner.collect_written_artifact(target)
+            self.assertIsNone(text)
+            self.assertFalse(info["captured"])
+            # Present file -> contents returned and recorded.
+            target.write_text("# Plan\nbody\n", encoding="utf-8")
+            text, info = eval_runner.collect_written_artifact(target)
+            self.assertIn("body", text)
+            self.assertTrue(info["captured"])
+            self.assertFalse(info["truncated"])
+            # Oversized file -> truncated, never silently dropped.
+            target.write_text("x" * (eval_runner.ARTIFACT_MAX_CHARS + 50), encoding="utf-8")
+            text, info = eval_runner.collect_written_artifact(target)
+            self.assertTrue(info["truncated"])
+            self.assertIn("artifact truncated", text)
+
+    def test_render_grader_prompt_includes_artifact_only_when_present(self):
+        suite = eval_runner.EvalSuite(
+            path=Path("demo.json"),
+            skill_name="demo",
+            common_assertions=["c1"],
+            evals=[],
+            scoring={},
+            raw={},
+        )
+        case = eval_runner.EvalCase(
+            eval_id="E1", name="n", prompt="p", expected_output="",
+            project_class=None, archetype=None, files=[], expectations=["e1"], raw={},
+        )
+        without = eval_runner.render_grader_prompt(suite, case, "with_skill", "chat reply")
+        self.assertNotIn("Written Plan Artifact", without)
+        withart = eval_runner.render_grader_prompt(
+            suite, case, "with_skill", "chat reply", "# Plan\nFULL_ARTIFACT\n"
+        )
+        self.assertIn("## Written Plan Artifact", withart)
+        self.assertIn("FULL_ARTIFACT", withart)
+        self.assertIn("grade them together", withart)
 
     def test_compute_sanity_checks_flags_anomalies(self):
         configs = ["with_skill", "without_skill"]

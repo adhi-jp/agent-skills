@@ -236,6 +236,40 @@ use `[Repository] - YYYY-MM-DD`.
   prepared assertions and recorded a false `0%`; matching now strips a leading
   enumeration prefix before comparison while still requiring the assertion body
   to match exactly. Adds regression tests for both failure modes.
+- `scripts/eval_runner.py` no longer discards a structured grader verdict
+  returned by newer `claude` CLIs and records the cell as a false
+  `grader_unparseable`. The `claude` provider parser read the model answer only
+  from the envelope's `result` field, but `claude` CLI 2.1.x returns
+  `--json-schema` structured output under a separate `structured_output` key and
+  leaves `result` an empty string, so every grader verdict was dropped: a full
+  `vibe-planning` run (`claude`, `claude-sonnet-4-6`, both configs) excluded 30
+  of 32 cells as `grader_unparseable` and scored none. The parser now prefers a
+  dict/list `structured_output` envelope and re-serializes it for the grader
+  parser, falling back to the existing `result` string and nested-object paths
+  so schema-less executor runs, where the key is absent, are unchanged. Adds
+  regression tests for the structured-output envelope and the schema-less
+  executor path.
+- `scripts/eval_runner.py` no longer scores a skill whose deliverable is a
+  written file only on its concise chat summary. The grader received just the
+  executor's recorded chat response, but `vibe-planning` and similar skills
+  write the full plan to a durable Markdown artifact and keep the chat reply
+  short by design, so every artifact-content assertion (English section
+  headings, evidence labels, acceptance-criteria/test ordering, plan integrity
+  gates, per-step skill routing, multi-perspective review record) was graded
+  against text that was correctly not in the response. The effect was a
+  systematic `with_skill` deflation: a full `vibe-planning` run
+  (`claude-sonnet-4-6`, both configs) scored `with_skill` 40.9% vs
+  `without_skill` 17.6% and flipped one eval (`E16`) below its baseline even
+  though the written plan satisfied the failed assertions. The executor prompt
+  now names one designated artifact path (`outputs/plan.md` under the run dir),
+  config-symmetrically for both configs and without telling the executor how to
+  structure the artifact, and the runner folds any file written there into the
+  grader's recorded output under a delimited `Written Plan Artifact` section
+  (capped at `ARTIFACT_MAX_CHARS`, truncation recorded). Runs whose deliverable
+  is the chat reply write no such file and keep the grader prompt unchanged.
+  `run.json` records `written_artifact` capture state. Updates `AGENTS.md`
+  `Shared Eval CLI Rules` and adds regression tests for the symmetric path
+  injection, the end-to-end grader fold, artifact collection, and truncation.
 
 ## [minecraft-modding-workbench 2.0.0] - 2026-06-07
 
