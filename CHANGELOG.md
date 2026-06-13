@@ -47,6 +47,27 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-writing` now routes changelog and release-note work to a new
+  `skills/vibe-writing/references/changelog.md` reference that splits a format
+  layer from a content layer. The format layer makes the repository the owner of
+  its changelog format under a precedence order (user instruction → repository
+  policy such as `AGENTS.md`/`CONTRIBUTING`/changelog config or a `CHANGELOG.md`
+  format header → existing `CHANGELOG.md` conventions → a propose-only fallback
+  structure when the repository defines none) and requires the agent to detect
+  and conform to the existing format and never restructure, migrate, or reformat
+  it without explicit user instruction. The content layer departs from the
+  source specs' "for humans, not machines" premise and writes each entry as a
+  contract and evidence log for the next agent resuming with zero context: the
+  changed contract/behavior, the trigger/reason with evidence, migration or
+  rollback when warranted, verification status, and durable anchors. Entries
+  stay falsifiable, do not pre-assign a version, are written in the same slice as
+  the change, and never copy Conventional Commit prefixes or dump git logs or PR
+  titles. `skills/vibe-writing/SKILL.md` keeps its existing changelog restraint
+  and adds the routing trigger; the README `vibe-writing` section gains the
+  two-layer mention. `evals/vibe-writing/evals.json` adds a discriminating case
+  (`E14`) for contract-log entry quality, no-silent-reformat under a stated repo
+  format, and commit-to-entry conversion, preserving the `E04` refactor-restraint
+  case. `version` stays `1.0.0`.
 - `skills/vibe-debug-fix/SKILL.md` step 14 and
   `references/verification-handoff.md` now state that when exact retest
   specifics such as the command, prompts, inputs, or paths are unknown, the

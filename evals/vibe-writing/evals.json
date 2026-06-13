@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-writing",
-  "purpose": "External eval set for vibe-writing. Prompts live outside skills/ so they are not bundled as skill content. Covers representative LLM-first development text, human-reader exceptions, source-code comments and docstrings, README/docs, CHANGELOG restraint, exact-format output, verbatim-output boundaries, durable references, workflow boundaries, incidental progress and final-summary wording, locale precedence, policy and support-promise restraint, hollow-transition cleanup, local-anchor preservation, and commit-message contracts including release trailers, body preserve/cut selection, verification formatting, multi-line transport, active commit workflows, and stored-message inspection.",
+  "purpose": "External eval set for vibe-writing. Prompts live outside skills/ so they are not bundled as skill content. Covers representative LLM-first development text, human-reader exceptions, source-code comments and docstrings, README/docs, CHANGELOG restraint, changelog format precedence and next-agent contract-log entries, exact-format output, verbatim-output boundaries, durable references, workflow boundaries, incidental progress and final-summary wording, locale precedence, policy and support-promise restraint, hollow-transition cleanup, local-anchor preservation, and commit-message contracts including release trailers, body preserve/cut selection, verification formatting, multi-line transport, active commit workflows, and stored-message inspection.",
   "common_assertions": [
     "Output preserves source facts, scope, terminology, audience, modality, conditions, exceptions, warnings, limitations, required actions, and order that matters whenever source text is edited or summarized.",
     "Output does not invent unsupported reasons, goals, outcomes, roadmap claims, business value, user impact, implementation rationale, tests, rollout status, or performance/security/risk-reduction claims.",
@@ -227,6 +227,25 @@
         "Does not claim a commit was made, staging was performed, or release work happened.",
         "Does not add unsupported next steps, reassurance, risk reduction, rollout status, or broad quality claims.",
         "Keeps the message brief, without a checklist, route menu, or meta-analysis about standalone versus auxiliary writing."
+      ]
+    },
+    {
+      "id": "E14",
+      "name": "Changelog entry conforms to repo format and reads as a contract log",
+      "prompt": "Write the `## [Unreleased]` changelog entry for this change set. The repository's `CHANGELOG.md` already uses Keep a Changelog format: an `## [Unreleased]` section with `### Added` / `### Changed` / `### Fixed` groups, newest entries first, and dated `## [x.y.z] - YYYY-MM-DD` release sections. Keep that format.\n\nCommits in this change set:\n- `feat(api): add Retry-After parsing to RateLimiter`\n- `fix(api)!: remove the deprecated retryAfterMs config field`\n\nContext: `RateLimiter.parseRetryAfter()` in `src/rate-limiter.ts` now reads the `Retry-After` header (delay-seconds or an HTTP-date). The old numeric `retryAfterMs` config field is removed; callers must migrate to the `retryAfter` duration-string field. Verification: `pnpm test -- rate-limiter` passed. No benchmarks were run and no production incidents are reported. The reader of this changelog is the next coding agent.",
+      "expected_output": "The agent returns a changelog entry, in the repository's stated Keep a Changelog format, that describes the supplied rate-limiter change for the next reader from the supplied evidence, without inventing impact, restructuring the changelog, or guessing a version.",
+      "files": [],
+      "expectations": [
+        "Writes the entry in the repository's stated Keep a Changelog format: under `## [Unreleased]` in an existing category group such as `### Changed`, newest-first, and does not restructure it into a different format (no Common-Changelog single-section reflow, renamed categories, or removed Unreleased buffer).",
+        "Does not copy the Conventional Commit subjects `feat(api): add Retry-After parsing to RateLimiter` or `fix(api)!: remove the deprecated retryAfterMs config field` verbatim, and does not keep a `feat:`/`fix:` prefix in the entry.",
+        "Does not dump the raw commit list or git-log lines as the entry body; converts the commit metadata into a description of what changed.",
+        "Describes the `Retry-After` parsing behavior in `RateLimiter` / `RateLimiter.parseRetryAfter()` (delay-seconds or HTTP-date) as a contract delta.",
+        "Marks the removal of `retryAfterMs` as a breaking change and includes migration guidance to the `retryAfter` duration-string field, preserving the migration direction from `retryAfterMs` to `retryAfter`.",
+        "Preserves durable anchors such as `src/rate-limiter.ts`, `RateLimiter.parseRetryAfter()`, `retryAfterMs`, or `retryAfter` instead of vague prose.",
+        "Includes the verification status that `pnpm test -- rate-limiter` passed, and does not claim benchmark results or production-incident impact that the prompt states were absent.",
+        "Does not invent reliability, security, performance, or rollout benefits beyond the supplied behavior change.",
+        "Does not pre-assign or guess a release version for the change; keeps it under `Unreleased`.",
+        "Does not soften or drop the breaking nature of the `retryAfterMs` removal."
       ]
     }
   ],

@@ -378,6 +378,11 @@ active workflow has supplied facts for an incidental update or summary,
 explanation; routing explanations are only for meta questions about how the
 skill applies. "Not a standalone writing deliverable" means the active workflow
 keeps authority over content, not that the brief message should be withheld.
+Changelog and release-note guidance lives in `references/changelog.md`, which
+separates a format layer (the repository owns its changelog format; detect and
+conform to it, and never silently restructure it) from a content layer (write
+each entry as a contract and evidence log for the next agent resuming with zero
+context rather than human-facing release marketing).
 Commit-message guidance lives in `references/commit-messages.md` and covers
 outcome-focused Conventional Commit subjects, commit-body preserve/cut selection,
 pre-draft context checks, optional non-trivial body labels,

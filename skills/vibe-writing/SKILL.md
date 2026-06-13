@@ -137,6 +137,15 @@ reader. Internal refactors without user-visible impact usually belong in commit
 history, not a changelog. Do not inflate a narrow implementation change into a
 broad reliability, security, performance, or compatibility claim.
 
+For changelog or release-note work, read `references/changelog.md` when the task
+involves entry content quality, the next-agent contract-log reader model,
+detecting and conforming to a repository's existing changelog format,
+breaking-change presentation, durable references, or converting commit or PR
+metadata into a changelog entry. That reference separates the format layer (the
+repository owns the format; detect and conform, never silently restructure it)
+from the content layer (write each entry as a contract and evidence log for the
+next agent resuming with zero context).
+
 ### PR descriptions
 
 Honor the requested or project template exactly. Fill unknown sections with the
