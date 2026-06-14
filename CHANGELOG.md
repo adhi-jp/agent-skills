@@ -13,6 +13,20 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-code-research` now keeps source-evidence findings anchored while
+  redacting or paraphrasing suspected credentials and secret-like literal values
+  before chat output, saved reports, delegated findings, or quoted snippets. The
+  eval suite removes raw-source-verbatim pressure from E01 and adds a synthetic
+  secret-like output-boundary case, and README documents the redaction boundary.
+  Verification: clean claude/claude-sonnet-4-6 run at
+  `evals/vibe-code-research/workspace/claude/iteration-2/` recorded
+  `sanity_checks.ok=true`, `error_run_count=0`, 20/20 scored runs, 0 excluded
+  runs, metrics captured, and overall `with_skill` 99.0% vs `without_skill`
+  87.2% (+11.8 points). E10 recorded 100.0% for both configs, so the
+  secret-like output-boundary case was non-discriminating in this run. W007
+  analyzer clearance remains unproven because no analyzer rerun evidence is
+  recorded.
+
 - `vibe-commit` now treats authorship-trailer command transport as part of the
   commit-execution contract: `skills/vibe-commit/SKILL.md` and
   `skills/vibe-commit/references/history-and-trailers.md` require agent-added or

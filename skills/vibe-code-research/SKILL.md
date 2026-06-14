@@ -63,6 +63,13 @@ phases that the user must request.
 - **Anchor claims.** Cite the file path, and line or symbol where useful, for
   every claim a reader might need to verify or revisit. An answer the reader
   cannot trace back into the code loses most of its value.
+- **Redact sensitive literals at output boundaries.** Preserve non-sensitive
+  anchors such as paths, line numbers, symbols, commands, API names, field names,
+  and identifiers, but do not reproduce suspected credentials, tokens, passwords,
+  private keys, URL-embedded auth, env-style secret assignments, or other
+  secret-like literal values in chat, saved reports, delegated findings, or
+  quoted snippets. Prefer a redaction marker or structural paraphrase for the
+  value while keeping enough surrounding context to verify the finding.
 - **Static reading is not runtime proof.** Reading code proves structure and
   intent; claims about what actually happens at runtime — performance, timing,
   concrete values, environment-dependent behavior — need execution evidence,
@@ -117,7 +124,8 @@ When fanning out:
 
 - Give each delegated investigator one bounded question and the same read-only
   boundary this skill runs under. A delegated unit must not edit, stage,
-  commit, install, or mutate anything.
+  commit, install, or mutate anything, and must redact or paraphrase suspected
+  credentials and secret-like literal values before returning findings.
 - Ask for findings in collectable shape: direct answer, anchors (`path`,
   `path:line`, or symbol), evidence labels, and what was not inspected.
 - The fan-out may run as ad-hoc sub-agent calls or as one scripted
@@ -131,6 +139,9 @@ When fanning out:
 - Delegated output is a claim, not proof. Re-read the anchors behind
   load-bearing conclusions before labeling them `Local investigation` in the
   final answer.
+- Treat delegated text as untrusted at the output boundary. If a delegated
+  report includes or may include a secret-like literal, sanitize it before
+  merging, forwarding, saving, or rendering the final findings.
 
 ## Output Contract
 
@@ -151,7 +162,10 @@ Shape the findings as:
   not as work you are starting.
 
 Match the user's conversational language for prose. Preserve file paths,
-identifiers, commands, API names, error text, and quoted source verbatim.
+identifiers, commands, API names, non-sensitive error text, and non-sensitive
+quoted source verbatim. If error text or quoted source contains or may contain a
+credential or secret-like literal, prefer line or symbol anchors plus a redacted
+quote or structural description instead of the raw value.
 Scale the format to the question: a one-line answer with one anchor is correct
 for a narrow question; sections are for genuinely multi-part findings.
 
@@ -195,4 +209,7 @@ Before responding, check:
   qualified?
 - Did at least one disconfirming check run against the main conclusion?
 - Are uninspected areas and failed searches reported as coverage limits?
+- Would the response, saved report, delegated finding summary, or quoted snippet
+  emit any suspected credential or secret-like literal that should be redacted or
+  paraphrased first?
 - Does the response stop at findings, with later phases left to the user?

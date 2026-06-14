@@ -24,7 +24,7 @@ quickstart when changing a skill or its eval suite.
 | Implement an existing concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Edits only after binding the plan and checking proceed conditions; stops before commits unless separately authorized | `skills/vibe-plan-execution/` | `evals/vibe-plan-execution/` |
 | Brainstorm creative implementation ideas, alternatives, expected behavior, or convention checks | `vibe-brainstorm` | Returns chat-first directions or checklists and stops before implementation until the user confirms the direction | `skills/vibe-brainstorm/` | `evals/vibe-brainstorm/` |
 | Debug or repair existing behavior from rough bug reports, regressions, failed fixes, or runtime artifacts | `vibe-debug-fix` | Produces evidence-backed repairs or retest contracts; does not authorize history mutation | `skills/vibe-debug-fix/` | `evals/vibe-debug-fix/` |
-| Understand, locate, trace, or assess existing code without changing it | `vibe-code-research` | Read-only; returns anchored evidence-backed findings and stops before fixes, plans, edits, or commits | `skills/vibe-code-research/` | `evals/vibe-code-research/` |
+| Understand, locate, trace, or assess existing code without changing it | `vibe-code-research` | Read-only; returns anchored evidence-backed findings, redacts suspected secret-like values at output boundaries, and stops before fixes, plans, edits, or commits | `skills/vibe-code-research/` | `evals/vibe-code-research/` |
 | Write or revise development text, docs, changelog entries, PR text, UI copy, summaries, or commit messages | `vibe-writing` | Controls wording only; staging, commits, releases, and workflow authority stay with the active workflow | `skills/vibe-writing/` | `evals/vibe-writing/` |
 | Commit or stage changes from a vague request — pick the right files, exclude junk, re-verify staging, or fix message transport, history, or trailers | `vibe-commit` | Executes the commit and git safety; defers message wording to `vibe-writing`; does not push or rewrite shared history without explicit consent | `skills/vibe-commit/` | `evals/vibe-commit/` |
 | Decide what to change in a skill or eval from benchmark results, grader feedback, reviews, or regressions | `skill-quality` | Produces evidence-bound quality decisions; release/version changes still require explicit release instruction | `skills/skill-quality/` | `evals/skill-quality/` |
@@ -389,14 +389,17 @@ disconfirming check against the main conclusion, and reports findings with the
 direct answer first. Claims carry `Local investigation`, `Primary source`, or
 `Unproven` labels and file/line anchors; static reading is never presented as
 runtime proof, and failed searches are reported as coverage limits, not
-nonexistence. While active it edits nothing, stages nothing, and commits
-nothing; findings feed later requirements, planning, repair, review, or commit
-phases only after a new user instruction. Findings stay in chat unless the
-user explicitly asks for a saved report. Broad questions may fan out to
+nonexistence. Findings preserve non-sensitive paths, line anchors, symbols, API
+names, commands, and identifiers, but suspected credentials or secret-like
+literal values are redacted or paraphrased before chat output, saved reports, or
+delegated-finding summaries. While active it edits nothing, stages nothing, and
+commits nothing; findings feed later requirements, planning, repair, review, or
+commit phases only after a new user instruction. Findings stay in chat unless
+the user explicitly asks for a saved report. Broad questions may fan out to
 delegated read-only investigators — ad-hoc sub-agents or one scripted,
 independently recorded orchestration run — while the coordinator merges
-findings, re-reads load-bearing anchors, and runs the disconfirming check
-itself.
+findings, re-reads load-bearing anchors, sanitizes delegated output, and runs
+the disconfirming check itself.
 
 ### `vibe-writing`
 
