@@ -11,485 +11,343 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [vibe-commit 1.0.0] - 2026-06-14
+
+### Added
+
+- New `vibe-commit` skill (`skills/vibe-commit/SKILL.md` with
+  `references/file-selection.md`, `references/staging-and-recovery.md`, and
+  `references/history-and-trailers.md`): turns a vague instruction like "commit
+  please" into one correctly scoped commit. It selects the commit file set and
+  excludes generated, workspace, ignored, and secret paths; runs a mandatory
+  staged-set re-verification gate before committing, which still applies to
+  already-staged requests (verify the staged set and the stored commit); stages
+  by explicit path or partial hunk and shows both cached and unstaged
+  file-specific diffs before a partial commit; keeps a dependency manifest and
+  its matching lockfile together only when the selected change requires the
+  dependency, while unrelated lockfiles stay out; transports a multi-line message
+  through one single-quoted heredoc or `-F` file, never repeated `-m`; keeps
+  authorship-trailer footer hygiene including the per-agent `Co-Authored-By`
+  forms; never emits a placeholder subject (including inside illustrative or
+  "replace before running" blocks) and stops before `git commit` when the diff
+  has not been read closely enough to name the outcome, while a supplied semantic
+  intent becomes a conservative concrete Conventional Commit subject; diagnoses an
+  ignored path with `git check-ignore -v` and requires explicit override before
+  any force-add; and follows a least-destructive recovery ladder with a
+  reversible-safety boundary that commits when asked but does not push or rewrite
+  already-pushed history without explicit consent. It defers message wording to a
+  dedicated writing skill when one is verified available and applies compact
+  fallback message rules otherwise. Adds the response-only `evals/vibe-commit/`
+  suite (11 cases, 6 common assertions) and README chooser, version-table,
+  skill-summary, repository-layout, and precedence entries.
+
+## [vibe-code-research 1.0.0] - 2026-06-14
+
+### Added
+
+- New `vibe-code-research` skill (`skills/vibe-code-research/SKILL.md`): a
+  read-only research skill that turns rough questions about existing code ("how
+  does X work", "where is Y implemented", "what would changing Z affect") into
+  evidence-backed findings. It frames the request as answerable questions, maps
+  entry points by following real references, traces call and data paths, runs at
+  least one disconfirming check against the main conclusion, and reports the
+  direct answer first with `Local investigation` / `Primary source` / `Unproven`
+  labels and file/line anchors. Static reading is never presented as runtime
+  proof, failed searches are reported as coverage limits rather than nonexistence,
+  and the skill edits, stages, and commits nothing; findings feed later phases
+  only after a new user instruction. An optional `Delegated Investigation` section
+  carries read-only fan-out whose delegated reports are claims the final answer
+  re-checks against anchors. Adds the response-only `evals/vibe-code-research/`
+  suite (9 cases, 6 common assertions) plus README chooser, version-table,
+  skill-summary, and repository-layout entries.
+
+## [vibe-coding 1.2.0] - 2026-06-14
+
+### Changed
+
+- `vibe-coding` now routes by workflow phase against visible specialist skill
+  metadata instead of a hardcoded `vibe-*` name list, so the family can grow or
+  shrink without changing the orchestrator. It adds three primary routable
+  phases — creative direction exploration, read-only code investigation, and
+  commit execution — and routes commit requests to a visible commit-execution
+  specialist as the primary phase, with a verified visible writing specialist as
+  mandatory auxiliary authority for the message artifact (the prior
+  writing-as-auxiliary fallback still applies when no commit specialist is
+  visible). Route descriptions take specialist names from current visible
+  metadata, and primary-route eligibility is decided by whether a skill's
+  description matches the phase's workflow scope and boundary obligations; skills
+  describing only a tool, command, or domain capability stay auxiliary. Host
+  delegation and scripted orchestration are execution transport inside a routed
+  phase, never routes, and no orchestrated run may cross a downstream skill's
+  approval gate, stop condition, or consent boundary in one unattended pass;
+  cross-phase orchestration refusals state both the rejected schedule and any
+  selected-phase transport limit without treating that transport as approval or a
+  route. Direct non-deliverable wording checks about a short label or identifier
+  stay ordinary behavior or `no matching specialist` when editing, review,
+  planning, debugging, and written deliverables are excluded, and they retain no
+  active routing state. The contract no longer names sibling skills; companion
+  capabilities resolve from visible metadata at run time. The `evals/vibe-coding/`
+  suite is updated for the phase-based contract and adds commit-execution routing
+  (with and without a visible commit specialist), code-investigation versus debug
+  precedence, creative-exploration versus requirements-capture, and
+  orchestration-boundary case `E15`. Verification: clean claude/sonnet-4-6 run at
+  `evals/vibe-coding/workspace/claude/iteration-17/` recorded
+  `sanity_checks.ok=true`, `error_run_count=0`, 30/30 scored runs, and overall
+  `with_skill` 100.0% vs `without_skill` 78.0% (+22.0%), with E10 recovered from a
+  45.5% over-route signal to 100.0%. Provider environment isolation (`HOME`
+  reaching Claude subprocesses) stays an unresolved accepted risk; no iteration-17
+  anomaly was recorded.
+
+## [vibe-planning 4.2.0] - 2026-06-14
+
+### Changed
+
+- `vibe-planning` now accepts a scripted orchestration run as a valid
+  host-neutral delegation transport for the plan multi-perspective review gate,
+  with reviewer findings staying inert and all dispositions staying with the
+  coordinator; orchestrated reviewers must not edit the plan artifact. It no
+  longer names sibling skills, referencing a generic verified writing or
+  commit-message skill for checkpoint messages and a generic later code-review
+  workflow instead. `evals/vibe-planning/evals.json` adds orchestration-boundary
+  case `E16`.
+
+## [vibe-plan-execution 2.1.0] - 2026-06-14
+
+### Changed
+
+- `vibe-plan-execution` adds delegated execution support and hardens checkpoint
+  closure. It may run bounded sub-tasks of one authorized slice under the bound
+  plan contract through host delegation or a scripted orchestration run, while
+  deviation decisions, commit authorization, and final verification stay with the
+  coordinator, and concurrent slice work is gated on plan-defined independence
+  plus host-isolated working state. A coordinator-inferred shared interface,
+  result shape, polling loop, or pre-launch note does not make plan-ordered slices
+  independent when the plan says a later slice starts only after an earlier slice
+  is implemented or verified. Delegated units and scripted runs may not own
+  automatic commits; at most such a request authorizes coordinator-managed commits
+  after coordinator verification, recorded as `Local evidence`. The skill now
+  records each delegated unit's plan-contract handoff, omits order-only phase,
+  slice, checkpoint, or step labels from commit messages unless they are product
+  or domain names, and treats raw commit-message bytes as a sub-artifact that must
+  not replace the required execution summary. A non-technical user's uncertainty
+  about behavior the bound plan already marks out of scope is not a blocker: state
+  that it stays outside the current slice and continue unless the user asks to
+  change plan scope. The durable final execution summary must retain the bound
+  plan source, `Proceed condition` status, each checkpoint's verification command
+  or manual check, result, commit action, standalone commit message, and any
+  skipped or failing verification status. `evals/vibe-plan-execution/evals.json`
+  adds orchestration-boundary case `E14`. Verification: clean claude/sonnet-4-6
+  full-suite run at `evals/vibe-plan-execution/workspace/claude/iteration-18/`
+  recorded `sanity_checks.ok=true`, `error_run_count=0`, 28/28 scored runs, and
+  overall `with_skill` 95.4% vs `without_skill` 65.6%, with E08 at 100.0%, E09 at
+  94.4% vs 50.0%, and E14 at 93.3% vs 40.0%.
+
+## [vibe-debug-fix 2.1.0] - 2026-06-14
+
+### Changed
+
+- `vibe-debug-fix` now requires a compact current-scope record even for short
+  blocker, refusal, no-local-file, delegated-diagnosis, or verified-repair
+  closure responses, preserving the user's wording, the current behavior or
+  operation decision, expected source or authorization, unknowns, the proof or
+  preflight path, closure criteria, one ledger row per unresolved symptom or
+  closure decision, and claim labels; a verified repair already in repository
+  history gets a closure-decision ledger row without reopening the repair. The
+  degraded-verification gate now selects the strongest currently observable proof
+  path instead of presenting proof options as a user menu, and when only the
+  user's environment can observe the behavior it delivers a user retest contract
+  immediately — with stated assumptions or labeled placeholders and how to adapt
+  them — instead of first asking the user for the command, prompts, inputs, or
+  paths (`skills/vibe-debug-fix/SKILL.md` step 14 and
+  `references/verification-handoff.md`). A new `Delegated Diagnosis` section
+  carries read-only hypothesis fan-out whose results enter the ledger as recorded
+  evidence, not proven cause. `evals/vibe-debug-fix/evals.json` rewords common
+  assertion #3 to grade reasoning from the available evidence (prompt, plan,
+  symptoms, supplied code, tests, or logs) before asking only fix- or
+  proof-changing questions — the prior "local/source investigation" wording was
+  graded as "no file reads" and penalized rigorous proof-path questions on the
+  many evals that ship no fixture code — adds orchestration-boundary case `E19`,
+  and consolidates the former skipped-interactive-check case `E13` into `E12`.
+  Verification: clean claude/sonnet-4-6 run at
+  `evals/vibe-debug-fix/workspace/claude/iteration-8` recorded
+  `sanity_checks.ok=true`, `error_run_count=0`, 36/36 scored runs, and
+  `with_skill` 92.0% vs `without_skill` 60.7% (+31.4%), with E18 at 100.0%, E12 at
+  94.7%, and E12's retest contract now emitting a labeled-placeholder contract
+  instead of clarifying questions.
+
+## [vibe-brainstorm 1.1.0] - 2026-06-14
+
+### Changed
+
+- `vibe-brainstorm` now accepts a scripted orchestration run as a valid
+  host-neutral delegation transport for the Delegation Gate's mechanism and
+  recordable-evidence checks, with direction-confirmation stages kept in the
+  conversation and not folded into the unattended run. It also states it does not
+  draft, save, or approve durable requirements specification artifacts;
+  brainstormed directions become requirements only after the user confirms them
+  and a requirements-capture workflow records them.
+  `evals/vibe-brainstorm/evals.json` adds orchestration-boundary case `E10` and
+  drops the common assertion that required a visible limitation and stop before a
+  degraded single-agent fallback: it was a scenario-specific gate, vacuous on
+  non-fallback cases such as the mechanical-rename guard `E09`, and graded
+  inconsistently; re-grading the prior run without it left the measured benefit
+  essentially unchanged, confirming it was non-discriminating. The guarded
+  contract stays covered by per-eval expectations (`E04` keeps the
+  capability-unavailable statement and the stop-or-ask fallback;
+  `E03`/`E05`/`E07`/`E10` keep their own delegation expectations).
+
+## [vibe-review 1.1.0] - 2026-06-14
+
+### Changed
+
+- `vibe-review` now recognizes a scripted orchestration run as a valid
+  host-neutral transport for delegated review (labeled `parallel` or `serial`
+  from actual execution, run identity recorded as backend evidence, with contract
+  confirmation and all post-collection decisions kept outside the run). It
+  replaces the host-specific `claude-code-codex-plugin` backend capability label
+  with the host-neutral `host-plugin-delegated-review` label and states that no
+  specific host plugin or vendor backend may be required. It no longer names
+  retired sibling skills (`codex-review-cycle`, `review-scope-guard`,
+  `review-fix-cascade-guard`) and describes itself as one self-contained
+  coordinator workflow. `evals/vibe-review/evals.json` adds orchestration-boundary
+  case `E11` with a new `fixtures/orchestrated-fanout.json`, asserting that an
+  orchestrated fan-out must not schedule fix application or a squash inside the
+  run.
+
+## [vibe-writing 1.1.0] - 2026-06-14
+
+### Changed
+
+- `vibe-writing` now routes changelog and release-note work to a new
+  `skills/vibe-writing/references/changelog.md` reference that separates a format
+  layer from a content layer. The format layer makes the repository own its
+  changelog format under a precedence order (user instruction → repository policy
+  such as `AGENTS.md`/`CONTRIBUTING`/changelog config or a `CHANGELOG.md` format
+  header → existing conventions → a propose-only fallback) and forbids
+  restructuring, migrating, or reformatting an existing changelog without explicit
+  user instruction. The content layer writes each entry as a contract and evidence
+  log for the next agent resuming with zero context — the changed contract, the
+  trigger with evidence, migration or rollback when warranted, verification
+  status, and durable anchors — keeps entries falsifiable, does not pre-assign a
+  version, and forbids treating `CHANGELOG.md` as an iteration log (in-progress
+  quality, eval, review, and release-preparation work keeps only the current
+  contract delta, strongest durable evidence, latest verification status, and
+  unresolved accepted risk, collapsing superseded run or review readings into the
+  existing entry). `SKILL.md` adds the routing trigger and the iteration-log
+  guard, and requested artifact deliverables now return only the artifact content
+  without process notes, wrappers, separators, placement instructions, or
+  translation away from the artifact's language. `evals/vibe-writing/evals.json`
+  adds `E14` (no silent reformat under a stated repository format) and `E15`
+  (collapsing superseded eval run notes) and preserves the `E04`
+  refactor-restraint case. Verification: clean claude/sonnet-4-6 run at
+  `evals/vibe-writing/workspace/claude/iteration-10/` recorded
+  `sanity_checks.ok=true`, `error_run_count=0`, 30/30 scored runs, and overall
+  `with_skill` 98.4% vs `without_skill` 87.3% (+11.0%), with E14 at 100.0% vs
+  90.9% and E15 at 100.0%.
+
+## [skill-quality 2.1.0] - 2026-06-14
+
+### Changed
+
+- `skill-quality` now requires an artifact-placement gate after mapping sampled
+  examples to abstract dimensions, keeping narrow pressure cases in evals or
+  applicability-scoped references instead of promoting one local pattern into
+  always-visible `SKILL.md` guidance, and requires measurement-boundary triage
+  before treating surprising, repeated, tool-related, or artifact-related eval
+  failures as skill defects: it checks whether the recorded output set contains
+  the proof an assertion requires, stops repeated wording-only tightening when
+  targeted failures do not move, requires a rerun before improvement claims after
+  proof-path changes, and keeps truthful execution separate from missing recorded
+  proof. It treats a failure mechanism that moves across evals after targeted
+  wording fixes as one shared contract gap before another local patch, keeps
+  invalid placeholder text out of executable and user-copyable guidance, records
+  the sampled commit-execution convergence pattern in
+  `references/session-patterns.md`, and aligns its repository eval-workflow
+  guidance with the runner-driven `validate`/`run`/`report` CLI, requiring
+  `with_skill` runs to read the authoritative source Skill path instead of host
+  skill tools or local snapshots. `evals/skill-quality/evals.json` adds `E10`
+  (sampled-case promotion, including the multiple-independent-evidence threshold),
+  `E11`–`E14` (evidence-surface, retry-stop, eval-execution data-boundary, and
+  description-field cases), and `E15` (recurring placeholder leakage), and narrows
+  prior assertions that treated proposal-only artifact selection as proof of file
+  changes.
+
+## [Repository] - 2026-06-14
+
 ### Added
 
 - `scripts/sync_dev_agent_skills.py` now accepts `--all` on `add`, `update`, and
-  `remove`, so a batch can run without enumerating skill names. `add --all` and
-  `update --all` resolve to every source package under `skills/`; `remove --all`
-  resolves to every installed managed snapshot under `.agents/skills/` (those
-  carrying a valid `.agent-skills-sync.json` ownership manifest), skipping
-  unmanaged entries, symlinked entries, and reserved
-  `.<name>.agent-skills-sync.tmp`/`.backup` paths. `--all` and explicit skill
-  names are mutually exclusive, and passing neither still fails with a "required"
-  error. `--all` honors the existing global, per-subcommand, and interspersed
+  `remove`. `add --all` and `update --all` resolve to every source package under
+  `skills/`; `remove --all` resolves to every installed managed snapshot under
+  `.agents/skills/` carrying a valid `.agent-skills-sync.json` ownership manifest,
+  skipping unmanaged, symlinked, and reserved
+  `.<name>.agent-skills-sync.tmp`/`.backup` entries. `--all` and explicit skill
+  names are mutually exclusive, passing neither still fails with a required error,
+  and `--all` honors the existing global, per-subcommand, and interspersed
   `--dry-run` placements and the all-or-nothing preflight.
-- `scripts/eval_runner.py` now computes a `sanity_checks` section into
+- `scripts/eval_runner.py run` accepts an optional `--model` passed through to the
+  selected provider CLI verbatim (`claude --model …`, `codex exec --model …`);
+  when omitted, each provider keeps its own default model. The model is validated
+  before any subprocess launches, applied to both the executor and grader, and
+  recorded in `iteration_manifest.json`, `benchmark.json`, and `benchmark.md`.
+- `scripts/eval_runner.py` computes a `sanity_checks` section into
   `benchmark.json`/`benchmark.md` and prints a sanity line at the end of `run`,
   surfacing infrastructure failures, scored-`0%` cells, and candidate-below-
-  baseline cells so a supervising agent cannot mistake a contaminated run for a
-  clean result. `AGENTS.md` adds a `Result Verification and Reporting` section
+  baseline cells. `AGENTS.md` adds a `Result Verification and Reporting` section
   requiring the supervising agent to read the sanity status and `error_run_count`,
-  treat flagged cells as stop-and-verify, attribute failures to executor/grader/
-  runner before the skill, and always report a summary (agent, model, configs,
-  runs, scored vs excluded counts, overall pass rate, delta, and sanity status)
-  instead of only the headline delta.
-- New `vibe-code-research` skill package: a read-only code-research skill that
-  turns rough questions about existing code ("how does X work", "where is Y
-  implemented", "what would changing Z affect") into evidence-backed findings.
-  It frames the request as answerable questions, maps entry points by following
-  real references, traces call and data paths, runs at least one disconfirming
-  check against the main conclusion, and reports the direct answer first with
-  `Local investigation` / `Primary source` / `Unproven` labels and file/line
-  anchors. Static reading is never presented as runtime proof, failed searches
-  are reported as coverage limits rather than nonexistence, and the skill edits,
-  stages, and commits nothing; findings feed later phases only after a new user
-  instruction. Adds the response-only `evals/vibe-code-research/` suite (9
-  cases, 6 common assertions) covering anchored findings, evidence labels,
-  static-versus-runtime separation, coverage honesty, memory restraint,
-  disconfirming checks, concise scaling, the findings-only boundary, and
-  delegated read-only fan-out with anchor verification, plus README chooser,
-  version-table, skill-summary, and repository-layout entries.
-- New `vibe-commit` skill package: a commit-execution skill that turns a vague
-  instruction like "commit please" into one correctly scoped commit. It owns
-  file selection, exclusion of generated/workspace/ignored/secret paths, a
-  mandatory staged-set re-verification gate, explicit-path and partial-hunk
-  staging, safe multi-line message transport (single-quoted heredoc or `-F`),
-  authorship-trailer footer hygiene including the per-agent `Co-Authored-By`
-  forms, a least-destructive recovery ladder, and a reversible-safety boundary
-  that commits when asked but does not push or rewrite already-pushed history
-  without explicit consent. It defers message wording to `vibe-writing` when
-  available and applies compact fallback message rules otherwise. The guidance is
-  distilled from real Codex and Claude Code sessions across multiple
-  repositories. Adds the response-only `evals/vibe-commit/` suite (11 cases, 6
-  common assertions) and README chooser, version-table, skill-summary,
-  repository-layout, and precedence entries.
-- `scripts/eval_runner.py run` accepts an optional `--model` that is passed
-  through to the selected provider CLI verbatim (`claude --model …`,
-  `codex exec --model …`); whatever model name that CLI accepts is valid. When
-  omitted, each provider keeps its own default model. The chosen model is
-  validated before any subprocess launches, applied to both the executor and
-  grader subprocesses, and recorded in `iteration_manifest.json`,
-  `benchmark.json`, and `benchmark.md`. The hermetic stub provider ignores it.
+  treat flagged cells as stop-and-verify, attribute failures to
+  executor/grader/runner before the skill, and always report a summary instead of
+  only the headline delta.
 
 ### Changed
 
 - `scripts/eval_runner.py run` now launches each provider subprocess from a
-  per-run sandbox copy outside the source checkout instead of from the source
-  checkout or a nested directory inside it. The sandbox excludes
-  host-local/generated state (`.git`, `.agents`, `.claude`, `.codex`,
-  `evals/*/workspace/`, `node_modules/`, `__pycache__/`), initializes a
-  throwaway git repo when available, remaps the `with_skill` skill path into the
-  sandbox, sets provider `cwd`/`PWD` to that external sandbox, and records
-  sandbox metadata plus executor/grader cwd in `run.json`.
-  This prevents eval prompts that edit fixtures, install packages, or commit
-  checkpoints from writing directly into the source checkout across runs. The
-  runner captures written Markdown artifacts inside the sandbox and then copies
-  them into `outputs/plan.md` for grading/reporting, so artifact paths no longer
-  give executors a source-checkout write target. The runner also records
-  declared fixture-root dirtiness from the source checkout before and after
-  execution and surfaces it as a `source_fixture_dirty` sanity anomaly, because
-  sandbox isolation does not prove the copied fixture baseline was clean and
-  post-run live-tree writes must invalidate a clean-result report. `AGENTS.md`
-  now documents the sandbox and source-fixture sanity
-  contract. Verification: `python3 -m unittest tests/test_eval_runner.py`
-  passed; `python3 scripts/eval_runner.py validate
-  evals/vibe-plan-execution/evals.json` passed; an external-sandbox
-  claude/sonnet-4-6 E13/E14 subset run at
-  `evals/vibe-plan-execution/workspace/claude/iteration-16/` recorded
-  `sanity_checks.ok=true`, clear pre/post `source_fixture_dirty`, `/tmp` sandbox
-  repo paths in `run.json`, and no live fixture or HEAD changes.
-- `vibe-writing` now routes changelog and release-note work to a new
-  `skills/vibe-writing/references/changelog.md` reference that splits a format
-  layer from a content layer. The format layer makes the repository the owner of
-  its changelog format under a precedence order (user instruction → repository
-  policy such as `AGENTS.md`/`CONTRIBUTING`/changelog config or a `CHANGELOG.md`
-  format header → existing `CHANGELOG.md` conventions → a propose-only fallback
-  structure when the repository defines none) and requires the agent to detect
-  and conform to the existing format and never restructure, migrate, or reformat
-  it without explicit user instruction. The content layer departs from the
-  source specs' "for humans, not machines" premise and writes each entry as a
-  contract and evidence log for the next agent resuming with zero context: the
-  changed contract/behavior, the trigger/reason with evidence, migration or
-  rollback when warranted, verification status, and durable anchors. Entries
-  stay falsifiable, do not pre-assign a version, are written in the same slice as
-  the change, and never copy Conventional Commit prefixes or dump git logs or PR
-  titles. The content layer now also forbids treating `CHANGELOG.md` as an
-  iteration log: in-progress quality, eval, review, and release-preparation work
-  keeps only the current contract delta, strongest durable evidence, latest
-  verification status, and unresolved accepted risk, and collapses superseded run
-  or review readings into the existing entry instead of appending chronological
-  commentary. `skills/vibe-writing/SKILL.md` keeps its existing changelog
-  restraint and adds the routing trigger and iteration-log guard; the README
-  `vibe-writing` section gains the two-layer, artifact-only, and collapse
-  guidance. Requested artifact deliverables now return only the artifact content
-  without process notes, wrappers, separators, placement instructions, or
-  translation away from the artifact's own language contract.
-  `evals/vibe-writing/evals.json` adds discriminating cases for contract-log
-  entry quality and no-silent-reformat under a stated repo format (`E14`), plus
-  collapsing superseded eval run notes into a current changelog entry (`E15`),
-  preserving the `E04` refactor-restraint case, and now explicitly checks the
-  artifact-only/language boundary for changelog entries. The boundary change was
-  driven by the claude/sonnet-4-6 run at
-  `evals/vibe-writing/workspace/claude/iteration-9/`, where
-  `sanity_checks.ok=false`, `error_run_count=0`, overall `with_skill` 95.8% vs
-  `without_skill` 89.2%, and E15 was flagged candidate-below-baseline (84.2% vs
-  100.0%) because the skill-guided output added a process preface, used the
-  wrong artifact language, and omitted `sanity OK`. A closing claude/sonnet-4-6
-  run at `evals/vibe-writing/workspace/claude/iteration-10/` recorded
-  `sanity_checks.ok=true`, `error_run_count=0`, 30/30 scored runs, metrics
-  captured, no excluded runs, no candidate-below-baseline cells, and overall
-  `with_skill` 98.4% vs `without_skill` 87.3% (+11.0%). The targeted cells
-  recovered in that single-run evidence: E14 `with_skill` 100.0% vs
-  `without_skill` 90.9%, and E15 100.0% vs 100.0%. `version` stays `1.0.0`.
-- `vibe-plan-execution` now clarifies that a non-technical user's uncertainty
-  about behavior already marked out of scope by the bound plan is not a blocker:
-  the agent should state that the behavior stays outside the current slice and
-  continue without it unless the user explicitly asks to change plan scope. This
-  addresses the `evals/vibe-plan-execution` E08 claude/sonnet-4-6 run where the
-  skill stopped for a notification choice even though notifications were
-  out-of-scope. A clean claude/sonnet-4-6 rerun at
-  `evals/vibe-plan-execution/workspace/claude/iteration-10/` moved E08
-  `with_skill` from 82.4% to 100% with sanity checks OK.
-- `vibe-plan-execution` delegated execution guidance now states that a
-  coordinator-inferred shared interface, provisional result shape, polling loop,
-  or pre-launch contract note does not make plan-ordered slices independent
-  when the plan says a later slice starts only after an earlier slice is
-  implemented or verified. The clarification is driven by
-  `evals/vibe-plan-execution` E14 in the same claude/sonnet-4-6 rerun, where the
-  `with_skill` output rationalized parallel delegated implementation of
-  dependent slices by pre-confirming a shared result shape. A later clean
-  claude/sonnet-4-6 rerun at
-  `evals/vibe-plan-execution/workspace/claude/iteration-11/` passed that
-  parallel-refusal assertion but exposed remaining delegated-commit failures:
-  the output treated an automatic-commit request as permission for history
-  operations inside the delegated run, did not record the contract handoff for
-  each delegated unit, and used order-only slice labels in commit messages.
-  The guidance now says delegated units or scripted runs may not own automatic
-  commits; at most, such a request authorizes coordinator-managed commits after
-  coordinator verification as `Local evidence`. It also requires recording each
-  delegated unit's plan-contract handoff and omitting order-only phase, slice,
-  checkpoint, or step labels from commit messages unless they are product or
-  domain names. The guidance also clarifies that raw commit-message bytes are
-  only a sub-artifact and must not replace the required execution summary unless
-  the user requested only a commit message. Clean external-sandbox
-  claude/sonnet-4-6 evidence now shows E13 recovered to `with_skill` 100.0% vs
-  `without_skill` 44.4%, supporting the conclusion that the earlier E13 collapse
-  was repository contamination rather than a skill regression. E14 remains above
-  baseline, with three-run evidence at 93.3% vs 35.6% and the external-sandbox
-  subset at 86.7% vs 40.0%; the single subset run is useful clean proof, not a
-  tighter variance estimate.
-- `vibe-plan-execution` checkpoint closure guidance now requires the durable
-  final execution summary to retain the bound plan source, `Proceed condition`
-  status, per-checkpoint verification command or manual check, result, commit
-  action, standalone commit message, and any skipped or failing verification
-  status. This addresses the `evals/vibe-plan-execution` E09 claude/sonnet-4-6
-  candidate-below-baseline signal where the `with_skill` output reported
-  completed commits but did not surface the proceed condition or verification
-  evidence before those commits. The existing E09 assertions already cover this
-  behavior, so no eval definition change was needed. Clean claude/sonnet-4-6
-  full-suite evidence at
-  `evals/vibe-plan-execution/workspace/claude/iteration-18/` recorded
-  `sanity_checks.ok=true`, `error_run_count=0`, 28/28 scored runs, metrics
-  captured, and no excluded or candidate-below-baseline cells. Overall
-  `with_skill` was 95.4% vs `without_skill` 65.6%; E09 recovered to 94.4% vs
-  50.0%, and E14 scored normally at 93.3% vs 40.0%. Verification:
-  `python3 scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`
-  passed.
-- `skills/vibe-debug-fix/SKILL.md` step 14 and
-  `references/verification-handoff.md` now state that when exact retest
-  specifics such as the command, prompts, inputs, or paths are unknown, the
-  skill delivers the user retest contract immediately with explicit stated
-  assumptions or clearly labeled placeholders and how to adapt them, rather than
-  asking the user to supply those specifics first — the same defer the step
-  already prohibits. Motivated by the degraded-verification eval `E12`, where
-  the `with_skill` run reproducibly asked the user for the command and prompts
-  before writing the contract while the `without_skill` baseline delivered a
-  concrete one. A sonnet-4-6 with/without rerun after the change moved `E12`
-  from candidate-below-baseline (`with_skill` 42–47% vs `without_skill` 53–90%
-  across two runs) to `with_skill` 89.5% (17/19) vs `without_skill` 36.8%, and
-  the `with_skill` output now emits a labeled-placeholder contract instead of
-  clarifying questions.
-- `evals/vibe-debug-fix/evals.json` rewords common assertion #3 from "performs
-  local/source investigation before asking the user for a full technical
-  reproduction" to "investigates the available evidence, including the provided
-  prompt, plan, described symptoms, and any supplied code, tests, logs, or
-  artifacts, and reasons from it before asking ..., and asks only questions that
-  change the fix or proof path." Most evals in the suite ship no fixture code, so
-  the prior wording was graded literally as "no file reads" and penalized the
-  rigorous agent for asking narrow proof-path questions when there was nothing
-  local to read. Across sonnet-4-6 with/without reruns the reworded assertion
-  moved from non-discriminating (`with_skill` 12/18 = `without_skill` 12/18) to
-  `with_skill` 18/18 vs `without_skill` 13–15/18, and cleared the `E02`/`E14`
-  candidate-below-baseline flags the literal grading had caused. The guarded
-  failure mode is preserved: a response that demands a full reproduction or asks
-  broad non-proof-changing questions before engaging the available evidence
-  still fails.
-- `vibe-debug-fix` now requires a compact current-scope record even for short
-  blocker, refusal, no-local-file, delegated-diagnosis, or verified-repair
-  closure responses. The visible record preserves the user's wording, states the
-  current behavior or operation decision, expected source or authorization,
-  unknowns, proof or preflight path, closure criteria, one ledger row per
-  unresolved symptom or closure decision, claim labels, and the relevant
-  existing behavior or operation state. For verified repairs that have moved to
-  repository history or cleanup, the skill records a closure-decision ledger row
-  without reopening the repair. The degraded-verification gate now chooses the
-  strongest currently observable proof path instead of presenting proof options
-  as a user menu; when the user asks what to test and only their environment can
-  observe the behavior, the skill selects a user retest contract and leaves the
-  ledger blocked until evidence returns. The eval common assertions now apply
-  to the current debug/fix or closure slice, distinguish unresolved repair rows
-  from verified-repair closure rows, scope probe escalation to prompts or
-  investigations that already show bounded triage, allow prompt-specific domain
-  steps, and keep user-run handoff requirements only when the agent asks the user
-  to perform the proof path. This targets the iter-7 pattern where `with_skill`
-  repeatedly lost points for omitted ledger/current-scope structure, while E18's
-  history-boundary case was penalized by repair-symptom assertions despite
-  passing its operation-consent checks. A clean sonnet-4-6 with/without rerun
-  after this change (`evals/vibe-debug-fix/workspace/claude/iteration-8`) scored
-  `with_skill` 92.0% vs `without_skill` 60.7% (delta +31.4%) with 36/36 scored
-  runs, `error_run_count=0`, metrics captured, and sanity checks OK with no
-  candidate-below-baseline, scored-0%, infrastructure, or grader anomalies. E18
-  moved to 100%, E12 to 94.7%, and E08/E10 to 83.3%; remaining `with_skill`
-  failures cluster around existing-state marking and exact user-run handoff
-  detail, so they are tracked as residual contract pressure rather than a reason
-  for another broad eval rewrite.
-- `evals/vibe-brainstorm/evals.json` drops the common assertion that required a
-  visible limitation and stop "before using a degraded single-agent fallback
-  when sub-agent capability is unavailable or not authorized." It was a
-  scenario-specific delegation/fallback stop gate, not a property valid for
-  every eval: on non-trigger and non-fallback cases (for example the mechanical-
-  rename guard `E09`) the antecedent never occurs, and graders scored the vacuous
-  case inconsistently across configs, producing a candidate-below-baseline
-  sanity flag that was scoring noise rather than a skill regression. The contract
-  it guarded stays covered by per-eval expectations: `E04` keeps "States that the
-  required sub-agent or delegation capability is unavailable or not authorized"
-  and "Either stops or asks whether to proceed with a clearly degraded single-
-  agent fallback," and `E03`/`E05`/`E07`/`E10` keep their own delegation/fallback
-  expectations. Re-grading the prior run without this assertion left the measured
-  benefit essentially unchanged (delta ~+25.3% to ~+25.7%), confirming it was
-  non-discriminating.
-- The eval grader now returns a structured, schema-constrained verdict instead
-  of hand-written free-form JSON. `scripts/eval_runner.py` requests provider-
-  native structured output where the CLI supports it (`codex --output-schema`,
-  `claude --json-schema`) and keys verdicts by the assertion's 1-based `id`
-  (`{"verdicts": [{"id", "passed", "evidence"}]}`) rather than an echoed
-  assertion string, so a grader cannot break grading by malforming JSON or by
-  re-numbering/paraphrasing assertion text. The legacy text-keyed
-  `{"expectations": [...]}` shape stays accepted for backward compatibility, and
-  the tolerant parser/matcher remains as a fallback for providers that do not
-  enforce the schema.
-- `vibe-coding` now routes by workflow phase against visible specialist skill
-  metadata instead of a hardcoded `vibe-*` specialist name list, so the family
-  can grow or shrink without changing the orchestrator. It adds three primary
-  routable phases: creative direction exploration (idea/convention requests
-  without a saved-requirements ask), read-only code investigation (existing-code
-  questions with no defect report or edit request), and commit execution
-  (staging, committing, splitting, amending, and history repair). Commit
-  requests now route to a visible commit-execution specialist as the primary
-  phase, with a verified visible writing specialist remaining mandatory
-  auxiliary wording authority for the message artifact; the prior
-  writing-as-auxiliary fallback still applies when no commit-execution
-  specialist is visible. Route descriptions take specialist names from current
-  visible metadata rather than a memorized roster or name pattern, and
-  primary-route eligibility is decided by whether a skill's description matches
-  the phase's workflow scope and boundary obligations; skills describing only a
-  tool, command, or domain capability stay auxiliary. The `evals/vibe-coding/`
-  suite is updated for the phase-based contract and adds commit-execution
-  routing (with and without a visible commit specialist), code-investigation
-  versus debug precedence, and creative-exploration versus requirements-capture
-  cases.
-- `vibe-*` skill contracts no longer name sibling skills. `vibe-commit` and its
-  history/trailers reference defer message wording to "a dedicated writing
-  skill when one is verified available" instead of naming `vibe-writing`;
-  `vibe-planning` references a generic verified writing/commit-message skill
-  for checkpoint messages and a generic later code-review workflow;
-  `vibe-review` drops the retired-skill replacement note (`codex-review-cycle`,
-  `review-scope-guard`, `review-fix-cascade-guard`) and describes itself as one
-  self-contained coordinator workflow. Companion capabilities are resolved from
-  visible skill metadata at run time; runtime behavior is unchanged when the
-  sibling skills are visible.
-- `vibe-review` replaces the host-specific `claude-code-codex-plugin` backend
-  capability label with the host-neutral `host-plugin-delegated-review` label
-  (a host plugin or extension supplying the delegated review path), and the
-  backend-fallback rule now says no specific host plugin or vendor backend may
-  be required.
-- The delegation-capable `vibe-*` skills now recognize a scripted orchestration
-  run — a host mechanism that fans out delegated agents under one
-  deterministic, independently recorded run and returns their results — as a
-  valid host-neutral delegation transport, so hosts with dynamic multi-agent
-  workflow tooling can carry these skills' fan-out stages without any skill
-  requiring a specific host tool. `vibe-review` treats it as a transport for
-  delegated review (labeled `parallel` or `serial` from actual execution, run
-  identity recorded as backend evidence, contract confirmation and all
-  post-collection decisions outside the run); `vibe-brainstorm` accepts it for
-  the Delegation Gate's mechanism and recordable-evidence checks with
-  confirmation stages kept in the conversation; `vibe-planning` accepts it for
-  the plan multi-perspective review gate with findings staying inert and
-  dispositions staying with the coordinator; `vibe-code-research` adds an
-  optional `Delegated Investigation` section for read-only fan-out with
-  anchored collectable findings; `vibe-debug-fix` adds a `Delegated Diagnosis`
-  section for read-only hypothesis fan-out whose results enter the ledger as
-  recorded evidence, not proven cause; `vibe-plan-execution` adds `Delegated
-  Execution Support` allowing bounded sub-tasks of an authorized slice under
-  the bound plan contract, with deviation decisions, commit authorization, and
-  final verification kept by the coordinator and concurrent slice work gated on
-  plan-defined independence plus host-isolated working state; `vibe-coding`
-  states that delegation and orchestration mechanisms are execution transport
-  inside a routed phase, never routes, and that no orchestrated run may cross a
-  downstream skill's approval gate, stop condition, or consent boundary in one
-  unattended pass. Because delegated units cannot prompt the user, every skill
-  places its user decisions before launch or after collection. README skill
-  summaries are updated to match. Each affected eval suite gains one
-  orchestration-boundary case that pressures the matching degeneration:
-  `vibe-review` E11 (orchestrated fan-out must not schedule fix application or
-  a squash inside the run, with a new `orchestrated-fanout.json` fixture),
-  `vibe-brainstorm` E10 (direction confirmation cannot be folded into the
-  unattended run), `vibe-planning` E16 (orchestrated reviewers must not edit
-  the plan artifact), `vibe-code-research` E09 (delegated reports are claims
-  whose anchors the final answer checks), `vibe-plan-execution` E14
-  (dependent slices refuse parallel delegated implementation and in-run
-  auto-commits), `vibe-debug-fix` E19 (hypothesis fan-out stays read-only and
-  findings are ledger evidence, not proven cause), and `vibe-coding` E15
-  (unattended orchestration must not cross requirements approval, planning
-  handoff, and execution proceed gates in one pass). Follow-up benchmarking also
-  exposed and closed two `vibe-coding` output gaps: cross-phase orchestration
-  refusals now state both the rejected schedule and any selected-phase transport
-  limit without treating that transport as approval, proceed evidence, or a
-  route; direct non-deliverable wording checks about short labels or identifiers
-  now stay ordinary behavior or `no matching specialist` when editing, review,
-  planning, debugging, and written deliverables are excluded, and they do not
-  retain active routing state. Clean claude/sonnet-4-6 evidence at
-  `evals/vibe-coding/workspace/claude/iteration-17/` recorded
-  `sanity_checks.ok=true`, `error_run_count=0`, 30/30 scored runs, metrics
-  captured, no excluded or candidate-below-baseline cells, and overall
-  `with_skill` 100.0% vs `without_skill` 78.0% (+22.0%). E10 recovered from the
-  prior 45.5% over-route signal to 100.0%, with output explicitly declining
-  `vibe-writing` as a primary route and using ordinary behavior. `HOME` still
-  reaches Claude provider subprocesses, so user-level Claude configuration can
-  affect language assertions; no iteration-17 anomaly was recorded, but provider
-  environment isolation remains unresolved. To offset the growth,
-  `vibe-debug-fix` consolidates the former E13 skipped-interactive-check case
-  into E12, which now covers degraded-verification non-proof plus the exact user
-  retest contract in one case.
-- `vibe-brainstorm` now states it does not draft, save, or approve durable
-  requirements specification artifacts; brainstormed directions become
-  requirements only after the user confirms them and a requirements-capture
-  workflow records them.
-- `vibe-commit` now clarifies that already-staged commit requests still require
-  staged-set and stored-commit verification, while ignored local config paths
-  absent from `git status` require `git check-ignore -v` diagnosis and explicit
-  override before any force-add. Its eval assertions now grade the shown command
-  sequence, least-destructive repair choice, and safety decision instead of
-  treating response-only runs as failed live git mutations or requiring one
-  valid recovery command shape.
-- `vibe-commit` now treats requests for an exact commit command as requests for
-  the exact `git commit ...` invocation inside the full safe command sequence,
-  so already-staged docs or trailer commits still include staged-set and
-  stored-commit verification.
-- `vibe-commit` now clarifies that supplied git excerpts do not replace showing
-  or running the matching inspection commands, executable commit commands must
-  not contain placeholder subjects, partial staging verification must show both
-  cached and unstaged file-specific diffs, and pushed-history rewrite warnings
-  must name the concrete divergence/rebase/reset risk for collaborators.
-- `vibe-commit` now resolves the lockfile exclusion rule so dependency
-  manifests and their matching lockfiles stay together when the selected
-  implementation requires the dependency change, while unrelated lockfiles still
-  stay out.
-- `vibe-commit` now strengthens subject and partial-staging stop gates:
-  executable commit commands must stop before `git commit` when the diff has not
-  been read closely enough to name the outcome, and partial-hunk commits must
-  show both cached and unstaged file-specific diff commands before committing.
-- `vibe-commit` now treats future-output subject text as a placeholder too:
-  response-only command plans that need `git diff -- <path>` before naming the
-  outcome must stop at that inspection step instead of embedding instructions
-  such as `<after reading diff>` inside a commit command.
-- `vibe-commit` now distinguishes supplied semantic intent from missing diff
-  evidence when forming commit subjects, so stated change outcomes produce
-  concrete Conventional Commit subjects while path-only or status-only cases
-  still inspect `git diff` before showing an executable commit.
-- `vibe-commit` E07 now supplies semantic intent for the visible route change,
-  so its subject assertion grades use of provided evidence instead of requiring
-  a response-only run to invent an outcome from path/status alone.
-- `vibe-commit` now clarifies that placeholder subjects are invalid even inside
-  illustrative command blocks or "replace before running" examples, and that
-  broad supplied intent should become a conservative concrete subject instead of
-  being deferred to future diff output.
-- `skill-quality` now requires an artifact-placement gate after mapping sampled
-  examples to abstract dimensions, keeping narrow pressure cases in evals or
-  applicability-scoped references instead of promoting one local pattern into
-  always-visible `SKILL.md` guidance. A new `E10` eval covers this sampled-case
-  promotion failure mode.
-- `skill-quality` now requires measurement-boundary triage before treating
-  surprising, repeated, tool-related, or artifact-related eval failures as skill
-  defects, checks whether the recorded output set contains the proof an
-  assertion requires, stops repeated wording-only tightening when targeted
-  failures do not move, requires a rerun before improvement claims after
-  proof-path changes, keeps truthful execution separate from missing recorded
-  proof, keeps eval workflow guidance provider-neutral and file-contract based,
-  aligns repository eval workflow guidance with the runner-driven
-  `validate` / `run` / `report` CLI, requires repository `with_skill` runs to
-  read the authoritative source Skill path instead of host skill tools or local
-  snapshots, adds `E11`-`E14` evals for evidence-surface, retry-stop,
-  eval-execution data-boundary, and description-field cases, strengthens `E10`
-  to also test the multiple-independent-evidence promotion threshold for
-  sampled patterns, and narrows existing eval assertions that previously treated
-  proposal-only artifact selection as proof of file changes.
-- `skill-quality` now treats a failure mechanism that moves across evals after
-  targeted wording fixes as one shared contract gap before another local patch,
-  keeps invalid placeholder text out of executable and user-copyable guidance,
-  records the sampled commit-execution convergence pattern in its reference
-  notes, and adds `E15` coverage for recurring placeholder leakage.
+  per-run sandbox copy outside the source checkout, excluding host-local and
+  generated state (`.git`, `.agents`, `.claude`, `.codex`, `evals/*/workspace/`,
+  `node_modules/`, `__pycache__/`), initializing a throwaway git repo when
+  available, remapping the `with_skill` skill path into the sandbox, and recording
+  sandbox metadata plus executor/grader cwd in `run.json`. This keeps eval prompts
+  that edit fixtures, install packages, or commit checkpoints from writing into
+  the source checkout; written Markdown artifacts are captured into
+  `outputs/plan.md` for grading. The runner also records declared fixture-root
+  dirtiness before and after execution as a `source_fixture_dirty` sanity anomaly,
+  because sandbox isolation does not prove the copied baseline was clean.
+  `AGENTS.md` documents the sandbox and source-fixture sanity contract.
+- The eval grader now returns a structured, schema-constrained verdict keyed by
+  the assertion's 1-based `id` (`{"verdicts": [{"id", "passed", "evidence"}]}`)
+  instead of hand-written free-form JSON, requested through provider-native
+  structured output where supported (`codex --output-schema`,
+  `claude --json-schema`), so a grader cannot break grading by malforming JSON or
+  by re-numbering or paraphrasing assertion text. The legacy text-keyed
+  `{"expectations": [...]}` shape stays accepted as a fallback.
+- `AGENTS.md` clarifies the local skill snapshot rules: `.agents/skills/` and
+  `.claude/skills/` are managed copies operated only through
+  `scripts/sync_dev_agent_skills.py`, while `skills/` stays the authoritative
+  source for repository edits and verification.
 
 ### Fixed
 
-- `scripts/eval_runner.py` no longer records a malformed or mis-serialized
-  grader verdict as a genuine scored `0%` that silently deflates the
-  `with_skill`/`without_skill` benchmark. Two grader-fidelity gaps are closed:
-  (1) `parse_grader_output` returned the first brace-balanced fragment even when
-  it carried no `expectations` list, so an unterminated evidence string (for
-  example one ended by backticks instead of a closing quote) slipped past the
-  `grading is None` guard and was scored `0%` instead of being excluded as
-  `grader_unparseable`; it now requires a recovered object to carry the grader
-  contract and otherwise reports the verdict unparseable. (2) `summarize_grading`
-  matched grader-returned assertion texts only by exact string, so a grader that
-  echoed the numbered "Assertions For Grading" list (`1. `, `2) `) matched zero
-  prepared assertions and recorded a false `0%`; matching now strips a leading
-  enumeration prefix before comparison while still requiring the assertion body
-  to match exactly. Adds regression tests for both failure modes.
-- `scripts/eval_runner.py` no longer discards a structured grader verdict
-  returned by newer `claude` CLIs and records the cell as a false
-  `grader_unparseable`. The `claude` provider parser read the model answer only
-  from the envelope's `result` field, but `claude` CLI 2.1.x returns
-  `--json-schema` structured output under a separate `structured_output` key and
-  leaves `result` an empty string, so every grader verdict was dropped: a full
-  `vibe-planning` run (`claude`, `claude-sonnet-4-6`, both configs) excluded 30
-  of 32 cells as `grader_unparseable` and scored none. The parser now prefers a
-  dict/list `structured_output` envelope and re-serializes it for the grader
-  parser, falling back to the existing `result` string and nested-object paths
-  so schema-less executor runs, where the key is absent, are unchanged. Adds
-  regression tests for the structured-output envelope and the schema-less
-  executor path.
-- `scripts/eval_runner.py` no longer scores a skill whose deliverable is a
-  written file only on its concise chat summary. The grader received just the
-  executor's recorded chat response, but `vibe-planning` and similar skills
-  write the full plan to a durable Markdown artifact and keep the chat reply
-  short by design, so every artifact-content assertion (English section
-  headings, evidence labels, acceptance-criteria/test ordering, plan integrity
-  gates, per-step skill routing, multi-perspective review record) was graded
-  against text that was correctly not in the response. The effect was a
-  systematic `with_skill` deflation: a full `vibe-planning` run
-  (`claude-sonnet-4-6`, both configs) scored `with_skill` 40.9% vs
-  `without_skill` 17.6% and flipped one eval (`E16`) below its baseline even
-  though the written plan satisfied the failed assertions. The executor prompt
-  now names one designated artifact path (`outputs/plan.md` under the run dir),
-  config-symmetrically for both configs and without telling the executor how to
-  structure the artifact, and the runner folds any file written there into the
-  grader's recorded output under a delimited `Written Plan Artifact` section
-  (capped at `ARTIFACT_MAX_CHARS`, truncation recorded). Runs whose deliverable
-  is the chat reply write no such file and keep the grader prompt unchanged.
-  `run.json` records `written_artifact` capture state. Updates `AGENTS.md`
-  `Shared Eval CLI Rules` and adds regression tests for the symmetric path
-  injection, the end-to-end grader fold, artifact collection, and truncation.
+- `scripts/eval_runner.py` no longer records a malformed or mis-serialized grader
+  verdict as a genuine scored `0%`. `parse_grader_output` now requires a recovered
+  object to carry the grader contract instead of accepting the first
+  brace-balanced fragment, and `summarize_grading` strips a leading enumeration
+  prefix before matching assertion text so a grader that echoes the numbered
+  assertion list no longer matches zero prepared assertions; both cases are
+  excluded as `grader_unparseable` rather than scored `0%`. Adds regression tests.
+- `scripts/eval_runner.py` no longer discards a structured grader verdict from
+  newer `claude` CLIs as a false `grader_unparseable`. `claude` CLI 2.1.x returns
+  `--json-schema` output under a separate `structured_output` key with `result`
+  left empty; the parser now prefers a dict/list `structured_output` envelope and
+  re-serializes it, falling back to `result` and nested-object paths so
+  schema-less executor runs are unchanged. Adds regression tests.
+- `scripts/eval_runner.py` no longer scores a skill whose deliverable is a written
+  file only on its concise chat summary. The executor prompt now names one
+  designated artifact path (`outputs/plan.md`), config-symmetrically for both
+  configs and without telling the executor how to structure the artifact, and the
+  runner folds any file written there into the grader's recorded output under a
+  delimited `Written Plan Artifact` section (capped, truncation recorded);
+  chat-deliverable runs write no such file and keep the grader prompt unchanged.
+  Updates `AGENTS.md` `Shared Eval CLI Rules` and adds regression tests.
 
 ## [minecraft-modding-workbench 2.0.0] - 2026-06-07
 

@@ -1,5 +1,5 @@
 ---
-version: 2.0.0
+version: 2.1.0
 name: vibe-debug-fix
 description: Use when debugging or repairing existing features from rough vibe-coding reports, regressions, failed prior fixes, repeated "still broken" feedback, source-only debugging stalls, unobserved runtime state, tool or automation failures, environment-specific failures, runtime artifact mismatches, security boundary surprises, or fixes that feel wrong.
 ---
