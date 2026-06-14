@@ -226,6 +226,12 @@ Keep adjacent bullets in one logical list on consecutive lines. Blank lines
 between bullets mean multi-paragraph list items or section breaks; they do not
 replace the required blank line before footer trailers.
 
+Footer examples in this reference describe the stored message shape. When an
+active commit-execution skill is adding or repairing an authorship trailer,
+follow that skill's command transport rule; for `vibe-commit`, that means using
+`git commit ... --trailer`, not treating a hand-written footer block as a
+substitute.
+
 When required trailers such as `Co-Authored-By` or `Signed-off-by` are present,
 put them in a final footer block separated from the prose body by a blank line.
 Avoid ending the body with a final single-line `Key: value` paragraph such as

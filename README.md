@@ -436,14 +436,14 @@ pre-draft context checks, optional non-trivial body labels,
 fresh-clone-readable references, verification provenance, monorepo and
 multiple-package cohesion, i18n/localization scope, dependency updates,
 performance work, CI/build/publishing changes, security/privacy/data-loss fixes,
-release commits, thin-evidence cases, mechanical syncs, trailer separation,
+release commits, thin-evidence cases, mechanical syncs, stored footer shape,
 compact bullets, and multi-line message transport. When `vibe-writing` is active
 for a body commit that is actually created or amended, it applies the reference
 before execution, uses one message file, editor buffer, or complete payload
 instead of repeated `git commit -m` body-line arguments, and inspects
 `git show -s --format=%B HEAD` before reporting completion. Commit-execution
-skills still own staging, authorization, command safety, signing, and history
-mutation.
+skills still own staging, authorization, command safety, signing, history
+mutation, and the command transport for added or repaired authorship trailers.
 
 ### `vibe-commit`
 
@@ -451,9 +451,9 @@ Commit-execution skill that turns a vague instruction like "commit please",
 "commit this", or "コミットして" into one correctly scoped commit. It is the
 execution counterpart to `vibe-writing`: `vibe-writing` owns the message wording,
 and `vibe-commit` owns staging, exclusion, the pre-commit re-verification gate,
-command safety, history mutation, message transport, and trailers as a transport
-mechanism. When `vibe-writing` is available it defers message wording to that
-skill and its `references/commit-messages.md`; otherwise it applies compact
+command safety, history mutation, message transport, and authorship-trailer
+command transport. When `vibe-writing` is available it defers message wording to
+that skill and its `references/commit-messages.md`; otherwise it applies compact
 fallback message rules. The skill's guidance is distilled from real Codex and
 Claude Code sessions across multiple repositories where these exact steps either
 prevented or, when skipped, caused commit mistakes. Its core workflow discovers
@@ -466,7 +466,8 @@ verifies the stored commit with `git show -s --format=%B HEAD` and
 `git show --stat HEAD`. References cover file selection and exclusion of
 generated/workspace/ignored/secret paths, the staging gate with partial-hunk
 staging and a least-destructive recovery ladder, and history edits with
-authorship-trailer footer hygiene including the per-agent `Co-Authored-By` forms.
+authorship-trailer `--trailer` transport and footer hygiene including the
+per-agent `Co-Authored-By` forms.
 It stays on the reversible side of git safety: it commits when asked but does not
 push, and it does not amend or rebase already-pushed or shared history without
 explicit informed consent. Repo release rules and project workflows take
@@ -559,8 +560,8 @@ only explicit user, DoD, or confirmed-plan evidence.
 - `evals/vibe-writing/`: external writing and commit-message eval prompts
 - `evals/vibe-commit/`: external commit-execution eval prompts for file
   selection, exclusion, staged-set re-verification, partial-hunk staging, safe
-  message transport, trailer footer hygiene, recovery, and the reversible-safety
-  boundary
+  message transport, authorship-trailer `--trailer` transport, recovery, and the
+  reversible-safety boundary
 - `evals/skill-quality/`: external skill-improvement and eval-hardening prompts
 - `evals/vibe-review/`: external integrated review eval prompts
 - `skills/minecraft-modding-workbench/`: Minecraft modding skill package
@@ -576,7 +577,7 @@ only explicit user, DoD, or confirmed-plan evidence.
 - `skills/vibe-writing/`: consolidated vibe-coding writing skill package
 - `skills/vibe-commit/`: commit-execution skill for file selection, exclusion,
   staged-set re-verification, safe message transport, history edits, and trailer
-  hygiene
+  transport hygiene
 - `skills/skill-quality/`: skill creation, improvement, and eval-hardening skill package
 - `skills/vibe-review/`: integrated vibe-coding review workflow with delegated review, scope triage, cascade containment, and terminal audit
 - `scripts/eval_runner.py`: shared stdlib CLI that runs the bounded skill-eval
@@ -684,11 +685,11 @@ specific to the skill.
   commit authorization and history mutation remain outside `vibe-writing`.
 - `vibe-commit` is the commit-execution counterpart to `vibe-writing`: it owns
   file selection, exclusion, the staged-set re-verification gate, message
-  transport, history mutation, and trailer footer hygiene, and defers message
-  wording to `vibe-writing` when available. It commits when asked but does not
-  push, and it does not amend or rebase already-pushed or shared history without
-  explicit informed consent. Project-specific workflows and the repo's release
-  and commit rules take precedence over its defaults.
+  transport, history mutation, and authorship-trailer `--trailer` transport, and
+  defers message wording to `vibe-writing` when available. It commits when asked
+  but does not push, and it does not amend or rebase already-pushed or shared
+  history without explicit informed consent. Project-specific workflows and the
+  repo's release and commit rules take precedence over its defaults.
 - `vibe-review` runs only when the current directory is a git repository and
   the chosen review target resolves to a non-empty diff. It is platform-neutral:
   Claude Code with the `codex` plugin can be documented as a special backend,

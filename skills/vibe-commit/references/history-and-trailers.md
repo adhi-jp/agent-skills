@@ -27,14 +27,12 @@ Multi-line messages are where shell quoting silently mangles commits. Pick a
 transport that preserves bytes:
 
 ```sh
-# Heredoc — preferred for multi-line bodies and trailers.
+# Heredoc — preferred for multi-line bodies.
 # The SINGLE-QUOTED delimiter blocks $-expansion and backticks.
 git commit -F - <<'EOF'
 feat(scope): summary in imperative mood
 
 Body paragraph explaining why the change exists and what it affects.
-
-Co-Authored-By: Name <email>
 EOF
 
 # Message file — equivalent, handy when the body is generated elsewhere.
@@ -57,22 +55,38 @@ Pitfalls seen repeatedly:
   contaminate the subject/body. Write the raw message; no fences.
 
 Tooling tendency (from the data): Codex sessions leaned on multiple `-m` plus
-`--trailer`; Claude Code sessions favored heredoc/`-F -`. Both are fine. What
-both converge on is verifying the stored message afterward.
+`--trailer`; Claude Code sessions favored heredoc/`-F -` for the message body.
+Both are fine for body transport. When the workflow adds or repairs an
+authorship trailer, `--trailer` remains the required trailer transport, and the
+stored message still gets verified afterward.
 
 ## Trailers: keep them a real footer
 
 A trailer (`Co-Authored-By`, `Signed-off-by`) is only useful if git parses it as
-a footer, not as body prose. The reliable way:
+a footer, not as body prose. For an agent-added or repaired authorship trailer,
+the required transport is a `git commit ... --trailer` command:
 
 ```sh
 git commit -m 'feat(scope): summary' --trailer 'Co-Authored-By: Name <email>'
+git commit --amend --no-edit --trailer 'Co-Authored-By: Name <email>'
+git commit -C "$old_commit" --trailer 'Co-Authored-By: Name <email>'
 ```
 
-`--trailer` makes git place and format the footer correctly. If you instead put
-trailers in the body via heredoc/`-F`, they must sit in a footer block: a blank
-line after the prose, each trailer on its own `Key: value` line, all last in the
-message.
+`--trailer` makes git place and format the footer correctly and is part of the
+execution contract for authorship-trailer addition or repair. A footer block in
+a heredoc, message file, or copied message text describes the stored message
+shape; it is not a substitute transport when the workflow is adding or repairing
+an authorship trailer.
+
+Use `git interpret-trailers --parse` to verify stored messages. Do not use
+`git interpret-trailers --trailer` to manufacture message text and then feed
+that text into `git commit-tree -F`, a raw footer append, or a synthesized
+message file. Those paths can produce a parseable footer while bypassing the
+required `git commit --trailer` transport.
+
+When you are inspecting or preserving an existing stored footer, the footer
+shape still matters: a blank line after the prose, each trailer on its own
+`Key: value` line, all last in the message.
 
 Rules that prevent the common corruptions:
 
@@ -94,7 +108,8 @@ Rules that prevent the common corruptions:
 
 - **Carry trailers forward when rewording.** `git commit --amend -m '…'`
   replaces the entire message, so it drops trailers already on the commit unless
-  you re-add them — re-include every trailer in the same command.
+  you re-add them. Use `--trailer` in the same command for any authorship
+  trailer you are adding or repairing.
   `git commit --amend --no-edit` instead reuses the full stored message, trailers
   included, so they survive (and `--trailer` then only adds one):
 
@@ -130,18 +145,135 @@ Two forms observed across sessions:
 Pick the one for the agent that wrote the commit; do not invent a format, and do
 not attribute the commit to an agent that did not write it.
 
-## Preserve authorship when rewriting
+## Repair an unpushed range without plumbing
 
-When replaying or rewriting a commit to add a trailer, do not let the rewrite
-silently reassign authorship or date:
+Use this only for a simple, unpushed linear range. Do not rewrite pushed/shared
+history, do not add duplicate trailers, and stop if a merge commit, conflict, or
+metadata-preservation gap appears.
 
 ```sh
-git show -s --format='%an %ae %aI' <ref>   # capture original author/date
-git commit -C <ref> --trailer 'Key: value' # reuse original message verbatim, append trailer
+git status -sb
+if ! git diff --quiet || ! git diff --cached --quiet ||
+   test -n "$(git ls-files --others --exclude-standard)"; then
+  echo "range repair requires a clean worktree, clean index, and no untracked files" >&2
+  exit 1
+fi
+
+current_branch=$(git branch --show-current)
+git for-each-ref --format='%(upstream:short)' "refs/heads/$current_branch"
 ```
 
-Pass the original author/date (and committer env vars) explicitly when the
-operation would otherwise stamp the current identity.
+If no upstream is configured, do not rely on `@{upstream}`. Use a concrete base
+the user or repository state supplies, such as `origin/main`, and verify it is
+an ancestor before listing the range:
+
+```sh
+base=origin/main
+old_head=$(git rev-parse HEAD)
+if ! git merge-base --is-ancestor "$base" "$old_head"; then
+  echo "base is not an ancestor of the old head: $base" >&2
+  exit 1
+fi
+git rev-list --reverse "$base".."$old_head"
+```
+
+Inspect existing parsed trailers before deciding which commits need the new
+authorship trailer:
+
+```sh
+for old_commit in $(git rev-list --reverse "$base".."$old_head"); do
+  printf '%s\n' "$old_commit"
+  git show -s --format=%B "$old_commit" | git interpret-trailers --parse
+done
+```
+
+When the requested rule is "add `Co-Authored-By: Codex <noreply@openai.com>` to
+commits without any trailer", leave commits with any parsed trailer unchanged.
+Do not add a second Codex trailer to a commit that already has one.
+
+Replay on a repair branch with porcelain commands, then replace the original
+unpushed branch only after verification:
+
+```sh
+git switch -c trailer-repair "$base"
+
+for old_commit in $(git rev-list --reverse "$base".."$old_head"); do
+  if ! git diff --quiet || ! git diff --cached --quiet; then
+    echo "replay state is dirty before $old_commit" >&2
+    exit 1
+  fi
+
+  if git rev-list --parents -n 1 "$old_commit" | grep -q ' .* '; then
+    echo "merge commit requires a separate plan: $old_commit" >&2
+    exit 1
+  fi
+
+  trailers=$(git show -s --format=%B "$old_commit" | git interpret-trailers --parse)
+  author_name=$(git show -s --format=%an "$old_commit")
+  author_email=$(git show -s --format=%ae "$old_commit")
+  author_date=$(git show -s --format=%aI "$old_commit")
+  committer_name=$(git show -s --format=%cn "$old_commit")
+  committer_email=$(git show -s --format=%ce "$old_commit")
+  committer_date=$(git show -s --format=%cI "$old_commit")
+
+  if ! git cherry-pick --no-commit "$old_commit"; then
+    echo "cherry-pick failed; resolve through a separate plan: $old_commit" >&2
+    exit 1
+  fi
+  git diff --cached --stat
+  git diff --cached --check
+
+  if test -z "$trailers"; then
+    if ! GIT_COMMITTER_NAME="$committer_name" \
+         GIT_COMMITTER_EMAIL="$committer_email" \
+         GIT_COMMITTER_DATE="$committer_date" \
+           git commit -C "$old_commit" \
+             --author="$author_name <$author_email>" \
+             --date="$author_date" \
+             --trailer 'Co-Authored-By: Codex <noreply@openai.com>'; then
+      echo "commit replay failed while adding trailer: $old_commit" >&2
+      exit 1
+    fi
+  else
+    if ! GIT_COMMITTER_NAME="$committer_name" \
+         GIT_COMMITTER_EMAIL="$committer_email" \
+         GIT_COMMITTER_DATE="$committer_date" \
+           git commit -C "$old_commit" \
+             --author="$author_name <$author_email>" \
+             --date="$author_date"; then
+      echo "commit replay failed while preserving existing trailer state: $old_commit" >&2
+      exit 1
+    fi
+  fi
+done
+```
+
+This preserves the tree changes through `git cherry-pick --no-commit`, reuses
+the original message with `git commit -C`, preserves author and committer
+metadata explicitly, and adds new Codex authorship trailers only through
+`git commit ... --trailer`. If exact preservation and `--trailer` transport
+conflict, stop and explain the conflict instead of falling back to
+`git commit-tree`, `git interpret-trailers --trailer`, or raw footer editing.
+
+Verify before moving the original branch name:
+
+```sh
+git range-diff "$base".."$old_head" "$base"..HEAD
+for new_commit in $(git rev-list --reverse "$base"..HEAD); do
+  git show -s --format='%H%n%an <%ae> %aI%n%cn <%ce> %cI%n%B' "$new_commit"
+  git show -s --format=%B "$new_commit" | git interpret-trailers --parse
+done
+
+if test "$(git rev-parse "$current_branch")" != "$old_head"; then
+  echo "original branch moved; stop before repointing: $current_branch" >&2
+  exit 1
+fi
+git branch -f "$current_branch" HEAD
+git switch "$current_branch"
+```
+
+If the original branch moved, the range was not fully unpushed, or verification
+shows duplicate trailers or metadata drift, stop before repointing the branch.
 
 ## Always verify the stored message
 

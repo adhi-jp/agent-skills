@@ -100,15 +100,19 @@ deeper on the judgment calls.
    non-trivial changes. Defer wording to a verified available writing skill.
    Detect
    the repo's trailer convention first: `git log -5 --format='%H%n%B'`.
-9. **Transport the message safely.** For any multi-line body or trailer, use a
-   heredoc (`git commit -F - <<'EOF' … EOF`, single-quoted delimiter) or `git
-   commit -F <file>`. Add trailers with `--trailer 'Key: value'`, not by typing
-   them into the body. Never embed raw newlines in a single `-m`. See
-   `references/history-and-trailers.md`.
+9. **Transport the message safely.** For any multi-line body, use a heredoc
+   (`git commit -F - <<'EOF' … EOF`, single-quoted delimiter) or `git commit -F
+   <file>`. Add or repair authorship trailers with a `git commit ... --trailer
+   'Key: value'` command — including `git commit --amend ... --trailer` or `git
+   commit -C <ref> --trailer ...` for local rewrites — not by typing them into
+   the body or a synthesized message payload. Never embed raw newlines in a
+   single `-m`. See `references/history-and-trailers.md`.
 10. **Post-verify the stored commit.** `git show -s --format=%B HEAD` confirms
     subject/body/trailer landed byte-correct and the trailer parsed as a footer;
-    `git show --stat HEAD` confirms the committed file set; `git status --short`
-    confirms only intentionally-left files remain and nothing leaked.
+    for newly added or repaired authorship trailers, also confirm the command
+    path used `git commit ... --trailer`. `git show --stat HEAD` confirms the
+    committed file set; `git status --short` confirms only intentionally-left
+    files remain and nothing leaked.
 11. **Recover reversibly if wrong.** Prefer the least-destructive fix:
     `git restore --staged <file>` to unstage, `git reset --soft HEAD~1` to undo
     a commit while keeping changes, `git commit --amend --no-edit --trailer …`
@@ -174,9 +178,11 @@ Not every invocation is a full "commit please." Jump to the relevant reference:
   (`evals/<name>/` vs. `evals/<name>/evals.json`).
 - Multi-line message corruption from a single `-m` with embedded newlines, or a
   double-quoted heredoc that lets the shell expand `$`/backticks.
-- Trailer corruption: trailers typed into the body, dropped when rewording with
-  `--amend -m` (re-add with `--trailer`), wrong capitalization, or a stray
-  `Key: value` body line folding into the footer.
+- Trailer corruption: trailers typed into the body, added through
+  `git interpret-trailers --trailer` plus plumbing or a synthesized message
+  file, dropped when rewording with `--amend -m` (re-add with `--trailer`),
+  wrong capitalization, or a stray `Key: value` body line folding into the
+  footer.
 - Mixing unrelated concerns into one commit so blame, bisect, and revert get
   messy.
 - Destructive recovery without a plan (`git reset --hard`, force-push) that
@@ -196,4 +202,8 @@ Before reporting the commit done:
 - If a trailer was required, did it land as a parsed footer in the exact
   authorship form for the agent that wrote the commit and the repo's existing
   convention?
+- If an authorship trailer was newly added or repaired, did the transport path
+  use `git commit --trailer`, `git commit --amend ... --trailer`, or `git commit
+  -C ... --trailer`, never a hand-edited footer, raw append, or plumbing-created
+  message?
 - Did anything outside the agreed scope get committed, pushed, or rewritten?

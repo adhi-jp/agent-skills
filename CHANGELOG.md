@@ -11,6 +11,29 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- `vibe-commit` now treats authorship-trailer command transport as part of the
+  commit-execution contract: `skills/vibe-commit/SKILL.md` and
+  `skills/vibe-commit/references/history-and-trailers.md` require agent-added or
+  repaired `Co-Authored-By` trailers to use `git commit ... --trailer`,
+  including amend and `git commit -C` rewrite paths, while
+  `git interpret-trailers --parse` remains verification-only and
+  `git interpret-trailers --trailer`, `git commit-tree`, raw footer appends, and
+  synthesized message payloads are forbidden as substitutes. The `vibe-commit`
+  eval suite tightens E04/E10 and adds a mixed unpushed-range trailer repair case
+  covering missing versus existing trailers, metadata preservation, no duplicate
+  trailers, and no push.
+  `vibe-writing` keeps authority over stored commit-message wording while
+  clarifying that active commit-execution skills own trailer-addition command
+  transport. Verification: clean claude/claude-sonnet-4-6 run at
+  `evals/vibe-commit/workspace/claude/iteration-13/` recorded
+  `sanity_checks.ok=true`, `error_run_count=0`, 24/24 scored runs, metrics
+  captured for all runs, and overall `with_skill` 98.1% vs `without_skill` 62.1%
+  (+35.9 points); E12 recorded 100.0% vs 83.3%. Remaining `with_skill` misses
+  were common inspection-command assertions in E02/E04/E05, not infrastructure
+  anomalies.
+
 ## [vibe-commit 1.0.0] - 2026-06-14
 
 ### Added
