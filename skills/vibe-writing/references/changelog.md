@@ -37,6 +37,13 @@ initiative, even when another convention looks cleaner or more consistent.
 Changing a repository's changelog format requires explicit user instruction;
 absent that instruction, match what the repository already does.
 
+When the requested deliverable is a changelog entry or section, that requested
+slice is the whole answer. Emit only the changelog-shaped artifact: no process
+preface, horizontal rule, placement instruction, change summary, or note about
+having read the skill/reference. Keep the changelog artifact language from the
+explicit instruction, existing entry, file locale, or repository convention
+unless the user asks for translation.
+
 When the repository defines no format, propose the fallback structure below as a
 starting point and let the user decide whether to adopt it. Do not silently
 impose it.
@@ -94,6 +101,17 @@ Discipline for every entry:
   the version. (This matches the format layer's `Unreleased` buffer.)
 - Write the entry in the same slice as the behavior change, while the contract
   delta and its evidence are still known.
+- Do not use `CHANGELOG.md` as an iteration log. For in-progress skill quality,
+  eval, review, or release-preparation work, keep only the current contract
+  delta, the strongest durable evidence, the latest verification status, and
+  any unresolved accepted risk. When later runs or reviews supersede earlier
+  readings, update or collapse the existing entry instead of appending
+  chronological run commentary.
+- Keep assertion-level analysis, grader evidence, run-by-run diagnosis, and
+  release-trimming investigation notes in eval workspaces, PR or review notes,
+  or working notes unless that detail is itself the behavior contract being
+  released. Do not park temporary investigation logs in `Unreleased` on the
+  assumption that a release pass will prune them later.
 - Attach a migration note only when the change is genuinely breaking. A
   no-impact internal refactor usually belongs in commit history, not the
   changelog; do not inflate it into a user-visible entry.

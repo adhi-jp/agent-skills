@@ -88,6 +88,13 @@ explicitly asks to translate or rename them. Chat replies follow the user's
 active conversational language unless the requested artifact has its own
 language contract.
 
+When the requested deliverable is the artifact itself, return the artifact
+directly. Do not add process notes, source-read confirmations, "here is"
+preambles, separators, change summaries, or placement instructions unless the
+user asks for an explanation. The artifact's explicit language, existing
+language, filename locale marker, or repository convention wins over chat
+language.
+
 For LLM-first text, use line breaks as structure, not as an 80-column habit.
 Keep short examples, commands, commit-message snippets, and compact list items on one physical line when the break would add no meaning.
 Preserve required line breaks in verbatim output, quoted source, templates, logs, protocol payloads, JSON, and commit-message transport.
@@ -135,7 +142,9 @@ security reasons.
 Follow the project's style. Each entry should answer what changed for the
 reader. Internal refactors without user-visible impact usually belong in commit
 history, not a changelog. Do not inflate a narrow implementation change into a
-broad reliability, security, performance, or compatibility claim.
+broad reliability, security, performance, or compatibility claim. Do not use
+`CHANGELOG.md` as an iteration log; fold superseded run notes into the current
+contract delta and latest verification status.
 
 For changelog or release-note work, read `references/changelog.md` when the task
 involves entry content quality, the next-agent contract-log reader model,

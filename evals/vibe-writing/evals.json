@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-writing",
-  "purpose": "External eval set for vibe-writing. Prompts live outside skills/ so they are not bundled as skill content. Covers representative LLM-first development text, human-reader exceptions, source-code comments and docstrings, README/docs, CHANGELOG restraint, changelog format precedence and next-agent contract-log entries, exact-format output, verbatim-output boundaries, durable references, workflow boundaries, incidental progress and final-summary wording, locale precedence, policy and support-promise restraint, hollow-transition cleanup, local-anchor preservation, and commit-message contracts including release trailers, body preserve/cut selection, verification formatting, multi-line transport, active commit workflows, and stored-message inspection.",
+  "purpose": "External eval set for vibe-writing. Prompts live outside skills/ so they are not bundled as skill content. Covers representative LLM-first development text, human-reader exceptions, source-code comments and docstrings, README/docs, CHANGELOG restraint, changelog format precedence, next-agent contract-log entries, iteration-log collapse for in-progress quality work, exact-format output, verbatim-output boundaries, durable references, workflow boundaries, incidental progress and final-summary wording, locale precedence, policy and support-promise restraint, hollow-transition cleanup, local-anchor preservation, and commit-message contracts including release trailers, body preserve/cut selection, verification formatting, multi-line transport, active commit workflows, and stored-message inspection.",
   "common_assertions": [
     "Output preserves source facts, scope, terminology, audience, modality, conditions, exceptions, warnings, limitations, required actions, and order that matters whenever source text is edited or summarized.",
     "Output does not invent unsupported reasons, goals, outcomes, roadmap claims, business value, user impact, implementation rationale, tests, rollout status, or performance/security/risk-reduction claims.",
@@ -242,10 +242,32 @@
         "Describes the `Retry-After` parsing behavior in `RateLimiter` / `RateLimiter.parseRetryAfter()` (delay-seconds or HTTP-date) as a contract delta.",
         "Marks the removal of `retryAfterMs` as a breaking change and includes migration guidance to the `retryAfter` duration-string field, preserving the migration direction from `retryAfterMs` to `retryAfter`.",
         "Preserves durable anchors such as `src/rate-limiter.ts`, `RateLimiter.parseRetryAfter()`, `retryAfterMs`, or `retryAfter` instead of vague prose.",
+        "Emits only the changelog-shaped artifact, with no explanatory preface, horizontal rule, placement instruction, or change-summary wrapper.",
+        "Keeps the changelog artifact in English because the supplied changelog context is English and no translation was requested.",
         "Includes the verification status that `pnpm test -- rate-limiter` passed, and does not claim benchmark results or production-incident impact that the prompt states were absent.",
         "Does not invent reliability, security, performance, or rollout benefits beyond the supplied behavior change.",
         "Does not pre-assign or guess a release version for the change; keeps it under `Unreleased`.",
         "Does not soften or drop the breaking nature of the `retryAfterMs` removal."
+      ]
+    },
+    {
+      "id": "E15",
+      "name": "Changelog update collapses superseded eval run notes",
+      "prompt": "Revise this existing `## [Unreleased]` changelog entry after the latest eval run. The repository uses Keep a Changelog with `### Changed` entries. Return only the revised changelog entry and keep it under `Unreleased`; do not create a release section.\n\nCurrent draft entry:\n- `vibe-review` started requiring cascade-fix notes. Iteration 3 failed E07 because assertion 4 said the output did not name the delegated reviewer transcript. Grader evidence: \"missing reviewer evidence\". Iteration 4 passed E07 but failed E12 because rollback wording was vague. Iteration 5 passed most assertions after the prompt was adjusted. We should trim these details before release.\n\nLatest facts:\n- Contract delta: review fixes now record the affected code area, the delegated-review evidence used, and any remaining accepted risk before applying a cascade fix.\n- Durable anchors: `skills/vibe-review/SKILL.md` and `evals/vibe-review/evals.json`.\n- Latest verification: codex default model, with/without configs, 1 run each; `with_skill` 91% vs `without_skill` 63%; sanity checks OK; `error_run_count=0`.\n- Superseded readings: iteration 3 and iteration 4 were exploratory and should not be treated as current verification.\n- Unresolved accepted risk: E12 still has weak rollback wording coverage.\n- Assertion-level analysis and grader quotes belong in the eval workspace notes, not in the changelog unless they are the released behavior contract.",
+      "expected_output": "The agent returns a single Keep a Changelog entry that reflects the current review-fix contract, durable evidence, latest verification status, and accepted risk without preserving obsolete run commentary.",
+      "files": [],
+      "expectations": [
+        "Keeps the entry in the repository's Keep a Changelog shape under `## [Unreleased]` / `### Changed`, and does not create or guess a release version.",
+        "Produces one consolidated current-state entry rather than separate chronological notes for iteration 3, iteration 4, and iteration 5.",
+        "Captures the cascade-fix note contract as scope, evidence source, and residual-risk recording before related follow-up fixes.",
+        "Preserves durable anchors such as `skills/vibe-review/SKILL.md` or `evals/vibe-review/evals.json`.",
+        "Emits only the revised changelog-shaped artifact, with no explanatory preface, horizontal rule, placement instruction, or change-summary wrapper.",
+        "Keeps the changelog artifact in English because the existing draft entry and latest facts are English and no translation was requested.",
+        "Reports the current verification slice rather than obsolete runs: codex default model, both configs, one run per config, 91%/63% pass rates, sanity OK, and no error runs.",
+        "Does not keep superseded iteration 3 or iteration 4 failure details as release-history content.",
+        "Does not include assertion-level analysis or grader quotes such as `missing reviewer evidence` unless framed only as external workspace detail rather than changelog content.",
+        "Preserves the unresolved accepted risk that E12 still has weak rollback wording coverage.",
+        "Does not claim reliability, safety, quality, or broad review improvement beyond the supplied eval evidence."
       ]
     }
   ],
