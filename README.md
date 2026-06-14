@@ -1,8 +1,8 @@
 # Agent Skills
 
 Agent skills and eval prompts for vibe-coding orchestration, brainstorming,
-requirements specs, plans, review loops, writing, skill quality, and Minecraft
-modding.
+requirements specs, plans, code research, review loops, writing, skill quality,
+and Minecraft modding.
 
 ## Start Here
 
@@ -24,6 +24,7 @@ quickstart when changing a skill or its eval suite.
 | Implement an existing concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Edits only after binding the plan and checking proceed conditions; stops before commits unless separately authorized | `skills/vibe-plan-execution/` | `evals/vibe-plan-execution/` |
 | Brainstorm creative implementation ideas, alternatives, expected behavior, or convention checks | `vibe-brainstorm` | Returns chat-first directions or checklists and stops before implementation until the user confirms the direction | `skills/vibe-brainstorm/` | `evals/vibe-brainstorm/` |
 | Debug or repair existing behavior from rough bug reports, regressions, failed fixes, or runtime artifacts | `vibe-debug-fix` | Produces evidence-backed repairs or retest contracts; does not authorize history mutation | `skills/vibe-debug-fix/` | `evals/vibe-debug-fix/` |
+| Understand, locate, trace, or assess existing code without changing it | `vibe-code-research` | Read-only; returns anchored evidence-backed findings and stops before fixes, plans, edits, or commits | `skills/vibe-code-research/` | `evals/vibe-code-research/` |
 | Write or revise development text, docs, changelog entries, PR text, UI copy, summaries, or commit messages | `vibe-writing` | Controls wording only; staging, commits, releases, and workflow authority stay with the active workflow | `skills/vibe-writing/` | `evals/vibe-writing/` |
 | Commit or stage changes from a vague request — pick the right files, exclude junk, re-verify staging, or fix message transport, history, or trailers | `vibe-commit` | Executes the commit and git safety; defers message wording to `vibe-writing`; does not push or rewrite shared history without explicit consent | `skills/vibe-commit/` | `evals/vibe-commit/` |
 | Decide what to change in a skill or eval from benchmark results, grader feedback, reviews, or regressions | `skill-quality` | Produces evidence-bound quality decisions; release/version changes still require explicit release instruction | `skills/skill-quality/` | `evals/skill-quality/` |
@@ -59,6 +60,7 @@ and are local artifacts unless explicitly requested for commit.
 | `vibe-plan-execution` | `2.0.0` |
 | `vibe-brainstorm` | `1.0.0` |
 | `vibe-debug-fix` | `2.0.0` |
+| `vibe-code-research` | `1.0.0` |
 | `vibe-writing` | `1.0.0` |
 | `vibe-commit` | `1.0.0` |
 | `skill-quality` | `2.0.0` |
@@ -90,21 +92,34 @@ or quote does not activate it. If activation lacks a concrete coding
 instruction, it asks for the instruction before selecting a downstream route.
 
 The skill tracks workflow state through conversation context and existing
-artifact paths, then selects exactly one primary visible `vibe-*` specialist for
-the immediate next phase. It routes underspecified new goals to
-`vibe-requirements-spec`, approval-evidenced specs or insufficient execution
-inputs to `vibe-planning`, concrete ready implementation plans to
-`vibe-plan-execution`, bug reports and regressions to `vibe-debug-fix`, review
-targets to `vibe-review`, and wording-only deliverables to `vibe-writing`.
-Specialist boundaries remain authoritative: `vibe-coding` does not relax
-approval stops, planning-only behavior, proceed conditions, review gates,
-writing-only scope, release policy, or commit authorization. It also
-distinguishes matched-but-unavailable specialists from no matching specialist
-and treats non-`vibe-*` domain skills as auxiliary only in this first
-implementation.
-Commit execution is not a primary `vibe-writing` route, but when `vibe-coding`
-prepares or inspects a commit message and `vibe-writing` is verified available,
-`vibe-writing` is mandatory auxiliary guidance for the message artifact.
+artifact paths, classifies the current instruction into one workflow phase —
+requirements specification, creative direction exploration, read-only code
+investigation, implementation planning, plan execution, debug and repair,
+review, commit execution, or writing — and selects exactly one primary
+specialist whose visible metadata matches that phase. Routes are resolved from
+visible skill metadata at routing time instead of a hardcoded specialist
+roster, so in this repository's family underspecified new goals reach
+`vibe-requirements-spec`, idea and convention exploration reaches
+`vibe-brainstorm`, read-only code questions reach `vibe-code-research`,
+planning inputs reach `vibe-planning`, concrete ready implementation plans
+reach `vibe-plan-execution`, bug reports and regressions reach
+`vibe-debug-fix`, review targets reach `vibe-review`, commit and staging
+requests reach `vibe-commit`, and wording-only deliverables reach
+`vibe-writing`. Specialist boundaries remain authoritative: `vibe-coding` does
+not relax approval stops, planning-only behavior, read-only investigation
+scope, proceed conditions, review gates, writing-only scope, release policy, or
+commit authorization. It also distinguishes matched-but-unavailable phases from
+no matching specialist, and a skill is primary-route eligible only when its
+visible description matches a phase's workflow scope and boundary obligations;
+skills describing only a tool, command, or domain capability stay auxiliary.
+Commit execution routes to a visible commit-execution specialist as the primary
+phase, with a verified visible writing specialist as mandatory auxiliary
+wording authority for the message artifact; when no commit-execution specialist
+is visible and `vibe-coding` prepares or inspects a commit message, the writing
+specialist still provides that auxiliary message guidance. Host delegation and
+scripted orchestration runs are execution transport inside a routed phase, not
+routes: no orchestrated run may be scheduled to cross a downstream skill's
+approval gate, stop condition, or consent boundary in one unattended pass.
 
 ### `vibe-requirements-spec`
 
@@ -257,8 +272,10 @@ commit-checkpoint step gets a route to a verified matching skill, `No matching
 optional skill verified`, or `No skill needed`, with availability source,
 timing, matching reason, and fallback. After the draft artifact exists, plans
 run a multi-perspective review. Verified review-only subagents are used when
-available and authorized; otherwise the planner records a coordinator-run
-fallback. That review always includes a `vibe-planning` contract-compliance
+available and authorized — either ad-hoc subagents or one scripted,
+independently recorded orchestration run that fans out the perspectives and
+returns inert structured findings; otherwise the planner records a
+coordinator-run fallback. That review always includes a `vibe-planning` contract-compliance
 perspective and dispositions for material findings before final self-review.
 Plans also include an implementation handoff and a final self-review gate that
 checks route completeness, unavailable-skill leakage, evidence labels, test
@@ -299,7 +316,12 @@ authorized implementation slice: execution implements and verifies the slice,
 then stops before staging, committing, or other history mutation. When a plan
 contains a `Skill usage plan`, execution binds it, re-checks route availability,
 and turns planning-time `Local investigation` into current `Local evidence`
-before relying on it. If a plan requires inspecting code before writing code or
+before relying on it. Host delegation or one scripted, independently recorded
+orchestration run may carry bounded sub-tasks of an authorized slice when each
+delegated unit receives the bound plan contract; deviation decisions, commit
+authorization, and final verification stay with the coordinator, and
+concurrent slice implementation requires plan-defined independence plus
+host-isolated working state. If a plan requires inspecting code before writing code or
 tests and those files cannot be read, execution stops at the blocker and proof
 path instead of drafting unverified code or test templates.
 
@@ -355,6 +377,27 @@ stashes, resets, amends, release work, and cleanup require operation-specific
 consent after a dirty worktree and index preflight that separates repair-owned
 paths from unrelated or ambiguous user changes.
 
+### `vibe-code-research`
+
+Read-only code-research skill for understanding existing code without changing
+it: "how does X work", "where is Y implemented", "what would changing Z
+affect", architecture and data-flow mapping, dependency tracing, convention
+discovery, and pre-planning or pre-debugging evidence gathering. It frames the
+request as answerable questions, maps entry points by following real
+references, traces evidence along call and data paths, runs at least one
+disconfirming check against the main conclusion, and reports findings with the
+direct answer first. Claims carry `Local investigation`, `Primary source`, or
+`Unproven` labels and file/line anchors; static reading is never presented as
+runtime proof, and failed searches are reported as coverage limits, not
+nonexistence. While active it edits nothing, stages nothing, and commits
+nothing; findings feed later requirements, planning, repair, review, or commit
+phases only after a new user instruction. Findings stay in chat unless the
+user explicitly asks for a saved report. Broad questions may fan out to
+delegated read-only investigators — ad-hoc sub-agents or one scripted,
+independently recorded orchestration run — while the coordinator merges
+findings, re-reads load-bearing anchors, and runs the disconfirming check
+itself.
+
 ### `vibe-writing`
 
 Consolidated writing skill for vibe-coding development text, source-code
@@ -382,7 +425,11 @@ Changelog and release-note guidance lives in `references/changelog.md`, which
 separates a format layer (the repository owns its changelog format; detect and
 conform to it, and never silently restructure it) from a content layer (write
 each entry as a contract and evidence log for the next agent resuming with zero
-context rather than human-facing release marketing).
+context rather than human-facing release marketing, while collapsing
+in-progress run commentary into the current contract delta and latest
+verification status). When a requested artifact is the deliverable,
+`vibe-writing` returns the artifact itself without process notes, wrappers,
+separators, or translation away from the artifact's own language contract.
 Commit-message guidance lives in `references/commit-messages.md` and covers
 outcome-focused Conventional Commit subjects, commit-body preserve/cut selection,
 pre-draft context checks, optional non-trivial body labels,
@@ -463,7 +510,11 @@ isolation candidates, and review focus when local evidence is strong enough.
 The default mode is adversarial delegated review where the host supports a
 review-only delegated path; normal review is an explicit opt-in mode that runs
 through the same normalization, validity, DoD triage, rejected-ledger,
-specification-gap, cascade, residual, and terminal-audit pipeline.
+specification-gap, cascade, residual, and terminal-audit pipeline. Delegated
+capabilities may be provided by ad-hoc reviewer invocation or by one scripted,
+independently recorded orchestration run; orchestration is a transport, not a
+separate review mode, and contract confirmation plus all post-collection
+decisions stay with the coordinator outside the run.
 Plan and document changes are reviewed only when represented by a non-empty
 git-backed target; standalone plan or document files are inert context, not a
 `vibe-review` target by themselves.
@@ -502,6 +553,9 @@ only explicit user, DoD, or confirmed-plan evidence.
 - `evals/vibe-debug-fix/`: external debug/fix pressure prompts spanning rough
   reports, failed attempts, artifacts, auth, representation, tools, async
   lifecycle, runtime diagnostic probe escalation, continuity, and recurrence
+- `evals/vibe-code-research/`: external read-only code-research eval prompts for
+  anchored findings, evidence labels, static-versus-runtime separation, coverage
+  honesty, disconfirming checks, and the findings-only handoff boundary
 - `evals/vibe-writing/`: external writing and commit-message eval prompts
 - `evals/vibe-commit/`: external commit-execution eval prompts for file
   selection, exclusion, staged-set re-verification, partial-hunk staging, safe
@@ -517,6 +571,8 @@ only explicit user, DoD, or confirmed-plan evidence.
 - `skills/vibe-brainstorm/`: creative brainstorming and expected-behavior
   grounding skill package
 - `skills/vibe-debug-fix/`: self-contained vibe-coding debug/fix skill package
+- `skills/vibe-code-research/`: read-only code-research skill package for
+  evidence-backed findings about existing code
 - `skills/vibe-writing/`: consolidated vibe-coding writing skill package
 - `skills/vibe-commit/`: commit-execution skill for file selection, exclusion,
   staged-set re-verification, safe message transport, history edits, and trailer
