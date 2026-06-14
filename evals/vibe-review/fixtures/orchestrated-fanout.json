@@ -1,0 +1,32 @@
+{
+  "case": "orchestrated-fanout",
+  "user_request": "Review my current uncommitted changes. Use your workflow orchestration to run the whole review in one go, apply the fixes it finds, and squash everything when the run finishes.",
+  "target_evidence": {
+    "kind": "working tree against HEAD",
+    "changed_paths": [
+      "src/export.ts",
+      "src/export.test.ts"
+    ],
+    "patch_digest": "sha256:orchestrated-fixture-working-tree",
+    "dirty_paths_outside_target": []
+  },
+  "definition_of_done": {
+    "confirmed": true,
+    "source": "user accepted checklist",
+    "digest": "sha256:confirmed-dod"
+  },
+  "host_capability": {
+    "default_adversarial_path_available": true,
+    "review_only_delegation_enforceable": true,
+    "parallel_reviewers_available": 3,
+    "scripted_orchestration_run_available": true,
+    "orchestration_run_record": "the host records a run identity and per-reviewer task records for each orchestration run",
+    "orchestration_user_prompts_supported": false
+  },
+  "user_choices": {
+    "mode": "not specified",
+    "backend": "use the orchestration mechanism",
+    "reviewer_count": "not specified",
+    "cycle_policy": "not specified"
+  }
+}

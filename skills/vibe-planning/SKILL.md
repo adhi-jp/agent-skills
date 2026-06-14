@@ -585,7 +585,7 @@ only for small, localized, low-risk work under the plan-depth rules above.
    - `light` plans may group repeated route rows only when the grouped row names
      every covered step ID and all route fields are identical.
    - When the plan includes eligible commit checkpoints and a writing or
-     commit-message skill such as `vibe-writing` is verified available, schedule
+     commit-message skill is verified available, schedule
      that skill after checkpoint verification and before finalizing each
      proposed commit message. If no matching writing or commit-message skill is
      verified, fall back to the repository's commit rules, recent local history,
@@ -732,7 +732,7 @@ retention feature unless the user requested it.
 
 This gate reviews the draft plan artifact, not source code or a git diff. It is
 a planning-quality gate inside `vibe-planning`, not a substitute for
-`vibe-review`, implementation, testing, or later code review.
+implementation, testing, or a later code-review workflow.
 
 Use review-only subagents when the host exposes a verified subagent or
 delegated-review capability, current instructions authorize delegated work, and
@@ -742,6 +742,16 @@ marketplace, or network path. If review-only subagents are unavailable, not
 authorized, cannot be verified, time out, or cannot safely receive the draft
 content, run the same perspectives locally as coordinator fallback and record
 the degradation reason.
+
+A verified delegated-review capability may be ad-hoc review-only subagents or
+one scripted orchestration run: a host mechanism that fans out the selected
+perspectives under a single deterministic, independently recorded run and
+returns structured findings. Scripted orchestration changes the transport only.
+Reviewers stay review-only, findings stay inert and advisory, the coordinator
+still classifies every material finding and edits the artifact itself, and the
+run's recorded identity supports the gate record. Because the run cannot pause
+for user input, launch it only against the assembled draft and keep all
+dispositions and user decisions outside the run.
 
 Default perspectives:
 

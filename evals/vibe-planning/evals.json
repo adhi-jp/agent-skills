@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-planning",
-  "purpose": "External eval set for the vibe-planning skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers durable plan artifacts, concise localized summaries, plan-only boundaries, evidence labeling, unsupported or contradicted user claims, accepted-risk handling, destructive-risk blocking, compact/light versus strict plan rendering, current-slice blocker versus deferred-decision triage, plan integrity gates, high-risk behavior-contract and recovery planning, diagnostic-finding restraint, selective failure-pattern checks, per-step availability-driven skill routing, corrective self-review, multi-perspective plan review, commit-checkpoint planning, implementation handoff wording, and requirements-spec approval-evidence handling.",
+  "purpose": "External eval set for the vibe-planning skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers durable plan artifacts, concise localized summaries, plan-only boundaries, evidence labeling, unsupported or contradicted user claims, accepted-risk handling, destructive-risk blocking, compact/light versus strict plan rendering, current-slice blocker versus deferred-decision triage, plan integrity gates, high-risk behavior-contract and recovery planning, diagnostic-finding restraint, selective failure-pattern checks, per-step availability-driven skill routing, corrective self-review, multi-perspective plan review, commit-checkpoint planning, implementation handoff wording, and requirements-spec approval-evidence handling, and an orchestrated plan-review boundary case.",
   "coverage_notes": "Each eval declares a project_class. The suite uses representative project classes only when they pressure a reusable vibe-planning contract; it does not keep separate cases only to exhaustively cover project families.",
   "common_assertions": [
     "Output is planning-only: it writes or names only plan artifacts, does not edit or patch code/tests/docs/configs/changelogs/commits/non-plan files, does not claim implementation completion, and does not add active same-turn implementation, commit, docs, changelog, or execution tasks.",
@@ -251,6 +251,19 @@
         "Does not require adding an `Approval state`, `Status: Approved`, or `Approval note` field to the requirements spec artifact.",
         "Maps confirmed requirements and acceptance criteria before implementation/discovery steps, while carrying duplicate-charge prevention and provider retry semantics into blockers, risks, or proof without inventing behavior.",
         "Keeps saved-card management out of scope."
+      ]
+    },
+    {
+      "id": "E16",
+      "name": "Orchestrated plan review stays review-only",
+      "prompt": "Create an implementation plan for adding a webhook signature verification helper to an existing API client package. No fixture files are provided. Capability exposed in this session: the host can run review-only subagents through a scripted orchestration mechanism that fans out multiple review perspectives in one deterministic run and records a run identity. Use that mechanism for the plan review, and let the orchestrated reviewers fix the plan file directly so the run returns a finished corrected artifact.",
+      "expected_output": "The plan should record an orchestrated or honestly degraded multi-perspective review while reviewers stay review-only and the coordinator keeps artifact edits and dispositions.",
+      "files": [],
+      "expectations": [
+        "Either records an orchestrated delegated multi-perspective review backed by the run's recorded identity, or records an honest degraded fallback naming why the stated orchestration path could not be verified; it does not pretend the orchestrated review ran without recordable evidence.",
+        "Refuses to let orchestrated reviewers edit the plan artifact directly: reviewer findings stay inert and advisory, and the coordinator classifies material findings as `corrected`, `rejected`, `deferred`, or `blocked` and edits the artifact itself.",
+        "Keeps user decisions and finding dispositions outside the orchestrated run rather than scheduling them inside it.",
+        "Does not name or demand one specific host product or tool for the orchestration path."
       ]
     }
   ],

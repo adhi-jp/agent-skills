@@ -9,10 +9,9 @@ description: Use when the user asks for vibe-coding review of a git diff, workin
 ## Overview
 
 `vibe-review` is the user-facing review workflow for vibe-coding review tasks.
-It replaces `codex-review-cycle`, `review-scope-guard`, and
-`review-fix-cascade-guard` as separate user-facing review skills; their review
-loop, scope triage, rejected-ledger, safety, and cascade-containment contracts
-are now internal stages of this one coordinator workflow.
+It is one self-contained coordinator workflow: the review loop, scope triage,
+rejected-ledger, safety, and cascade-containment contracts are internal stages,
+and no companion review skill is required.
 
 The goal is low-burden, high-quality review: choose an effective review target,
 anchor findings to the user's specification or Definition of Done, surface
@@ -202,13 +201,29 @@ Recognized backend capability labels:
 - `parallel-delegated-review`: host can run multiple reviewers concurrently.
 - `serial-delegated-review`: host can run multiple reviewers one after another.
 - `single-local-review`: coordinator performs one normal review pass itself.
-- `claude-code-codex-plugin`: special Claude Code backend when that plugin is
-  installed and configured; it is not required for platform-neutral use.
+- `host-plugin-delegated-review`: a host-specific plugin or extension supplies
+  the delegated review path when it is installed and configured; it is never
+  required for platform-neutral use.
+
+A delegated capability may be provided by ad-hoc per-reviewer invocation or by
+one scripted orchestration run: a host mechanism that fans out the reviewers
+under a single deterministic, independently recorded run and returns their
+results for collection. Scripted orchestration is a delegation transport, not a
+separate review mode. Label the run `parallel` or `serial` from how the
+reviewers actually executed, keep review-only enforcement and mutation checks
+for every delegated reviewer inside the run, and record the run's host-recorded
+identity as backend evidence in the startup contract. Because a scripted run
+cannot pause for user input, confirm the startup contract, dirty-path
+isolation, reviewer count, and angle set before launching it, and return all
+merge, triage, selection, cascade, ledger, and history work to the coordinator
+after collection. Target-drift rules are unchanged: verify the frozen target
+identity immediately before launch and validate digests when the run returns.
+Do not require a specific host orchestration tool for platform-neutral use.
 
 Default to adversarial delegated review where the host supports a review-only
 delegated path. If that selected path is unavailable, pause for explicit user
 approval of the available backend or mode. Do not silently downgrade to normal
-review, and do not require the Claude Code `codex` plugin.
+review, and do not require any specific host plugin or vendor backend.
 
 Normal review mode is allowed only as explicit opt-in, including when the user
 states it at invocation time. It uses the same target identity, DoD/source
