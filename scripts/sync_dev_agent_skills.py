@@ -61,7 +61,17 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     subparsers = parser.add_subparsers(dest="command", required=True)
     for command in COMMANDS:
         subparser = subparsers.add_parser(command, help=f"{command} selected skill snapshots")
-        subparser.add_argument("skills", nargs="+", help="Skill name(s) to operate on.")
+        subparser.add_argument("skills", nargs="*", help="Skill name(s) to operate on.")
+        subparser.add_argument(
+            "--all",
+            action="store_true",
+            dest="select_all",
+            help=(
+                "Operate on every discovered skill instead of named ones: source "
+                "packages under skills/ for add/update, installed managed snapshots "
+                "under .agents/skills/ for remove. Mutually exclusive with names."
+            ),
+        )
         subparser.add_argument(
             "--dry-run",
             action="store_true",
@@ -105,7 +115,10 @@ def main(argv: list[str] | None = None) -> int:
     repo_root = (args.repo_root or Path.cwd()).resolve()
     dry_run = args.global_dry_run or getattr(args, "command_dry_run", False)
     try:
-        syncs = build_selected_sync_plan(repo_root, args.command, args.skills)
+        skill_names = resolve_selected_skill_names(
+            repo_root, args.command, args.skills, getattr(args, "select_all", False)
+        )
+        syncs = build_selected_sync_plan(repo_root, args.command, skill_names)
         if dry_run:
             print_dry_run(args.command, syncs, repo_root)
             return 0
@@ -121,6 +134,23 @@ def main(argv: list[str] | None = None) -> int:
 def build_sync_plan(repo_root: Path) -> list[SkillSync]:
     skills = [path.name for path in discover_source_skills(repo_root / "skills")]
     return build_selected_sync_plan(repo_root, "update", skills, require_clean_source=False)
+
+
+def resolve_selected_skill_names(
+    repo_root: Path,
+    command: str,
+    skill_names: list[str],
+    select_all: bool,
+) -> list[str]:
+    if select_all and skill_names:
+        raise SyncError("--all and explicit skill names are mutually exclusive")
+    if not select_all:
+        return skill_names
+    if command in {"add", "update"}:
+        return [path.name for path in discover_source_skills(repo_root / "skills")]
+    if command == "remove":
+        return discover_installed_managed_skills(repo_root)
+    raise SyncError(f"unknown command: {command}")
 
 
 def build_selected_sync_plan(
@@ -272,6 +302,30 @@ def discover_source_skills(skills_root: Path) -> list[Path]:
     if not source_skills:
         raise SyncError("no skill packages found under skills/")
     return source_skills
+
+
+def discover_installed_managed_skills(repo_root: Path) -> list[str]:
+    agent_root = repo_root / ".agents"
+    agent_skills = agent_root / "skills"
+    validate_managed_root(agent_root, ".agents")
+    validate_managed_root(agent_skills, ".agents/skills")
+
+    names: list[str] = []
+    if agent_skills.is_dir():
+        for entry in sorted(agent_skills.iterdir(), key=lambda path: path.name):
+            name = entry.name
+            if name.startswith("."):
+                continue
+            if entry.is_symlink() or not entry.is_dir():
+                continue
+            manifest = entry / MANIFEST_NAME
+            if manifest.is_symlink() or not manifest.is_file():
+                continue
+            names.append(name)
+
+    if not names:
+        raise SyncError("no managed skill snapshots found under .agents/skills/")
+    return names
 
 
 def assert_simple_name(name: str) -> None:

@@ -13,6 +13,16 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Added
 
+- `scripts/sync_dev_agent_skills.py` now accepts `--all` on `add`, `update`, and
+  `remove`, so a batch can run without enumerating skill names. `add --all` and
+  `update --all` resolve to every source package under `skills/`; `remove --all`
+  resolves to every installed managed snapshot under `.agents/skills/` (those
+  carrying a valid `.agent-skills-sync.json` ownership manifest), skipping
+  unmanaged entries, symlinked entries, and reserved
+  `.<name>.agent-skills-sync.tmp`/`.backup` paths. `--all` and explicit skill
+  names are mutually exclusive, and passing neither still fails with a "required"
+  error. `--all` honors the existing global, per-subcommand, and interspersed
+  `--dry-run` placements and the all-or-nothing preflight.
 - `scripts/eval_runner.py` now computes a `sanity_checks` section into
   `benchmark.json`/`benchmark.md` and prints a sanity line at the end of `run`,
   surfacing infrastructure failures, scored-`0%` cells, and candidate-below-

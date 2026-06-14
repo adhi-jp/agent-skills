@@ -672,6 +672,224 @@ class SyncDevAgentSkillsTests(unittest.TestCase):
         per_skill_lines = [line for line in result.stdout.splitlines() if line.startswith("  ")]
         self.assertEqual(len(per_skill_lines), 2)
 
+    def test_add_all_installs_all_sources(self):
+        self.prepare_repo()
+
+        self.run_cli("add", "--all")
+
+        for name in ("foo", "bar"):
+            destination = self.root / ".agents" / "skills" / name
+            self.assertTrue(destination.is_dir())
+            self.assertFalse(destination.is_symlink())
+            self.assertEqual(
+                os.readlink(self.root / ".claude" / "skills" / name),
+                f"../../.agents/skills/{name}",
+            )
+
+    def test_update_all_refreshes_all_installed(self):
+        self.prepare_repo()
+        self.run_cli("add", "foo", "bar")
+        (self.root / "skills" / "foo" / "new.md").write_text("new\n", encoding="utf-8")
+        (self.root / "skills" / "bar" / "extra.md").write_text("extra\n", encoding="utf-8")
+        self.commit_all("update sources")
+
+        self.run_cli("update", "--all")
+
+        self.assertEqual(
+            (self.root / ".agents" / "skills" / "foo" / "new.md").read_text(encoding="utf-8"),
+            "new\n",
+        )
+        self.assertEqual(
+            (self.root / ".agents" / "skills" / "bar" / "extra.md").read_text(encoding="utf-8"),
+            "extra\n",
+        )
+
+    def test_remove_all_removes_managed_preserves_unmanaged(self):
+        self.prepare_repo()
+        self.run_cli("add", "foo", "bar")
+        unrelated = self.root / ".agents" / "skills" / "local-only"
+        unrelated.mkdir(parents=True)
+        (unrelated / "SKILL.md").write_text("local\n", encoding="utf-8")
+        unrelated_link = self.root / ".claude" / "skills" / "local-only"
+        make_dir_symlink("../../.agents/skills/local-only", unrelated_link)
+        unrelated_before = self.snapshot(unrelated)
+        unrelated_link_target = os.readlink(unrelated_link)
+
+        self.run_cli("remove", "--all")
+
+        self.assertFalse((self.root / ".agents" / "skills" / "foo").exists())
+        self.assertFalse((self.root / ".agents" / "skills" / "bar").exists())
+        self.assertFalse((self.root / ".claude" / "skills" / "foo").exists())
+        self.assertFalse((self.root / ".claude" / "skills" / "bar").exists())
+        self.assertEqual(unrelated_before, self.snapshot(unrelated))
+        self.assertTrue(unrelated_link.is_symlink())
+        self.assertEqual(os.readlink(unrelated_link), unrelated_link_target)
+
+    def test_all_dry_run_writes_nothing(self):
+        self.prepare_repo()
+        before = self.snapshot()
+
+        for args in (
+            ("--dry-run", "add", "--all"),
+            ("add", "--all", "--dry-run"),
+            ("add", "--dry-run", "--all"),
+        ):
+            with self.subTest(args=args):
+                result = self.run_cli(*args)
+
+                self.assertEqual(result.returncode, 0)
+                self.assertIn("Dry run: add 2 skill package", result.stdout)
+                self.assertEqual(before, self.snapshot())
+                self.assertFalse((self.root / ".agents").exists())
+                self.assertFalse((self.root / ".claude").exists())
+
+    def test_subcommand_all_appears_in_help(self):
+        self.prepare_repo()
+
+        for command in ("add", "update", "remove"):
+            with self.subTest(command=command):
+                result = self.run_cli(command, "--help")
+
+                self.assertIn("--all", result.stdout)
+
+    def test_all_and_explicit_names_mutually_exclusive(self):
+        self.prepare_repo()
+
+        for command in ("add", "update", "remove"):
+            with self.subTest(command=command):
+                result = self.run_cli(command, "--all", "foo", check=False)
+
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("mutually exclusive", result.stderr)
+                self.assertFalse((self.root / ".agents").exists())
+
+    def test_subcommand_requires_names_or_all(self):
+        self.prepare_repo()
+
+        for command in ("add", "update", "remove"):
+            with self.subTest(command=command):
+                result = self.run_cli(command, check=False)
+
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("required", result.stderr)
+                self.assertFalse((self.root / ".agents").exists())
+
+    def test_add_all_empty_skills_dir_errors(self):
+        (self.root / "skills").mkdir()
+        before = self.snapshot()
+
+        for command in ("add", "update"):
+            with self.subTest(command=command):
+                result = self.run_cli(command, "--all", check=False)
+
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn("no skill packages found under skills/", result.stderr)
+                self.assertEqual(before, self.snapshot())
+                self.assertFalse((self.root / ".agents").exists())
+
+    def test_remove_all_no_managed_snapshots_errors(self):
+        self.prepare_repo()
+        before = self.snapshot()
+
+        result = self.run_cli("remove", "--all", check=False)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("no managed skill snapshots found under .agents/skills/", result.stderr)
+        self.assertEqual(before, self.snapshot())
+
+    def test_remove_all_skips_reserved_temp_backup_and_unmanaged(self):
+        module = load_sync_module()
+        self.prepare_repo()
+        self.run_cli("add", "foo")
+        agent_skills = self.root / ".agents" / "skills"
+        # Crash-leftover backup carrying a manifest valid for its own name, so the
+        # leading-dot exclusion is the only thing keeping it out of the discovered
+        # set (the manifest filter and per-skill validation would both accept it).
+        leftover = agent_skills / ".bar.agent-skills-sync.backup"
+        shutil.copytree(agent_skills / "foo", leftover)
+        digest = json.loads(
+            (leftover / module.MANIFEST_NAME).read_text(encoding="utf-8")
+        )["tree_digest"]
+        module.write_manifest(leftover, leftover.name, digest)
+        self.assertTrue((leftover / module.MANIFEST_NAME).is_file())
+        unmanaged = agent_skills / "local-only"
+        unmanaged.mkdir()
+        (unmanaged / "SKILL.md").write_text("local\n", encoding="utf-8")
+
+        self.run_cli("remove", "--all")
+
+        self.assertFalse((agent_skills / "foo").exists())
+        self.assertTrue(leftover.exists())
+        self.assertTrue((leftover / module.MANIFEST_NAME).is_file())
+        self.assertTrue(unmanaged.exists())
+
+    def test_remove_all_skips_symlinked_entry(self):
+        self.prepare_repo()
+        self.run_cli("add", "foo")
+        agent_skills = self.root / ".agents" / "skills"
+        external = self.root / "external-skill"
+        external.mkdir()
+        (external / "SKILL.md").write_text("external\n", encoding="utf-8")
+        # The symlink target carries a regular-file manifest, so only the symlink
+        # exclusion (not the manifest filter) keeps the symlinked entry out of the
+        # discovered set.
+        (external / ".agent-skills-sync.json").write_text("{}\n", encoding="utf-8")
+        make_dir_symlink("../../external-skill", agent_skills / "linked")
+
+        self.run_cli("remove", "--all")
+
+        self.assertFalse((agent_skills / "foo").exists())
+        self.assertTrue((agent_skills / "linked").is_symlink())
+
+    def test_update_all_preflight_blocks_on_one_dirty_source(self):
+        self.prepare_repo()
+        self.run_cli("add", "foo", "bar")
+        # bar sorts first and has a committed update that an interleaved
+        # (non-atomic) impl would apply before reaching the dirty member.
+        bar_dest = self.root / ".agents" / "skills" / "bar"
+        bar_before = self.snapshot(bar_dest)
+        (self.root / "skills" / "bar" / "new.md").write_text("new\n", encoding="utf-8")
+        self.commit_all("update bar source")
+        # foo sorts last and has a dirty (uncommitted) source that must block the
+        # whole batch at preflight.
+        (self.root / "skills" / "foo" / "SKILL.md").write_text("# Dirty Foo\n", encoding="utf-8")
+
+        result = self.run_cli("update", "--all", check=False)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("source skill has working tree changes", result.stderr)
+        self.assertEqual(bar_before, self.snapshot(bar_dest))
+        self.assertFalse((bar_dest / "new.md").exists())
+
+    def test_remove_all_preflight_blocks_on_one_owned_dirty_member(self):
+        self.prepare_repo()
+        self.run_cli("add", "foo", "bar")
+        # foo sorts last and is the invalid (dirty) member; bar sorts first and is
+        # valid, so an interleaved (non-atomic) impl would delete bar before
+        # failing on foo.
+        (self.root / ".agents" / "skills" / "foo" / "local.txt").write_text(
+            "local change\n", encoding="utf-8"
+        )
+
+        result = self.run_cli("remove", "--all", check=False)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("destination has local changes", result.stderr)
+        self.assertTrue((self.root / ".agents" / "skills" / "bar").exists())
+        self.assertTrue((self.root / ".claude" / "skills" / "bar").is_symlink())
+        self.assertTrue((self.root / ".agents" / "skills" / "foo").exists())
+
+    def test_update_all_errors_when_a_source_not_installed(self):
+        self.prepare_repo()
+        self.run_cli("add", "foo")
+        before = self.snapshot()
+
+        result = self.run_cli("update", "--all", check=False)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("destination is not installed; use add", result.stderr)
+        self.assertEqual(before, self.snapshot())
+
 
 if __name__ == "__main__":
     unittest.main()
