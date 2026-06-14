@@ -122,6 +122,10 @@ Do not use this skill for:
 - For non-technical users, explain blockers and choices in practical terms.
   Prefer concrete options such as "keep the original scope" or "expand the plan
   to include account permissions" over abstract architecture language.
+- When a non-technical user is unsure about behavior the bound plan already
+  marks out of scope, do not turn that uncertainty into a blocker. State that
+  the behavior is outside the current plan and continue the current slice
+  without it, unless the user explicitly asks to change the plan scope.
 - Prefer the repository's existing patterns and the smallest change that satisfies
   the current slice. Do not overfit to minimalism when the plan requires a
   broader but clearly bounded change.
@@ -189,6 +193,43 @@ If the evidence does not prove one of those conditions, follow the plan. If the
 proof cannot be performed with available access, stop and make the missing proof
 or planning decision explicit. Do not ask the user to approve an evidence-free
 deviation.
+
+## Delegated Execution Support
+
+When the host exposes a delegation or sub-agent capability — ad-hoc sub-agent
+calls or one scripted orchestration run that executes several bounded units
+under a single deterministic, independently recorded run — delegated units may
+carry bounded sub-tasks of an authorized slice: re-verification reads, test or
+check runs, evidence gathering, or implementation of an already-locked slice.
+Do not require a specific host orchestration tool.
+
+Delegation never weakens the plan contract:
+
+- Every delegated unit receives the bound plan contract for its task: slice
+  scope, acceptance criteria, constraints, non-goals, and the relevant
+  high-risk sections. A unit that does not know the contract cannot protect it.
+  Record that handoff per delegated unit before treating delegated work as
+  contract-bound.
+- Delegated units cannot prompt the user. Any step that can hit a stop
+  condition, a Plan Deviation Gate decision, or a consent boundary must either
+  stay with the coordinator or make the delegated unit stop and report instead
+  of deciding.
+- Plan binding, deviation decisions, commit authorization, history operations,
+  and final verification against the plan's acceptance criteria stay with the
+  coordinator.
+- A request to let delegated units or a scripted run commit automatically when
+  checks pass does not move history operations into that delegated run. Treat it
+  at most as authorization for coordinator-managed commits after the coordinator
+  verifies the completed checkpoint as `Local evidence`.
+- Run delegated implementation of different slices concurrently only when the
+  bound plan defines those slices as independent and the host isolates their
+  working state from each other; otherwise execute serially.
+  A coordinator-inferred shared interface, provisional result shape, polling
+  loop, or pre-launch contract note does not make plan-ordered slices
+  independent when the plan says a later slice starts only after an earlier
+  slice is implemented or verified.
+- Treat delegated results as `Unproven` until the coordinator verifies them as
+  `Local evidence` with the plan's checks.
 
 ## Execution Workflow
 
@@ -280,11 +321,21 @@ deviation.
      behavior or documentation change, not prompt context, conversation context,
      or plan labels. Avoid references like `per the plan`, `above`,
      `as requested`, `Phase 1`, `step 2`, or `implementation plan`; name the
-     concrete change instead.
+     concrete change instead. Omit order-only phase, slice, checkpoint, or
+     step labels unless they are part of the product or domain name.
    - When reporting a proposed commit message, write the commit-message bytes as
      raw message lines or inline text. Do not wrap the message itself in
      Markdown fences, labels, or explanatory wrappers that could be copied into
      the commit.
+     This controls only the commit-message sub-artifact. Unless the user's
+     requested deliverable is only a commit message, do not replace the required
+     execution summary with a bare commit message.
+   - After each authorized checkpoint commit, keep the proof visible in the
+     durable execution summary: the checkpoint, verification command or manual
+     check, result, commit action, and standalone commit message. A test file
+     name or committed diff is not evidence that the check passed. If
+     verification was skipped, unavailable, or failing, report that status
+     instead of claiming a completed checkpoint.
 
 ## Stop Conditions
 
@@ -331,6 +382,9 @@ When stopping, explain:
   instruction, or eval workspace in user-facing output.
 - Include the plan's `Proceed condition` in the initial binding note or the
   first blocker notice, even when later local evidence overrides it.
+  If the final response is the first durable handoff, or if the run included
+  authorized commits, repeat the plan source and `Proceed condition` status
+  there too; do not rely on a transient progress note to carry that evidence.
 - When no concrete plan exists, say implementation is blocked and planning is
   the next step. Refer to a specific planning workflow only when it is
   appropriate or already active in the context.
@@ -345,8 +399,10 @@ When stopping, explain:
   `current conversation`, `current instruction`, and `this eval workspace` with
   the concrete plan title, file path, provided fixture workspace, workspace
   access state, or explicit user instruction they refer to.
-- In the final response, include the implemented slice, verification performed,
-  plan deviations or blockers, and any remaining planned steps.
+- In the final response, include the bound plan source, implemented slice,
+  verification performed, plan deviations or blockers, and any remaining planned
+  steps. For committed checkpoints, show the verification that cleared each
+  checkpoint before the commit.
 
 ## Quality Checklist
 
@@ -382,3 +438,6 @@ Before finalizing:
   standalone Conventional Commit messages without prompt or plan-label leaks.
 - Proposed commit messages were not wrapped in Markdown fences, and execution
   summaries did not rely on prompt-local or harness-local references.
+- Final checkpoint summaries preserved the bound plan source, `Proceed
+  condition` status, per-checkpoint verification result, commit action, and any
+  skipped or failing verification status.
