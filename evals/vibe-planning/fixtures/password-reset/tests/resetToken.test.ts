@@ -8,4 +8,11 @@ describe("reset token expiry", () => {
 
     expect(isResetTokenExpired(token, token.issuedAtMs)).toBe(false);
   });
+
+  it("rejects an expired token", () => {
+    const ttlMs = 15 * 60 * 1000;
+    const token = createResetToken(1_700_000_000_000, ttlMs);
+
+    expect(isResetTokenExpired(token, token.expiresAtMs + 1)).toBe(true);
+  });
 });
