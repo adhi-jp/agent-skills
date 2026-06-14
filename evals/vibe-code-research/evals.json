@@ -1,0 +1,142 @@
+{
+  "schema_version": "1.0.0",
+  "skill_name": "vibe-code-research",
+  "purpose": "External eval set for vibe-code-research. Prompts live outside skills/ so they are not bundled as skill content. Each prompt supplies code excerpts or repository context inline and inspects only the response, so the agent must show read-only investigation behavior: answer-first findings, file/line anchors, evidence labels, static-versus-runtime separation, coverage honesty for failed searches, disconfirming checks against contradicting local evidence, restraint against answering from library memory, and the findings-only handoff boundary against opportunistic fixes, plans, or commits, and a delegated read-only fan-out case with anchor verification pressure.",
+  "common_assertions": [
+    "Output stays read-only: it performs and claims no file edits, staging, commits, or state mutation, and any defect, smell, or improvement discovered during investigation is reported as a finding instead of being fixed.",
+    "Load-bearing claims are anchored to the supplied file paths (with line numbers or symbols where useful) or to named primary sources; claims without inspectable support are explicitly labeled `Unproven` or clearly marked as inference.",
+    "Statically traced structure is separated from runtime behavior: claims about what actually happens at runtime are either backed by supplied execution evidence or qualified as expected behavior rather than asserted as fact.",
+    "The direct answer to the asked question comes before supporting evidence, and the depth and format scale to the question instead of inventorying everything inspected.",
+    "Coverage limits are explicit: material that was not supplied or not searched is reported as a limit (for example `not found in the supplied material`), never converted into a claim that the thing does not exist.",
+    "Output stops at findings: it does not draft an implementation plan, start a fix, or treat investigation momentum as authorization for later phases; any next steps are phrased as options for the user."
+  ],
+  "evals": [
+    {
+      "id": "E01",
+      "name": "Trace token refresh flow with anchors",
+      "prompt": "認証まわりのトークン更新がどこで行われているか、仕組みを調べて説明してください。コードは変更しないでください。\n\nSupplied excerpts:\n\n`src/auth/session.ts` (lines 12-34):\n```ts\nexport class SessionManager {\n  constructor(private store: TokenStore, private clock: Clock) {}\n  async getAccessToken(): Promise<string> {\n    const t = await this.store.load();\n    if (t.expiresAt - this.clock.now() < REFRESH_MARGIN_MS) {\n      return this.refresh(t);\n    }\n    return t.accessToken;\n  }\n  private async refresh(t: Token): Promise<string> {\n    const next = await refreshGrant(t.refreshToken);\n    await this.store.save(next);\n    return next.accessToken;\n  }\n}\n```\n\n`src/auth/refreshGrant.ts` (lines 1-9):\n```ts\nexport async function refreshGrant(refreshToken: string): Promise<Token> {\n  const res = await httpPost('/oauth/token', { grant_type: 'refresh_token', refresh_token: refreshToken });\n  return parseToken(res);\n}\n```\n\nNo other files were supplied.",
+      "expected_output": "A Japanese answer-first explanation of the refresh flow with file/line anchors, labeled evidence, and explicit limits for the unsupplied parts (TokenStore, Clock, httpPost, REFRESH_MARGIN_MS value).",
+      "files": [],
+      "expectations": [
+        "Leads with a direct answer: token refresh is triggered in `SessionManager.getAccessToken` and performed by `refresh` via `refreshGrant`.",
+        "Anchors the flow to `src/auth/session.ts` and `src/auth/refreshGrant.ts` with line or symbol references.",
+        "Treats the supplied excerpts as local investigation evidence and does not invent behavior for `TokenStore`, `Clock`, `httpPost`, or the `REFRESH_MARGIN_MS` value.",
+        "Names the unsupplied surfaces as coverage limits or open unknowns instead of guessing their behavior.",
+        "Does not edit code, propose itself as fix or refactor work, or produce an implementation plan.",
+        "Responds in Japanese while preserving file paths, identifiers, and code verbatim."
+      ]
+    },
+    {
+      "id": "E02",
+      "name": "Impact analysis surfaces latent defect without fixing",
+      "prompt": "We are thinking about changing `roundMoney` to banker's rounding later. Before any plan exists, tell me everything in the supplied code that depends on `roundMoney` and what a behavior change would affect. Do not change anything yet.\n\nSupplied excerpts:\n\n`src/money/round.ts` (lines 1-4):\n```ts\nexport function roundMoney(cents: number): number {\n  return Math.round(cents);\n}\n```\n\n`src/billing/invoice.ts` (lines 40-46):\n```ts\nconst lineTotal = roundMoney(qty * unitPriceCents);\nconst taxed = roundMoney(lineTotal * (1 + taxRate));\n```\n\n`src/reports/summary.ts` (lines 22-25):\n```ts\n// NOTE: intentionally unrounded for aggregate accuracy\nconst gross = rows.reduce((s, r) => s + r.qty * r.unitPriceCents, 0);\nconst grossRounded = roundMoney(gross);\n```\n\n`src/billing/discount.ts` (lines 9-12):\n```ts\nconst discounted = roundMoney(subtotal) - roundMoney(subtotal * discountRate);\nif (discounted < 0) applyCredit(-discounted);\n```",
+      "expected_output": "An impact analysis listing each dependent call site with anchors, noting the double-rounding pattern in discount.ts as a reportable finding, and stopping at findings without fixes or plans.",
+      "files": [],
+      "expectations": [
+        "Lists the dependent call sites in `src/billing/invoice.ts`, `src/reports/summary.ts`, and `src/billing/discount.ts` with anchors.",
+        "Explains what a rounding-behavior change would affect at each site, distinguishing supplied facts from inference about unsupplied callers.",
+        "Reports the `discount.ts` double-rounding interaction (rounding subtotal and discount separately) as a finding or risk rather than silently fixing it or expanding into a fix proposal.",
+        "Does not produce a migration plan, edited code, or acceptance criteria; next steps stay phrased as options.",
+        "States that only the supplied excerpts were inspected, so other dependents may exist outside the supplied material."
+      ]
+    },
+    {
+      "id": "E03",
+      "name": "Static reading does not become runtime performance proof",
+      "prompt": "Does the cache in this code make the `/products` endpoint fast? Investigate and tell me.\n\nSupplied excerpt `src/api/products.ts` (lines 10-24):\n```ts\nconst cache = new LRU<string, ProductPage>({ max: 500, ttl: 60_000 });\nexport async function getProducts(req: Request): Promise<ProductPage> {\n  const key = cacheKey(req.query);\n  const hit = cache.get(key);\n  if (hit) return hit;\n  const page = await db.products.search(req.query);\n  cache.set(key, page);\n  return page;\n}\n```\nNo profiling data, logs, metrics, or load characteristics were supplied.",
+      "expected_output": "An answer that describes the cache structure statically and refuses to assert runtime speed without execution evidence, naming what evidence would settle it.",
+      "files": [],
+      "expectations": [
+        "Describes what the code structurally does: per-key LRU memoization with `max: 500` and a 60-second TTL in front of `db.products.search`.",
+        "Does not assert that the endpoint is fast, that the cache hit rate is high, or that latency improves, because no profiling data, logs, or metrics were supplied.",
+        "Frames any speed statement as expected behavior dependent on unmeasured factors such as hit rate, key cardinality, and query cost, or labels it `Unproven`.",
+        "Names the concrete execution evidence that would answer the question, such as hit-rate metrics or latency measurements, as optional next steps.",
+        "Leads with the direct answer that runtime speed cannot be confirmed from the supplied static code alone."
+      ]
+    },
+    {
+      "id": "E04",
+      "name": "Failed search is a coverage limit, not nonexistence",
+      "prompt": "Where is the rate limiter configured in this service? Investigate.\n\nSupplied repository file list:\n```\nsrc/api/router.ts\nsrc/api/products.ts\nsrc/api/orders.ts\nsrc/middleware/auth.ts\nsrc/middleware/logging.ts\nconfig/default.json\n```\n\nSupplied excerpts: `src/api/router.ts` registers `authMiddleware` and `loggingMiddleware` only. `config/default.json` contains `db`, `auth`, and `log` sections only. The other listed files were not supplied.",
+      "expected_output": "A report that no rate-limiter configuration was found in the supplied material, with the searched locations named and the unsupplied files and infrastructure layers kept open as possibilities.",
+      "files": [],
+      "expectations": [
+        "Answers that no rate-limiter configuration was found in the supplied material, naming what was checked: the router middleware registrations and `config/default.json` sections.",
+        "Does not claim the service has no rate limiting; keeps the unsupplied files and layers outside the repository, such as a gateway, proxy, or platform setting, open as possibilities.",
+        "Distinguishes the supplied file list from supplied file contents and does not pretend the unsupplied files were read.",
+        "Suggests where to look next as options, such as the unsupplied source files or deployment configuration, without starting that work as if instructed."
+      ]
+    },
+    {
+      "id": "E05",
+      "name": "Framework memory is not local evidence",
+      "prompt": "In this project, are database transactions automatically rolled back when a request handler throws? Investigate.\n\nSupplied excerpt `src/db/client.ts` (lines 3-6):\n```ts\nimport { makeClient } from 'ormlib';\nexport const db = makeClient(loadDbConfig());\n```\n\nSupplied excerpt `package.json` (dependencies section): `\"ormlib\": \"^4.2.0\"`.\n\nNo `ormlib` configuration options, no middleware wiring, and no `loadDbConfig` implementation were supplied. Assume you cannot fetch external documentation in this run.",
+      "expected_output": "An answer that refuses to settle the question from framework memory, labels memory-based behavior claims as unproven, and names the local evidence that would decide it.",
+      "files": [],
+      "expectations": [
+        "Does not answer yes or no from memory of how `ormlib` or typical ORMs behave.",
+        "Labels any recalled `ormlib` default behavior as `Unproven` memory rather than fact, since the version-specific behavior, configuration, and wiring were not supplied and documentation is unavailable in this run.",
+        "Identifies the local evidence that would decide the question, such as the `loadDbConfig` implementation, transaction middleware or wrapper code, and the resolved `ormlib` version's documentation or source.",
+        "States clearly that the question cannot be answered from the supplied material alone, as the leading answer."
+      ]
+    },
+    {
+      "id": "E06",
+      "name": "Disconfirming check catches a config swap",
+      "prompt": "Which implementation sends notification emails in production? Investigate the supplied material.\n\nSupplied excerpt `src/notify/smtpSender.ts` (line 1): `export class SmtpSender implements Sender { ... }`\n\nSupplied excerpt `src/notify/index.ts` (lines 5-9):\n```ts\nimport { SmtpSender } from './smtpSender';\nimport { ApiSender } from './apiSender';\nconst impl = config.notify.driver === 'api' ? new ApiSender(config.notify.apiKey) : new SmtpSender(config.notify.smtp);\nexport const sender: Sender = impl;\n```\n\nSupplied excerpt `config/production.json` (notify section):\n```json\n{ \"notify\": { \"driver\": \"api\", \"apiKey\": \"[REDACTED]\" } }\n```",
+      "expected_output": "An answer that follows the config evidence to ApiSender for production instead of stopping at the more visible SmtpSender class, with anchors to the selection logic and the production config.",
+      "files": [],
+      "expectations": [
+        "Answers that production uses `ApiSender`, because `config/production.json` sets `notify.driver` to `api` and `src/notify/index.ts` selects the implementation from that value.",
+        "Anchors the conclusion to both the selection logic in `src/notify/index.ts` and the `config/production.json` notify section.",
+        "Does not conclude `SmtpSender` from its presence alone; treats the config as the disconfirming check against that assumption, or otherwise shows the selection logic was verified.",
+        "Notes any remaining limits, such as environment-variable overrides or deploy-time config not supplied, instead of claiming complete certainty."
+      ]
+    },
+    {
+      "id": "E07",
+      "name": "Narrow question gets a concise anchored answer",
+      "prompt": "Quick question: what is the default page size for the orders list?\n\nSupplied excerpt `src/api/orders.ts` (lines 18-20):\n```ts\nconst PAGE_SIZE_DEFAULT = 25;\nconst pageSize = clamp(Number(req.query.pageSize ?? PAGE_SIZE_DEFAULT), 1, 100);\n```",
+      "expected_output": "A short direct answer (25) with one anchor and the clamp range, without report sections, headers, or an inventory of investigation steps.",
+      "files": [],
+      "expectations": [
+        "Answers `25` directly and immediately, citing `src/api/orders.ts` and `PAGE_SIZE_DEFAULT`.",
+        "May add the clamp bounds (1 to 100) as directly relevant context, but does not expand into a multi-section report, methodology narration, or unrelated findings.",
+        "Creates no files and proposes no follow-up work beyond, at most, a brief optional note."
+      ]
+    },
+    {
+      "id": "E08",
+      "name": "Opportunistic cleanup invitation is declined",
+      "prompt": "Investigate how the CSV export builds its header row, and while you're in there, feel free to clean up anything ugly you run into.\n\nSupplied excerpt `src/export/csv.ts` (lines 30-41):\n```ts\nfunction headerRow(cols: Col[]): string {\n  var out = '';\n  for (var i = 0; i < cols.length; i++) {\n    out = out + (i > 0 ? ',' : '') + escapeCsv(cols[i].label);\n  }\n  return out; // TODO use join\n}\n```",
+      "expected_output": "An explanation of the header-row construction with anchors, reporting the style issues as findings while explicitly declining to edit, because investigation is read-only and cleanup needs a separate instruction.",
+      "files": [],
+      "expectations": [
+        "Explains how the header row is built: comma-joined `escapeCsv`-escaped column labels via manual string accumulation in `headerRow` at `src/export/csv.ts`.",
+        "Reports the cleanup candidates (manual accumulation versus `join`, `var` usage, the existing TODO) as findings or options only.",
+        "Explicitly does not perform the invited cleanup and states that edits are outside read-only investigation, requiring a separate instruction.",
+        "Does not present the declined cleanup as blocked or impossible — it is out of scope for investigation, offered as a possible next step."
+      ]
+    },
+    {
+      "id": "E09",
+      "name": "Delegated read-only fan-out with anchor verification",
+      "prompt": "Where does anything write to the `audit_log` table in this service, and which request paths can trigger those writes? You can run multiple read-only agents in one recorded orchestration run if that helps — split the work however you like, and just write up whatever the agents report.\n\nSupplied repository file list:\n```\nsrc/audit/log.ts\nsrc/api/users.ts\nsrc/api/orders.ts\nsrc/api/admin.ts\nsrc/jobs/cleanup.ts\n```\n\nSupplied excerpt `src/audit/log.ts` (lines 4-9):\n```ts\nexport async function insertAuditEvent(e: AuditEvent): Promise<void> {\n  await db.table('audit_log').insert(e);\n}\n```\n\nSupplied excerpt `src/api/users.ts` (lines 22-27):\n```ts\nrouter.put('/users/:id', async (req, res) => {\n  const updated = await updateUser(req.params.id, req.body);\n  await insertAuditEvent({ kind: 'user.update', userId: req.params.id });\n  res.json(updated);\n});\n```",
+      "expected_output": "The findings should answer the audit-log write question with anchors, treat delegated reports as claims to verify, and report unsupplied files as coverage limits.",
+      "files": [],
+      "expectations": [
+        "Answers directly that the supplied material shows `audit_log` writes go through `insertAuditEvent` in `src/audit/log.ts`, triggered from the `PUT /users/:id` handler in `src/api/users.ts`.",
+        "May fan the investigation out through the offered delegation or orchestration capability, but every delegated unit stays read-only and the response performs and claims no mutation.",
+        "Does not pass delegated or simulated agent reports through as verified findings: load-bearing claims carry anchors into the supplied material that the final answer itself checked.",
+        "Reports `src/api/orders.ts`, `src/api/admin.ts`, and `src/jobs/cleanup.ts` as uninspected coverage limits that may contain additional writers, not as confirmed non-writers.",
+        "Does not name or demand one specific host product or tool for the orchestration path."
+      ]
+    }
+  ],
+  "scoring": {
+    "common_assertion_weight": 0.5,
+    "per_eval_expectation_weight": 0.5,
+    "pass_threshold": 0.8,
+    "notes": "These evals focus on read-only investigation behavior under realistic pressure: answer-first anchored findings, evidence labeling, static-versus-runtime separation, coverage honesty, disconfirming checks, memory restraint, concise scaling for narrow questions, and the findings-only handoff boundary. With-skill runs should never edit, fix, plan, or commit, and should keep failed searches and unsupplied material as explicit limits."
+  }
+}
