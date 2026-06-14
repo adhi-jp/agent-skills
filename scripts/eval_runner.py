@@ -29,12 +29,14 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import datetime as _dt
+import hashlib
 import json
 import os
 import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Callable
@@ -73,6 +75,7 @@ MAX_RUNS = 5
 DEFAULT_TIMEOUT_SECONDS = 600.0
 DEFAULT_CONCURRENCY = 4
 MAX_CONCURRENCY = 16
+SANDBOX_ROOT_ENV = "EVAL_RUNNER_SANDBOX_ROOT"
 AGENT_LABEL_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 # A model name is whatever the selected provider CLI accepts. Stay permissive
 # enough for vendor ids like `claude-sonnet-4-6`, `gpt-5.3-codex-spark`, or
@@ -120,6 +123,15 @@ class ValidationReport:
     @property
     def ok(self) -> bool:
         return not self.errors
+
+
+@dataclass
+class SandboxContext:
+    source_repo_root: Path
+    repo_root: Path
+    skill_path: str | None
+    git_initialized: bool
+    git_error: str | None = None
 
 
 # --------------------------------------------------------------------------- #
@@ -199,6 +211,77 @@ def resolve_declared_file(value: str, evals_path: Path, repo_root: Path) -> Path
         if candidate.exists():
             return candidate
     return None
+
+
+def suite_fixture_roots(suite: EvalSuite, repo_root: Path) -> list[Path]:
+    roots: list[Path] = []
+    seen: set[Path] = set()
+    fixtures_root = repo_root / "evals" / suite.skill_name / "fixtures"
+    for case in suite.evals:
+        for declared_file in case.files:
+            resolved = resolve_declared_file(declared_file, suite.path, repo_root)
+            if resolved is None:
+                continue
+            try:
+                rel_to_fixtures = resolved.resolve().relative_to(fixtures_root.resolve())
+            except ValueError:
+                root = resolved
+            else:
+                root = fixtures_root / rel_to_fixtures.parts[0] if rel_to_fixtures.parts else fixtures_root
+            root = root.resolve()
+            if root not in seen:
+                seen.add(root)
+                roots.append(root)
+    return roots
+
+
+def source_fixture_status(suite: EvalSuite, repo_root: Path) -> dict[str, Any]:
+    roots = suite_fixture_roots(suite, repo_root)
+    result: dict[str, Any] = {
+        "checked": bool(roots),
+        "dirty": False,
+        "paths": [str(path.relative_to(repo_root)) for path in roots],
+        "entries": [],
+        "error": None,
+    }
+    if not roots:
+        return result
+    git = shutil.which("git")
+    if not git:
+        result["error"] = "git executable not found"
+        return result
+    command = [git, "status", "--short", "--", *[str(path.relative_to(repo_root)) for path in roots]]
+    completed = subprocess.run(
+        command,
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode != 0:
+        result["error"] = completed.stderr.strip() or completed.stdout.strip() or "git status failed"
+        return result
+    entries = [line for line in completed.stdout.splitlines() if line.strip()]
+    result["entries"] = entries
+    result["dirty"] = bool(entries)
+    return result
+
+
+def combine_source_fixture_status(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any]:
+    entries: list[str] = []
+    for phase, status in (("before", before), ("after", after)):
+        for entry in status.get("entries") or []:
+            entries.append(f"{phase}: {entry}")
+    errors = [str(status.get("error")) for status in (before, after) if status.get("error")]
+    return {
+        "checked": bool(before.get("checked") or after.get("checked")),
+        "dirty": bool(before.get("dirty") or after.get("dirty")),
+        "paths": sorted(set(before.get("paths") or []) | set(after.get("paths") or [])),
+        "entries": entries,
+        "error": "; ".join(errors) if errors else None,
+        "before": before,
+        "after": after,
+    }
 
 
 def slugify(value: str) -> str:
@@ -532,6 +615,126 @@ def unique_eval_dir_name(case: EvalCase, used: set[str]) -> str:
 ARTIFACT_MAX_CHARS = 400_000
 
 
+# Provider subprocesses must not run in the real repository. Some eval prompts
+# intentionally pressure file edits, dependency installs, and commits; executing
+# those against the source checkout contaminates later runs. Each run gets a
+# copy of the current tree, with generated and host-local state excluded, and a
+# throwaway git repository so accidental commits stay contained.
+SANDBOX_EXCLUDED_DIR_NAMES = {
+    ".git",
+    ".agents",
+    ".claude",
+    ".codex",
+    ".local-workspaces",
+    "__pycache__",
+    "node_modules",
+}
+
+
+def sandbox_copy_ignore(repo_root: Path) -> Callable[[str, list[str]], set[str]]:
+    def ignore(directory: str, names: list[str]) -> set[str]:
+        current = Path(directory)
+        ignored: set[str] = set()
+        for name in names:
+            candidate = current / name
+            if candidate.is_dir() and name in SANDBOX_EXCLUDED_DIR_NAMES:
+                ignored.add(name)
+                continue
+            if candidate.is_dir() and name == "workspace" and path_is_lexically_relative_to(
+                candidate, repo_root / "evals"
+            ):
+                ignored.add(name)
+        return ignored
+
+    return ignore
+
+
+def initialize_sandbox_git(repo_root: Path) -> tuple[bool, str | None]:
+    git = shutil.which("git")
+    if not git:
+        return False, "git executable not found"
+
+    env = dict(os.environ)
+    for key in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE"):
+        env.pop(key, None)
+    env.update(
+        {
+            "GIT_AUTHOR_NAME": "Eval Sandbox",
+            "GIT_AUTHOR_EMAIL": "eval-sandbox@example.invalid",
+            "GIT_COMMITTER_NAME": "Eval Sandbox",
+            "GIT_COMMITTER_EMAIL": "eval-sandbox@example.invalid",
+        }
+    )
+    commands = [
+        [git, "init"],
+        [git, "config", "commit.gpgsign", "false"],
+        [git, "add", "-A"],
+        [git, "commit", "--no-gpg-sign", "--no-verify", "-m", "eval sandbox baseline"],
+    ]
+    for command in commands:
+        result = subprocess.run(
+            command,
+            cwd=repo_root,
+            text=True,
+            capture_output=True,
+            env=env,
+            check=False,
+        )
+        if result.returncode != 0:
+            stderr = result.stderr.strip() or result.stdout.strip() or "unknown git error"
+            return False, f"{command[:2]} failed: {stderr}"
+    return True, None
+
+
+def remap_path_into_sandbox(path: str | None, source_repo_root: Path, sandbox_repo_root: Path) -> str | None:
+    if path is None:
+        return None
+    source_path = Path(path)
+    try:
+        rel = source_path.resolve().relative_to(source_repo_root.resolve())
+    except ValueError:
+        return path
+    return str((sandbox_repo_root / rel).resolve())
+
+
+def create_run_sandbox(source_repo_root: Path, run_dir: Path, skill_path: str | None) -> SandboxContext:
+    source_repo_root = source_repo_root.resolve()
+    run_dir = run_dir.resolve()
+    sandbox_repo_root = external_sandbox_repo_root(run_dir)
+    if path_is_lexically_relative_to(sandbox_repo_root, source_repo_root):
+        raise CommandError(f"sandbox root must be outside the source checkout: {sandbox_repo_root}")
+    if sandbox_repo_root.exists():
+        shutil.rmtree(sandbox_repo_root)
+    sandbox_repo_root.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copytree(
+        source_repo_root,
+        sandbox_repo_root,
+        ignore=sandbox_copy_ignore(source_repo_root),
+    )
+    git_initialized, git_error = initialize_sandbox_git(sandbox_repo_root)
+    return SandboxContext(
+        source_repo_root=source_repo_root,
+        repo_root=sandbox_repo_root,
+        skill_path=remap_path_into_sandbox(skill_path, source_repo_root, sandbox_repo_root),
+        git_initialized=git_initialized,
+        git_error=git_error,
+    )
+
+
+def sandbox_base_dir() -> Path:
+    configured = os.environ.get(SANDBOX_ROOT_ENV)
+    if configured:
+        return Path(configured).expanduser().resolve()
+    return (Path(tempfile.gettempdir()) / "eval-runner-sandboxes").resolve()
+
+
+def external_sandbox_repo_root(run_dir: Path) -> Path:
+    resolved_run_dir = run_dir.resolve()
+    digest = hashlib.sha256(str(resolved_run_dir).encode("utf-8")).hexdigest()[:16]
+    slug = re.sub(r"[^A-Za-z0-9_.-]+", "-", resolved_run_dir.name).strip("-") or "run"
+    return (sandbox_base_dir() / f"{slug}-{digest}" / "repo").resolve()
+
+
 def collect_written_artifact(artifact_file: Path) -> tuple[str | None, dict[str, Any]]:
     """Read a file the executor wrote to the designated artifact path, if any.
 
@@ -772,6 +975,13 @@ def base_env() -> dict[str, str]:
     return {key: value for key, value in os.environ.items() if key != "CLAUDECODE"}
 
 
+def invocation_env(cwd: Path | None = None) -> dict[str, str]:
+    env = base_env()
+    if cwd is not None:
+        env["PWD"] = str(cwd.resolve())
+    return env
+
+
 def metrics_absent(provider: str, reason: str) -> dict[str, Any]:
     return {"captured": False, "source": None, "provider": provider, "reason": reason}
 
@@ -790,7 +1000,16 @@ class Provider:
     def available(self) -> bool:  # pragma: no cover - overridden
         raise NotImplementedError
 
-    def build_invocation(self, prompt: str, *, run_dir: Path, role: str, model: str | None = None, schema: dict[str, Any] | None = None) -> Invocation:  # pragma: no cover
+    def build_invocation(
+        self,
+        prompt: str,
+        *,
+        run_dir: Path,
+        role: str,
+        model: str | None = None,
+        schema: dict[str, Any] | None = None,
+        cwd: Path | None = None,
+    ) -> Invocation:  # pragma: no cover
         raise NotImplementedError
 
     def parse(self, *, run_dir: Path, stdout: str, stderr: str, exit_code: int | None, role: str) -> tuple[str, dict[str, Any]]:  # pragma: no cover
@@ -803,7 +1022,16 @@ class ClaudeProvider(Provider):
     def available(self) -> bool:
         return shutil.which("claude") is not None
 
-    def build_invocation(self, prompt: str, *, run_dir: Path, role: str, model: str | None = None, schema: dict[str, Any] | None = None) -> Invocation:
+    def build_invocation(
+        self,
+        prompt: str,
+        *,
+        run_dir: Path,
+        role: str,
+        model: str | None = None,
+        schema: dict[str, Any] | None = None,
+        cwd: Path | None = None,
+    ) -> Invocation:
         argv = ["claude", "-p", prompt, "--output-format", "json"]
         if model:
             argv += ["--model", model]
@@ -813,10 +1041,11 @@ class ClaudeProvider(Provider):
         # quote inside an evidence string).
         if schema is not None:
             argv += ["--json-schema", json.dumps(schema)]
+        resolved_cwd = (cwd or find_repo_root(run_dir)).resolve()
         return Invocation(
             argv=argv,
-            env=base_env(),
-            cwd=str(find_repo_root(run_dir)),
+            env=invocation_env(resolved_cwd),
+            cwd=str(resolved_cwd),
         )
 
     def parse(self, *, run_dir: Path, stdout: str, stderr: str, exit_code: int | None, role: str) -> tuple[str, dict[str, Any]]:
@@ -881,7 +1110,16 @@ class CodexProvider(Provider):
     def available(self) -> bool:
         return shutil.which("codex") is not None
 
-    def build_invocation(self, prompt: str, *, run_dir: Path, role: str, model: str | None = None, schema: dict[str, Any] | None = None) -> Invocation:
+    def build_invocation(
+        self,
+        prompt: str,
+        *,
+        run_dir: Path,
+        role: str,
+        model: str | None = None,
+        schema: dict[str, Any] | None = None,
+        cwd: Path | None = None,
+    ) -> Invocation:
         last_message = run_dir / f"{role}_codex_last.txt"
         argv = ["codex", "exec", "-s", "read-only", "-o", str(last_message), "--json"]
         if model:
@@ -895,10 +1133,11 @@ class CodexProvider(Provider):
             write_text(schema_path, json.dumps(schema, indent=2) + "\n")
             argv += ["--output-schema", str(schema_path)]
         argv.append(prompt)
+        resolved_cwd = (cwd or find_repo_root(run_dir)).resolve()
         return Invocation(
             argv=argv,
-            env=base_env(),
-            cwd=str(find_repo_root(run_dir)),
+            env=invocation_env(resolved_cwd),
+            cwd=str(resolved_cwd),
         )
 
     def parse(self, *, run_dir: Path, stdout: str, stderr: str, exit_code: int | None, role: str) -> tuple[str, dict[str, Any]]:
@@ -962,6 +1201,14 @@ if role == "executor":
         if match:
             with open(match.group(1), "w", encoding="utf-8") as handle:
                 handle.write(artifact)
+    touch = spec.get("touch_cwd")
+    if touch:
+        with open(os.path.join(os.getcwd(), touch), "w", encoding="utf-8") as handle:
+            handle.write("stub touched cwd\n")
+    touch_absolute = spec.get("touch_absolute")
+    if touch_absolute:
+        with open(touch_absolute, "w", encoding="utf-8") as handle:
+            handle.write("stub touched absolute path\n")
     print("%s [%s/%s]" % (text, field("Eval id"), config))
 else:
     if grading_rule.get("unparseable"):
@@ -990,13 +1237,22 @@ class StubProvider(Provider):
     def available(self) -> bool:
         return bool(os.environ.get("EVAL_RUNNER_STUB_FILE"))
 
-    def build_invocation(self, prompt: str, *, run_dir: Path, role: str, model: str | None = None, schema: dict[str, Any] | None = None) -> Invocation:
+    def build_invocation(
+        self,
+        prompt: str,
+        *,
+        run_dir: Path,
+        role: str,
+        model: str | None = None,
+        schema: dict[str, Any] | None = None,
+        cwd: Path | None = None,
+    ) -> Invocation:
         # The hermetic stub runs no real model, so `model` and `schema` are
         # accepted to honor the provider contract and then ignored.
         return Invocation(
             argv=[sys.executable, "-c", STUB_RUNNER_SOURCE, role],
-            env=base_env(),
-            cwd=str(find_repo_root(run_dir)),
+            env=invocation_env((cwd or find_repo_root(run_dir)).resolve()),
+            cwd=str((cwd or find_repo_root(run_dir)).resolve()),
             stdin=prompt,
         )
 
@@ -1197,25 +1453,37 @@ def execute_run(
     case, config, run_number, run_dir = task.case, task.config, task.run_number, task.run_dir
     outputs_dir = run_dir / "outputs"
     assertions = assertions_for_case(suite, case)
+    source_repo_root = find_repo_root(suite.path)
+    sandbox = create_run_sandbox(source_repo_root, run_dir, skill_path)
 
-    # Designate a fixed, run-local path for a file deliverable. The executor runs
-    # with cwd at the repo root, so the path must be absolute; create the parent
-    # up front so even an agent that does not auto-create directories can write
-    # there. After execution the runner folds any file written here into the
-    # grader's recorded output (see ARTIFACT_MAX_CHARS).
+    # Designate a fixed, config-symmetric path for a file deliverable inside the
+    # sandbox. After execution the runner persists any captured artifact under
+    # the run outputs and folds its text into the grader prompt.
     outputs_dir.mkdir(parents=True, exist_ok=True)
-    artifact_file = outputs_dir / "plan.md"
-    artifact_path = str(artifact_file.resolve())
+    artifact_capture_file = sandbox.repo_root / ".eval-runner" / "outputs" / "plan.md"
+    artifact_capture_file.parent.mkdir(parents=True, exist_ok=True)
+    artifact_path = str(artifact_capture_file)
 
-    executor_prompt = render_executor_prompt(suite, case, config, skill_path, artifact_path)
+    executor_prompt = render_executor_prompt(suite, case, config, sandbox.skill_path, artifact_path)
     write_text(run_dir / "prompt.md", executor_prompt)
-    executor_inv = provider.build_invocation(executor_prompt, run_dir=run_dir, role="executor", model=model)
+    executor_inv = provider.build_invocation(
+        executor_prompt,
+        run_dir=run_dir,
+        role="executor",
+        model=model,
+        cwd=sandbox.repo_root,
+    )
     e_stdout, e_stderr, e_exit, e_timeout = run_invocation(executor_inv, timeout)
     executor_output, metrics = provider.parse(
         run_dir=run_dir, stdout=e_stdout, stderr=e_stderr, exit_code=e_exit, role="executor"
     )
     write_text(outputs_dir / "output.txt", executor_output)
-    artifact_text, artifact_info = collect_written_artifact(artifact_file)
+    artifact_text, artifact_info = collect_written_artifact(artifact_capture_file)
+    if artifact_text is not None:
+        output_artifact_file = outputs_dir / "plan.md"
+        shutil.copyfile(artifact_capture_file, output_artifact_file)
+        artifact_info["capture_path"] = artifact_info.get("path")
+        artifact_info["path"] = str(output_artifact_file.resolve())
 
     status = "ok"
     grader_inv: Invocation | None = None
@@ -1234,7 +1502,12 @@ def execute_run(
         grader_prompt = render_grader_prompt(suite, case, config, executor_output, artifact_text)
         write_text(run_dir / "grader_prompt.md", grader_prompt)
         grader_inv = provider.build_invocation(
-            grader_prompt, run_dir=run_dir, role="grader", model=model, schema=grader_schema()
+            grader_prompt,
+            run_dir=run_dir,
+            role="grader",
+            model=model,
+            schema=grader_schema(),
+            cwd=sandbox.repo_root,
         )
         g_stdout, g_stderr, g_exit, g_timeout = run_invocation(grader_inv, timeout)
         grader_output, grader_metrics = provider.parse(
@@ -1276,13 +1549,26 @@ def execute_run(
         "expectations": summary["expectations"],
         "metrics": metrics,
         "written_artifact": artifact_info,
+        "sandbox": {
+            "source_repo_root": str(sandbox.source_repo_root),
+            "repo_root": str(sandbox.repo_root),
+            "skill_path": sandbox.skill_path,
+            "git_initialized": sandbox.git_initialized,
+            "git_error": sandbox.git_error,
+        },
         "executor_invocation": {
             "argv": executor_inv.argv,
             "env_keys": sorted(executor_inv.env),
+            "cwd": executor_inv.cwd,
             "stdin": executor_inv.stdin,
         },
         "grader_invocation": (
-            {"argv": grader_inv.argv, "env_keys": sorted(grader_inv.env), "stdin": grader_inv.stdin}
+            {
+                "argv": grader_inv.argv,
+                "env_keys": sorted(grader_inv.env),
+                "cwd": grader_inv.cwd,
+                "stdin": grader_inv.stdin,
+            }
             if grader_inv
             else None
         ),
@@ -1313,6 +1599,7 @@ def aggregate_runs(
     agent: str,
     skill_path: str | None,
     model: str | None = None,
+    source_fixtures: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     rates_by_eval_config: dict[tuple[str, str], list[float]] = {}
     runs_by_eval_config: dict[tuple[str, str], list[dict[str, Any]]] = {}
@@ -1369,12 +1656,13 @@ def aggregate_runs(
         status = str(run.get("status", "unknown"))
         status_counts[status] = status_counts.get(status, 0) + 1
     error_run_count = sum(count for status, count in status_counts.items() if status != "ok")
-    sanity_checks = compute_sanity_checks(configs, runs, per_eval)
+    sanity_checks = compute_sanity_checks(configs, runs, per_eval, source_fixtures=source_fixtures)
     return {
         "skill_name": suite.skill_name,
         "agent": agent,
         "model": model,
         "skill_path": skill_path,
+        "source_fixtures": source_fixtures,
         "generated_at": utc_now(),
         "configs": list(configs),
         "run_count": len(runs),
@@ -1391,7 +1679,11 @@ def aggregate_runs(
 
 
 def compute_sanity_checks(
-    configs: list[str], runs: list[dict[str, Any]], per_eval: list[dict[str, Any]]
+    configs: list[str],
+    runs: list[dict[str, Any]],
+    per_eval: list[dict[str, Any]],
+    *,
+    source_fixtures: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Surface anomalies a supervising reviewer must inspect before reporting a
     run as a clean result. These are deterministic signals derived from the run
@@ -1428,11 +1720,21 @@ def compute_sanity_checks(
                     {"eval_id": entry["eval_id"], "candidate_pass_rate": cand, "baseline_pass_rate": base}
                 )
 
+    source_dirty: list[dict[str, Any]] = []
+    if isinstance(source_fixtures, dict) and source_fixtures.get("dirty"):
+        source_dirty.append(
+            {
+                "paths": source_fixtures.get("paths", []),
+                "entries": source_fixtures.get("entries", []),
+            }
+        )
+
     return {
-        "ok": not (infra or zero_cells or inversions),
+        "ok": not (infra or zero_cells or inversions or source_dirty),
         "infrastructure_failures": infra,
         "zero_scored_cells": zero_cells,
         "candidate_below_baseline": inversions,
+        "source_fixture_dirty": source_dirty,
     }
 
 
@@ -1448,7 +1750,8 @@ def render_sanity_checks_markdown(sanity: Any) -> list[str]:
     infra = sanity.get("infrastructure_failures") or []
     zero = sanity.get("zero_scored_cells") or []
     inversions = sanity.get("candidate_below_baseline") or []
-    total = len(infra) + len(zero) + len(inversions)
+    source_dirty = sanity.get("source_fixture_dirty") or []
+    total = len(infra) + len(zero) + len(inversions) + len(source_dirty)
     lines = ["", "## Sanity checks", ""]
     if total == 0 and sanity.get("ok"):
         lines.append("- Status: OK — no anomalies detected")
@@ -1469,6 +1772,18 @@ def render_sanity_checks_markdown(sanity: Any) -> list[str]:
             for i in inversions
         )
         lines.append(f"- Candidate below baseline (candidate < baseline): {cells}")
+    if source_dirty:
+        details = []
+        for item in source_dirty:
+            entries = item.get("entries") or []
+            if entries:
+                details.append("; ".join(entries[:8]) + ("; ..." if len(entries) > 8 else ""))
+            else:
+                details.append(", ".join(item.get("paths") or []))
+        lines.append(
+            "- Source fixture dirtiness (source fixtures were dirty before or after execution; "
+            f"do not treat as clean-source proof): {' | '.join(details)}"
+        )
     return lines
 
 
@@ -1569,6 +1884,8 @@ def command_run(args: argparse.Namespace) -> int:
 
     suite = load_eval_suite(evals_path)
     skill_path = resolve_skill_source_path(suite, args.skill_path, configs)
+    repo_root = find_repo_root(evals_path)
+    source_fixtures_before = source_fixture_status(suite, repo_root)
 
     provider = get_provider(agent)
     if not provider.available():
@@ -1585,7 +1902,17 @@ def command_run(args: argparse.Namespace) -> int:
     # Empty suite is not an error: exit 0 with an explicit empty result and zero
     # subprocess launches.
     if not suite.evals:
-        benchmark = aggregate_runs(suite, configs, [], agent=agent, skill_path=skill_path, model=model)
+        source_fixtures_after = source_fixture_status(suite, repo_root)
+        source_fixtures = combine_source_fixture_status(source_fixtures_before, source_fixtures_after)
+        benchmark = aggregate_runs(
+            suite,
+            configs,
+            [],
+            agent=agent,
+            skill_path=skill_path,
+            model=model,
+            source_fixtures=source_fixtures,
+        )
         write_json(iteration_dir / "benchmark.json", benchmark)
         write_text(iteration_dir / "benchmark.md", render_benchmark_markdown(benchmark))
         print(f"No evals in suite; wrote empty benchmark to {iteration_dir}")
@@ -1603,6 +1930,8 @@ def command_run(args: argparse.Namespace) -> int:
             "timeout_seconds": args.timeout,
             "concurrency": args.concurrency,
             "skill_path": skill_path,
+            "source_fixtures": source_fixtures_before,
+            "source_fixtures_before": source_fixtures_before,
             "expected_executor_passes": len(tasks),
             "created_at": utc_now(),
         },
@@ -1644,7 +1973,17 @@ def command_run(args: argparse.Namespace) -> int:
                 }
 
     runs_records = [record for record in results if record is not None]
-    benchmark = aggregate_runs(suite, configs, runs_records, agent=agent, skill_path=skill_path, model=model)
+    source_fixtures_after = source_fixture_status(suite, repo_root)
+    source_fixtures = combine_source_fixture_status(source_fixtures_before, source_fixtures_after)
+    benchmark = aggregate_runs(
+        suite,
+        configs,
+        runs_records,
+        agent=agent,
+        skill_path=skill_path,
+        model=model,
+        source_fixtures=source_fixtures,
+    )
     write_json(iteration_dir / "benchmark.json", benchmark)
     write_text(iteration_dir / "benchmark.md", render_benchmark_markdown(benchmark))
 
@@ -1663,10 +2002,12 @@ def command_run(args: argparse.Namespace) -> int:
             len(sanity.get("infrastructure_failures") or []),
             len(sanity.get("zero_scored_cells") or []),
             len(sanity.get("candidate_below_baseline") or []),
+            len(sanity.get("source_fixture_dirty") or []),
         )
         print(
             f"Sanity checks: REVIEW REQUIRED — {counts[0]} infra failure(s), "
-            f"{counts[1]} zero-scored cell(s), {counts[2]} candidate-below-baseline cell(s); "
+            f"{counts[1]} zero-scored cell(s), {counts[2]} candidate-below-baseline cell(s), "
+            f"{counts[3]} source-fixture dirty signal(s); "
             f"see Sanity checks in {iteration_dir / 'benchmark.md'}"
         )
     return 0

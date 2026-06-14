@@ -25,7 +25,9 @@ import eval_runner  # noqa: E402
 class BaseRunnerTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
+        self.sandbox_tmp = tempfile.TemporaryDirectory()
         self.root = Path(self.tmp.name)
+        self.sandbox_root = Path(self.sandbox_tmp.name)
         (self.root / "AGENTS.md").write_text("# test policy\n", encoding="utf-8")
         (self.root / "evals" / "demo" / "fixtures").mkdir(parents=True)
         (self.root / "evals" / "demo" / "fixtures" / "input.txt").write_text("fixture\n", encoding="utf-8")
@@ -33,6 +35,7 @@ class BaseRunnerTest(unittest.TestCase):
         (self.root / "skills" / "demo" / "SKILL.md").write_text("# Demo Skill\n", encoding="utf-8")
 
     def tearDown(self):
+        self.sandbox_tmp.cleanup()
         self.tmp.cleanup()
 
     def write_suite(self, data=None):
@@ -72,6 +75,7 @@ class BaseRunnerTest(unittest.TestCase):
     def stub_env(self, spec_path, *, log=None, sleep=None, timeout=None):
         env = dict(os.environ)
         env["EVAL_RUNNER_STUB_FILE"] = str(spec_path)
+        env["EVAL_RUNNER_SANDBOX_ROOT"] = str(self.sandbox_root)
         if log is not None:
             env["EVAL_RUNNER_STUB_LOG"] = str(log)
         if sleep is not None:
@@ -92,6 +96,13 @@ class BaseRunnerTest(unittest.TestCase):
         if check and result.returncode != 0:
             self.fail(f"command failed: {result.args}\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}")
         return result
+
+    def init_git_baseline(self):
+        subprocess.run(["git", "init"], cwd=self.root, check=True, capture_output=True, text=True)
+        subprocess.run(["git", "config", "user.name", "Test"], cwd=self.root, check=True)
+        subprocess.run(["git", "config", "user.email", "test@example.invalid"], cwd=self.root, check=True)
+        subprocess.run(["git", "add", "-A"], cwd=self.root, check=True)
+        subprocess.run(["git", "commit", "-m", "baseline"], cwd=self.root, check=True, capture_output=True, text=True)
 
     def iteration_dir(self, agent="stub", number=1):
         return self.root / "evals" / "demo" / "workspace" / agent / f"iteration-{number}"
@@ -264,6 +275,33 @@ class SeparationTests(BaseRunnerTest):
         self.assertNotIn("CLAUDECODE", executor["env_keys"])
         self.assertNotIn("CLAUDECODE", grader["env_keys"])
 
+    def test_executor_and_grader_run_in_sandbox_repo(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        run_dir = self.iteration_dir() / "eval-first-eval" / "with_skill" / "run-1"
+        record = json.loads((run_dir / "run.json").read_text())
+
+        sandbox_root = Path(record["sandbox"]["repo_root"])
+        self.assertEqual(Path(record["executor_invocation"]["cwd"]), sandbox_root)
+        self.assertEqual(Path(record["grader_invocation"]["cwd"]), sandbox_root)
+        self.assertTrue(sandbox_root.is_absolute())
+        self.assertFalse(eval_runner.path_is_lexically_relative_to(sandbox_root, self.root))
+        self.assertTrue((sandbox_root / "AGENTS.md").is_file())
+        self.assertFalse((sandbox_root / ".agents").exists())
+        self.assertFalse((sandbox_root / "evals" / "demo" / "workspace").exists())
+
+    def test_executor_writes_stay_in_sandbox(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec({"executor_output": "answer", "touch_cwd": "pollution.txt"})
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        run_dir = self.iteration_dir() / "eval-first-eval" / "with_skill" / "run-1"
+        record = json.loads((run_dir / "run.json").read_text())
+        sandbox_root = Path(record["sandbox"]["repo_root"])
+
+        self.assertTrue((sandbox_root / "pollution.txt").is_file())
+        self.assertFalse((self.root / "pollution.txt").exists())
+
     def test_delivered_content_keeps_assertions_out_of_executor(self):
         # Inspect the actual delivered invocation content (argv + stdin recorded
         # in run.json), not just the on-disk prompt.md, so a regression that
@@ -300,7 +338,8 @@ class SeparationTests(BaseRunnerTest):
                 self.iteration_dir() / "eval-first-eval" / config / "run-1" / "prompt.md"
             ).read_text()
             self.assertIn("exact path:", prompt)
-            self.assertIn("outputs/plan.md", prompt)
+            self.assertIn(".eval-runner/outputs/plan.md", prompt)
+            self.assertNotIn(str(self.iteration_dir() / "eval-first-eval" / config / "run-1" / "outputs" / "plan.md"), prompt)
 
     def test_written_artifact_is_folded_into_grader_prompt(self):
         # End-to-end: a stub executor that writes a file to the designated path
@@ -325,6 +364,9 @@ class SeparationTests(BaseRunnerTest):
         self.assertIn("MARKER_ARTIFACT_BODY", grader_prompt)
         record = json.loads((ws_dir / "run.json").read_text())
         self.assertTrue(record["written_artifact"]["captured"])
+        self.assertTrue((ws_dir / "outputs" / "plan.md").is_file())
+        self.assertIn(".eval-runner/outputs/plan.md", record["written_artifact"]["capture_path"])
+        self.assertEqual(record["written_artifact"]["path"], str((ws_dir / "outputs" / "plan.md").resolve()))
 
         # without_skill wrote no file here, so its grader prompt stays unchanged.
         wos_dir = self.iteration_dir() / "eval-first-eval" / "without_skill" / "run-1"
@@ -337,11 +379,13 @@ class SeparationTests(BaseRunnerTest):
         os.environ["CLAUDECODE"] = "1"
         try:
             invocation = eval_runner.ClaudeProvider().build_invocation(
-                "prompt", run_dir=self.root, role="executor"
+                "prompt", run_dir=self.root, role="executor", cwd=self.root / "sandbox"
             )
         finally:
             del os.environ["CLAUDECODE"]
         self.assertNotIn("CLAUDECODE", invocation.env)
+        self.assertEqual(invocation.cwd, str((self.root / "sandbox").resolve()))
+        self.assertEqual(invocation.env["PWD"], invocation.cwd)
         self.assertEqual(invocation.argv[:2], ["claude", "-p"])
         self.assertIn("--output-format", invocation.argv)
 
@@ -509,6 +553,46 @@ class CorePipelineTests(BaseRunnerTest):
         self.assertTrue(benchmark["sanity_checks"]["ok"])
         self.assertIn("Sanity checks: OK", result.stdout)
         self.assertIn("## Sanity checks", (self.iteration_dir() / "benchmark.md").read_text())
+
+    def test_dirty_source_fixture_flags_sanity(self):
+        path = self.write_suite()
+        self.init_git_baseline()
+        (self.root / "evals" / "demo" / "fixtures" / "input.txt").write_text("polluted\n", encoding="utf-8")
+        spec = self.write_stub_spec(
+            {"executor_output": "answer", "grading": {"with_skill": {"pass": True}, "without_skill": {"pass": True}}}
+        )
+
+        result = self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        benchmark = json.loads((self.iteration_dir() / "benchmark.json").read_text())
+
+        self.assertFalse(benchmark["sanity_checks"]["ok"])
+        dirty = benchmark["sanity_checks"]["source_fixture_dirty"]
+        self.assertEqual(len(dirty), 1)
+        self.assertTrue(any("evals/demo/fixtures/input.txt" in entry for entry in dirty[0]["entries"]))
+        self.assertIn("source-fixture dirty", result.stdout)
+        self.assertIn("Source fixture dirtiness", (self.iteration_dir() / "benchmark.md").read_text())
+
+    def test_post_run_source_fixture_write_flags_sanity(self):
+        path = self.write_suite()
+        self.init_git_baseline()
+        fixture = self.root / "evals" / "demo" / "fixtures" / "input.txt"
+        spec = self.write_stub_spec(
+            {
+                "executor_output": "answer",
+                "grading": {"with_skill": {"pass": True}, "without_skill": {"pass": True}},
+                "touch_absolute": str(fixture),
+            }
+        )
+
+        result = self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        benchmark = json.loads((self.iteration_dir() / "benchmark.json").read_text())
+
+        self.assertFalse(benchmark["source_fixtures"]["before"]["dirty"])
+        self.assertTrue(benchmark["source_fixtures"]["after"]["dirty"])
+        self.assertFalse(benchmark["sanity_checks"]["ok"])
+        dirty = benchmark["sanity_checks"]["source_fixture_dirty"]
+        self.assertTrue(any(entry.startswith("after:") for entry in dirty[0]["entries"]))
+        self.assertIn("source-fixture dirty", result.stdout)
 
     def test_report_re_renders_from_benchmark_json(self):
         path = self.write_suite()
@@ -972,6 +1056,16 @@ class ProviderParserTests(unittest.TestCase):
         self.assertTrue(s["ok"])
         self.assertEqual(s["infrastructure_failures"], [])
 
+    def test_compute_sanity_checks_flags_source_fixture_dirty(self):
+        s = eval_runner.compute_sanity_checks(
+            ["with_skill", "without_skill"],
+            [],
+            [],
+            source_fixtures={"dirty": True, "paths": ["evals/demo/fixtures/input.txt"], "entries": [" M evals/demo/fixtures/input.txt"]},
+        )
+        self.assertFalse(s["ok"])
+        self.assertEqual(s["source_fixture_dirty"][0]["entries"], [" M evals/demo/fixtures/input.txt"])
+
     def test_assertions_for_case_dedups_preserving_order(self):
         suite = eval_runner.EvalSuite(
             path=Path("e.json"), skill_name="demo", common_assertions=["x", "y"], evals=[], scoring={}, raw={}
@@ -1021,6 +1115,19 @@ class SkillSourceTests(BaseRunnerTest):
         self.run_cli("run", path, "--agent", "stub", "--config", "with_skill", env=self.stub_env(spec), check=True)
         benchmark = json.loads((self.iteration_dir() / "benchmark.json").read_text())
         self.assertTrue(benchmark["skill_path"].endswith("skills/demo/SKILL.md"))
+
+    def test_with_skill_prompt_uses_sandbox_skill_copy(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        self.run_cli("run", path, "--agent", "stub", "--config", "with_skill", env=self.stub_env(spec), check=True)
+        run_dir = self.iteration_dir() / "eval-first-eval" / "with_skill" / "run-1"
+        prompt = (run_dir / "prompt.md").read_text()
+        record = json.loads((run_dir / "run.json").read_text())
+        sandbox_skill_path = Path(record["sandbox"]["repo_root"]) / "skills" / "demo" / "SKILL.md"
+
+        self.assertIn(str(sandbox_skill_path), prompt)
+        self.assertEqual(Path(record["sandbox"]["skill_path"]), sandbox_skill_path)
+        self.assertNotIn(str(self.root / "skills" / "demo" / "SKILL.md"), prompt)
 
 
 if __name__ == "__main__":
