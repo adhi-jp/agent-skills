@@ -73,6 +73,17 @@ use `[Repository] - YYYY-MM-DD`.
   were common inspection-command assertions in E02/E04/E05, not infrastructure
   anomalies.
 
+### Fixed
+
+- `scripts/sync_dev_agent_skills.py update --all` now resolves to the installed
+  managed snapshots under `.agents/skills/` (those carrying a valid
+  `.agent-skills-sync.json` ownership manifest), matching `remove --all`, instead
+  of every source package under `skills/`. Previously a source package that was
+  never installed made `update --all` fail with `destination is not installed;
+  use add`; the flag now refreshes only the skills it already manages and errors
+  with `no managed skill snapshots found under .agents/skills/` when none are
+  installed. `add --all` still resolves to every source package under `skills/`.
+
 ## [vibe-commit 1.0.0] - 2026-06-14
 
 ### Added

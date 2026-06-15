@@ -68,8 +68,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
             dest="select_all",
             help=(
                 "Operate on every discovered skill instead of named ones: source "
-                "packages under skills/ for add/update, installed managed snapshots "
-                "under .agents/skills/ for remove. Mutually exclusive with names."
+                "packages under skills/ for add, installed managed snapshots "
+                "under .agents/skills/ for update/remove. Mutually exclusive with names."
             ),
         )
         subparser.add_argument(
@@ -146,9 +146,9 @@ def resolve_selected_skill_names(
         raise SyncError("--all and explicit skill names are mutually exclusive")
     if not select_all:
         return skill_names
-    if command in {"add", "update"}:
+    if command == "add":
         return [path.name for path in discover_source_skills(repo_root / "skills")]
-    if command == "remove":
+    if command in {"update", "remove"}:
         return discover_installed_managed_skills(repo_root)
     raise SyncError(f"unknown command: {command}")
 

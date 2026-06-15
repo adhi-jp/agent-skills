@@ -778,24 +778,26 @@ class SyncDevAgentSkillsTests(unittest.TestCase):
         (self.root / "skills").mkdir()
         before = self.snapshot()
 
-        for command in ("add", "update"):
+        result = self.run_cli("add", "--all", check=False)
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("no skill packages found under skills/", result.stderr)
+        self.assertEqual(before, self.snapshot())
+        self.assertFalse((self.root / ".agents").exists())
+
+    def test_update_and_remove_all_no_managed_snapshots_error(self):
+        self.prepare_repo()
+        before = self.snapshot()
+
+        for command in ("update", "remove"):
             with self.subTest(command=command):
                 result = self.run_cli(command, "--all", check=False)
 
                 self.assertNotEqual(result.returncode, 0)
-                self.assertIn("no skill packages found under skills/", result.stderr)
+                self.assertIn(
+                    "no managed skill snapshots found under .agents/skills/", result.stderr
+                )
                 self.assertEqual(before, self.snapshot())
-                self.assertFalse((self.root / ".agents").exists())
-
-    def test_remove_all_no_managed_snapshots_errors(self):
-        self.prepare_repo()
-        before = self.snapshot()
-
-        result = self.run_cli("remove", "--all", check=False)
-
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("no managed skill snapshots found under .agents/skills/", result.stderr)
-        self.assertEqual(before, self.snapshot())
 
     def test_remove_all_skips_reserved_temp_backup_and_unmanaged(self):
         module = load_sync_module()
@@ -879,16 +881,22 @@ class SyncDevAgentSkillsTests(unittest.TestCase):
         self.assertTrue((self.root / ".claude" / "skills" / "bar").is_symlink())
         self.assertTrue((self.root / ".agents" / "skills" / "foo").exists())
 
-    def test_update_all_errors_when_a_source_not_installed(self):
+    def test_update_all_targets_only_installed_managed_not_all_sources(self):
         self.prepare_repo()
+        # foo is installed and managed; bar is a source under skills/ that was
+        # never installed, so update --all must ignore it instead of erroring.
         self.run_cli("add", "foo")
-        before = self.snapshot()
+        (self.root / "skills" / "foo" / "new.md").write_text("new\n", encoding="utf-8")
+        self.commit_all("update foo source")
 
-        result = self.run_cli("update", "--all", check=False)
+        self.run_cli("update", "--all")
 
-        self.assertNotEqual(result.returncode, 0)
-        self.assertIn("destination is not installed; use add", result.stderr)
-        self.assertEqual(before, self.snapshot())
+        self.assertEqual(
+            (self.root / ".agents" / "skills" / "foo" / "new.md").read_text(encoding="utf-8"),
+            "new\n",
+        )
+        self.assertFalse((self.root / ".agents" / "skills" / "bar").exists())
+        self.assertFalse((self.root / ".claude" / "skills" / "bar").exists())
 
 
 if __name__ == "__main__":
