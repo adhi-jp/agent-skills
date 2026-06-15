@@ -11,6 +11,31 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Added
+
+- `vibe-plan-review` adds a saved-plan review skill that walks through a
+  Markdown implementation plan one item at a time before execution, records
+  localized item decisions from `references/localized-labels.md`, reads a
+  corresponding requirements spec when one exists, manages larger-review state
+  in `.<plan-name>.review.md`, and gates original-plan reflection and
+  review-file deletion on explicit user confirmation. Adds the external
+  `evals/vibe-plan-review/` suite for saved-plan binding, requirements conflict
+  stops, no-spec confidence limits, ambiguous item-boundary stops, preexisting
+  review-file mismatch safety, localized item-decision output, and final
+  reflection confirmation boundaries. README now includes the new source and
+  eval packages without assigning a release version. Verification:
+  `python3 scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`
+  passes. A claude/claude-sonnet-4-6 run at
+  `evals/vibe-plan-review/workspace/claude/iteration-1/` recorded 12/12 scored
+  runs, 0 excluded runs, `error_run_count=0`, metrics captured, no
+  infrastructure failures, no zero-scored cells, no candidate-below-baseline
+  cells, and overall `with_skill` 91.8% vs `without_skill` 70.8% (+21.0
+  points). The `REVIEW REQUIRED` sanity status was reviewed and is explained by
+  `source_fixture_dirty` for the new untracked fixture directories before and
+  after execution; no runner, executor, or grader failure was recorded.
+  Remaining `with_skill` misses were output-explicitness misses in E01/E03/E06,
+  not a tracked skill or eval contract-change signal.
+
 ### Changed
 
 - `vibe-code-research` now keeps source-evidence findings anchored while

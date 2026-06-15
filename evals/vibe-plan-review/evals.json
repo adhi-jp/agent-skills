@@ -1,0 +1,138 @@
+{
+  "schema_version": "1.0.0",
+  "skill_name": "vibe-plan-review",
+  "purpose": "External eval set for vibe-plan-review. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers saved Markdown plan binding, requirements-spec alignment and conflict stops, limited-confidence no-spec review, ambiguous item-boundary stops, temporary review-file mismatch safety, localized item-decision output, and final reflection confirmation boundaries.",
+  "common_assertions": [
+    "Output binds to one saved Markdown implementation plan path as the primary review target and treats summaries, snippets, or chat context as secondary context only.",
+    "Output does not invent missing plan, requirements, acceptance-criteria, test, data-handling, user-experience, or source facts.",
+    "Output reads or binds the corresponding requirements spec when one exists, stops on requirements-plan conflicts, and continues without a spec only with explicit limited requirement-alignment confidence.",
+    "Output reviews stable plan items one at a time and stops for user direction when item boundaries are ambiguous.",
+    "Per-item review checks requirement alignment, implementation order, missing work, ambiguity, risks, and verifiability, while keeping AI judgment advisory and user item decisions authoritative.",
+    "Output uses the localized item-review labels and decision semantics from the skill reference when the user's active language requires them, while preserving paths, commands, identifiers, and review-state filenames exactly.",
+    "Output does not modify the original implementation plan during item review, and does not overwrite or delete a preexisting temporary review file when target identity, ownership, parseability, or external edits are unclear.",
+    "Output reflects decisions into the original plan only after explicit confirmation that states the reflection semantics, and asks before deleting the temporary review file after a successful reflection.",
+    "Output does not start implementation, tests, commits, release work, or adjacent coding workflow steps, and does not name or require neighboring skills as prerequisites or next steps."
+  ],
+  "evals": [
+    {
+      "id": "E01",
+      "name": "Localized first-item review with requirements spec",
+      "prompt": "保存済みの実装計画 `evals/vibe-plan-review/fixtures/profile-review/profile-settings-implementation-plan.md` をレビューしてください。最初の項目から一つずつ確認したいです。日本語でお願いします。",
+      "expected_output": "The agent binds the saved profile settings plan, reads the referenced requirements spec, reviews only the first detected item with Japanese item-review labels and all four decision choices, and stays in chat-only review mode without implementation.",
+      "files": [
+        "evals/vibe-plan-review/fixtures/profile-review/profile-settings-implementation-plan.md",
+        "evals/vibe-plan-review/fixtures/profile-review/profile-settings-requirements-spec.md"
+      ],
+      "expectations": [
+        "Names or otherwise clearly binds `evals/vibe-plan-review/fixtures/profile-review/profile-settings-implementation-plan.md` as the target plan.",
+        "Names or otherwise clearly binds `evals/vibe-plan-review/fixtures/profile-review/profile-settings-requirements-spec.md` as the corresponding requirements spec.",
+        "Reviews only the first detected implementation task, not all four tasks in one pass.",
+        "Uses the exact Japanese per-item output labels `判定:`, `指摘:`, `推奨アクション:`, and `ユーザー選択肢:`.",
+        "Includes all four Japanese user decision labels `承認`, `修正`, `保留`, and `削除`.",
+        "Evaluates the current item against requirement alignment, implementation order, missing work, ambiguity, risks, and verifiability, either explicitly or through concrete findings covering those dimensions.",
+        "States or implies that the review remains chat-only for this first short-review item unless later threshold or user request changes that.",
+        "Does not create or claim to update `evals/vibe-plan-review/fixtures/profile-review/.profile-settings-implementation-plan.review.md` for the first item without a threshold or user request.",
+        "Does not modify the original implementation plan or proceed to code, tests, commits, or release work.",
+        "Asks for the user's item decision before moving to the next item."
+      ]
+    },
+    {
+      "id": "E02",
+      "name": "Requirements-plan conflict stops review",
+      "prompt": "Review the saved implementation plan at `evals/vibe-plan-review/fixtures/conflict/billing-recipients-implementation-plan.md` before anyone starts implementation.",
+      "expected_output": "The agent reads the referenced billing-recipient requirements spec, detects that the plan adds audit-log storage and admin audit UI that the spec excludes, stops before item review, and asks whether the requirements or plan should be corrected.",
+      "files": [
+        "evals/vibe-plan-review/fixtures/conflict/billing-recipients-implementation-plan.md",
+        "evals/vibe-plan-review/fixtures/conflict/billing-recipients-requirements-spec.md"
+      ],
+      "expectations": [
+        "Binds the billing recipients implementation plan as the target saved plan.",
+        "Reads or explicitly uses the referenced requirements spec path from the plan.",
+        "Identifies that audit-log storage, an audit-log table, admin audit UI, or searchable audit history in the plan conflicts with the requirements spec's out-of-scope boundaries.",
+        "Stops the review because the requirements-plan conflict controls the affected work.",
+        "Asks whether the requirements spec or the implementation plan should be corrected.",
+        "Does not continue into per-item review while the conflict remains unresolved.",
+        "Does not propose implementing audit-log storage, admin audit UI, recipient changes, tests, or code.",
+        "Does not silently reinterpret the spec's audit-log exclusion as permission for auditability implementation."
+      ]
+    },
+    {
+      "id": "E03",
+      "name": "No corresponding spec continues with limited confidence",
+      "prompt": "Review `evals/vibe-plan-review/fixtures/no-spec/metrics-export-implementation-plan.md`. There is no separate requirements spec for this one.",
+      "expected_output": "The agent binds the saved metrics export plan, notes that no corresponding requirements spec is identified, continues with explicitly limited requirement-alignment confidence, and reviews only the first item without blocking solely on the missing spec.",
+      "files": [
+        "evals/vibe-plan-review/fixtures/no-spec/metrics-export-implementation-plan.md"
+      ],
+      "expectations": [
+        "Binds `evals/vibe-plan-review/fixtures/no-spec/metrics-export-implementation-plan.md` as the saved plan under review.",
+        "States that no corresponding requirements spec was identified or that the user indicated no separate spec exists.",
+        "Continues only with limited requirement-alignment confidence rather than presenting full requirements confidence.",
+        "Does not block the entire review solely because no requirements spec exists.",
+        "Reviews only the first detected implementation task before asking for a user decision.",
+        "Checks the first item against at least requirement alignment confidence, ordering, missing work, ambiguity, risk, and verifiability.",
+        "Does not invent a requirements spec path, product source, new metric behavior, scheduled export behavior, or email delivery behavior.",
+        "Does not create or update a temporary review file unless it explains a threshold or user request that requires one."
+      ]
+    },
+    {
+      "id": "E04",
+      "name": "Ambiguous item boundaries stop before review",
+      "prompt": "Please pre-check the saved plan at `evals/vibe-plan-review/fixtures/ambiguous/onboarding-implementation-plan.md`.",
+      "expected_output": "The agent reads the onboarding notes, determines that executable item boundaries are ambiguous, stops before silently choosing a granularity, and asks whether to use detected sections or revise the plan structure first.",
+      "files": [
+        "evals/vibe-plan-review/fixtures/ambiguous/onboarding-implementation-plan.md"
+      ],
+      "expectations": [
+        "Binds `evals/vibe-plan-review/fixtures/ambiguous/onboarding-implementation-plan.md` as the saved plan under review.",
+        "Identifies that the plan lacks clear executable task or section boundaries for item-by-item review.",
+        "Stops before presenting a normal per-item review.",
+        "Asks the user whether to use detected sections, revise the plan structure, or otherwise clarify the item boundaries first.",
+        "Does not silently split the plan into a convenient checklist of welcome copy, invitations, progress state, and email nudges as if those were confirmed items.",
+        "Does not invent acceptance criteria, test paths, product decisions, source files, or implementation order.",
+        "Does not start implementation, tests, commits, or planning rewrites."
+      ]
+    },
+    {
+      "id": "E05",
+      "name": "Preexisting review file mismatch is not overwritten",
+      "prompt": "Continue the saved-plan review for `evals/vibe-plan-review/fixtures/resume-mismatch/calendar-implementation-plan.md`. I expect the existing temporary review file beside it to be used if it matches.",
+      "expected_output": "The agent reads the preexisting temporary review file, detects that its recorded target plan does not match the requested calendar plan, stops, and asks whether to resume, replace, or preserve it without overwriting or deleting it.",
+      "files": [
+        "evals/vibe-plan-review/fixtures/resume-mismatch/calendar-implementation-plan.md",
+        "evals/vibe-plan-review/fixtures/resume-mismatch/.calendar-implementation-plan.review.md"
+      ],
+      "expectations": [
+        "Derives the expected temporary review file path `evals/vibe-plan-review/fixtures/resume-mismatch/.calendar-implementation-plan.review.md` from the target plan name.",
+        "Reads or explicitly accounts for the existing temporary review file before continuing or writing.",
+        "Detects that the review file's recorded target path does not match `evals/vibe-plan-review/fixtures/resume-mismatch/calendar-implementation-plan.md`.",
+        "Stops because target identity, ownership, or resume safety is unclear.",
+        "Asks whether to resume the old review, replace the file, or preserve it.",
+        "Does not overwrite, delete, or claim to update the preexisting review file while the mismatch is unresolved.",
+        "Does not continue normal item review or reflection from the mismatched state.",
+        "Does not modify the original calendar implementation plan."
+      ]
+    },
+    {
+      "id": "E06",
+      "name": "Final reflection requires explicit confirmation",
+      "prompt": "レビューは完了しています。`evals/vibe-plan-review/fixtures/reflection/report-renaming-implementation-plan.md` と既存の一時レビュー結果を使って、最終反映の前に確認すべきことを教えてください。まだ元の計画ファイルは変更しないでください。",
+      "expected_output": "The agent binds the completed review state, explains the reflection semantics for approved, revise-before-execution, held, and deleted items using the localized decision labels, asks for explicit confirmation before modifying the original plan, and states that review-file deletion is a separate post-reflection decision.",
+      "files": [
+        "evals/vibe-plan-review/fixtures/reflection/report-renaming-implementation-plan.md",
+        "evals/vibe-plan-review/fixtures/reflection/.report-renaming-implementation-plan.review.md"
+      ],
+      "expectations": [
+        "Binds the original plan path `evals/vibe-plan-review/fixtures/reflection/report-renaming-implementation-plan.md` and the temporary review file path `evals/vibe-plan-review/fixtures/reflection/.report-renaming-implementation-plan.review.md`.",
+        "Recognizes that the temporary review state is complete rather than starting item review from the beginning.",
+        "Uses the Japanese decision labels `承認`, `修正`, `保留`, and `削除` when explaining the reflection result because the prompt is Japanese.",
+        "States the reflection semantics: approved items remain executable, revise-before-execution items remain with accepted revision or a revise marker, held items remain visible as unresolved, and deleted items are removed only after reflection confirmation.",
+        "Asks for explicit confirmation before modifying the original implementation plan.",
+        "Honors the prompt's instruction not to modify the original plan yet.",
+        "States that review-history annotations, per-item judgment logs, and chat discussion notes should not be copied into executable plan content.",
+        "States that deletion of the temporary review file is a separate question after successful reflection.",
+        "Does not claim the plan was already reflected, delete the review file, run tests, implement code, commit, or prepare a release."
+      ]
+    }
+  ]
+}

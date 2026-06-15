@@ -21,6 +21,7 @@ quickstart when changing a skill or its eval suite.
 | Route an explicit multi-turn vibe-coding workflow | `vibe-coding` | Selects one primary visible `vibe-*` specialist for the next phase; does not relax downstream gates | `skills/vibe-coding/` | `evals/vibe-coding/` |
 | Draft, revise, save, approve, or explore requirements before planning | `vibe-requirements-spec` | Writes only the requirements spec artifact, or stays in chat for chat-only exploration; stops before implementation planning | `skills/vibe-requirements-spec/` | `evals/vibe-requirements-spec/` |
 | Create or revise an implementation plan from approval-evidenced or concrete inputs | `vibe-planning` | Writes a plan artifact and concise summary; stops before code, tests, changelog edits, commits, and release work | `skills/vibe-planning/` | `evals/vibe-planning/` |
+| Review, confirm, walk through, or pre-check a saved implementation plan before execution | `vibe-plan-review` | Reviews one plan item at a time, records localized item decisions from its reference file, and stops before implementation | `skills/vibe-plan-review/` | `evals/vibe-plan-review/` |
 | Implement an existing concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Edits only after binding the plan and checking proceed conditions; stops before commits unless separately authorized | `skills/vibe-plan-execution/` | `evals/vibe-plan-execution/` |
 | Brainstorm creative implementation ideas, alternatives, expected behavior, or convention checks | `vibe-brainstorm` | Returns chat-first directions or checklists and stops before implementation until the user confirms the direction | `skills/vibe-brainstorm/` | `evals/vibe-brainstorm/` |
 | Debug or repair existing behavior from rough bug reports, regressions, failed fixes, or runtime artifacts | `vibe-debug-fix` | Produces evidence-backed repairs or retest contracts; does not authorize history mutation | `skills/vibe-debug-fix/` | `evals/vibe-debug-fix/` |
@@ -283,6 +284,25 @@ ordering, multi-perspective review completion or fallback, plan-only boundaries,
 proceed conditions, and unresolved implementation blockers before returning the
 concise summary.
 
+### `vibe-plan-review`
+
+Plan-review skill for saved Markdown implementation plans after a plan exists
+and before implementation begins. It reads the target plan, reads a
+corresponding requirements spec when one exists, and stops on requirements-plan
+conflicts or missing plan information needed for review. It reviews one plan
+item at a time with the localized output, AI-judgment, and user-decision labels
+defined in `references/localized-labels.md`. The user's item decisions remain
+the source of truth.
+
+The skill checks requirement alignment, implementation order, missing work,
+ambiguity, risks, and verifiability while keeping source inspection minimal by
+default. Short reviews stay chat-only unless the user asks for a file, the plan
+has 8 or more detected items, or 3 or more revise-or-hold decisions.
+Larger reviews create or update `.<plan-name>.review.md` beside the plan and
+record enough state to resume. The original implementation plan is not modified
+during item review; reflection into the plan happens only after all items are
+reviewed and the user explicitly confirms how decisions should be applied.
+
 ### `vibe-plan-execution`
 
 Execution skill for concrete implementation plans, including plans from
@@ -451,7 +471,7 @@ mutation, and the command transport for added or repaired authorship trailers.
 ### `vibe-commit`
 
 Commit-execution skill that turns a vague instruction like "commit please",
-"commit this", or "コミットして" into one correctly scoped commit. It is the
+"commit this", or a localized equivalent into one correctly scoped commit. It is the
 execution counterpart to `vibe-writing`: `vibe-writing` owns the message wording,
 and `vibe-commit` owns staging, exclusion, the pre-commit re-verification gate,
 command safety, history mutation, message transport, and authorship-trailer
@@ -551,6 +571,9 @@ only explicit user, DoD, or confirmed-plan evidence.
 - `evals/vibe-requirements-spec/`: external requirements-spec drafting eval
   prompts
 - `evals/vibe-planning/`: external planning eval prompts and fixtures
+- `evals/vibe-plan-review/`: external saved-plan review eval prompts and
+  fixtures for plan/spec binding, conflict stops, no-spec confidence limits,
+  review-file safety, localized decisions, and reflection gates
 - `evals/vibe-plan-execution/`: external plan-execution eval prompts and fixtures
 - `evals/vibe-brainstorm/`: external creative brainstorming and convention
   grounding eval prompts
@@ -571,6 +594,8 @@ only explicit user, DoD, or confirmed-plan evidence.
 - `skills/vibe-coding/`: explicit top-level vibe-coding orchestration skill package
 - `skills/vibe-requirements-spec/`: Markdown requirements-spec drafting skill package
 - `skills/vibe-planning/`: standalone vibe-coding implementation-planning skill package
+- `skills/vibe-plan-review/`: saved-plan item review skill package, including
+  localized label guidance in `references/localized-labels.md`
 - `skills/vibe-plan-execution/`: plan-bound vibe-coding implementation skill package
 - `skills/vibe-brainstorm/`: creative brainstorming and expected-behavior
   grounding skill package
@@ -673,6 +698,12 @@ specific to the skill.
   companion skills only after verifying them from the current environment,
   user-provided material, project instructions, or local metadata; unavailable
   skills remain optional and get an explicit fallback.
+- `vibe-plan-review` reviews a saved Markdown implementation plan before
+  execution, one item at a time. It keeps the original plan unchanged during
+  review, keeps localized labels in `references/localized-labels.md`, may
+  maintain `.<plan-name>.review.md` beside larger reviewed plans, and requires
+  explicit confirmation before reflecting item decisions back into the
+  executable plan.
 - `vibe-plan-execution` is for implementing from an already-bound concrete plan.
   The plan can come from a planning workflow, a specification, an issue, a task
   list, or an inline plan supplied by the user. If a
