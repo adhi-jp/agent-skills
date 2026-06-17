@@ -38,6 +38,27 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-review` now carries delegated reviewer output and free-form backend
+  output through an explicit ingested-data trust contract: reviewer/backend bytes
+  use a named inert channel with a prompt-surface boundary marker, skill
+  directives are limited to `SKILL.md`, schema-defined fields, and explicit
+  current-conversation user messages, and imperative text may still be cited as
+  triage evidence without being executed. This is a partial W011 mitigation with
+  the residual risk that the layer-1 prompt-surface regime does not add
+  harness-level trust isolation, parser-validated structured fields, capability
+  isolation, or content-based sanitization. Verification:
+  claude/claude-sonnet-4-6 run at
+  `evals/vibe-review/workspace/claude/iteration-11/` recorded 24/24 scored runs,
+  0 excluded runs, `error_run_count=0`, metrics captured, and overall
+  `with_skill` 93.5% vs `without_skill` 55.0% (+38.4 points). E12 recorded
+  100.0% vs 75.0% and preserved both the inert reviewer/backend channel and the
+  legitimate finding evidence. The `REVIEW REQUIRED` sanity status was reviewed:
+  E01/without_skill was a valid baseline 0% output-shape/schema miss, E02's
+  candidate-below-baseline signal was a with_skill JSON-only formatting miss
+  with the substantive backend-unavailable contract assertions passing, and
+  `source_fixture_dirty` reflected the new untracked E12 fixture present before
+  and after the run. No runner, executor, or grader failure was recorded.
+
 - `vibe-code-research` now keeps source-evidence findings anchored while
   redacting or paraphrasing suspected credentials and secret-like literal values
   before chat output, saved reports, delegated findings, or quoted snippets. The
