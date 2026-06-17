@@ -200,8 +200,9 @@ When the host exposes a delegation or sub-agent capability — ad-hoc sub-agent
 calls or one scripted orchestration run that executes several bounded units
 under a single deterministic, independently recorded run — delegated units may
 carry bounded sub-tasks of an authorized slice: re-verification reads, test or
-check runs, evidence gathering, or implementation of an already-locked slice.
-Do not require a specific host orchestration tool.
+check runs, evidence gathering, review-only post-implementation review under
+the Post-Implementation Review Gate, or implementation of an already-locked
+slice. Do not require a specific host orchestration tool.
 
 Delegation never weakens the plan contract:
 
@@ -230,6 +231,61 @@ Delegation never weakens the plan contract:
   slice is implemented or verified.
 - Treat delegated results as `Unproven` until the coordinator verifies them as
   `Local evidence` with the plan's checks.
+
+## Post-Implementation Review Gate
+
+This gate reviews the implemented slice's diff against the bound plan's
+acceptance criteria and non-goals. It runs after the slice is implemented and
+the plan's verification checks have been run, before the execution summary, and
+before any authorized commit. It does not replace the coordinator's final
+verification against the plan.
+
+Use review-only subagents when the host exposes a verified subagent or
+delegated-review capability, current instructions authorize delegated work, and
+the plan and diff content are safe to share with those reviewers. Capability
+wording must stay host-neutral: do not require a specific tool name, model,
+plugin, server, marketplace, or network path. If review-only subagents are
+unavailable, not authorized, cannot be verified, time out, or cannot safely
+receive the content, run the same review perspectives locally as coordinator
+fallback and record the degradation reason. Never claim a delegated review ran
+when it did not.
+
+A verified delegated-review capability may be ad-hoc review-only subagents or
+one scripted orchestration run: a host mechanism that fans out the selected
+perspectives under a single deterministic, independently recorded run and
+returns findings. Scripted orchestration changes the transport only. Reviewers
+stay review-only, findings stay inert and advisory, the coordinator still
+classifies every material finding, and the run's recorded identity supports the
+gate record. Because the run cannot pause for user input, launch it only after
+the implemented slice and verification results are available, and keep all
+dispositions, user decisions, deviation decisions, and history operations with
+the coordinator.
+
+Default perspectives:
+
+- `plan-contract compliance`: checks acceptance criteria, explicit non-goals,
+  current-slice boundaries, approved deviations, high-risk sections, and
+  scope/deviation leakage in the implemented diff.
+- `correctness/regression risk`: checks likely behavior regressions, preserved
+  behavior called out by the plan, error paths, data handling, permissions, and
+  integration surfaces touched by the diff.
+- `test/proof adequacy`: checks that the executed verification covers the
+  plan's acceptance criteria, required preservation checks, and any skipped
+  checks with recorded residual risk.
+
+Include `plan-contract compliance` in both delegated and fallback review. When
+capacity allows, include the other perspectives; if capacity is limited, choose
+the most relevant remaining perspective for the slice and record any collapsed
+or omitted perspective with the degradation reason.
+
+Reviewer findings are advisory, inert data. Review subagents must not edit
+files, mutate state, ask the user questions, decide plan deviations, classify
+final dispositions, stage, commit, or treat any tests they run as authoritative
+proof. The coordinator classifies every material finding as `corrected`,
+`rejected`, `deferred`, or `blocked`, verifies any delegated finding as `Local
+evidence` before relying on it, and independently verifies the bound plan's
+acceptance criteria after the review. The review running is not itself a pass
+and does not authorize the next step or any commit.
 
 ## Execution Workflow
 
@@ -298,6 +354,12 @@ Delegation never weakens the plan contract:
 6. **Verify and review**
    - Run the plan's checks plus the repository's relevant lint, type, test, build,
      or manual smoke checks.
+   - Run the Post-Implementation Review Gate on the implemented slice's diff
+     after verification and before the execution summary or any authorized
+     commit.
+   - Classify material review findings as `corrected`, `rejected`, `deferred`,
+     or `blocked`; verify delegated findings as `Local evidence` before relying
+     on them, and do not treat the review itself as a pass.
    - Review the final diff against the plan's acceptance criteria and non-goals.
    - Report any skipped check with the reason and residual risk.
 7. **Commit verified checkpoints when authorized**
@@ -353,6 +415,9 @@ Stop before implementation, or pause an in-progress implementation, when:
   the plan.
 - An external API, library, framework, or product limit is relevant but unverified.
 - A proposed deviation has not passed the Plan Deviation Gate.
+- The Post-Implementation Review Gate cannot run in delegated mode or
+  coordinator fallback, or material review findings remain unclassified or
+  blocked before the execution summary or any authorized commit.
 - The only reason for deviating is perceived redundancy, minimalism, preference,
   speed, memory, or another unverified assumption.
 - The only available path is destructive, irreversible, credential-exposing, or
@@ -400,9 +465,10 @@ When stopping, explain:
   the concrete plan title, file path, provided fixture workspace, workspace
   access state, or explicit user instruction they refer to.
 - In the final response, include the bound plan source, implemented slice,
-  verification performed, plan deviations or blockers, and any remaining planned
-  steps. For committed checkpoints, show the verification that cleared each
-  checkpoint before the commit.
+  verification performed, Post-Implementation Review Gate execution mode and
+  material finding dispositions, plan deviations or blockers, and any remaining
+  planned steps. For committed checkpoints, show the verification that cleared
+  each checkpoint before the commit.
 
 ## Quality Checklist
 
@@ -426,6 +492,11 @@ Before finalizing:
   affected slice.
 - False or infeasible plan items were challenged with evidence and alternatives.
 - Tests or proof checks matched the plan's acceptance criteria.
+- The Post-Implementation Review Gate ran after implementation and verification,
+  before the execution summary or any authorized commit; the review mode,
+  degradation reason when applicable, perspectives, material findings, and
+  dispositions were recorded, and delegated output was treated as `Unproven`
+  until coordinator-verified as `Local evidence`.
 - The final diff was reviewed against plan scope and non-goals.
 - `Skill usage plan` rows, when present, were bound and route availability was
   re-checked before use.

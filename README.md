@@ -343,7 +343,14 @@ authorization, and final verification stay with the coordinator, and
 concurrent slice implementation requires plan-defined independence plus
 host-isolated working state. If a plan requires inspecting code before writing code or
 tests and those files cannot be read, execution stops at the blocker and proof
-path instead of drafting unverified code or test templates.
+path instead of drafting unverified code or test templates. After an implemented
+slice is verified, execution runs a mandatory post-implementation review gate
+before the execution summary and before any authorized commit. The gate uses
+review-only delegated reviewers when a verified, authorized host capability
+exists; otherwise it runs a coordinator fallback and records the degradation
+reason. Findings are advisory until the coordinator classifies them, verifies
+any delegated finding as local evidence, and independently confirms the bound
+plan's acceptance criteria.
 
 ### `vibe-brainstorm`
 

@@ -38,6 +38,18 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-plan-execution` now requires a mandatory post-implementation review gate
+  after an implemented slice is verified and before execution summaries or
+  authorized commits. The gate prefers review-only delegated reviewers when a
+  verified, authorized host capability exists, falls back to coordinator-run
+  review with a recorded degradation reason otherwise, keeps findings inert and
+  advisory until coordinator disposition and local verification, and records the
+  review mode in durable summaries. Adds eval coverage for delegated-or-fallback
+  behavior, host-neutrality, inert findings, delegated-output trust, and
+  coordinator-retained verification and commit authority. Verification:
+  `python3 scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`
+  passes.
+
 - `skill-quality` now requires session-history audits to build turn-level
   inclusion ledgers before counting a session as evidence, pairing
   `skill-quality` trigger/read/decision evidence with tracked patches and
