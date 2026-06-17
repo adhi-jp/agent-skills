@@ -512,7 +512,8 @@ runner honestly. It keeps executor-visible eval summaries high-level, applies
 the same leakage check to its own self-authored assertions, keeps token/time
 claims evidence-bound, requires a closing rerun on a clean, complete run before
 any improvement claim, requires recorded host, runner, or equivalent artifact
-evidence for execution-proof assertions, treats authoritative source Skill paths
+evidence for execution-proof assertions, requires turn-level pairing before
+counting session-history audit evidence, treats authoritative source Skill paths
 as the `with_skill` target instead of host tools or snapshots, records lost
 discrimination and required coverage when an assertion or eval case is loosened
 or deleted, and blocks common regressions such as broad rewrites, universal

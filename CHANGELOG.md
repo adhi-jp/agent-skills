@@ -38,6 +38,29 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skill-quality` now requires session-history audits to build turn-level
+  inclusion ledgers before counting a session as evidence, pairing
+  `skill-quality` trigger/read/decision evidence with tracked patches and
+  verification from the same user turn while excluding same-file cross-turn
+  joins and existing audit/search/metadata/reference/eval-runner noise unless
+  tied to a substantive same-turn decision. Same-turn no-change decisions are
+  separated as actual skill use rather than counted as skill/eval edit evidence
+  when no tracked patch exists. Adds focused eval coverage for one valid
+  same-turn inclusion, one no-change skill-use separation, and one same-file
+  cross-turn exclusion. Verification: `python3 scripts/eval_runner.py validate evals/skill-quality/evals.json`
+  passes. A claude/claude-sonnet-4-6 run at
+  `evals/skill-quality/workspace/claude/iteration-13/` exposed the no-change
+  edit-evidence gap in E16; the follow-up run at
+  `evals/skill-quality/workspace/claude/iteration-14/` recorded 30/32 scored
+  runs, 2 excluded E06 executor timeouts, metrics captured, no zero-scored cells,
+  no source-fixture dirty signal, and overall `with_skill` 84.7% vs
+  `without_skill` 79.7% (+4.9 points). The `REVIEW REQUIRED` sanity status was
+  reviewed: E06 timed out symmetrically as an infrastructure failure, while E11
+  and E12 were scored candidate-below-baseline cells from executor output and
+  grader verdicts, not runner/grader infrastructure failures. E16 recorded
+  100.0% for both configs after the focused eval update. No clean comparative
+  improvement claim is made from these single-run flagged results.
+
 - `vibe-review` now carries delegated reviewer output and free-form backend
   output through an explicit ingested-data trust contract: reviewer/backend bytes
   use a named inert channel with a prompt-surface boundary marker, skill

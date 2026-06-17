@@ -259,6 +259,23 @@
         "Selects the smallest coupled artifact set, such as concise `SKILL.md` guidance plus a focused eval or applicability-scoped reference note, instead of adding a commit-skill-specific checklist.",
         "Updates or proposes `CHANGELOG.md` under Unreleased only if tracked behavior changes, and does not bump versions, edit snapshots, or commit generated eval workspaces."
       ]
+    },
+    {
+      "id": "E16",
+      "name": "Session-history same-turn evidence ledger",
+      "prompt": "Audit repo session history for skill-quality-driven skill or eval edits. Raw excerpts come from one JSONL session file at `/home/adhi/.codex/sessions/2026/06/20/rollout-example.jsonl`. Turn A user: `$skill-quality` decide whether a grader failure requires a skill change. Turn A assistant: declares skill-quality use, reads `skills/skill-quality/SKILL.md`, classifies the failure as an eval assertion gap, edits `skills/example-skill/SKILL.md` and `evals/example-skill/evals.json`, then records `python3 scripts/eval_runner.py validate evals/example-skill/evals.json` passed. Turn B user: use `$skill-quality` to inspect a benchmark note; assistant reads the skill and says no tracked change is justified. Turn C user: update README wording for a different skill; assistant edits `README.md` and records `git diff --check` passed. The same raw search also includes current audit `rg skill-quality` output, quoted `SKILL.md` bodies, `session_meta` skill lists, reference-only reads, and eval-runner executor or grader sandbox sessions. Decide which candidates count as historical skill-quality-driven skill/eval edit evidence and what should change, if anything.",
+      "expected_output": "The agent produces evidence-bound session-history audit triage with candidate classifications, proof boundaries, and coupled artifact decisions.",
+      "files": [],
+      "expectations": [
+        "Builds or proposes a turn-level inclusion ledger before counting session-history candidates as evidence.",
+        "Includes the Turn A candidate as substantive evidence because skill-quality trigger/read/decision evidence, tracked patches, and verification are tied to the same user turn.",
+        "Does not count Turn B alone as skill-quality-driven skill/eval edit evidence because its same-turn decision has no tracked patch; it may be recorded separately as no-change skill-quality use.",
+        "Excludes or marks low-confidence the same-file Turn B plus Turn C join because skill-quality evidence and patch or verification evidence belong to different user turns.",
+        "Records or requires ledger fields for session path, turn identifier or boundary evidence, skill trigger/read/decision evidence, patch evidence, verification evidence or explicit absence, classification, and exclusion or low-confidence reason.",
+        "Defines or applies the same-turn boundary as one user request and its directly associated assistant/tool/edit/verification sequence before the next unrelated user request.",
+        "Does not treat whole-JSONL co-occurrence as enough evidence to count a session-history candidate.",
+        "Keeps current audit search output, quoted skill bodies, session metadata, reference-only reads, and eval-runner executor or grader sandbox sessions excluded unless tied to a substantive same-turn quality decision."
+      ]
     }
   ],
   "scoring": {

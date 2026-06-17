@@ -60,8 +60,25 @@ baseline plausibility. Do not require the full skill for narrow lookups.
 For session-history audits, count actual skill use only when the record shows a
 user trigger, assistant declaration, skill-body read tied to a substantive
 decision, or decision behavior in a substantive task. Separate current audit
-sessions, search-command echoes, quoted skill bodies, session metadata, and
-reference-only file reads from historical usage evidence.
+sessions, eval-runner sandbox sessions, search-command echoes, quoted skill
+bodies, session metadata, and reference-only file reads from historical usage
+evidence.
+
+Before counting a session-history candidate as evidence, build a turn-level
+inclusion ledger. For each candidate, record the session path, turn identifier
+or boundary evidence, skill trigger/read/decision evidence, tracked patch
+evidence, verification evidence or explicit verification absence,
+classification, and any exclusion or low-confidence reason. Treat one user
+request plus its directly associated assistant/tool/edit/verification sequence
+before the next unrelated user request as the same turn. If the log cannot
+support that boundary, or if skill-quality use, patches, and verification only
+co-occur in different turns of the same JSONL file, mark the candidate
+low-confidence or excluded instead of counting it.
+
+When the audit is counting skill/eval edit sessions, a same-turn no-change
+decision may be recorded separately as actual skill use, but it is not edit
+evidence unless the same turn also has a tracked patch or an explicit
+post-edit verification absence.
 
 Planning or requirements-spec workflows remain primary when they are creating
 plans or specs. Use this skill only as an auxiliary lens when that work turns
