@@ -38,6 +38,26 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-planning` now defaults generated implementation-plan artifacts to
+  `docs/plans/YYYY-MM-DD-<goal-slug>-implementation-plan.md` when no explicit
+  path or existing project convention applies, while preserving explicit paths,
+  collision suffixes, non-overwrite behavior, and the no-`.gitignore` side
+  effect. Plan-review subagent permission is now governed by
+  `VIBE_SUBAGENTS=ask|allow|deny`, with unset or invalid values treated as
+  `ask`, current-turn explicit user permission or denial overriding environment
+  values, and prompt-like assignments accepted only from the user's current
+  instruction. Review subagents remain limited to the plan multi-perspective
+  review gate, require host-neutral capability and recordable evidence, and
+  cannot research, draft, edit artifacts, ask user questions, update docs or
+  evals, implement, stage, commit, or decide final dispositions. README, the
+  plan artifact reference, and `evals/vibe-planning/evals.json` document and
+  cover the contract. `vibe-planning` also clarifies that blocked or
+  discovery-first plans cannot include future commit-message bytes until a
+  current-slice blocker is cleared and a verified checkpoint boundary exists.
+  Verification: `python3 -m json.tool
+  evals/vibe-planning/evals.json` and `python3 scripts/eval_runner.py validate
+  evals/vibe-planning/evals.json` pass.
+
 - `vibe-plan-execution` now requires a mandatory post-implementation review gate
   after an implemented slice is verified and before execution summaries or
   authorized commits. The gate prefers review-only delegated reviewers when a

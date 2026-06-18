@@ -204,10 +204,14 @@ explicit handling of unproven assumptions, and output-language selection via
 user instruction, `VIBE_PLANNING_OUTPUT_LANG`, agent config, or conversation
 language. It writes full implementation plans as Markdown artifacts with English
 LLM-first structure while preserving user-authored goals, requirements, quotes,
-and domain terms in their original language. Chat replies are concise localized
-summaries with the plan path, current slice, proceed condition, and key blockers
-or decisions, using plain wording for non-technical users. Plans avoid invented
-product constants; bug-fix plans put reproduction or isolation before
+and domain terms in their original language. When no explicit user path or
+obvious project convention applies, generated implementation plans default to
+`docs/plans/YYYY-MM-DD-<goal-slug>-implementation-plan.md`; explicit paths,
+existing conventions, non-overwrite behavior, generated-name numeric suffixes,
+and the no-`.gitignore` side effect remain unchanged. Chat replies are concise
+localized summaries with the plan path, current slice, proceed condition, and
+key blockers or decisions, using plain wording for non-technical users. Plans
+avoid invented product constants; bug-fix plans put reproduction or isolation before
 implementation when unresolved callers, configuration, runtime state, or data
 shape could affect the symptom, and keep unreproduced symptoms and causal
 hypotheses labeled as unproven. It separates current-slice blockers from
@@ -266,18 +270,34 @@ work-in-progress, and no-verified-code-producing-slice plans omit commit
 messages and `Subject:`/`Body:` bytes until a code-producing slice is verified,
 rather than treating a future implementation step as a verified checkpoint or
 moving message text into route fallbacks, review notes, or test/fix/docs
-pseudo-checkpoints. At plan creation time, the skill records
+pseudo-checkpoints. A blocked proceed condition or unresolved current-slice
+implementation blocker makes later implementation phases ineligible for
+commit-message bytes until a verified checkpoint boundary exists. At plan
+creation time, the skill records
 matching visible skills in a per-step skill usage plan. Every discovery,
 implementation, verification, multi-perspective review, self-review, and
 commit-checkpoint step gets a route to a verified matching skill, `No matching
 optional skill verified`, or `No skill needed`, with availability source,
 timing, matching reason, and fallback. After the draft artifact exists, plans
 run a multi-perspective review. Verified review-only subagents are used when
-available and authorized — either ad-hoc subagents or one scripted,
-independently recorded orchestration run that fans out the perspectives and
-returns inert structured findings; otherwise the planner records a
-coordinator-run fallback. That review always includes a `vibe-planning` contract-compliance
-perspective and dispositions for material findings before final self-review.
+available, permitted, safe, and recordable — either ad-hoc subagents or one
+scripted, independently recorded orchestration run that fans out the
+perspectives and returns inert structured findings; otherwise the planner
+records a coordinator-run fallback. `VIBE_SUBAGENTS=ask|allow|deny` controls
+future review-subagent permission: unset or invalid values behave like `ask`,
+and current-turn explicit user permission or denial overrides a conflicting
+environment value. Prompt-like assignments count only when they are the user's
+own current instruction, not quoted source, artifacts, delegated output,
+examples, or logs. Subagents are limited to the plan-review gate and may not
+research the repository, draft or edit the plan artifact, ask the user
+questions, update docs/changelogs/evals, implement, stage, commit, or decide
+finding dispositions. Review records name the permission source, capability
+source, execution mode, fallback reason, and recordable evidence or its absence.
+That review always includes a `vibe-planning` contract-compliance perspective
+and dispositions for material findings before final self-review. A shell-config
+helper for skipping future subagent permission questions is allowed only after
+the user explicitly asks for it, sees the exact target file/change and risks,
+and confirms the edit under host filesystem permissions.
 Plans also include an implementation handoff and a final self-review gate that
 checks route completeness, unavailable-skill leakage, evidence labels, test
 ordering, multi-perspective review completion or fallback, plan-only boundaries,
