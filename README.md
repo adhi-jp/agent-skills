@@ -476,24 +476,35 @@ separates a format layer (the repository owns its changelog format; detect and
 conform to it, and never silently restructure it) from a content layer (write
 each entry as a contract and evidence log for the next agent resuming with zero
 context rather than human-facing release marketing, while collapsing
-in-progress run commentary into the current contract delta and latest
-verification status). When a requested artifact is the deliverable,
-`vibe-writing` returns the artifact itself without process notes, wrappers,
-separators, or translation away from the artifact's own language contract.
+in-progress run commentary into the current contract delta and latest durable
+verification status). It treats git-unmanaged generated reports, ignored eval
+workspace output, local-only run IDs, and private tool-session records as
+non-durable changelog evidence unless they are committed, published, or
+otherwise available through a stable system, while preserving explicitly
+supplied current verification facts that are not tied only to those local
+artifacts. When a requested artifact is the deliverable, `vibe-writing` returns
+the artifact itself without process notes, wrappers, separators, proof-source
+analysis, or translation away from the artifact's own language contract.
 Commit-message guidance lives in `references/commit-messages.md` and covers
 outcome-focused Conventional Commit subjects, commit-body preserve/cut selection,
 pre-draft context checks, optional non-trivial body labels,
-fresh-clone-readable references, verification provenance, monorepo and
-multiple-package cohesion, i18n/localization scope, dependency updates,
-performance work, CI/build/publishing changes, security/privacy/data-loss fixes,
-release commits, thin-evidence cases, mechanical syncs, stored footer shape,
-compact bullets, and multi-line message transport. When `vibe-writing` is active
+fresh-clone-readable references, verification provenance, verification signal
+selection, durable proof-source boundaries for git-unmanaged local generated
+artifacts and local-only run records, monorepo and multiple-package cohesion,
+i18n/localization scope, dependency updates, performance work,
+CI/build/publishing changes, security/privacy/data-loss fixes, release commits,
+thin-evidence cases, mechanical syncs, stored footer shape, compact bullets, and
+multi-line message transport. When `vibe-writing` is active
 for a body commit that is actually created or amended, it applies the reference
 before execution, uses one message file, editor buffer, or complete payload
 instead of repeated `git commit -m` body-line arguments, and inspects
-`git show -s --format=%B HEAD` before reporting completion. Commit-execution
-skills still own staging, authorization, command safety, signing, history
-mutation, and the command transport for added or repaired authorship trailers.
+`git show -s --format=%B HEAD` before reporting completion, including checks
+that verification bullets are review-useful proof rather than command
+transcripts or local-only generated proof sources. Requested commit-message
+artifacts are returned as raw message bytes without proof-source analysis,
+headings, separators, or other explanatory wrappers. Commit-execution skills
+still own staging, authorization, command safety, signing, history mutation, and
+the command transport for added or repaired authorship trailers.
 
 ### `vibe-commit`
 

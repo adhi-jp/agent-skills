@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-writing",
-  "purpose": "External eval set for vibe-writing. Prompts live outside skills/ so they are not bundled as skill content. Covers representative LLM-first development text, human-reader exceptions, source-code comments and docstrings, README/docs, CHANGELOG restraint, changelog format precedence, next-agent contract-log entries, iteration-log collapse for in-progress quality work, exact-format output, verbatim-output boundaries, durable references, workflow boundaries, incidental progress and final-summary wording, locale precedence, policy and support-promise restraint, hollow-transition cleanup, local-anchor preservation, and commit-message contracts including release trailers, body preserve/cut selection, verification formatting, multi-line transport, active commit workflows, and stored-message inspection.",
+  "purpose": "External eval set for vibe-writing. Prompts live outside skills/ so they are not bundled as skill content. Covers representative LLM-first development text, human-reader exceptions, source-code comments and docstrings, README/docs, CHANGELOG restraint, changelog format precedence, next-agent contract-log entries, changelog durable proof-source boundaries, iteration-log collapse for in-progress quality work, exact-format output, verbatim-output boundaries, durable references, workflow boundaries, incidental progress and final-summary wording, locale precedence, policy and support-promise restraint, hollow-transition cleanup, local-anchor preservation, and commit-message contracts including release trailers, body preserve/cut selection, verification formatting, verification signal selection, durable proof-source boundaries, multi-line transport, active commit workflows, and stored-message inspection.",
   "common_assertions": [
     "Output preserves source facts, scope, terminology, audience, modality, conditions, exceptions, warnings, limitations, required actions, and order that matters whenever source text is edited or summarized.",
     "Output does not invent unsupported reasons, goals, outcomes, roadmap claims, business value, user impact, implementation rationale, tests, rollout status, or performance/security/risk-reduction claims.",
@@ -264,10 +264,66 @@
         "Emits only the revised changelog-shaped artifact, with no explanatory preface, horizontal rule, placement instruction, or change-summary wrapper.",
         "Keeps the changelog artifact in English because the existing draft entry and latest facts are English and no translation was requested.",
         "Reports the current verification slice rather than obsolete runs: codex default model, both configs, one run per config, 91%/63% pass rates, sanity OK, and no error runs.",
+        "Does not replace the supplied current verification slice with a local-report absence status when the prompt does not say those facts come only from a git-unmanaged local artifact.",
         "Does not keep superseded iteration 3 or iteration 4 failure details as release-history content.",
         "Does not include assertion-level analysis or grader quotes such as `missing reviewer evidence` unless framed only as external workspace detail rather than changelog content.",
         "Preserves the unresolved accepted risk that E12 still has weak rollback wording coverage.",
         "Does not claim reliability, safety, quality, or broad review improvement beyond the supplied eval evidence."
+      ]
+    },
+    {
+      "id": "E16",
+      "name": "Commit message drops local generated proof source",
+      "prompt": "Write a commit message.\n\nRecent local style: `docs(vibe-writing): tighten commit-message references`; `test(vibe-commit): cover generated workspace exclusion`.\n\nDiff summary: `skills/report/SKILL.md` adds guidance for generated report evidence, and `evals/report/evals.json` adds a regression case. `CHANGELOG.md` records the unreleased behavior change.\n\nVerification evidence supplied:\n- `python3 scripts/eval_runner.py validate evals/report/evals.json` passed.\n- Local generated report `evals/report/workspace/codex/iteration-4/benchmark.md` said the targeted case passed, but that workspace is ignored, not staged, and not committed.\n- Private tool-session record `run-local-7` contains the raw grader transcript, but it is not available in the repository.\n- No benchmark result is durably recorded in committed files or remote metadata.",
+      "expected_output": "The agent writes a commit message that preserves stable validation proof while removing or translating local generated proof sources and private run records.",
+      "files": [],
+      "expectations": [
+        "Outputs a raw commit message without Markdown fences or explanatory wrapper.",
+        "Uses a Conventional Commit subject that names the report evidence or generated-proof contract rather than a generic file update.",
+        "Includes `python3 scripts/eval_runner.py validate evals/report/evals.json` if verification is included.",
+        "Does not output proof-source classification notes, local-artifact analysis, separators, or rationale before or after the commit message.",
+        "Does not cite `evals/report/workspace/codex/iteration-4/benchmark.md` as durable proof.",
+        "Does not cite `run-local-7` or a private tool-session record as durable proof.",
+        "If it mentions the local report or benchmark at all, translates it into an explicit absence status such as raw local report not committed, benchmark not durably recorded, or not measured.",
+        "Does not use `CHANGELOG.md` as a surrogate proof source for raw local report details.",
+        "Does not claim a measured with_skill/without_skill improvement or targeted-case pass from the ignored local workspace report.",
+        "Keeps committed files such as `skills/report/SKILL.md`, `evals/report/evals.json`, or `CHANGELOG.md` only as changed-file or contract anchors, not as proof that the raw local report exists."
+      ]
+    },
+    {
+      "id": "E17",
+      "name": "Commit verification compresses noisy command transcript",
+      "prompt": "Write a commit message.\n\nRecent local style: `test(vibe-writing): preserve commit body value`; `docs(vibe-commit): clarify stored message checks`.\n\nDiff summary: `evals/widget/evals.json` adds a new commit-message eval, `skills/widget/SKILL.md` documents the behavior, and `README.md` adds the skill to the package list.\n\nVerification transcript from the session:\n- `python3 -m json.tool evals/widget/evals.json` passed.\n- `python3 -c \"import json; d=json.load(open('evals/widget/evals.json')); assert all({'id','prompt','expectations'} <= set(e) for e in d['evals']); assert d['scoring']['common_assertion_weight'] + d['scoring']['per_eval_expectation_weight'] == 1\"` passed.\n- `rg 'E16' evals/widget/evals.json` found the new ID.\n- `rg 'widget' README.md` found the package-list entry.\n- `rg 'widget' CHANGELOG.md` found the changelog entry.\n- `git diff --check` passed.\nThe search commands only confirmed strings visible in the changed diff. The useful structural outcome is that the eval JSON parses, required eval fields are present, scoring weights sum to 1, and whitespace checks are clean.",
+      "expected_output": "The agent writes a commit message whose verification section preserves review-useful structural proof while compressing long predicates and dropping low-signal string-presence probes.",
+      "files": [],
+      "expectations": [
+        "Outputs a raw commit message without Markdown fences or explanatory wrapper.",
+        "Uses a Conventional Commit subject that names the widget eval or commit-message verification behavior rather than a generic file update.",
+        "Treats verification as selected proof, not a complete session command log.",
+        "Preserves high-signal proof that `evals/widget/evals.json` parses as JSON.",
+        "Preserves or summarizes the structural validation outcome that required eval fields are present and scoring weights sum to 1, without needing to paste the full long predicate.",
+        "May keep `git diff --check` as a whitespace or hygiene proof, but does not let it crowd out stronger structural proof.",
+        "Omits the `rg 'E16'`, `rg 'widget' README.md`, and `rg 'widget' CHANGELOG.md` string-presence probes as verification bullets because they only restate diff-visible changes.",
+        "Does not ban or reject a command merely because it uses `rg` or Python; the decision is based on what the command proves.",
+        "Does not invent test, benchmark, release, or quality-improvement claims beyond the supplied verification."
+      ]
+    },
+    {
+      "id": "E18",
+      "name": "Changelog drops local eval workspace proof",
+      "prompt": "Revise this existing `## [Unreleased]` changelog entry. Return only the revised changelog entry and keep it under `Unreleased`; do not create a release section.\n\nCurrent draft entry:\n- `vibe-plan-execution` now requires a post-implementation review gate after an implemented slice is verified. Adds eval coverage for delegated-or-fallback behavior and coordinator-retained verification authority. Verification: `python3 scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json` passes. A claude/claude-sonnet-4-6 run at `evals/vibe-plan-execution/workspace/claude/iteration-19/` recorded 30/30 scored runs, 0 excluded runs, `error_run_count=0`, metrics captured, sanity checks OK, clean source fixtures before and after execution, and overall `with_skill` 96.2% vs `without_skill` 64.1% (+32.1 points). Remaining `with_skill` misses were assertion-level output gaps, not runner, executor, or grader infrastructure failures.\n\nLatest facts:\n- `python3 scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json` passed.\n- The provider run report lives only under ignored local generated output at `evals/vibe-plan-execution/workspace/claude/iteration-19/`.\n- The provider run report, benchmark, metrics, sanity status, and remaining assertion misses are not committed, not published, and not available through remote repository metadata or CI.\n- No durable with/without benchmark result is recorded for this changelog entry.",
+      "expected_output": "The agent returns a Keep a Changelog entry that preserves the durable validation proof while removing local generated eval workspace proof and unsupported benchmark claims.",
+      "files": [],
+      "expectations": [
+        "Keeps the entry in the repository's Keep a Changelog shape under `## [Unreleased]` / `### Changed`, and does not create or guess a release version.",
+        "Preserves the behavior contract that `vibe-plan-execution` requires a post-implementation review gate after an implemented slice is verified.",
+        "Preserves the durable validation command `python3 scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json` as passed.",
+        "Does not include the local generated workspace path `evals/vibe-plan-execution/workspace/claude/iteration-19/`.",
+        "Does not include the local-only provider run details: 30/30 scored runs, 0 excluded runs, `error_run_count=0`, metrics captured, sanity checks OK, clean source fixtures, pass-rate delta, or remaining assertion misses.",
+        "Does not claim a measured `with_skill`/`without_skill` improvement from the ignored local workspace report.",
+        "If it mentions the provider run or benchmark at all, translates it into an explicit absence status such as provider run not durably recorded, benchmark not durably recorded, or not measured.",
+        "Does not treat a project-relative path as durable merely because it is under `evals/`.",
+        "Emits only the revised changelog-shaped artifact, with no explanatory preface, horizontal rule, placement instruction, or change-summary wrapper."
       ]
     }
   ],

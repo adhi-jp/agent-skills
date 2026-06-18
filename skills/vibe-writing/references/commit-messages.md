@@ -46,6 +46,10 @@ Name the achieved behavior or contract, not the editing act:
 When the task asks for the commit message, return the message as raw commit
 text. Do not wrap it in a Markdown fence, preface it with `Here is`, or label it
 as an example unless the user explicitly asks for explanation or a fenced sample.
+Run evidence classification internally; do not output proof-source analysis,
+local-artifact notes, headings, separators, or rationale before or after the
+message. Those wrapper bytes become part of the delivered artifact and can be
+copied into git history.
 Fenced snippets in this reference are examples, not output wrappers for real
 commit messages.
 
@@ -118,6 +122,25 @@ private branch names, local notes, temporary comparison output, unpublished
 checkout paths, private dependency paths, tool-session labels, and chat-turn
 context should not become reader context.
 
+Verification references must pass the same durability test. They should be
+resolvable from git-managed files, remote repository metadata, issue or review
+systems, release artifacts, public docs, primary sources, stable commands, or
+stable identifiers. Git-unmanaged local generated artifacts, ignored local
+result files, temporary run output, local-only run IDs, and private tool-session
+records are not durable proof even when their paths look project-relative or
+their filenames sound audit-relevant.
+
+When local-only proof supplied a useful result, preserve the durable command,
+contract outcome, committed source path, public identifier, or explicit absence
+status instead. Use statuses such as `raw local report not committed`,
+`benchmark not durably recorded`, or `not measured` when no durable proof exists;
+do not paste the local artifact path as the evidence.
+
+Committed summaries, changelog entries, or working notes can be named as changed
+files or contract sources, but do not use them to launder local-only proof
+details into commit history unless that committed artifact is itself the changed
+contract being described.
+
 ## Verification Provenance
 
 Verification prose should preserve stable proof, not machine-specific setup.
@@ -129,6 +152,25 @@ Omit or parameterize host-local absolute paths, private env values, temporary
 files, unpublished dependency checkouts, local run labels, and transient tool
 session output. If the exact invocation is dominated by local setup, summarize
 the durable proof instead of making that setup required context.
+
+A `Verification:` section is selected proof, not an executed-command log.
+Include proof that materially changes review confidence, rollback or risk
+assessment, or contract completeness:
+
+- High-signal proof: tests, builds, type checks, lint checks, schema or metadata
+  validation, migration or dry-run checks, security/privacy/data-loss checks,
+  release or package checks, and checks tied to the changed public contract.
+- Compressible proof: long ad hoc predicates or groups of equivalent probes
+  whose durable meaning is shorter and clearer than the exact command text.
+- Low-signal proof: search or string-presence commands, file-list checks, and
+  metadata probes that only restate diff-visible changes or inventories.
+
+Keep exact commands when the invocation is a useful rerun or audit anchor, such
+as a named test suite, documented build, schema validator, migration dry run,
+security scanner, or format/whitespace guard. Summarize long predicates or
+equivalent command groups into the durable outcome when exact bytes are not
+needed for rerun or audit. Omit diff-obvious search probes unless they prove a
+non-obvious cross-file, generated, packaging, release, or registration contract.
 
 Avoid reducing useful proof to vague text like `tests passed` when the stable
 suite, command, guardrail, or outcome matters.

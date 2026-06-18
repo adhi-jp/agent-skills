@@ -58,6 +58,37 @@ use `[Repository] - YYYY-MM-DD`.
   evals/vibe-planning/evals.json` and `python3 scripts/eval_runner.py validate
   evals/vibe-planning/evals.json` pass.
 
+- `vibe-writing` now separates supplied current verification facts from
+  non-durable local proof sources in changelog entries: explicitly supplied
+  agent/model, compared configs, run counts, pass rates, sanity status, or
+  `error_run_count` remain reportable when the source does not tie them only to a
+  git-unmanaged local artifact, while workspace paths, local run IDs, private
+  transcript labels, and raw local report locations are still removed or
+  translated. Commit-message guidance now also requires proof-source
+  classification to stay internal when the requested deliverable is the raw
+  commit message, so local-artifact analysis, headings, separators, and rationale
+  do not wrap the message bytes. The `vibe-writing` eval suite tightens E15 and
+  E16 expectations for those boundaries, and README documents the behavior.
+  Verification: `python3 -m json.tool evals/vibe-writing/evals.json`,
+  `python3 scripts/eval_runner.py validate evals/vibe-writing/evals.json`, and
+  `git diff --check` pass. Full with/without provider eval reruns were not
+  performed, so measurable skill improvement remains not measured.
+
+- `vibe-writing` changelog guidance now applies the same durable proof-source
+  boundary to changelog entries: git-unmanaged generated reports, ignored eval
+  workspace output, temporary run output, local-only run IDs, and private
+  tool-session records are not changelog evidence unless committed, published,
+  or otherwise available through a stable system. Changelog entries should keep
+  stable commands, committed artifacts, remote metadata, public or primary
+  sources, or explicit absence statuses instead of preserving local provider-run
+  paths, iteration IDs, pass-rate deltas, sanity details, or assertion misses
+  from local generated reports. Adds a changelog-specific `vibe-writing` eval
+  for local eval workspace proof leakage, and README documents the boundary.
+  Verification: `python3 -m json.tool evals/vibe-writing/evals.json`,
+  `python3 scripts/eval_runner.py validate evals/vibe-writing/evals.json`, and
+  `git diff --check` pass. Full with/without provider eval runs were not
+  performed, so measurable skill improvement remains not measured.
+
 - `vibe-plan-execution` now requires a mandatory post-implementation review gate
   after an implemented slice is verified and before execution summaries or
   authorized commits. The gate prefers review-only delegated reviewers when a

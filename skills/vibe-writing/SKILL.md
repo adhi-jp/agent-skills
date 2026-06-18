@@ -93,7 +93,9 @@ directly. Do not add process notes, source-read confirmations, "here is"
 preambles, separators, change summaries, or placement instructions unless the
 user asks for an explanation. The artifact's explicit language, existing
 language, filename locale marker, or repository convention wins over chat
-language.
+language. Internal evidence checks, source classification, and proof-source
+decisions stay out of the delivered artifact unless the user explicitly asks for
+that explanation.
 
 For LLM-first text, use line breaks as structure, not as an 80-column habit.
 Keep short examples, commands, commit-message snippets, and compact list items on one physical line when the break would add no meaning.
@@ -149,11 +151,13 @@ contract delta and latest verification status.
 For changelog or release-note work, read `references/changelog.md` when the task
 involves entry content quality, the next-agent contract-log reader model,
 detecting and conforming to a repository's existing changelog format,
-breaking-change presentation, durable references, or converting commit or PR
-metadata into a changelog entry. That reference separates the format layer (the
-repository owns the format; detect and conform, never silently restructure it)
-from the content layer (write each entry as a contract and evidence log for the
-next agent resuming with zero context).
+breaking-change presentation, durable references, local generated proof-source
+boundaries, or converting commit or PR metadata into a changelog entry. That
+reference separates the format layer (the repository owns the format; detect and
+conform, never silently restructure it) from the content layer (write each entry
+as a contract and evidence log for the next agent resuming with zero context)
+and treats git-unmanaged generated reports, local-only run IDs, and private
+tool-session records as non-durable changelog evidence.
 
 ### PR descriptions
 
@@ -203,12 +207,18 @@ and transport.
 
 After creating or amending a commit with a body, inspect the stored message with
 `git show -s --format=%B HEAD`. If the stored message violates this skill, amend
-it before reporting completion. Pure message-drafting tasks do not need this Git
+it before reporting completion. That inspection includes checking that
+verification lines are signal-bearing proof rather than a session command
+transcript, and that the body does not leak git-unmanaged local generated
+artifacts, ignored result files, local-only run IDs, or private tool-session
+records as proof sources. Pure message-drafting tasks do not need this Git
 inspection because no stored commit artifact was created.
 
 When the requested deliverable is the commit message itself, return raw commit
 message text: no Markdown fence, example label, or explanatory prose unless the
-user explicitly asks for that wrapper.
+user explicitly asks for that wrapper. Do not include proof-source analysis,
+local-artifact classification, separators, headings, or any other wrapper before
+the subject or after the final body/trailer line.
 
 Markdown fences become commit-message bytes when pasted into `git commit`, so
 they contaminate subjects, bodies, and trailers.
@@ -264,6 +274,9 @@ Before returning text, check:
 - Did exact-format output stay exact?
 - Did locale and technical-token preservation rules hold?
 - Did durable references replace prompt-only or machine-local context?
+- For commit-message bodies, did verification lines preserve durable,
+  review-useful proof instead of a session command transcript or local-only
+  generated proof source?
 - If text was written through a tool, did the stored artifact match the intended
   artifact? For created or amended commits with a body, inspect the stored
   message, not only the command used to create it.

@@ -92,6 +92,31 @@ Each entry should carry:
   No prompt-only or session-local references (`above`, `as requested`, a local
   run label, an unpublished branch).
 
+Changelog verification evidence must be durable, not merely project-relative.
+Use evidence a later reader can resolve from committed files, remote repository
+metadata, CI/check systems, release artifacts, public docs, primary sources,
+stable commands, or stable identifiers. Git-unmanaged local generated artifacts,
+ignored eval workspace reports, temporary run output, local-only run IDs, and
+private tool-session records are not changelog evidence even when their paths
+look like repository paths or their filenames sound audit-relevant.
+
+When a local generated run supplied useful signal but has no durable record,
+translate it into the stable command and durable outcome that can be checked, or
+state the absence explicitly: `provider run not durably recorded`, `benchmark
+not durably recorded`, `raw local report not committed`, or `not measured`.
+Do not include local workspace paths, iteration IDs, pass-rate deltas, sanity
+status, excluded-run counts, or remaining assertion misses from git-unmanaged
+generated reports unless the report itself is committed, published, or otherwise
+available through a stable system the next reader can resolve.
+
+Do not downgrade explicitly supplied current verification facts merely because
+they look like eval-run facts. If the source material itself states the current
+verification slice, such as agent/model, compared configs, run count, pass rates,
+sanity status, or `error_run_count`, and it does not tie those facts to a
+git-unmanaged local artifact as their only source, preserve the supplied facts
+as evidence. Remove or translate only the non-durable provenance: workspace
+paths, local run IDs, private transcript labels, and raw local report locations.
+
 Discipline for every entry:
 
 - Falsifiable and evidence-bound. Do not invent impact, security, performance,
