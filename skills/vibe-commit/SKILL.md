@@ -110,9 +110,12 @@ deeper on the judgment calls.
 10. **Post-verify the stored commit.** `git show -s --format=%B HEAD` confirms
     subject/body/trailer landed byte-correct and the trailer parsed as a footer;
     for newly added or repaired authorship trailers, also confirm the command
-    path used `git commit ... --trailer`. `git show --stat HEAD` confirms the
-    committed file set; `git status --short` confirms only intentionally-left
-    files remain and nothing leaked.
+    path used `git commit ... --trailer`. For body messages, inspect the stored
+    message for low-signal verification dumps and local-only proof-source
+    leakage such as git-unmanaged local generated artifacts, ignored result
+    files, local-only run IDs, or private tool-session records. `git show --stat
+    HEAD` confirms the committed file set; `git status --short` confirms only
+    intentionally-left files remain and nothing leaked.
 11. **Recover reversibly if wrong.** Prefer the least-destructive fix:
     `git restore --staged <file>` to unstage, `git reset --soft HEAD~1` to undo
     a commit while keeping changes, `git commit --amend --no-edit --trailer …`

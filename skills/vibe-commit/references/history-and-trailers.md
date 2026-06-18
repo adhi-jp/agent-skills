@@ -313,8 +313,21 @@ fuller authority):
   failure or review finding, the public/CLI/schema contract, a rejected
   alternative, an accepted risk or non-goal, or verification that changes review
   confidence. Skip file-by-file inventories.
+- Verification lines are selected proof, not a session command transcript. Keep
+  exact commands when they are useful rerun or audit anchors such as tests,
+  builds, type/lint checks, schema or metadata validation, migration dry runs,
+  security/privacy/data-loss checks, release/package checks, or checks tied to a
+  changed public contract. Summarize long ad hoc predicates or groups of
+  equivalent probes when their durable meaning is clearer than the exact bytes.
+  Omit search/string-presence probes, file-list checks, and metadata checks that
+  only restate diff-visible changes unless they prove a non-obvious cross-file,
+  generated, packaging, release, or registration contract.
 - Small/mechanical changes (lock bumps, generated syncs) are often
   subject-only.
 - Keep durable references (issue IDs, error codes, commands, committed paths,
   SHAs); drop local-only provenance (private branch names, temp paths, session
-  labels).
+  labels). Git-unmanaged local generated artifacts, ignored result files,
+  temporary run output, local-only run IDs, and private tool-session records are
+  not durable proof. Translate them into a stable command, durable outcome, or
+  explicit absence status such as `raw local report not committed`, `benchmark
+  not durably recorded`, or `not measured`.

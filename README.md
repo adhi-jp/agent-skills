@@ -515,16 +515,20 @@ and `vibe-commit` owns staging, exclusion, the pre-commit re-verification gate,
 command safety, history mutation, message transport, and authorship-trailer
 command transport. When `vibe-writing` is available it defers message wording to
 that skill and its `references/commit-messages.md`; otherwise it applies compact
-fallback message rules. The skill's guidance is distilled from real Codex and
-Claude Code sessions across multiple repositories where these exact steps either
-prevented or, when skipped, caused commit mistakes. Its core workflow discovers
-all changes (including ignored and untracked paths), classifies them into one
-logical change versus out-of-scope or generated artifacts, stages by explicit
-path, runs a mandatory staged-set re-verification gate (`git diff --cached`
-name-list, stat, hunks, and `--check`), composes a Conventional Commit message,
-transports multi-line messages safely (single-quoted heredoc or `-F`), and
-verifies the stored commit with `git show -s --format=%B HEAD` and
-`git show --stat HEAD`. References cover file selection and exclusion of
+fallback message rules, including the same verification signal selection and
+durable proof-source boundary for local generated artifacts, ignored result
+files, and local-only run records. The skill's guidance is distilled from real
+Codex and Claude Code sessions across multiple repositories where these exact
+steps either prevented or, when skipped, caused commit mistakes. Its core
+workflow discovers all changes (including ignored and untracked paths),
+classifies them into one logical change versus out-of-scope or generated
+artifacts, stages by explicit path, runs a mandatory staged-set re-verification
+gate (`git diff --cached` name-list, stat, hunks, and `--check`), composes a
+Conventional Commit message, transports multi-line messages safely
+(single-quoted heredoc or `-F`), and verifies the stored commit with
+`git show -s --format=%B HEAD` and `git show --stat HEAD`, including checks for
+low-signal verification dumps and local-only proof leakage. References cover
+file selection and exclusion of
 generated/workspace/ignored/secret paths, the staging gate with partial-hunk
 staging and a least-destructive recovery ladder, and history edits with
 authorship-trailer `--trailer` transport and footer hygiene including the

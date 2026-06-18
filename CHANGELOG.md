@@ -89,6 +89,29 @@ use `[Repository] - YYYY-MM-DD`.
   `git diff --check` pass. Full with/without provider eval runs were not
   performed, so measurable skill improvement remains not measured.
 
+- `vibe-writing` and `vibe-commit` now treat commit-message verification proof
+  as selected, durable evidence rather than a session command transcript or a
+  place to preserve local generated artifacts. `vibe-writing`'s
+  `references/commit-messages.md` now requires verification references to be
+  fresh-clone resolvable from git-managed files, remote metadata, public or
+  primary sources, stable commands, or stable identifiers; git-unmanaged local
+  generated artifacts, ignored local result files, temporary run output,
+  local-only run IDs, and private tool-session records must be translated into
+  stable commands, durable outcomes, or explicit absence statuses instead of
+  being cited as proof. The same reference now distinguishes high-signal proof,
+  compressible predicates, and low-signal diff-obvious search probes.
+  `vibe-commit` mirrors the boundary in fallback compact message rules and
+  stored-message post-verification, and the README documents both skills'
+  behavior. Adds focused `vibe-writing` and `vibe-commit` eval pressure for
+  local generated proof-source leakage and noisy verification transcript
+  compaction. Verification: `python3 -m json.tool evals/vibe-writing/evals.json`,
+  `python3 -m json.tool evals/vibe-commit/evals.json`,
+  `python3 scripts/eval_runner.py validate evals/vibe-writing/evals.json`,
+  `python3 scripts/eval_runner.py validate evals/vibe-commit/evals.json`, and
+  `git diff --check` pass.
+  Full with/without provider eval runs were not performed, so measurable skill
+  improvement remains not measured.
+
 - `vibe-plan-execution` now requires a mandatory post-implementation review gate
   after an implemented slice is verified and before execution summaries or
   authorized commits. The gate prefers review-only delegated reviewers when a
