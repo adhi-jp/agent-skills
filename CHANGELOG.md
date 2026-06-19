@@ -38,6 +38,29 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-requirements-spec` now supports explicit `strict-four-choice`,
+  `lightweight-four-choice`, and `freestyle` drafting modes, creates or updates
+  requirements spec artifacts by default unless the user explicitly requests
+  chat-only/no-file operation, and defaults new generated requirements specs to
+  `docs/specs/` while preserving existing current or historical `specs/` paths.
+  New specs record `Requirement mode` and `Evidence and constraints`, the skill
+  uses requirements lifecycle wording with finish or next-phase handoff evidence
+  kept outside the artifact, and `VIBE_SUBAGENTS=ask|allow|deny` plus
+  `VIBE_DOCUMENT_LANGUAGE=user|default|<BCP47 language tag>` are documented for
+  startup behavior. Follow-up quality corrections narrow path precedence so only
+  a user-specified path or current spec path overrides the new `docs/specs/`
+  default, clarify that strict-mode question counts apply to requirements
+  decisions rather than startup permission questions, keep bulk-import
+  review-before-write or preview as its own write-safety dimension, prevent
+  freestyle drafting from inventing implementation details, and allow
+  false-claim stops to leave the current spec unchanged while awaiting
+  confirmation. The eval suite now covers the new modes, artifact defaults,
+  lifecycle handoff behavior, explicit requirements-finished wording,
+  environment-variable documented-contract cases including invalid
+  `VIBE_SUBAGENTS`, factual-error correction, destructive-change confirmation,
+  and shell-config persistence confirmation safety. Verification was not rerun
+  for the follow-up corrections.
+
 - `vibe-planning` now defaults generated implementation-plan artifacts to
   `docs/plans/YYYY-MM-DD-<goal-slug>-implementation-plan.md` when no explicit
   path or existing project convention applies, while preserving explicit paths,

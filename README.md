@@ -19,7 +19,7 @@ quickstart when changing a skill or its eval suite.
 | --- | --- | --- | --- | --- |
 | Build, debug, port, or inspect Minecraft Java Edition mods for Fabric, NeoForge, or Architectury | `minecraft-modding-workbench` | Produces implementation guidance or code while labeling MCP, workspace, source-jar, runtime, and unverified facts | `skills/minecraft-modding-workbench/` | `evals/minecraft-modding-workbench/` |
 | Route an explicit multi-turn vibe-coding workflow | `vibe-coding` | Selects one primary visible `vibe-*` specialist for the next phase; does not relax downstream gates | `skills/vibe-coding/` | `evals/vibe-coding/` |
-| Draft, revise, save, approve, or explore requirements before planning | `vibe-requirements-spec` | Writes only the requirements spec artifact, or stays in chat for chat-only exploration; stops before implementation planning | `skills/vibe-requirements-spec/` | `evals/vibe-requirements-spec/` |
+| Draft, revise, save, finish, or explore requirements before planning | `vibe-requirements-spec` | Creates or updates the requirements spec artifact by default, uses explicit chat-only/no-file only when requested, and stops before implementation planning | `skills/vibe-requirements-spec/` | `evals/vibe-requirements-spec/` |
 | Create or revise an implementation plan from approval-evidenced or concrete inputs | `vibe-planning` | Writes a plan artifact and concise summary; stops before code, tests, changelog edits, commits, and release work | `skills/vibe-planning/` | `evals/vibe-planning/` |
 | Review, confirm, walk through, or pre-check a saved implementation plan before execution | `vibe-plan-review` | Reviews one plan item at a time, records localized item decisions from its reference file, and stops before implementation | `skills/vibe-plan-review/` | `evals/vibe-plan-review/` |
 | Implement an existing concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Edits only after binding the plan and checking proceed conditions; stops before commits unless separately authorized | `skills/vibe-plan-execution/` | `evals/vibe-plan-execution/` |
@@ -126,71 +126,63 @@ approval gate, stop condition, or consent boundary in one unattended pass.
 
 Markdown requirements-spec drafting skill for rough, ambiguous, contradictory,
 creative, or non-technical vibe-coding goals before implementation planning. It
-creates or updates one English requirements spec artifact with current
-requirements, proposed defaults, ideas or options, decisions, assumptions,
-out-of-scope items, acceptance criteria, and open risks. It preserves useful
-user-authored wording, domain terms, identifiers, paths, commands, and quoted
-text in the original language. The spec artifact does not include approval
-status or revision-history sections; approval is workflow evidence from the
-current instruction or routing state. While active, its only allowed write is
-the requirements spec artifact; it does not write implementation plans,
-implementation task entries, code, tests, verification command lists, commits,
-release work, changelog entries, or unrelated files.
+creates or updates one requirements spec artifact by default in all drafting
+modes unless the user explicitly asks for chat-only or no-file operation. New
+default spec paths use `docs/specs/YYYY-MM-DD-<goal-slug>-spec.md` when no user
+path or current path applies; historical `specs/` files are reused when they
+are the current spec and are not migrated.
+Specs include `Requirement mode` in `Spec metadata` and an `Evidence and
+constraints` section for decision-affecting local paths, external sources or
+URLs, and unverified facts. The artifact does not include approval status,
+approval notes, lifecycle status fields, or revision-history sections.
 
-The skill keeps the same spec active across related turns until the user
-explicitly approves it, gives an unambiguous current-spec planning handoff,
-cancels it, or replaces the effort. Ambiguous readiness or handoff wording such
-as "looks good", "ready", "continue", or "go ahead" is not enough to approve the
-current spec unless it clearly approves the artifact. Changes after approval
-replace superseded requirements, decisions, assumptions, acceptance criteria,
-and risks in the same spec and require renewed approval. Approval-evidenced
-specs can feed a later implementation-planning phase, but this skill still
-stops after the spec artifact, approval-evidence summary, or chat-only
-exploration response. Approval-only handoffs for an existing current spec do not
-rewrite the spec solely to store approval evidence; they preserve the spec path
-and return a concise localized summary with approval evidence or needed approval
-action, blockers or unknowns, and exact next user action. These summaries use
-generic later-phase wording and do not tell the user to invoke, run, start, or
-route to a named workflow, tool, skill, or planning process.
-Chat-only exploration does not write a spec artifact unexpectedly: when the user
-only asks to brainstorm, compare, clarify, list decisions, ask questions, or
-explicitly declines file edits, it keeps the discussion in chat, states that no
-spec file changed, and names the action needed to create or update a spec later.
-When an existing spec artifact is used as context, the current spec path remains
-unchanged context rather than a new approval or planning handoff. If a legacy
-artifact contains an approval state, that state is preserved as legacy context
-rather than updated from brainstorming alone. When a legacy spec is updated, old
-approval-status and revision-history sections are removed from the saved
-artifact and any useful lifecycle context stays in the chat summary. If file
-writing is unavailable, unsafe, or declined after a spec artifact was requested,
-it returns the spec content in chat with the fallback reason instead of claiming
-a file write.
+The skill has three requirement drafting modes. `strict-four-choice` is for
+vague, high-risk, contradictory, destructive, or recognition-alignment-heavy
+requests; it asks one requirements decision question per turn with three or four
+options and includes one mildly challenging option with risks, assumptions, and
+adoption conditions.
+`lightweight-four-choice` is for users who want quick decisions from reasonably
+formed requirements; it asks one main question per turn, normally up to roughly
+three main questions, and records lower-impact details as AI-recommended
+defaults. `freestyle` organizes sufficiently formed free-form requirements and
+uses minimal follow-up, but stops before adopting false, infeasible,
+destructive, or specification-breaking requirements and avoids turning product
+requirements into implementation details without user input or local evidence.
+Free-form answers are respected instead of forced into numbered choices.
 
-Small requests ask no more than three direct questions, mark recommended
-defaults for option sets, and move lower-impact unknowns into defaults,
-assumptions, out-of-scope items, or open risks. Broader unclear requests use a
-grouped confirmation checklist. Creative exploration stays optional: two to five
-brainstormed options include fit and tradeoff notes, and do not become
-requirements until the user selects a direction. Defaults stay limited to
-confirmed scope or cross-cutting choices and do not select or conditionally
-pre-stage adjacent surfaces such as admin, reporting, audit views, diagnostic
-views, or log storage/retention/search. Bulk data or irreversible-write requests
-explicitly surface write-safety choices such as preview or review-before-write,
-duplicate handling, permissions, persistence, and recovery. Mutually exclusive
-data migration, storage, compatibility, or destructive-write constraints list
-viable resolution options and user-visible or data-safety consequences instead
-of hiding the choice behind questions alone. Billing, permission,
-security, account-setting, recipient, and routing changes cover auditability as
-requirement behavior rather than only excluding audit-log UI work. Invoice or
-billing-email recipient changes also cover the delivery-effect window for next
-invoices, already-generated unsent invoices, retries or reminders, future
-billing-cycle emails, and added or removed recipient notifications; that
-delivery-effect coverage remains a high-priority dimension even under the
-three-question limit. For
-notification or messaging work, unselected delivery-log surfaces stay out of
-first-slice defaults and acceptance criteria, including structured per-send
-records, timestamp/user/channel/outcome fields, retention, queryability, and
-viewer behavior.
+Startup behavior reads `VIBE_SUBAGENTS=ask|allow|deny` when available: `ask`
+asks every time, `allow` permits research/review subagents without the startup
+question, and `deny` forbids subagents without asking; unset or invalid values
+behave as `ask`. Subagents are limited to research, codebase inspection,
+existing-spec inspection, risk discovery, and spec review, with final judgment
+and spec updates kept by the main AI. If the user asks to skip the subagent
+permission question next time, the skill must inspect the shell environment,
+show the target shell config file, exact change, and risks, then ask for final
+confirmation before any edit. `VIBE_DOCUMENT_LANGUAGE=user|default|<BCP47
+language tag>` controls artifact language after explicit user language requests
+and before the skill default of English.
+
+The requirements lifecycle keeps the same spec active until the user gives an
+explicit requirements-finished phrase, a clear next-phase instruction, cancels
+the effort, or replaces it. Ambiguous positive replies such as "OK", "looks
+good", "ready", "continue", or "go ahead" do not end drafting by themselves.
+Requirements-finished or next-phase evidence is recorded outside the spec in the
+chat summary or routing state. The skill still stops after the spec artifact,
+explicit chat-only response, no-write fallback, or lifecycle summary; it does
+not write implementation plans, implementation task entries, code, tests,
+verification command lists, commits, release work, changelog entries, or
+unrelated files.
+
+Defaults stay limited to confirmed scope or cross-cutting choices and do not
+select or conditionally pre-stage adjacent surfaces such as admin, reporting,
+audit views, diagnostic views, or log storage/retention/search. Bulk data or
+irreversible-write requests surface write-safety choices such as preview or
+review-before-write, duplicate handling, permissions, persistence, and recovery.
+Mutually exclusive data migration, storage, compatibility, or destructive-write
+constraints list viable resolution options and user-visible or data-safety
+consequences. Billing, permission, security, account-setting, recipient, and
+routing changes cover auditability and delivery-effect windows as requirement
+behavior without inventing provider facts.
 
 ### `vibe-planning`
 
@@ -734,9 +726,11 @@ specific to the skill.
   Architectury. Legacy Forge-only projects should be treated as a separate
   toolchain check, not as NeoForge by default.
 - `vibe-requirements-spec` is the pre-planning requirements-spec workflow. It
-  writes or updates only the requirements spec artifact while active, keeps the
-  same spec open until explicit approval, cancellation, or replacement, and does
-  not create an implementation plan in the same skill response.
+  creates or updates the requirements spec artifact by default while active,
+  uses explicit chat-only/no-file only when requested, keeps the same spec open
+  until explicit requirements-finished evidence, next-phase handoff,
+  cancellation, or replacement, and does not create an implementation plan in
+  the same skill response.
 - `vibe-planning` is the primary user-facing implementation-planning workflow
   when the user asks for a plan, acceptance criteria, test plan, or rough
   vibe-coding implementation plan. Its normal output is a full plan file plus a
