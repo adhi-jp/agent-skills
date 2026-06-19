@@ -34,6 +34,7 @@ import json
 import os
 import re
 import shutil
+import statistics
 import subprocess
 import sys
 import tempfile
@@ -1787,6 +1788,152 @@ def render_sanity_checks_markdown(sanity: Any) -> list[str]:
     return lines
 
 
+# --------------------------------------------------------------------------- #
+# Execution metrics rendering (executor-only).
+#
+# The per-run ``metrics`` persisted under each run record holds the *executor*
+# subprocess usage only; the grader runs as a separate subprocess whose usage is
+# read for error detection but never folded into ``metrics``. Rendering
+# therefore reports the skill-run (executor) cost, not whole-run cost, and is
+# labeled executor-only so it is not misread as total. Aggregation reads
+# ``benchmark["runs"][i]["metrics"]`` (always present) rather than any new
+# top-level field, so ``report`` re-renders older ``benchmark.json`` files that
+# predate these metric rows.
+# --------------------------------------------------------------------------- #
+def _format_duration(value: float) -> str:
+    return f"{value / 1000:.1f}s"
+
+
+def _format_tokens(value: float) -> str:
+    return f"{int(round(value)):,}"
+
+
+def _format_cost(value: float) -> str:
+    return f"${value:.4f}"
+
+
+# (metric key in the executor metrics dict, display label, value formatter)
+METRIC_DISPLAY: list[tuple[str, str, Callable[[float], str]]] = [
+    ("duration_ms", "Execution time", _format_duration),
+    ("total_tokens", "Total tokens", _format_tokens),
+    ("total_cost_usd", "Cost (USD)", _format_cost),
+]
+
+
+def runs_by_config(configs: list[str], runs: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    grouped: dict[str, list[dict[str, Any]]] = {config: [] for config in configs}
+    for run in runs:
+        config = run.get("configuration")
+        if config in grouped:
+            grouped[config].append(run)
+    return grouped
+
+
+def metric_field_stats(config_runs: list[dict[str, Any]], field: str) -> dict[str, Any]:
+    """Aggregate one executor metric field across a config's runs.
+
+    Counts only runs that captured a numeric value for *this specific* field, so
+    an absent run (claude non-JSON, codex, a failed/timed-out run) or a captured
+    run missing this sub-field is never coerced to 0. ``stddev`` is populated
+    only when at least two runs carry a value for the field, so the n=1 default
+    never feeds a single-element list into stdev."""
+    values: list[float] = []
+    reasons: list[str] = []
+    for run in config_runs:
+        metrics = run.get("metrics") or {}
+        if metrics.get("captured") is True:
+            value = metrics.get(field)
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                values.append(float(value))
+            else:
+                reasons.append("field not reported by provider")
+        else:
+            reasons.append(str(metrics.get("reason") or "metrics not captured"))
+    return {
+        "n": len(values),
+        "total": len(config_runs),
+        "mean": mean(values),
+        "stddev": statistics.stdev(values) if len(values) > 1 else None,
+        "reasons": reasons,
+    }
+
+
+def format_metric_cell(stats: dict[str, Any], formatter: Callable[[float], str]) -> str:
+    if stats["n"] == 0:
+        if stats["total"] == 0:
+            return "not captured (no runs)"
+        unique = list(dict.fromkeys(stats["reasons"]))
+        joined = "; ".join(unique[:3]) + ("; ..." if len(unique) > 3 else "")
+        return f"not captured ({joined})"
+    cell = formatter(stats["mean"])
+    if stats["stddev"] is not None:
+        cell += f" ± {formatter(stats['stddev'])}"
+    if stats["n"] < stats["total"]:
+        cell += f" (n={stats['n']}/{stats['total']})"
+    return cell
+
+
+def format_metric_delta(
+    cand_stats: dict[str, Any] | None,
+    base_stats: dict[str, Any] | None,
+    formatter: Callable[[float], str],
+) -> str:
+    if not cand_stats or not base_stats or cand_stats["n"] == 0 or base_stats["n"] == 0:
+        return "n/a"
+    diff = cand_stats["mean"] - base_stats["mean"]
+    sign = "+" if diff >= 0 else "-"
+    return f"{sign}{formatter(abs(diff))}"
+
+
+def render_metrics_markdown(
+    sorted_configs: list[str],
+    runs: list[dict[str, Any]],
+    comparison: dict[str, Any] | None,
+) -> list[str]:
+    grouped = runs_by_config(sorted_configs, runs)
+    lines = [
+        "",
+        "## Execution metrics (executor-only)",
+        "",
+        "Executor subprocess usage only; grader scoring cost is excluded, so these "
+        "are the skill run's own time and tokens, not total run cost. The "
+        "`with_skill` vs `without_skill` delta is the meaningful signal. Uncaptured "
+        "provider metrics are shown as absent with a reason, never zero.",
+        "",
+    ]
+    include_delta = bool(comparison)
+    columns = [f"`{c}`" for c in sorted_configs]
+    if include_delta:
+        columns.append("Delta")
+    lines.append("| Metric | " + " | ".join(columns) + " |")
+    lines.append("| --- | " + " | ".join("---" for _ in columns) + " |")
+    for field, label, formatter in METRIC_DISPLAY:
+        stats_by_config = {c: metric_field_stats(grouped[c], field) for c in sorted_configs}
+        cells = [format_metric_cell(stats_by_config[c], formatter) for c in sorted_configs]
+        if include_delta:
+            cells.append(
+                format_metric_delta(
+                    stats_by_config.get(comparison["candidate"]),
+                    stats_by_config.get(comparison["baseline"]),
+                    formatter,
+                )
+            )
+        lines.append(f"| {label} | " + " | ".join(cells) + " |")
+    return lines
+
+
+def render_metrics_stdout(sorted_configs: list[str], runs: list[dict[str, Any]]) -> list[str]:
+    grouped = runs_by_config(sorted_configs, runs)
+    lines = ["Execution metrics (executor-only; grader excluded):"]
+    for config in sorted_configs:
+        parts = [
+            f"{label}: {format_metric_cell(metric_field_stats(grouped[config], field), formatter)}"
+            for field, label, formatter in METRIC_DISPLAY
+        ]
+        lines.append(f"  {config}: " + "; ".join(parts))
+    return lines
+
+
 def render_benchmark_markdown(benchmark: dict[str, Any]) -> str:
     configs = list(benchmark.get("configs", []))
     sorted_configs = sorted(configs, key=config_sort_key)
@@ -1828,6 +1975,7 @@ def render_benchmark_markdown(benchmark: dict[str, Any]) -> str:
                 f"- Delta: {format_percent(comparison['delta']) if isinstance(comparison.get('delta'), (int, float)) else 'n/a'}",
             ]
         )
+    lines.extend(render_metrics_markdown(sorted_configs, benchmark.get("runs", []), comparison))
     lines.extend(["", "## Per-eval raw pass rate", "", "| Eval | " + " | ".join(f"`{c}`" for c in sorted_configs) + " |"])
     lines.append("| --- | " + " | ".join("---" for _ in sorted_configs) + " |")
     for entry in benchmark.get("evals", []):
@@ -2010,6 +2158,8 @@ def command_run(args: argparse.Namespace) -> int:
             f"{counts[3]} source-fixture dirty signal(s); "
             f"see Sanity checks in {iteration_dir / 'benchmark.md'}"
         )
+    for line in render_metrics_stdout(sorted(configs, key=config_sort_key), runs_records):
+        print(line)
     return 0
 
 

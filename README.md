@@ -39,13 +39,22 @@ code area to inspect, and known risks or an explicit absence of known risks.
 
 ## Run Skill Evals
 
-Use the shared runner for repo-level eval suites:
+Use the shared runner for repo-level eval suites. The `skill-eval` skill
+(`skills/skill-eval/SKILL.md`) is the authoritative source for the eval test
+operation — workspace placement, the CLI contract, executor and grader
+separation, model passthrough, metric capture and display, and result
+verification before reporting. The commands below are the entry point:
 
 ```sh
-python3 scripts/eval_runner.py validate evals/vibe-planning/evals.json
-python3 scripts/eval_runner.py run evals/vibe-planning/evals.json --agent codex --config with_skill,without_skill --runs 1
-python3 scripts/eval_runner.py report evals/vibe-planning/workspace/codex/iteration-1
+python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json
+python3 skills/skill-eval/scripts/eval_runner.py run evals/vibe-planning/evals.json --agent codex --config with_skill,without_skill --runs 1
+python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/workspace/codex/iteration-1
 ```
+
+The `run` summary and `benchmark.md` also show per-config executor execution
+time and token usage (the executor/skill-run subprocess only, grader scoring
+cost excluded); uncaptured or partial provider metrics appear as absent with a
+reason, never a placeholder number.
 
 Generated eval workspaces live under `evals/<skill-name>/workspace/<agent>/`
 and are local artifacts unless explicitly requested for commit.
@@ -559,6 +568,22 @@ without explicit release instruction, and unrelated package rewrites. Its
 reference notes summarize local session-derived patterns for efficient skill
 improvement and skill degradation.
 
+### `skill-eval`
+
+Owns the repository's skill-eval test operation and is the eval-focused
+alternative to `skill-creator`. Use it when running, grading, aggregating, or
+reporting skill evals through `skills/skill-eval/scripts/eval_runner.py`, when verifying a
+`with_skill`/`without_skill` result before reporting it, or when deciding eval
+workspace placement, executor and grader separation, model passthrough, or
+metric capture for a run. It is the authoritative source for the eval CLI
+contract, keeps the executor and grader as separate agents (no same-agent
+execute-and-grade path), surfaces per-config executor-only execution time and
+token usage with uncaptured metrics shown as absent rather than zero, and
+requires verifying sanity-check status and excluded runs before any pass-rate
+delta is reported. It does not edit the eval suite schema or assertion model and
+leaves general skill creation and quality decisions to `skill-creator` and
+`skill-quality`.
+
 ### `vibe-review`
 
 Integrated vibe-coding review workflow for user-selected git review targets:
@@ -646,69 +671,24 @@ only explicit user, DoD, or confirmed-plan evidence.
   transport hygiene
 - `skills/skill-quality/`: skill creation, improvement, and eval-hardening skill package
 - `skills/vibe-review/`: integrated vibe-coding review workflow with delegated review, scope triage, cascade containment, and terminal audit
-- `scripts/eval_runner.py`: shared stdlib CLI that runs the bounded skill-eval
+- `skills/skill-eval/scripts/eval_runner.py`: shared stdlib CLI that runs the bounded skill-eval
   matrix end to end (executor and grader as separate subprocesses), then
   aggregates a with_skill vs without_skill raw pass-rate comparison
 - `CHANGELOG.md`: repository-level change history
 
 ## Shared Eval Runner
 
-Use `python3 scripts/eval_runner.py` for repo-level skill eval runs. It has
-three commands: `validate`, `run`, and `report`.
+`skills/skill-eval/scripts/eval_runner.py` runs repo-level skill evals with three commands:
+`validate`, `run`, and `report`. The runner drives the bounded matrix itself and
+keeps the executor and grader as separate subprocesses; see
+[Run Skill Evals](#run-skill-evals) for the command sequence.
 
-`run` drives the whole bounded matrix itself. For each eval, config, and run it
-spawns a fresh executor subprocess with the prompt only, then a fresh grader
-subprocess with a clean environment and only the executor output plus the
-assertions, then aggregates a `with_skill` vs `without_skill` raw pass-rate
-comparison. No agent hand-runs prompts or hand-records results.
-
-`--agent` selects a registered provider; `claude` and `codex` are built in. The
-core path (execute, grade, compare, aggregate, report) is provider-neutral and
-works on Codex; opt-in metric capture is a Claude-only addition that other
-providers skip. An optional `--model` is passed through to the selected provider
-CLI verbatim (whatever model name that CLI accepts, e.g. `claude-sonnet-4-6` or
-`gpt-5.3-codex-spark`); it is applied to both the executor and grader and
-recorded in the manifest and benchmark. Omit it to use the provider's default
-model.
-
-All validation runs before any subprocess launches: suite shape, the
-authoritative `with_skill` source, provider availability, and run bounds.
-Invalid input exits non-zero with zero subprocess launches; an empty suite exits
-0 with an empty result. Total work is bounded by `--runs` (1..5, default 1),
-`--timeout` per subprocess (default 600s), and `--concurrency` (1..16, default
-4). A timed-out or failed executor is recorded as a failed run, not a pass, and
-the grader is skipped for it; there are no retries.
-
-For `with_skill`, the runner resolves `--skill-path` from the repo root (default
-`skills/<skill-name>/SKILL.md`) and, for every provider, rejects `.agents/skills`
-snapshots, `.claude/skills` links, files not named `SKILL.md`, and paths outside
-`skills/<skill-name>/`. The executor prompt tells the agent to read that source
-directly instead of a host skill tool, snapshot, link, or cached copy.
-
-Metrics are never hand-typed. No flag injects a token or duration value. When a
-provider exposes machine-readable usage (for example `claude -p --output-format
-json`), the runner captures it into `metrics.json` with its source; otherwise
-absence is recorded as absence, never a placeholder number.
-
-The grader subprocess returns a structured, schema-constrained verdict keyed by
-the assertion's 1-based `id` (`{"verdicts": [{"id", "passed", "evidence"}]}`),
-requested as provider-native structured output where the CLI supports it
-(`codex --output-schema`, `claude --json-schema`); the legacy text-keyed
-`{"expectations": [...]}` shape is still accepted. The runner derives pass/fail
-from it, never from the executor's own claims, and grades the whole recorded
-output. An assertion the grader omits is recorded as failed, and a verdict the
-runner cannot parse is recorded as `grader_unparseable` and excluded from the
-pass rate rather than scored as `0%`.
-
-`run` writes per-run `prompt.md`, `grader_prompt.md`, `outputs/`, `grading.json`,
-`metrics.json`, and `run.json` under
-`evals/<skill-name>/workspace/<agent>/iteration-N/`, plus `benchmark.json` and
-`benchmark.md` (per-eval and overall raw pass rate with the
-`with_skill`/`without_skill` comparison, plus a `sanity_checks` section flagging
-infrastructure failures, scored-`0%` cells, and candidate-below-baseline cells)
-at the iteration root. `report <iteration-dir>` re-renders `benchmark.md` from
-`benchmark.json`; it does not start a server, open a browser, bind a port, or
-write a PID file.
+The `skill-eval` skill (`skills/skill-eval/SKILL.md`) is the authoritative source
+for the eval test operation: eval workspace placement, the CLI contract,
+executor and grader separation, model passthrough, metric capture and the
+executor-only time/token display, and result verification before reporting a
+`with_skill`/`without_skill` delta. Follow that skill for any eval run rather
+than restating its rules here.
 
 ## Package Contents
 

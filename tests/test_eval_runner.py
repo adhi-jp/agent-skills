@@ -16,7 +16,7 @@ import unittest
 from pathlib import Path
 
 
-SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "eval_runner.py"
+SCRIPT = Path(__file__).resolve().parents[1] / "skills" / "skill-eval" / "scripts" / "eval_runner.py"
 sys.path.insert(0, str(SCRIPT.parent))
 
 import eval_runner  # noqa: E402
@@ -1128,6 +1128,254 @@ class SkillSourceTests(BaseRunnerTest):
         self.assertIn(str(sandbox_skill_path), prompt)
         self.assertEqual(Path(record["sandbox"]["skill_path"]), sandbox_skill_path)
         self.assertNotIn(str(self.root / "skills" / "demo" / "SKILL.md"), prompt)
+
+
+# --------------------------------------------------------------------------- #
+# Execution-metrics rendering (executor-only). The per-run ``metrics`` is the
+# executor subprocess usage; rendering reports it as the skill-run cost, labeled
+# executor-only, and shows uncaptured/partial provider metrics as absence with a
+# reason, never a placeholder number.
+# --------------------------------------------------------------------------- #
+class MetricsRenderingTests(unittest.TestCase):
+    def _run(self, config, *, metrics, status="ok"):
+        return {
+            "eval_id": "E01",
+            "eval_name": "First eval",
+            "configuration": config,
+            "run_number": 1,
+            "status": status,
+            "scored": status == "ok",
+            "pass_rate": 1.0 if status == "ok" else None,
+            "metrics": metrics,
+        }
+
+    def _captured(self, **fields):
+        metrics = {"captured": True, "source": "claude -p --output-format json", "provider": "claude"}
+        metrics.update(fields)
+        return metrics
+
+    def _benchmark(self, runs, *, configs=("with_skill", "without_skill"), comparison="auto"):
+        configs = list(configs)
+        if comparison == "auto":
+            comparison = (
+                {
+                    "candidate": configs[0],
+                    "baseline": configs[1],
+                    "candidate_pass_rate": 1.0,
+                    "baseline_pass_rate": 1.0,
+                    "delta": 0.0,
+                }
+                if len(configs) >= 2
+                else None
+            )
+        return {
+            "skill_name": "demo",
+            "agent": "claude",
+            "model": None,
+            "generated_at": "2026-06-19T00:00:00Z",
+            "configs": configs,
+            "run_count": len(runs),
+            "scored_run_count": sum(1 for r in runs if r.get("scored")),
+            "error_run_count": 0,
+            "status_counts": {"ok": len(runs)},
+            "metrics_captured": any((r.get("metrics") or {}).get("captured") for r in runs),
+            "overall_pass_rate": {c: 1.0 for c in configs},
+            "comparison": comparison,
+            "sanity_checks": {
+                "ok": True,
+                "infrastructure_failures": [],
+                "zero_scored_cells": [],
+                "candidate_below_baseline": [],
+                "source_fixture_dirty": [],
+            },
+            "evals": [
+                {"eval_id": "E01", "eval_name": "First eval", "configs": {c: {"pass_rate": 1.0} for c in configs}}
+            ],
+            "runs": runs,
+        }
+
+    def test_metrics_section_renders_time_and_tokens_with_existing_sections_intact(self):
+        runs = [
+            self._run("with_skill", metrics=self._captured(total_tokens=1500, duration_ms=12300, total_cost_usd=0.012)),
+            self._run("without_skill", metrics=self._captured(total_tokens=1200, duration_ms=10000, total_cost_usd=0.009)),
+        ]
+        md = eval_runner.render_benchmark_markdown(self._benchmark(runs))
+        self.assertIn("## Execution metrics (executor-only)", md)
+        self.assertIn("Execution time", md)
+        self.assertIn("Total tokens", md)
+        self.assertIn("12.3s", md)
+        self.assertIn("1,500", md)
+        # Existing sections must remain present and unchanged.
+        self.assertIn("## Sanity checks", md)
+        self.assertIn("## Overall raw pass rate", md)
+        self.assertIn("## Comparison", md)
+        self.assertIn("## Per-eval raw pass rate", md)
+
+    def test_rendered_value_is_executor_metric_not_summed_with_grader(self):
+        # The run record may also carry separate grader usage; rendering must
+        # report the executor metric alone, never the executor+grader sum, and
+        # must carry an explicit executor-only label so it is not read as total.
+        run = self._run("with_skill", metrics=self._captured(total_tokens=1500, duration_ms=12300))
+        run["grader_metrics"] = {"captured": True, "total_tokens": 900, "duration_ms": 8000}
+        md = eval_runner.render_benchmark_markdown(self._benchmark([run], configs=("with_skill",)))
+        self.assertIn("1,500", md)
+        self.assertNotIn("2,400", md)  # executor + grader sum must not appear
+        self.assertIn("executor-only", md)
+
+    def test_absent_metrics_render_reason_never_zero(self):
+        runs = [
+            self._run("with_skill", metrics=eval_runner.metrics_absent("claude", "claude output was not a JSON envelope")),
+            self._run("without_skill", metrics=eval_runner.metrics_absent("codex", "codex metrics capture is not enabled in the slim core")),
+        ]
+        md = eval_runner.render_benchmark_markdown(self._benchmark(runs))
+        self.assertIn("not captured (claude output was not a JSON envelope)", md)
+        self.assertIn("not captured (codex metrics capture is not enabled in the slim core)", md)
+        # An absent metric is never coerced to a 0 value.
+        self.assertNotIn("0.0s", md)
+        self.assertNotIn("$0.0000", md)
+
+    def test_partial_subfield_renders_each_field_independently(self):
+        # tokens + duration captured, cost sub-field absent on the same run.
+        run = self._run("with_skill", metrics=self._captured(total_tokens=1500, duration_ms=12300))
+        md = eval_runner.render_benchmark_markdown(self._benchmark([run], configs=("with_skill",)))
+        self.assertIn("1,500", md)
+        self.assertIn("12.3s", md)
+        self.assertNotIn("$0.0000", md)  # missing cost is not coerced to $0
+        self.assertIn("not captured (field not reported by provider)", md)
+
+    def test_mixed_captured_and_absent_within_config(self):
+        runs = [
+            self._run("with_skill", metrics=self._captured(total_tokens=1500, duration_ms=12000)),
+            self._run("with_skill", metrics=eval_runner.metrics_absent("claude", "claude output was not a JSON envelope")),
+        ]
+        md = eval_runner.render_benchmark_markdown(self._benchmark(runs, configs=("with_skill",)))
+        # mean over the one captured run only, partial coverage shown, absent run
+        # not folded in as 0; one captured value means no stddev.
+        self.assertIn("1,500 (n=1/2)", md)
+        self.assertNotIn("±", md)
+
+    def test_stddev_rendered_only_with_multiple_captured_values(self):
+        runs = [
+            self._run("with_skill", metrics=self._captured(total_tokens=1000, duration_ms=10000)),
+            self._run("with_skill", metrics=self._captured(total_tokens=2000, duration_ms=20000)),
+        ]
+        md = eval_runner.render_benchmark_markdown(self._benchmark(runs, configs=("with_skill",)))
+        self.assertIn("±", md)
+
+    def test_single_captured_among_scored_runs_has_no_stddev(self):
+        # 3 scored runs, only 1 carries captured metrics: the stddev guard keys on
+        # the captured-metric count, not scored_runs, so a single value renders
+        # without feeding a 1-element list into stdev.
+        runs = [
+            self._run("with_skill", metrics=self._captured(total_tokens=1500, duration_ms=12000)),
+            self._run("with_skill", metrics=eval_runner.metrics_absent("claude", "claude output was not a JSON envelope")),
+            self._run("with_skill", metrics=eval_runner.metrics_absent("claude", "claude output was not a JSON envelope")),
+        ]
+        md = eval_runner.render_benchmark_markdown(self._benchmark(runs, configs=("with_skill",)))
+        self.assertIn("1,500 (n=1/3)", md)
+        self.assertNotIn("±", md)
+
+    def test_empty_runs_render_without_crash(self):
+        md = eval_runner.render_benchmark_markdown(
+            self._benchmark([], configs=("with_skill", "without_skill"), comparison=None)
+        )
+        self.assertIn("## Execution metrics (executor-only)", md)
+        self.assertIn("not captured (no runs)", md)
+
+
+class MetricsIntegrationTests(BaseRunnerTest):
+    def test_run_stdout_and_benchmark_md_show_metrics_section(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        result = self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        # stub exposes no metrics -> absence with a reason, never a number.
+        self.assertIn("Execution metrics (executor-only", result.stdout)
+        self.assertIn("not captured", result.stdout)
+        md = (self.iteration_dir() / "benchmark.md").read_text()
+        self.assertIn("## Execution metrics (executor-only)", md)
+        self.assertIn("not captured", md)
+
+    def test_report_re_renders_metrics_from_old_shape_benchmark_json(self):
+        # A hand-built older-shape benchmark.json: per-run executor metrics under
+        # ``runs`` but no new top-level aggregated metric fields. ``report`` must
+        # render the metric rows computed from ``runs`` and raise no KeyError on
+        # the absent top-level field. This does not lean on the existing
+        # round-trip test, which only exercises the current schema.
+        iteration = self.iteration_dir()
+        iteration.mkdir(parents=True)
+        old_benchmark = {
+            "skill_name": "demo",
+            "agent": "claude",
+            "model": None,
+            "generated_at": "2026-01-01T00:00:00Z",
+            "configs": ["with_skill", "without_skill"],
+            "run_count": 2,
+            "scored_run_count": 2,
+            "error_run_count": 0,
+            "status_counts": {"ok": 2},
+            "metrics_captured": True,
+            "overall_pass_rate": {"with_skill": 1.0, "without_skill": 0.0},
+            "comparison": {
+                "candidate": "with_skill",
+                "baseline": "without_skill",
+                "candidate_pass_rate": 1.0,
+                "baseline_pass_rate": 0.0,
+                "delta": 1.0,
+            },
+            "sanity_checks": {
+                "ok": True,
+                "infrastructure_failures": [],
+                "zero_scored_cells": [],
+                "candidate_below_baseline": [],
+                "source_fixture_dirty": [],
+            },
+            "evals": [
+                {
+                    "eval_id": "E01",
+                    "eval_name": "First eval",
+                    "configs": {"with_skill": {"pass_rate": 1.0}, "without_skill": {"pass_rate": 0.0}},
+                }
+            ],
+            "runs": [
+                {
+                    "eval_id": "E01",
+                    "eval_name": "First eval",
+                    "configuration": "with_skill",
+                    "run_number": 1,
+                    "status": "ok",
+                    "scored": True,
+                    "pass_rate": 1.0,
+                    "metrics": {
+                        "captured": True,
+                        "source": "claude -p --output-format json",
+                        "provider": "claude",
+                        "total_tokens": 1500,
+                        "duration_ms": 12000,
+                    },
+                },
+                {
+                    "eval_id": "E01",
+                    "eval_name": "First eval",
+                    "configuration": "without_skill",
+                    "run_number": 1,
+                    "status": "ok",
+                    "scored": True,
+                    "pass_rate": 0.0,
+                    "metrics": {
+                        "captured": True,
+                        "source": "claude -p --output-format json",
+                        "provider": "claude",
+                        "total_tokens": 1100,
+                        "duration_ms": 9000,
+                    },
+                },
+            ],
+        }
+        (iteration / "benchmark.json").write_text(json.dumps(old_benchmark), encoding="utf-8")
+        result = self.run_cli("report", iteration, check=True)
+        self.assertIn("## Execution metrics (executor-only)", result.stdout)
+        self.assertIn("1,500", result.stdout)
+        self.assertIn("12.0s", result.stdout)
 
 
 if __name__ == "__main__":

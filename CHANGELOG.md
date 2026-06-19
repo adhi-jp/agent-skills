@@ -36,6 +36,50 @@ use `[Repository] - YYYY-MM-DD`.
   Remaining `with_skill` misses were output-explicitness misses in E01/E03/E06,
   not a tracked skill or eval contract-change signal.
 
+- `skills/skill-eval/scripts/eval_runner.py` now surfaces per-config execution
+  time and token
+  usage in `benchmark.md` and the `run`/`report` stdout summary. The displayed
+  values are the executor (skill-run) subprocess metrics, labeled executor-only
+  so grader scoring cost is excluded and the values are not read as total run
+  cost; the `with_skill` vs `without_skill` delta is shown alongside. Aggregation
+  is computed from the existing per-run `metrics`, so `report` re-renders older
+  `benchmark.json` files that predate the metric rows. A per-config mean is shown
+  with `± stddev` only when more than one run captured a numeric value for that
+  metric, and uncaptured or partial provider metrics (including a claude run
+  whose output was not a JSON envelope and individual missing sub-fields) are
+  shown as absent with a reason, never a placeholder number. The pass-rate
+  computation, executor/grader separation, and per-run metric capture are
+  unchanged. Verification: `python3 -m pytest tests/test_eval_runner.py` passes
+  (79 tests), covering metric rendering, the executor-only source and label,
+  absence rendering, within-config mixed capture, the stddev/n=1 guard, the
+  `run` stdout summary, and `report` back-compat on an older-shape
+  `benchmark.json`; no live provider eval was run.
+
+- A new `skill-eval` skill (`skills/skill-eval/SKILL.md`) owns
+  the repository's eval test operation as an eval-focused alternative to
+  `skill-creator`. The eval runner moves from `scripts/eval_runner.py` into the
+  package at `skills/skill-eval/scripts/eval_runner.py` so it ships with the
+  skill when the package is installed; the skill drives that runner, requires the
+  executor and grader to run as separate agents with no same-agent
+  execute-and-grade path, documents the executor-only time/token surfacing, and
+  carries the metrics-never-hand-typed and verify-before-reporting discipline.
+  The authoritative eval rules (eval workspace placement, the shared CLI
+  contract, and result verification and reporting) move out of `AGENTS.md` into
+  this skill; `AGENTS.md` keeps a one-line routing pointer to it, and the README
+  "Shared Eval Runner" restatement is collapsed to a pointer plus the command
+  entry so the rules live authoritatively in one place. README and the test
+  harness reference the relocated runner path; README also gains the `skill-eval`
+  Included Skills entry. The new skill carries no `version` field and is not added
+  to the README version table; per the repository convention a skill gains a
+  `version` only when it is released, and no existing skill version is bumped.
+  Verification: the runner's executor/grader separation and metrics tests
+  pass with the test harness pointed at the relocated runner
+  (`python3 -m pytest tests/test_eval_runner.py`, 79 tests); the skill frontmatter
+  parses with `name`/`description` (no `version`, per the unreleased-skill
+  convention); and a grep of `AGENTS.md` and the
+  README confirms the relocated rule bodies are removed, leaving only routing
+  pointers and the command entry.
+
 ### Changed
 
 - `vibe-requirements-spec` now supports explicit `strict-four-choice`,
