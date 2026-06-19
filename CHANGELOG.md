@@ -272,6 +272,15 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Fixed
 
+- `skill-quality`'s `## Running And Reading Evals` section now points its
+  `validate`/`run`/`report` example commands at the relocated runner path
+  `skills/skill-eval/scripts/eval_runner.py`, so an agent following the section
+  runs the runner at its current packaged location.
+
+- `vibe-writing`'s `references/commit-messages.md` verification examples now use
+  the relocated runner path `skills/skill-eval/scripts/eval_runner.py`, matching
+  the runner's current packaged location.
+
 - `scripts/sync_dev_agent_skills.py update --all` now resolves to the installed
   managed snapshots under `.agents/skills/` (those carrying a valid
   `.agent-skills-sync.json` ownership manifest), matching `remove --all`, instead

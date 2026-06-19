@@ -197,9 +197,9 @@ the user explicitly asks.
 For this repository, use the shared runner:
 
 ```sh
-python3 scripts/eval_runner.py validate evals/<skill-name>/evals.json
-python3 scripts/eval_runner.py run evals/<skill-name>/evals.json --agent codex --config with_skill,without_skill --runs 1
-python3 scripts/eval_runner.py report evals/<skill-name>/workspace/codex/iteration-N
+python3 skills/skill-eval/scripts/eval_runner.py validate evals/<skill-name>/evals.json
+python3 skills/skill-eval/scripts/eval_runner.py run evals/<skill-name>/evals.json --agent codex --config with_skill,without_skill --runs 1
+python3 skills/skill-eval/scripts/eval_runner.py report evals/<skill-name>/workspace/codex/iteration-N
 ```
 
 Keep eval workflows provider-neutral and file-contract based. Do not make the
