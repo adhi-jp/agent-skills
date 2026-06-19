@@ -24,7 +24,7 @@ use `[Repository] - YYYY-MM-DD`.
   review-file mismatch safety, localized item-decision output, and final
   reflection confirmation boundaries. README now includes the new source and
   eval packages without assigning a release version. Verification:
-  `python3 scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`
   passes. A claude/claude-sonnet-4-6 run at
   `evals/vibe-plan-review/workspace/claude/iteration-1/` recorded 12/12 scored
   runs, 0 excluded runs, `error_run_count=0`, metrics captured, no
@@ -122,7 +122,7 @@ use `[Repository] - YYYY-MM-DD`.
   discovery-first plans cannot include future commit-message bytes until a
   current-slice blocker is cleared and a verified checkpoint boundary exists.
   Verification: `python3 -m json.tool
-  evals/vibe-planning/evals.json` and `python3 scripts/eval_runner.py validate
+  evals/vibe-planning/evals.json` and `python3 skills/skill-eval/scripts/eval_runner.py validate
   evals/vibe-planning/evals.json` pass.
 
 - `vibe-writing` now separates supplied current verification facts from
@@ -137,7 +137,7 @@ use `[Repository] - YYYY-MM-DD`.
   do not wrap the message bytes. The `vibe-writing` eval suite tightens E15 and
   E16 expectations for those boundaries, and README documents the behavior.
   Verification: `python3 -m json.tool evals/vibe-writing/evals.json`,
-  `python3 scripts/eval_runner.py validate evals/vibe-writing/evals.json`, and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`, and
   `git diff --check` pass. Full with/without provider eval reruns were not
   performed, so measurable skill improvement remains not measured.
 
@@ -152,7 +152,7 @@ use `[Repository] - YYYY-MM-DD`.
   from local generated reports. Adds a changelog-specific `vibe-writing` eval
   for local eval workspace proof leakage, and README documents the boundary.
   Verification: `python3 -m json.tool evals/vibe-writing/evals.json`,
-  `python3 scripts/eval_runner.py validate evals/vibe-writing/evals.json`, and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`, and
   `git diff --check` pass. Full with/without provider eval runs were not
   performed, so measurable skill improvement remains not measured.
 
@@ -173,8 +173,8 @@ use `[Repository] - YYYY-MM-DD`.
   local generated proof-source leakage and noisy verification transcript
   compaction. Verification: `python3 -m json.tool evals/vibe-writing/evals.json`,
   `python3 -m json.tool evals/vibe-commit/evals.json`,
-  `python3 scripts/eval_runner.py validate evals/vibe-writing/evals.json`,
-  `python3 scripts/eval_runner.py validate evals/vibe-commit/evals.json`, and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`,
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`, and
   `git diff --check` pass.
   Full with/without provider eval runs were not performed, so measurable skill
   improvement remains not measured.
@@ -188,7 +188,7 @@ use `[Repository] - YYYY-MM-DD`.
   review mode in durable summaries. Adds eval coverage for delegated-or-fallback
   behavior, host-neutrality, inert findings, delegated-output trust, and
   coordinator-retained verification and commit authority. Verification:
-  `python3 scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`
   passes.
 
 - `skill-quality` now requires session-history audits to build turn-level
@@ -200,7 +200,7 @@ use `[Repository] - YYYY-MM-DD`.
   separated as actual skill use rather than counted as skill/eval edit evidence
   when no tracked patch exists. Adds focused eval coverage for one valid
   same-turn inclusion, one no-change skill-use separation, and one same-file
-  cross-turn exclusion. Verification: `python3 scripts/eval_runner.py validate evals/skill-quality/evals.json`
+  cross-turn exclusion. Verification: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`
   passes. A claude/claude-sonnet-4-6 run at
   `evals/skill-quality/workspace/claude/iteration-13/` exposed the no-change
   edit-evidence gap in E16; the follow-up run at
