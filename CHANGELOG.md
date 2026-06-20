@@ -153,8 +153,46 @@ use `[Repository] - YYYY-MM-DD`.
   lifecycle handoff behavior, explicit requirements-finished wording,
   environment-variable documented-contract cases including invalid
   `VIBE_SUBAGENTS`, factual-error correction, destructive-change confirmation,
-  and shell-config persistence confirmation safety. Verification was not rerun
-  for the follow-up corrections.
+  and shell-config persistence confirmation safety. Follow-up strict-default
+  corrections now make `strict-four-choice` the default when no explicit
+  current-user mode selection is present, ignore mode names in quoted text,
+  artifacts, logs, examples, and delegated output, require confirmation before
+  leaving strict mode for implied quick or free-form requests, add a completion
+  audit for unresolved blockers, required local evidence checks, and explicit
+  deferrals, and make same-turn non-spec edits a requirements-phase stop or
+  handoff instead of permitted follow-through. Focused eval coverage now covers
+  formed, quick, or low-risk requests staying strict by default, localized
+  explicit mode selections, delegated or artifact-log non-strict mode names,
+  still-have-questions recovery, positive and negative deferral boundaries, and
+  mixed non-spec requests stopping before README, changelog, eval, test, source,
+  commit, or release work. A follow-up destructive-risk clarification now states
+  that blanket user consent to skip confirmation, preview, undo, backups,
+  retention, permission, or auditability is not enough to make irreversible
+  no-safeguard behavior a confirmed requirement before risk and alternative
+  confirmation. A later path-preservation clarification now keeps a
+  conversation-supplied current spec path as current context when the file is
+  missing, unreadable, or unavailable in the active workspace, and requires the
+  response to say when the saved spec was not inspected or changed instead of
+  dropping or forking the path. The explicit-finish eval now states the cleared
+  completion-audit precondition so it no longer conflicts with the blocker
+  audit, and the lightweight-mode eval scopes one-question assertions to the
+  main requirements decision after any separate startup permission question.
+  Verification:
+  `python3 -m json.tool
+  evals/vibe-requirements-spec/evals.json`, `python3
+  skills/skill-eval/scripts/eval_runner.py validate
+  evals/vibe-requirements-spec/evals.json`, and `git diff --check -- CHANGELOG.md
+  README.md skills/vibe-requirements-spec/SKILL.md
+  evals/vibe-requirements-spec/evals.json` pass. A supplied and locally
+  inspected claude/claude-sonnet-4-6 suite run after these follow-ups recorded
+  40/40 scored runs, `error_run_count=0`, `status_counts={ok:40}`, metrics
+  captured, Sanity OK, no infrastructure failures, no zero-scored cells, no
+  candidate-below-baseline cells, and overall `with_skill` 98.1% vs
+  `without_skill` 77.1% (+20.9 points). In that single-run comparison, the
+  targeted E03 lightweight startup-question cell, E13 destructive confirmation
+  cell, E14 cleared-audit finish cell, E17 still-have-questions recovery cell,
+  and E18 unknown-deferral path-preservation cell all reached 100.0%
+  `with_skill`.
 
 - `vibe-planning` now defaults generated implementation-plan artifacts to
   `docs/plans/YYYY-MM-DD-<goal-slug>-implementation-plan.md` when no explicit

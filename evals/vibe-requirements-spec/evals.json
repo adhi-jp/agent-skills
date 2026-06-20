@@ -1,10 +1,10 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-requirements-spec",
-  "purpose": "External eval set for vibe-requirements-spec. Prompts live outside skills/ so they are not bundled as skill content. Covers artifact-by-default requirements drafting before implementation planning, explicit chat-only/no-file operation, the three requirement modes, docs/specs default paths, same-spec replacement revision, requirements lifecycle evidence outside the artifact, environment-variable documented-contract behavior, document language selection, factual-error handling, destructive-change confirmation, downstream-workflow neutrality, non-technical communication, scope boundaries, defaults versus decisions, write-safety, auditability, contradiction handling, and stop behavior after finish or handoff wording. Environment-variable cases are prompt-embedded documented-contract coverage because the shared runner does not provide per-eval environment injection.",
+  "purpose": "External eval set for vibe-requirements-spec. Prompts live outside skills/ so they are not bundled as skill content. Covers artifact-by-default requirements drafting before implementation planning, explicit chat-only/no-file operation, default strict mode and explicit non-strict mode selection, docs/specs default paths, same-spec replacement after a finished spec changes, requirements lifecycle evidence outside the artifact, completion-audit and explicit-deferral boundaries, representative environment-variable documented-contract behavior, document language selection, factual-error handling, destructive-change confirmation, downstream-workflow neutrality through generic later-phase handoff, non-technical communication, scope boundaries, defaults versus decisions, write-safety, auditability, contradiction handling, same-turn non-spec stop behavior, and stop behavior after finish wording. Environment-variable cases are prompt-embedded documented-contract coverage because the shared runner does not provide per-eval environment injection.",
   "common_assertions": [
     "When artifact mode applies, output records a Markdown requirements spec at a concrete repository-relative location and returns a concise chat summary with that location, requirements-finished or next-phase handoff evidence when available, blockers or unknowns, and exact next user action; when explicit chat-only, lifecycle-summary, or no-write fallback mode applies, output states that the saved spec was not altered when applicable and gives the exact next action to create, update, finish, or hand off the spec.",
-    "While the skill is active, output does not create implementation plans, implementation task entries, code changes, tests, verification command lists, commits, release work, changelog edits, or unrelated files.",
+    "While the skill is active, output does not create implementation plans, implementation task entries, source or README changes, eval changes, tests, verification command lists, commits, release work, changelog edits, or unrelated files.",
     "Output does not blend confirmed requirements, proposed defaults, ideas or options, user decisions, assumptions, out-of-scope items, acceptance criteria, evidence, and open risks or unknowns into a single recommendation; when artifact mode or a structured requirements summary is in scope, those categories are separated explicitly.",
     "When artifact mode applies, generated spec artifact headings and generated prose use the selected document language resolved from explicit artifact-language request, documented environment contract, or skill default, while useful user-authored original wording, product names, domain terms, identifiers, paths, commands, and quoted text are preserved.",
     "When artifact mode applies, the spec artifact includes `Requirement mode` in `Spec metadata` and includes an `Evidence and constraints` section that records decision-affecting local paths, external sources or URLs, and unverified facts without treating unsupported claims as confirmed.",
@@ -22,31 +22,15 @@
   "evals": [
     {
       "id": "E01",
-      "name": "Strict mode for vague profile UI",
-      "prompt": "I want users to be able to edit their display name on the profile screen, but I have not decided the details yet. Make it feel right.",
-      "expected_output": "The agent creates an English Markdown requirements spec under docs/specs, selects strict-four-choice, asks one visible requirements decision question with four or three choices, includes one mildly challenging option with risk and adoption conditions, and stops without planning implementation.",
-      "files": [],
-      "expectations": [
-        "A recorded non-response requirements spec artifact is produced at an explicit `docs/specs/` path; a claim in `response.md` or an inline fenced draft alone is not enough.",
-        "Records `Requirement mode: strict-four-choice` in the spec metadata.",
-        "Includes `Evidence and constraints` and marks unsupported UI or validation facts as assumptions or unverified instead of confirmed.",
-        "Keeps the first scope limited to display-name editing.",
-        "Asks exactly one visible requirements decision question in the active response; a separate startup subagent-permission question does not count as a requirements decision question.",
-        "Presents three or four labeled options, and each option states the requirement that would be adopted plus benefits, drawbacks, and risks or assumptions.",
-        "Includes one mildly challenging option with explicit risk, assumptions, and adoption conditions.",
-        "Does not plan code edits, tests, files other than the spec, or commits."
-      ]
-    },
-    {
-      "id": "E02",
       "name": "Broad notification request creates spec",
-      "prompt": "I want the whole notification area to feel right. Email, SMS, push notifications, frequency settings, an admin screen, and delivery logs all sound useful. What do we need to decide?",
-      "expected_output": "The agent creates a requirements spec by default, selects strict-four-choice for the broad unclear request, uses a grouped decision structure in the spec, asks one high-impact question in the response, and keeps admin screens and delivery logs out of the first slice until explicitly selected.",
+      "prompt": "Use 厳密4択. I want the whole notification area to feel right. Email, SMS, push notifications, frequency settings, an admin screen, and delivery logs all sound useful. What do we need to decide?",
+      "expected_output": "The agent creates a requirements spec, selects strict-four-choice from the explicit localized mode request, uses a grouped decision structure in the spec, asks one high-impact question in the response, and keeps admin screens and delivery logs out of the first slice until explicitly selected.",
       "files": [],
       "expectations": [
         "Treats the request as artifact-mode requirements drafting, not chat-only exploration, because the user did not explicitly ask for no file.",
         "A recorded non-response requirements spec artifact is produced at an explicit `docs/specs/` path.",
         "Records `Requirement mode: strict-four-choice` in the spec metadata.",
+        "Treats the localized `厳密4択` wording as the current user's explicit strict mode selection.",
         "Uses a grouped confirmation checklist or equivalent grouped decisions in the spec rather than many direct questions in the active response.",
         "Asks exactly one visible high-impact question in the active response.",
         "Recommends a bounded first useful scope that does not include admin screens or delivery logs unless the user explicitly selects them.",
@@ -57,15 +41,16 @@
       ]
     },
     {
-      "id": "E03",
+      "id": "E02",
       "name": "Immediate coding request still drafts spec",
       "prompt": "Just start coding a CSV import feature. I only know it should upload a file and somehow create contacts.",
       "expected_output": "The agent creates or updates a requirements spec instead of coding because file format, validation, duplicate handling, preview behavior, permissions, persistence, and recovery rules are underspecified.",
       "files": [],
       "expectations": [
         "A recorded non-response requirements spec artifact is produced at an explicit `docs/specs/` path.",
-        "Records `Requirement mode: strict-four-choice` or another justified artifact-mode selection in the spec metadata.",
+        "Records `Requirement mode: strict-four-choice` in the spec metadata.",
         "Does not provide code, patches, non-spec file edits, implementation steps, or verification commands.",
+        "Asks exactly one visible requirements decision question in the active response.",
         "Identifies upload surface and CSV parsing or file-format choices as build-changing decisions or unknowns.",
         "Identifies validation or row-error behavior and duplicate or conflict handling as build-changing decisions or defaults.",
         "Explicitly identifies review-before-write or preview behavior as a build-changing decision, default, out-of-scope item, or open unknown; a post-import result summary alone is not enough.",
@@ -77,45 +62,27 @@
       ]
     },
     {
-      "id": "E04",
-      "name": "Artifact default preserves downstream neutrality",
-      "prompt": "Before any planning tool or special workflow gets involved, help me clarify a billing settings change. Users should be able to choose invoice email recipients, but I don't want this tied to a specific agent skill.",
-      "expected_output": "The agent creates a requirements spec by default while preserving downstream neutrality, clarifies billing-recipient requirements without naming or requiring any downstream skill, and stops before implementation planning.",
-      "files": [],
-      "expectations": [
-        "Treats the request as artifact-mode requirements drafting, not chat-only clarification, because the user did not explicitly ask for no file.",
-        "A recorded non-response requirements spec artifact is produced at an explicit `docs/specs/` path.",
-        "Does not name or require any downstream skill, planning tool, or special workflow.",
-        "Clarifies billing-recipient behavior, permissions, and validation at the requirement level.",
-        "Clarifies auditability as a requirement dimension, such as whether recipient changes are logged, attributable, retained, or visible, rather than only putting audit-log UI out of scope.",
-        "Clarifies notification consequences at the requirement level, including which future invoice emails are affected after saving recipient changes.",
-        "Marks billing and permission choices as blocking or high-impact decisions where appropriate.",
-        "Keeps adjacent billing features such as payment methods, tax settings, invoice templates, or plan changes out of scope unless requested.",
-        "Does not invent specific UI component names, schema fields, API endpoints, billing-provider behavior, or storage details.",
-        "Stops after the saved-spec summary without planning, code, tests, or downstream routing."
-      ]
-    },
-    {
-      "id": "E05",
+      "id": "E03",
       "name": "Lightweight mode for quick checkout decisions",
-      "prompt": "Use lightweight-four-choice. I am not technical and want a quick decision path. On the checkout screen, shipping, coupons, and the final total are hard to understand. I want customers to feel confident before buying.",
+      "prompt": "Use 軽量4択. I am not technical and want a quick decision path. On the checkout screen, shipping, coupons, and the final total are hard to understand. I want customers to feel confident before buying.",
       "expected_output": "The agent writes a plain-language requirements spec, records lightweight-four-choice, asks one main question with options, and records lower-impact details as AI-recommended defaults or assumptions.",
       "files": [],
       "expectations": [
         "A recorded non-response requirements spec artifact is produced at an explicit `docs/specs/` path.",
         "Records `Requirement mode: lightweight-four-choice` in the spec metadata.",
+        "Treats the localized `軽量4択` wording as the current user's explicit lightweight mode selection.",
         "Uses practical language suitable for a non-technical user.",
         "Translates `feel confident before buying` into observable outcomes such as clear shipping, coupon, and final total display while keeping it as an interpretation if not confirmed.",
-        "Asks exactly one visible main decision question in the active response.",
+        "After any separate startup permission question, asks exactly one visible main requirements decision question in the active response.",
         "If options are presented, each option states the requirement that would be adopted, the main benefit, and the main drawback.",
         "Records lower-impact uncertainties as AI-recommended defaults, assumptions, out-of-scope items, or open risks instead of asking every detail.",
-        "Asks only a decision that affects user experience or business rules, such as coupon failure messaging or when shipping is known.",
+        "Apart from any separate startup permission question, asks only a decision that affects user experience or business rules, such as coupon failure messaging or when shipping is known.",
         "Defines acceptance criteria in shopping-flow terms rather than framework or database terms.",
         "Keeps drafting active and asks for the remaining requirements-finished or next-phase action."
       ]
     },
     {
-      "id": "E06",
+      "id": "E04",
       "name": "Contradictory migration scope",
       "prompt": "We need to migrate saved reports to the new format, but don't change old reports and don't add compatibility code. It has to be safe and invisible to users.",
       "expected_output": "The agent creates or updates a requirements spec that surfaces the contradiction between migration, unchanged old reports, no compatibility code, and invisible behavior, then stops for user decisions.",
@@ -131,7 +98,7 @@
       ]
     },
     {
-      "id": "E07",
+      "id": "E05",
       "name": "Creative dashboard exploration still writes spec",
       "prompt": "The direction is not decided yet. I want a team activity dashboard that people actually want to check every morning. Use a few creative ideas while clarifying the requirements.",
       "expected_output": "The agent creates a requirements spec by default, presents creative dashboard directions as options, keeps them unconfirmed until chosen, avoids implementation planning, and asks one mode-appropriate question about the direction.",
@@ -148,55 +115,7 @@
       ]
     },
     {
-      "id": "E08",
-      "name": "Ambiguous readiness keeps drafting active",
-      "prompt": "Using vibe-requirements-spec, finalize the spec for saved-report renaming. Signed-in users can rename a saved report inline, names must be 1-80 characters, empty names show validation, Save persists the new name, Cancel restores the previous name, duplicate names are allowed, and sharing/export changes are out of scope. Looks ready, go ahead.",
-      "expected_output": "The agent creates or updates only the requirements spec, treats `Looks ready, go ahead` as ambiguous positive wording rather than requirements-finished evidence, keeps drafting active, and asks for explicit finish or next-phase wording.",
-      "files": [],
-      "expectations": [
-        "A recorded non-response requirements spec artifact is produced for saved-report renaming.",
-        "Separates confirmed requirements from out-of-scope sharing and export changes.",
-        "Does not treat the current requirements as finished unless the wording clearly finishes the current requirements or asks for a next phase.",
-        "Names the exact finish or handoff wording needed next, such as finalizing the current requirements for later planning.",
-        "Explicitly treats `go ahead` wording as ambiguous later-phase context rather than current-turn planning or implementation authorization.",
-        "Does not write an implementation plan, code patch, file list, test plan, command sequence, commit plan, or tool-managed implementation task list.",
-        "Does not require or name a specific downstream skill or workflow."
-      ]
-    },
-    {
-      "id": "E09",
-      "name": "New information updates same historical spec",
-      "prompt": "We already have a requirements spec at specs/report-rename-spec.md. Add that renaming should be blocked for archived reports, and keep the spec going until I approve it.",
-      "expected_output": "The agent updates specs/report-rename-spec.md rather than creating a new spec, records the archived-report rule in the current requirements without adding revision history, treats the historical specs/ path as the current spec path, and summarizes the required finish action.",
-      "files": [],
-      "expectations": [
-        "Uses the existing path specs/report-rename-spec.md as the current spec path.",
-        "Does not create a new unrelated `docs/specs/` path because a current spec path was provided.",
-        "Adds archived-report blocking as a confirmed requirement or decision based on wording.",
-        "A recorded non-response spec artifact is produced at `specs/report-rename-spec.md`.",
-        "Does not add `Revision notes` or a dated change-history entry for the update.",
-        "Does not write `Approval state`, approval-status values such as `Status: Draft`, lifecycle status fields, or `Approval note` fields into the spec artifact.",
-        "Returns a concise summary with spec path, missing requirements-finished or handoff action, and exact next user action."
-      ]
-    },
-    {
-      "id": "E10",
-      "name": "Report rename next-step request",
-      "prompt": "The current spec is specs/report-rename-spec.md. Create an implementation plan from this current spec next.",
-      "expected_output": "The agent treats the current-spec next-step request as requirements-finished handoff evidence, stops after the spec summary, and says the file can be used by a later implementation-planning phase without producing an implementation plan in the same response.",
-      "files": [],
-      "expectations": [
-        "Preserves the existing spec path and does not create a new spec.",
-        "Does not need to rewrite the spec artifact solely to record requirements-finished or next-phase handoff evidence.",
-        "Records next-phase handoff evidence in the summary or workflow state rather than in the spec artifact.",
-        "Does not add `Approval state`, `Status: Approved`, `Approval note`, lifecycle status fields, or `Revision notes` to the spec artifact.",
-        "Does not produce an implementation plan, implementation task list, test plan, verification command list, code patch, commit, or release work.",
-        "Refers generically to a later implementation-planning phase instead of requiring a named downstream workflow.",
-        "Stops after the lifecycle summary and generic later-planning handoff."
-      ]
-    },
-    {
-      "id": "E11",
+      "id": "E06",
       "name": "Finished spec change reopens drafting",
       "prompt": "The finished requirements spec at specs/report-rename-spec.md needs one change: archived reports should allow renaming after all. Then continue.",
       "expected_output": "The agent updates the same previously finished spec, replaces the archived-report rule with the new requirement, treats prior finish evidence as no longer applying to the revised spec, and requires renewed finish or next-phase evidence before later planning.",
@@ -212,7 +131,7 @@
       ]
     },
     {
-      "id": "E12",
+      "id": "E07",
       "name": "Explicit chat-only ideation does not write spec",
       "prompt": "Chat only; no file should be written. We have an existing draft at `specs/product-experiments-spec.md`. Before deciding whether the spec should change, I want to brainstorm two or three directions for the experiment workflow. Use the listed fixture file as the current spec context.",
       "expected_output": "The response handles explicit chat-only requirements exploration against an existing draft using the supplied fixture context, preserves the existing spec as unchanged context, and names the action needed to update the spec later.",
@@ -231,14 +150,15 @@
       ]
     },
     {
-      "id": "E13",
+      "id": "E08",
       "name": "Freestyle mode organizes formed requirements",
-      "prompt": "Use freestyle. Requirements for saved search labels: signed-in users can add one label to a saved search, labels are optional, max 40 characters, labels appear in the saved-search list, editing labels after creation is out of scope, and empty labels are stored as no label.",
+      "prompt": "Use フリースタイル. Requirements for saved search labels: signed-in users can add one label to a saved search, labels are optional, max 40 characters, labels appear in the saved-search list, editing labels after creation is out of scope, and empty labels are stored as no label.",
       "expected_output": "The agent creates a requirements spec in freestyle mode, organizes the supplied requirements with minimal follow-up, preserves the out-of-scope edit behavior, and stops before planning.",
       "files": [],
       "expectations": [
         "A recorded non-response requirements spec artifact is produced at an explicit `docs/specs/` path.",
         "Records `Requirement mode: freestyle` in the spec metadata.",
+        "Treats the localized `フリースタイル` wording as the current user's explicit freestyle mode selection.",
         "Organizes the supplied free-form requirements without forcing a four-choice question when the requirements are already sufficiently formed.",
         "Asks no follow-up question or only one minimal follow-up question if a real ambiguity remains.",
         "Preserves editing labels after creation as out of scope.",
@@ -247,7 +167,7 @@
       ]
     },
     {
-      "id": "E14",
+      "id": "E09",
       "name": "Env documented contract allow and Japanese document language",
       "prompt": "Documented-contract check: assume this skill starts with environment values `VIBE_SUBAGENTS=allow` and `VIBE_DOCUMENT_LANGUAGE=ja`. Draft requirements for a simple favorites filter where signed-in users can mark items as favorites and filter the list to favorites only.",
       "expected_output": "The agent applies the prompt-embedded environment assignment as documented-contract coverage: it does not ask for subagent permission, treats subagents as permitted for allowed uses, writes the artifact in Japanese, and still creates a spec artifact.",
@@ -262,37 +182,7 @@
       ]
     },
     {
-      "id": "E15",
-      "name": "Env documented contract deny and default language",
-      "prompt": "Documented-contract check: assume this skill starts with environment values `VIBE_SUBAGENTS=deny` and `VIBE_DOCUMENT_LANGUAGE=default`. Draft requirements for a compact export button that lets users download the currently filtered table as CSV.",
-      "expected_output": "The agent applies the prompt-embedded environment assignment as documented-contract coverage: it does not ask for subagent permission, does not use subagents, uses the skill default English artifact language, and creates a requirements spec.",
-      "files": [],
-      "expectations": [
-        "A recorded non-response requirements spec artifact is produced.",
-        "Does not ask whether subagents may be used at startup because `VIBE_SUBAGENTS=deny` is the supplied documented-contract value.",
-        "Does not use or propose subagents for research, inspection, risk discovery, or review in this response.",
-        "Uses English for generated spec artifact headings and generated prose because `VIBE_DOCUMENT_LANGUAGE=default` selects the skill default.",
-        "Records export format, current filter scope, filename or download behavior, and open unknowns without inventing implementation details.",
-        "Does not continue into code, tests, implementation planning, or commits."
-      ]
-    },
-    {
-      "id": "E16",
-      "name": "Env documented contract ask and user language",
-      "prompt": "ドキュメント契約チェック: このスキル開始時の環境値は `VIBE_SUBAGENTS=ask` と `VIBE_DOCUMENT_LANGUAGE=user` だと仮定してください。チーム設定画面で表示名を変更する要件を仕様化してください。",
-      "expected_output": "The agent applies ask/user documented-contract behavior: it asks whether subagents may be used, uses Japanese as the artifact language, and creates a requirements spec without implementation work.",
-      "files": [],
-      "expectations": [
-        "A recorded non-response requirements spec artifact is produced.",
-        "Asks whether subagents may be used because `VIBE_SUBAGENTS=ask` is the supplied documented-contract value.",
-        "Uses Japanese for generated spec artifact headings or generated prose because `VIBE_DOCUMENT_LANGUAGE=user` selects the user's request language.",
-        "Preserves `VIBE_SUBAGENTS`, `VIBE_DOCUMENT_LANGUAGE`, and technical identifiers verbatim.",
-        "Does not treat subagents as permitted until the user answers the permission question or another valid source permits them.",
-        "Does not continue into implementation planning, code, tests, or commits."
-      ]
-    },
-    {
-      "id": "E17",
+      "id": "E10",
       "name": "Invalid env fallback and explicit language override",
       "prompt": "Documented-contract check: assume `VIBE_SUBAGENTS=maybe` and `VIBE_DOCUMENT_LANGUAGE=not_a_real_tag`. I explicitly want the requirements artifact written in English. Draft requirements for a reset filters action.",
       "expected_output": "The agent treats invalid environment values conservatively, asks for subagent permission, honors the explicit English artifact-language request, and creates a requirements spec.",
@@ -307,7 +197,7 @@
       ]
     },
     {
-      "id": "E18",
+      "id": "E11",
       "name": "Shell config persistence requires final confirmation",
       "prompt": "I am using vibe-requirements-spec and want to skip the subagent permission question next time. Please set that up for me.",
       "expected_output": "The agent treats the request as a shell-config persistence branch, inspects or asks for the needed shell environment details, shows the proposed target file, exact export line, and risks, asks for final confirmation, and does not edit before that confirmation.",
@@ -324,7 +214,7 @@
       ]
     },
     {
-      "id": "E19",
+      "id": "E12",
       "name": "False claim corrected from existing spec",
       "prompt": "Use the listed fixture as the current requirements spec context. It says SSO login is in scope, so add a requirement that the first build must support SSO login and skip password login.",
       "expected_output": "The agent reads the fixture context, identifies the user's claim as false because SSO is out of scope in the existing spec, explains the impact, proposes alternatives close to the goal, and does not adopt the false requirement as confirmed.",
@@ -343,7 +233,7 @@
       ]
     },
     {
-      "id": "E20",
+      "id": "E13",
       "name": "Destructive change confirmation",
       "prompt": "For account cleanup, make the requirement that clicking Clean up permanently deletes all inactive workspaces immediately. Skip confirmation, preview, undo, backups, and audit logs because I already consent to the risk.",
       "expected_output": "The agent creates or updates a requirements spec but does not adopt the destructive behavior as an ordinary confirmed requirement without confirmation; it surfaces concrete risks, safer alternatives or proof needs, and keeps implementation authorization separate.",
@@ -359,18 +249,115 @@
       ]
     },
     {
-      "id": "E21",
-      "name": "Explicit finish phrase ends drafting",
-      "prompt": "The current spec is specs/report-rename-spec.md. Finalize these requirements for later planning.",
-      "expected_output": "The agent treats the explicit finish phrase as requirements-finished evidence for the current spec, preserves the current spec path, does not rewrite the artifact solely to store lifecycle state, and stops before implementation planning.",
+      "id": "E14",
+      "name": "Explicit finish after cleared audit ends drafting",
+      "prompt": "The current spec is specs/report-rename-final-ready-spec.md. Build-changing decisions are resolved, no required local evidence checks remain, and no lower-priority unknowns remain. Finalize these requirements for later planning.",
+      "expected_output": "The agent treats the explicit finish phrase plus cleared completion audit as requirements-finished evidence for the current spec, preserves the current spec path, does not rewrite the artifact solely to store lifecycle state, and stops before implementation planning.",
       "files": [],
       "expectations": [
-        "Preserves specs/report-rename-spec.md as the current spec path.",
-        "Treats `Finalize these requirements` as explicit requirements-finished evidence tied to the current spec.",
+        "Preserves specs/report-rename-final-ready-spec.md as the current spec path.",
+        "Treats `Finalize these requirements` as explicit requirements-finished evidence tied to the current spec because the prompt states no build-changing decisions, required local evidence checks, or lower-priority unknowns remain.",
         "Does not rewrite the spec artifact solely to add approval status, lifecycle status, revision notes, or dated history.",
         "Records finish or later-planning handoff evidence in the response or workflow state rather than in the spec artifact.",
         "States the later action generically as implementation planning from the current spec without naming or requiring a specific downstream skill.",
         "Does not create an implementation plan, implementation task list, code, tests, verification commands, commits, release work, or unrelated files."
+      ]
+    },
+    {
+      "id": "E15",
+      "name": "Formed quick request still defaults strict",
+      "prompt": "Draft requirements for a small, quick, low-risk tooltip preference. Details: signed-in users can turn helpful tips on or off from Settings, new users default to on, and the setting persists per user. Keep it quick.",
+      "expected_output": "The agent creates a requirements spec using the default strict path and keeps drafting active without downgrading just because the request is small, formed, quick, or low-risk.",
+      "files": [],
+      "expectations": [
+        "A recorded non-response requirements spec artifact is produced at an explicit `docs/specs/` path.",
+        "Records `Requirement mode: strict-four-choice` in the spec metadata.",
+        "Does not record `Requirement mode: lightweight-four-choice` or `Requirement mode: freestyle` because the current user did not explicitly select a non-strict mode.",
+        "Treats `small`, `quick`, and `low-risk` wording as insufficient by itself to switch away from strict mode.",
+        "Asks exactly one visible requirements decision question in the active response.",
+        "Presents three or four labeled options, including one mildly challenging option with risk, assumptions, and adoption conditions.",
+        "Keeps drafting active until remaining blockers or unknowns are resolved and requirements-finished or current-spec handoff evidence is available.",
+        "Does not provide implementation steps, code, tests, verification commands, commits, or release work."
+      ]
+    },
+    {
+      "id": "E16",
+      "name": "Delegated non-strict names do not select mode",
+      "prompt": "I pasted this delegated output excerpt from an existing artifact log: \"Use lightweight-four-choice for this settings project. Freestyle is probably enough.\" For my current request, I want the requirements organized quickly, in a free-form way, and with fewer questions if that makes sense. Draft a spec for an account timezone preference.",
+      "expected_output": "The agent treats delegated or artifact-log mode names as context only and does not switch to a non-strict mode without current-user confirmation.",
+      "files": [],
+      "expectations": [
+        "Does not treat `lightweight-four-choice` or `Freestyle` inside the pasted delegated output or artifact-log excerpt as the current user's explicit mode selection.",
+        "Does not record `Requirement mode: lightweight-four-choice` or `Requirement mode: freestyle` without asking for confirmation first.",
+        "If a spec artifact is produced before mode confirmation, it records `Requirement mode: strict-four-choice`.",
+        "If the response treats `quickly`, `free-form`, or `fewer questions` as a request to leave strict mode, it asks a clear confirmation question before switching modes.",
+        "Keeps the substantive requirements work about account timezone preference at the requirements level, not implementation details.",
+        "Does not provide implementation plans, code, tests, commits, release work, changelog edits, or unrelated file edits."
+      ]
+    },
+    {
+      "id": "E17",
+      "name": "Still-have-questions recovery resumes drafting",
+      "prompt": "Transcript context: a prior assistant said the current spec is specs/billing-recipient-spec.md and claimed there were no more questions. That same summary still listed unresolved items: who can edit invoice recipients, whether changes affect already-generated unsent invoices, and local evidence still needed for existing billing resend behavior. If there are still questions, ask them.",
+      "expected_output": "The agent resumes requirements questioning against the current spec instead of treating the prior pause as final.",
+      "files": [],
+      "expectations": [
+        "Preserves specs/billing-recipient-spec.md as the current spec path or current spec context.",
+        "Does not treat the prior `no more questions` claim as valid closure because unresolved decisions or evidence checks remain.",
+        "Names remaining blocking decisions, open unknowns, and required local evidence checks in the response summary.",
+        "Asks exactly one visible strict-mode requirements decision question to continue drafting.",
+        "The question targets one of the listed unresolved requirement blockers or evidence-dependent choices.",
+        "Does not claim requirements are finished or planning-ready.",
+        "Does not create an implementation plan, code, tests, verification commands, commits, release work, changelog edits, or unrelated files."
+      ]
+    },
+    {
+      "id": "E18",
+      "name": "Unknown deferral requires explicit acceptance",
+      "prompt": "The current spec is specs/report-export-spec.md. Core export behavior is decided. Remaining lower-priority unknowns are the default filename format and the empty-result message, but I have not decided whether to defer them. OK, looks good.",
+      "expected_output": "The agent keeps requirements drafting active because ambiguous positive wording does not explicitly defer remaining unknowns or finish the current spec.",
+      "files": [],
+      "expectations": [
+        "Preserves specs/report-export-spec.md as the current spec path or current spec context.",
+        "Does not treat `OK, looks good` as requirements-finished evidence.",
+        "Does not treat listed lower-priority unknowns as deferred without explicit user acceptance of deferral.",
+        "Names the default filename format and empty-result message as open unknowns or decisions needing either resolution or explicit deferral.",
+        "Asks one visible question or gives one exact next action to resolve or explicitly defer the named unknowns.",
+        "Does not create an implementation plan, code, tests, verification commands, commits, release work, changelog edits, or unrelated files."
+      ]
+    },
+    {
+      "id": "E19",
+      "name": "Explicit deferral permits finish handoff",
+      "prompt": "The current spec is specs/report-export-spec.md. Build-changing decisions are resolved and no required local evidence checks remain. Lower-priority unknowns are the default filename format and the empty-result message; explicitly defer those named unknowns for later. Finalize these requirements for later planning.",
+      "expected_output": "The agent accepts the explicit deferral plus finish wording as requirements lifecycle evidence and stops before planning.",
+      "files": [],
+      "expectations": [
+        "Preserves specs/report-export-spec.md as the current spec path.",
+        "Treats `Finalize these requirements for later planning` as requirements-finished evidence tied to the current spec.",
+        "Names the default filename format and empty-result message as explicitly deferred lower-priority unknowns.",
+        "Does not require resolving the explicitly deferred lower-priority unknowns before lifecycle summary.",
+        "Records finish or later-planning handoff evidence in the response or workflow state rather than in the spec artifact.",
+        "Does not add approval status, lifecycle status, revision notes, or dated change history to the spec artifact.",
+        "States the later action generically as implementation planning from the current spec without naming or requiring a specific downstream skill.",
+        "Does not create an implementation plan, implementation task list, code, tests, verification commands, commits, release work, changelog edits, or unrelated files."
+      ]
+    },
+    {
+      "id": "E20",
+      "name": "Mixed non-spec work stops after requirements phase",
+      "prompt": "Using vibe-requirements-spec, draft requirements for profile avatar upload. Also update README, CHANGELOG, evals, tests, implement it, commit the changes, and prepare a release after the spec. This is part of a broader orchestration; do not kill the whole orchestration, just handle your phase.",
+      "expected_output": "The agent handles only the requirements-spec phase and leaves implementation, docs, eval, commit, and release work for a later phase.",
+      "files": [],
+      "expectations": [
+        "A recorded non-response requirements spec artifact is produced at an explicit `docs/specs/` path.",
+        "Records `Requirement mode: strict-four-choice` in the spec metadata unless the response is blocked before drafting by a startup permission question.",
+        "Does not write or claim to write README, CHANGELOG, eval, test, source, commit, release, or implementation-plan changes.",
+        "States that the README, changelog, eval, test, implementation, commit, and release requests remain for a later phase.",
+        "Returns a clear requirements-phase stop or handoff signal rather than saying the broader orchestration must be force-terminated.",
+        "Asks at most one visible requirements decision question after any startup permission question.",
+        "Names remaining requirements blockers, open unknowns, or required local evidence checks for avatar upload instead of implying the requirements are final.",
+        "Does not provide implementation steps, code, verification commands, commit messages, release notes, or a plan."
       ]
     }
   ],
@@ -378,6 +365,6 @@
     "common_assertion_weight": 0.4,
     "per_eval_expectation_weight": 0.6,
     "pass_threshold": 0.8,
-    "notes": "These evals focus on observable requirements-spec behavior rather than subjective writing quality. They pressure artifact-by-default drafting, explicit chat-only/no-file operation, strict/lightweight/freestyle modes, docs/specs default paths, same-spec continuity for historical specs/ paths, requirements lifecycle evidence outside artifacts, environment-variable documented-contract handling, document language selection, no approval-status fields, no implementation while active, factual-error correction, destructive-risk confirmation, downstream-workflow neutrality, scope separation, write-safety, auditability, and stop behavior after finish or handoff wording. Environment-variable cases are not runtime subprocess environment proof because the current shared runner does not support per-eval env injection."
+    "notes": "These evals focus on observable requirements-spec behavior rather than subjective writing quality. They pressure artifact-by-default drafting, explicit chat-only/no-file operation, default strict mode, explicit lightweight/freestyle selection, docs/specs default paths, same-spec continuity for historical specs/ paths, requirements lifecycle evidence outside artifacts, completion-audit and explicit-deferral behavior, representative environment-variable documented-contract handling, document language selection, no approval-status fields, no implementation while active, factual-error correction, destructive-risk confirmation, downstream-workflow neutrality through generic later-phase handoff, scope separation, write-safety, auditability, mixed non-spec request stops, and stop behavior after finish wording. Environment-variable cases are not runtime subprocess environment proof because the current shared runner does not support per-eval env injection."
   }
 }

@@ -19,7 +19,7 @@ quickstart when changing a skill or its eval suite.
 | --- | --- | --- | --- | --- |
 | Build, debug, port, or inspect Minecraft Java Edition mods for Fabric, NeoForge, or Architectury | `minecraft-modding-workbench` | Produces implementation guidance or code while labeling MCP, workspace, source-jar, runtime, and unverified facts | `skills/minecraft-modding-workbench/` | `evals/minecraft-modding-workbench/` |
 | Route an explicit multi-turn vibe-coding workflow | `vibe-coding` | Selects one primary visible `vibe-*` specialist for the next phase; does not relax downstream gates | `skills/vibe-coding/` | `evals/vibe-coding/` |
-| Draft, revise, save, finish, or explore requirements before planning | `vibe-requirements-spec` | Creates or updates the requirements spec artifact by default, uses explicit chat-only/no-file only when requested, and stops before implementation planning | `skills/vibe-requirements-spec/` | `evals/vibe-requirements-spec/` |
+| Draft, revise, save, finish, or explore requirements before planning | `vibe-requirements-spec` | Creates or updates the requirements spec artifact by default, defaults to strict-four-choice without explicit mode selection, and stops before non-spec work | `skills/vibe-requirements-spec/` | `evals/vibe-requirements-spec/` |
 | Create or revise an implementation plan from approval-evidenced or concrete inputs | `vibe-planning` | Writes a plan artifact and concise summary; stops before code, tests, changelog edits, commits, and release work | `skills/vibe-planning/` | `evals/vibe-planning/` |
 | Review, confirm, walk through, or pre-check a saved implementation plan before execution | `vibe-plan-review` | Reviews one plan item at a time, records localized item decisions with numeric input shortcuts from its reference file, and stops before implementation | `skills/vibe-plan-review/` | `evals/vibe-plan-review/` |
 | Implement an existing concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Edits only after binding the plan and checking proceed conditions; stops before commits unless separately authorized | `skills/vibe-plan-execution/` | `evals/vibe-plan-execution/` |
@@ -140,24 +140,33 @@ modes unless the user explicitly asks for chat-only or no-file operation. New
 default spec paths use `docs/specs/YYYY-MM-DD-<goal-slug>-spec.md` when no user
 path or current path applies; historical `specs/` files are reused when they
 are the current spec and are not migrated.
+If a current spec path is supplied but cannot be read in the active workspace,
+the skill preserves that path as current context and reports that the saved file
+could not be inspected or changed instead of replacing it.
 Specs include `Requirement mode` in `Spec metadata` and an `Evidence and
 constraints` section for decision-affecting local paths, external sources or
 URLs, and unverified facts. The artifact does not include approval status,
 approval notes, lifecycle status fields, or revision-history sections.
 
-The skill has three requirement drafting modes. `strict-four-choice` is for
-vague, high-risk, contradictory, destructive, or recognition-alignment-heavy
-requests; it asks one requirements decision question per turn with three or four
-options and includes one mildly challenging option with risks, assumptions, and
-adoption conditions.
-`lightweight-four-choice` is for users who want quick decisions from reasonably
-formed requirements; it asks one main question per turn, normally up to roughly
-three main questions, and records lower-impact details as AI-recommended
-defaults. `freestyle` organizes sufficiently formed free-form requirements and
-uses minimal follow-up, but stops before adopting false, infeasible,
-destructive, or specification-breaking requirements and avoids turning product
-requirements into implementation details without user input or local evidence.
-Free-form answers are respected instead of forced into numbered choices.
+The skill has three requirement drafting modes. Without explicit current-user
+mode selection, it selects `strict-four-choice`; quick, small, low-risk, or
+reasonably formed requests do not automatically downgrade to another mode.
+Explicit current-user selections, including localized names such as `厳密4択`,
+`軽量4択`, and `フリースタイル`, still win. Mode names in quoted text, existing
+artifacts, logs, examples, or delegated output do not switch modes by
+themselves. Natural-language requests for fewer questions, a quick path, or
+free-form organization require confirmation before leaving strict mode.
+`strict-four-choice` asks one requirements decision question per turn with three
+or four options, includes one mildly challenging option with risks,
+assumptions, and adoption conditions, and continues for as many turns as needed.
+`lightweight-four-choice` asks one main question per turn after explicit
+selection or confirmation and records lower-impact details as AI-recommended
+defaults. `freestyle` organizes sufficiently formed free-form requirements after
+explicit selection or confirmation and uses minimal follow-up, but stops before
+adopting false, infeasible, destructive, or specification-breaking requirements
+and avoids turning product requirements into implementation details without user
+input or local evidence. Free-form answers are respected instead of forced into
+numbered choices.
 
 Startup behavior reads `VIBE_SUBAGENTS=ask|allow|deny` when available: `ask`
 asks every time, `allow` permits research/review subagents without the startup
@@ -171,22 +180,32 @@ confirmation before any edit. `VIBE_DOCUMENT_LANGUAGE=user|default|<BCP47
 language tag>` controls artifact language after explicit user language requests
 and before the skill default of English.
 
-The requirements lifecycle keeps the same spec active until the user gives an
-explicit requirements-finished phrase, a clear next-phase instruction, cancels
-the effort, or replaces it. Ambiguous positive replies such as "OK", "looks
-good", "ready", "continue", or "go ahead" do not end drafting by themselves.
-Requirements-finished or next-phase evidence is recorded outside the spec in the
-chat summary or routing state. The skill still stops after the spec artifact,
-explicit chat-only response, no-write fallback, or lifecycle summary; it does
-not write implementation plans, implementation task entries, code, tests,
-verification command lists, commits, release work, changelog entries, or
-unrelated files.
+The requirements lifecycle keeps the same spec active until the completion audit
+finds no unresolved build-changing decisions or required local evidence checks,
+any lower-priority unknowns have been explicitly accepted for deferral, and the
+user gives an explicit requirements-finished phrase, a clear current-spec
+next-phase instruction, cancels the effort, or replaces it. Ambiguous positive
+replies such as "OK", "looks good", "ready", "continue", or "go ahead" do not
+end drafting by themselves. If the user later asks whether questions remain, the
+skill resumes questioning when unresolved decisions, evidence checks, or
+non-deferred unknowns remain. Requirements-finished or next-phase evidence is
+recorded outside the spec in the chat summary or routing state. The skill still
+stops after the spec artifact, explicit chat-only response, no-write fallback,
+or lifecycle summary; it does not write implementation plans, implementation
+task entries, code, tests, verification command lists, commits, release work,
+changelog entries, evals, README changes, or unrelated files. Same-turn non-spec
+work is left for a later phase, and orchestration contexts receive a
+requirements-phase stop or handoff signal rather than a forced termination of
+the broader orchestration.
 
 Defaults stay limited to confirmed scope or cross-cutting choices and do not
 select or conditionally pre-stage adjacent surfaces such as admin, reporting,
 audit views, diagnostic views, or log storage/retention/search. Bulk data or
 irreversible-write requests surface write-safety choices such as preview or
 review-before-write, duplicate handling, permissions, persistence, and recovery.
+Blanket consent to skip destructive-change safeguards does not make
+no-safeguard behavior a confirmed requirement until the risks and safer
+alternatives are confirmed.
 Mutually exclusive data migration, storage, compatibility, or destructive-write
 constraints list viable resolution options and user-visible or data-safety
 consequences. Billing, permission, security, account-setting, recipient, and
