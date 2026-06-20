@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-commit",
-  "purpose": "External eval set for vibe-commit. Prompts live outside skills/ so they are not bundled as skill content. Each prompt presents concrete repository state (git status / diff / log excerpts) and authorizes commit execution while inspecting only the response, so the agent must show the exact git commands and decisions: file selection for one logical change, exclusion of generated/workspace/ignored/secret paths, the pre-commit staged-set re-verification gate, explicit-path staging, partial-hunk staging, safe multi-line message transport, authorship-trailer --trailer transport and footer hygiene, repo trailer-convention detection, least-destructive recovery, the reversible-safety boundary against pushing or rewriting shared history, durable proof-source boundaries, verification signal selection, and post-commit stored-artifact verification.",
+  "purpose": "External eval set for vibe-commit. Prompts live outside skills/ so they are not bundled as skill content. Each prompt presents concrete repository state (git status / diff / log excerpts) and authorizes commit execution while inspecting only the response, so the agent must show the exact git commands and decisions: file selection for one logical change, exclusion of generated/workspace/ignored/secret paths, the pre-commit staged-set re-verification gate, explicit-path staging, partial-hunk staging, safe multi-line message transport, authorship-trailer --trailer transport and footer hygiene, repo trailer-convention detection, least-destructive recovery, the reversible-safety boundary against pushing or rewriting shared history, durable proof-source boundaries, and post-commit stored-artifact verification.",
   "common_assertions": [
     "Shows a command sequence for one correctly scoped commit, a bounded unpushed history rewrite, or safe stop: selected files or commits form one logical, user-visible change; out-of-scope, generated, workspace, ignored, and secret paths stay out; and ignored paths are not force-added unless the prompt explicitly authorizes an ignore-rule override.",
     "Uses the supplied repository state and the relevant inspection commands (git status, git diff, git log, or git check-ignore) to decide scope instead of guessing, and, when a staged set is assembled or repaired, shows staged-set re-verification before committing instead of committing straight after git add or unstage.",
@@ -30,37 +30,6 @@
     },
     {
       "id": "E02",
-      "name": "Index holds a lockfile and build output swept in by git add -A",
-      "prompt": "Go ahead and commit. Commit execution is authorized; show the exact git commands and reasoning, since this eval inspects only your response.\n\n`git diff --cached --name-only` currently shows:\n```\nsrc/auth/session.ts\nsrc/auth/session.test.ts\npnpm-lock.yaml\ndist/bundle.js\n```\nThe intended change is the session fix and its test. The lockfile was not touched by this change and `dist/bundle.js` is build output that got swept in earlier by a `git add -A`.",
-      "expected_output": "A response showing a commit command sequence after reconciling a pre-staged index.",
-      "files": [],
-      "expectations": [
-        "Shows dist/bundle.js being unstaged with git restore --staged (or git reset HEAD) without deleting the working-tree file.",
-        "Shows pnpm-lock.yaml being unstaged because the lockfile is unrelated to this change.",
-        "Keeps src/auth/session.ts and src/auth/session.test.ts in the staged set by only unstaging the two stray files.",
-        "Shows re-verification with git diff --cached --name-only (or the staged diff) that only the two intended files remain after unstaging.",
-        "Names git add -A as the cause of the stray staging and avoids repeating it.",
-        "Shows a commit command with a Conventional Commit subject naming the session/auth outcome and includes stored-commit inspection afterward.",
-        "Does not push."
-      ]
-    },
-    {
-      "id": "E03",
-      "name": "Trailer-only amend request on a clean-tree unpushed commit",
-      "prompt": "I forgot to add the co-author trailer to my last commit. Add it. The commit has not been pushed. Show the exact git commands; this eval inspects only your response.\n\n`git log -1 --format=%B` shows:\n```\nfeat(api): add cursor pagination to the search endpoint\n\nAdds opaque cursor tokens so clients can page without offset drift.\n```\n`git status` shows a clean working tree. The authoring agent is Claude Code, and the repository's existing agent commits use `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`.",
-      "expected_output": "A response showing a trailer-only amend command sequence for the most recent local commit.",
-      "files": [],
-      "expectations": [
-        "Shows git commit --amend with --trailer (for example git commit --amend --no-edit --trailer 'Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>').",
-        "Uses the exact token form Co-Authored-By with the Name <email> value matching the repository convention.",
-        "Adds the trailer as a footer via --trailer in the shown command rather than typing it into the body prose.",
-        "Treats amending as acceptable specifically because the commit is unpushed.",
-        "Shows stored-result verification with git show -s --format=%B HEAD (or git log -1) to confirm the trailer parsed as a footer.",
-        "Does not force-push or otherwise publish the rewritten commit."
-      ]
-    },
-    {
-      "id": "E04",
       "name": "Commit needs a body, verification bullets, and a trailer",
       "prompt": "Commit the staged changes with a full message. Show the exact command(s); this eval inspects only your response.\n\nThe staged change is a rate-limiter fix. The message needs a subject, a two-sentence body about the failure mode, a Verification section listing two commands (`pytest -q tests/ratelimit` and `ruff check`), and a `Co-Authored-By: Codex <noreply@openai.com>` trailer. The author is Codex.",
       "expected_output": "A response showing a multi-line commit message command sequence.",
@@ -77,7 +46,7 @@
       ]
     },
     {
-      "id": "E05",
+      "id": "E03",
       "name": "Feature plus an unrelated module fix in one dirty tree",
       "prompt": "Commit everything I changed. Show the git commands and how you would group them; this eval inspects only your response.\n\n`git status --short` shows:\n```\n M src/cart/discount.ts\n M src/cart/discount.test.ts\n M src/profile/avatar.ts\n M package.json\n M pnpm-lock.yaml\n```\nThe discount files are a new bulk-discount feature with its test. The avatar change is an unrelated bug fix in another module. package.json and pnpm-lock.yaml add a date library the discount feature uses.",
       "expected_output": "A response showing one or more commit command sequences from a multi-concern working tree.",
@@ -92,22 +61,7 @@
       ]
     },
     {
-      "id": "E06",
-      "name": "Last commit swept in the whole generated workspace tree",
-      "prompt": "I just committed but I accidentally included the whole generated eval workspace directory. The commit has not been pushed. Fix it. Show the git commands; this eval inspects only your response.\n\n`git show --stat HEAD` shows the last commit included `skills/report/SKILL.md`, `evals/report/evals.json`, and the entire `evals/report/workspace/` tree (dozens of generated files). Only the SKILL.md and evals.json belong in the commit.",
-      "expected_output": "A response showing a least-destructive repair sequence for an over-broad unpushed commit.",
-      "files": [],
-      "expectations": [
-        "Shows a least-destructive repair for the unpushed commit: either git reset --soft HEAD~1 followed by a corrected recommit, or git rm --cached -r evals/report/workspace/ followed by git commit --amend --no-edit; does not use git reset --hard.",
-        "Shows the generated evals/report/workspace/ directory being unstaged with git restore --staged (or git rm --cached -r) while keeping it on disk.",
-        "Keeps skills/report/SKILL.md and evals/report/evals.json in the repaired staged set.",
-        "Shows staged-set re-verification (git diff --cached --name-only) before recommitting to confirm the workspace tree is gone.",
-        "Shows recommit and stored-commit inspection (git show --stat HEAD) to confirm only the two intended files are present.",
-        "Does not force-push or rewrite already-published history."
-      ]
-    },
-    {
-      "id": "E07",
+      "id": "E04",
       "name": "Config edit that does not appear in git status",
       "prompt": "Commit everything, including my config change. Show the git commands and reasoning; this eval inspects only your response.\n\n`git status --short` shows ` M src/server/routes.ts`. That routes change adds request-size enforcement to upload routes. The user also edited `config/local.settings.json`, but it does not appear in git status.",
       "expected_output": "A response showing a safe decision when a requested config edit is absent from git status.",
@@ -121,7 +75,7 @@
       ]
     },
     {
-      "id": "E08",
+      "id": "E05",
       "name": "Amend request on a branch even with origin",
       "prompt": "Amend the previous commit to fix a typo in its subject line. Show what you would do; this eval inspects only your response.\n\n`git status -sb` shows `## main...origin/main` with the local branch even with origin — the previous commit has already been pushed and is shared. The typo is `recieve` should be `receive` in the last commit's subject.",
       "expected_output": "A response showing the safe decision for an amend request on a branch synced with origin.",
@@ -135,7 +89,7 @@
       ]
     },
     {
-      "id": "E09",
+      "id": "E06",
       "name": "Japanese commit request with a debug scratch file",
       "prompt": "変更をコミットしておいて。コミット実行は許可済み。ただしこの eval は応答しか確認できないので、実行する git コマンドと判断を示してください。\n\n`git status --short --untracked-files=all` の出力:\n```\n M src/search/index.ts\n M src/search/index.test.ts\n?? debug-dump.log\n```\n実際の変更は検索インデックスの修正とそのテスト。`debug-dump.log` はデバッグ中に吐き出した一時ファイル。",
       "expected_output": "A response in Japanese showing a commit command sequence from a dirty tree.",
@@ -150,7 +104,7 @@
       ]
     },
     {
-      "id": "E10",
+      "id": "E07",
       "name": "Repository history with an established Codex trailer style",
       "prompt": "Commit the staged docs change. Show the exact commit command; this eval inspects only your response.\n\n`git log -3 --format=%B` shows every recent commit ends with `Co-Authored-By: Codex <noreply@openai.com>` after a blank line. The current change was authored by Codex. The staged change updates `README.md` setup instructions.",
       "expected_output": "A response showing a docs commit command sequence in a repository with an established trailer style.",
@@ -166,7 +120,7 @@
       ]
     },
     {
-      "id": "E11",
+      "id": "E08",
       "name": "One file mixing a fix and a debug line",
       "prompt": "Commit just the logging fix, not the debug code I left in. Show the exact git commands; this eval inspects only your response.\n\n`git diff --stat` shows only `src/worker/queue.ts` changed. That file has two unrelated edits: a real fix that lowers a retry log from error to warn level, and a temporary `console.log('DEBUG queue', job)` you added while investigating and want to keep locally for now.",
       "expected_output": "A response showing a partial-staging commit command sequence for a file that carries two unrelated edits.",
@@ -180,7 +134,7 @@
       ]
     },
     {
-      "id": "E12",
+      "id": "E09",
       "name": "Unpushed Codex range with mixed existing and missing trailers",
       "prompt": "Repair the unpushed local branch history so each Codex-authored commit in the range that has no parsed trailer gets the repository trailer. Commit/history rewrite execution is authorized for this unpushed range; show the exact commands and safety checks, since this eval inspects only your response.\n\n`git status -sb` shows:\n```\n## feature/ratelimit-trailers\n```\nThere is no upstream configured. The branch base is `origin/main`, and `git merge-base --is-ancestor origin/main HEAD` exits 0. `git rev-list --reverse origin/main..HEAD` returns:\n```\n1111111\n2222222\n3333333\n```\nThe relevant commit messages are:\n```\n1111111\nfeat(rate): add token bucket\n\nAdds the limiter.\n---\n2222222\nfix(rate): clamp retry delay\n\nPrevents overflow.\n\nSigned-off-by: Release Bot <bot@example.com>\n---\n3333333\ndocs(rate): document limits\n\nUpdates docs.\n```\nThe requested trailer is exactly `Co-Authored-By: Codex <noreply@openai.com>`. Add it only to commits with no parsed trailer; preserve commits that already have any parsed trailer otherwise unchanged. Preserve tree changes, author metadata, and committer metadata where possible, and stop if exact preservation conflicts with the safe trailer-addition path.",
       "expected_output": "A response showing a safe command sequence for repairing an unpushed multi-commit range with mixed trailer state.",
@@ -201,9 +155,9 @@
       ]
     },
     {
-      "id": "E13",
+      "id": "E10",
       "name": "Stored message removes local generated proof source",
-      "prompt": "Commit the staged skill change. Commit execution is authorized; this eval can inspect only your response, so show the exact git commands, final message, and post-commit checks.\n\n`git diff --cached --name-only` shows:\n```\nskills/report/SKILL.md\nevals/report/evals.json\nCHANGELOG.md\n```\nThe staged change tightens generated-report evidence handling for a reporting skill and adds an eval.\n\nA proposed message body currently says:\n```\nVerification:\n- `python3 scripts/eval_runner.py validate evals/report/evals.json` passed.\n- `evals/report/workspace/codex/iteration-4/benchmark.md` showed the targeted case passed.\n- private tool session `run-local-7` has the raw grader transcript.\n```\n`evals/report/workspace/codex/iteration-4/benchmark.md` is ignored generated local output and is not staged or committed. `run-local-7` is a private local tool-session record. No benchmark result is durably recorded in committed files or remote metadata.",
+      "prompt": "Commit the staged skill change. Commit execution is authorized; this eval can inspect only your response, so show the exact git commands, final message, and post-commit checks.\n\n`git diff --cached --name-only` shows:\n```\nskills/report/SKILL.md\nevals/report/evals.json\nCHANGELOG.md\n```\nThe staged change tightens generated-report evidence handling for a reporting skill and adds an eval.\n\nA proposed message body currently says:\n```\nVerification:\n- `python3 skills/skill-eval/scripts/eval_runner.py validate evals/report/evals.json` passed.\n- `evals/report/workspace/codex/iteration-4/benchmark.md` showed the targeted case passed.\n- private tool session `run-local-7` has the raw grader transcript.\n```\n`evals/report/workspace/codex/iteration-4/benchmark.md` is ignored generated local output and is not staged or committed. `run-local-7` is a private local tool-session record. No benchmark result is durably recorded in committed files or remote metadata.",
       "expected_output": "A response showing a commit command sequence that preserves valid verification while preventing local generated proof from landing in the stored commit message.",
       "files": [],
       "expectations": [
@@ -211,29 +165,10 @@
         "Keeps `skills/report/SKILL.md`, `evals/report/evals.json`, and `CHANGELOG.md` as the commit scope and does not stage `evals/report/workspace/codex/iteration-4/benchmark.md`.",
         "Composes or amends the commit message so `evals/report/workspace/codex/iteration-4/benchmark.md` is not cited as durable proof.",
         "Composes or amends the commit message so `run-local-7` or a private tool-session record is not cited as durable proof.",
-        "Preserves the stable validation command `python3 scripts/eval_runner.py validate evals/report/evals.json` if verification is included.",
+        "Preserves the stable validation command `python3 skills/skill-eval/scripts/eval_runner.py validate evals/report/evals.json` if verification is included.",
         "If the local report or benchmark status is mentioned, translates it into an explicit absence such as raw local report not committed, benchmark not durably recorded, or not measured.",
         "Shows `git show -s --format=%B HEAD` after committing or amending and explicitly treats local-only proof-source leakage as something to fix before reporting completion.",
         "Does not claim a measured pass-rate improvement or targeted-case pass from the ignored generated workspace report.",
-        "Does not push the commit."
-      ]
-    },
-    {
-      "id": "E14",
-      "name": "Commit compacts noisy verification section",
-      "prompt": "Commit the staged eval/docs change. Commit execution is authorized; this eval can inspect only your response, so show the exact git commands, final message, and post-commit checks.\n\n`git diff --cached --name-only` shows:\n```\nskills/widget/SKILL.md\nevals/widget/evals.json\nREADME.md\n```\nThe staged change adds a widget skill eval and documents it.\n\nA draft verification section lists every command run:\n```\nVerification:\n- `python3 -m json.tool evals/widget/evals.json` passed.\n- `python3 -c \"import json; d=json.load(open('evals/widget/evals.json')); assert all({'id','prompt','expectations'} <= set(e) for e in d['evals']); assert d['scoring']['common_assertion_weight'] + d['scoring']['per_eval_expectation_weight'] == 1\"` passed.\n- `rg 'E16' evals/widget/evals.json` found the new ID.\n- `rg 'widget' README.md` found the package-list entry.\n- `rg 'widget' CHANGELOG.md` found the changelog entry.\n- `git diff --check` passed.\n```\nThe useful structural outcome is that the eval JSON parses, required eval fields are present, scoring weights sum to 1, and whitespace checks are clean. The `rg` commands only confirm strings visible in the staged diff.",
-      "expected_output": "A response showing a commit command sequence that turns a noisy verification transcript into review-useful stored message proof.",
-      "files": [],
-      "expectations": [
-        "Shows staged-set re-verification for the staged skill, eval, and README files before committing.",
-        "Uses safe multi-line message transport such as a single-quoted heredoc or message file if the message has a body.",
-        "Composes a verification section as selected proof, not as a complete command transcript.",
-        "Preserves high-signal proof that `evals/widget/evals.json` parses as JSON.",
-        "Preserves or summarizes the structural validation outcome that required eval fields are present and scoring weights sum to 1, without pasting the full long predicate when a shorter durable outcome is clearer.",
-        "May keep `git diff --check` as a whitespace or hygiene proof, but does not let it crowd out stronger structural proof.",
-        "Omits the `rg 'E16'`, `rg 'widget' README.md`, and `rg 'widget' CHANGELOG.md` probes from the final commit message because they only restate diff-visible changes.",
-        "Shows `git show -s --format=%B HEAD` after committing or amending and checks the stored message for a low-signal verification dump.",
-        "Does not reject a command merely because it uses `rg` or Python; the decision is based on what review-useful contract the command proves.",
         "Does not push the commit."
       ]
     }
@@ -242,6 +177,6 @@
     "common_assertion_weight": 0.4,
     "per_eval_expectation_weight": 0.6,
     "pass_threshold": 0.8,
-    "notes": "These evals check commit-execution discipline and git safety extracted from real agent sessions: file selection for one logical change, exclusion of generated/workspace/ignored/secret paths, the pre-commit staged-set re-verification gate, partial-hunk staging, safe multi-line message transport, authorship-trailer --trailer transport and footer hygiene, repo trailer-convention detection, least-destructive recovery, and the reversible-safety boundary against pushing or rewriting shared history. Prompts present repository state and inspect only the response, so grading targets the shown git commands and decisions rather than a live repo mutation."
+    "notes": "These evals check commit-execution discipline and git safety extracted from real agent sessions: file selection for one logical change, exclusion of generated/workspace/ignored/secret paths, the pre-commit staged-set re-verification gate, partial-hunk staging, safe multi-line message transport, authorship-trailer --trailer transport and footer hygiene, repo trailer-convention detection, least-destructive recovery, durable proof-source boundaries, and the reversible-safety boundary against pushing or rewriting shared history. Prompts present repository state and inspect only the response, so grading targets the shown git commands and decisions rather than a live repo mutation."
   }
 }
