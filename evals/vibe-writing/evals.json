@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-writing",
-  "purpose": "External eval set for vibe-writing. Prompts live outside skills/ so they are not bundled as skill content. Covers representative LLM-first development text, human-reader exceptions, source-code comments and docstrings, README/docs, CHANGELOG restraint, changelog format precedence, next-agent contract-log entries, changelog durable proof-source boundaries, iteration-log collapse for in-progress quality work, exact-format output, verbatim-output boundaries, durable references, workflow boundaries, incidental progress and final-summary wording, locale precedence, policy and support-promise restraint, hollow-transition cleanup, local-anchor preservation, and commit-message contracts including release trailers, body preserve/cut selection, verification formatting, verification signal selection, durable proof-source boundaries, multi-line transport, active commit workflows, and stored-message inspection.",
+  "purpose": "External eval set for vibe-writing. Prompts live outside skills/ so they are not bundled as skill content. Covers representative LLM-first development text, source-code comments and docstrings, README/docs and CHANGELOG restraint, changelog format precedence, next-agent contract-log entries, iteration-log collapse for in-progress quality work, exact-format output, verbatim-output boundaries, durable references, workflow boundaries, locale precedence, policy and support-promise restraint, hollow-transition cleanup, local-anchor preservation, and commit-message contracts including body preserve/cut selection, verification formatting, durable proof-source boundaries, multi-line transport, active commit workflows, and stored-message inspection.",
   "common_assertions": [
     "Output preserves source facts, scope, terminology, audience, modality, conditions, exceptions, warnings, limitations, required actions, and order that matters whenever source text is edited or summarized.",
     "Output does not invent unsupported reasons, goals, outcomes, roadmap claims, business value, user impact, implementation rationale, tests, rollout status, or performance/security/risk-reduction claims.",
@@ -36,22 +36,6 @@
     },
     {
       "id": "E02",
-      "name": "Human README blurb without marketing invention",
-      "prompt": "Make this end-user README blurb clearer and friendlier without adding unsupported claims.\n\nFooCache is a Rust library that stores HTTP responses on disk and returns cached responses when the configured TTL has not expired. It supports ETag revalidation.",
-      "expected_output": "The agent writes a concise human-readable README blurb that states FooCache is a Rust HTTP response disk cache with TTL-based reuse and ETag revalidation, without marketing filler or invented benefits.",
-      "files": [],
-      "expectations": [
-        "States that FooCache is a Rust library or Rust HTTP response cache.",
-        "Preserves disk storage of HTTP responses.",
-        "Preserves the configured-TTL condition for returning cached responses.",
-        "Preserves ETag revalidation support.",
-        "Does not turn ETag revalidation support into an inferred purpose or effect such as refreshing entries unless that relationship is supplied.",
-        "Uses a natural human-reader tone without becoming promotional.",
-        "Does not claim speed, scalability, reliability, team productivity, enterprise readiness, or ease of use unless directly supported by the source."
-      ]
-    },
-    {
-      "id": "E03",
       "name": "Comments and docstrings keep rationale only",
       "prompt": "Rewrite comments only. Keep code behavior unchanged.\n\n```ts\n// validate the email\nfunction validateEmail(email: string) {\n  return /.+@.+/.test(email);\n}\n\n// retry the request\nasync function retryRequest() {\n  // existing implementation\n}\n```\n\nContext: Retry exists because PaymentCo sometimes returns 409 while a renewal is settling. The email validator rejects empty and malformed addresses before submission.",
       "expected_output": "The agent removes or replaces name-echoing comments, keeps behavior unchanged, and uses comments only where they add useful rationale such as the PaymentCo 409 settling case.",
@@ -66,7 +50,7 @@
       ]
     },
     {
-      "id": "E04",
+      "id": "E03",
       "name": "Internal refactor stays out of changelog",
       "prompt": "Write a changelog entry from this diff summary. If this should not be in the changelog, say so directly instead of inventing user impact.\n\nRenamed parseWebhookPayload to parseWebhookBody and moved it from webhook.ts to webhookParser.ts. No behavior changed; tests pass unchanged.",
       "expected_output": "The agent declines to create a user-facing changelog entry because the diff is an internal refactor with no behavior change.",
@@ -80,7 +64,7 @@
       ]
     },
     {
-      "id": "E05",
+      "id": "E04",
       "name": "Exact JSON contract wins",
       "prompt": "Return exactly this JSON shape and nothing else, with prose values edited for concision and unsupported claims removed.\n\n```json\n{\"title\":\"The system is designed to help teams seamlessly manage exports\",\"warning\":\"You must back up the database before running the migration\",\"notes\":[\"This makes it easy to scale later\"]}\n```",
       "expected_output": "The agent returns only valid JSON with the same object shape, concise supported prose values, the backup warning preserved, and unsupported marketing/future claims removed.",
@@ -95,7 +79,7 @@
       ]
     },
     {
-      "id": "E06",
+      "id": "E05",
       "name": "Japanese locale artifact stays Japanese",
       "prompt": "Please polish this section for docs/README.ja.md. Do not translate filenames, commands, or environment variables.\n\n## セットアップ\nNode 20 を入れます。npm install を実行します。API_URL を .env に設定してください。",
       "expected_output": "The agent keeps the locale-marked README prose in Japanese while preserving technical tokens in their original form.",
@@ -110,7 +94,7 @@
       ]
     },
     {
-      "id": "E07",
+      "id": "E06",
       "name": "Policy modality and warning retention",
       "prompt": "Make this admin policy friendlier and less legalistic. Keep the obligations and exceptions exactly the same.\n\nAdmins must not delete a workspace until they have exported audit logs. In sandbox projects, admins may skip the export. Support should notify the workspace owner when deletion is scheduled, but notification is not required for workspaces already suspended for fraud. Warning: deleting a workspace is irreversible.",
       "expected_output": "The agent rewrites the policy in friendlier prose while preserving must-not deletion gating, sandbox-only export skipping, should-level owner notification, fraud-suspension exception, and irreversible deletion warning.",
@@ -127,41 +111,7 @@
       ]
     },
     {
-      "id": "E08",
-      "name": "PR template with thin evidence",
-      "prompt": "Write a PR description using exactly this template and no extra sections. If a section has no supplied evidence, say `Not provided` instead of filling from assumptions. Remove hollow transitions from the draft wording.\n\n## Summary\n## Testing\n## Risk\n\nContext:\n- Diff: changed `Retry-After` parsing from `parseInt` to `Number` so fractional seconds are preserved.\n- Tests: not run.\n- Risk: parser change only; no production incidents, customer reports, benchmarks, or rollout plan are supplied.\n- Draft filler to remove: `It's worth noting that`, `Ultimately`, and `This should be low risk`.",
-      "expected_output": "The agent fills only the three requested PR template sections, names the fractional Retry-After parser change, reports tests as not run, removes hollow transitions, keeps risk to the supplied parser-change-only evidence, and avoids unsupported incident, benchmark, or rollout claims.",
-      "files": [],
-      "expectations": [
-        "Uses exactly the three requested headings: `## Summary`, `## Testing`, and `## Risk`.",
-        "Does not add extra sections such as `Notes`, `Background`, `Rollout`, `Related issues`, or `Next steps`.",
-        "Summary mentions preserving fractional seconds in `Retry-After` parsing or the `parseInt` to `Number` change.",
-        "Testing explicitly states that tests were not run; it does not say only `Not provided`, and it does not claim tests passed.",
-        "Risk reflects that the supplied risk evidence is limited to a parser change only, or states that no production incidents, customer reports, benchmarks, or rollout plan were supplied.",
-        "Removes hollow transitions such as `It's worth noting that`, `Ultimately`, or `In conclusion`.",
-        "Risk does not claim `low risk`, `safe`, `no risk`, production incident mitigation, customer impact, benchmarks, or rollout readiness without supplied evidence."
-      ]
-    },
-    {
-      "id": "E09",
-      "name": "Release commit keeps trailers separate",
-      "prompt": "Write a commit message. Context: preparing release `v1.4.0` from the changelog. Release includes a contact CSV import parser and upload preview UI. Breaking changes: none. Migration: none. Verification: `pnpm test` and `pnpm build` passed. Repository requirement: include `Co-Authored-By: Codex <noreply@openai.com>` as a final commit trailer. Diff summary: `package.json` version set to `1.4.0`, `CHANGELOG.md` moves `Unreleased` to `[1.4.0] - 2026-05-04`, and generated lock metadata updates.",
-      "expected_output": "The agent writes a release commit message that follows release convention, names the version, summarizes release scope and no-breaking/no-migration status, includes verification without duplicating the changelog or claiming publication, and keeps the required co-author trailer in a separated footer block.",
-      "files": [],
-      "expectations": [
-        "Subject follows a release-style Conventional Commit such as `chore(release): 1.4.0` or includes `v1.4.0`.",
-        "Subject and body use release-preparation wording and do not say `publish`, `deploy`, `roll out`, `ship`, or `cut` unless that action was supplied.",
-        "Body, if present, summarizes the CSV import parser and upload preview UI without duplicating a full changelog.",
-        "Body preserves that there are no breaking changes and no migration.",
-        "Body includes `pnpm test` and `pnpm build` if verification is included.",
-        "Includes `Co-Authored-By: Codex <noreply@openai.com>` only as a final trailer because the prompt requires it.",
-        "Separates the `Co-Authored-By` trailer from the prose body with a blank line.",
-        "Does not place a single-line `Verification: ...` paragraph directly before the `Co-Authored-By` trailer.",
-        "Does not claim the package was published, deployed, rolled out, or fully released unless supplied."
-      ]
-    },
-    {
-      "id": "E10",
+      "id": "E07",
       "name": "Verbatim tool output stays exact",
       "prompt": "Return this command output exactly. Do not summarize, clean up, or wrap it.\n\nFAIL tests/api/cache.test.ts::evicts_stale_entry\nexpected 2, got 3\nseed=1842",
       "expected_output": "The agent returns the supplied command output unchanged, without prose summary, Markdown fence, normalization, or inferred cause.",
@@ -176,7 +126,7 @@
       ]
     },
     {
-      "id": "E11",
+      "id": "E08",
       "name": "Commit body preserves context and cuts inventory",
       "prompt": "Write a commit message. Recent local style: `feat(requests): add empty-state onboarding and JSON save formatting`; `fix(requests): preserve header handoff on save`.\n\nDiff summary: changed `src/request-editor/save.ts`, `src/request-editor/BodyEditor.tsx`, `src/request-editor/samples.ts`, `tests/request-editor/save.test.ts`, and `pnpm-lock.yaml`.\n\nContext: Review finding AUTH-742 showed the request-editor save path could drop auth headers when sample refresh ran after the header handoff. Users saw 401 responses in saved samples. Decision: keep the header handoff inside the save path, and keep JSON auto-format only. XML and HTML should remain manual because formatting can change wire bytes. Compatibility: existing saved sample format is unchanged. Verification: `pnpm test -- request-editor` passed. Out of scope: upload preview and broader markup reflow. Plan note: this came from plan step 8.3. No benchmark was supplied.",
       "expected_output": "The agent writes a request-editor commit message that names the save-path/header-handoff behavior, preserves AUTH-742 or the review finding, explains the JSON-only and XML/HTML manual constraint with `should` modality, includes verification, and cuts file inventories, plan-step provenance, generic benefits, and private implementation detail.",
@@ -197,9 +147,9 @@
       ]
     },
     {
-      "id": "E12",
+      "id": "E09",
       "name": "Active commit workflow preserves message artifact",
-      "prompt": "Using `vibe-writing`, create the commit for the currently staged changes. Treat commit execution as authorized, but this eval can inspect only your response, so show the commit message, the git message transport you would use, and the post-commit check you would run before reporting completion.\n\nRecent local style: `feat(eval-runner): add auditable skill eval runs`; `docs(vibe-writing): tighten command inference`.\n\nStaged summary: `scripts/eval_runner.py` adds run receipts, finalization, usage parsing, doctor completeness checks, and report comparisons; `skills/skill-quality/SKILL.md` tightens prompt-delivery proof and benchmark interpretation guidance; eval expectations are updated for those contracts. Verification commands passed: `python3 -m unittest tests/test_eval_runner.py`; `python3 scripts/eval_runner.py validate evals/skill-quality/evals.json`.\n\nA prior draft command used separate `git commit -m` values for the subject, two body paragraphs, and each `Verification: ...` line. Do not preserve malformed spacing if the commit-message reference requires a different transport.",
+      "prompt": "Using `vibe-writing`, create the commit for the currently staged changes. Treat commit execution as authorized, but this eval can inspect only your response, so show the commit message, the git message transport you would use, and the post-commit check you would run before reporting completion.\n\nRecent local style: `feat(eval-runner): add auditable skill eval runs`; `docs(vibe-writing): tighten command inference`.\n\nStaged summary: `skills/skill-eval/scripts/eval_runner.py` adds run receipts, finalization, usage parsing, doctor completeness checks, and report comparisons; `skills/skill-quality/SKILL.md` tightens prompt-delivery proof and benchmark interpretation guidance; eval expectations are updated for those contracts. Verification commands passed: `python3 -m unittest tests/test_eval_runner.py`; `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.\n\nA prior draft command used separate `git commit -m` values for the subject, two body paragraphs, and each `Verification: ...` line. Do not preserve malformed spacing if the commit-message reference requires a different transport.",
       "expected_output": "The agent handles a commit-authorized workflow by producing a durable body commit message, preserving verification proof, and naming how it would execute and check the commit-message artifact before completion.",
       "files": [],
       "expectations": [
@@ -213,24 +163,7 @@
       ]
     },
     {
-      "id": "E13",
-      "name": "Japanese progress update inside active workflow",
-      "prompt": "Using `vibe-writing`, write the short message to send to the user inside an active plan-execution workflow. Return the message itself, not an explanation of whether this is a standalone writing task.\n\nFacts allowed in the message:\n- Bound plan: `specs/2026-05-31-report-export-implementation-plan.md`\n- Current slice: CSV export button\n- Status: implementation and tests are complete\n- Verification passed: `pnpm test -- reports-export`\n- Commit authorization has not been given\n- No files were staged\n\nUse Japanese.",
-      "expected_output": "The agent returns a concise Japanese progress update that uses only the supplied workflow facts, includes the verification and uncommitted/no-staging status, and does not replace the requested message with skill-routing analysis.",
-      "files": [],
-      "expectations": [
-        "Returns the user-facing progress message itself rather than explaining how `vibe-writing` applies.",
-        "Uses Japanese for the message while preserving `specs/2026-05-31-report-export-implementation-plan.md` and `pnpm test -- reports-export` exactly.",
-        "States that the CSV export button implementation and tests are complete.",
-        "States that `pnpm test -- reports-export` passed.",
-        "States that commit authorization has not been given and no files were staged.",
-        "Does not claim a commit was made, staging was performed, or release work happened.",
-        "Does not add unsupported next steps, reassurance, risk reduction, rollout status, or broad quality claims.",
-        "Keeps the message brief, without a checklist, route menu, or meta-analysis about standalone versus auxiliary writing."
-      ]
-    },
-    {
-      "id": "E14",
+      "id": "E10",
       "name": "Changelog entry conforms to repo format and reads as a contract log",
       "prompt": "Write the `## [Unreleased]` changelog entry for this change set. The repository's `CHANGELOG.md` already uses Keep a Changelog format: an `## [Unreleased]` section with `### Added` / `### Changed` / `### Fixed` groups, newest entries first, and dated `## [x.y.z] - YYYY-MM-DD` release sections. Keep that format.\n\nCommits in this change set:\n- `feat(api): add Retry-After parsing to RateLimiter`\n- `fix(api)!: remove the deprecated retryAfterMs config field`\n\nContext: `RateLimiter.parseRetryAfter()` in `src/rate-limiter.ts` now reads the `Retry-After` header (delay-seconds or an HTTP-date). The old numeric `retryAfterMs` config field is removed; callers must migrate to the `retryAfter` duration-string field. Verification: `pnpm test -- rate-limiter` passed. No benchmarks were run and no production incidents are reported. The reader of this changelog is the next coding agent.",
       "expected_output": "The agent returns a changelog entry, in the repository's stated Keep a Changelog format, that describes the supplied rate-limiter change for the next reader from the supplied evidence, without inventing impact, restructuring the changelog, or guessing a version.",
@@ -251,7 +184,7 @@
       ]
     },
     {
-      "id": "E15",
+      "id": "E11",
       "name": "Changelog update collapses superseded eval run notes",
       "prompt": "Revise this existing `## [Unreleased]` changelog entry after the latest eval run. The repository uses Keep a Changelog with `### Changed` entries. Return only the revised changelog entry and keep it under `Unreleased`; do not create a release section.\n\nCurrent draft entry:\n- `vibe-review` started requiring cascade-fix notes. Iteration 3 failed E07 because assertion 4 said the output did not name the delegated reviewer transcript. Grader evidence: \"missing reviewer evidence\". Iteration 4 passed E07 but failed E12 because rollback wording was vague. Iteration 5 passed most assertions after the prompt was adjusted. We should trim these details before release.\n\nLatest facts:\n- Contract delta: review fixes now record the affected code area, the delegated-review evidence used, and any remaining accepted risk before applying a cascade fix.\n- Durable anchors: `skills/vibe-review/SKILL.md` and `evals/vibe-review/evals.json`.\n- Latest verification: codex default model, with/without configs, 1 run each; `with_skill` 91% vs `without_skill` 63%; sanity checks OK; `error_run_count=0`.\n- Superseded readings: iteration 3 and iteration 4 were exploratory and should not be treated as current verification.\n- Unresolved accepted risk: E12 still has weak rollback wording coverage.\n- Assertion-level analysis and grader quotes belong in the eval workspace notes, not in the changelog unless they are the released behavior contract.",
       "expected_output": "The agent returns a single Keep a Changelog entry that reflects the current review-fix contract, durable evidence, latest verification status, and accepted risk without preserving obsolete run commentary.",
@@ -272,15 +205,15 @@
       ]
     },
     {
-      "id": "E16",
+      "id": "E12",
       "name": "Commit message drops local generated proof source",
-      "prompt": "Write a commit message.\n\nRecent local style: `docs(vibe-writing): tighten commit-message references`; `test(vibe-commit): cover generated workspace exclusion`.\n\nDiff summary: `skills/report/SKILL.md` adds guidance for generated report evidence, and `evals/report/evals.json` adds a regression case. `CHANGELOG.md` records the unreleased behavior change.\n\nVerification evidence supplied:\n- `python3 scripts/eval_runner.py validate evals/report/evals.json` passed.\n- Local generated report `evals/report/workspace/codex/iteration-4/benchmark.md` said the targeted case passed, but that workspace is ignored, not staged, and not committed.\n- Private tool-session record `run-local-7` contains the raw grader transcript, but it is not available in the repository.\n- No benchmark result is durably recorded in committed files or remote metadata.",
+      "prompt": "Write a commit message.\n\nRecent local style: `docs(vibe-writing): tighten commit-message references`; `test(vibe-commit): cover generated workspace exclusion`.\n\nDiff summary: `skills/report/SKILL.md` adds guidance for generated report evidence, and `evals/report/evals.json` adds a regression case. `CHANGELOG.md` records the unreleased behavior change.\n\nVerification evidence supplied:\n- `python3 skills/skill-eval/scripts/eval_runner.py validate evals/report/evals.json` passed.\n- Local generated report `evals/report/workspace/codex/iteration-4/benchmark.md` said the targeted case passed, but that workspace is ignored, not staged, and not committed.\n- Private tool-session record `run-local-7` contains the raw grader transcript, but it is not available in the repository.\n- No benchmark result is durably recorded in committed files or remote metadata.",
       "expected_output": "The agent writes a commit message that preserves stable validation proof while removing or translating local generated proof sources and private run records.",
       "files": [],
       "expectations": [
         "Outputs a raw commit message without Markdown fences or explanatory wrapper.",
         "Uses a Conventional Commit subject that names the report evidence or generated-proof contract rather than a generic file update.",
-        "Includes `python3 scripts/eval_runner.py validate evals/report/evals.json` if verification is included.",
+        "Includes `python3 skills/skill-eval/scripts/eval_runner.py validate evals/report/evals.json` if verification is included.",
         "Does not output proof-source classification notes, local-artifact analysis, separators, or rationale before or after the commit message.",
         "Does not cite `evals/report/workspace/codex/iteration-4/benchmark.md` as durable proof.",
         "Does not cite `run-local-7` or a private tool-session record as durable proof.",
@@ -289,48 +222,12 @@
         "Does not claim a measured with_skill/without_skill improvement or targeted-case pass from the ignored local workspace report.",
         "Keeps committed files such as `skills/report/SKILL.md`, `evals/report/evals.json`, or `CHANGELOG.md` only as changed-file or contract anchors, not as proof that the raw local report exists."
       ]
-    },
-    {
-      "id": "E17",
-      "name": "Commit verification compresses noisy command transcript",
-      "prompt": "Write a commit message.\n\nRecent local style: `test(vibe-writing): preserve commit body value`; `docs(vibe-commit): clarify stored message checks`.\n\nDiff summary: `evals/widget/evals.json` adds a new commit-message eval, `skills/widget/SKILL.md` documents the behavior, and `README.md` adds the skill to the package list.\n\nVerification transcript from the session:\n- `python3 -m json.tool evals/widget/evals.json` passed.\n- `python3 -c \"import json; d=json.load(open('evals/widget/evals.json')); assert all({'id','prompt','expectations'} <= set(e) for e in d['evals']); assert d['scoring']['common_assertion_weight'] + d['scoring']['per_eval_expectation_weight'] == 1\"` passed.\n- `rg 'E16' evals/widget/evals.json` found the new ID.\n- `rg 'widget' README.md` found the package-list entry.\n- `rg 'widget' CHANGELOG.md` found the changelog entry.\n- `git diff --check` passed.\nThe search commands only confirmed strings visible in the changed diff. The useful structural outcome is that the eval JSON parses, required eval fields are present, scoring weights sum to 1, and whitespace checks are clean.",
-      "expected_output": "The agent writes a commit message whose verification section preserves review-useful structural proof while compressing long predicates and dropping low-signal string-presence probes.",
-      "files": [],
-      "expectations": [
-        "Outputs a raw commit message without Markdown fences or explanatory wrapper.",
-        "Uses a Conventional Commit subject that names the widget eval or commit-message verification behavior rather than a generic file update.",
-        "Treats verification as selected proof, not a complete session command log.",
-        "Preserves high-signal proof that `evals/widget/evals.json` parses as JSON.",
-        "Preserves or summarizes the structural validation outcome that required eval fields are present and scoring weights sum to 1, without needing to paste the full long predicate.",
-        "May keep `git diff --check` as a whitespace or hygiene proof, but does not let it crowd out stronger structural proof.",
-        "Omits the `rg 'E16'`, `rg 'widget' README.md`, and `rg 'widget' CHANGELOG.md` string-presence probes as verification bullets because they only restate diff-visible changes.",
-        "Does not ban or reject a command merely because it uses `rg` or Python; the decision is based on what the command proves.",
-        "Does not invent test, benchmark, release, or quality-improvement claims beyond the supplied verification."
-      ]
-    },
-    {
-      "id": "E18",
-      "name": "Changelog drops local eval workspace proof",
-      "prompt": "Revise this existing `## [Unreleased]` changelog entry. Return only the revised changelog entry and keep it under `Unreleased`; do not create a release section.\n\nCurrent draft entry:\n- `vibe-plan-execution` now requires a post-implementation review gate after an implemented slice is verified. Adds eval coverage for delegated-or-fallback behavior and coordinator-retained verification authority. Verification: `python3 scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json` passes. A claude/claude-sonnet-4-6 run at `evals/vibe-plan-execution/workspace/claude/iteration-19/` recorded 30/30 scored runs, 0 excluded runs, `error_run_count=0`, metrics captured, sanity checks OK, clean source fixtures before and after execution, and overall `with_skill` 96.2% vs `without_skill` 64.1% (+32.1 points). Remaining `with_skill` misses were assertion-level output gaps, not runner, executor, or grader infrastructure failures.\n\nLatest facts:\n- `python3 scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json` passed.\n- The provider run report lives only under ignored local generated output at `evals/vibe-plan-execution/workspace/claude/iteration-19/`.\n- The provider run report, benchmark, metrics, sanity status, and remaining assertion misses are not committed, not published, and not available through remote repository metadata or CI.\n- No durable with/without benchmark result is recorded for this changelog entry.",
-      "expected_output": "The agent returns a Keep a Changelog entry that preserves the durable validation proof while removing local generated eval workspace proof and unsupported benchmark claims.",
-      "files": [],
-      "expectations": [
-        "Keeps the entry in the repository's Keep a Changelog shape under `## [Unreleased]` / `### Changed`, and does not create or guess a release version.",
-        "Preserves the behavior contract that `vibe-plan-execution` requires a post-implementation review gate after an implemented slice is verified.",
-        "Preserves the durable validation command `python3 scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json` as passed.",
-        "Does not include the local generated workspace path `evals/vibe-plan-execution/workspace/claude/iteration-19/`.",
-        "Does not include the local-only provider run details: 30/30 scored runs, 0 excluded runs, `error_run_count=0`, metrics captured, sanity checks OK, clean source fixtures, pass-rate delta, or remaining assertion misses.",
-        "Does not claim a measured `with_skill`/`without_skill` improvement from the ignored local workspace report.",
-        "If it mentions the provider run or benchmark at all, translates it into an explicit absence status such as provider run not durably recorded, benchmark not durably recorded, or not measured.",
-        "Does not treat a project-relative path as durable merely because it is under `evals/`.",
-        "Emits only the revised changelog-shaped artifact, with no explanatory preface, horizontal rule, placement instruction, or change-summary wrapper."
-      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.4,
     "per_eval_expectation_weight": 0.6,
     "pass_threshold": 0.8,
-    "notes": "These evals focus on contract preservation and evidence discipline rather than aesthetic preference. They combine representative cases from the retired source suites with reader-priority and workflow-boundary pressure cases for the consolidated skill."
+    "notes": "These evals focus on contract preservation and evidence discipline rather than aesthetic preference. They combine representative cases from the retired source suites with reader-priority, exact-format, durable-proof, locale, commit-message, changelog, and workflow-boundary pressure cases for the consolidated skill."
   }
 }
