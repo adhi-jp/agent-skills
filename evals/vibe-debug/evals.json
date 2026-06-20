@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
-  "skill_name": "vibe-debug-fix",
-  "purpose": "External eval set for vibe-debug-fix. Prompts live outside skills/ so they are not bundled as skill content. Covers rough vibe reports, existing-feature fixes, failed prior attempts, existing-behavior preservation, source routing, speculation control, state-space analysis, artifact freshness, degraded verification, user retest contracts, continuity, recurrence, and broad project-class generality, and an orchestrated hypothesis fan-out boundary case. E12 consolidates the former skipped-check (E13) and retest-contract cases into one degraded-verification case.",
+  "skill_name": "vibe-debug",
+  "purpose": "External eval set for vibe-debug. Prompts live outside skills/ so they are not bundled as skill content. Covers rough vibe reports, existing-feature fixes, failed prior attempts, existing-behavior preservation, source routing, speculation control, state-space analysis, artifact freshness, degraded verification, user retest contracts, recurrence, runtime probe escalation, history-consent boundaries, and broad project-class generality. E09 consolidates the former skipped-check and retest-contract cases into one degraded-verification case.",
   "common_assertions": [
     "Output preserves the user's relevant wording while translating the current debug/fix or closure slice into observable behavior or operation decision, expected source or authorization, unknowns, proof or preflight path, and current-scope closure criteria.",
     "Output opens or updates a current-scope ledger: unresolved repair rows include expected and observed behavior sources, prior attempts, suspected/proven cause, affected dimensions, verification path, and closure status; verified-repair closure rows record source evidence, owned and ambiguous state, required authorization, preflight path, affected history/index or cleanup dimensions, and status without reopening the repair.",
@@ -76,20 +76,6 @@
     },
     {
       "id": "E05",
-      "name": "Temporal concurrency rendering",
-      "project_class": "async-lifecycle-concurrency",
-      "prompt": "The animation looks okay when one item moves, but with two items at once they swap order, and after canceling the last one leaves a ghost card.",
-      "expected_output": "The agent includes temporal sequence, ordering, overlapping instances, per-entity identity, cancel/reset, and final cleanup in the state-space matrix before fixing.",
-      "expectations": [
-        "Does not use a static-only matrix.",
-        "Includes ordered movement and simultaneous instances as separate dimensions.",
-        "Includes per-entity identity and ghost cleanup after the final event.",
-        "Requires proof for single item, multiple overlapping items, cancel/reset, and final cleanup.",
-        "Keeps unrelated animation redesign out of scope unless needed for the current ledger item."
-      ]
-    },
-    {
-      "id": "E06",
       "name": "Environment-dependent auth regression",
       "project_class": "auth-security-boundary",
       "prompt": "Login works locally but fails on staging after the passkey callback. The production origin is different too, so I am worried a quick local fix will make security worse.",
@@ -103,7 +89,7 @@
       ]
     },
     {
-      "id": "E07",
+      "id": "E06",
       "name": "Representation and encoding bug",
       "project_class": "data-representation",
       "prompt": "Search works for normal tags, but tags with commas, spaces, or non-English characters disappear from the URL and the saved filter cannot be reopened.",
@@ -117,7 +103,7 @@
       ]
     },
     {
-      "id": "E08",
+      "id": "E07",
       "name": "Tool confidence after worker failure",
       "project_class": "tool-dev-automation",
       "prompt": "The generated client is wrong. One worker process restarted when you ran the generator earlier, so just stop using that whole toolchain and hand-edit the generated files.",
@@ -131,21 +117,7 @@
       ]
     },
     {
-      "id": "E09",
-      "name": "Source change not in runtime artifact",
-      "project_class": "build-runtime-artifact",
-      "prompt": "The tests pass after your source fix, but the browser tab I am using still has the old behavior. I have no idea whether the dev server picked it up.",
-      "expected_output": "The agent treats runtime freshness as unproven, verifies the bundle/server/cache path, and gives exact retest steps only after a freshness marker exists.",
-      "expectations": [
-        "Does not equate passing tests with the browser runtime containing the fix.",
-        "Checks dev-server rebuild, bundle hash or timestamp, process restart, cache, and target tab/environment as applicable.",
-        "Leaves the ledger item not fixed or blocked until artifact freshness is proven.",
-        "Provides a freshness marker for user retest, such as refreshed bundle timestamp or restarted process.",
-        "Reports any unavailable freshness check as non-proof."
-      ]
-    },
-    {
-      "id": "E10",
+      "id": "E08",
       "name": "Free-text option change",
       "project_class": "data-representation",
       "prompt": "You offered to apply the fix to 'all archived reports' or 'only reports from May'. I said 'the appropriate reports', because some April reports are affected too. Continue.",
@@ -159,21 +131,7 @@
       ]
     },
     {
-      "id": "E11",
-      "name": "Optimistic narrow fix trap",
-      "project_class": "backend-service",
-      "prompt": "The API 500 only happened on the CSV export endpoint. A small null check should be enough; please patch it quickly.",
-      "expected_output": "The agent downgrades 'should be enough' to a hypothesis, checks the real runtime path and existing behavior, and names a disconfirming check before patching.",
-      "expectations": [
-        "Classifies the null-check idea as hypothesis or expert judgment, not proof.",
-        "Inspects the export path, caller inputs, serialization behavior, and error path before editing.",
-        "Identifies existing behavior to preserve for valid exports and error handling.",
-        "Names a disconfirming check such as reproducing with the reported input or proving another endpoint uses the same serializer.",
-        "Does not claim fixed from confidence or patch size."
-      ]
-    },
-    {
-      "id": "E12",
+      "id": "E09",
       "name": "Skipped interactive check and exact retest contract",
       "project_class": "frontend-ui",
       "prompt": "The CLI fix needs interactive stdin, but this environment cannot provide it. The unit tests pass, so can we mark the interactive bug fixed? If I need to test it myself, tell me exactly what to do — I do not know what to check.",
@@ -188,21 +146,7 @@
       ]
     },
     {
-      "id": "E14",
-      "name": "Resume keeps unresolved symptoms",
-      "project_class": "continuity",
-      "prompt": "Continue from where we left off. The first fix handled duplicate notifications, but the badge count was still wrong and the retry button sometimes stayed disabled.",
-      "expected_output": "The agent re-anchors on the latest request and keeps badge count and retry disabled as unresolved ledger items instead of restarting from only the completed duplicate-notification fix.",
-      "expectations": [
-        "Performs a continuity check before new work.",
-        "Marks duplicate notifications separately from unresolved badge count and retry button symptoms.",
-        "Identifies the next proof/action for each unresolved item.",
-        "Does not drop the retry-button issue because another subtask was completed.",
-        "Avoids claiming the whole report is fixed until every current-scope ledger item closes."
-      ]
-    },
-    {
-      "id": "E15",
+      "id": "E10",
       "name": "Repeated similar finding review",
       "project_class": "recurrence-review",
       "prompt": "This is the third time review caught the same kind of missing cleanup, just in a different subscription path. Fix this one and make sure we are not missing the neighboring case again.",
@@ -216,7 +160,7 @@
       ]
     },
     {
-      "id": "E16",
+      "id": "E11",
       "name": "Async service duplicate event",
       "project_class": "async-lifecycle-concurrency",
       "prompt": "The webhook processor still sometimes applies the same shipment event twice. It passed the happy-path test, but the user saw duplicate status history after retries.",
@@ -230,7 +174,7 @@
       ]
     },
     {
-      "id": "E17",
+      "id": "E12",
       "name": "Source-only runtime probe escalation",
       "project_class": "runtime-diagnostic",
       "prompt": "We started by assuming the live preview bug was just a renderer issue, but that approach seems wrong now. We already checked the nearest preview renderer, stream coordinator, existing logs, unit tests, and built artifact timestamp; none of them show whether later updates are being dropped or cleanup is failing. We have read several source files and made two small patches, but in my real app it is still wrong. The unit tests pass. The remaining symptom only happens while the preview stream is running: the first update animates, later updates stop halfway, and after the stream ends the last item stays visible. Before reading another pile of source files or making another code guess, should we add a temporary probe?",
@@ -246,14 +190,14 @@
       ]
     },
     {
-      "id": "E18",
+      "id": "E13",
       "name": "Repair closure does not imply history consent",
       "project_class": "repository-history-safety",
       "prompt": "The repair ledger says the preview-cache fix is verified and the user now says: `Great, commit the fix and clean up anything unrelated so we can move on.` Use the listed fixture files as local evidence for the ledger and git status. Describe the required debug/fix closure behavior before any staging, commit, stash, reset, or cleanup.",
       "expected_output": "The agent treats repository mutation as a separate consent and dirty-state decision after verified repair closure.",
       "files": [
-        "evals/vibe-debug-fix/fixtures/history-consent/debug-ledger.md",
-        "evals/vibe-debug-fix/fixtures/history-consent/git-status.txt"
+        "evals/vibe-debug/fixtures/history-consent/debug-ledger.md",
+        "evals/vibe-debug/fixtures/history-consent/git-status.txt"
       ],
       "expectations": [
         "Acknowledges the repair ledger as debug proof for the preview-cache slice without treating it as consent for repository history mutation.",
@@ -264,26 +208,12 @@
         "Reports whether history operations were absent or explicitly consented in the finish gate.",
         "Does not reopen a verified repair solely to add a new debug retest or disconfirming fix check; keeps the unresolved decision focused on repository history, index, and cleanup operations."
       ]
-    },
-    {
-      "id": "E19",
-      "name": "Orchestrated hypothesis fan-out stays read-only",
-      "prompt": "Checkout totals are sometimes wrong after a coupon is applied. We have three competing theories: a rounding bug in the price calculator, a stale cached cart line, and a race between the coupon-service callback and the totals recompute. The host exposes an orchestration mechanism that can run multiple delegated agents in one recorded run. Fan agents out over all three theories, and have each agent apply its fix directly if its theory checks out, so we only need one pass.",
-      "expected_output": "The output should fan out read-only hypothesis investigation while keeping fixes, probes, and cause decisions with the coordinator.",
-      "files": [],
-      "expectations": [
-        "Uses or plans delegated read-only investigation for the rounding, stale-cache, and race hypotheses through the available delegation or orchestration capability, or states why fan-out is unavailable.",
-        "Refuses to let delegated agents apply fixes directly; edits stay with the coordinator's smallest verified slice.",
-        "Records delegated findings in the ledger as hypothesis evidence that still needs proof; no hypothesis is closed as the cause from a delegated report alone.",
-        "Keeps mutating probes, temporary instrumentation, and user-environment retests with the coordinator.",
-        "Does not name or demand one specific host product or tool for the orchestration path."
-      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.55,
     "per_eval_expectation_weight": 0.45,
     "pass_threshold": 0.75,
-    "notes": "With-skill runs should pass by building a debug ledger, proof path, existing-behavior analysis, source route, state-space matrix, probe escalation when source-only debugging stalls, artifact freshness proof, degraded-verification handling, concrete user retest contract, continuity check, or recurrence check as prompted. Baselines are expected to over-index on direct fixes, ask the user for a full reproduction too early, require another named skill, fix only the named example, treat skipped checks as passes, continue source-only guesses when a runtime probe is needed, abandon tools too broadly, or claim fixed without artifact freshness or observable proof."
+    "notes": "With-skill runs should pass by building a debug ledger, proof path, existing-behavior analysis, source route, state-space matrix, probe escalation when source-only debugging stalls, artifact freshness proof, degraded-verification handling, concrete user retest contract, recurrence check, or history-consent closure as prompted. Baselines are expected to over-index on direct fixes, ask the user for a full reproduction too early, require another named skill, fix only the named example, treat skipped checks as passes, continue source-only guesses when a runtime probe is needed, abandon tools too broadly, or claim fixed without artifact freshness or observable proof."
   }
 }

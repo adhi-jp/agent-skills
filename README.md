@@ -24,7 +24,7 @@ quickstart when changing a skill or its eval suite.
 | Review, confirm, walk through, or pre-check a saved implementation plan before execution | `vibe-plan-review` | Reviews one plan item at a time, records localized item decisions with numeric input shortcuts from its reference file, and stops before implementation | `skills/vibe-plan-review/` | `evals/vibe-plan-review/` |
 | Implement an existing concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Edits only after binding the plan and checking proceed conditions; stops before commits unless separately authorized | `skills/vibe-plan-execution/` | `evals/vibe-plan-execution/` |
 | Brainstorm creative implementation ideas, alternatives, expected behavior, or convention checks | `vibe-brainstorm` | Returns chat-first directions or checklists and stops before implementation until the user confirms the direction | `skills/vibe-brainstorm/` | `evals/vibe-brainstorm/` |
-| Debug or repair existing behavior from rough bug reports, regressions, failed fixes, or runtime artifacts | `vibe-debug-fix` | Produces evidence-backed repairs or retest contracts; does not authorize history mutation | `skills/vibe-debug-fix/` | `evals/vibe-debug-fix/` |
+| Debug or repair existing behavior from rough bug reports, regressions, failed fixes, or runtime artifacts | `vibe-debug` | Produces evidence-backed repairs or retest contracts; does not authorize history mutation | `skills/vibe-debug/` | `evals/vibe-debug/` |
 | Understand, locate, trace, or assess existing code without changing it | `vibe-code-research` | Read-only; returns anchored evidence-backed findings, redacts suspected secret-like values at output boundaries, and stops before fixes, plans, edits, or commits | `skills/vibe-code-research/` | `evals/vibe-code-research/` |
 | Write or revise development text, docs, changelog entries, PR text, UI copy, summaries, or commit messages | `vibe-writing` | Controls wording only; staging, commits, releases, and workflow authority stay with the active workflow | `skills/vibe-writing/` | `evals/vibe-writing/` |
 | Commit or stage changes from a vague request — pick the right files, exclude junk, re-verify staging, or fix message transport, history, or trailers | `vibe-commit` | Executes the commit and git safety; defers message wording to `vibe-writing`; does not push or rewrite shared history without explicit consent | `skills/vibe-commit/` | `evals/vibe-commit/` |
@@ -69,7 +69,7 @@ and are local artifacts unless explicitly requested for commit.
 | `vibe-planning` | `4.2.0` |
 | `vibe-plan-execution` | `2.1.0` |
 | `vibe-brainstorm` | `1.1.0` |
-| `vibe-debug-fix` | `2.1.0` |
+| `vibe-debug` | `2.1.0` |
 | `vibe-code-research` | `1.0.0` |
 | `vibe-writing` | `1.1.0` |
 | `vibe-commit` | `1.0.0` |
@@ -113,7 +113,7 @@ roster, so in this repository's family underspecified new goals reach
 `vibe-brainstorm`, read-only code questions reach `vibe-code-research`,
 planning inputs reach `vibe-planning`, concrete ready implementation plans
 reach `vibe-plan-execution`, bug reports and regressions reach
-`vibe-debug-fix`, review targets reach `vibe-review`, commit and staging
+`vibe-debug`, review targets reach `vibe-review`, commit and staging
 requests reach `vibe-commit`, and wording-only deliverables reach
 `vibe-writing`. Specialist boundaries remain authoritative: `vibe-coding` does
 not relax approval stops, planning-only behavior, read-only investigation
@@ -415,7 +415,7 @@ unavailable or unauthorized, stays chat-first, creates files only on request, an
 stops before implementation until the user confirms the selected direction or
 expected-behavior checklist.
 
-### `vibe-debug-fix`
+### `vibe-debug`
 
 Self-contained debug/fix skill for rough vibe-coding bug reports, regressions,
 failed prior attempts, repeated "still broken" feedback, environment-specific
@@ -656,7 +656,7 @@ only explicit user, DoD, or confirmed-plan evidence.
 - `evals/vibe-plan-execution/`: external plan-execution eval prompts and fixtures
 - `evals/vibe-brainstorm/`: external creative brainstorming and convention
   grounding eval prompts
-- `evals/vibe-debug-fix/`: external debug/fix pressure prompts spanning rough
+- `evals/vibe-debug/`: external debug/fix pressure prompts spanning rough
   reports, failed attempts, artifacts, auth, representation, tools, async
   lifecycle, runtime diagnostic probe escalation, continuity, and recurrence
 - `evals/vibe-code-research/`: external read-only code-research eval prompts for
@@ -679,7 +679,7 @@ only explicit user, DoD, or confirmed-plan evidence.
 - `skills/vibe-plan-execution/`: plan-bound vibe-coding implementation skill package
 - `skills/vibe-brainstorm/`: creative brainstorming and expected-behavior
   grounding skill package
-- `skills/vibe-debug-fix/`: self-contained vibe-coding debug/fix skill package
+- `skills/vibe-debug/`: self-contained vibe-coding debug/fix skill package
 - `skills/vibe-code-research/`: read-only code-research skill package for
   evidence-backed findings about existing code
 - `skills/vibe-writing/`: consolidated vibe-coding writing skill package

@@ -14,7 +14,7 @@
     {
       "id": "E01",
       "name": "Japanese sales import feature request",
-      "prompt": "The user says: `/vibe-coding dataディレクトリのエクセルファイルから売上データを抽出して画面に表示する機能を作成します。` No active spec or implementation plan exists. Visible specialist metadata includes `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-debug-fix`, `vibe-review`, and `vibe-writing`. Describe the routing behavior for this turn.",
+      "prompt": "The user says: `/vibe-coding dataディレクトリのエクセルファイルから売上データを抽出して画面に表示する機能を作成します。` No active spec or implementation plan exists. Visible specialist metadata includes `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-debug`, `vibe-review`, and `vibe-writing`. Describe the routing behavior for this turn.",
       "expected_output": "The response should describe explicit activation handling and phase-boundary-safe routing for an underspecified new feature.",
       "files": [],
       "expectations": [
@@ -87,12 +87,12 @@
     {
       "id": "E05",
       "name": "Auth refresh failure with plan context",
-      "prompt": "Active routing state includes a concrete implementation plan at `plans/2026-05-24-auth-refresh-implementation-plan.md`. The user says: `The latest fix is still broken: login refresh loops forever in production. Implement the plan if needed.` Visible metadata includes `vibe-debug-fix` and `vibe-plan-execution`. Describe the route.",
+      "prompt": "Active routing state includes a concrete implementation plan at `plans/2026-05-24-auth-refresh-implementation-plan.md`. The user says: `The latest fix is still broken: login refresh loops forever in production. Implement the plan if needed.` Visible metadata includes `vibe-debug` and `vibe-plan-execution`. Describe the route.",
       "expected_output": "The response should describe precedence handling for an existing-feature failure with overlapping execution wording.",
       "files": [],
       "expectations": [
         "Classifies the immediate user intent as a bug report, regression, failed prior fix, or existing-feature repair.",
-        "Routes to exactly one primary downstream phase: `vibe-debug-fix`.",
+        "Routes to exactly one primary downstream phase: `vibe-debug`.",
         "Does not route to `vibe-plan-execution` merely because the user says `Implement the plan if needed`.",
         "Preserves the plan path only as possible context for debugging.",
         "Keeps unresolved production behavior as a symptom to investigate before changing code."
@@ -159,11 +159,11 @@
     {
       "id": "E10",
       "name": "Branch-name grammar request",
-      "prompt": "The user explicitly invokes `vibe-coding` and says: `Tell me whether the current branch name is grammatically awkward; do not edit files, review a diff, draft a spec, plan implementation, debug, or write a deliverable.` Visible specialist metadata includes `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-debug-fix`, `vibe-review`, and `vibe-writing`. Describe the handling.",
+      "prompt": "The user explicitly invokes `vibe-coding` and says: `Tell me whether the current branch name is grammatically awkward; do not edit files, review a diff, draft a spec, plan implementation, debug, or write a deliverable.` Visible specialist metadata includes `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-debug`, `vibe-review`, and `vibe-writing`. Describe the handling.",
       "expected_output": "The response should describe fallback handling when no workflow phase matches.",
       "files": [],
       "expectations": [
-        "Does not force `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-debug-fix`, `vibe-review`, or `vibe-writing` as a primary route.",
+        "Does not force `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-debug`, `vibe-review`, or `vibe-writing` as a primary route.",
         "Classifies the request as `no matching specialist` or ordinary behavior because the user excluded the matching phase surfaces.",
         "States that no matching optional specialist was verified when that affects user expectations.",
         "Continues with ordinary behavior only within the user's no-edit/no-review/no-deliverable constraint.",
@@ -173,14 +173,14 @@
     {
       "id": "E11",
       "name": "Commit request without visible commit specialist",
-      "prompt": "The user explicitly invokes `vibe-coding` and says: `コミットしてください。` Staged changes exist. Visible specialist metadata includes `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-debug-fix`, `vibe-review`, and `vibe-writing`; no visible specialist describes the commit-execution phase's workflow scope and boundaries. Other host-visible metadata includes `git-commit`, whose description offers commit-command capability without workflow boundary contracts. No active implementation plan, debug symptom, review target, or wording-only deliverable is present. Describe the route and auxiliary-skill handling.",
+      "prompt": "The user explicitly invokes `vibe-coding` and says: `コミットしてください。` Staged changes exist. Visible specialist metadata includes `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-debug`, `vibe-review`, and `vibe-writing`; no visible specialist describes the commit-execution phase's workflow scope and boundaries. Other host-visible metadata includes `git-commit`, whose description offers commit-command capability without workflow boundary contracts. No active implementation plan, debug symptom, review target, or wording-only deliverable is present. Describe the route and auxiliary-skill handling.",
       "expected_output": "The response should keep commit execution outside primary `vibe-writing` authority while requiring `vibe-writing` as auxiliary guidance for the commit-message artifact when no commit-execution specialist is visible.",
       "files": [],
       "expectations": [
         "Treats the explicit `vibe-coding` wording as activation.",
         "Classifies the immediate phase as commit execution and recognizes that no visible specialist's description matches that phase's workflow scope and boundaries.",
         "Does not route the turn to `vibe-writing` as the primary downstream phase because the immediate request is commit execution, not a standalone wording deliverable.",
-        "Does not route to `vibe-plan-execution`, `vibe-planning`, `vibe-review`, `vibe-debug-fix`, or `vibe-requirements-spec` without a matching plan, review target, bug report, or new underspecified coding goal.",
+        "Does not route to `vibe-plan-execution`, `vibe-planning`, `vibe-review`, `vibe-debug`, or `vibe-requirements-spec` without a matching plan, review target, bug report, or new underspecified coding goal.",
         "Keeps history mutation under the active commit workflow, project rules, or explicit user consent.",
         "Because `vibe-writing` metadata is verified available, requires using `vibe-writing` as auxiliary guidance when preparing or inspecting the commit message artifact.",
         "States that `vibe-writing` controls commit-message wording, body value, verification wording, durable references, trailers, and multi-line transport, not staging, committing, signing, release, or other history mutation.",
@@ -191,7 +191,7 @@
     {
       "id": "E12",
       "name": "Commit request routes to visible commit specialist",
-      "prompt": "The user explicitly invokes `vibe-coding` and says: `この変更をコミットして。生成物は入れないで。` The working tree contains implementation changes plus generated workspace files. Visible specialist metadata includes `vibe-commit` (commit-execution workflow: file selection, staging safety, message transport, and history mutation under its own consent boundaries) and `vibe-writing` (development text and commit-message wording), plus visible metadata for `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-debug-fix`, and `vibe-review`. No active implementation plan, debug symptom, review target, or wording-only deliverable is present. Describe the route and auxiliary-skill handling.",
+      "prompt": "The user explicitly invokes `vibe-coding` and says: `この変更をコミットして。生成物は入れないで。` The working tree contains implementation changes plus generated workspace files. Visible specialist metadata includes `vibe-commit` (commit-execution workflow: file selection, staging safety, message transport, and history mutation under its own consent boundaries) and `vibe-writing` (development text and commit-message wording), plus visible metadata for `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-debug`, and `vibe-review`. No active implementation plan, debug symptom, review target, or wording-only deliverable is present. Describe the route and auxiliary-skill handling.",
       "expected_output": "The response should route commit execution to the visible commit-execution specialist as the single primary phase, with the writing specialist as auxiliary wording authority only.",
       "files": [],
       "expectations": [
@@ -206,22 +206,22 @@
     {
       "id": "E13",
       "name": "Code investigation versus debug precedence",
-      "prompt": "Classify these two independent explicit `vibe-coding` turns. Visible specialist metadata includes `vibe-code-research` (read-only research into existing code: structure, location, data flow, dependencies, change impact) and `vibe-debug-fix` (existing-feature diagnosis and repair), plus visible metadata for `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-review`, and `vibe-writing`.\n\nA. `認証まわりのトークン更新がどこで行われているか、仕組みを調べて説明して。コードは変更しないで。`\nB. `トークン更新が本番でループしてるっぽい。原因を調べて直して。`",
+      "prompt": "Classify these two independent explicit `vibe-coding` turns. Visible specialist metadata includes `vibe-code-research` (read-only research into existing code: structure, location, data flow, dependencies, change impact) and `vibe-debug` (existing-feature diagnosis and repair), plus visible metadata for `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-review`, and `vibe-writing`.\n\nA. `認証まわりのトークン更新がどこで行われているか、仕組みを調べて説明して。コードは変更しないで。`\nB. `トークン更新が本番でループしてるっぽい。原因を調べて直して。`",
       "expected_output": "The response should route the read-only understanding question to the code-investigation phase and the symptom-bearing repair request to the debug phase.",
       "files": [],
       "expectations": [
         "Routes turn A to exactly one primary downstream phase: `vibe-code-research`, because it is a read-only question about existing code with no defect report and no edit request.",
         "For turn A, preserves the read-only boundary: investigation findings do not authorize edits, fixes, plans, or commits.",
-        "Routes turn B to exactly one primary downstream phase: `vibe-debug-fix`, because a reported symptom and repair request outrank investigation.",
+        "Routes turn B to exactly one primary downstream phase: `vibe-debug`, because a reported symptom and repair request outrank investigation.",
         "Does not route turn B to `vibe-code-research` as primary merely because the user says 調べて.",
         "Does not combine investigation and debug as co-primary routes for the same turn.",
-        "Uses Japanese for the user-facing summary while preserving `vibe-code-research` and `vibe-debug-fix` verbatim."
+        "Uses Japanese for the user-facing summary while preserving `vibe-code-research` and `vibe-debug` verbatim."
       ]
     },
     {
       "id": "E14",
       "name": "Creative exploration versus requirements capture",
-      "prompt": "Classify these two independent explicit `vibe-coding` turns. Visible specialist metadata includes `vibe-brainstorm` (creative implementation ideas, alternatives, implicit expected behavior, convention checks) and `vibe-requirements-spec` (requirements drafting, revision, and approval), plus visible metadata for `vibe-planning`, `vibe-plan-execution`, `vibe-debug-fix`, `vibe-review`, and `vibe-writing`.\n\nA. `ダッシュボードのグラフ操作、何か面白いアイデアない？方向性の案だけ出して。仕様書はまだ要らない。`\nB. `ダッシュボードに売上グラフを出したい。細かいことは決めてないので、仕様としてまとめて保存して。`",
+      "prompt": "Classify these two independent explicit `vibe-coding` turns. Visible specialist metadata includes `vibe-brainstorm` (creative implementation ideas, alternatives, implicit expected behavior, convention checks) and `vibe-requirements-spec` (requirements drafting, revision, and approval), plus visible metadata for `vibe-planning`, `vibe-plan-execution`, `vibe-debug`, `vibe-review`, and `vibe-writing`.\n\nA. `ダッシュボードのグラフ操作、何か面白いアイデアない？方向性の案だけ出して。仕様書はまだ要らない。`\nB. `ダッシュボードに売上グラフを出したい。細かいことは決めてないので、仕様としてまとめて保存して。`",
       "expected_output": "The response should route the ideas-only request to the creative-exploration phase and the save-a-spec request to the requirements-specification phase.",
       "files": [],
       "expectations": [

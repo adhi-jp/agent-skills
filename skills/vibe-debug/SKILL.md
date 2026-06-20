@@ -1,10 +1,10 @@
 ---
 version: 2.1.0
-name: vibe-debug-fix
+name: vibe-debug
 description: Use when debugging or repairing existing features from rough vibe-coding reports, regressions, failed prior fixes, repeated "still broken" feedback, source-only debugging stalls, unobserved runtime state, tool or automation failures, environment-specific failures, runtime artifact mismatches, security boundary surprises, or fixes that feel wrong.
 ---
 
-# Vibe Debug Fix
+# Vibe Debug
 
 ## Overview
 
@@ -319,11 +319,15 @@ Read these bundled references only when their details are needed:
     - A user retest contract names exact setup, action sequence, expected
       observation, artifact/version freshness marker, failure evidence to
       capture, and the ledger item or matrix row each check closes.
+    - The contract is incomplete if it only names what to verify. Include all
+      of those fields in the same handoff or keep the item blocked.
     - When exact specifics such as the command, prompts, inputs, or paths are
       unknown, deliver the contract now with explicit stated assumptions or
       clearly labeled placeholders and say how to adapt them. Do not gate the
       contract on clarifying questions the user cannot answer; asking for those
-      specifics before writing it is the same banned defer.
+      specifics before writing it is the same banned defer. Do not hand over
+      bare `<placeholder>` commands or omit failure evidence and ledger closure
+      mapping because a local detail is unknown.
     - Avoid vague requests such as "please retest" or "try it again".
 
 15. **Review recurrence before finishing**

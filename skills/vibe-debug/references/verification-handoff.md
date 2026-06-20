@@ -62,10 +62,16 @@ blocked until evidence returns.
    exported file, artifact hash, or reproduction notes to capture.
 5. Ledger closure: which symptom or matrix row each check closes.
 
+The contract is incomplete if it only says what needs proof. Include all five
+fields in the same handoff, or keep the ledger item `blocked` until a credible
+proof path exists.
+
 When exact specifics such as the command, prompts, inputs, or paths are unknown,
 fill the contract now with explicit stated assumptions or clearly labeled
 placeholders and say how to adapt them, rather than asking the user to supply
-those specifics before you write it.
+those specifics before you write it. Placeholders must not stand alone as
+copyable commands; they still need expected observation, failure evidence, and
+the ledger item or matrix row they would close.
 
 Avoid "please retest", "try it again", and promises to provide steps later. The
 user should know exactly what to do and what result would prove or reopen the

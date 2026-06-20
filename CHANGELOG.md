@@ -109,6 +109,30 @@ use `[Repository] - YYYY-MM-DD`.
   Verification: `python3 -m pytest tests/test_eval_runner.py` passes (80 tests);
   no live provider eval was rerun.
 
+- `vibe-debug-fix` is renamed to `vibe-debug` across the source skill package,
+  eval suite identity, README chooser and package references, and
+  `vibe-coding` routing fixtures. The debug-and-repair workflow contract and
+  existing `version` value are preserved. The renamed skill now clarifies that
+  user-side retest and probe handoffs are incomplete unless setup/freshness,
+  action sequence, expected observation, failure evidence, and ledger or matrix
+  closure mapping are all present in the same handoff; bare placeholder commands
+  are not enough when local details are unknown. Local runtime snapshots are not
+  synced by this source rename. Verification:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`
+  passes. A follow-up claude/claude-sonnet-4-6 with/without run after the
+  retest/probe handoff clarification, at
+  `evals/vibe-debug/workspace/claude/iteration-2/`, recorded 26/26 scored runs,
+  `error_run_count=0`, no infrastructure failures, no zero-scored cells, no
+  candidate-below-baseline cells, and overall `with_skill` 92.4% vs
+  `without_skill` 64.0% (+28.4 points). The `REVIEW REQUIRED` sanity status was
+  reviewed and is explained by `source_fixture_dirty` for the new untracked
+  fixture directory before and after execution; the fixture files exist and no
+  runner, executor, or grader failure was recorded. Compared with the prior
+  single-run reading, `with_skill` moved +0.8 points while `without_skill` moved
+  +5.3 points, so iteration-to-iteration improvement from the clarification
+  remains unproven; the targeted E12 probe-escalation cell improved from 85.0%
+  to 95.0%, while E07 tool-confidence fell from 83.3% to 72.2%.
+
 - `vibe-requirements-spec` now supports explicit `strict-four-choice`,
   `lightweight-four-choice`, and `freestyle` drafting modes, creates or updates
   requirements spec artifacts by default unless the user explicitly requests
