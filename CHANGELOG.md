@@ -353,6 +353,26 @@ use `[Repository] - YYYY-MM-DD`.
   `source_fixture_dirty` reflected the new untracked E12 fixture present before
   and after the run. No runner, executor, or grader failure was recorded.
 
+- `vibe-review` now honors explicit machine-readable or exact-format final
+  response contracts before ordinary review-summary conventions, returning the
+  requested artifact itself without headings, explanatory wrapper text, progress
+  notes, Markdown code fences, skill-read confirmations, fixture interpretation,
+  or analysis around parser-sensitive output. The contract now calls out long or
+  nested review records produced after cascade evaluation, reviewer-output
+  ingestion, ledger projection, terminal audit, or other multi-stage reasoning,
+  requires JSON artifacts to start and end at the JSON value, and keeps missing
+  files, skipped reads, unchecked validity, evidence limits, unresolved blockers,
+  and other caveats inside artifact fields. Verification: the latest supplied
+  claude/claude-sonnet-4-6 with/without run was inspected locally and recorded
+  22/22 scored runs, `error_run_count=0`, Sanity OK, metrics captured, and
+  overall `with_skill` 97.0% vs `without_skill` 73.5% (+23.4 points). The
+  targeted exact-output assertion passed in 9/11 `with_skill` evals, and E11
+  passed after caveats such as unchecked validity were kept inside JSON fields.
+  E04 and E05 still exposed final-output wrapper leakage in the latest run even
+  though those cells passed in the prior supplied run. Because the run used a
+  single sample and the baseline moved sharply, broad measured improvement
+  remains unproven.
+
 - `vibe-code-research` now keeps source-evidence findings anchored while
   redacting or paraphrasing suspected credentials and secret-like literal values
   before chat output, saved reports, delegated findings, or quoted snippets. The

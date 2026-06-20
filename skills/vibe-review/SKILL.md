@@ -30,6 +30,28 @@ paths, git refs, hashes, finding IDs, `gate_status`, scope categories,
 The user-authored concept this skill preserves is:
 "バイブコーディングでユーザーの手を極力煩わせずに、適切・効果的な範囲をレビュー対象にして、仕様から逸脱しない・もしくは仕様の根本的な不備すら検出可能な高品質レビューを提供する".
 
+## Output Contracts
+
+Honor explicit final-response shape before ordinary review summary conventions.
+When the user, runner, or host contract asks for a machine-readable record or
+other exact-format artifact, make the final response be that artifact only. Do
+not add headings, explanations, progress notes, Markdown code fences, or
+introductory text around JSON, YAML, raw commit messages, verbatim output, or
+other parser-sensitive content. Ordinary review summaries remain prose unless an
+exact-format output is requested.
+
+Keep skill-read confirmations, fixture interpretation, and other analysis
+internal to the workflow when an exact-format artifact is requested. This
+applies even when the artifact is long, nested, or produced after cascade
+evaluation, reviewer-output ingestion, ledger projection, terminal audit, or
+other multi-stage review reasoning. For a JSON artifact, the first
+non-whitespace character in the final response should be `{` or `[` and the last
+non-whitespace character should close that same JSON value.
+
+If the record needs to report missing files, skipped reads, unchecked validity,
+evidence limits, unresolved blockers, or other caveats, encode those facts in
+artifact fields instead of explaining them before or after the artifact.
+
 ## When to Use
 
 Use this skill when the user asks to review:
