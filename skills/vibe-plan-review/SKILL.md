@@ -19,9 +19,9 @@ implementation, tests, commits, releases, or adjacent coding work.
 Runtime responses should match the user's language. Before rendering item-review
 output, interpreting item decisions, counting review-file thresholds, reflecting
 decisions into the plan, or summarizing review results, read
-`references/localized-labels.md` and use its exact localized labels and decision
-semantics. Preserve file paths, commands, identifiers, and review-state paths
-exactly.
+`references/localized-labels.md` and use its exact localized labels, numeric
+choice identifiers, and decision semantics. Preserve file paths, commands,
+identifiers, and review-state paths exactly.
 
 ## Required Inputs
 
@@ -107,6 +107,13 @@ Review one item at a time. For each item, check:
 The user's item decision is the source of truth. AI judgment guides the
 decision but does not override it.
 
+Render each user decision option with the stable numeric identifiers defined in
+`references/localized-labels.md`. Accept either the canonical localized decision
+label or an unambiguous numeric identifier for the current item decision. Store,
+count, summarize, and reflect the decision as its canonical localized label, not
+as the numeric identifier. If a user's reply contains conflicting labels or
+identifiers, ask which decision they intend before continuing.
+
 ## Temporary Review File
 
 Short reviews remain chat-only when all of these are true:
@@ -140,7 +147,8 @@ Record enough state to resume review:
 - Detected item list.
 - Current review position.
 - Per-item AI judgments.
-- User decisions.
+- User decisions as canonical localized labels, even when the user supplied a
+  numeric identifier.
 - Unresolved blockers.
 - Important decision summaries.
 - Conversation summary when the user asks for it or when an important decision
@@ -195,7 +203,8 @@ When the review workflow completes, summarize:
 - Target plan path.
 - Requirements spec path or limited-confidence no-spec status.
 - Number of items reviewed.
-- Decisions by count for the four canonical user decision labels.
+- Decisions by count for the four canonical user decision labels, not their
+  numeric identifiers.
 - Unresolved blockers or held items.
 - Whether the original plan was reflected after explicit confirmation.
 - Whether the temporary review file was created, kept, or deleted.

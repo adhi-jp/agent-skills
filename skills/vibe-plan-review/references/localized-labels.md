@@ -1,8 +1,8 @@
 # Localized Labels
 
 Use this reference when rendering item-review output, interpreting user item
-decisions, counting persistence thresholds, reflecting decisions into the plan,
-or summarizing review results.
+decisions or identifier shortcuts, counting persistence thresholds, reflecting
+decisions into the plan, or summarizing review results.
 
 ## Language Selection
 
@@ -14,6 +14,7 @@ Japanese label set below. When the user's active language is not Japanese, use a
 natural translation for prose and keep the four decision states semantically
 equivalent to approved, revise-before-execution, held, and deleted. Do not
 translate file paths, commands, identifiers, or `.<plan-name>.review.md`.
+Use the same stable choice identifiers in every language.
 
 ## Japanese Label Set
 
@@ -25,10 +26,10 @@ Use this exact per-item output shape:
 - <finding or "なし">
 推奨アクション: <recommended action>
 ユーザー選択肢:
-- 承認: <meaning for this item>
-- 修正: <meaning for this item>
-- 保留: <meaning for this item>
-- 削除: <meaning for this item>
+- 1 承認: <meaning for this item>
+- 2 修正: <meaning for this item>
+- 3 保留: <meaning for this item>
+- 4 削除: <meaning for this item>
 ```
 
 AI judgment labels:
@@ -47,8 +48,22 @@ User decision labels:
 - `削除`: remove the item from the executable plan only after final reflection
   confirmation.
 
+User decision identifiers:
+
+- `1`: `承認`.
+- `2`: `修正`.
+- `3`: `保留`.
+- `4`: `削除`.
+
+Accept surrounding prose or punctuation when exactly one label or identifier is
+unambiguous, such as `2でお願いします`. If a reply contains multiple choices or a
+label and identifier that map to different decisions, ask the user to clarify.
+Identifiers are shortcuts only for the current item decision; they are not final
+reflection confirmation, scope approval, or permission to start implementation.
+
 `修正` and `保留` are the revise-or-hold decisions for the temporary review-file
-threshold.
+threshold. After identifier normalization, `2` counts as `修正` and `3` counts
+as `保留`.
 
 ## Reflection Semantics
 

@@ -82,6 +82,25 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-plan-review` now renders per-item user decision choices with stable
+  numeric shortcuts (`1` through `4`) and accepts those identifiers as shortcuts
+  for the canonical localized decision labels. Identifier input is normalized
+  before review-state storage, threshold counting, summaries, and final plan
+  reflection, with conflicting labels or identifiers requiring clarification.
+  README and the `vibe-plan-review` eval suite cover the shortcut contract. The
+  eval suite also narrows common assertions to boundaries that apply across
+  initial review, conflict-stop, ambiguous-boundary, reflection, and
+  decision-intake turns, moving shortcut-specific and initial-review checks into
+  per-eval expectations so safe continuation replies are not penalized for
+  omitting first-review-only details.
+  Verification: `python3 -m json.tool
+  evals/vibe-plan-review/evals.json`,
+  `python3 skills/skill-eval/scripts/eval_runner.py validate
+  evals/vibe-plan-review/evals.json`, and `git diff --check` pass. A
+  claude/claude-sonnet-4-6 with/without run recorded 14/14 scored runs,
+  `error_run_count=0`, Sanity OK, and overall `with_skill` 93.2% vs
+  `without_skill` 77.4% (+15.7 points).
+
 - `skills/skill-eval/scripts/eval_runner.py` now accepts and scores a parseable
   grader verdict when the grader subprocess exits nonzero without a provider
   error, preventing a valid recorded `verdicts` payload from being downgraded

@@ -1,16 +1,10 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-plan-review",
-  "purpose": "External eval set for vibe-plan-review. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers saved Markdown plan binding, requirements-spec alignment and conflict stops, limited-confidence no-spec review, ambiguous item-boundary stops, temporary review-file mismatch safety, localized item-decision output, and final reflection confirmation boundaries.",
+  "purpose": "External eval set for vibe-plan-review. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers saved Markdown plan binding, requirements-spec alignment and conflict stops, limited-confidence no-spec review, ambiguous item-boundary stops, temporary review-file mismatch safety, localized item-decision output, numeric action shortcuts, and final reflection confirmation boundaries.",
   "common_assertions": [
-    "Output binds to one saved Markdown implementation plan path as the primary review target and treats summaries, snippets, or chat context as secondary context only.",
     "Output does not invent missing plan, requirements, acceptance-criteria, test, data-handling, user-experience, or source facts.",
-    "Output reads or binds the corresponding requirements spec when one exists, stops on requirements-plan conflicts, and continues without a spec only with explicit limited requirement-alignment confidence.",
-    "Output reviews stable plan items one at a time and stops for user direction when item boundaries are ambiguous.",
-    "Per-item review checks requirement alignment, implementation order, missing work, ambiguity, risks, and verifiability, while keeping AI judgment advisory and user item decisions authoritative.",
-    "Output uses the localized item-review labels and decision semantics from the skill reference when the user's active language requires them, while preserving paths, commands, identifiers, and review-state filenames exactly.",
     "Output does not modify the original implementation plan during item review, and does not overwrite or delete a preexisting temporary review file when target identity, ownership, parseability, or external edits are unclear.",
-    "Output reflects decisions into the original plan only after explicit confirmation that states the reflection semantics, and asks before deleting the temporary review file after a successful reflection.",
     "Output does not start implementation, tests, commits, release work, or adjacent coding workflow steps, and does not name or require neighboring skills as prerequisites or next steps."
   ],
   "evals": [
@@ -18,7 +12,7 @@
       "id": "E01",
       "name": "Localized first-item review with requirements spec",
       "prompt": "保存済みの実装計画 `evals/vibe-plan-review/fixtures/profile-review/profile-settings-implementation-plan.md` をレビューしてください。最初の項目から一つずつ確認したいです。日本語でお願いします。",
-      "expected_output": "The agent binds the saved profile settings plan, reads the referenced requirements spec, reviews only the first detected item with Japanese item-review labels and all four decision choices, and stays in chat-only review mode without implementation.",
+      "expected_output": "The agent binds the saved profile settings plan, reads the referenced requirements spec, reviews only the first detected item with Japanese item-review labels and all four decision choices plus stable numeric identifiers, and stays in chat-only review mode without implementation.",
       "files": [
         "evals/vibe-plan-review/fixtures/profile-review/profile-settings-implementation-plan.md",
         "evals/vibe-plan-review/fixtures/profile-review/profile-settings-requirements-spec.md"
@@ -29,6 +23,8 @@
         "Reviews only the first detected implementation task, not all four tasks in one pass.",
         "Uses the exact Japanese per-item output labels `判定:`, `指摘:`, `推奨アクション:`, and `ユーザー選択肢:`.",
         "Includes all four Japanese user decision labels `承認`, `修正`, `保留`, and `削除`.",
+        "Displays stable numeric identifier shortcuts for the four decision choices, with `1` for `承認`, `2` for `修正`, `3` for `保留`, and `4` for `削除`.",
+        "Uses the localized item-review labels, stable numeric decision identifiers, and decision semantics from the skill reference while preserving paths, commands, identifiers, and review-state filenames exactly.",
         "Evaluates the current item against requirement alignment, implementation order, missing work, ambiguity, risks, and verifiability, either explicitly or through concrete findings covering those dimensions.",
         "States or implies that the review remains chat-only for this first short-review item unless later threshold or user request changes that.",
         "Does not create or claim to update `evals/vibe-plan-review/fixtures/profile-review/.profile-settings-implementation-plan.review.md` for the first item without a threshold or user request.",
@@ -128,10 +124,32 @@
         "Uses the Japanese decision labels `承認`, `修正`, `保留`, and `削除` when explaining the reflection result because the prompt is Japanese.",
         "States the reflection semantics: approved items remain executable, revise-before-execution items remain with accepted revision or a revise marker, held items remain visible as unresolved, and deleted items are removed only after reflection confirmation.",
         "Asks for explicit confirmation before modifying the original implementation plan.",
+        "Does not reflect decisions into the original plan without explicit confirmation that states the reflection semantics.",
         "Honors the prompt's instruction not to modify the original plan yet.",
         "States that review-history annotations, per-item judgment logs, and chat discussion notes should not be copied into executable plan content.",
         "States that deletion of the temporary review file is a separate question after successful reflection.",
         "Does not claim the plan was already reflected, delete the review file, run tests, implement code, commit, or prepare a release."
+      ]
+    },
+    {
+      "id": "E07",
+      "name": "Numeric decision maps to canonical label",
+      "prompt": "保存済みの実装計画 `evals/vibe-plan-review/fixtures/profile-review/profile-settings-implementation-plan.md` のレビューを継続します。前回、最初の項目のユーザー選択肢は `1 承認`, `2 修正`, `3 保留`, `4 削除` と提示されました。私の選択は `2` です。テスト観点を追加してから実行したいです。日本語でお願いします。",
+      "expected_output": "The agent binds the saved profile settings plan, treats `2` as the numeric identifier for the canonical `修正` item decision, uses the supplied reason as revise-before-execution context or asks only for any missing revision wording, and does not require the user to retype the full `修正` label.",
+      "files": [
+        "evals/vibe-plan-review/fixtures/profile-review/profile-settings-implementation-plan.md",
+        "evals/vibe-plan-review/fixtures/profile-review/profile-settings-requirements-spec.md"
+      ],
+      "expectations": [
+        "Keeps the response focused on the supplied profile-settings plan's current item decision rather than treating the prompt as a new plan-writing or implementation request.",
+        "Interprets `2` as the second listed decision identifier and maps it to the canonical Japanese label `修正`.",
+        "Does not ask the user to re-enter `修正` solely because they used `2` instead of the full label.",
+        "Treats the supplied test-addition reason as revise-before-execution context, or asks only for missing concrete revision wording needed before continuing.",
+        "Stores, summarizes, or says it would record the item decision as `修正`, not as literal `2`.",
+        "Accepts an unambiguous numeric identifier for the current item decision, normalizes it to the canonical label for storage, counts, and reflection, and does not ask for clarification unless choices conflict.",
+        "Does not write or claim to write a replacement implementation plan artifact for this decision-intake turn.",
+        "Does not treat `2` as `承認`, `保留`, `削除`, final reflection confirmation, or implementation permission.",
+        "Does not modify the original implementation plan or proceed to code, tests, commits, or release work."
       ]
     }
   ]

@@ -21,7 +21,7 @@ quickstart when changing a skill or its eval suite.
 | Route an explicit multi-turn vibe-coding workflow | `vibe-coding` | Selects one primary visible `vibe-*` specialist for the next phase; does not relax downstream gates | `skills/vibe-coding/` | `evals/vibe-coding/` |
 | Draft, revise, save, finish, or explore requirements before planning | `vibe-requirements-spec` | Creates or updates the requirements spec artifact by default, uses explicit chat-only/no-file only when requested, and stops before implementation planning | `skills/vibe-requirements-spec/` | `evals/vibe-requirements-spec/` |
 | Create or revise an implementation plan from approval-evidenced or concrete inputs | `vibe-planning` | Writes a plan artifact and concise summary; stops before code, tests, changelog edits, commits, and release work | `skills/vibe-planning/` | `evals/vibe-planning/` |
-| Review, confirm, walk through, or pre-check a saved implementation plan before execution | `vibe-plan-review` | Reviews one plan item at a time, records localized item decisions from its reference file, and stops before implementation | `skills/vibe-plan-review/` | `evals/vibe-plan-review/` |
+| Review, confirm, walk through, or pre-check a saved implementation plan before execution | `vibe-plan-review` | Reviews one plan item at a time, records localized item decisions with numeric input shortcuts from its reference file, and stops before implementation | `skills/vibe-plan-review/` | `evals/vibe-plan-review/` |
 | Implement an existing concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Edits only after binding the plan and checking proceed conditions; stops before commits unless separately authorized | `skills/vibe-plan-execution/` | `evals/vibe-plan-execution/` |
 | Brainstorm creative implementation ideas, alternatives, expected behavior, or convention checks | `vibe-brainstorm` | Returns chat-first directions or checklists and stops before implementation until the user confirms the direction | `skills/vibe-brainstorm/` | `evals/vibe-brainstorm/` |
 | Debug or repair existing behavior from rough bug reports, regressions, failed fixes, or runtime artifacts | `vibe-debug-fix` | Produces evidence-backed repairs or retest contracts; does not authorize history mutation | `skills/vibe-debug-fix/` | `evals/vibe-debug-fix/` |
@@ -312,8 +312,10 @@ and before implementation begins. It reads the target plan, reads a
 corresponding requirements spec when one exists, and stops on requirements-plan
 conflicts or missing plan information needed for review. It reviews one plan
 item at a time with the localized output, AI-judgment, and user-decision labels
-defined in `references/localized-labels.md`. The user's item decisions remain
-the source of truth.
+defined in `references/localized-labels.md`. Users can answer with the
+localized decision label or a numeric identifier from `1` to `4`; the skill
+records the canonical decision label. The user's item decisions remain the
+source of truth.
 
 The skill checks requirement alignment, implementation order, missing work,
 ambiguity, risks, and verifiability while keeping source inspection minimal by
@@ -649,7 +651,8 @@ only explicit user, DoD, or confirmed-plan evidence.
 - `evals/vibe-planning/`: external planning eval prompts and fixtures
 - `evals/vibe-plan-review/`: external saved-plan review eval prompts and
   fixtures for plan/spec binding, conflict stops, no-spec confidence limits,
-  review-file safety, localized decisions, and reflection gates
+  review-file safety, localized decisions, numeric shortcuts, and reflection
+  gates
 - `evals/vibe-plan-execution/`: external plan-execution eval prompts and fixtures
 - `evals/vibe-brainstorm/`: external creative brainstorming and convention
   grounding eval prompts
@@ -671,7 +674,8 @@ only explicit user, DoD, or confirmed-plan evidence.
 - `skills/vibe-requirements-spec/`: Markdown requirements-spec drafting skill package
 - `skills/vibe-planning/`: standalone vibe-coding implementation-planning skill package
 - `skills/vibe-plan-review/`: saved-plan item review skill package, including
-  localized label guidance in `references/localized-labels.md`
+  localized label and numeric identifier guidance in
+  `references/localized-labels.md`
 - `skills/vibe-plan-execution/`: plan-bound vibe-coding implementation skill package
 - `skills/vibe-brainstorm/`: creative brainstorming and expected-behavior
   grounding skill package
@@ -733,10 +737,10 @@ specific to the skill.
   skills remain optional and get an explicit fallback.
 - `vibe-plan-review` reviews a saved Markdown implementation plan before
   execution, one item at a time. It keeps the original plan unchanged during
-  review, keeps localized labels in `references/localized-labels.md`, may
-  maintain `.<plan-name>.review.md` beside larger reviewed plans, and requires
-  explicit confirmation before reflecting item decisions back into the
-  executable plan.
+  review, keeps localized labels and numeric input shortcuts in
+  `references/localized-labels.md`, may maintain `.<plan-name>.review.md`
+  beside larger reviewed plans, and requires explicit confirmation before
+  reflecting item decisions back into the executable plan.
 - `vibe-plan-execution` is for implementing from an already-bound concrete plan.
   The plan can come from a planning workflow, a specification, an issue, a task
   list, or an inline plan supplied by the user. If a
