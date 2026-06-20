@@ -333,15 +333,23 @@ referenced local plan artifact over a short user-facing summary. It uses the
 plan's goal, requirements, acceptance criteria, test plan, risks, and proceed
 condition, and checks assumptions against local evidence or primary sources. It
 labels evidence for blockers, deviation notices, commit-checkpoint decisions,
-and execution summaries. It stops on contradictions or missing implementation
-facts. A concrete plan has a goal, in/out-of-scope behavior, acceptance criteria
-or pass/fail checks, a test or proof path, implementation steps or a code area to
-inspect, and risks or an explicit absence of known risks. It requires an
-evidence-backed gate before plan deviations, including
-shortcuts justified by perceived redundancy or a preferred smaller
-implementation. Agents must prove the affected plan item is contradicted,
-impossible, unsafe, stale, or already satisfied, then report the evidence,
-impact, and closest plan-preserving alternative before asking for approval.
+and execution summaries. It stops on contradictions, internal plan defects,
+known-defective implementation steps, or missing implementation facts. A
+concrete plan has a goal, in/out-of-scope behavior, acceptance criteria or
+pass/fail checks, a test or proof path, implementation steps or a code area to
+inspect, and risks or an explicit absence of known risks. Implementation steps
+are proposed means and do not outrank the plan's higher-level behavior
+contract: safety/security/data constraints, acceptance criteria, requirements,
+and non-goals. A Plan Validity Gate handles self-contradictory plans, planned
+steps that would fail acceptance criteria, local evidence that disproves a
+planning assumption, review findings, and concrete user follow-up failure modes.
+Plan-preserving corrections can proceed with recorded evidence; plan-changing
+corrections stop for a decision. It also requires an evidence-backed gate before
+plan deviations, including shortcuts justified by perceived redundancy or a
+preferred smaller implementation. Agents must prove the affected plan item is
+contradicted, impossible, unsafe, stale, or already satisfied, then report the
+evidence, impact, and closest plan-preserving alternative before asking for
+approval.
 When a bound plan includes high-risk planning sections, execution treats them as
 contract and does not weaken them without the Plan Deviation Gate. When commits
 are authorized, it commits only completed and verified checkpoints and uses
@@ -352,12 +360,17 @@ instruction facts instead of prompt-local harness phrases such as `this eval` or
 `current instruction`; inline plans are named by title or goal. Commit
 checkpoints inside a plan are proposals unless the user or explicit plan
 approval separately authorizes commit execution; "execute this plan" alone is
-not commit consent. Missing commit consent does not block an otherwise
-authorized implementation slice: execution implements and verifies the slice,
-then stops before staging, committing, or other history mutation. When a plan
-contains a `Skill usage plan`, execution binds it, re-checks route availability,
-and turns planning-time `Local investigation` into current `Local evidence`
-before relying on it. Host delegation or one scripted, independently recorded
+not commit consent. When a bound plan includes commit checkpoints, "commit after
+each slice" instructions, release work, destructive operations, delegated
+execution, external side effects, or other consent-bound items, execution runs a
+startup consent preflight before editing the affected slice. Missing commit
+consent does not block an otherwise authorized slice only when the plan has no
+planned history operation; planned checkpoint consent is resolved before editing
+or execution stops at the first verified uncommitted checkpoint instead of
+running through later slices. When a plan contains a `Skill usage plan`,
+execution binds it, re-checks route availability, and turns planning-time `Local
+investigation` into current `Local evidence` before relying on it. Host
+delegation or one scripted, independently recorded
 orchestration run may carry bounded sub-tasks of an authorized slice when each
 delegated unit receives the bound plan contract; deviation decisions, commit
 authorization, and final verification stay with the coordinator, and

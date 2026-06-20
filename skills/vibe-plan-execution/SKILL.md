@@ -12,10 +12,12 @@ Execute an existing implementation plan without inventing missing behavior. Bind
 to the plan, verify the facts it depends on, implement the smallest safe current
 slice, and stop when reality contradicts the plan.
 
-Questioning a plan is allowed. Deviating from it is not allowed until verified
-evidence proves the plan is incorrect, stale, impossible, unsafe, or already
-satisfied. Treat "this looks redundant" as a hypothesis, not as permission to
-skip planned API, specification, implementation, or test work.
+Questioning a plan is required when its sections conflict or implementation
+reveals a defect. The plan is authority for scope and intent, not proof that
+every implementation instruction is correct. Deviating from it is not allowed
+until verified evidence proves the plan is incorrect, stale, impossible, unsafe,
+or already satisfied. Treat "this looks redundant" as a hypothesis, not as
+permission to skip planned API, specification, implementation, or test work.
 
 If no concrete plan exists, return to planning before coding. A prior planning
 workflow can produce a valid plan, but no specific workflow is a prerequisite
@@ -47,7 +49,10 @@ directly:
 - `Behavior contract inventory`, `Behavioral equivalence analysis`,
   `Failure-pattern checks`, `Plan integrity gates`, and recovery sections define
   high-risk contract constraints when present.
-- `Implementation plan` defines the edit order; do not add adjacent work.
+- `Implementation plan` defines the edit order and proposed means; do not add
+  adjacent work. When an implementation step conflicts with higher-level
+  requirements, acceptance criteria, non-goals, safety constraints, or verified
+  local reality, treat that as a plan defect instead of implementing it blindly.
 - `Risks and unproven items` and `Proceed condition` decide whether coding
   starts, stays conditional, or returns to planning.
 
@@ -97,18 +102,40 @@ Do not use this skill for:
 - Treat the user's words as intent, not verified fact. Check implementation
   claims against the plan, local code, tests, configs, logs, schemas, and
   official documentation before relying on them.
-- The bound plan remains authoritative even when it seems redundant,
-  inefficient, overly broad, or simplifiable. Only `Local evidence` or
-  `Primary source` verification can prove that a planned step may be skipped,
-  reordered, narrowed, or replaced.
-- Do not implement outside the plan unless the Plan Deviation Gate has passed
-  and the user explicitly agrees. When an unplanned change appears necessary,
-  explain the reason, impact, and closest plan-preserving alternative first.
-- Missing commit authorization does not block an otherwise authorized
-  implementation slice. When the plan's proceed condition and the user's
-  instruction to execute or implement the plan allow implementation but do not
-  authorize commits, implement and verify the slice, then stop before staging,
-  committing, or other history mutation.
+- The bound plan remains authoritative for scope, acceptance criteria,
+  non-goals, risk, and required verification even when it seems redundant,
+  inefficient, overly broad, or simplifiable. It is not a shield for known-bad
+  implementation details. Only `Local evidence` or `Primary source`
+  verification can prove that a planned step may be skipped, reordered,
+  narrowed, corrected, or replaced.
+- Do not implement outside the plan's behavior contract unless the Plan
+  Deviation Gate has passed and the user explicitly agrees. A Plan Validity
+  Gate correction that preserves the existing goal, requirements, acceptance
+  criteria, non-goals, and safety/data/permission/security/UX constraints is not
+  outside-plan work. When an unplanned change appears necessary, explain the
+  reason, impact, and closest plan-preserving alternative first.
+- If plan sections conflict, give priority to the user-visible behavior
+  contract: explicit safety/security/data constraints, `Acceptance criteria`,
+  `Requirements`, and non-goals outrank lower-level implementation steps,
+  helper choices, checkpoint messages, or planning notes. Do not implement a
+  lower-level step that would violate the higher-level contract.
+- Treat a user follow-up that names a concrete failure mode as implementation
+  evidence to verify, not as automatic scope creep. Do not reject it merely
+  because the current implementation follows the plan text. Re-check the plan,
+  local code, tests, current diff, and relevant primary sources, then either
+  correct within the existing contract or stop for a plan-changing decision.
+- Missing commit authorization is not a generic implementation blocker for a
+  plan that has no planned history operation. When the plan's proceed condition
+  and the user's instruction to execute or implement the plan allow
+  implementation but do not authorize commits, implement and verify the ready
+  slice, then stop before staging, committing, or other history mutation.
+- A plan-authored `Commit checkpoints` section, "commit after each slice"
+  instruction, release step, destructive operation, external side effect,
+  delegated execution request, or other user-consent boundary is different: it
+  is a consent-bound plan item. If exact authorization is missing, run the
+  Startup Consent Preflight before editing the affected slice. Do not implement
+  through later slices hoping to reconstruct scoped commits or consent decisions
+  from a larger mixed diff.
 - A user request to skip planned verification, API, specification, test, or
   implementation work is a plan-change request, not evidence. Verify first or
   stop for a planning update when the skipped work affects correctness, data,
@@ -193,6 +220,85 @@ If the evidence does not prove one of those conditions, follow the plan. If the
 proof cannot be performed with available access, stop and make the missing proof
 or planning decision explicit. Do not ask the user to approve an evidence-free
 deviation.
+
+A correction classified by the Plan Validity Gate as plan-preserving is not an
+unapproved deviation merely because it changes a lower-level implementation
+detail. A correction classified as plan-changing remains a deviation and needs
+the usual user decision before implementation.
+
+## Plan Validity Gate
+
+Run this gate before or during implementation whenever the plan appears
+self-contradictory, a planned implementation step would fail the plan's own
+acceptance criteria, local code or tests disprove a planning assumption, a
+review finding exposes a likely regression, or the user names a concrete failure
+mode in follow-up.
+
+Use this gate to avoid two opposite failures: do not rewrite plans based on
+taste, but also do not ship known-bad behavior because it was written in the
+plan. Complete these steps:
+
+1. Re-read the affected goal, requirements, acceptance criteria, non-goals,
+   constraints, test plan, risks, proceed condition, and implementation step.
+2. Verify the issue with current `Local evidence` or a `Primary source` when the
+   conflict depends on code, data contracts, permissions, external APIs, current
+   diffs, or test behavior. Treat an unverified concern as `Unproven`, not as a
+   reason to rewrite the plan.
+3. Classify the fix:
+   - **Plan-preserving correction**: changes the means while preserving the
+     existing goal, requirements, acceptance criteria, non-goals, data handling,
+     permissions, security posture, and UX behavior. This is not unapproved
+     scope expansion; implement the correction after recording the evidence and
+     the rejected known-bad planned step.
+   - **Plan-changing correction**: changes product behavior, scope, data
+     handling, permissions, security posture, UX, external contracts, release
+     process, or acceptance criteria. Stop and ask for a planning update or
+     explicit decision before editing that behavior.
+4. If neither proof nor a plan-preserving correction is available, stop at the
+   blocker. Do not complete the known-defective planned implementation and do
+   not defend it as "required by the plan".
+
+When the user challenges an in-progress or completed slice with a concrete
+failure mode, run the same gate before arguing from plan text. If the challenge
+is verified and the correction stays within the existing contract, repair it as
+part of the current slice; if it changes the contract, stop for the smallest
+decision needed.
+
+## Startup Consent Preflight
+
+After binding the plan and before editing, staging, committing, delegating
+implementation, running destructive operations, triggering external side
+effects, or starting a slice whose later separation depends on a consented
+operation, scan the bound plan and current user instruction for consent-bound
+items.
+
+Consent-bound items include:
+
+- Repository history operations: commit checkpoints, staging, committing,
+  amending, stashing, resetting, release preparation, version bumps, squashes, or
+  "commit after each slice" instructions.
+- Destructive, irreversible, credential-exposing, paid, production, or external
+  side-effecting operations.
+- Host delegation or orchestration that shares work with other agents, runs
+  implementation unattended, or crosses a consent boundary.
+- Accepted-risk, plan-deviation, data-handling, permission, security, or UX
+  decisions that the plan says require user approval before the current slice.
+
+For each item, record the `Plan` source, the exact operation, when it would
+occur, current authorization evidence, and the fallback if authorization is
+denied or absent. Current authorization must name the operation or decision. A
+general request such as "execute this plan", "continue", "go ahead", approval
+of the plan's implementation scope, or acceptance of a checkpoint boundary is
+not authorization for the consent-bound operation itself.
+
+If any consent-bound item lacks exact authorization, pause before implementing
+the affected slice and ask for the smallest exact decision. For planned commit
+checkpoints, ask before editing the first checkpointed slice whether the user
+authorizes coordinator-managed commits at the planned verified checkpoints or
+wants a different checkpoint strategy. If the user declines commits or does not
+decide, do not run through later planned slices by default; implement at most
+the first verified checkpoint and stop before the next planned slice, unless the
+user explicitly chooses another non-commit checkpoint strategy.
 
 ## Delegated Execution Support
 
@@ -303,12 +409,25 @@ and does not authorize the next step or any commit.
    - Quote or paraphrase the plan's `Proceed condition` when it has one. For
      artifact-backed planning outputs, read the `Proceed condition` before other
      sections.
+   - Extract consent-bound plan items, including commit checkpoints and other
+     steps that require exact user authorization before implementation,
+     delegation, external side effects, or repository history mutation.
    - If a user-facing summary differs from the full plan artifact, treat the
      artifact as authoritative and stop for a decision when the difference
      changes behavior, scope, tests, risks, or the proceed condition.
    - If the concrete plan requirements are missing and the gap affects
      implementation, stop and ask for a planning update instead of filling it in.
-2. **Verify before editing**
+2. **Run startup consent preflight when needed**
+   - Apply the Startup Consent Preflight before editing when the bound plan or
+     current instruction contains consent-bound items.
+   - Ask only for missing exact authorization. Do not ask for fresh
+     implementation approval when the proceed condition and user instruction
+     already authorize implementation.
+   - If the missing consent affects checkpoint separation, delegated execution,
+     external side effects, destructive operations, data handling, permissions,
+     security, UX, release work, or history mutation, stop until the user decides
+     or choose the plan-preserving fallback stated in the preflight.
+3. **Verify before editing**
    - Inspect the relevant files, tests, configuration, schemas, and docs.
    - Re-check any plan-authored `Local investigation` that affects the current
      slice and record the current workspace result as `Local evidence` before
@@ -320,6 +439,9 @@ and does not authorize the next step or any commit.
      product limits, permissions, data contracts, and unstable facts.
    - Compare the plan with local reality. Record conflicts before choosing an
      implementation path.
+   - Run the Plan Validity Gate when a planned implementation step conflicts
+     with the plan's higher-level behavior contract, local reality, current
+     diff, review evidence, or a concrete user-reported failure mode.
    - If a planned inspection step is required before code or tests and the
      relevant files cannot be read, stop at the blocker and proof path. Do not
      draft implementation code, test templates, import paths, helper names, TTL
@@ -330,7 +452,7 @@ and does not authorize the next step or any commit.
      weaker proof path.
    - Run the Plan Deviation Gate before skipping, reordering, narrowing, or
      replacing any planned proof, API/specification check, test, or edit.
-3. **Lock the current slice**
+4. **Lock the current slice**
    - Implement only the smallest coherent unit from the plan that can be tested.
    - Keep future phases, nice-to-have improvements, and adjacent cleanup out of
      the edit unless the bound plan includes them.
@@ -338,7 +460,7 @@ and does not authorize the next step or any commit.
      change and get explicit agreement before editing.
    - Treat omitting a planned step as a deviation when that step could affect
      correctness, contracts, tests, data handling, permissions, security, or UX.
-4. **Prove behavior before or alongside code**
+5. **Prove behavior before or alongside code**
    - Follow the test or proof strategy in the plan.
    - For bug fixes, reproduce the failure or add a regression test when feasible.
    - For refactors, protect existing behavior with equivalence checks.
@@ -347,11 +469,11 @@ and does not authorize the next step or any commit.
      sections marked as `must preserve`, `Changed (in scope)`, or selected for
      high-risk proof.
    - For UI work, verify states and responsive behavior the plan calls out.
-5. **Implement conservatively**
+6. **Implement conservatively**
    - Reuse local helpers, conventions, naming, and architecture.
    - Keep changes close to the planned files and behavior surface.
    - Add comments only when they clarify non-obvious reasoning.
-6. **Verify and review**
+7. **Verify and review**
    - Run the plan's checks plus the repository's relevant lint, type, test, build,
      or manual smoke checks.
    - Run the Post-Implementation Review Gate on the implemented slice's diff
@@ -362,7 +484,7 @@ and does not authorize the next step or any commit.
      on them, and do not treat the review itself as a pass.
    - Review the final diff against the plan's acceptance criteria and non-goals.
    - Report any skipped check with the reason and residual risk.
-7. **Commit verified checkpoints when authorized**
+8. **Commit verified checkpoints when authorized**
    - Treat commit checkpoints in a bound plan as proposed commit boundaries, not
      commit authorization.
    - Commit only when the user explicitly authorizes the exact commit operation,
@@ -370,10 +492,17 @@ and does not authorize the next step or any commit.
      execution for the requested work.
    - "Execute this plan", "implement the plan", or a `Commit checkpoints`
      section alone is not commit consent.
-   - If implementation is authorized but commit execution is not, continue the
-     planned implementation and verification work, then report the verified
-     uncommitted state and the proposed checkpoint message. Do not stop before
-     editing merely to ask whether to commit later.
+   - When the bound plan includes commit checkpoints, resolve missing commit
+     authorization in the Startup Consent Preflight before editing the first
+     checkpointed slice. If the user declines or does not decide, do not
+     implement through later checkpoints by default; stop at the first verified
+     uncommitted checkpoint, or follow the exact alternate checkpoint strategy
+     the user chose.
+   - When the bound plan has no planned commit or history operation and
+     implementation is authorized, missing commit authorization does not block
+     the ready slice. Implement and verify it, then report the verified
+     uncommitted state and any proposed checkpoint message before staging,
+     committing, or other history mutation.
    - Commit after each completed and verified phase, slice, or checkpoint. Keep
      each commit logically scoped to the verified change.
    - Do not commit discovery-only, unverified, failing, or work-in-progress states
@@ -410,9 +539,17 @@ Stop before implementation, or pause an in-progress implementation, when:
 - The plan omits behavior, tests, data handling, permissions, or external
   contracts needed for the current slice.
 - Local evidence or a primary source contradicts the plan.
+- The plan is internally inconsistent, or a planned implementation step would
+  produce a verified defect, fail acceptance criteria, violate non-goals, or
+  contradict safety, data-handling, permission, security, UX, or external
+  contract constraints, and no plan-preserving correction is available.
 - The requested edit requires changing scope, architecture, data model,
   permissions, billing, security posture, UX behavior, or release process beyond
   the plan.
+- A consent-bound plan item lacks exact authorization and affects checkpoint
+  separation, delegated execution, external side effects, destructive
+  operations, data handling, permissions, security, UX, release work, or history
+  mutation.
 - An external API, library, framework, or product limit is relevant but unverified.
 - A proposed deviation has not passed the Plan Deviation Gate.
 - The Post-Implementation Review Gate cannot run in delegated mode or
@@ -424,8 +561,11 @@ Stop before implementation, or pause an in-progress implementation, when:
   unsafe without additional proof or permission.
 
 Missing commit authorization by itself is not a stop condition for an
-implementation-ready slice. It only blocks staging, committing, amending,
-stashing, resetting, release work, or other repository history mutation.
+implementation-ready slice only when the bound plan does not include planned
+commit checkpoints or other history operations. When the plan does include
+them, unresolved startup consent stops the affected slice before implementation,
+or stops before the next planned slice if the consent gap is discovered after a
+verified checkpoint.
 
 When stopping, explain:
 
@@ -445,6 +585,10 @@ When stopping, explain:
   Payment Webhook Plan` or `inline password-reset regression plan`. Do not
   describe the source as the current conversation, current prompt, current
   instruction, or eval workspace in user-facing output.
+- When startup consent is missing, ask for exact operation-specific decisions
+  before the affected slice and explain the checkpoint, data, permission,
+  delegation, external side effect, release, or history risk that makes the
+  decision current rather than optional cleanup.
 - Include the plan's `Proceed condition` in the initial binding note or the
   first blocker notice, even when later local evidence overrides it.
   If the final response is the first durable handoff, or if the run included
@@ -459,6 +603,10 @@ When stopping, explain:
 - Do not bury plan deviations in the final summary. Call them out before editing
   with the exact plan item, checks performed, evidence, impact, closest
   plan-preserving alternative, and decision needed.
+- When rejecting or correcting a flawed plan step, avoid framing the user or
+  local evidence as "violating the plan". Explain which higher-level plan
+  contract or verified fact the step would break, whether the correction is
+  plan-preserving or plan-changing, and what decision is needed if any.
 - Keep execution summaries durable. Replace prompt-local or harness-local
   phrases such as `this eval`, `as requested`, `above`, `current prompt`, or
   `current conversation`, `current instruction`, and `this eval workspace` with
@@ -482,6 +630,9 @@ Before finalizing:
   evidence-backed deviation after the Plan Deviation Gate was satisfied.
 - No planned step was skipped, reordered, narrowed, or replaced for perceived
   redundancy without passing the Plan Deviation Gate first.
+- Any internally inconsistent or known-defective plan step passed the Plan
+  Validity Gate before implementation continued; plan-preserving corrections
+  were evidenced and plan-changing corrections stopped for a decision.
 - Every approved deviation identified the exact affected plan item, verification
   performed, evidence labels and sources, impact, closest plan-preserving
   alternative, and user decision.
@@ -500,11 +651,15 @@ Before finalizing:
 - The final diff was reviewed against plan scope and non-goals.
 - `Skill usage plan` rows, when present, were bound and route availability was
   re-checked before use.
+- Consent-bound plan items were extracted during plan binding, and unresolved
+  exact authorization was handled by Startup Consent Preflight before the
+  affected slice.
 - Commit checkpoints were treated as proposals unless explicit user or
   plan-approval commit authorization named the operation.
-- Missing commit authorization, when that was the only missing authorization,
-  did not block an otherwise ready implementation slice; execution stopped
-  before repository history mutation instead.
+- Missing commit authorization did not block an otherwise ready slice only when
+  the bound plan had no planned commit checkpoints or history operations; when
+  planned checkpoints were present, startup consent was resolved before editing
+  or execution stopped at the first verified uncommitted checkpoint.
 - Authorized commits, if any, were made only after verified checkpoints and used
   standalone Conventional Commit messages without prompt or plan-label leaks.
 - Proposed commit messages were not wrapped in Markdown fences, and execution

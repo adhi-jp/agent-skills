@@ -187,6 +187,35 @@ use `[Repository] - YYYY-MM-DD`.
   Full with/without provider eval runs were not performed, so measurable skill
   improvement remains not measured.
 
+- `vibe-plan-execution` now adds a Plan Validity Gate so execution does not
+  blindly implement known-defective plan steps. The skill now treats
+  implementation steps as proposed means that do not outrank safety, data,
+  permission, security, acceptance criteria, requirements, or non-goal
+  contracts; concrete user follow-up failure modes, local evidence, review
+  findings, and internal plan contradictions trigger plan-validity analysis
+  before implementation continues. Plan-preserving corrections can proceed with
+  recorded evidence, while plan-changing corrections still stop for a user
+  decision. README and the `vibe-plan-execution` eval suite document and cover
+  this behavior. Verification: `python3 -m json.tool
+  evals/vibe-plan-execution/evals.json`,
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
+  and `git diff --check` pass. Full with/without provider eval runs were not
+  performed, so measurable skill improvement remains not measured.
+
+- `vibe-plan-execution` now runs a startup consent preflight when a bound plan
+  contains commit checkpoints, "commit after each slice" instructions, release
+  work, destructive operations, delegated execution, external side effects, or
+  other user-consent-bound items. Planned commit checkpoints remain proposed
+  boundaries rather than commit authorization, but unresolved checkpoint consent
+  now pauses before editing the affected slice so agents do not implement
+  through later slices and force compromised hunk extraction after the fact.
+  README and the `vibe-plan-execution` eval suite now document and cover the
+  startup consent behavior. Verification: `python3 -m json.tool
+  evals/vibe-plan-execution/evals.json`,
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
+  and `git diff --check` pass. Full with/without provider eval runs were not
+  performed, so measurable skill improvement remains not measured.
+
 - `vibe-plan-execution` now requires a mandatory post-implementation review gate
   after an implemented slice is verified and before execution summaries or
   authorized commits. The gate prefers review-only delegated reviewers when a
