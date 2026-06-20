@@ -82,6 +82,14 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skills/skill-eval/scripts/eval_runner.py` now accepts and scores a parseable
+  grader verdict when the grader subprocess exits nonzero without a provider
+  error, preventing a valid recorded `verdicts` payload from being downgraded
+  to `grader_failed`. Nonzero grader exits with no parseable verdict remain
+  infrastructure failures. Regression coverage now exercises this salvage path.
+  Verification: `python3 -m pytest tests/test_eval_runner.py` passes (80 tests);
+  no live provider eval was rerun.
+
 - `vibe-requirements-spec` now supports explicit `strict-four-choice`,
   `lightweight-four-choice`, and `freestyle` drafting modes, creates or updates
   requirements spec artifacts by default unless the user explicitly requests

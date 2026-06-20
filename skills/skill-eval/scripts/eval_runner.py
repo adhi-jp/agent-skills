@@ -1225,10 +1225,13 @@ else:
 
 record("exit")
 
-# Test hook: a non-zero executor_exit on the with_skill side simulates an
-# executor provider failure so the runner's failure handling can be exercised.
-if role == "executor" and config == "with_skill":
-    sys.exit(int(spec.get("executor_exit", 0) or 0))
+# Test hooks: non-zero exits on the with_skill side simulate provider/process
+# failures so the runner's failure handling can be exercised.
+if config == "with_skill":
+    if role == "executor":
+        sys.exit(int(spec.get("executor_exit", 0) or 0))
+    if role == "grader":
+        sys.exit(int(spec.get("grader_exit", 0) or 0))
 '''
 
 
@@ -1517,15 +1520,13 @@ def execute_run(
         write_text(outputs_dir / "grader_output.txt", grader_output)
         if g_timeout:
             status = "grader_timeout"
-        elif g_exit not in (0, None):
-            status = "grader_failed"
         elif grader_metrics.get("error"):
             status = "grader_failed"
             grader_error = f"grader provider error: {grader_metrics['error']}"
         else:
             grading, grader_error = parse_grader_output(grader_output)
             if grading is None:
-                status = "grader_unparseable"
+                status = "grader_failed" if g_exit not in (0, None) else "grader_unparseable"
 
     summary = summarize_grading(grading, assertions)
     write_json(run_dir / "grading.json", summary)

@@ -732,6 +732,27 @@ class NegativeTests(BaseRunnerTest):
         benchmark = json.loads((self.iteration_dir() / "benchmark.json").read_text())
         self.assertIsNone(benchmark["overall_pass_rate"]["with_skill"])
 
+    def test_parseable_grader_output_scores_when_grader_exits_nonzero(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec(
+            {
+                "executor_output": "answer",
+                "grader_exit": 2,
+                "grading": {"with_skill": {"pass": True}, "without_skill": {"pass": True}},
+            }
+        )
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        record = json.loads(
+            (self.iteration_dir() / "eval-first-eval" / "with_skill" / "run-1" / "run.json").read_text()
+        )
+        self.assertEqual(record["status"], "ok")
+        self.assertTrue(record["scored"])
+        self.assertEqual(record["pass_rate"], 1.0)
+        self.assertIsNone(record["grader_error"])
+        benchmark = json.loads((self.iteration_dir() / "benchmark.json").read_text())
+        self.assertEqual(benchmark["overall_pass_rate"]["with_skill"], 1.0)
+        self.assertEqual(benchmark["error_run_count"], 0)
+
     def test_sanity_checks_flag_infrastructure_failure(self):
         path = self.write_suite()
         spec = self.write_stub_spec(
