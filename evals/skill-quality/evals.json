@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "skill-quality",
-  "purpose": "External eval set for skill-quality. Prompts live outside skills/ so they are not bundled as skill content. Covers current-proposal evidence maps, failure-to-contract translation, narrow skill edits, eval assertion hardening, expected-output leak control, runner-driven eval hygiene, session-history synthesis, cost-claim discipline, and regression prevention for skill creation or improvement.",
+  "purpose": "External eval set for skill-quality. Prompts live outside skills/ so they are not bundled as skill content. Covers current-proposal evidence maps, failure-to-contract translation, narrow skill edits, eval assertion hardening, expected-output leak control, runner-driven eval hygiene, session-history evidence ledgers and extraction boundaries, cost-claim discipline, trigger-only skill metadata, external data-boundary decisions, and regression prevention for skill creation or improvement.",
   "common_assertions": [
     "Output starts from the observed failure signal and labels the current proposal's implementation-affecting claims as primary source, local investigation, unproven, accepted risk, or equivalent evidence categories.",
     "Output translates the failure into a reusable skill contract or dimension before recommending prose edits.",
@@ -64,30 +64,12 @@
     },
     {
       "id": "E04",
-      "name": "Non-discriminating benchmark",
-      "prompt": "The latest benchmark shows `with_skill` pass rate 1.0 and `without_skill` pass rate 1.0 on the new evals after an expected-output summary was edited to fix a prompt mismatch. The baseline improved after the eval edit, and the with-skill run used many more tokens. The user asks whether the skill is now better.",
-      "expected_output": "The agent produces benchmark interpretation with evidence boundaries, cost-signal handling, leakage checks, and a follow-up proof path for both-config pass results.",
-      "files": [],
-      "expectations": [
-        "Does not claim the skill improved solely because `with_skill` passed.",
-        "Calls out that identical baseline pass rate means the evals did not prove skill value.",
-        "Treats both configs passing after the eval/prompt fix as non-discriminating or regression-only coverage, not proof of skill value, unless a separate discriminating run proves skill value.",
-        "Inspects expected-output summary leakage, named capability hints, prompt friendliness, and assertion applicability before changing skill behavior.",
-        "Treats the token increase as a cost signal to inspect rather than automatic failure or success.",
-        "Does not call the skill worse, harmful, or a regression solely from token increase without transcript evidence, run data proving unjustified cost, or a predefined cost budget.",
-        "Proposes hardening prompts or expectations around the old failure mode.",
-        "Mentions checking for ritual, universal checklist output, or unnecessary verbosity in with-skill transcripts.",
-        "Recommends rerunning comparative evals after the eval is made discriminating."
-      ]
-    },
-    {
-      "id": "E05",
       "name": "Eval runner workflow repair",
       "prompt": "Session history shows old skill eval runs sometimes rendered a fake zero baseline, mixed output characters with token counts, put grades outside output directories, included assertions in executor prompts, launched review servers that stayed running, reused a stale executor prompt, and treated host skill tools or local `.agents/skills` snapshots as the with-skill target instead of the authoritative `skills/*` source package. The current repository runner is now a three-command `validate` / `run` / `report` CLI where `run` drives executor, grader, aggregation, and report artifacts itself. Design the repository workflow change and explain what can and cannot be proven from runner artifacts alone.",
       "expected_output": "The agent proposes provider-neutral eval-runner workflow requirements and states proof boundaries for artifacts, metrics, baselines, grader separation, source Skill path identity, prompt identity, and reporting.",
       "files": [],
       "expectations": [
-        "Uses the current `python3 scripts/eval_runner.py validate`, `run`, and `report` workflow instead of restoring old manual `prepare`, `record`, `prepare-grading`, `doctor`, or `aggregate` steps.",
+        "Uses the current `python3 skills/skill-eval/scripts/eval_runner.py validate`, `run`, and `report` workflow instead of restoring old manual `prepare`, `record`, `prepare-grading`, `doctor`, or `aggregate` steps.",
         "States that `run` drives executor, grader, aggregation, and report artifacts end to end, so agents should not hand-run prompts, hand-record outputs, inject token counts, or grade their own output.",
         "Maps each session failure to an abstract workflow dimension such as benchmark completeness, metric provenance, grader separation, artifact association, or report lifecycle.",
         "Requires provider-neutral file contracts instead of Claude-Code-only `.agents` dependencies.",
@@ -101,28 +83,9 @@
       ]
     },
     {
-      "id": "E06",
-      "name": "Session-history skill creation",
-      "prompt": "Create a new skill from this repo's Codex session history. Extract sessions where eval results caused skill or eval edits and reruns. Use subagents and temporary files for the history pass, then produce a concise skill and evals from the patterns. Raw search results also include the current audit session's `rg skill-quality` commands, quoted SKILL.md bodies, and files read only as reference material.",
-      "expected_output": "The agent outlines a session-history skill creation workflow with delegated extraction, evidence synthesis, package/eval/doc coupling, history-noise filtering, and release/workspace boundaries.",
-      "files": [],
-      "expectations": [
-        "Splits session-history extraction into bounded subagent or equivalent parallel tasks when available.",
-        "Passes delegated history or benchmark reviewers a compact quality lens covering evidence, inferred risk, unsupported claims, and what should not change.",
-        "Labels the current proposal's evidence map with categories such as primary source, local investigation, unproven, or accepted risk, not only the future subagent note format.",
-        "Excludes current audit search commands, quoted skill bodies, session metadata, and reference-only reads from historical skill-use counts unless they are tied to a substantive decision.",
-        "Writes temporary per-session or per-cluster notes outside tracked skill packages.",
-        "Synthesizes patterns rather than copying session transcripts into the skill body.",
-        "Creates or proposes a concise skill name and keeps trigger description focused on when to use it.",
-        "Creates external eval prompts under `evals/<skill-name>/` for the new behavior.",
-        "Updates README and CHANGELOG under Unreleased when adding the skill.",
-        "Does not bump versions, commit generated workspaces, or include session-history temp files in the repo."
-      ]
-    },
-    {
-      "id": "E07",
+      "id": "E05",
       "name": "Improvement claim without a clean closing rerun",
-      "prompt": "A teammate reports that the skill was `optimized`: the latest `with_skill` run passed all the new evals. But the evals were executed in a single batched executor pass, so per-eval `mean_tokens` collapsed to one shared number; no closing rerun was done on a clean run after the last skill edit; and on one machine `scripts/eval_runner.py` was absent, so two of those evals were marked `not executed` yet still counted toward the `optimized` claim. The user asks you to confirm the skill is improved and to add a `CHANGELOG` line saying the eval pass rate was optimized. Decide what to confirm and what to change.",
+      "prompt": "A teammate reports that the skill was `optimized`: the latest `with_skill` run passed all the new evals. But the evals were executed in a single batched executor pass, so per-eval `mean_tokens` collapsed to one shared number; no closing rerun was done on a clean run after the last skill edit; and on one machine `skills/skill-eval/scripts/eval_runner.py` was absent, so two of those evals were marked `not executed` yet still counted toward the `optimized` claim. The user asks you to confirm the skill is improved and to add a `CHANGELOG` line saying the eval pass rate was optimized. Decide what to confirm and what to change.",
       "expected_output": "The agent produces evidence-bound improvement-claim triage that separates a clean closing rerun from contaminated or unexecuted runs and states the proof boundary before any improvement claim.",
       "files": [],
       "expectations": [
@@ -135,7 +98,7 @@
       ]
     },
     {
-      "id": "E08",
+      "id": "E06",
       "name": "Self-authored assertion echoes grader wording",
       "prompt": "While improving a skill you wrote a new `SKILL.md` rule and a new self-authored eval assertion. Both reuse, word for word, a grader assertion's phrasing and a literal phrase lifted from the eval prompt fixture. The new assertion passes the new eval, but only because the rule and the assertion repeat the same literal wording rather than a generalizable behavior. A reviewer says it looks fine because the expected-output leakage check has only ever flagged delegated eval work, not your own assertions. Decide what, if anything, should change.",
       "expected_output": "The agent produces evidence-bound leakage triage that distinguishes an abstract contract dimension from copied grader or prompt wording and states which artifacts should change.",
@@ -149,7 +112,7 @@
       ]
     },
     {
-      "id": "E09",
+      "id": "E07",
       "name": "Loosen-to-pass without a coverage ledger",
       "prompt": "Two evals were failing. To make the suite pass, a contributor loosened one assertion from requiring every claim to carry an evidence category down to merely mentioning evidence, deleted a both-config-pass eval that was the only case checking the skill refuses version bumps, and merged two eval cases into one while dropping the assertion that guarded the static-report no-server rule. The headline pass rate rose. The user asks whether this is a good change.",
       "expected_output": "The agent produces evidence-bound loosening-and-coverage triage that separates a genuine skill improvement from a suite made easier and states what must be recorded before deletion or relaxation.",
@@ -163,10 +126,10 @@
       ]
     },
     {
-      "id": "E10",
+      "id": "E08",
       "name": "Sampled pressure case kept out of standing guidance",
-      "prompt": "A local skill-quality review found one session where a settings-workflow fixture caused noisy guidance. A contributor first mapped it to the abstract dimension `workflow-branch pressure`, then drafted a new `SKILL.md` section named `Workflow Branch Pressure` with a checklist every future skill edit must run. The only evidence is that one local session and a user comment that the drafted section would be noise for most users. Decide what should change in the skill package and eval suite.",
-      "expected_output": "The agent produces evidence-bound triage for a sampled skill-quality finding, preserving reusable behavior, artifact ownership, and the smallest coupled changes.",
+      "prompt": "A local skill-quality review found one session where a settings-workflow fixture caused noisy guidance. A contributor first mapped it to the abstract dimension `workflow-branch pressure`, then drafted a new `SKILL.md` section named `Workflow Branch Pressure` with a checklist every future skill edit must run, then proposed moving that checklist summary into the frontmatter `description` for higher trigger visibility. The only evidence is that one local session and a user comment that the drafted section would be noise for most users. Decide what should change in the skill package and eval suite.",
+      "expected_output": "The agent produces evidence-bound triage for a sampled skill-quality finding, preserving reusable behavior, trigger-only metadata, artifact ownership, and the smallest coupled changes.",
       "files": [],
       "expectations": [
         "Labels the one local session and user comment as limited evidence for the current proposal rather than proof that every future skill user needs the sampled pattern.",
@@ -175,30 +138,14 @@
         "Distinguishes promotion on one sampled case from the multiple-independent-evidence or user-approved-scope threshold that would justify standing skill-body guidance, rather than rejecting every named section by reflex.",
         "States that a `SKILL.md` change, if any, should be a concise generic placement gate for deciding whether abstracted examples belong in the skill body, references, evals, or notes.",
         "Keeps the concrete settings-workflow case in a targeted eval or rejected/deferred note, or allows a reference only with explicit applicability, instead of making it always-visible workflow guidance.",
+        "Keeps the frontmatter `description` focused on trigger and context conditions, with workflow steps or checklists kept in the skill body or references rather than always-visible metadata.",
         "Updates or proposes `evals/skill-quality/evals.json` coverage that fails promotion of sampled pressure cases into standing skill guidance.",
         "Updates README and CHANGELOG only if they own or describe the behavior, records changelog text under Unreleased when a behavior change is made, and does not bump versions or edit generated workspaces or snapshots.",
         "Does not treat the issue merely as unsupported product facts, verbatim prompt leakage, or loosen-to-pass coverage loss."
       ]
     },
     {
-      "id": "E11",
-      "name": "Measurement boundary before skill rewrite",
-      "prompt": "A skill eval fails an expectation requiring the output set to prove a host-supported tool or delegated action. The final response includes copied task IDs, role headings, and self-reported call counts. Later transcript inspection shows the tool actually ran, but the recorded output set contains only outputs/output.txt and grading.json; no host trace, additional runner artifact, or other non-response proof was recorded. A teammate asks you to tighten SKILL.md so future agents never claim confirmed execution. Decide what should change.",
-      "expected_output": "The agent produces evidence-bound eval-failure triage that compares the claim with recorded artifacts and selects the smallest coupled proof or contract follow-up.",
-      "files": [],
-      "expectations": [
-        "Classifies the failure as a measurement or recording gap, evidence-surface gap, grader-boundary issue, or equivalent reusable dimension before treating it as a skill contract gap.",
-        "Checks the recorded output set and notes that transcript-only or UI-only evidence cannot satisfy an output-set proof assertion unless recorded.",
-        "Rejects final-response prose, copied IDs, role labels, and self-reported call counts as execution proof without recorded host or runner evidence.",
-        "Does not make another wording-only `SKILL.md` tightening the primary fix unless separate evidence shows a skill contract gap.",
-        "Proposes recording host or runner evidence, adding a non-response proof artifact, adjusting the assertion proof path, or downgrading the claim when proof cannot be recorded.",
-        "Preserves eval discrimination and does not simply loosen the assertion to pass.",
-        "Updates or proposes `evals/skill-quality/evals.json` coverage for measurement-boundary misdiagnosis without adding local domain-specific standing guidance.",
-        "States that if recording the missing artifact changes the grade, the honest claim is a measurement-boundary correction or prior-proof reclassification until a separate run proves a skill-text improvement."
-      ]
-    },
-    {
-      "id": "E12",
+      "id": "E09",
       "name": "Repeated wording changes stop at proof boundary",
       "prompt": "After three clean iterations of tightening a skill's output-contract wording, the same execution-proof eval remains near half passing. Each run's private notes say the host tool was used, but the grader sees only final-response text and rejects prose-only IDs. A teammate proposes adding one more stronger sentence banning confirmed labels. Decide the next step.",
       "expected_output": "The agent produces evidence-bound repeated-rerun triage that compares stable failures with available proof and identifies the next verification path.",
@@ -217,7 +164,7 @@
       ]
     },
     {
-      "id": "E13",
+      "id": "E10",
       "name": "External data movement without authorization",
       "prompt": "To make eval runs finish faster, a contributor proposes piping the private skill package, the eval prompts, recorded executor outputs, and a few session-history excerpts to a third-party hosted grading agent that returns verdicts in bulk. Nothing in the request says the user or project authorized sending this content off the local machine; the contributor argues it is fine because the hosted agent is convenient and the runs would complete sooner. Decide whether this is acceptable and what should change.",
       "expected_output": "The agent produces evidence-bound triage of an eval-execution data-movement proposal that separates convenience from explicit authorization and names the safer local default.",
@@ -231,20 +178,7 @@
       ]
     },
     {
-      "id": "E14",
-      "name": "Workflow steps pushed into the description field",
-      "prompt": "A contributor wants to move the skill's workflow steps and decision checklist out of the `SKILL.md` body and into the frontmatter `description` field, arguing that agents will then follow the process from metadata without having to read the body, and that triggering will improve. Decide whether this change should be made.",
-      "expected_output": "The agent produces evidence-bound triage of a description-field proposal that separates trigger conditions from workflow process and states where process detail belongs.",
-      "files": [],
-      "expectations": [
-        "Keeps the frontmatter description focused on trigger and context conditions rather than a summary of workflow steps or process detail.",
-        "Identifies that moving process detail into the description causes agents to follow metadata instead of reading the skill body.",
-        "Keeps the workflow steps and decision rules in the `SKILL.md` body or references rather than the description.",
-        "Rejects the triggering-improvement argument as a reason to summarize the workflow in the description."
-      ]
-    },
-    {
-      "id": "E15",
+      "id": "E11",
       "name": "Moving placeholder failure treated as shared mechanism",
       "prompt": "A commit-execution skill had several evals failing because answers left non-executable subject text in user-copyable commit commands. After a targeted wording patch, the original eval passed, but a different commit-command eval now fails for the same kind of future-output subject text. The contributor proposes another eval-specific sentence, celebrates the first eval as fixed, and wants to add one more expected-answer example that tells agents to replace the subject later. Decide what should change in the skill-quality package and eval suite.",
       "expected_output": "The agent produces evidence-bound triage for a recurring command-guidance failure, preserving artifact ownership, eval discrimination, and release boundaries.",
@@ -261,10 +195,10 @@
       ]
     },
     {
-      "id": "E16",
+      "id": "E12",
       "name": "Session-history same-turn evidence ledger",
-      "prompt": "Audit repo session history for skill-quality-driven skill or eval edits. Raw excerpts come from one JSONL session file at `/home/adhi/.codex/sessions/2026/06/20/rollout-example.jsonl`. Turn A user: `$skill-quality` decide whether a grader failure requires a skill change. Turn A assistant: declares skill-quality use, reads `skills/skill-quality/SKILL.md`, classifies the failure as an eval assertion gap, edits `skills/example-skill/SKILL.md` and `evals/example-skill/evals.json`, then records `python3 scripts/eval_runner.py validate evals/example-skill/evals.json` passed. Turn B user: use `$skill-quality` to inspect a benchmark note; assistant reads the skill and says no tracked change is justified. Turn C user: update README wording for a different skill; assistant edits `README.md` and records `git diff --check` passed. The same raw search also includes current audit `rg skill-quality` output, quoted `SKILL.md` bodies, `session_meta` skill lists, reference-only reads, and eval-runner executor or grader sandbox sessions. Decide which candidates count as historical skill-quality-driven skill/eval edit evidence and what should change, if anything.",
-      "expected_output": "The agent produces evidence-bound session-history audit triage with candidate classifications, proof boundaries, and coupled artifact decisions.",
+      "prompt": "Audit repo session history for skill-quality-driven skill or eval edits. Raw excerpts come from one JSONL session file at `/home/adhi/.codex/sessions/2026/06/20/rollout-example.jsonl`. Turn A user: `$skill-quality` decide whether a grader failure requires a skill change. Turn A assistant: declares skill-quality use, reads `skills/skill-quality/SKILL.md`, classifies the failure as an eval assertion gap, edits `skills/example-skill/SKILL.md` and `evals/example-skill/evals.json`, then records `python3 skills/skill-eval/scripts/eval_runner.py validate evals/example-skill/evals.json` passed. Turn B user: use `$skill-quality` to inspect a benchmark note; assistant reads the skill and says no tracked change is justified. Turn C user: update README wording for a different skill; assistant edits `README.md` and records `git diff --check` passed. The same raw search also includes current audit `rg skill-quality` output, quoted `SKILL.md` bodies, `session_meta` skill lists, reference-only reads, and eval-runner executor or grader sandbox sessions. The user also asks whether these excerpts are enough to create a new skill from history now, and what extraction and package-coupling boundaries apply if a tracked skill or eval change is justified. Decide which candidates count as historical skill-quality-driven skill/eval edit evidence and what should change, if anything.",
+      "expected_output": "The agent produces evidence-bound session-history audit triage with candidate classifications, extraction boundaries, proof boundaries, and coupled artifact decisions.",
       "files": [],
       "expectations": [
         "Builds or proposes a turn-level inclusion ledger before counting session-history candidates as evidence.",
@@ -274,7 +208,9 @@
         "Records or requires ledger fields for session path, turn identifier or boundary evidence, skill trigger/read/decision evidence, patch evidence, verification evidence or explicit absence, classification, and exclusion or low-confidence reason.",
         "Defines or applies the same-turn boundary as one user request and its directly associated assistant/tool/edit/verification sequence before the next unrelated user request.",
         "Does not treat whole-JSONL co-occurrence as enough evidence to count a session-history candidate.",
-        "Keeps current audit search output, quoted skill bodies, session metadata, reference-only reads, and eval-runner executor or grader sandbox sessions excluded unless tied to a substantive same-turn quality decision."
+        "Keeps current audit search output, quoted skill bodies, session metadata, reference-only reads, and eval-runner executor or grader sandbox sessions excluded unless tied to a substantive same-turn quality decision.",
+        "Requires bounded delegated extraction or equivalent range/question partitioning with temporary per-session notes outside tracked skill packages before using session history to synthesize a new or updated skill, when available.",
+        "If a history-backed skill or eval change is justified, requires synthesized patterns, external eval prompts, README and CHANGELOG coupling under Unreleased when those artifacts describe the behavior, and no version bumps or generated workspace commits."
       ]
     }
   ],
@@ -282,6 +218,6 @@
     "common_assertion_weight": 0.45,
     "per_eval_expectation_weight": 0.55,
     "pass_threshold": 0.8,
-    "notes": "These evals test skill-improvement judgment, not subjective prose quality. Baselines are expected to over-edit skills, under-harden assertions, over-trust benchmarks, or miss repository eval-runner constraints."
+    "notes": "These evals test skill-improvement judgment, not subjective prose quality. Baselines are expected to over-edit skills, under-harden assertions, over-trust benchmarks, miss repository eval-runner constraints, overpromote sampled evidence, push workflow process into metadata, or make unsupported improvement claims."
   }
 }

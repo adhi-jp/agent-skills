@@ -109,6 +109,63 @@ use `[Repository] - YYYY-MM-DD`.
   Verification: `python3 -m pytest tests/test_eval_runner.py` passes (80 tests);
   no live provider eval was rerun.
 
+- External skill eval suites are compacted from 187 to 152 total cases in the
+  current Unreleased state. The representative-suite reduction deletes
+  lower-discrimination or overlapping cases in `skill-quality`, `vibe-coding`,
+  `vibe-commit`, `vibe-debug`, `vibe-plan-execution`, `vibe-planning`,
+  `vibe-requirements-spec`, `vibe-review`, and `vibe-writing`; the
+  `vibe-requirements-spec` suite also carries focused strict-default additions
+  below. Remaining cases in changed suites are renumbered sequentially, and suite
+  purpose/scoring notes now describe representative coverage where full case
+  matrices were reduced. A follow-up coverage check folds the removed
+  `vibe-coding` debug-vs-plan-execution pressure into the remaining
+  code-investigation/debug-precedence case, so a symptom-bearing repair request
+  with active plan context still guards against routing to `vibe-plan-execution`.
+  A follow-up `vibe-coding` common assertion now scopes
+  `matched-but-unavailable` versus `no matching specialist` discrimination to
+  unavailable/no-match decisions, while still requiring ordinary route decisions
+  to be grounded in visible metadata or supplied source material; this prevents
+  available-route scenarios from being penalized for omitting unavailable-route
+  diagnostics.
+  A follow-up `skill-quality` coverage check folds the removed
+  session-history skill-creation and description-field pressure into retained
+  representative cases, so delegated history extraction/package-coupling and
+  trigger-only description boundaries remain covered without restoring full
+  lower-discrimination cases.
+  Verification:
+  `python3 -m json.tool` passed for each changed `evals.json`, and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate` passed for every suite under
+  `evals/*/evals.json`; after the `vibe-coding` follow-ups,
+  `python3 skills/skill-eval/scripts/eval_runner.py validate
+  evals/vibe-coding/evals.json` also passes; after the `skill-quality`
+  follow-up, `python3 -m json.tool evals/skill-quality/evals.json` and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate
+  evals/skill-quality/evals.json` also pass. A claude/claude-sonnet-4-6
+  with/without run after the `skill-quality` follow-up, at
+  `evals/skill-quality/workspace/claude/iteration-16/`, recorded 24/24 scored
+  runs, `error_run_count=0`, metrics captured, no infrastructure failures, no
+  zero-scored cells, and no source-fixture dirty cells. It reports
+  `with_skill` 85.6% vs `without_skill` 77.0% (+8.6 points), with
+  `REVIEW REQUIRED` explained by the E03 candidate-below-baseline cell
+  (`53.8% < 61.5%`). Artifact inspection found ok executor, grader, and runner
+  status for E03, and the candidate cell stayed at 53.8% across the pre- and
+  post-follow-up runs while the baseline rose by one assertion, so this is a
+  caveated single-run result rather than a clean proof of improvement or a
+  tracked skill regression. A clean claude/claude-sonnet-4-6 with/without run
+  after the `vibe-coding` debug-precedence and
+  common-assertion follow-ups, at
+  `evals/vibe-coding/workspace/claude/iteration-22/`, recorded 22/22 scored
+  runs, `error_run_count=0`, metrics captured, Sanity OK, no infrastructure
+  failures, no zero-scored cells, no candidate-below-baseline cells, and no
+  source-fixture dirty cells. The run reports `with_skill` 98.8% vs
+  `without_skill` 81.7% (+17.1 points); E09 stayed green at 100.0% for both
+  configs, so that cell is regression coverage rather than a discriminating
+  proof in this run.
+  Executor-only metric deltas for that run were +28.6s, +1,292 tokens, and
+  +$0.0736 for `with_skill` versus `without_skill`. Full with/without provider
+  comparisons across all changed suites were not run, so all-suite measurable
+  effectiveness preservation remains not measured.
+
 - `vibe-coding` now clarifies that represented turns containing only host
   invocations, paths, commands, enums, identifiers, code, or other technical
   tokens are language-neutral for route-description language selection. A
