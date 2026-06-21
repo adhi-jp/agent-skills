@@ -361,6 +361,12 @@ Choose the user-facing route-description or summary language in this order:
    it for the whole route response, including headings.
 3. The active user's conversational language.
 
+A represented turn that contains only a host invocation, path, command, enum,
+identifier, code, or other technical token is language-neutral. It does not
+override or block a clear natural-language represented turn from setting the
+route-description language for that turn, or for the whole classification set
+when no represented turns conflict.
+
 Do not inherit the surrounding benchmark, orchestrator, or executor-session
 language when it differs from a represented current user instruction whose
 route behavior you are simulating. Apply the selected language to headings,

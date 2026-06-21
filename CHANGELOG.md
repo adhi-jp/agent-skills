@@ -109,6 +109,24 @@ use `[Repository] - YYYY-MM-DD`.
   Verification: `python3 -m pytest tests/test_eval_runner.py` passes (80 tests);
   no live provider eval was rerun.
 
+- `vibe-coding` now clarifies that represented turns containing only host
+  invocations, paths, commands, enums, identifiers, code, or other technical
+  tokens are language-neutral for route-description language selection. A
+  language-neutral represented turn does not block a clear natural-language
+  represented turn from setting the language for that turn, or for the whole
+  classification set when no represented turns conflict. This addresses the
+  inspected E01 language-gate miss in
+  `evals/vibe-coding/workspace/claude/iteration-18/`, where the route decision
+  was otherwise correct. Verification: a follow-up
+  claude/claude-sonnet-4-6 run at
+  `evals/vibe-coding/workspace/claude/iteration-19/` recorded 22/22 scored runs,
+  `error_run_count=0`, Sanity OK, metrics captured, and overall `with_skill`
+  99.2% vs `without_skill` 80.1% (+19.1 points). The targeted E01
+  `with_skill` cell reached 100.0% after the clarification. Because this is a
+  single-run comparison and E11 `with_skill` missed one output-explicitness
+  assertion while baseline cells also moved, stability beyond the targeted E01
+  result remains not measured.
+
 - `vibe-debug-fix` is renamed to `vibe-debug` across the source skill package,
   eval suite identity, README chooser and package references, and
   `vibe-coding` routing fixtures. The debug-and-repair workflow contract and
