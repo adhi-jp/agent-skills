@@ -191,10 +191,25 @@ use `[Repository] - YYYY-MM-DD`.
   conversation-supplied current spec path as current context when the file is
   missing, unreadable, or unavailable in the active workspace, and requires the
   response to say when the saved spec was not inspected or changed instead of
-  dropping or forking the path. The explicit-finish eval now states the cleared
-  completion-audit precondition so it no longer conflicts with the blocker
-  audit, and the lightweight-mode eval scopes one-question assertions to the
-  main requirements decision after any separate startup permission question.
+  dropping or forking the path. A noise-reduction cleanup now removes pre-write
+  scans and migration cleanup for obsolete approval or revision spec strings
+  from the skill body, while keeping the current contract that approval,
+  lifecycle, and revision state stay out of spec artifacts. The eval suite keeps
+  that artifact-state contract generic and guards against no-op cleanup reports
+  about absent approval or revision strings. Another correction now keeps
+  false-premise, contradiction, feasibility-risk, destructive-risk, and
+  specification-break stops in the normal requirements-spec artifact shape,
+  including `Evidence and constraints`, even when the saved current spec remains
+  unchanged; E12 now guards against diagnostic-only stop artifacts. Host or
+  eval-runner artifact capture paths are now treated as write transport rather
+  than selected spec paths, so `Current spec path` still follows the normal
+  path rules. The eval suite now clarifies that chat-language or session-response
+  instructions alone do not override the artifact language selected by explicit
+  artifact-language request, `VIBE_DOCUMENT_LANGUAGE`, or the skill default. The
+  explicit-finish eval now states the cleared completion-audit precondition so
+  it no longer conflicts with the blocker audit, and the lightweight-mode eval
+  scopes one-question assertions to the main requirements decision after any
+  separate startup permission question.
   Verification:
   `python3 -m json.tool
   evals/vibe-requirements-spec/evals.json`, `python3
@@ -202,15 +217,15 @@ use `[Repository] - YYYY-MM-DD`.
   evals/vibe-requirements-spec/evals.json`, and `git diff --check -- CHANGELOG.md
   README.md skills/vibe-requirements-spec/SKILL.md
   evals/vibe-requirements-spec/evals.json` pass. A supplied and locally
-  inspected claude/claude-sonnet-4-6 suite run after these follow-ups recorded
-  40/40 scored runs, `error_run_count=0`, `status_counts={ok:40}`, metrics
-  captured, Sanity OK, no infrastructure failures, no zero-scored cells, no
-  candidate-below-baseline cells, and overall `with_skill` 98.1% vs
-  `without_skill` 77.1% (+20.9 points). In that single-run comparison, the
-  targeted E03 lightweight startup-question cell, E13 destructive confirmation
-  cell, E14 cleared-audit finish cell, E17 still-have-questions recovery cell,
-  and E18 unknown-deferral path-preservation cell all reached 100.0%
-  `with_skill`.
+  inspected claude/claude-sonnet-4-6 run after the E12 stop-artifact,
+  capture-path, and artifact-language assertion-boundary corrections recorded
+  40/40 scored runs, `error_run_count=0`, metrics captured, Sanity OK, no
+  infrastructure failures, no zero-scored cells, no candidate-below-baseline
+  cells, and overall `with_skill` 99.0% vs `without_skill` 76.4% (+22.6
+  points). The targeted E12 cell reached 100.0% `with_skill`, and the targeted
+  E03 cell reached 96.3% `with_skill` vs 66.7% `without_skill`. This remains a
+  single-run comparison; higher-confidence variance measurement would require
+  repeated runs.
 
 - `vibe-planning` now defaults generated implementation-plan artifacts to
   `docs/plans/YYYY-MM-DD-<goal-slug>-implementation-plan.md` when no explicit

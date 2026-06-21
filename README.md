@@ -139,7 +139,9 @@ creates or updates one requirements spec artifact by default in all drafting
 modes unless the user explicitly asks for chat-only or no-file operation. New
 default spec paths use `docs/specs/YYYY-MM-DD-<goal-slug>-spec.md` when no user
 path or current path applies; historical `specs/` files are reused when they
-are the current spec and are not migrated.
+are the current spec and are not migrated. Host or eval-runner artifact capture
+paths are treated as write transport, not as the selected spec path, unless the
+user explicitly chose that path.
 If a current spec path is supplied but cannot be read in the active workspace,
 the skill preserves that path as current context and reports that the saved file
 could not be inspected or changed instead of replacing it.
@@ -165,8 +167,10 @@ defaults. `freestyle` organizes sufficiently formed free-form requirements after
 explicit selection or confirmation and uses minimal follow-up, but stops before
 adopting false, infeasible, destructive, or specification-breaking requirements
 and avoids turning product requirements into implementation details without user
-input or local evidence. Free-form answers are respected instead of forced into
-numbered choices.
+input or local evidence. In artifact mode, those stops still use the normal
+requirements-spec shape and record deciding evidence under `Evidence and
+constraints`, even when the saved current spec remains unchanged. Free-form
+answers are respected instead of forced into numbered choices.
 
 Startup behavior reads `VIBE_SUBAGENTS=ask|allow|deny` when available: `ask`
 asks every time, `allow` permits research/review subagents without the startup

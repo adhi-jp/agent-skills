@@ -191,6 +191,12 @@ Choose and preserve the spec path in this order:
 3. Otherwise create `docs/specs/YYYY-MM-DD-<goal-slug>-spec.md` at the workspace
    root, using the current local date and a short lowercase slug.
 
+If a host, harness, or runner provides an output-capture path for recording the
+artifact, treat that path as write transport only unless the user explicitly
+selected it as the spec path. Write to the required capture path when necessary,
+but keep `Current spec path` and the chat summary path selected by the rules
+above.
+
 This change is forward-looking. Existing files under `specs/` remain in place
 as historical artifacts and must not be migrated only because this skill now
 defaults new requirements specs to `docs/specs/`.
@@ -223,32 +229,16 @@ decisions in chat without assigning a new spec path.
 
 ## Spec Template
 
-Use the template below as authoritative. Do not copy older templates that
-include `Approval state`, approval-status fields, `Approval note`, `Revision
-notes`, or dated change-history entries. Use stable English section headings and
+Use the template below as authoritative. Use stable English section headings and
 English generated prose unless the user or `VIBE_DOCUMENT_LANGUAGE` selects a
 different artifact language. Preserve user-authored requirement wording,
 product names, domain terms, paths, API names, commands, identifiers, and quoted
 text in the original language where useful, with the artifact language's
 operational wording alongside them when needed.
 
-Before writing a spec artifact, scan the artifact body for old-template
-approval or revision strings. If any of the following appear, rewrite the
-artifact before saving it: `## Approval state`, `Approval state:`,
-`Status: Draft`, `Status: Awaiting explicit approval`, `Status: Approved`,
-`Status: Reopened after approval`, `Approval note`, `## Revision notes`, and
-`Revision notes:`. Use `## Spec metadata` only for current artifact metadata.
-Put requirements-finished evidence, missing finish actions, next-phase handoff
-evidence, and revision context in the chat summary or workflow state, not in the
-spec file.
-
-When updating an existing legacy spec that already contains approval-status or
-revision-history sections, migrate it to the current template in the same write:
-remove the legacy approval section, approval note, status fields, revision
-notes, and dated change-history entries from the saved artifact. Preserve the
-current path, last-updated date, and current requirement contract in `## Spec
-metadata` and the body; mention prior lifecycle context only in the chat summary
-when it is useful.
+Use `## Spec metadata` only for current artifact metadata. Put requirements-
+finished evidence, missing finish actions, next-phase handoff evidence, and
+revision context in the chat summary or workflow state, not in the spec file.
 
 ```markdown
 # [Goal or Feature Name] Requirements Spec
@@ -354,6 +344,12 @@ alternatives close to the user's goal. If the only requested change depends on a
 false or contradicted premise, leave the current spec unchanged unless there is
 confirmed unaffected content to update, and state that the saved spec was not
 changed while waiting for user confirmation.
+
+In artifact mode, this stop still produces a requirements spec artifact. Keep
+the normal template sections, record the deciding evidence and unverified
+premise under `Evidence and constraints`, and capture the unresolved choice or
+risk in the relevant requirements sections instead of replacing the artifact
+with only a diagnostic note.
 
 Do not convert supplied product requirements into implementation details such as
 schema fields, API endpoints, UI component names, storage representation,
@@ -532,10 +528,12 @@ needed.
    - When revising an existing spec, remove or rewrite superseded requirements,
      defaults, decisions, assumptions, acceptance criteria, evidence, and risks
      instead of preserving stale content as dated change history.
-   - Do not add `Approval state`, approval-status fields or values such as
-     `Status: Draft`, `Status: Awaiting explicit approval`, `Status: Approved`,
-     `Status: Reopened after approval`, `Approval note`, `Revision notes`, or
-     equivalent approval or revision-history sections to new or rewritten spec
+   - If the response stops on a false premise, contradiction, feasibility risk,
+     destructive risk, or specification break, keep any written artifact in the
+     requirements-spec template shape. Include `Evidence and constraints` even
+     when the saved current spec stays unchanged.
+   - Do not add approval-status fields, approval notes, lifecycle status fields,
+     revision-history sections, or dated change-history entries to spec
      artifacts.
 
 8. **Audit completion and handoff readiness**
@@ -598,9 +596,8 @@ needed.
      high-impact decisions, proposed defaults or assumptions, open risks or
      unknowns, and the exact action that would save a spec.
    - If explicit chat-only mode used an existing spec artifact as context,
-     preserve the current spec path as unchanged context. If a legacy artifact
-     contains approval state, mention it only as legacy context and do not update
-     it from brainstorming alone.
+     preserve the current spec path as unchanged context and do not update
+     artifact lifecycle state from brainstorming alone.
    - Stop after the spec summary.
    - If the user explicitly finished requirements or gave an unambiguous
      current-spec next-phase handoff and also asked to plan or implement, state
@@ -662,17 +659,16 @@ requirements-phase stop or handoff signal and remain for a later phase.
   recording AI-recommended defaults.
 - In `freestyle`, adopting a false, infeasible, destructive, or
   specification-breaking requirement without confirmation.
+- In artifact mode, replacing a false-claim, contradiction, feasibility-risk, or
+  destructive-risk stop with a diagnostic-only artifact that omits the normal
+  requirements spec sections or `Evidence and constraints`.
 - In `freestyle`, turning supplied product requirements into schema fields,
   endpoint names, UI component names, client/server validation placement, tests,
   or other implementation details without user input or local evidence.
 - Treating "OK", "looks good", or "go ahead" as requirements-finished evidence
   without clear finish or next-phase wording.
-- Copying an old requirements-spec template with `Approval state`, `Approval
-  note`, or `Revision notes` sections.
 - Writing approval-status fields, approval notes, lifecycle status fields, or
   revision-history sections into the requirements spec artifact.
-- Preserving legacy `Approval state`, `Approval note`, or `Revision notes`
-  sections when updating an existing spec artifact.
 - Appending dated change notes instead of replacing superseded requirement
   content.
 - Writing an implementation plan, task breakdown, verification command
@@ -732,13 +728,9 @@ Before responding, check:
   commands, and quoted text?
 - In artifact mode, does the spec include `Evidence and constraints` with only
   decision-affecting evidence, paths, source names or URLs, and unverified facts?
-- In artifact mode, does the spec omit `Approval state`, approval-status fields
-  or values such as `Status: Draft`, `Status: Awaiting explicit approval`,
-  `Status: Approved`, `Status: Reopened after approval`, `Approval note`,
-  `Revision notes`, and equivalent approval or revision-history sections?
-- When updating a legacy spec artifact, did you remove old approval-status and
-  revision-history sections from the saved artifact instead of preserving or
-  updating them?
+- In artifact mode, does the spec omit approval-status fields, approval notes,
+  lifecycle status fields, revision-history sections, and dated change-history
+  entries?
 - Did you use `docs/specs/YYYY-MM-DD-<goal-slug>-spec.md` for a new default spec
   path when no user path or current path applied?
 - Did you avoid migrating existing historical files under `specs/`?
@@ -761,6 +753,9 @@ Before responding, check:
   spec section?
 - If a user claim was false, did you say it was wrong, cite evidence and impact,
   and propose close alternatives instead of adopting it?
+- If artifact mode stopped on a false premise, contradiction, feasibility risk,
+  destructive risk, or specification break, did the written artifact keep the
+  normal requirements spec sections and `Evidence and constraints`?
 - If a requested requirement could significantly break an existing spec, API,
   data contract, workflow, safety property, or skill integration, did you show
   concrete risks and ask whether it should really be included?
@@ -823,7 +818,7 @@ Before responding, check:
   written and name the exact next user action for artifact drafting or lifecycle
   handoff?
 - In explicit chat-only mode with an existing spec artifact, did you preserve the
-  current spec path as unchanged context and avoid changing any legacy approval
+  current spec path as unchanged context and avoid changing artifact lifecycle
   state from brainstorming alone?
 - Does the response stop after the spec artifact and summary, after the
   explicit chat-only exploration response, or after lifecycle-summary mode, even
