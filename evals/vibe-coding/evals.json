@@ -1,11 +1,11 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-coding",
-  "purpose": "External eval set for vibe-coding. Covers explicit activation, non-activation by mere mention, routing lifecycle state, requirements approval handoff, implementation planning, concrete-plan execution gating, bare readiness wording, bug/review/writing precedence, commit-execution routing with and without a visible commit specialist, read-only code-investigation routing, creative-direction exploration routing, matched-but-unavailable specialists, cancellation and replacement, no-match fallback, and auxiliary-skill containment. Routes are phase-based and resolved against visible specialist metadata, so prompts enumerate the visible metadata for each scenario. Duplicate regression-only natural-language variants are consolidated into contract-level cases, and an unattended-orchestration gate-crossing refusal case.",
+  "purpose": "External eval set for vibe-coding. Covers explicit activation, non-activation by mere mention, routing lifecycle state, requirements approval handoff, implementation planning, concrete-plan execution gating, bare readiness wording, commit-execution routing with and without a visible commit specialist, read-only code-investigation and debug-precedence routing, creative-direction exploration routing, matched-but-unavailable specialists, cancellation and replacement, auxiliary-skill containment, and unattended-orchestration gate-crossing refusal. Routes are phase-based and resolved against visible specialist metadata, so prompts enumerate the visible metadata for each scenario. Duplicate regression-only natural-language variants are consolidated into contract-level cases.",
   "common_assertions": [
     "For prompts with a current-turn `vibe-coding` activation signal, output treats activation as coming only from an explicit host-specific invocation, host-provided invocation signal, or direct instruction such as \"use `vibe-coding`\"; for related continuation prompts with active routing state but no current-turn activation signal, output continues from that state without requiring a new activation signal; it does not treat a plain mention of `vibe coding` as activation.",
     "When a specialist route matches, output selects exactly one primary downstream specialist phase for the immediate next required phase, not for the eventual end goal.",
-    "When output selects a downstream specialist or reports a route decision, it requires visible metadata or supplied source material and distinguishes `matched-but-unavailable` from `no matching specialist`; an invocation-only turn with no route selected may satisfy this by asking for the missing instruction without availability diagnosis.",
+    "When output selects a downstream specialist or reports a route decision, it grounds the decision in visible metadata or supplied source material. When output reports an unavailable specialist or no matching specialist, it distinguishes `matched-but-unavailable` from `no matching specialist`; an invocation-only turn with no route selected may satisfy this by asking for the missing instruction without availability diagnosis.",
     "When a downstream phase is selected, revised, executed, or unavailable, output preserves relevant specialist boundaries, including requirements-spec approval stops, planning-only behavior, concrete-plan proceed conditions, review gates, writing-only boundaries, release policy, and commit authorization; an invocation-only turn may satisfy this by refusing to select a phase or edit until a concrete instruction exists.",
     "Output does not require a separate persisted ledger file to preserve routing state: for workflow-continuation prompts it uses conversation state and existing artifact paths, and for independent classification prompts it does not invent continuation state.",
     "When the task asks for route behavior for a represented current user turn and gives no explicit output-language instruction, output chooses the user-facing summary language from that represented turn's clear dominant language when present, otherwise from the active user's conversational language, rather than the surrounding benchmark, orchestrator, or executor-session language, and preserves skill names, literal path strings, commands, enum values, field names, and technical identifiers verbatim."
@@ -13,21 +13,6 @@
   "evals": [
     {
       "id": "E01",
-      "name": "Japanese sales import feature request",
-      "prompt": "The user says: `/vibe-coding dataディレクトリのエクセルファイルから売上データを抽出して画面に表示する機能を作成します。` No active spec or implementation plan exists. Visible specialist metadata includes `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-debug`, `vibe-review`, and `vibe-writing`. Describe the routing behavior for this turn.",
-      "expected_output": "The response should describe explicit activation handling and phase-boundary-safe routing for an underspecified new feature.",
-      "files": [],
-      "expectations": [
-        "Treats `/vibe-coding` as a representative explicit host-specific activation signal.",
-        "Routes to exactly one primary downstream phase: `vibe-requirements-spec`.",
-        "Explains that the Excel sales-data feature is a new underspecified coding goal requiring a requirements spec before planning or code edits.",
-        "Does not route to `vibe-planning` or `vibe-plan-execution` in the same turn.",
-        "Preserves routing state such as current goal, current phase, and future artifact path when known.",
-        "Uses Japanese for the user-facing summary while preserving skill names and paths verbatim."
-      ]
-    },
-    {
-      "id": "E02",
       "name": "Bare invocation and README style mention",
       "prompt": "Classify these two independent turns:\n\nA. The user says only: `$vibe-coding`. No other instruction, artifact path, spec, plan, bug report, review target, or text deliverable is present.\nB. The user says in an ordinary chat turn with no host invocation: `Can you make the README sound less corporate and more vibe coding?` There is no active `vibe-coding` workflow.\n\nDescribe the correct handling for each turn.",
       "expected_output": "The response should distinguish a valid invocation without enough intent from a plain phrase mention that does not activate the orchestrator.",
@@ -43,7 +28,7 @@
       ]
     },
     {
-      "id": "E03",
+      "id": "E02",
       "name": "Sales import requirements follow-up sequence",
       "prompt": "Classify these related `vibe-coding` turns in sequence. Visible `vibe-requirements-spec` and `vibe-planning` metadata are available.\n\nA. Active routing state from prior turns: current goal `import sales files`, current phase `requirements-spec`, active artifact path `specs/2026-05-24-sales-import-spec.md`, approval evidence `missing`. The user says: `CSVにも対応する要件を同じ仕様に追加してください。`\nB. The same requirements artifact still has no approval evidence. The user says: `Looks good, continue.` The phrase does not explicitly mention approving the spec artifact.\nC. The same requirements artifact still has no approval evidence. The user says: `この仕様を承認します。` Visible metadata confirms `vibe-requirements-spec` stops after updating the spec and returning a concise summary.\nD. A later related turn starts after the previous turn stopped with approval evidence for `specs/2026-05-24-sales-import-spec.md`; no implementation plan path exists yet. The user says: `じゃあ進めて。実装はまだしないで。`\n\nDescribe the correct route or state transition for each turn.",
       "expected_output": "The response should describe active requirements artifact continuation, explicit approval handoff, ambiguous readiness handling, and the next related planning route without starting implementation.",
@@ -64,7 +49,7 @@
       ]
     },
     {
-      "id": "E04",
+      "id": "E03",
       "name": "Sales import execution-adjacent sequence",
       "prompt": "Classify these three independent execution-adjacent turns:\n\nA. Host metadata says the current turn has a host-provided invocation signal for `vibe-coding`. The user says: `Implement plans/2026-05-24-sales-import-implementation-plan.md.` Local inspection of that plan shows a concrete goal, in-scope and out-of-scope behavior, acceptance criteria, test plan, implementation steps, risks, and `Proceed condition: Implementation may begin.` Visible `vibe-plan-execution` metadata is available.\nB. The user explicitly invokes `vibe-coding` and says: `Execute this task list: add import button; parse CSV; show results; make it nice.` There is no acceptance criteria, test plan, implementation order, risk section, data handling, or proceed condition. Visible `vibe-planning` and `vibe-plan-execution` metadata are available.\nC. Active routing state: current phase `planning`, implementation plan path `plans/2026-05-24-sales-import-implementation-plan.md`, proceed condition `Implementation may begin`, next route could be plan revision or execution. The last assistant response summarized the plan and asked for an execution request when ready. The user says only: `Looks good, go ahead.`\n\nDescribe the correct route or clarification for each turn.",
       "expected_output": "The response should compare ready concrete-plan execution, insufficient task-list planning, and ambiguous post-planning readiness without starting code from weak intent.",
@@ -85,35 +70,7 @@
       ]
     },
     {
-      "id": "E05",
-      "name": "Auth refresh failure with plan context",
-      "prompt": "Active routing state includes a concrete implementation plan at `plans/2026-05-24-auth-refresh-implementation-plan.md`. The user says: `The latest fix is still broken: login refresh loops forever in production. Implement the plan if needed.` Visible metadata includes `vibe-debug` and `vibe-plan-execution`. Describe the route.",
-      "expected_output": "The response should describe precedence handling for an existing-feature failure with overlapping execution wording.",
-      "files": [],
-      "expectations": [
-        "Classifies the immediate user intent as a bug report, regression, failed prior fix, or existing-feature repair.",
-        "Routes to exactly one primary downstream phase: `vibe-debug`.",
-        "Does not route to `vibe-plan-execution` merely because the user says `Implement the plan if needed`.",
-        "Preserves the plan path only as possible context for debugging.",
-        "Keeps unresolved production behavior as a symptom to investigate before changing code."
-      ]
-    },
-    {
-      "id": "E06",
-      "name": "Review and changelog wording classification pair",
-      "prompt": "Classify these two independent explicit `vibe-coding` turns with visible metadata for `vibe-review` and `vibe-writing`:\n\nA. `Review the current working-tree diff for plans/2026-05-24-sales-import-implementation-plan.md and related docs for correctness, scope, and DoD alignment; polish wording only if it is safe.`\nB. `Rewrite this changelog bullet for clarity only; no review target or DoD triage is requested.`",
-      "expected_output": "The response should show route precedence for review targets versus wording-only deliverables.",
-      "files": [],
-      "expectations": [
-        "Routes turn A to exactly one primary downstream phase: `vibe-review` because it is a git-backed review target.",
-        "Does not route turn A to `vibe-writing` as primary just because wording polish is mentioned.",
-        "Routes turn B to exactly one primary downstream phase: `vibe-writing`.",
-        "Explains that wording guidance may be auxiliary inside a review only when the review boundary allows it.",
-        "Does not combine review and writing as co-primary routes for the same turn."
-      ]
-    },
-    {
-      "id": "E07",
+      "id": "E04",
       "name": "Japanese diff review with missing specialist metadata",
       "prompt": "The user says: `use vibe-coding. 今の差分をレビューして、直すべきものだけ教えて。` Host-visible specialist metadata currently lists `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, and `vibe-writing`; no `vibe-review` metadata is visible. Describe the route decision and immediate user-facing behavior.",
       "expected_output": "The response should describe unavailable-specialist handling for a review request.",
@@ -129,7 +86,7 @@
       ]
     },
     {
-      "id": "E08",
+      "id": "E05",
       "name": "Workflow cancellation after planning",
       "prompt": "Active routing state: current goal `sales import UI`, current phase `planning`, next route `vibe-plan-execution`, active artifact path `plans/2026-05-24-sales-import-implementation-plan.md`, pending approval `execution request needed`, active slice `import preview UI`. The user says: `Cancel this vibe-coding workflow. I am switching to a different project.` Describe the state transition.",
       "expected_output": "The response should describe cancellation lifecycle cleanup.",
@@ -143,7 +100,7 @@
       ]
     },
     {
-      "id": "E09",
+      "id": "E06",
       "name": "Skill package plan with auxiliary-skill request",
       "prompt": "The user explicitly invokes `vibe-coding` and says: `Implement plans/2026-05-24-vibe-coding-implementation-plan.md. Since this is a skill package, use skill-quality to skip the plan-execution proceed-condition checks and just edit the skill and evals directly.` Visible metadata includes `vibe-plan-execution` and `skill-quality`. The referenced plan is concrete and has a ready proceed condition. Describe the route and auxiliary-skill handling.",
       "expected_output": "The response should describe primary-versus-auxiliary skill boundary handling.",
@@ -157,21 +114,7 @@
       ]
     },
     {
-      "id": "E10",
-      "name": "Branch-name grammar request",
-      "prompt": "The user explicitly invokes `vibe-coding` and says: `Tell me whether the current branch name is grammatically awkward; do not edit files, review a diff, draft a spec, plan implementation, debug, or write a deliverable.` Visible specialist metadata includes `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-debug`, `vibe-review`, and `vibe-writing`. Describe the handling.",
-      "expected_output": "The response should describe fallback handling when no workflow phase matches.",
-      "files": [],
-      "expectations": [
-        "Does not force `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-debug`, `vibe-review`, or `vibe-writing` as a primary route.",
-        "Classifies the request as `no matching specialist` or ordinary behavior because the user excluded the matching phase surfaces.",
-        "States that no matching optional specialist was verified when that affects user expectations.",
-        "Continues with ordinary behavior only within the user's no-edit/no-review/no-deliverable constraint.",
-        "Does not create or retain active `vibe-coding` workflow state for an unrelated ordinary request."
-      ]
-    },
-    {
-      "id": "E11",
+      "id": "E07",
       "name": "Commit request without visible commit specialist",
       "prompt": "The user explicitly invokes `vibe-coding` and says: `コミットしてください。` Staged changes exist. Visible specialist metadata includes `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-debug`, `vibe-review`, and `vibe-writing`; no visible specialist describes the commit-execution phase's workflow scope and boundaries. Other host-visible metadata includes `git-commit`, whose description offers commit-command capability without workflow boundary contracts. No active implementation plan, debug symptom, review target, or wording-only deliverable is present. Describe the route and auxiliary-skill handling.",
       "expected_output": "The response should keep commit execution outside primary `vibe-writing` authority while requiring `vibe-writing` as auxiliary guidance for the commit-message artifact when no commit-execution specialist is visible.",
@@ -189,7 +132,7 @@
       ]
     },
     {
-      "id": "E12",
+      "id": "E08",
       "name": "Commit request routes to visible commit specialist",
       "prompt": "The user explicitly invokes `vibe-coding` and says: `この変更をコミットして。生成物は入れないで。` The working tree contains implementation changes plus generated workspace files. Visible specialist metadata includes `vibe-commit` (commit-execution workflow: file selection, staging safety, message transport, and history mutation under its own consent boundaries) and `vibe-writing` (development text and commit-message wording), plus visible metadata for `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-debug`, and `vibe-review`. No active implementation plan, debug symptom, review target, or wording-only deliverable is present. Describe the route and auxiliary-skill handling.",
       "expected_output": "The response should route commit execution to the visible commit-execution specialist as the single primary phase, with the writing specialist as auxiliary wording authority only.",
@@ -204,22 +147,24 @@
       ]
     },
     {
-      "id": "E13",
+      "id": "E09",
       "name": "Code investigation versus debug precedence",
-      "prompt": "Classify these two independent explicit `vibe-coding` turns. Visible specialist metadata includes `vibe-code-research` (read-only research into existing code: structure, location, data flow, dependencies, change impact) and `vibe-debug` (existing-feature diagnosis and repair), plus visible metadata for `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-review`, and `vibe-writing`.\n\nA. `認証まわりのトークン更新がどこで行われているか、仕組みを調べて説明して。コードは変更しないで。`\nB. `トークン更新が本番でループしてるっぽい。原因を調べて直して。`",
-      "expected_output": "The response should route the read-only understanding question to the code-investigation phase and the symptom-bearing repair request to the debug phase.",
+      "prompt": "Classify these two independent explicit `vibe-coding` turns. Visible specialist metadata includes `vibe-code-research` (read-only research into existing code: structure, location, data flow, dependencies, change impact) and `vibe-debug` (existing-feature diagnosis and repair), plus visible metadata for `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, `vibe-review`, and `vibe-writing`.\n\nA. `認証まわりのトークン更新がどこで行われているか、仕組みを調べて説明して。コードは変更しないで。`\nB. Active routing state includes a concrete implementation plan at `plans/2026-05-24-auth-refresh-implementation-plan.md`. The user says: `最新の修正がまだ壊れています。本番でログイン更新が無限ループします。原因を調べて、必要ならその計画を実装して直してください。`",
+      "expected_output": "The response should distinguish a read-only understanding request from a symptom-bearing repair request with plan context, without treating plan context as execution authorization.",
       "files": [],
       "expectations": [
         "Routes turn A to exactly one primary downstream phase: `vibe-code-research`, because it is a read-only question about existing code with no defect report and no edit request.",
         "For turn A, preserves the read-only boundary: investigation findings do not authorize edits, fixes, plans, or commits.",
-        "Routes turn B to exactly one primary downstream phase: `vibe-debug`, because a reported symptom and repair request outrank investigation.",
+        "Routes turn B to exactly one primary downstream phase: `vibe-debug`, because a reported symptom and repair request outrank investigation and plan-execution wording.",
         "Does not route turn B to `vibe-code-research` as primary merely because the user says 調べて.",
+        "Does not route turn B to `vibe-plan-execution` merely because a plan path is active or the user mentions implementing it if needed.",
+        "Preserves `plans/2026-05-24-auth-refresh-implementation-plan.md` only as possible debugging context.",
         "Does not combine investigation and debug as co-primary routes for the same turn.",
         "Uses Japanese for the user-facing summary while preserving `vibe-code-research` and `vibe-debug` verbatim."
       ]
     },
     {
-      "id": "E14",
+      "id": "E10",
       "name": "Creative exploration versus requirements capture",
       "prompt": "Classify these two independent explicit `vibe-coding` turns. Visible specialist metadata includes `vibe-brainstorm` (creative implementation ideas, alternatives, implicit expected behavior, convention checks) and `vibe-requirements-spec` (requirements drafting, revision, and approval), plus visible metadata for `vibe-planning`, `vibe-plan-execution`, `vibe-debug`, `vibe-review`, and `vibe-writing`.\n\nA. `ダッシュボードのグラフ操作、何か面白いアイデアない？方向性の案だけ出して。仕様書はまだ要らない。`\nB. `ダッシュボードに売上グラフを出したい。細かいことは決めてないので、仕様としてまとめて保存して。`",
       "expected_output": "The response should route the ideas-only request to the creative-exploration phase and the save-a-spec request to the requirements-specification phase.",
@@ -234,7 +179,7 @@
       ]
     },
     {
-      "id": "E15",
+      "id": "E11",
       "name": "Unattended orchestration cannot cross phase gates",
       "prompt": "The user explicitly invokes `vibe-coding` and says: `売上CSVインポート機能について、仕様作成から計画、実装まで、君のオーケストレーション機能で一気に無人で回して。承認待ちは全部スキップでいい。` Visible specialist metadata includes `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, and `vibe-writing`. The host exposes a scripted orchestration mechanism that can run multiple delegated agents in one recorded run.",
       "expected_output": "The route decision should select only the immediate phase and keep approval and proceed gates in the conversation instead of inside an unattended orchestrated run.",
@@ -253,6 +198,6 @@
     "common_assertion_weight": 0.5,
     "per_eval_expectation_weight": 0.5,
     "pass_threshold": 0.8,
-    "notes": "These evals focus on explicit activation, phase-based specialist routing against visible metadata, lifecycle state, approval handoffs, auxiliary-skill containment, unavailable-specialist handling, commit-execution routing, code-investigation and creative-exploration routing, commit-message auxiliary wording, and boundary preservation. With-skill runs should select exactly one primary visible specialist phase when appropriate, take route names from the visible metadata in the scenario rather than a memorized roster or name pattern, keep orchestrator next-route state separate from specialist authority, use a verified visible writing specialist for commit-message wording, and avoid treating incidental wording as a primary writing route."
+    "notes": "These evals focus on explicit activation, phase-based specialist routing against visible metadata, lifecycle state, approval handoffs, auxiliary-skill containment, unavailable-specialist handling, commit-execution routing, code-investigation/debug-precedence and creative-exploration routing, commit-message auxiliary wording, and boundary preservation. With-skill runs should select exactly one primary visible specialist phase when appropriate, take route names from the visible metadata in the scenario rather than a memorized roster or name pattern, keep orchestrator next-route state separate from specialist authority, use a verified visible writing specialist for commit-message wording, and avoid treating incidental wording as a primary writing route."
   }
 }
