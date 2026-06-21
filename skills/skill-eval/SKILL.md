@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: skill-eval
 description: Use when running, grading, aggregating, or reporting repository skill evals with skills/skill-eval/scripts/eval_runner.py, when verifying a with_skill/without_skill result before reporting it, or when deciding eval workspace placement, executor/grader separation, model passthrough, or metric capture for an eval run. Do not use for editing the eval suite schema or general skill creation.
 ---

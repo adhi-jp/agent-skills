@@ -1,5 +1,5 @@
 ---
-version: 1.1.0
+version: 1.1.1
 name: vibe-writing
 description: Use when the primary task is writing, revising, reviewing, or critiquing vibe-coding development text, source-code comments or docstrings, README/docs, CHANGELOG/release notes, PR descriptions, UI copy, chat replies, progress updates, final summaries, or git commit messages, especially when text must be LLM-readable, meaning-preserving, format-bound, language-aware, or evidence-bound. Treat incidental wording inside another active workflow as auxiliary.
 ---

@@ -64,17 +64,19 @@ and are local artifacts unless explicitly requested for commit.
 | Skill | Version |
 | --- | --- |
 | `minecraft-modding-workbench` | `2.0.0` |
-| `vibe-coding` | `1.2.0` |
-| `vibe-requirements-spec` | `2.0.0` |
-| `vibe-planning` | `4.2.0` |
-| `vibe-plan-execution` | `2.1.0` |
+| `skill-eval` | `1.0.0` |
+| `vibe-coding` | `1.2.1` |
+| `vibe-requirements-spec` | `3.0.0` |
+| `vibe-planning` | `4.3.0` |
+| `vibe-plan-review` | `1.0.0` |
+| `vibe-plan-execution` | `3.0.0` |
 | `vibe-brainstorm` | `1.1.0` |
-| `vibe-debug` | `2.1.0` |
-| `vibe-code-research` | `1.0.0` |
-| `vibe-writing` | `1.1.0` |
-| `vibe-commit` | `1.0.0` |
-| `skill-quality` | `2.1.0` |
-| `vibe-review` | `1.1.0` |
+| `vibe-debug` | `3.0.0` |
+| `vibe-code-research` | `1.0.1` |
+| `vibe-writing` | `1.1.1` |
+| `vibe-commit` | `1.0.1` |
+| `skill-quality` | `2.2.0` |
+| `vibe-review` | `1.2.0` |
 
 ## Included Skills
 
