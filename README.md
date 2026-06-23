@@ -27,7 +27,7 @@ quickstart when changing a skill or its eval suite.
 | Debug or repair existing behavior from rough bug reports, regressions, failed fixes, or runtime artifacts | `vibe-debug` | Produces evidence-backed repairs or retest contracts; does not authorize history mutation | `skills/vibe-debug/` | `evals/vibe-debug/` |
 | Understand, locate, trace, or assess existing code without changing it | `vibe-code-research` | Read-only; returns anchored evidence-backed findings, redacts suspected secret-like values at output boundaries, and stops before fixes, plans, edits, or commits | `skills/vibe-code-research/` | `evals/vibe-code-research/` |
 | Write or revise development text, docs, changelog entries, PR text, UI copy, summaries, or commit messages | `vibe-writing` | Controls wording only; staging, commits, releases, and workflow authority stay with the active workflow | `skills/vibe-writing/` | `evals/vibe-writing/` |
-| Commit or stage changes from a vague request — pick the right files, exclude junk, re-verify staging, or fix message transport, history, or trailers | `vibe-commit` | Executes the commit and git safety; defers message wording to `vibe-writing`; does not push or rewrite shared history without explicit consent | `skills/vibe-commit/` | `evals/vibe-commit/` |
+| Commit or stage changes from a vague request — pick the right files, exclude junk, re-verify staging, or fix message transport, history, or trailers | `vibe-commit` | Executes the commit and git safety with self-contained message-content rules; does not push or rewrite shared history without explicit consent | `skills/vibe-commit/` | `evals/vibe-commit/` |
 | Decide what to change in a skill or eval from benchmark results, grader feedback, reviews, or regressions | `skill-quality` | Produces evidence-bound quality decisions; release/version changes still require explicit release instruction | `skills/skill-quality/` | `evals/skill-quality/` |
 | Review a git-backed working tree, branch, base ref, PR-style diff, or review/fix loop | `vibe-review` | Reviews only non-empty git-backed targets; history operations require separate consent and safety checks | `skills/vibe-review/` | `evals/vibe-review/` |
 
@@ -125,11 +125,12 @@ no matching specialist, and a skill is primary-route eligible only when its
 visible description matches a phase's workflow scope and boundary obligations;
 skills describing only a tool, command, or domain capability stay auxiliary.
 Commit execution routes to a visible commit-execution specialist as the primary
-phase, with a verified visible writing specialist as mandatory auxiliary
-wording authority for the message artifact; when no commit-execution specialist
-is visible and `vibe-coding` prepares or inspects a commit message, the writing
-specialist still provides that auxiliary message guidance. Host delegation and
-scripted orchestration runs are execution transport inside a routed phase, not
+phase. When `vibe-coding` prepares or inspects a commit message and
+`vibe-writing` is verified visible, `vibe-writing` and its
+`references/commit-messages.md` are mandatory auxiliary authority for the
+message artifact only; this is an orchestration-only exception and does not make
+standalone specialists require companion skills. Host delegation and scripted
+orchestration runs are execution transport inside a routed phase, not
 routes: no orchestrated run may be scheduled to cross a downstream skill's
 approval gate, stop condition, or consent boundary in one unattended pass.
 
@@ -550,17 +551,17 @@ the command transport for added or repaired authorship trailers.
 ### `vibe-commit`
 
 Commit-execution skill that turns a vague instruction like "commit please",
-"commit this", or a localized equivalent into one correctly scoped commit. It is the
-execution counterpart to `vibe-writing`: `vibe-writing` owns the message wording,
-and `vibe-commit` owns staging, exclusion, the pre-commit re-verification gate,
-command safety, history mutation, message transport, and authorship-trailer
-command transport. When `vibe-writing` is available it defers message wording to
-that skill and its `references/commit-messages.md`; otherwise it applies compact
-fallback message rules, including the same verification signal selection and
-durable proof-source boundary for local generated artifacts, ignored result
-files, and local-only run records. The skill's guidance is distilled from real
-Codex and Claude Code sessions across multiple repositories where these exact
-steps either prevented or, when skipped, caused commit mistakes. Its core
+"commit this", or a localized equivalent into one correctly scoped commit. It
+owns staging, exclusion, the pre-commit re-verification gate, command safety,
+history mutation, message transport, authorship-trailer command transport, and
+self-contained minimum message-content rules aligned with the repository commit
+contract: outcome-focused Conventional Commit subjects, body only for durable
+context the diff cannot recover, selected verification proof, durable
+proof-source boundaries for local generated artifacts, ignored result files, and
+local-only run records, and no prompt/session/plan-label leakage. The skill's
+guidance is distilled from real Codex and Claude Code sessions across multiple
+repositories where these exact steps either prevented or, when skipped, caused
+commit mistakes. Its core
 workflow discovers all changes (including ignored and untracked paths),
 classifies them into one logical change versus out-of-scope or generated
 artifacts, stages by explicit path, runs a mandatory staged-set re-verification
@@ -779,13 +780,12 @@ specific to the skill.
   Under `vibe-coding`, verified available `vibe-writing` must be used as
   auxiliary guidance whenever a commit message is prepared or inspected, while
   commit authorization and history mutation remain outside `vibe-writing`.
-- `vibe-commit` is the commit-execution counterpart to `vibe-writing`: it owns
-  file selection, exclusion, the staged-set re-verification gate, message
-  transport, history mutation, and authorship-trailer `--trailer` transport, and
-  defers message wording to `vibe-writing` when available. It commits when asked
-  but does not push, and it does not amend or rebase already-pushed or shared
-  history without explicit informed consent. Project-specific workflows and the
-  repo's release and commit rules take precedence over its defaults.
+- `vibe-commit` owns file selection, exclusion, the staged-set re-verification
+  gate, message content minimums, message transport, history mutation, and
+  authorship-trailer `--trailer` transport. It commits when asked but does not
+  push, and it does not amend or rebase already-pushed or shared history without
+  explicit informed consent. Project-specific workflows and the repo's release
+  and commit rules take precedence over its defaults.
 - `vibe-review` runs only when the current directory is a git repository and
   the chosen review target resolves to a non-empty diff. It is platform-neutral:
   Claude Code with the `codex` plugin can be documented as a special backend,

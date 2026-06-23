@@ -29,7 +29,8 @@ implementation phases, execution slices, non-plan edit tasks, commit tasks, or
 implementation in one request, write or revise the plan artifact and stop.
 
 This skill is independent. Do not assume another planning skill, guard,
-execution skill, commit-message skill, or other companion skill is available.
+execution skill, commit-message-writing capability, or other companion capability
+is available.
 When skill metadata is visible in the current environment, use it only to plan
 availability-driven skill usage in the generated artifact; do not make an
 unavailable skill a requirement.
@@ -633,12 +634,12 @@ only for small, localized, low-risk work under the plan-depth rules above.
      is useful for that step.
    - `light` plans may group repeated route rows only when the grouped row names
      every covered step ID and all route fields are identical.
-   - When the plan includes eligible commit checkpoints and a writing or
-     commit-message skill is verified available, schedule
-     that skill after checkpoint verification and before finalizing each
-     proposed commit message. If no matching writing or commit-message skill is
-     verified, fall back to the repository's commit rules, recent local history,
-     and the proposed standalone Conventional Commit message in the checkpoint.
+   - When the plan includes eligible commit checkpoints and a matching
+     commit-message-writing capability is verified available, schedule that
+     capability after checkpoint verification and before finalizing each proposed
+     commit message. If no matching capability is verified, fall back to the
+     repository's commit rules, recent local history, and the proposed
+     standalone Conventional Commit message in the checkpoint.
    - Commit-checkpoint routes are message-preparation proposals only. They do
      not authorize staging, committing, release preparation, or history
      mutation during planning or later execution.
@@ -660,8 +661,10 @@ only for small, localized, low-risk work under the plan-depth rules above.
    - Include commit checkpoints only for multi-slice plans with independently
      verifiable code-producing slices. Each checkpoint states the intended
      scope, required verification, and a proposed standalone Conventional Commit
-     message that names the concrete change. Checkpoints are proposed later
-     boundaries only and do not authorize commits by themselves.
+     message that names the concrete change. Add a checkpoint body only for
+     durable context the diff cannot recover, such as the reason, compatibility
+     constraint, accepted risk, non-goal, or verification proof. Checkpoints are
+     proposed later boundaries only and do not authorize commits by themselves.
    - Check checkpoint eligibility before message shaping. A planned single
      implementation slice is still ineligible even if it will produce code
      during later execution; a verified code-producing slice means a completed,

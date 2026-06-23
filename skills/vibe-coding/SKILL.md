@@ -271,20 +271,25 @@ the current changes to the commit-execution phase when a matching specialist is
 visible. That phase owns the commit file set, staging safety, message
 transport, trailers, and history mutation under its own consent rules.
 
-When a commit-execution turn needs message wording and a writing specialist is
-verified visible, that specialist is auxiliary authority for the message
-artifact only: subject wording, body value, verification wording, durable
-references, trailers as content, and multi-line transport shape. History
-authority stays with the commit-execution phase, project rules, and explicit
-user consent.
+When a commit-execution turn needs message wording and `vibe-writing` is
+verified visible, `vibe-writing` and
+`skills/vibe-writing/references/commit-messages.md` are auxiliary authority for
+the message artifact only: subject wording, body value, verification wording,
+durable references, trailers as content, and multi-line transport shape.
+History authority stays with the commit-execution phase, project rules, and
+explicit user consent.
 
 When no commit-execution specialist is visible but a `vibe-coding` turn
-prepares or inspects a commit message, use a verified visible writing
-specialist as mandatory auxiliary guidance for the message artifact, and keep
-history authority with the applicable commit workflow, project rules, and
-explicit user consent. If neither specialist is visible, state the fallback
-when that affects user expectations and use repository commit rules, recent
-local history, and supplied checkpoint messages.
+prepares or inspects a commit message, use verified visible `vibe-writing` as
+mandatory auxiliary guidance for the message artifact, and keep history
+authority with the applicable commit workflow, project rules, and explicit user
+consent. If neither specialist is visible, state the fallback when that affects
+user expectations and use repository commit rules, recent local history, and
+supplied checkpoint messages.
+
+This explicit `vibe-writing` dependency is an orchestration-only exception for
+`vibe-coding`. It does not authorize standalone `vibe-*` specialists to require
+or name companion skills in their own contracts.
 
 ### Writing
 
@@ -416,8 +421,9 @@ Before acting under `vibe-coding`, confirm:
 - Cross-phase orchestration requests report the rejected schedule and any
   selected-phase transport limit without treating that transport as approval,
   proceed evidence, or a route.
-- Commit-message preparation or inspection used a verified visible writing
-  specialist as auxiliary guidance when a message artifact was part of the
-  `vibe-coding` turn, without giving it history authority.
+- Commit-message preparation or inspection used verified visible `vibe-writing`
+  and `skills/vibe-writing/references/commit-messages.md` as auxiliary guidance
+  when a message artifact was part of the `vibe-coding` turn, without giving it
+  history authority or weakening standalone specialist boundaries.
 - Cancellation, replacement, unrelated top-level invocation, and finish-gate
   end conditions clear or suspend live routing state.

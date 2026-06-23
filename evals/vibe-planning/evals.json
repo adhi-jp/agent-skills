@@ -104,15 +104,15 @@
     },
     {
       "id": "E06",
-      "name": "Available commit-message skill scheduled for checkpoints",
+      "name": "Available commit-message capability scheduled for checkpoints",
       "project_class": "developer-automation-planning",
-      "prompt": "Create an implementation plan for a three-slice change: add a markdown import parser, add a preview screen, then persist valid imported rows. Include how to verify and commit each slice.\n\nAvailable skills exposed in this session:\n- `vibe-writing`: Use when writing, revising, reviewing, or critiquing vibe-coding development text, source-code comments or docstrings, README/docs, CHANGELOG/release notes, PR descriptions, UI copy, chat replies, progress updates, final summaries, or git commit messages, especially when text must be LLM-readable, meaning-preserving, format-bound, language-aware, or evidence-bound.\n- `minecraft-modding-workbench`: Use when working on Fabric, NeoForge, Architectury, or Minecraft modding projects.\n\nNo fixture files are provided.",
-      "expected_output": "The agent creates a planning artifact that keeps workspace-specific facts unproven, includes a per-step skill routing table that schedules the available commit-message-writing skill around each verified commit checkpoint, and does not pass with only a global skill list or unavailable-skill requirements.",
+      "prompt": "Create an implementation plan for a three-slice change: add a markdown import parser, add a preview screen, then persist valid imported rows. Include how to verify and commit each slice.\n\nAvailable capabilities exposed in this session:\n- `message-polisher`: Use when writing, revising, reviewing, or critiquing git commit messages, especially when text must be LLM-readable, meaning-preserving, format-bound, language-aware, or evidence-bound.\n- `minecraft-modding-workbench`: Use when working on Fabric, NeoForge, Architectury, or Minecraft modding projects.\n\nNo fixture files are provided.",
+      "expected_output": "The agent creates a planning artifact that keeps workspace-specific facts unproven, includes a per-step skill routing table that schedules the available commit-message-writing capability around each verified commit checkpoint, and does not pass with only a global skill list or unavailable-skill requirements.",
       "files": [],
       "expectations": [
-        "Uses only the prompt-supplied available skills as availability evidence and does not invent other skills.",
+        "Uses only the prompt-supplied available capabilities as availability evidence and does not invent other skills or capabilities.",
         "Includes per-step routes for discovery, parser, preview, persistence, verification, review, self-review, and commit-checkpoint steps rather than a global skill list.",
-        "Routes parser, preview, and persistence implementation to `No matching optional skill verified` or `No skill needed`; `vibe-writing` is scheduled only after verification for commit-message finalization, and `minecraft-modding-workbench` is not scheduled.",
+        "Routes parser, preview, and persistence implementation to `No matching optional skill verified` or `No skill needed`; the available commit-message-writing capability is scheduled only after verification for commit-message finalization, and `minecraft-modding-workbench` is not scheduled.",
         "Records a degraded coordinator-run multi-perspective review fallback with `vibe-planning contract compliance` when no verified authorized review delegate is supplied, plus a self-review route/outcome.",
         "Includes commit checkpoints only after independently verifiable parser, preview, and persistence slices.",
         "Proposed checkpoint commit messages are standalone Conventional Commit messages scoped to one slice, include required verification, and are not wrapped in Markdown fences or code blocks."

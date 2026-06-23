@@ -8,7 +8,8 @@
     "When the response stages or repairs a working-tree/index commit, it uses explicit full paths and avoids git add . / git add -A / globs in a dirty working tree; when changes are already staged, it does not invent broad staging just to satisfy the workflow; when rewriting a named commit range, replay commands stay scoped to the enumerated commits.",
     "Shows verification of the git artifacts rather than trusting the commit command alone: before committing, the staged diff is read when applicable, and after a commit or amend, the stored commit is inspected (for example git show -s --format=%B HEAD or git show --stat HEAD).",
     "Stays on the reversible side of git safety: does not push, force-push, or rewrite already-pushed or shared history unless the prompt explicitly authorizes it, and prefers the least-destructive recovery.",
-    "When the response shows a commit or rewrite command, its subject is a Conventional Commit that names the outcome — a freshly written subject, or an existing correct subject preserved on amend --no-edit or git commit -C reuse — with any body kept to context the diff cannot recover."
+    "When the response shows a commit or rewrite command, its subject is a Conventional Commit that names the outcome — a freshly written subject, or an existing correct subject preserved on amend --no-edit or git commit -C reuse — with any body kept to context the diff cannot recover.",
+    "When composing, amending, or repairing a commit message, applies self-contained message-content rules without requiring a named writing companion: outcome-focused Conventional Commit subject, body only for durable context the diff cannot recover, no prompt/session/plan labels, durable proof references, and safe multi-line transport."
   ],
   "evals": [
     {

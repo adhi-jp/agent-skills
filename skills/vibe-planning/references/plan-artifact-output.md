@@ -110,9 +110,12 @@ not include message text, a Conventional Commit example, `Subject:`, or `Body:`.
 
 ## Commit checkpoints
 - [For multi-slice plans with code-producing slices: checkpoint scope, required
-  verification, and a proposed standalone Conventional Commit message. Do not
-  wrap proposed commit messages in Markdown fences; use labeled `Subject:` and
-  optional `Body:` fields when a body is useful. For
+  verification, and a proposed standalone Conventional Commit message. Use an
+  outcome-focused subject and add a body only for durable context the diff cannot
+  recover, such as the reason, compatibility constraint, accepted risk, non-goal,
+  or verification proof. Do not wrap proposed commit messages in Markdown
+  fences; use labeled `Subject:` and optional `Body:` fields when a body is
+  useful. For
   single-slice, blocked, discovery-only, discovery-first without a verified
   code-producing slice, destructive-risk-blocked, no-code-slice, or
   work-in-progress plans, write only: `Commit checkpoints are omitted until a code-producing slice is verified.`

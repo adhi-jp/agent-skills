@@ -11,6 +11,20 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- `vibe-coding` now treats explicit `vibe-writing` commit-message guidance as an
+  orchestration-only auxiliary authority when commit messages are prepared or
+  inspected, without giving it staging, commit, release, or history authority.
+- `vibe-commit`, `vibe-plan-execution`, and `vibe-planning` now keep
+  commit-message content guidance self-contained instead of requiring a named
+  companion skill, while aligning their message rules around outcome-focused
+  Conventional Commit subjects, durable body content, durable verification
+  references, no prompt/session/plan-label leaks, and no Markdown wrapper bytes.
+- README and the `vibe-commit`, `vibe-planning`, and `vibe-plan-execution` eval
+  suites now reflect the standalone commit-message policy while preserving the
+  `vibe-coding` orchestration exception.
+
 ## [skill-eval 1.0.0] - 2026-06-21
 
 ### Added
