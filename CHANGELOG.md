@@ -24,6 +24,12 @@ use `[Repository] - YYYY-MM-DD`.
 - README and the `vibe-commit`, `vibe-planning`, and `vibe-plan-execution` eval
   suites now reflect the standalone commit-message policy while preserving the
   `vibe-coding` orchestration exception.
+- `vibe-planning` now adds durable artifact language hygiene to generated plans
+  when later work may create comments, docstrings, test names, commit messages,
+  README/changelog entries, or similar text, so later artifacts describe concrete
+  behavior or domain contracts instead of copying plan-only identifiers while
+  preserving useful resolvable anchors; the `vibe-planning` eval suite includes
+  targeted coverage for that distinction.
 
 ## [skill-eval 1.0.0] - 2026-06-21
 

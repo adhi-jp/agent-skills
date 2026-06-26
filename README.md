@@ -269,7 +269,11 @@ stale hypotheses, keep unmeasured quality claims labeled, block weak substitutes
 for important contract tests, name the abstract dimensions that shape the plan,
 preserve `data contract` as a dimension for file/data migrations when relevant,
 and avoid treating sampled examples, fixtures, or past failures as skill
-boundaries.
+boundaries. When a slice may create or edit comments, docstrings, test names,
+commit messages, README/changelog entries, or other durable implementation text,
+plans include a durable artifact language check so later artifacts describe
+concrete behavior or domain contracts instead of copying plan-only identifiers,
+while preserving useful resolvable code and product anchors.
 Plans choose `light` or `strict` depth. `light` keeps small, localized, low-risk
 artifacts compact by collapsing not-applicable details while preserving
 evidence, acceptance criteria, tests, per-step skill routes, self-review, and

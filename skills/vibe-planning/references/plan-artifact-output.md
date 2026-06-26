@@ -58,6 +58,9 @@ evidence-backed reason in `Plan integrity gates`.]
 - Acceptance tests:
 - Regression tests:
 - Negative and edge cases:
+- Durable artifact language checks, when the slice may create or edit source
+  comments, docstrings, test names, commit messages, changelog/README entries,
+  or other durable implementation text:
 - Manual or visual checks:
 
 ## Plan integrity gates
@@ -167,8 +170,8 @@ not include message text, a Conventional Commit example, `Subject:`, or `Body:`.
   evidence labels, acceptance-criteria/test ordering, multi-perspective review
   completion or degraded fallback, `vibe-planning` contract compliance,
   reviewer-disposition consistency, scope creep from review feedback,
-  plan-only boundary, proceed condition, and unresolved `Unproven`
-  implementation blockers.
+  plan-only boundary, proceed condition, unresolved `Unproven` implementation
+  blockers, and relevant durable artifact language hygiene coverage.
 - Corrections made:
 - Remaining material issues:
 - [For `light` plans, keep this concise while still recording corrections.]
@@ -209,6 +212,15 @@ Before finalizing the plan, check that:
 - False or infeasible requirements are challenged with evidence and alternatives.
 - Acceptance criteria are observable.
 - Tests come before implementation steps.
+- When a slice may create or edit comments, docstrings, test names, commit
+  messages, README/changelog entries, or other durable implementation text, the
+  plan includes a `durable artifact language hygiene` acceptance, test, review,
+  or self-review item.
+- Durable artifact language checks reject plan-only slice,
+  acceptance-criteria, requirement, question, hypothesis, step, or phase labels
+  as artifact wording while preserving useful resolvable paths, commands, API
+  names, product/domain terms, public issue IDs, stable error codes, function or
+  field names, and code identifiers.
 - The plan-only boundary is respected: no non-plan files were edited, no patches
   were provided, no commits were made, no implementation completion was claimed,
   and no active implementation tasks, phases, or follow-up execution items were

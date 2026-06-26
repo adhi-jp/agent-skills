@@ -237,6 +237,16 @@ approval evidence under `Verified facts and sources`.
   may name a specific skill only after its availability was verified from the
   current environment, user-provided material, project instructions, or local
   metadata.
+- Plan-only identifiers are planning state, not durable artifact wording. When a
+  slice may create or edit source comments, docstrings, test names, commit
+  messages, changelog or README entries, or other durable implementation text,
+  require those later artifacts to describe the concrete behavior, domain
+  concept, invariant, or user-visible contract instead of copying bare slice,
+  acceptance-criteria, requirement, question, hypothesis, step, or phase labels.
+  Preserve useful resolvable anchors such as paths, commands, API names,
+  product or domain terms, function and field names, public issue IDs, stable
+  error codes, and code identifiers when they explain behavior or trace to a
+  durable source.
 - Treat concrete examples, fixtures, project memories, and history-derived
   failure cases as evidence or pressure tests, not skill boundaries. Before an
   example changes scope, acceptance criteria, tests, or implementation order,
@@ -572,6 +582,12 @@ only for small, localized, low-risk work under the plan-depth rules above.
    - For editable forms or settings screens, explicitly decide whether cancel,
      reset, or navigation-away behavior is in scope; when it already exists,
      preserve it with acceptance criteria and tests.
+   - When implementation may create or edit durable artifact text, include an
+     observable `durable artifact language hygiene` acceptance criterion or
+     review item: later comments, docstrings, test names, commit messages,
+     README/changelog entries, and similar artifacts use self-contained
+     behavior or domain wording rather than plan-only identifiers, while
+     preserving useful resolvable code and product anchors.
 6. **Design tests before implementation**
    - Derive tests from acceptance criteria.
    - For bug fixes, include a failing regression test or reproduction proof
@@ -658,6 +674,11 @@ only for small, localized, low-risk work under the plan-depth rules above.
      or rollout checks appropriate to the stack.
    - Include a final diff-review step that checks the result against the
      specification and acceptance criteria.
+   - When durable artifact text is in scope, make the final diff-review step
+     check that comments, docstrings, test names, commit messages,
+     README/changelog entries, and similar text do not contain plan-only
+     identifiers unless the token is genuinely a product, domain, public, or
+     code identifier that explains the artifact.
    - Include commit checkpoints only for multi-slice plans with independently
      verifiable code-producing slices. Each checkpoint states the intended
      scope, required verification, and a proposed standalone Conventional Commit
@@ -735,8 +756,10 @@ only for small, localized, low-risk work under the plan-depth rules above.
      labels, acceptance-criteria/test ordering, multi-perspective review
      completion or degraded fallback, `vibe-planning` contract compliance,
      reviewer-disposition consistency, scope creep from review feedback,
-     plan-only boundary, proceed condition, and unresolved `Unproven`
-     implementation blockers.
+     plan-only boundary, proceed condition, unresolved `Unproven`
+     implementation blockers, and whether any relevant durable artifact language
+     hygiene check is present without inviting plan-only identifiers into later
+     comments, test names, messages, or documentation.
    - If the gate finds a material issue, correct the artifact before responding.
      Do not record an issue as "noted" while leaving the artifact inconsistent.
    - Record the outcome in `Plan self-review gate`, including checks performed,

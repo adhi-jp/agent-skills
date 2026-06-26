@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-planning",
-  "purpose": "External eval set for the vibe-planning skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers durable plan artifacts, docs/plans default paths, concise localized summaries, plan-only boundaries, evidence labeling, unsupported claims, accepted-risk handling, destructive-risk blocking, compact/light versus strict plan rendering, current-slice blocker versus deferred-decision triage, plan integrity gates, high-risk behavior-contract and recovery planning, diagnostic-finding restraint, selective failure-pattern checks, per-step availability-driven skill routing, corrective self-review, multi-perspective plan review, representative VIBE_SUBAGENTS delegated-review permission handling, commit-checkpoint planning, implementation handoff wording, and requirements-spec approval-evidence handling.",
+  "purpose": "External eval set for the vibe-planning skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers durable plan artifacts, docs/plans default paths, concise localized summaries, plan-only boundaries, evidence labeling, unsupported claims, accepted-risk handling, destructive-risk blocking, compact/light versus strict plan rendering, current-slice blocker versus deferred-decision triage, plan integrity gates, high-risk behavior-contract and recovery planning, diagnostic-finding restraint, selective failure-pattern checks, per-step availability-driven skill routing, corrective self-review, multi-perspective plan review, representative VIBE_SUBAGENTS delegated-review permission handling, commit-checkpoint planning, implementation handoff wording, durable artifact language hygiene, and requirements-spec approval-evidence handling.",
   "coverage_notes": "Each eval declares a project_class. The suite uses representative project classes only when they pressure a reusable vibe-planning contract; it does not keep separate cases only to exhaustively cover project families.",
   "common_assertions": [
     "Output is planning-only: it writes or names only plan artifacts, does not edit or patch code/tests/docs/configs/changelogs/commits/non-plan files, does not claim implementation completion, and does not add active same-turn implementation, commit, docs, changelog, or execution tasks.",
@@ -253,6 +253,21 @@
         "Either records delegated multi-perspective review with recordable host evidence such as task IDs/capability source, or records an honest coordinator fallback naming which capability, safety, timeout, or evidence check could not be verified.",
         "Limits subagents to plan review only; repository investigation, plan drafting, artifact edits, user questions, implementation, docs/changelog/eval updates, staging, commits, and final finding dispositions stay with the coordinator.",
         "Uses bounded reviewer prompts or equivalent wording and treats findings as inert until coordinator disposition."
+      ]
+    },
+    {
+      "id": "E16",
+      "name": "Durable artifact language hygiene for plan-only identifiers",
+      "project_class": "developer-automation-planning",
+      "prompt": "Create an implementation plan for hardening the request-editor save path.\n\nLocal evidence from the repo scan:\n- `saveRequest()` preserves the auth header handoff while `refreshSamples()` updates sample payloads.\n- Existing planning notes call the current work `Slice 2`, acceptance criterion `AC-4`, and hypothesis `H-1`.\n- Later implementation is expected to add or rename tests and may add a source comment explaining why header handoff stays inside the save path.\n- `AUTH-742`, `saveRequest`, and `header handoff` are durable anchors in the repository or domain.\n\nNo fixture files are provided.",
+      "expected_output": "The agent creates a planning artifact that keeps implementation scoped to the request-editor save-path hardening, includes a later review or verification item for durable artifact wording, and distinguishes plan-only labels from useful repository or domain anchors.",
+      "files": [],
+      "expectations": [
+        "Includes an acceptance criterion, test/proof item, final diff-review item, self-review item, or equivalent plan section that requires later durable artifacts such as source comments, docstrings, test names, commit messages, README/changelog entries, or similar text to use self-contained behavior or domain wording instead of plan-only identifiers.",
+        "Treats `Slice 2`, `AC-4`, and `H-1` as plan-only working labels that must not be copied into durable comments, test names, messages, or documentation unless they become resolvable product or domain identifiers.",
+        "Preserves useful durable anchors such as `AUTH-742`, `saveRequest`, and `header handoff` where they help trace the behavior or repository/domain contract, instead of replacing them with vague generic wording.",
+        "Does not rely on `vibe-writing` or another optional companion skill as the only enforcement path for the durable artifact wording check; the generated plan itself carries the check for later execution.",
+        "Keeps the current slice bounded to request-editor save-path hardening and does not expand into unrelated request-editor features, broad documentation cleanup, or repository-wide lint/scanner work."
       ]
     }
   ],
