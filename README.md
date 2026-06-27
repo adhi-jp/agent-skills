@@ -620,11 +620,13 @@ the same leakage check to its own self-authored assertions, keeps token/time
 claims evidence-bound, requires a closing rerun on a clean, complete run before
 any improvement claim, requires recorded host, runner, or equivalent artifact
 evidence for execution-proof assertions, requires turn-level pairing before
-counting session-history audit evidence, treats authoritative source Skill paths
-as the `with_skill` target instead of host tools or snapshots, records lost
-discrimination and required coverage when an assertion or eval case is loosened
-or deleted, and blocks common regressions such as broad rewrites, universal
-checklists, fake baselines, self-grading bias, weak proof substitutes,
+counting session-history audit evidence, treats excluded or timed-out eval cells
+as partial unmeasured proof until their surface is classified, treats
+authoritative source Skill paths as the `with_skill` target instead of host
+tools or snapshots, records lost discrimination and required coverage when an
+assertion or eval case is loosened or deleted, and blocks common regressions
+such as broad rewrites, universal checklists, fake baselines, self-grading bias,
+weak proof substitutes,
 companion-skill requirements, generated workspace commits, wording-only churn,
 cross-eval moving failures treated as local fixes, copyable invalid placeholder
 guidance, contaminated or unrerun runs counted as proof, release/version changes

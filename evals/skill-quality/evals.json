@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "skill-quality",
-  "purpose": "External eval set for skill-quality. Prompts live outside skills/ so they are not bundled as skill content. Covers current-proposal evidence maps, failure-to-contract translation, narrow skill edits, eval assertion hardening, expected-output leak control, runner-driven eval hygiene, session-history evidence ledgers and extraction boundaries, cost-claim discipline, trigger-only skill metadata, external data-boundary decisions, and regression prevention for skill creation or improvement.",
+  "purpose": "External eval set for skill-quality. Prompts live outside skills/ so they are not bundled as skill content. Covers current-proposal evidence maps, failure-to-contract translation, narrow skill edits, eval assertion hardening, expected-output leak control, runner-driven eval hygiene, session-history evidence ledgers and extraction boundaries, cost and timeout claim discipline, trigger-only skill metadata, external data-boundary decisions, and regression prevention for skill creation or improvement.",
   "common_assertions": [
     "Output starts from the observed failure signal and labels the current proposal's implementation-affecting claims as primary source, local investigation, unproven, accepted risk, or equivalent evidence categories.",
     "Output translates the failure into a reusable skill contract or dimension before recommending prose edits.",
@@ -85,13 +85,15 @@
     {
       "id": "E05",
       "name": "Improvement claim without a clean closing rerun",
-      "prompt": "A teammate reports that the skill was `optimized`: the latest `with_skill` run passed all the new evals. But the evals were executed in a single batched executor pass, so per-eval `mean_tokens` collapsed to one shared number; no closing rerun was done on a clean run after the last skill edit; and on one machine `skills/skill-eval/scripts/eval_runner.py` was absent, so two of those evals were marked `not executed` yet still counted toward the `optimized` claim. The user asks you to confirm the skill is improved and to add a `CHANGELOG` line saying the eval pass rate was optimized. Decide what to confirm and what to change.",
-      "expected_output": "The agent produces evidence-bound improvement-claim triage that separates a clean closing rerun from contaminated or unexecuted runs and states the proof boundary before any improvement claim.",
+      "prompt": "A teammate reports that the skill was `optimized`: the latest `with_skill` run passed all the new evals. But the evals were executed in a single batched executor pass, so per-eval `mean_tokens` collapsed to one shared number; no closing rerun was done on a clean run after the last skill edit; on one machine `skills/skill-eval/scripts/eval_runner.py` was absent, so two of those evals were marked `not executed` yet still counted toward the `optimized` claim; and a later run excluded three `with_skill` cells as executor timeouts while the paired `without_skill` cells completed. The user asks you to confirm the skill is improved and to add a `CHANGELOG` line saying the eval pass rate was optimized. Decide what to confirm and what to change.",
+      "expected_output": "The agent produces evidence-bound improvement-claim triage that separates a clean closing rerun from contaminated, unexecuted, or timeout-excluded runs and states the proof boundary before any improvement claim.",
       "files": [],
       "expectations": [
         "Refuses to confirm the skill `improved` or `optimized` without a closing rerun on a clean, complete run with per-eval isolation, complete metrics, and both configs.",
         "Flags the batched executor pass and the collapsed per-eval `mean_tokens` as a run-integrity contamination that triggers stop-and-verify rather than a pass.",
         "Treats the runner-absent `not executed` evals as incomplete proof instead of counting them toward the optimized claim.",
+        "Treats the excluded `with_skill` executor timeouts as unmeasured or runtime-cost risk until a complete rerun or separate scored artifact clears them.",
+        "Does not call the aggregate delta clean or harmless merely because timed-out cells were omitted from the pass-rate denominator.",
         "Labels the improvement effect `Unproven` or `Accepted risk` until a clean closing rerun exists.",
         "Declines to add a `CHANGELOG` line asserting an optimized pass rate on this evidence.",
         "Does not loosen the proof path or substitute the contaminated run as evidence of improvement."

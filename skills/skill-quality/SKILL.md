@@ -227,6 +227,15 @@ incomplete proof, not as a pass. Also treat an abnormal aggregate-metric shift
 between runs — for example `mean_tokens` collapsing — or executor batching that
 loses per-eval isolation as a stop-and-verify condition, not a pass.
 
+When cells are excluded or unscored because an executor timed out, classify
+whether the surface is runner/grader infrastructure, prompt or invocation,
+runtime-cost/complexity, run variance, or a real skill behavior failure before
+using the aggregate delta or editing skill prose. If excluded or timeout cells
+hide targeted behavior, especially asymmetrically in `with_skill`, report those
+evals as unmeasured or cost-risk evidence until a complete rerun or separate
+scored artifact clears them; do not call the run clean or harmless merely
+because the pass-rate aggregate omits the cells.
+
 Runner artifacts prove what the runner invoked, recorded, graded, and
 aggregated. When a claim or assertion depends on prompt delivery, host, tool,
 delegation, file, artifact, metric, timing, or other execution proof, audit the
@@ -265,6 +274,9 @@ Compare behavior before declaring improvement:
 - Did token or time cost increase? Treat deltas as cost signals. Call them
   regressions only when transcript evidence, run data, or a predefined budget
   proves the cost is not justified by useful behavior.
+- Were any targeted evals excluded, unscored, or timed out? If yes, read the
+  aggregate as partial and identify which behavior is unmeasured before
+  accepting a headline delta.
 - Did a grader failure expose unclear assertions instead of a skill defect?
 - Did the recorded output set contain the proof the assertion requires, or did
   the proof live only in host UI, private transcript, or unrecorded tool state?

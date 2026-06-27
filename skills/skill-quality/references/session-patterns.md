@@ -25,6 +25,11 @@ into skill outputs.
   executor passes that collapsed per-eval metrics, and runs where the runner was
   absent, were treated as contaminated or incomplete rather than proof, and the
   effect stayed labeled until a clean rerun existed.
+- Excluded or unscored timeout cells made otherwise strong headline deltas
+  partial. In a plan-artifact eval pass, asymmetric `with_skill` executor
+  timeouts were treated as unmeasured runtime-cost risk rather than harmless
+  infrastructure or a reason for more skill prose; a separate scored failure in
+  the same run was the actual contract-edit target.
 - Evidence labels were useful only when they applied to the current proposal's
   claims, not just to a future extraction or grading format.
 - Token and time deltas were cost signals, not standalone proof of improvement
@@ -87,6 +92,9 @@ into skill outputs.
 - Agents overclaimed improvement when a run passed without a meaningful
   baseline difference, when grader text was ambiguous, or when only a subset of
   newly affected evals ran.
+- Timeout or excluded-cell summaries degraded analysis when the aggregate
+  pass-rate delta was called clean even though targeted behavior was unscored,
+  especially when only `with_skill` timed out on complex orchestration cases.
 - Self-authored contract deltas and assertions degraded when they copied a
   grader assertion's wording or a literal prompt phrase verbatim. The leakage
   lens had to cover the change owner's own assertions, not only delegated eval

@@ -11,6 +11,13 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- `skill-quality` now treats excluded or unscored executor-timeout eval cells as
+  partial proof that must be surface-classified before accepting aggregate deltas
+  or editing skill prose, with focused eval coverage for timeout-excluded runs
+  that would otherwise be overclaimed as clean improvement.
+
 ## [vibe-coding 1.3.0] - 2026-06-27
 
 ### Changed
