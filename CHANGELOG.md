@@ -11,6 +11,8 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [vibe-coding 1.3.0] - 2026-06-27
+
 ### Changed
 
 - `vibe-coding` now distinguishes collapsed same-response phase skipping from

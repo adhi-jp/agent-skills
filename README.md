@@ -65,7 +65,7 @@ and are local artifacts unless explicitly requested for commit.
 | --- | --- |
 | `minecraft-modding-workbench` | `2.0.0` |
 | `skill-eval` | `1.0.0` |
-| `vibe-coding` | `1.2.2` |
+| `vibe-coding` | `1.3.0` |
 | `vibe-requirements-spec` | `3.1.0` |
 | `vibe-planning` | `4.4.0` |
 | `vibe-plan-review` | `1.0.0` |
