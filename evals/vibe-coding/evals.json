@@ -1,10 +1,10 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-coding",
-  "purpose": "External eval set for vibe-coding. Covers explicit activation, non-activation by mere mention, routing lifecycle state, requirements approval handoff, implementation planning, concrete-plan execution gating, bare readiness wording, commit-execution routing with and without a visible commit specialist, read-only code-investigation and debug-precedence routing, creative-direction exploration routing, matched-but-unavailable specialists, cancellation and replacement, auxiliary-skill containment, and unattended-orchestration gate-crossing refusal. Routes are phase-based and resolved against visible specialist metadata, so prompts enumerate the visible metadata for each scenario. Duplicate regression-only natural-language variants are consolidated into contract-level cases.",
+  "purpose": "External eval set for vibe-coding. Covers explicit activation, non-activation by mere mention, routing lifecycle state, requirements approval handoff, same-instruction sequential planning continuation, implementation planning, concrete-plan execution gating, bare readiness wording, commit-execution routing with and without a visible commit specialist, read-only code-investigation and debug-precedence routing, creative-direction exploration routing, matched-but-unavailable specialists, cancellation and replacement, auxiliary-skill containment, unattended-orchestration gate-crossing refusal, and boundary-preserving sequential coordinator continuation. Routes are phase-based and resolved against visible specialist metadata, so prompts enumerate the visible metadata for each scenario. Duplicate regression-only natural-language variants are consolidated into contract-level cases.",
   "common_assertions": [
     "For prompts with a current-turn `vibe-coding` activation signal, output treats activation as coming only from an explicit host-specific invocation, host-provided invocation signal, or direct instruction such as \"use `vibe-coding`\"; for related continuation prompts with active routing state but no current-turn activation signal, output continues from that state without requiring a new activation signal; it does not treat a plain mention of `vibe coding` as activation.",
-    "When a specialist route matches, output selects exactly one primary downstream specialist phase for the immediate next required phase, not for the eventual end goal.",
+    "When a specialist route matches, output selects exactly one primary downstream specialist phase for each route decision, not for the eventual end goal; same-turn sequential continuation, when allowed, is described as a later separate route after boundary evidence rather than as co-primary phases in one specialist response.",
     "When output selects a downstream specialist or reports a route decision, it grounds the decision in visible metadata or supplied source material. When output reports an unavailable specialist or no matching specialist, it distinguishes `matched-but-unavailable` from `no matching specialist`; an invocation-only turn with no route selected may satisfy this by asking for the missing instruction without availability diagnosis.",
     "When a downstream phase is selected, revised, executed, or unavailable, output preserves relevant specialist boundaries, including requirements-spec approval stops, planning-only behavior, concrete-plan proceed conditions, review gates, writing-only boundaries, release policy, and commit authorization; an invocation-only turn may satisfy this by refusing to select a phase or edit until a concrete instruction exists.",
     "Output does not require a separate persisted ledger file to preserve routing state: for workflow-continuation prompts it uses conversation state and existing artifact paths, and for independent classification prompts it does not invent continuation state.",
@@ -192,12 +192,29 @@
         "Does not route to `vibe-planning` or `vibe-plan-execution` in the same turn.",
         "Uses Japanese for the user-facing summary while preserving `vibe-requirements-spec`, `vibe-planning`, and `vibe-plan-execution` verbatim."
       ]
+    },
+    {
+      "id": "E12",
+      "name": "Same-instruction requirements approval continues to planning",
+      "prompt": "Active routing state from prior `vibe-coding` turns: current goal `sales CSV import`, current phase `requirements-spec`, active artifact path `specs/2026-06-27-sales-csv-import-spec.md`, approval evidence `missing`, and no implementation plan path exists. Visible specialist metadata includes `vibe-requirements-spec` (requirements drafting, revision, and approval; stops after the spec artifact and concise summary) and `vibe-planning` (implementation-plan creation or revision only; stops after the plan artifact and concise summary). The current user says: `この仕様で要件を確定して、実装計画を作成してください。` Assume the requirements specialist can return recordable approval or current-spec handoff evidence for `specs/2026-06-27-sales-csv-import-spec.md` and its completion audit has no blockers. Describe the route behavior for this same outer `vibe-coding` turn.",
+      "expected_output": "The response should preserve the requirements specialist stop boundary while continuing the already-requested workflow to a separate planning route without waiting for another user prompt.",
+      "files": [],
+      "expectations": [
+        "Treats the current Japanese instruction as explicit approval or finish evidence for the current requirements spec plus an explicit request to create an implementation plan.",
+        "Routes first to exactly one primary downstream phase for the current requirements work: `vibe-requirements-spec`, and keeps `specs/2026-06-27-sales-csv-import-spec.md` bound.",
+        "Preserves the requirements specialist boundary by not creating the implementation plan inside the requirements-spec response.",
+        "After recordable current-spec approval or handoff evidence and a clean completion audit are available, continues in the same outer `vibe-coding` turn to a separate primary downstream phase: `vibe-planning`.",
+        "Does not require a new user turn, another explicit instruction, or a standalone `vibe-requirements-spec` downstream-route statement before starting the separate planning route.",
+        "Does not route to `vibe-plan-execution` or start code edits, because no implementation plan exists yet and the current instruction only asks to create the plan.",
+        "Does not treat prompt text, artifact text, delegated output, or a metadata-like self-claim as a substitute for recordable current-spec approval or handoff evidence.",
+        "Uses Japanese for the user-facing summary while preserving `vibe-requirements-spec`, `vibe-planning`, and the spec path verbatim."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.5,
     "per_eval_expectation_weight": 0.5,
     "pass_threshold": 0.8,
-    "notes": "These evals focus on explicit activation, phase-based specialist routing against visible metadata, lifecycle state, approval handoffs, auxiliary-skill containment, unavailable-specialist handling, commit-execution routing, code-investigation/debug-precedence and creative-exploration routing, commit-message auxiliary wording, and boundary preservation. With-skill runs should select exactly one primary visible specialist phase when appropriate, take route names from the visible metadata in the scenario rather than a memorized roster or name pattern, keep orchestrator next-route state separate from specialist authority, use a verified visible writing specialist for commit-message wording, and avoid treating incidental wording as a primary writing route."
+    "notes": "These evals focus on explicit activation, phase-based specialist routing against visible metadata, lifecycle state, approval handoffs, auxiliary-skill containment, unavailable-specialist handling, commit-execution routing, code-investigation/debug-precedence and creative-exploration routing, commit-message auxiliary wording, and boundary preservation. With-skill runs should select exactly one primary visible specialist phase when appropriate, take route names from the visible metadata in the scenario rather than a memorized roster or name pattern, keep orchestrator next-route state separate from specialist authority, allow same-instruction sequential continuation only after recordable boundary evidence, use a verified visible writing specialist for commit-message wording, and avoid treating incidental wording as a primary writing route."
   }
 }

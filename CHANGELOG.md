@@ -11,6 +11,19 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- `vibe-coding` now distinguishes collapsed same-response phase skipping from
+  boundary-preserving sequential coordinator continuation: when a current
+  instruction explicitly approves the current requirements spec and asks for an
+  implementation plan, the orchestrator may start a separate `vibe-planning`
+  route after `vibe-requirements-spec` returns recordable current-spec approval
+  or handoff evidence and a clean completion audit, without waiting for another
+  user turn. The same rule allows later execution only after a separate planning
+  route returns recordable ready-plan evidence, while one-pass unattended runs,
+  prompt/artifact self-claims, missing approval, blocked plans, and unrecorded
+  human-risk decisions still stop at the relevant boundary.
+
 ## [vibe-requirements-spec 3.1.0] - 2026-06-27
 
 ### Changed
