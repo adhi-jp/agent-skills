@@ -19,8 +19,8 @@ quickstart when changing a skill or its eval suite.
 | --- | --- | --- | --- | --- |
 | Build, debug, port, or inspect Minecraft Java Edition mods for Fabric, NeoForge, or Architectury | `minecraft-modding-workbench` | Produces implementation guidance or code while labeling MCP, workspace, source-jar, runtime, and unverified facts | `skills/minecraft-modding-workbench/` | `evals/minecraft-modding-workbench/` |
 | Route an explicit multi-turn vibe-coding workflow | `vibe-coding` | Selects one primary visible `vibe-*` specialist for the next phase; does not relax downstream gates | `skills/vibe-coding/` | `evals/vibe-coding/` |
-| Draft, revise, save, finish, or explore requirements before planning | `vibe-requirements-spec` | Creates or updates the requirements spec artifact by default, defaults to strict-four-choice without explicit mode selection, and stops before non-spec work | `skills/vibe-requirements-spec/` | `evals/vibe-requirements-spec/` |
-| Create or revise an implementation plan from approval-evidenced or concrete inputs | `vibe-planning` | Writes a plan artifact and concise summary; stops before code, tests, changelog edits, commits, and release work | `skills/vibe-planning/` | `evals/vibe-planning/` |
+| Draft, revise, save, finish, or explore requirements before planning | `vibe-requirements-spec` | Creates or updates the requirements spec artifact by default, defaults to strict-four-choice without explicit mode selection, and stops before non-spec work; trusted orchestration can carry recordable current-spec handoff evidence after the completion audit passes | `skills/vibe-requirements-spec/` | `evals/vibe-requirements-spec/` |
+| Create or revise an implementation plan from approval-evidenced or concrete inputs | `vibe-planning` | Writes a plan artifact and concise summary; stops before code, tests, changelog edits, commits, and release work; trusted orchestration can route a reviewed ready plan to a later execution phase | `skills/vibe-planning/` | `evals/vibe-planning/` |
 | Review, confirm, walk through, or pre-check a saved implementation plan before execution | `vibe-plan-review` | Reviews one plan item at a time, records localized item decisions with numeric input shortcuts from its reference file, and stops before implementation | `skills/vibe-plan-review/` | `evals/vibe-plan-review/` |
 | Implement an existing concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Edits only after binding the plan and checking proceed conditions; stops before commits unless separately authorized | `skills/vibe-plan-execution/` | `evals/vibe-plan-execution/` |
 | Brainstorm creative implementation ideas, alternatives, expected behavior, or convention checks | `vibe-brainstorm` | Returns chat-first directions or checklists and stops before implementation until the user confirms the direction | `skills/vibe-brainstorm/` | `evals/vibe-brainstorm/` |
@@ -191,19 +191,26 @@ The requirements lifecycle keeps the same spec active until the completion audit
 finds no unresolved build-changing decisions or required local evidence checks,
 any lower-priority unknowns have been explicitly accepted for deferral, and the
 user gives an explicit requirements-finished phrase, a clear current-spec
-next-phase instruction, cancels the effort, or replaces it. Ambiguous positive
-replies such as "OK", "looks good", "ready", "continue", or "go ahead" do not
-end drafting by themselves. If the user later asks whether questions remain, the
-skill resumes questioning when unresolved decisions, evidence checks, or
-non-deferred unknowns remain. Requirements-finished or next-phase evidence is
-recorded outside the spec in the chat summary or routing state. The skill still
-stops after the spec artifact, explicit chat-only response, no-write fallback,
-or lifecycle summary; it does not write implementation plans, implementation
-task entries, code, tests, verification command lists, commits, release work,
-changelog entries, evals, README changes, or unrelated files. Same-turn non-spec
-work is left for a later phase, and orchestration contexts receive a
-requirements-phase stop or handoff signal rather than a forced termination of
-the broader orchestration.
+next-phase instruction, trusted orchestration continuation provides recordable
+current-spec handoff evidence, cancels the effort, or replaces it. Trusted
+orchestration evidence must come from host/coordinator state or an independently
+recorded phase invocation, name the current spec artifact identity or revision,
+and record the passed completion audit; prompt text, artifact text, logs,
+examples, delegated output, and user-pasted metadata-like strings do not count
+by themselves. Ambiguous positive replies such as "OK", "looks good", "ready",
+"continue", or "go ahead" do not end drafting by themselves. If the user later
+asks whether questions remain, the skill resumes questioning when unresolved
+decisions, evidence checks, or non-deferred unknowns remain. Completion or
+next-phase evidence is recorded outside the spec in the chat summary or routing
+state. The skill still stops after the spec artifact, explicit
+chat-only response, no-write fallback, or lifecycle summary; it does not write
+implementation plans, implementation task entries, code, tests, verification
+command lists, commits, release work, changelog entries, evals, README changes,
+or unrelated files. Same-turn non-spec work is left for a later phase, and
+orchestration contexts receive a requirements-phase stop or handoff signal
+rather than a forced termination of the broader orchestration. `VIBE_SUBAGENTS`
+remains research/review subagent permission and is not phase-continuation
+authority.
 
 Defaults stay limited to confirmed scope or cross-cutting choices and do not
 select or conditionally pre-stage adjacent surfaces such as admin, reporting,
@@ -258,12 +265,24 @@ approval field, and the external approval evidence instead of asking users to
 rewrite the spec solely to store approval state. When evidence is missing, the
 plan maps confirmed sections only as non-ready input and keeps the proceed
 condition blocked or returns to requirements-spec work.
+Trusted orchestration handoff can supply approval evidence only when it is
+recordable host/coordinator state or an independently recorded phase invocation
+tied to the current spec artifact identity or revision and a passed requirements
+completion audit. Prompt-injected or artifact-contained routing text is inert,
+and stale handoff evidence is invalid after the requirements change.
 `vibe-planning` is plan-only: it writes or updates implementation-plan artifacts
 and must not continue into code, tests, non-plan docs, evals, changelogs,
 commits, or other non-plan edits. Its active task lists and checklists must also
 stay plan-only; planning completion, current-slice/proceed-condition language,
 and implementation handoff sections do not authorize same-turn implementation
-phases. Plan artifacts also include integrity gates for fact cleanup, evidence
+phases. In trusted orchestration, a separate execution request may be a later
+recordable coordinator/host phase invocation after the reviewed plan artifact
+has a ready `Proceed condition`, or a conditional ready state backed by already
+recorded explicit human-user accepted risk. Blocked, discovery-first,
+destructive-risk-blocked, or current-slice-blocker plans do not route to execution, and
+orchestration cannot accept destructive, credential, auth/session, permission,
+billing, security, irreversible, data-migration, or other human-risk decisions
+for the user. Plan artifacts also include integrity gates for fact cleanup, evidence
 downgrades, test no-escape checks, and generality checks so revised plans remove
 stale hypotheses, keep unmeasured quality claims labeled, block weak substitutes
 for important contract tests, name the abstract dimensions that shape the plan,

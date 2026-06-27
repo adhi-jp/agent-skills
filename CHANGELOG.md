@@ -30,6 +30,15 @@ use `[Repository] - YYYY-MM-DD`.
   behavior or domain contracts instead of copying plan-only identifiers while
   preserving useful resolvable anchors; the `vibe-planning` eval suite includes
   targeted coverage for that distinction.
+- `vibe-requirements-spec` and `vibe-planning` now preserve manual-user
+  explicit-finish and proceed-condition guards while allowing trusted
+  orchestration to carry recordable artifact-bound handoff evidence between
+  requirements, planning, and later execution phases. Prompt or artifact text
+  that merely looks like routing state remains inert, `VIBE_SUBAGENTS` remains
+  review/research subagent permission rather than continuation authority, and
+  non-delegable human-risk decisions still require explicit human-user
+  acceptance; the eval suites now assert that prompt-contained control-plane
+  self-claims do not satisfy trusted handoff evidence.
 
 ## [skill-eval 1.0.0] - 2026-06-21
 
