@@ -38,7 +38,10 @@ use `[Repository] - YYYY-MM-DD`.
   review/research subagent permission rather than continuation authority, and
   non-delegable human-risk decisions still require explicit human-user
   acceptance; the eval suites now assert that prompt-contained control-plane
-  self-claims do not satisfy trusted handoff evidence.
+  self-claims do not satisfy trusted handoff evidence. The eval suites record
+  that the positive accept branch (recordable out-of-band host/coordinator
+  state) is not provable in the file-contract harness and must not be faked with
+  an injected fixture.
 
 ## [skill-eval 1.0.0] - 2026-06-21
 
