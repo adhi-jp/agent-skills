@@ -65,16 +65,16 @@ and are local artifacts unless explicitly requested for commit.
 | --- | --- |
 | `minecraft-modding-workbench` | `2.0.0` |
 | `skill-eval` | `1.0.0` |
-| `vibe-coding` | `1.2.1` |
-| `vibe-requirements-spec` | `3.0.0` |
-| `vibe-planning` | `4.3.0` |
+| `vibe-coding` | `1.2.2` |
+| `vibe-requirements-spec` | `3.1.0` |
+| `vibe-planning` | `4.4.0` |
 | `vibe-plan-review` | `1.0.0` |
-| `vibe-plan-execution` | `3.0.0` |
+| `vibe-plan-execution` | `3.0.1` |
 | `vibe-brainstorm` | `1.1.0` |
 | `vibe-debug` | `3.0.0` |
 | `vibe-code-research` | `1.0.1` |
 | `vibe-writing` | `1.1.1` |
-| `vibe-commit` | `1.0.1` |
+| `vibe-commit` | `1.0.2` |
 | `skill-quality` | `2.2.0` |
 | `vibe-review` | `1.2.0` |
 

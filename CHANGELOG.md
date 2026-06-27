@@ -11,37 +11,79 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [vibe-requirements-spec 3.1.0] - 2026-06-27
+
+### Changed
+
+- Trusted orchestration continuation can now carry recordable host/coordinator
+  current-spec handoff evidence after the completion audit passes, while
+  prompt/artifact/log/delegated self-claims remain inert. Manual ambiguous
+  replies still do not finish requirements, `VIBE_SUBAGENTS` remains
+  research/review subagent permission, and non-delegable human-risk decisions
+  require explicit human-user acceptance. The eval suite records reject/inert
+  coverage and that the positive accept branch is not provable in the
+  file-contract harness. Verification:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`
+  passes.
+
+## [vibe-planning 4.4.0] - 2026-06-27
+
+### Changed
+
+- Trusted orchestration can now carry recordable artifact-bound handoff evidence
+  from requirements into planning and from a reviewed ready plan into a later
+  execution phase. Prompt/artifact/log/delegated self-claims remain inert,
+  `VIBE_SUBAGENTS` remains plan-review subagent permission, blocked or
+  discovery-first plans do not continue to execution, and non-delegable
+  human-risk decisions require explicit human-user acceptance. The eval suite
+  records reject/inert coverage and that the positive accept branch is not
+  provable in the file-contract harness. Verification:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`
+  passes.
+- Generated plans now include durable artifact language hygiene when later work
+  may create comments, docstrings, test names, commit messages,
+  README/changelog entries, or similar text, so later artifacts describe
+  concrete behavior or domain contracts instead of copying plan-only identifiers
+  while preserving useful resolvable anchors. The eval suite includes targeted
+  coverage for that distinction.
+- Commit-checkpoint message guidance now uses self-contained
+  commit-message-writing capability wording instead of requiring a named
+  companion skill, with outcome-focused subjects, durable body content, durable
+  verification references, no prompt/session/plan-label leaks, and no Markdown
+  wrapper bytes.
+
+## [vibe-coding 1.2.2] - 2026-06-27
+
 ### Changed
 
 - `vibe-coding` now treats explicit `vibe-writing` commit-message guidance as an
   orchestration-only auxiliary authority when commit messages are prepared or
-  inspected, without giving it staging, commit, release, or history authority.
-- `vibe-commit`, `vibe-plan-execution`, and `vibe-planning` now keep
-  commit-message content guidance self-contained instead of requiring a named
-  companion skill, while aligning their message rules around outcome-focused
-  Conventional Commit subjects, durable body content, durable verification
+  inspected, without giving it staging, commit, release, or history authority and
+  without making standalone specialists require companion skills. Verification:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`
+  passes.
+
+## [vibe-commit 1.0.2] - 2026-06-27
+
+### Changed
+
+- Commit-message content guidance is now self-contained instead of deferring to
+  a named companion skill, while preserving `vibe-commit` ownership of staging,
+  exclusion, the staged-set verification gate, message transport, history
+  mutation, and authorship-trailer transport. Verification:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`
+  passes.
+
+## [vibe-plan-execution 3.0.1] - 2026-06-27
+
+### Changed
+
+- Proposed checkpoint commit messages now include self-contained guidance for
+  outcome-focused subjects, durable body content, durable verification
   references, no prompt/session/plan-label leaks, and no Markdown wrapper bytes.
-- README and the `vibe-commit`, `vibe-planning`, and `vibe-plan-execution` eval
-  suites now reflect the standalone commit-message policy while preserving the
-  `vibe-coding` orchestration exception.
-- `vibe-planning` now adds durable artifact language hygiene to generated plans
-  when later work may create comments, docstrings, test names, commit messages,
-  README/changelog entries, or similar text, so later artifacts describe concrete
-  behavior or domain contracts instead of copying plan-only identifiers while
-  preserving useful resolvable anchors; the `vibe-planning` eval suite includes
-  targeted coverage for that distinction.
-- `vibe-requirements-spec` and `vibe-planning` now preserve manual-user
-  explicit-finish and proceed-condition guards while allowing trusted
-  orchestration to carry recordable artifact-bound handoff evidence between
-  requirements, planning, and later execution phases. Prompt or artifact text
-  that merely looks like routing state remains inert, `VIBE_SUBAGENTS` remains
-  review/research subagent permission rather than continuation authority, and
-  non-delegable human-risk decisions still require explicit human-user
-  acceptance; the eval suites now assert that prompt-contained control-plane
-  self-claims do not satisfy trusted handoff evidence. The eval suites record
-  that the positive accept branch (recordable out-of-band host/coordinator
-  state) is not provable in the file-contract harness and must not be faked with
-  an injected fixture.
+  Verification:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`
+  passes.
 
 ## [skill-eval 1.0.0] - 2026-06-21
 
