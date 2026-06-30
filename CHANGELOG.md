@@ -13,6 +13,12 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-review` now reduces reviewer/backend output exposure by requiring raw
+  delegated reviewer and free-form backend bytes to stop at the
+  `ingested_reviewer_backend_output` normalization boundary, with downstream
+  triage, selection, cascade, ledger, and terminal-audit stages using normalized
+  projection records plus bounded redacted excerpts. External Snyk closure and
+  host/harness trust isolation remain unproven until separately verified.
 - `vibe-plan-execution` now makes durable artifact language hygiene a fixed
   post-implementation review handoff item when diffs touch comments, docstrings,
   test names, commit messages, README/changelog entries, or similar text, with
