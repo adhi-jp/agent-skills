@@ -11,6 +11,8 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [vibe-review 1.2.1] - 2026-06-30
+
 ### Changed
 
 - `vibe-review` now reduces reviewer/backend output exposure by requiring raw
@@ -19,11 +21,21 @@ use `[Repository] - YYYY-MM-DD`.
   triage, selection, cascade, ledger, and terminal-audit stages using normalized
   projection records plus bounded redacted excerpts. External Snyk closure and
   host/harness trust isolation remain unproven until separately verified.
+
+## [vibe-plan-execution 3.1.0] - 2026-06-30
+
+### Changed
+
 - `vibe-plan-execution` now makes durable artifact language hygiene a fixed
   post-implementation review handoff item when diffs touch comments, docstrings,
   test names, commit messages, README/changelog entries, or similar text, with
   targeted eval coverage for plan-only label detection, useful-anchor
   preservation, and coordinator-owned disposition.
+
+## [skill-quality 2.2.1] - 2026-06-30
+
+### Changed
+
 - `skill-quality` now treats excluded or unscored executor-timeout eval cells as
   partial proof that must be surface-classified before accepting aggregate deltas
   or editing skill prose, with focused eval coverage for timeout-excluded runs

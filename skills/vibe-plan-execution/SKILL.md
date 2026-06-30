@@ -1,5 +1,5 @@
 ---
-version: 3.0.1
+version: 3.1.0
 name: vibe-plan-execution
 description: Use when the user asks to execute, implement, continue, or apply an existing implementation plan, specification, acceptance criteria, task plan, or prior planning output. Do not use for plan creation or coding requests with no concrete plan to bind.
 ---

@@ -1,5 +1,5 @@
 ---
-version: 1.2.0
+version: 1.2.1
 name: vibe-review
 description: Use when the user asks for vibe-coding review of a git diff, working tree, branch, base ref, git-backed plan or document change, or review/fix loop where scope triage, delegated reviewers, specification gaps, or cascade-safe fixes may matter.
 ---
