@@ -13,6 +13,11 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-plan-execution` now makes durable artifact language hygiene a fixed
+  post-implementation review handoff item when diffs touch comments, docstrings,
+  test names, commit messages, README/changelog entries, or similar text, with
+  targeted eval coverage for plan-only label detection, useful-anchor
+  preservation, and coordinator-owned disposition.
 - `skill-quality` now treats excluded or unscored executor-timeout eval cells as
   partial proof that must be surface-classified before accepting aggregate deltas
   or editing skill prose, with focused eval coverage for timeout-excluded runs

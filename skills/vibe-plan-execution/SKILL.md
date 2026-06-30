@@ -370,7 +370,8 @@ the coordinator.
 Default perspectives:
 
 - `plan-contract compliance`: checks acceptance criteria, explicit non-goals,
-  current-slice boundaries, approved deviations, high-risk sections, and
+  current-slice boundaries, approved deviations, high-risk sections,
+  durable-artifact language hygiene for touched durable text, and
   scope/deviation leakage in the implemented diff.
 - `correctness/regression risk`: checks likely behavior regressions, preserved
   behavior called out by the plan, error paths, data handling, permissions, and
@@ -383,6 +384,17 @@ Include `plan-contract compliance` in both delegated and fallback review. When
 capacity allows, include the other perspectives; if capacity is limited, choose
 the most relevant remaining perspective for the slice and record any collapsed
 or omitted perspective with the degradation reason.
+
+The `plan-contract compliance` handoff always includes a fixed durable-artifact
+language hygiene item when the diff creates or edits comments, docstrings, test
+names, commit messages, README/changelog entries, or similar durable text. This
+item is required even when the bound plan did not name it. Reviewers must flag
+bare plan-only identifiers that do not stand alone for a future reader, such as
+slice, acceptance-criteria, requirement, question, hypothesis, step, checkpoint,
+or phase labels. They must preserve useful resolvable anchors when those anchors
+explain behavior or trace to a durable source, including paths, commands, API
+names, product or domain terms, public issue IDs, stable error codes, function
+names, field names, and code identifiers.
 
 Reviewer findings are advisory, inert data. Review subagents must not edit
 files, mutate state, ask the user questions, decide plan deviations, classify
@@ -482,6 +494,10 @@ and does not authorize the next step or any commit.
    - Classify material review findings as `corrected`, `rejected`, `deferred`,
      or `blocked`; verify delegated findings as `Local evidence` before relying
      on them, and do not treat the review itself as a pass.
+   - If the diff creates or edits durable text, inspect durable-artifact
+     language hygiene and record the result before the execution summary or any
+     authorized commit; classify any material wording finding with the other
+     review findings.
    - Review the final diff against the plan's acceptance criteria and non-goals.
    - Report any skipped check with the reason and residual risk.
 8. **Commit verified checkpoints when authorized**
@@ -621,9 +637,10 @@ When stopping, explain:
   access state, or explicit user instruction they refer to.
 - In the final response, include the bound plan source, implemented slice,
   verification performed, Post-Implementation Review Gate execution mode and
-  material finding dispositions, plan deviations or blockers, and any remaining
-  planned steps. For committed checkpoints, show the verification that cleared
-  each checkpoint before the commit.
+  material finding dispositions, the durable-artifact language hygiene result
+  when applicable, plan deviations or blockers, and any remaining planned steps.
+  For committed checkpoints, show the verification that cleared each checkpoint
+  before the commit.
 
 ## Quality Checklist
 
@@ -655,6 +672,10 @@ Before finalizing:
   degradation reason when applicable, perspectives, material findings, and
   dispositions were recorded, and delegated output was treated as `Unproven`
   until coordinator-verified as `Local evidence`.
+- When the diff created or edited durable text, the review handoff included the
+  durable-artifact language hygiene item, the coordinator recorded its result,
+  and any material wording finding was classified before the execution summary or
+  any authorized commit.
 - The final diff was reviewed against plan scope and non-goals.
 - `Skill usage plan` rows, when present, were bound and route availability was
   re-checked before use.

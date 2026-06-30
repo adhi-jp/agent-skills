@@ -433,9 +433,13 @@ slice is verified, execution runs a mandatory post-implementation review gate
 before the execution summary and before any authorized commit. The gate uses
 review-only delegated reviewers when a verified, authorized host capability
 exists; otherwise it runs a coordinator fallback and records the degradation
-reason. Findings are advisory until the coordinator classifies them, verifies
-any delegated finding as local evidence, and independently confirms the bound
-plan's acceptance criteria.
+reason. Its plan-contract compliance perspective also checks durable artifact
+language hygiene when a diff creates or edits comments, docstrings, test names,
+commit messages, README/changelog entries, or similar text: reviewers flag
+plan-only labels that do not stand alone while preserving resolvable code,
+product, issue, path, command, and API anchors. Findings are advisory until the
+coordinator classifies them, verifies any delegated finding as local evidence,
+and independently confirms the bound plan's acceptance criteria.
 
 ### `vibe-brainstorm`
 
