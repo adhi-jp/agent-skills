@@ -20,7 +20,7 @@ quickstart when changing a skill or its eval suite.
 | Build, debug, port, or inspect Minecraft Java Edition mods for Fabric, NeoForge, or Architectury | `minecraft-modding-workbench` | Produces implementation guidance or code while labeling MCP, workspace, source-jar, runtime, and unverified facts | `skills/minecraft-modding-workbench/` | `evals/minecraft-modding-workbench/` |
 | Route an explicit multi-turn vibe-coding workflow | `vibe-coding` | Selects one primary visible `vibe-*` specialist for the next phase; does not relax downstream gates | `skills/vibe-coding/` | `evals/vibe-coding/` |
 | Draft, revise, save, finish, or explore requirements before planning | `vibe-requirements-spec` | Creates or updates the requirements spec artifact by default, defaults to strict-four-choice without explicit mode selection, stops before non-spec work, and reopens the same spec for downstream requirements defects; trusted orchestration can carry recordable current-spec handoff evidence after the completion audit passes | `skills/vibe-requirements-spec/` | `evals/vibe-requirements-spec/` |
-| Create or revise an implementation plan from approval-evidenced or concrete inputs | `vibe-planning` | Writes a plan artifact and concise summary; stops before code, tests, changelog edits, commits, and release work; trusted orchestration can route a reviewed ready plan to a later execution phase | `skills/vibe-planning/` | `evals/vibe-planning/` |
+| Create or revise an implementation plan from approval-evidenced or concrete inputs | `vibe-planning` | Writes a plan artifact and concise summary; includes an implementation-progress ledger for multi-item plans; stops before code, tests, changelog edits, commits, and release work; sends discovered requirements contradictions back to requirements work; trusted orchestration can route a reviewed ready plan to a later execution phase | `skills/vibe-planning/` | `evals/vibe-planning/` |
 | Review, confirm, walk through, or pre-check a saved implementation plan before execution | `vibe-plan-review` | Reviews one plan item at a time, records localized item decisions with numeric input shortcuts from its reference file, and stops before implementation | `skills/vibe-plan-review/` | `evals/vibe-plan-review/` |
 | Implement an existing concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Edits only after binding the plan and checking proceed conditions; stops before commits unless separately authorized | `skills/vibe-plan-execution/` | `evals/vibe-plan-execution/` |
 | Brainstorm creative implementation ideas, alternatives, expected behavior, or convention checks | `vibe-brainstorm` | Returns chat-first directions or checklists and stops before implementation until the user confirms the direction | `skills/vibe-brainstorm/` | `evals/vibe-brainstorm/` |
@@ -324,17 +324,26 @@ pending, validation, success, and error recovery, and prefer completing verified
 existing surfaces before expanding into adjacent unproven channels or modes.
 Multi-slice plans include commit checkpoints only after independently verifiable
 code-producing phases or slices, with standalone proposed messages. These
-checkpoints are proposed later boundaries and do not authorize staging,
-committing, release preparation, or history mutation. Single-slice,
-blocked, discovery-only, discovery-first, destructive-risk-blocked,
-work-in-progress, and no-verified-code-producing-slice plans omit commit
-messages and `Subject:`/`Body:` bytes until a code-producing slice is verified,
-rather than treating a future implementation step as a verified checkpoint or
-moving message text into route fallbacks, review notes, or test/fix/docs
-pseudo-checkpoints. A blocked proceed condition or unresolved current-slice
-implementation blocker makes later implementation phases ineligible for
-commit-message bytes until a verified checkpoint boundary exists. At plan
-creation time, the skill records
+checkpoints authorize later scoped local commits only when the user asks to
+execute, implement, apply, or continue the bound plan and no current user or
+project instruction denies commits. They still do not authorize planning-time
+commits, push, release preparation, version bumps, history rewrites, destructive
+operations, external side effects, work-in-progress commits, failing or skipped
+verification commits, or scope-changing commits. Single-slice, blocked,
+discovery-only, discovery-first, destructive-risk-blocked, work-in-progress, and
+no-verified-code-producing-slice plans omit commit messages and
+`Subject:`/`Body:` bytes until a code-producing slice is verified, rather than
+treating a future implementation step as a verified checkpoint or moving message
+text into route fallbacks, review notes, or test/fix/docs pseudo-checkpoints. A
+blocked proceed condition or unresolved current-slice implementation blocker
+makes later implementation phases ineligible for commit-message bytes until a
+verified checkpoint boundary exists. Multi-item plans also include an
+`Implementation progress` ledger with stable item IDs, planned scope, status,
+required verification or review, commit action, last update, and remaining
+blocker or next item. Planning initializes those rows as `Not started` and does
+not claim implementation completion; the ledger exists so later execution and
+resumed sessions can update item status in place. At plan creation time, the
+skill records
 matching visible skills in a per-step skill usage plan. Every discovery,
 implementation, verification, multi-perspective review, self-review, and
 commit-checkpoint step gets a route to a verified matching skill, `No matching
@@ -354,6 +363,12 @@ research the repository, draft or edit the plan artifact, ask the user
 questions, update docs/changelogs/evals, implement, stage, commit, or decide
 finding dispositions. Review records name the permission source, capability
 source, execution mode, fallback reason, and recordable evidence or its absence.
+During trusted `vibe-coding` orchestration, delegable planning-quality choices
+such as low-risk edit ordering, test shape, proof sequencing, wording, and
+requirement-preserving scope trimming can be recorded as AI-selected planning
+defaults or assumptions instead of user interview blockers; non-delegable
+human-risk, requirement-changing, or blocked-proceed decisions still ask the
+human user or return to the owning requirements artifact.
 That review always includes a `vibe-planning` contract-compliance perspective
 and dispositions for material findings before final self-review. A shell-config
 helper for skipping future subagent permission questions is allowed only after
@@ -362,8 +377,14 @@ and confirms the edit under host filesystem permissions.
 Plans also include an implementation handoff and a final self-review gate that
 checks route completeness, unavailable-skill leakage, evidence labels, test
 ordering, multi-perspective review completion or fallback, plan-only boundaries,
-proceed conditions, and unresolved implementation blockers before returning the
-concise summary.
+proceed conditions, unresolved implementation blockers, and implementation-progress
+ledger alignment for multi-item plans before returning the concise summary. If
+plan revision reveals that the requirements or spec are
+wrong, contradictory, or infeasible, `vibe-planning` routes that defect back to
+requirements-spec work when available, or blocks on the requirements decision,
+then rebuilds the affected acceptance criteria, tests, and implementation steps
+from the corrected requirements instead of hiding the defect in a local plan
+workaround.
 
 ### `vibe-plan-review`
 

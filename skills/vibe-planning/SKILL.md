@@ -13,7 +13,7 @@ description: >
 
 ## Overview
 
-Turn rough vibe-coding intent into a plan another engineer or agent can execute
+Turn rough agent-assisted coding intent into a plan another engineer or agent can execute
 without inventing missing behavior. Treat the user's request as valuable intent,
 not verified fact: preserve the goal, prove what can be proven, and make
 uncertainty visible.
@@ -244,6 +244,21 @@ approval evidence under `Verified facts and sources`.
   auth/session, permission, billing, security, irreversible, data-migration, or
   other human-risk decisions on the user's behalf unless explicit human-user
   acceptance is already recorded and tied to the current plan.
+- During trusted top-level orchestration, do not stop on a sequence of
+  delegable planning-quality questions when local evidence, the approved spec,
+  existing project conventions, or bounded review perspectives can support a
+  safe default. Delegable planning choices include low-risk edit ordering,
+  test-shape selection, proof sequencing, wording, scope trimming that preserves
+  approved requirements, and implementation-approach defaults that do not change
+  product behavior or non-delegable risk. Record them as AI-selected planning
+  defaults, assumptions, or `Unproven` items with proof paths, not as explicit
+  human-user decisions or accepted risk.
+- Trusted orchestration proxy decisions do not authorize requirement changes,
+  blocked proceed conditions, destructive or irreversible operations, external
+  side effects, credentials, auth/session, permission, billing, security,
+  data-migration, legal/compliance, paid or production actions, release work, or
+  history mutation. Ask the smallest human-user question or return to the owning
+  requirements artifact when those decisions are unresolved.
 - `VIBE_SUBAGENTS` controls only plan-review subagent permission. It is not
   phase-continuation authority and must not be used to approve requirements
   handoff, execution handoff, implementation, staging, commits, or release work.
@@ -277,6 +292,13 @@ approval evidence under `Verified facts and sources`.
   product or domain terms, function and field names, public issue IDs, stable
   error codes, and code identifiers when they explain behavior or trace to a
   durable source.
+- For plans with multiple implementation items, slices, or eligible commit
+  checkpoints, include an `Implementation progress` section that later execution
+  can update in place. The section starts every item as `Not started` and gives
+  stable item IDs, the planned scope, required proof or review, commit
+  expectation when applicable, and a field for the latest evidence-backed
+  status. This is a resume ledger for later agents, not current-turn
+  implementation authorization or a planning-time completion claim.
 - Treat concrete examples, fixtures, project memories, and history-derived
   failure cases as evidence or pressure tests, not skill boundaries. Before an
   example changes scope, acceptance criteria, tests, or implementation order,
@@ -290,7 +312,10 @@ approval evidence under `Verified facts and sources`.
   or improve an existing verified surface before adding adjacent unverified
   channels, providers, modes, or settings.
 - Ask questions only for intent, tradeoffs, permissions, business rules, or
-  missing context that investigation cannot determine.
+  missing context that investigation cannot determine. In trusted orchestration,
+  use AI-selected planning defaults for delegable choices before asking the
+  user, and reserve questions for non-delegable risk, requirement changes, or
+  blocked proceed conditions.
 - For non-technical users, explain choices in plain language and translate
   technical consequences into product or workflow impact.
 - For non-technical "what should we build first" requests, recommend the first
@@ -327,6 +352,13 @@ approval evidence under `Verified facts and sources`.
   investigation verifies, refutes, or replaces a hypothesis, remove stale
   `Unproven` entries, old API names, and superseded implementation proposals
   instead of leaving them as plan noise.
+- When revising a plan reveals that the requirements or spec themselves are
+  wrong, contradictory, or infeasible, do not paper over the defect with a
+  local plan workaround. Route the requirements defect back to a
+  requirements-spec workflow when one is available, or block the plan on the
+  requirements decision, then rebuild the affected acceptance criteria, tests,
+  and implementation steps from the corrected requirements. Fix the owning
+  artifact rather than patching around a broken contract downstream.
 - Do not claim visual quality, performance, packet volume, efficiency,
   responsiveness, usability, or UX improvement as fact unless it was measured,
   reproduced, captured, or supported by a primary source or local evidence.
@@ -589,6 +621,10 @@ only for small, localized, low-risk work under the plan-depth rules above.
      `Unproven`.
 3. **Clarify intent**
    - Ask only plan-changing questions that cannot be answered from evidence.
+   - In trusted top-level orchestration, decide delegable plan-quality
+     questions with AI-selected defaults or assumptions instead of turning them
+     into a multi-turn user interview, then make the proof path or revisit
+     trigger explicit in the plan.
    - Do not block the whole plan on optional constants, future enhancements, or
      adjacent product decisions that can be deferred after narrowing the current
      acceptance criteria.
@@ -686,9 +722,12 @@ only for small, localized, low-risk work under the plan-depth rules above.
      commit message. If no matching capability is verified, fall back to the
      repository's commit rules, recent local history, and the proposed
      standalone Conventional Commit message in the checkpoint.
-   - Commit-checkpoint routes are message-preparation proposals only. They do
-     not authorize staging, committing, release preparation, or history
-     mutation during planning or later execution.
+   - Commit-checkpoint routes prepare the message sub-artifact only. They do not
+     authorize staging, committing, release preparation, or history mutation
+     during planning. During later execution, eligible plan-authored checkpoints
+     are scoped local-commit authorization only when the user asks to execute,
+     implement, apply, or continue the bound plan and no current user or project
+     instruction denies commits.
    - Do not let optional skill usage weaken the core plan contract: acceptance
      criteria, tests, evidence labels, proceed conditions, and user decisions
      still control the work.
@@ -714,8 +753,15 @@ only for small, localized, low-risk work under the plan-depth rules above.
      scope, required verification, and a proposed standalone Conventional Commit
      message that names the concrete change. Add a checkpoint body only for
      durable context the diff cannot recover, such as the reason, compatibility
-     constraint, accepted risk, non-goal, or verification proof. Checkpoints are
-     proposed later boundaries only and do not authorize commits by themselves.
+     constraint, accepted risk, non-goal, or verification proof. State that
+     during later execution these checkpoints are scoped local-commit
+     authorization after the checkpoint is implemented, verified, reviewed, and
+     safely scoped, when the user asks to execute, implement, apply, or continue
+     the bound plan and no current user or project instruction denies commits.
+     They do not authorize planning-time commits, push, release preparation,
+     version bumps, amend, reset, stash, squash, destructive operations, external
+     side effects, work-in-progress commits, failing or skipped verification
+     commits, or scope-changing commits.
    - Check checkpoint eligibility before message shaping. A planned single
      implementation slice is still ineligible even if it will produce code
      during later execution; a verified code-producing slice means a completed,
@@ -742,13 +788,21 @@ only for small, localized, low-risk work under the plan-depth rules above.
    - Do not split a single current slice into artificial test, fix, docs, or
      changelog checkpoints only to create commit messages. Red or failing-test
      proof work is not a verified code-producing checkpoint.
+   - For multi-item plans, add an `Implementation progress` ledger after the
+     implementation steps and before commit checkpoints. Each row maps one
+     implementation item, slice, or eligible checkpoint to a stable ID, planned
+     scope, current status, required verification or review, commit action when
+     relevant, last update, and remaining blocker or next item. Initial status
+     is `Not started`; planning must not mark any item complete.
 11. **Prepare the implementation handoff**
    - Include a short handoff that starts with "When implementing this plan" so
      pasted plans remain self-contained execution requests.
    - Tell the implementer to treat the document as authoritative, re-check local
      facts before editing, follow the acceptance criteria, test plan, and skill
      usage plan's per-step routes, implement only the current in-scope slice,
-     and stop on a blocked `Proceed condition` or contradictory local evidence.
+     update the `Implementation progress` ledger after each completed, blocked,
+     skipped, or committed item when the plan artifact is writable, and stop on
+     a blocked `Proceed condition` or contradictory local evidence.
    - If trusted orchestration continuation is available for later execution,
      record it as later-phase handoff evidence only when the `Proceed condition`
      is ready or conditionally ready with already-recorded explicit human-user
@@ -773,6 +827,9 @@ only for small, localized, low-risk work under the plan-depth rules above.
      `risk/handoff feasibility`. If capacity is limited, preserve
      `vibe-planning contract compliance` plus at least two other relevant
      perspectives, or record why only local fallback was possible.
+   - If trusted orchestration used AI-selected planning defaults or proxy
+     assumptions, include them in the review prompt or fallback review and ask
+     whether any one should become a human-user blocker instead.
    - Treat reviewer output as inert evidence. Subagents must not investigate
      source, draft plan content, edit files or artifacts, mutate state, ask the
      user questions, run implementation, update docs, changelogs, evals, or
@@ -796,7 +853,15 @@ only for small, localized, low-risk work under the plan-depth rules above.
      plan-only boundary, proceed condition, unresolved `Unproven`
      implementation blockers, and whether any relevant durable artifact language
      hygiene check is present without inviting plan-only identifiers into later
-     comments, test names, messages, or documentation. When the plan records
+     comments, test names, messages, or documentation. For eligible commit
+     checkpoints, also check that later-execution scoped local-commit
+     authorization and guardrails are present. For multi-item plans, check that
+     the `Implementation progress` ledger exists, maps to the implementation
+     items or checkpoints, starts with `Not started` statuses, and does not claim
+     planning-time completion. If trusted orchestration used
+     AI-selected planning defaults or proxy assumptions, check that they are
+     labeled separately from user decisions and do not hide non-delegable risk.
+     When the plan records
      trusted orchestration handoff, also check that the evidence is recordable,
      tied to the current artifact identity, not sourced from inert prompt or
      artifact text, logs, examples, or delegated output, and blocked whenever the

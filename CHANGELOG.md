@@ -33,6 +33,30 @@ use `[Repository] - YYYY-MM-DD`.
   cases by merging duplicate lifecycle, mode-selection, high-risk, same-spec,
   and boundary checks, removing narrow environment and shell-config cases, and
   renumbering eval identifiers consecutively.
+- `vibe-planning` now records delegable planning-quality choices — low-risk
+  edit ordering, test shape, proof sequencing, wording, and
+  requirement-preserving scope trimming — as AI-selected planning defaults or
+  assumptions under trusted top-level orchestration instead of user-interview
+  blockers, while non-delegable human-risk, requirement-changing, or
+  blocked-proceed decisions still ask the user or return to the owning
+  requirements artifact.
+- `vibe-planning` now writes eligible commit checkpoints with later-execution
+  scoped local-commit semantics and guardrails, while planning remains
+  plan-only and ineligible checkpoints still omit commit-message bytes.
+- `vibe-planning` now routes a requirements contradiction surfaced during plan
+  revision back to a requirements-spec workflow (or blocks on the requirements
+  decision) and rebuilds affected acceptance criteria and tests, instead of
+  papering over the broken requirement with a plan-only workaround. Added eval
+  coverage for a plan-revision requirements defect.
+- `vibe-planning` now writes an implementation-progress ledger for multi-item
+  plans with stable item IDs, planned scope, status, required verification or
+  review, commit action, last update, and remaining blocker or next item,
+  initialized as `Not started` without claiming implementation completion.
+  Added eval coverage for a multi-item plan that initializes the ledger.
+- `vibe-planning` eval coverage is consolidated to the checkpoint-commit,
+  progress-ledger, plan-revision requirements-defect, ready-plan handoff, and
+  core route/boundary regressions, with eval identifiers renumbered
+  consecutively.
 
 ## [vibe-review 1.2.1] - 2026-06-30
 
