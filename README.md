@@ -19,7 +19,7 @@ quickstart when changing a skill or its eval suite.
 | --- | --- | --- | --- | --- |
 | Build, debug, port, or inspect Minecraft Java Edition mods for Fabric, NeoForge, or Architectury | `minecraft-modding-workbench` | Produces implementation guidance or code while labeling MCP, workspace, source-jar, runtime, and unverified facts | `skills/minecraft-modding-workbench/` | `evals/minecraft-modding-workbench/` |
 | Route an explicit multi-turn vibe-coding workflow | `vibe-coding` | Selects one primary visible `vibe-*` specialist for the next phase; does not relax downstream gates | `skills/vibe-coding/` | `evals/vibe-coding/` |
-| Draft, revise, save, finish, or explore requirements before planning | `vibe-requirements-spec` | Creates or updates the requirements spec artifact by default, defaults to strict-four-choice without explicit mode selection, and stops before non-spec work; trusted orchestration can carry recordable current-spec handoff evidence after the completion audit passes | `skills/vibe-requirements-spec/` | `evals/vibe-requirements-spec/` |
+| Draft, revise, save, finish, or explore requirements before planning | `vibe-requirements-spec` | Creates or updates the requirements spec artifact by default, defaults to strict-four-choice without explicit mode selection, stops before non-spec work, and reopens the same spec for downstream requirements defects; trusted orchestration can carry recordable current-spec handoff evidence after the completion audit passes | `skills/vibe-requirements-spec/` | `evals/vibe-requirements-spec/` |
 | Create or revise an implementation plan from approval-evidenced or concrete inputs | `vibe-planning` | Writes a plan artifact and concise summary; stops before code, tests, changelog edits, commits, and release work; trusted orchestration can route a reviewed ready plan to a later execution phase | `skills/vibe-planning/` | `evals/vibe-planning/` |
 | Review, confirm, walk through, or pre-check a saved implementation plan before execution | `vibe-plan-review` | Reviews one plan item at a time, records localized item decisions with numeric input shortcuts from its reference file, and stops before implementation | `skills/vibe-plan-review/` | `evals/vibe-plan-review/` |
 | Implement an existing concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Edits only after binding the plan and checking proceed conditions; stops before commits unless separately authorized | `skills/vibe-plan-execution/` | `evals/vibe-plan-execution/` |
@@ -152,6 +152,12 @@ Specs include `Requirement mode` in `Spec metadata` and an `Evidence and
 constraints` section for decision-affecting local paths, external sources or
 URLs, and unverified facts. The artifact does not include approval status,
 approval notes, lifecycle status fields, or revision-history sections.
+When later implementation planning or plan execution reports that the current
+requirements are wrong, contradictory, infeasible, or missing a build-changing
+decision, `vibe-requirements-spec` treats that report as input to reopen and
+revise the same spec path when available. Prior requirements-finished or
+next-phase handoff evidence no longer applies to the affected contract until
+renewed finish or handoff evidence exists.
 
 The skill has three requirement drafting modes. Without explicit current-user
 mode selection, it selects `strict-four-choice`; quick, small, low-risk, or
@@ -179,11 +185,16 @@ Startup behavior reads `VIBE_SUBAGENTS=ask|allow|deny` when available: `ask`
 asks every time, `allow` permits research/review subagents without the startup
 question, and `deny` forbids subagents without asking; unset or invalid values
 behave as `ask`. Subagents are limited to research, codebase inspection,
-existing-spec inspection, risk discovery, and spec review, with final judgment
-and spec updates kept by the main AI. If the user asks to skip the subagent
-permission question next time, the skill must inspect the shell environment,
-show the target shell config file, exact change, and risks, then ask for final
-confirmation before any edit. `VIBE_DOCUMENT_LANGUAGE=user|default|<BCP47
+existing-spec inspection, risk discovery, spec review, and trusted
+orchestration proxy perspectives, with final judgment and spec updates kept by
+the main AI. During trusted `vibe-coding` orchestration, proxy perspectives can
+resolve delegable low-risk requirements questions as AI-selected proposed
+defaults or assumptions instead of asking the user every question; they cannot
+create explicit human-user confirmation, finish or handoff evidence, accepted
+risk, or consent for non-delegable human-risk decisions. If the user asks to
+skip the subagent permission question next time, the skill must inspect the
+shell environment, show the target shell config file, exact change, and risks,
+then ask for final confirmation before any edit. `VIBE_DOCUMENT_LANGUAGE=user|default|<BCP47
 language tag>` controls artifact language after explicit user language requests
 and before the skill default of English.
 

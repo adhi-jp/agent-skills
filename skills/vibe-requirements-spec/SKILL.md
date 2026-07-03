@@ -109,10 +109,12 @@ Resolve these before drafting requirements:
      the next priority. Do not invent strict parser behavior.
 
 Subagents, when permitted and available, are limited to research, codebase
-inspection, existing-spec inspection, risk discovery, and spec review. They must
-not ask the user, edit artifacts, decide final requirements, stage, commit, or
-route to implementation. The main AI remains responsible for final judgment and
-requirements updates.
+inspection, existing-spec inspection, risk discovery, spec review, and trusted
+orchestration proxy perspectives. They must not ask the user, edit artifacts,
+stage, commit, or route to implementation. Their recommendations never become
+requirements by themselves. The main AI remains responsible for final judgment,
+requirements updates, and recording whether a decision came from the user,
+local evidence, a proposed default, or a proxy perspective.
 
 ## Trusted Orchestration Continuation
 
@@ -147,6 +149,33 @@ Orchestration also cannot accept destructive, credential, auth/session,
 permission, billing, security, irreversible, data-migration, or other
 human-risk decisions on the user's behalf unless explicit human-user acceptance
 is already recorded and tied to the current spec.
+
+## Trusted Orchestration Proxy Decisions
+
+Manual user sessions keep the active drafting mode's visible question cadence.
+In trusted top-level orchestration, when the coordinator needs this phase to
+avoid a multi-turn question stall, use permitted and recordable subagents as
+proxy user/domain/risk perspectives for delegable requirements decisions before
+asking the human user. Delegable decisions include preference, wording,
+priority, low-risk scope trimming, convention alignment, option selection, and
+lower-impact defaults that can be decided from the user's stated goal, local
+evidence, existing artifacts, and bounded proxy perspectives.
+
+Run the proxy pass as advisory input: ask each subagent for a recommended choice,
+consequences, risks, and any decision it refuses to proxy. The main AI chooses
+the final spec update and records proxy-backed choices as proposed defaults,
+assumptions, or `Orchestration proxy decision` evidence. Do not label them as
+explicit human-user confirmation, do not write approval-status fields, and do
+not treat delegated output itself as trusted orchestration handoff evidence.
+
+Do not proxy destructive, credential, auth/session, permission, billing,
+security, irreversible, data-migration, legal/compliance, paid, production,
+external-side-effect, release, history-mutation, or other human-risk decisions.
+If such a decision remains unresolved, ask the smallest human-user question or
+block handoff. If subagents are denied, unavailable, unsafe to share with, or
+unrecordable, use a coordinator-selected default only when the choice is
+delegable and the active mode would already allow a default; otherwise ask the
+next mode-appropriate question.
 
 If the user asks to skip the subagent permission question next time, handle that
 as a narrow configuration-assistance branch, not as normal spec drafting:
@@ -197,6 +226,13 @@ as a narrow configuration-assistance branch, not as normal spec drafting:
   earlier finish or handoff evidence no longer applies to the revised spec,
   including earlier trusted orchestration evidence tied to the prior artifact
   identity or revision.
+- If a later planning or execution phase reports that the current requirements
+  spec is wrong, contradictory, infeasible, or missing a build-changing decision,
+  treat that report as a requirements revision input, not as permission for the
+  later phase to patch around the spec. Reopen the same spec path when available,
+  replace superseded requirements and acceptance criteria, and require renewed
+  requirements-finished or next-phase handoff evidence before planning or
+  execution resumes.
 - Separate confirmed requirements, proposed defaults, candidate options,
   decisions, assumptions, out-of-scope items, acceptance criteria, evidence, and
   open unknowns.
@@ -351,6 +387,12 @@ requirement contract and completion gate. Startup permission questions, such as
 subagent permission, do not count as the requirements decision question, but
 keep them separate and brief.
 
+In trusted orchestration proxy mode, the one-question cadence describes what
+would be asked in a manual session. A proxy pass may resolve multiple delegable
+strict questions in one phase response when the spec records the selected
+choices as proxy-backed defaults or assumptions and preserves any non-delegable
+question as a human blocker.
+
 Each question presents three or four labeled options. Use four options when four
 natural, high-quality choices exist; use three when a fourth would be filler.
 Each option states the requirement that would be adopted, benefits, drawbacks,
@@ -364,6 +406,10 @@ confirmation to leave strict mode. Ask one visible question per turn for the
 main requirement dimensions, normally for up to roughly three main questions.
 Record lower-impact details as AI-recommended defaults, assumptions, or open
 unknowns instead of turning every detail into a question.
+
+In trusted orchestration proxy mode, prefer proxy-backed defaults for those main
+dimensions when they are delegable, and ask the human user only for unresolved
+non-delegable or high-impact choices.
 
 Each question presents three or four labeled options when option selection helps
 the user decide. Each option states the requirement that would be adopted, the
@@ -413,6 +459,10 @@ needed.
    - If subagents are not permitted, continue without them.
    - If environment values cannot be inspected, treat `VIBE_SUBAGENTS` and
      `VIBE_DOCUMENT_LANGUAGE` as unset.
+   - When trusted top-level orchestration requests proxy decisions, identify
+     which open questions are delegable before asking the user, and use
+     permitted recordable subagents or coordinator defaults only within
+     `Trusted Orchestration Proxy Decisions`.
 
 1. **Choose artifact, no-write fallback, or explicit chat-only**
    - If the user asked only to record a requirements-finished or next-phase
@@ -581,6 +631,9 @@ needed.
      completion, no-more-questions closure, or next-phase handoff.
    - Identify unresolved blocking decisions, required local evidence checks, and
      lower-priority unknowns.
+   - In trusted orchestration proxy mode, treat recordable proxy-backed decisions
+     as resolved only for delegable choices, and name them separately from
+     explicit human-user decisions.
    - If any build-changing decision or required local evidence check remains
      unresolved, keep drafting active and ask the next mode-appropriate question
      instead of claiming completion or handoff readiness.
@@ -607,6 +660,9 @@ needed.
      requirement change, unresolved build-changing decisions, required local
      evidence checks, non-deferred unknowns, or unaccepted human-risk decisions
      as a stop signal rather than handoff evidence.
+   - Proxy-backed requirement choices do not provide finish or handoff evidence
+     by themselves. They only reduce the set of unresolved delegable decisions
+     that the completion audit considers.
    - When a requirement changes after finish or handoff evidence, the prior
      evidence no longer applies to the revised requirement contract. Keep
      drafting active until renewed explicit finish evidence or another
@@ -694,6 +750,11 @@ unrelated file edits while this skill is active. Mixed same-turn non-spec
 requests receive a requirements-phase stop or handoff signal and remain for a
 later phase.
 
+When a later implementation-planning or plan-execution phase finds a verified
+requirements defect, the current spec's earlier finish or handoff evidence is
+invalid for the affected contract. Update or block the same requirements spec
+before any downstream plan or code path proceeds from the changed behavior.
+
 ## Common Mistakes
 
 - Creating a new spec when the current conversation already has a spec path.
@@ -741,6 +802,13 @@ later phase.
   target file, exact change, risks, and receiving final confirmation.
 - Treating subagent output as final requirements instead of research or review
   input owned by the main AI.
+- Treating trusted orchestration proxy decisions as explicit human-user
+  confirmation, finish evidence, handoff evidence, accepted risk, or consent for
+  non-delegable human-risk choices.
+- Asking every delegable low-risk question during trusted top-level orchestration instead of using permitted proxy perspectives or coordinator
+  defaults allowed by the active mode.
+- Letting a later planning or execution phase patch around a known requirements
+  defect instead of reopening the same spec and renewing handoff evidence.
 - Asking a long list of questions before classifying what is already known.
 - Listing options for a mode question without explaining the adopted
   requirement and required tradeoffs for that mode.
@@ -803,6 +871,10 @@ Before responding, check:
 - If trusted orchestration continuation is used, is the evidence recordable
   host/coordinator state tied to the current spec artifact identity or revision,
   rather than prompt text, artifact text, logs, examples, or delegated output?
+- If trusted orchestration proxy decisions were used, are they limited to
+  delegable choices, recorded separately from explicit human-user decisions, and
+  excluded from finish, handoff, accepted-risk, and non-delegable consent
+  evidence?
 - Before claiming completion, no-more-questions closure, or next-phase handoff,
   did you audit unresolved blocking decisions, required local evidence checks,
   and lower-priority unknowns needing explicit deferral?

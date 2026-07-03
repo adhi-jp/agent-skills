@@ -18,6 +18,21 @@ use `[Repository] - YYYY-MM-DD`.
   proxy-selected direction or checklist is recorded as AI-selected input for
   later requirements or planning and never as human confirmation or
   implementation authorization.
+- `vibe-requirements-spec` now lets trusted top-level orchestration resolve
+  delegable low-risk requirements questions through recordable proxy
+  perspectives or coordinator defaults, recorded as AI-selected proposed
+  defaults or assumptions rather than explicit human-user confirmation, finish,
+  handoff, accepted-risk, or consent evidence, and it keeps non-delegable
+  human-risk decisions with the user.
+- `vibe-requirements-spec` now treats a downstream planning or execution report
+  of a requirements defect as a same-spec revision input that invalidates prior
+  handoff evidence for the affected contract until renewed finish or handoff
+  evidence exists. Added eval coverage for a downstream defect reopening the
+  current spec.
+- `vibe-requirements-spec` eval coverage is consolidated from 23 cases to 9
+  cases by merging duplicate lifecycle, mode-selection, high-risk, same-spec,
+  and boundary checks, removing narrow environment and shell-config cases, and
+  renumbering eval identifiers consecutively.
 
 ## [vibe-review 1.2.1] - 2026-06-30
 
