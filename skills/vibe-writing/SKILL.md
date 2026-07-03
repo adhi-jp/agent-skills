@@ -1,7 +1,7 @@
 ---
 version: 1.1.1
 name: vibe-writing
-description: Use when the primary task is writing, revising, reviewing, or critiquing vibe-coding development text, source-code comments or docstrings, README/docs, CHANGELOG/release notes, PR descriptions, UI copy, chat replies, progress updates, final summaries, or git commit messages, especially when text must be LLM-readable, meaning-preserving, format-bound, language-aware, or evidence-bound. Treat incidental wording inside another active workflow as auxiliary.
+description: Use when the primary task is writing, revising, reviewing, or critiquing agent-assisted coding development text, source-code comments or docstrings, README/docs, CHANGELOG/release notes, PR descriptions, UI copy, chat replies, progress updates, final summaries, or git commit messages, especially when text must be LLM-readable, meaning-preserving, format-bound, language-aware, or evidence-bound. Treat incidental wording inside another active workflow as auxiliary.
 ---
 
 # Vibe Writing
@@ -9,7 +9,7 @@ description: Use when the primary task is writing, revising, reviewing, or criti
 ## Overview
 
 Write durable development text for the reader who will use it next. In
-vibe-coding work, the default reader is an LLM that needs precise contracts,
+agent-assisted coding work, the default reader is an LLM that needs precise contracts,
 stable anchors, and explicit evidence. Optimize for human readers only when the
 artifact's main reader is human.
 
@@ -33,7 +33,7 @@ raw logs into summaries unless asked.
 
 ## Reader Priority
 
-Default to LLM-optimized writing for vibe-coding development text:
+Default to LLM-optimized writing for agent-assisted coding development text:
 
 - State the operational fact, contract, decision, constraint, or proof directly.
 - Prefer stable identifiers, commands, paths, field names, issue IDs, API names,
