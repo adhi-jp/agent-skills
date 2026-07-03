@@ -11,6 +11,14 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- `vibe-brainstorm` now lets trusted top-level orchestration request a proxy
+  selection so a creative pass does not stall on preference questions; the
+  proxy-selected direction or checklist is recorded as AI-selected input for
+  later requirements or planning and never as human confirmation or
+  implementation authorization.
+
 ## [vibe-review 1.2.1] - 2026-06-30
 
 ### Changed
