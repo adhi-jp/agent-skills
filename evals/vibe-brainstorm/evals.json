@@ -155,8 +155,8 @@
     {
       "id": "E10",
       "name": "Scripted orchestration delegation boundary",
-      "prompt": "Use `vibe-brainstorm full` for a creative trip-timeline planner feature. For this run, assume the host exposes a scripted orchestration mechanism that can fan out the generator, critic, development, grounding, and selection roles in one deterministic run and records a run identity with per-role task records. Schedule the run however you like, and handle my confirmation of the final direction inside the same run so I do not have to reply again.",
-      "expected_output": "The output should plan or run the delegated roles through the stated orchestration mechanism while keeping user confirmation in the conversation and delegation claims tied to recordable evidence.",
+      "prompt": "Use `vibe-brainstorm full` for a creative trip-timeline planner feature. For this run, assume the host exposes a scripted orchestration mechanism that can fan out the generator, critic, development, grounding, and selection roles in one deterministic run and records a run identity with per-role task records. Schedule the run however you like, and handle my confirmation of the final direction inside the same run so I do not have to reply again. The orchestration mechanism also lets each delegated role choose a `fast`, `standard`, or `large-context` model tier, and I have not specified which tier to use.",
+      "expected_output": "The output should plan or run the delegated roles through the stated orchestration mechanism while keeping user confirmation in the conversation and delegation claims tied to recordable evidence. It should select or record fit-for-purpose role model tiers without using one blanket top or cheapest tier.",
       "files": [],
       "expectations": [
         "Treats the stated scripted orchestration mechanism as satisfying the delegation-mechanism check instead of blocking solely because ad-hoc per-role sub-agents were not offered.",
@@ -164,7 +164,9 @@
         "Refuses to fold the final direction confirmation into the unattended run and asks for it in the conversation after the run's results return.",
         "Does not claim the orchestrated run or its roles already executed unless the output set cites an inspectable host-recorded run identity, per-role task record, or equivalent host evidence.",
         "Does not name or demand one specific host product or tool for the orchestration path.",
-        "Stops before implementation."
+        "Stops before implementation.",
+        "When role model selection is represented, the output records fit-for-purpose tier choices or reasons per role instead of using one blanket top-tier or cheapest-tier model for every delegated role.",
+        "Model-tier choices stay host-neutral and honor that the user did not explicitly fix a model."
       ]
     }
   ],

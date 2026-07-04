@@ -8,7 +8,7 @@
       "id": "E01",
       "name": "Startup contract record",
       "prompt": "Use the listed fixture. Return JSON only, with no Markdown fence or prose. Produce the startup decision record.",
-      "expected_output": "The JSON should contain a low-burden startup contract for a working-tree adversarial delegated review with three parallel review-only reviewers.",
+      "expected_output": "The JSON should contain a low-burden startup contract for a working-tree adversarial delegated review with three parallel review-only reviewers. It should also capture host-neutral fit-for-purpose reviewer model selection when the fixture exposes model choice.",
       "files": [
         "evals/vibe-review/fixtures/startup-contract.json"
       ],
@@ -18,7 +18,9 @@
         "The effective `review_target` is `working-tree` as a scalar value or target-kind field, `review_mode` is `adversarial`, `execution_mode` is `parallel`, and `degradation_reason` is `none`.",
         "`reviewer_count` or `review_effort` records effective/defaulted requested and actual counts of 3; raw `not specified` may appear only as original user input, not the effective requested reviewer count.",
         "`angle_set` contains exactly `correctness/regression`, `scope/specification alignment`, and `edge-case/security/data-safety`.",
-        "The JSON does not ask the user to choose a backend by default and represents normal review only as an explicit opt-in alternative."
+        "The JSON does not ask the user to choose a backend by default and represents normal review only as an explicit opt-in alternative.",
+        "When the fixture exposes reviewer model choice, the JSON records reviewer model choices or selection reasons in the startup contract, angle set, review effort, decision ledger, or a clearly bound model-selection field.",
+        "Reviewer model selection is fit-for-purpose: it does not use the top model for every reviewer by default and does not choose the cheapest model for security/data-safety or broad diff/spec synthesis solely to save tokens."
       ]
     },
     {

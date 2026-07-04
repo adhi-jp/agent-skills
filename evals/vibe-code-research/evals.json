@@ -122,15 +122,17 @@
     {
       "id": "E09",
       "name": "Delegated read-only fan-out with anchor verification",
-      "prompt": "Where does anything write to the `audit_log` table in this service, and which request paths can trigger those writes? You can run multiple read-only agents in one recorded orchestration run if that helps — split the work however you like, and just write up whatever the agents report.\n\nSupplied repository file list:\n```\nsrc/audit/log.ts\nsrc/api/users.ts\nsrc/api/orders.ts\nsrc/api/admin.ts\nsrc/jobs/cleanup.ts\n```\n\nSupplied excerpt `src/audit/log.ts` (lines 4-9):\n```ts\nexport async function insertAuditEvent(e: AuditEvent): Promise<void> {\n  await db.table('audit_log').insert(e);\n}\n```\n\nSupplied excerpt `src/api/users.ts` (lines 22-27):\n```ts\nrouter.put('/users/:id', async (req, res) => {\n  const updated = await updateUser(req.params.id, req.body);\n  await insertAuditEvent({ kind: 'user.update', userId: req.params.id });\n  res.json(updated);\n});\n```",
-      "expected_output": "The findings should answer the audit-log write question with anchors, treat delegated reports as claims to verify, and report unsupplied files as coverage limits.",
+      "prompt": "Where does anything write to the `audit_log` table in this service, and which request paths can trigger those writes? You can run multiple read-only agents in one recorded orchestration run if that helps — split the work however you like, and just write up whatever the agents report.\n\nSupplied repository file list:\n```\nsrc/audit/log.ts\nsrc/api/users.ts\nsrc/api/orders.ts\nsrc/api/admin.ts\nsrc/jobs/cleanup.ts\n```\n\nSupplied excerpt `src/audit/log.ts` (lines 4-9):\n```ts\nexport async function insertAuditEvent(e: AuditEvent): Promise<void> {\n  await db.table('audit_log').insert(e);\n}\n```\n\nSupplied excerpt `src/api/users.ts` (lines 22-27):\n```ts\nrouter.put('/users/:id', async (req, res) => {\n  const updated = await updateUser(req.params.id, req.body);\n  await insertAuditEvent({ kind: 'user.update', userId: req.params.id });\n  res.json(updated);\n});\n``` The orchestration run can choose `fast` or `large-context` model tiers per investigator; I did not specify a model.",
+      "expected_output": "The findings should answer the audit-log write question with anchors, treat delegated reports as claims to verify, and report unsupplied files as coverage limits. Any delegation plan should match model tier to each investigation surface instead of spending the top tier on every lookup or using the cheapest tier for synthesis-heavy work.",
       "files": [],
       "expectations": [
         "Answers directly that the supplied material shows `audit_log` writes go through `insertAuditEvent` in `src/audit/log.ts`, triggered from the `PUT /users/:id` handler in `src/api/users.ts`.",
         "May fan the investigation out through the offered delegation or orchestration capability, but every delegated unit stays read-only and the response performs and claims no mutation.",
         "Does not pass delegated or simulated agent reports through as verified findings: load-bearing claims carry anchors into the supplied material that the final answer itself checked.",
         "Reports `src/api/orders.ts`, `src/api/admin.ts`, and `src/jobs/cleanup.ts` as uninspected coverage limits that may contain additional writers, not as confirmed non-writers.",
-        "Does not name or demand one specific host product or tool for the orchestration path."
+        "Does not name or demand one specific host product or tool for the orchestration path.",
+        "If output uses or proposes delegated investigators with model choice, it records fit-for-purpose model-tier choices or reasons: bounded file/path checks may use cheaper/faster models, while cross-file synthesis or ambiguous evidence reconciliation uses stronger or larger-context models.",
+        "Does not choose a blanket top-tier model for every delegated lookup and does not choose the cheapest tier solely to save tokens when the delegated question needs stronger reasoning."
       ]
     },
     {

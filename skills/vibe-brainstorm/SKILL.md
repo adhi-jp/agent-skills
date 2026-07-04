@@ -77,10 +77,19 @@ Before running any mode or stage that requires sub-agents:
    the final response is not such evidence.
 4. Keep the delegated prompts bounded: ask for concise findings, tradeoffs, and
    observable checks, not private chain-of-thought.
-5. If delegation is unavailable, unrecordable, or not authorized for a required
+5. When the host lets you choose a delegated model and the user has not
+   explicitly fixed one, choose a fit-for-purpose model per role. Use cheaper or
+   faster models only for bounded low-ambiguity checks, and use higher-capability
+   or larger-context models for creative synthesis, convention tradeoffs,
+   selection, broad-context grounding, or user-risk judgments. Do not inherit the
+   top model for every small role, and do not downshift solely to save tokens
+   when the role needs stronger reasoning. Record any explicit user model
+   override or the capability/context reason for a non-default model in the
+   delegation evidence when the host exposes that metadata.
+6. If delegation is unavailable, unrecordable, or not authorized for a required
    stage, state that limitation and stop, or ask whether the user wants a
    clearly degraded single-agent fallback.
-6. If the user authorizes a degraded fallback, label it as degraded and do not
+7. If the user authorizes a degraded fallback, label it as degraded and do not
    claim sub-agents ran.
 
 A delegation mechanism may be ad-hoc per-role sub-agent invocation or one

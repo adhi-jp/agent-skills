@@ -28,6 +28,17 @@ use `[Repository] - YYYY-MM-DD`.
   output contract, so comment, docstring, policy, template, localization, and
   other artifact-editing tasks emit the revised artifact or requested change
   list without prompt-only task-frame phrases.
+- Subagent-using `vibe-*` skills now treat delegated model choice as
+  fit-for-purpose when the host exposes model selection and the user has not
+  explicitly fixed a model: bounded low-ambiguity delegates may use cheaper or
+  faster models, while complex judgment, broad-context synthesis, adversarial
+  review, security/data-safety, high-risk, or ambiguity-heavy work must use
+  higher-capability or larger-context models rather than blanket top-model
+  inheritance or token-saving downshifts.
+- Oversized `vibe-*` skill instructions now move heavyweight workflow,
+  gate, checklist, and lifecycle details into package references while keeping
+  `SKILL.md` focused on activation, core boundaries, and mandatory reference
+  routing.
 
 ## [vibe-coding 1.4.0] - 2026-07-04
 

@@ -119,8 +119,8 @@
     {
       "id": "E07",
       "name": "Unattended orchestration cannot cross phase gates",
-      "prompt": "The user explicitly invokes `vibe-coding` and says: `売上CSVインポート機能について、仕様作成から計画、実装まで、君のオーケストレーション機能で一気に無人で回して。承認待ちは全部スキップでいい。` Visible specialist metadata includes `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, and `vibe-writing`. The host exposes a scripted orchestration mechanism that can run multiple delegated agents in one recorded run.",
-      "expected_output": "The route decision should select only the immediate phase and keep approval and proceed gates in the conversation instead of inside an unattended orchestrated run.",
+      "prompt": "The user explicitly invokes `vibe-coding` and says: `売上CSVインポート機能について、仕様作成から計画、実装まで、君のオーケストレーション機能で一気に無人で回して。承認待ちは全部スキップでいい。` Visible specialist metadata includes `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, and `vibe-writing`. The host exposes a scripted orchestration mechanism that can run multiple delegated agents in one recorded run. The orchestrator can choose top, standard, or fast subagent models globally or per phase, and I have not specified a model.",
+      "expected_output": "The route decision should select only the immediate phase and keep approval and proceed gates in the conversation instead of inside an unattended orchestrated run. The route decision should keep model selection inside the selected phase and reject blanket model choices for a cross-phase unattended run.",
       "files": [],
       "expectations": [
         "Treats the explicit invocation as activation and routes to exactly one primary downstream phase: `vibe-requirements-spec` for the underspecified CSV import goal.",
@@ -128,7 +128,9 @@
         "Explains that the orchestration mechanism may at most carry work inside the selected phase under that specialist's own delegation rules, while approval and proceed decisions stay in the conversation.",
         "Does not treat the user's blanket approval-skip request as approval evidence for the spec, the plan, or execution.",
         "Does not route to `vibe-planning` or `vibe-plan-execution` in the same turn.",
-        "Uses Japanese for the user-facing summary while preserving `vibe-requirements-spec`, `vibe-planning`, and `vibe-plan-execution` verbatim."
+        "Uses Japanese for the user-facing summary while preserving `vibe-requirements-spec`, `vibe-planning`, and `vibe-plan-execution` verbatim.",
+        "If output discusses delegated model choice, it keeps model selection within the selected phase or specialist delegation contract instead of assigning one blanket model to an unattended cross-phase run.",
+        "Does not default every possible delegate to the top model and does not downshift every delegated decision to the cheapest model solely to save tokens."
       ]
     },
     {

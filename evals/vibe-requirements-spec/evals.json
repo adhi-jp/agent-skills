@@ -126,8 +126,8 @@
     {
       "id": "E08",
       "name": "Mixed non-spec request stops after requirements phase",
-      "prompt": "Using vibe-requirements-spec, draft requirements for profile avatar upload. Also update README, CHANGELOG, evals, tests, implement it, commit the changes, and prepare a release after the spec. This is part of a broader orchestration.",
-      "expected_output": "A requirements-spec response that stops before same-turn non-spec work.",
+      "prompt": "Using vibe-requirements-spec, draft requirements for profile avatar upload. Also update README, CHANGELOG, evals, tests, implement it, commit the changes, and prepare a release after the spec. This is part of a broader orchestration. Current user setting for this request: VIBE_SUBAGENTS=allow. The host can choose `fast`, `standard`, or `large-context` subagent models for requirements proxy perspectives; I did not specify a model.",
+      "expected_output": "A requirements-spec response that stops before same-turn non-spec work. If proxy perspectives are used for delegable requirements questions, the response should record fit-for-purpose model choices or reasons without treating them as human confirmation.",
       "files": [],
       "expectations": [
         "Produces a recorded requirements spec artifact at an explicit `docs/specs/` path unless blocked before drafting by startup permission handling.",
@@ -135,7 +135,9 @@
         "Does not write or claim to write README, CHANGELOG, eval, test, source, commit, release, or implementation-plan changes.",
         "States that docs, evals, tests, implementation, commit, and release requests remain for a later phase, with a requirements-phase stop or handoff signal rather than force-terminating the broader orchestration.",
         "Asks at most one visible requirements decision question after any startup permission question and names remaining blockers, unknowns, or required local evidence checks for avatar upload.",
-        "Does not provide implementation steps, code, verification commands, commit messages, release notes, or a plan."
+        "Does not provide implementation steps, code, verification commands, commit messages, release notes, or a plan.",
+        "If output uses permitted proxy subagents with model choice, it records fit-for-purpose model choices or reasons per proxy, using cheaper/faster models only for bounded low-ambiguity option checks and stronger or larger-context models for ambiguity, user-risk triage, or contradiction analysis.",
+        "Does not treat proxy model selection or proxy output as explicit human-user finish, handoff, or implementation authorization."
       ]
     },
     {

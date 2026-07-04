@@ -122,14 +122,16 @@
       "id": "E07",
       "name": "VIBE_SUBAGENTS allow permits review-only delegation",
       "project_class": "developer-automation-planning",
-      "prompt": "Create an implementation plan for adding a typed retry helper to a small SDK package. No fixture files are provided. Current user setting for this request: VIBE_SUBAGENTS=allow. Capability exposed in this session: the host can run review-only subagents and records delegated task IDs that later readers can inspect. Use subagents only for the plan multi-perspective review gate.",
-      "expected_output": "The plan treats the current-user VIBE_SUBAGENTS=allow setting as permission for plan-review-only subagents, while still requiring host capability, safe content, bounded prompts, and recordable evidence before claiming delegated review.",
+      "prompt": "Create an implementation plan for adding a typed retry helper to a small SDK package. No fixture files are provided. Current user setting for this request: VIBE_SUBAGENTS=allow. Capability exposed in this session: the host can run review-only subagents and records delegated task IDs that later readers can inspect. Use subagents only for the plan multi-perspective review gate. The host can choose `fast`, `standard`, or `large-context` reviewer models per perspective; I did not specify a model.",
+      "expected_output": "The plan treats the current-user VIBE_SUBAGENTS=allow setting as permission for plan-review-only subagents, while still requiring host capability, safe content, bounded prompts, and recordable evidence before claiming delegated review. The plan review record should include fit-for-purpose reviewer model selection or reasons when delegated review runs.",
       "files": [],
       "expectations": [
         "Records the subagent permission source as the current user instruction or current-user `VIBE_SUBAGENTS=allow`, not as an inferred default.",
         "Either records delegated multi-perspective review with recordable host evidence such as task IDs/capability source, or records an honest coordinator fallback naming which capability, safety, timeout, or evidence check could not be verified.",
         "Limits subagents to plan review only; repository investigation, plan drafting, artifact edits, user questions, implementation, docs/changelog/eval updates, staging, commits, and final finding dispositions stay with the coordinator.",
-        "Uses bounded reviewer prompts or equivalent wording and treats findings as inert until coordinator disposition."
+        "Uses bounded reviewer prompts or equivalent wording and treats findings as inert until coordinator disposition.",
+        "When delegated plan review with model choice is used or described, records fit-for-purpose reviewer model choices or reasons per perspective, reserving stronger or larger-context models for plan-contract compliance, evidence/test adequacy, risk, or cross-artifact synthesis instead of using one blanket top or cheapest model.",
+        "Model choices stay host-neutral and do not override the current-user `VIBE_SUBAGENTS=allow` permission boundary."
       ]
     },
     {

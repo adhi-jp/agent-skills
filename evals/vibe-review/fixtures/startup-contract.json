@@ -23,12 +23,19 @@
   "host_capability": {
     "default_adversarial_path_available": true,
     "review_only_delegation_enforceable": true,
-    "parallel_reviewers_available": 3
+    "parallel_reviewers_available": 3,
+    "reviewer_model_selection_available": true,
+    "reviewer_model_tiers": [
+      "fast",
+      "standard",
+      "large-context"
+    ]
   },
   "user_choices": {
     "mode": "not specified",
     "backend": "not specified",
     "reviewer_count": "not specified",
-    "cycle_policy": "not specified"
+    "cycle_policy": "not specified",
+    "reviewer_model": "not specified"
   }
 }

@@ -177,8 +177,8 @@
       "id": "E12",
       "name": "Source-only runtime probe escalation",
       "project_class": "runtime-diagnostic",
-      "prompt": "We started by assuming the live preview bug was just a renderer issue, but that approach seems wrong now. We already checked the nearest preview renderer, stream coordinator, existing logs, unit tests, and built artifact timestamp; none of them show whether later updates are being dropped or cleanup is failing. We have read several source files and made two small patches, but in my real app it is still wrong. The unit tests pass. The remaining symptom only happens while the preview stream is running: the first update animates, later updates stop halfway, and after the stream ends the last item stays visible. Before reading another pile of source files or making another code guess, should we add a temporary probe?",
-      "expected_output": "The agent treats the bounded triage as complete, stops the broad source-only fix loop, records the failed attempts and contradicted renderer hypothesis, and proposes a narrow temporary probe or equivalent runtime observation with exact hypothesis boundary, expected signatures, artifact freshness, user action sequence, evidence capture, and cleanup/removal plan.",
+      "prompt": "We started by assuming the live preview bug was just a renderer issue, but that approach seems wrong now. We already checked the nearest preview renderer, stream coordinator, existing logs, unit tests, and built artifact timestamp; none of them show whether later updates are being dropped or cleanup is failing. We have read several source files and made two small patches, but in my real app it is still wrong. The unit tests pass. The remaining symptom only happens while the preview stream is running: the first update animates, later updates stop halfway, and after the stream ends the last item stays visible. Before reading another pile of source files or making another code guess, should we add a temporary probe? If you use delegated diagnosis, the host can choose `fast` or `large-context` model tiers per delegated hypothesis, and I have not specified a model.",
+      "expected_output": "The agent treats the bounded triage as complete, stops the broad source-only fix loop, records the failed attempts and contradicted renderer hypothesis, and proposes a narrow temporary probe or equivalent runtime observation with exact hypothesis boundary, expected signatures, artifact freshness, user action sequence, evidence capture, and cleanup/removal plan. Any delegated diagnosis should match model tier to hypothesis complexity instead of reading more source with an overpowered or underpowered delegate.",
       "expectations": [
         "Does not propose another broad static-analysis pass or source-only implementation patch before distinguishing the live runtime hypotheses.",
         "Acknowledges the bounded triage already checked nearby source, tests, logs, and artifact freshness, and explains why those checks still do not observe the live-state boundary.",
@@ -186,7 +186,9 @@
         "Names the probe question in terms of observable runtime boundaries such as update ordering, per-item identity, stream end cleanup, retained state, or artifact freshness.",
         "Specifies a low-friction probe shape such as focused trace labels, counters, compact state logs, test-harness assertions, or runtime artifact inspection, while avoiding broad noisy logging and user-data exposure.",
         "Provides exact build or freshness steps, action sequence, expected probe signatures, failure evidence to capture, and which ledger item the probe would close.",
-        "Includes a cleanup or conversion plan for temporary instrumentation before finalizing the fix."
+        "Includes a cleanup or conversion plan for temporary instrumentation before finalizing the fix.",
+        "If output uses or proposes delegated diagnosis with model choice, it records fit-for-purpose model-tier choices or reasons per hypothesis: bounded file/log checks may use cheaper/faster models, while contradicted cross-layer runtime hypotheses use stronger or larger-context models.",
+        "Does not spend the top model on every narrow reader and does not choose the cheapest model solely to save tokens for the remaining complex diagnosis."
       ]
     },
     {

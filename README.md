@@ -37,6 +37,15 @@ concrete implementation input with a goal, in/out-of-scope behavior, acceptance
 criteria or pass/fail checks, a test or proof path, an implementation route or
 code area to inspect, and known risks or an explicit absence of known risks.
 
+For `vibe-*` skills that use subagents or delegated review, model selection is
+fit-for-purpose when the host exposes model choice and the user has not fixed a
+model explicitly. Bounded low-ambiguity lookup, extraction, and simple checks may
+use cheaper or faster models; complex judgment, broad context, adversarial
+review, security/data-safety, high-risk, or synthesis-heavy work should use a
+higher-capability or larger-context model. The skills should neither inherit the
+top model for every small delegate nor downshift solely to save tokens when
+stronger reasoning is needed.
+
 ## Run Skill Evals
 
 Use the shared runner for repo-level eval suites. The `skill-eval` skill
