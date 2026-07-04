@@ -1,14 +1,14 @@
 ---
 version: 1.2.1
 name: vibe-review
-description: Use when the user asks for vibe-coding review of a git diff, working tree, branch, base ref, git-backed plan or document change, or review/fix loop where scope triage, delegated reviewers, specification gaps, or cascade-safe fixes may matter.
+description: Use when the user asks for agent-assisted code review of a git diff, working tree, branch, base ref, git-backed plan or document change, or review/fix loop where scope triage, delegated reviewers, specification gaps, or cascade-safe fixes may matter.
 ---
 
 # Vibe Review
 
 ## Overview
 
-`vibe-review` is the user-facing review workflow for vibe-coding review tasks.
+`vibe-review` is the user-facing review workflow for agent-assisted code review tasks.
 It is one self-contained coordinator workflow: the review loop, scope triage,
 rejected-ledger, safety, and cascade-containment contracts are internal stages,
 and no companion review skill is required.
