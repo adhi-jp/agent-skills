@@ -11,28 +11,60 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [vibe-coding 1.4.0] - 2026-07-04
+
 ### Changed
 
-- `vibe-brainstorm` now lets trusted top-level orchestration request a proxy
-  selection so a creative pass does not stall on preference questions; the
-  proxy-selected direction or checklist is recorded as AI-selected input for
-  later requirements or planning and never as human confirmation or
-  implementation authorization.
-- `vibe-requirements-spec` now lets trusted top-level orchestration resolve
-  delegable low-risk requirements questions through recordable proxy
-  perspectives or coordinator defaults, recorded as AI-selected proposed
-  defaults or assumptions rather than explicit human-user confirmation, finish,
-  handoff, accepted-risk, or consent evidence, and it keeps non-delegable
-  human-risk decisions with the user.
-- `vibe-requirements-spec` now treats a downstream planning or execution report
-  of a requirements defect as a same-spec revision input that invalidates prior
-  handoff evidence for the affected contract until renewed finish or handoff
-  evidence exists. Added eval coverage for a downstream defect reopening the
-  current spec.
-- `vibe-requirements-spec` eval coverage is consolidated from 23 cases to 9
-  cases by merging duplicate lifecycle, mode-selection, high-risk, same-spec,
-  and boundary checks, removing narrow environment and shell-config cases, and
-  renumbering eval identifiers consecutively.
+- `vibe-coding` orchestration can now resolve delegable question-heavy
+  judgments through proxy subagent perspectives or coordinator defaults, while
+  recording those choices as AI-selected defaults, assumptions, or directions
+  rather than explicit human-user approval and still preserving human-risk,
+  finish, handoff, proceed, accepted-risk, and consent gates.
+- `vibe-coding` now keeps bound-plan checkpoint review and local commits inside
+  the plan-execution route instead of requiring a separate commit route or
+  another explicit commit instruction for each planned checkpoint.
+- Eval coverage for `vibe-coding` is consolidated to keep only the
+  checkpoint-commit contract and core route/boundary regressions, with eval
+  identifiers renumbered consecutively.
+- `vibe-coding` now treats a downstream report of a defective spec or plan as a
+  backtracking signal that routes the next turn to the phase owning the broken
+  artifact, rather than forcing patch-by-patch execution against a flagged
+  contract. Added eval coverage for an execution defect that backtracks to
+  planning.
+- `vibe-coding` now treats the bound-plan implementation-progress ledger as
+  plan-execution state for rebinding later sessions rather than as separate
+  proof or routing authority.
+
+## [vibe-plan-execution 3.2.0] - 2026-07-04
+
+### Changed
+
+- `vibe-plan-execution` now treats eligible commit checkpoints in a bound plan
+  as scoped local-commit authorization when the user asks to execute, implement,
+  apply, or continue that plan and no current instruction or project policy
+  denies commits. Each checkpoint must be verified, multi-perspective reviewed,
+  dispositioned, and safely scoped before the coordinator commits, and the rule
+  excludes push, release, version, history-rewrite, destructive,
+  external-side-effect, work-in-progress, failing, skipped-verification, and
+  scope-changing commits.
+- `vibe-plan-execution` now treats a verified plan-changing defect as a return
+  to the owning requirements or planning artifact: execution stops, names the
+  revision target, and resumes only after a corrected or replacement contract is
+  rebound, instead of patching code against stale acceptance criteria, tests, or
+  risk assumptions. Added eval coverage for a plan-changing defect that loops
+  back to planning.
+- `vibe-plan-execution` eval coverage is consolidated to the checkpoint-commit
+  contract and core route/boundary regressions, with eval identifiers
+  renumbered consecutively.
+- `vibe-plan-execution` now initializes a missing implementation-progress
+  ledger for older writable multi-item plans and updates the bound plan's
+  ledger after completed, blocked, skipped, or committed items without revising
+  scope. Added eval coverage for a ledger update after a slice.
+
+## [vibe-planning 4.5.0] - 2026-07-04
+
+### Changed
+
 - `vibe-planning` now records delegable planning-quality choices — low-risk
   edit ordering, test shape, proof sequencing, wording, and
   requirement-preserving scope trimming — as AI-selected planning defaults or
@@ -57,50 +89,73 @@ use `[Repository] - YYYY-MM-DD`.
   progress-ledger, plan-revision requirements-defect, ready-plan handoff, and
   core route/boundary regressions, with eval identifiers renumbered
   consecutively.
-- `vibe-plan-execution` now treats eligible commit checkpoints in a bound plan
-  as scoped local-commit authorization when the user asks to execute, implement,
-  apply, or continue that plan and no current instruction or project policy
-  denies commits. Each checkpoint must be verified, multi-perspective reviewed,
-  dispositioned, and safely scoped before the coordinator commits, and the rule
-  excludes push, release, version, history-rewrite, destructive,
-  external-side-effect, work-in-progress, failing, skipped-verification, and
-  scope-changing commits.
-- `vibe-plan-execution` now treats a verified plan-changing defect as a return
-  to the owning requirements or planning artifact: execution stops, names the
-  revision target, and resumes only after a corrected or replacement contract is
-  rebound, instead of patching code against stale acceptance criteria, tests, or
-  risk assumptions. Added eval coverage for a plan-changing defect that loops
-  back to planning.
-- `vibe-plan-execution` eval coverage is consolidated to the checkpoint-commit
-  contract and core route/boundary regressions, with eval identifiers
-  renumbered consecutively.
-- `vibe-plan-execution` now initializes a missing implementation-progress
-  ledger for older writable multi-item plans and updates the bound plan's
-  ledger after completed, blocked, skipped, or committed items without revising
-  scope. Added eval coverage for a ledger update after a slice.
-- Non-`vibe-coding` `vibe-*` skill instructions now avoid explicit names of
-  other `vibe-*` skills, and `AGENTS.md` records the cross-reference rule so
-  neighboring workflows are described by phase or capability instead of
-  cross-skill dependencies.
-- `vibe-coding` orchestration can now resolve delegable question-heavy
-  judgments through proxy subagent perspectives or coordinator defaults, while
-  recording those choices as AI-selected defaults, assumptions, or directions
-  rather than explicit human-user approval and still preserving human-risk,
-  finish, handoff, proceed, accepted-risk, and consent gates.
-- `vibe-coding` now keeps bound-plan checkpoint review and local commits inside
-  the `vibe-plan-execution` route instead of requiring a separate commit route
-  or another explicit commit instruction for each planned checkpoint.
-- Eval coverage for `vibe-coding` is consolidated to keep only the
-  checkpoint-commit contract and core route/boundary regressions, with eval
-  identifiers renumbered consecutively.
-- `vibe-coding` now treats a downstream report of a defective spec or plan as a
-  backtracking signal that routes the next turn to the phase owning the broken
-  artifact, rather than forcing patch-by-patch execution against a flagged
-  contract. Added eval coverage for an execution defect that backtracks to
-  planning.
-- `vibe-coding` now treats the bound-plan implementation-progress ledger as
-  plan-execution state for rebinding later sessions rather than as separate
-  proof or routing authority.
+
+## [vibe-requirements-spec 3.2.0] - 2026-07-04
+
+### Changed
+
+- `vibe-requirements-spec` now lets trusted top-level orchestration resolve
+  delegable low-risk requirements questions through recordable proxy
+  perspectives or coordinator defaults, recorded as AI-selected proposed
+  defaults or assumptions rather than explicit human-user confirmation, finish,
+  handoff, accepted-risk, or consent evidence, and it keeps non-delegable
+  human-risk decisions with the user.
+- `vibe-requirements-spec` now treats a downstream planning or execution report
+  of a requirements defect as a same-spec revision input that invalidates prior
+  handoff evidence for the affected contract until renewed finish or handoff
+  evidence exists. Added eval coverage for a downstream defect reopening the
+  current spec.
+- `vibe-requirements-spec` eval coverage is consolidated from 23 cases to 9
+  cases by merging duplicate lifecycle, mode-selection, high-risk, same-spec,
+  and boundary checks, removing narrow environment and shell-config cases, and
+  renumbering eval identifiers consecutively.
+
+## [vibe-brainstorm 1.2.0] - 2026-07-04
+
+### Changed
+
+- `vibe-brainstorm` now lets trusted top-level orchestration request a proxy
+  selection so a creative pass does not stall on preference questions; the
+  proxy-selected direction or checklist is recorded as AI-selected input for
+  later requirements or planning and never as human confirmation or
+  implementation authorization.
+
+## [vibe-writing 1.1.2] - 2026-07-04
+
+### Changed
+
+- `vibe-writing` instructions and references now describe neighboring work by
+  capability, such as agent-assisted coding or a commit-execution workflow,
+  instead of naming other `vibe-*` skills as cross-skill dependencies.
+
+## [vibe-debug 3.0.1] - 2026-07-04
+
+### Changed
+
+- `vibe-debug` now describes rough reports generically instead of naming a
+  neighboring `vibe-*` skill in its trigger description.
+
+## [vibe-review 1.2.2] - 2026-07-04
+
+### Changed
+
+- `vibe-review` now describes review tasks generically instead of naming a
+  neighboring `vibe-*` skill in its trigger description.
+
+## [vibe-commit 1.0.3] - 2026-07-04
+
+### Changed
+
+- `vibe-commit` now describes agent-assisted coding changes generically instead
+  of naming a neighboring `vibe-*` skill in its trigger description.
+
+## [Repository] - 2026-07-04
+
+### Changed
+
+- `AGENTS.md` now records that non-`vibe-coding` `vibe-*` skill instructions
+  should describe neighboring workflows by phase or capability instead of
+  explicit cross-skill dependencies.
 
 ## [vibe-review 1.2.1] - 2026-06-30
 
