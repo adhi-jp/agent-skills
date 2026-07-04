@@ -38,6 +38,10 @@ into skill outputs.
   behavior happened, but the proof lived outside the recorded output set. Adding
   recorded host, runner, or equivalent non-response evidence changed the grade
   without proving that skill prose caused the improvement.
+- Relayed host-agent eval summaries were safest when treated as pointers into
+  runner artifacts. Sessions that verified `benchmark.json`, manifests, run
+  statuses, `grading.json`, and recorded outputs before accepting a Claude Code
+  summary avoided turning prose-only reports into proof.
 - High-risk behavior stayed understandable when detailed controls moved into
   references and `SKILL.md` kept only trigger, routing, and stop-gate rules.
 - Session-history examples were useful only after being mapped to abstract
@@ -95,6 +99,11 @@ into skill outputs.
 - Timeout or excluded-cell summaries degraded analysis when the aggregate
   pass-rate delta was called clean even though targeted behavior was unscored,
   especially when only `with_skill` timed out on complex orchestration cases.
+- Host-continuation stubs and unresolved async placeholders degraded eval
+  analysis when agents treated the cell as if it could be removed from the
+  official aggregate. The safer classification was prompt/invocation or
+  output-set completeness, followed by a caveated official aggregate or a
+  recording/prompt fix.
 - Self-authored contract deltas and assertions degraded when they copied a
   grader assertion's wording or a literal prompt phrase verbatim. The leakage
   lens had to cover the change owner's own assertions, not only delegated eval

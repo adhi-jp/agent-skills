@@ -44,6 +44,14 @@ transcript, file, or benchmark inspection as `Local investigation`; inferred
 patterns or expected failure modes as `Unproven`; and known but accepted gaps as
 `Accepted risk`.
 
+When an eval result arrives as a relayed Claude Code, Codex, or other host-agent
+summary, treat that prose as a pointer to verify, not as execution proof. Locate
+the corresponding `benchmark.json`, `benchmark.md`, `iteration_manifest.json`,
+`run.json`, `grading.json`, recorded outputs, or transcript evidence before
+making root-cause, improvement, or changelog claims. If those artifacts are
+unavailable, label the host summary as user-supplied evidence for the report
+only and keep artifact-dependent claims `Unproven` or `Accepted risk`.
+
 When session history is part of the task, split extraction work across
 subagents when available. Give each agent a bounded session range or question,
 have it write temporary per-session notes under `/tmp`, and synthesize the
@@ -246,6 +254,14 @@ equivalent non-response evidence. Final-response prose, copied invocation IDs,
 role labels, and self-reported call counts are not execution proof unless
 corroborated by recorded host or runner evidence or an equivalent non-response
 artifact.
+
+If a scored executor output is only a host-continuation stub, waiting message,
+tool-use placeholder, or other unresolved async artifact, do not silently
+remove the cell from the official aggregate or call it an infrastructure
+exclusion. Classify it as a prompt, invocation, recording, or output-set
+completeness surface, report the official aggregate with that caveat, and fix
+the eval prompt, runner recording, or proof path before treating the adjusted
+reading as measured improvement.
 
 Pure graders stay bound to the suite assertions recorded for the run. The
 change owner treats surprising, repeated, missing, ambiguous, or

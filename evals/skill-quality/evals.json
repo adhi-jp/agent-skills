@@ -79,7 +79,8 @@
         "Requires missing baselines or incompatible baseline reuse to be incomplete rather than fake comparative proof.",
         "Requires static report output by default with no server, browser open, PID file, or background process.",
         "Uses recorded `prompt.md`, `grader_prompt.md`, `outputs/`, `grading.json`, `metrics.json`, `run.json`, `benchmark.json`, and `benchmark.md` as the proof surface for what the runner invoked, recorded, graded, and aggregated.",
-        "Requires recorded invocation, output artifact, metric source, or equivalent non-response evidence before claiming prompt delivery or execution proof."
+        "Requires recorded invocation, output artifact, metric source, or equivalent non-response evidence before claiming prompt delivery or execution proof.",
+        "Treats relayed host-agent eval summaries as pointers to verify against runner artifacts, not as proof for root-cause, improvement, or changelog claims by themselves."
       ]
     },
     {

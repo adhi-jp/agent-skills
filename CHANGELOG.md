@@ -18,6 +18,12 @@ use `[Repository] - YYYY-MM-DD`.
   inspection, and quality-proof requests do not implicitly authorize
   `eval_runner.py run`; rerun-dependent claims stay unproven when evals were
   not run.
+- `skill-quality` now treats relayed Claude Code, Codex, or other host-agent
+  eval summaries as pointers that need runner-artifact corroboration before
+  root-cause, improvement, or changelog claims, and classifies unresolved
+  host-continuation stubs as prompt, invocation, recording, or output-set
+  completeness issues instead of silently removing scored cells from official
+  aggregates.
 
 ## [vibe-coding 1.4.0] - 2026-07-04
 
