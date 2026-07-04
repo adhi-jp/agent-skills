@@ -28,6 +28,12 @@
 - Any skill behavior change must update the relevant `SKILL.md`, supporting references, README text, and `CHANGELOG.md` entry in the same change set when those artifacts describe the changed behavior.
 - Do not defer sibling documentation updates when the current change invalidates existing text.
 
+## Vibe Skill Cross-Reference Rules
+
+- In `skills/vibe-*` skill instructions outside `skills/vibe-coding/`, do not explicitly name another `vibe-*` skill. Use phase, capability, or workflow-boundary terms such as "top-level orchestration", "requirements capture", "implementation planning", "plan execution", "review workflow", or "commit-execution workflow" instead.
+- `skills/vibe-coding/` is the only vibe skill package that may explicitly name other vibe specialists for routing or orchestration. Other vibe skills must remain self-contained and downstream-neutral when referring to neighboring phases.
+- Self-identifying frontmatter such as a skill's own `name` field is allowed. Repository catalog text, eval prompts, changelog entries, and release sections may name skills when that naming is the artifact's purpose, but do not copy those names into non-`vibe-coding` skill instructions as cross-skill dependencies.
+
 ## Local Skill Snapshot Rules
 
 - Local skill snapshot paths under `.agents/skills/` and `.claude/skills/` are managed copies, not source. Do not edit, copy into, remove, recreate, stage, or commit them directly, and do not modify them as a side effect of other work. Reading them for reference (for example, to understand a skill that exists only as a snapshot) is allowed.

@@ -78,6 +78,29 @@ use `[Repository] - YYYY-MM-DD`.
   ledger for older writable multi-item plans and updates the bound plan's
   ledger after completed, blocked, skipped, or committed items without revising
   scope. Added eval coverage for a ledger update after a slice.
+- Non-`vibe-coding` `vibe-*` skill instructions now avoid explicit names of
+  other `vibe-*` skills, and `AGENTS.md` records the cross-reference rule so
+  neighboring workflows are described by phase or capability instead of
+  cross-skill dependencies.
+- `vibe-coding` orchestration can now resolve delegable question-heavy
+  judgments through proxy subagent perspectives or coordinator defaults, while
+  recording those choices as AI-selected defaults, assumptions, or directions
+  rather than explicit human-user approval and still preserving human-risk,
+  finish, handoff, proceed, accepted-risk, and consent gates.
+- `vibe-coding` now keeps bound-plan checkpoint review and local commits inside
+  the `vibe-plan-execution` route instead of requiring a separate commit route
+  or another explicit commit instruction for each planned checkpoint.
+- Eval coverage for `vibe-coding` is consolidated to keep only the
+  checkpoint-commit contract and core route/boundary regressions, with eval
+  identifiers renumbered consecutively.
+- `vibe-coding` now treats a downstream report of a defective spec or plan as a
+  backtracking signal that routes the next turn to the phase owning the broken
+  artifact, rather than forcing patch-by-patch execution against a flagged
+  contract. Added eval coverage for an execution defect that backtracks to
+  planning.
+- `vibe-coding` now treats the bound-plan implementation-progress ledger as
+  plan-execution state for rebinding later sessions rather than as separate
+  proof or routing authority.
 
 ## [vibe-review 1.2.1] - 2026-06-30
 

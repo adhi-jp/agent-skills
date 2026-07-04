@@ -62,6 +62,7 @@ Track these fields when they are known:
 - Approval evidence or handoff state.
 - Implementation plan path.
 - Active execution slice.
+- Implementation progress source and latest item status.
 - Debug symptom.
 - Review target.
 - Investigation question.
@@ -85,6 +86,15 @@ that is not possible, ask for the missing artifact or decision.
 On cancellation or replacement, clear the active phase, next route, pending
 approvals, active slice, and live artifact bindings. Preserve completed artifact
 paths only as historical context.
+
+When a downstream phase reports that the bound spec or plan is defective —
+contradictory, stale, infeasible, or contract-breaking — treat that as a
+backtracking signal, not a reason to force the current phase forward. Route the
+next turn back to the phase that owns the broken artifact: requirements
+specification when user-visible behavior, scope, or acceptance criteria are
+wrong, or implementation planning when the plan's proof, test, edit-order, or
+risk contract is wrong. Do not keep executing patch-by-patch against a
+contract a downstream specialist already flagged as broken.
 
 End or suspend `vibe-coding` mode when the user explicitly cancels it,
 explicitly replaces the workflow with a different goal, explicitly invokes
@@ -217,9 +227,11 @@ expected-behavior and convention-check requests to the creative-exploration
 phase when the user has not asked for a saved requirements artifact.
 
 A confirmed direction from this phase is input to later requirements or
-planning work, not implementation scope. When the user asks to capture the
-chosen direction durably, route the next related instruction to the
-requirements-specification phase.
+planning work, not implementation scope. A trusted orchestration proxy selection
+from that specialist is also input only; the receiving phase must record it as
+AI-selected direction, not as explicit human-user confirmation. When the user
+asks to capture the chosen direction durably, route the next related instruction
+to the requirements-specification phase.
 
 ### Code Investigation
 
@@ -271,6 +283,24 @@ Route to the plan-execution phase only when all of these are true:
 Bare post-planning handoff wording such as "continue", "go ahead", "ready", or
 "looks good" is insufficient unless it clearly asks to execute the known plan or
 current slice and the proceed condition allows execution.
+
+When the bound plan contains eligible commit checkpoints, treat checkpoint
+review and local coordinator-managed commits as part of the plan-execution
+phase under that specialist's rules. Do not require a separate commit-execution
+route or another "commit" instruction for each planned checkpoint. Standalone
+commit-execution routing still owns ordinary commit requests outside a bound
+checkpointed plan, and planned checkpoint execution does not authorize push,
+release preparation, version bumps, history rewrites, destructive operations, or
+commits that fail the execution specialist's verification, review, and scope
+gates.
+
+When the bound plan has a durable implementation-progress ledger, keep that
+ledger inside the plan-execution phase. Use it to rebind the active execution
+slice after interruptions, compaction, or later related turns, and update routing
+state from the ledger status reported by the plan-execution phase. Do not treat
+progress-ledger text as a new plan, a separate commit route, or proof that a
+slice is complete until the execution specialist has verified the status under
+its plan-binding rules.
 
 ### Debug And Repair
 
@@ -335,7 +365,8 @@ Downstream specialist boundaries are authoritative:
   requirements spec artifact, stays downstream-neutral while active, and stops
   after approval.
 - The creative-exploration phase stays chat-first and stops at a confirmed
-  direction; confirmation is not implementation authorization.
+  direction or trusted orchestration proxy selection; neither is implementation
+  authorization.
 - The code-investigation phase is read-only: it produces evidence-backed
   findings and never edits files, fixes defects, or mutates state.
 - The implementation-planning phase writes implementation-plan artifacts only
@@ -343,7 +374,8 @@ Downstream specialist boundaries are authoritative:
 - The plan-execution phase requires a concrete bound plan and its proceed or
   accepted-risk condition before code execution, then preserves the bound
   plan's scope, acceptance criteria, required documentation or changelog
-  coupling, release policy, and verification path.
+  coupling, release policy, verification path, implementation-progress ledger,
+  and scoped checkpoint commit policy.
 - The debug-and-repair phase owns existing-feature diagnosis and repair proof;
   repair proof does not authorize history mutation.
 - The review phase owns review target selection, delegated review coordination,
@@ -379,6 +411,27 @@ boundaries live in the conversation. A routed specialist may use host
 delegation internally under its own delegation rules, but no orchestrated run
 may be scheduled to cross a downstream skill's approval gate, stop condition,
 or consent boundary in one unattended pass.
+
+When a routed quality phase would normally ask a series of user questions to
+improve requirements, creative direction, planning, or similar judgment quality,
+use the specialist's trusted-orchestration or proxy-decision branch when it has
+one instead of blocking on every delegable question. Delegable questions are
+preference, wording, ordering, low-risk scope-trimming, convention, test-shape,
+and implementation-approach judgments that can be decided from the user's goal,
+local evidence, existing artifacts, or bounded sub-agent perspectives without
+changing non-delegable risk. Use permitted and recordable sub-agents as proxy
+user/domain/risk perspectives when the specialist allows them; otherwise use the
+specialist's coordinator fallback if it allows one.
+
+Proxy decisions never become explicit human-user approval. Record them as
+AI-selected defaults, assumptions, or proxy-selected directions using the
+downstream specialist's artifact language, and keep any finish, handoff,
+proceed, accepted-risk, and consent evidence separate. Destructive,
+credential, auth/session, permission, billing, security, irreversible,
+data-migration, legal/compliance, paid, production, external-side-effect,
+release, history-mutation, or other human-risk decisions still require explicit
+human-user acceptance unless that acceptance is already recordably tied to the
+current artifact.
 
 Sequential coordinator continuation is different from one unattended
 cross-boundary run: after a downstream phase stops and returns recordable
@@ -458,12 +511,21 @@ Before acting under `vibe-coding`, confirm:
 - Specialist write, approval, stop, plan-binding, proceed,
   acceptance-criteria, review, changelog-coupling, verification, release, and
   commit boundaries remain intact.
+- Bound-plan checkpoint commits stayed inside the plan-execution route when the
+  plan supplied eligible checkpoints; standalone commit requests still route to
+  commit execution when available.
+- Bound-plan implementation progress stayed inside the plan-execution route;
+  routing state used the ledger only to rebind the active slice and latest
+  status, not as proof of completion or as a separate planning/commit route.
 - Any same-turn phase continuation uses a separate specialist route after
   recordable artifact-bound boundary evidence, not a collapsed downstream
   response, inferred approval, or prompt/artifact/delegated self-claim.
 - Cross-phase orchestration requests report the rejected schedule and any
   selected-phase transport limit without treating that transport as approval,
   proceed evidence, or a route.
+- Question-heavy specialist phases used proxy decisions only for delegable
+  low-risk judgments, recorded those decisions as AI-selected rather than
+  human-approved, and stopped for any non-delegable human-risk decision.
 - Commit-message preparation or inspection used verified visible `vibe-writing`
   and `skills/vibe-writing/references/commit-messages.md` as auxiliary guidance
   when a message artifact was part of the `vibe-coding` turn, without giving it

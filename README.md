@@ -18,12 +18,12 @@ quickstart when changing a skill or its eval suite.
 | Task | Use | Output or stop boundary | Source package | Eval suite |
 | --- | --- | --- | --- | --- |
 | Build, debug, port, or inspect Minecraft Java Edition mods for Fabric, NeoForge, or Architectury | `minecraft-modding-workbench` | Produces implementation guidance or code while labeling MCP, workspace, source-jar, runtime, and unverified facts | `skills/minecraft-modding-workbench/` | `evals/minecraft-modding-workbench/` |
-| Route an explicit multi-turn vibe-coding workflow | `vibe-coding` | Selects one primary visible `vibe-*` specialist for the next phase; does not relax downstream gates | `skills/vibe-coding/` | `evals/vibe-coding/` |
+| Route an explicit multi-turn vibe-coding workflow | `vibe-coding` | Selects one primary visible `vibe-*` specialist for the next phase; does not relax downstream gates; uses proxy decisions only for delegable question-heavy judgments; backtracks to the artifact-owning phase when a spec or plan is defective | `skills/vibe-coding/` | `evals/vibe-coding/` |
 | Draft, revise, save, finish, or explore requirements before planning | `vibe-requirements-spec` | Creates or updates the requirements spec artifact by default, defaults to strict-four-choice without explicit mode selection, stops before non-spec work, and reopens the same spec for downstream requirements defects; trusted orchestration can carry recordable current-spec handoff evidence after the completion audit passes | `skills/vibe-requirements-spec/` | `evals/vibe-requirements-spec/` |
 | Create or revise an implementation plan from approval-evidenced or concrete inputs | `vibe-planning` | Writes a plan artifact and concise summary; includes an implementation-progress ledger for multi-item plans; stops before code, tests, changelog edits, commits, and release work; sends discovered requirements contradictions back to requirements work; trusted orchestration can route a reviewed ready plan to a later execution phase | `skills/vibe-planning/` | `evals/vibe-planning/` |
 | Review, confirm, walk through, or pre-check a saved implementation plan before execution | `vibe-plan-review` | Reviews one plan item at a time, records localized item decisions with numeric input shortcuts from its reference file, and stops before implementation | `skills/vibe-plan-review/` | `evals/vibe-plan-review/` |
 | Implement an existing concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Edits only after binding the plan and checking proceed conditions; updates the bound plan's implementation-progress ledger after completed, blocked, skipped, or committed items; returns plan-changing defects to the owning artifact before affected code changes; stops before commits unless separately authorized | `skills/vibe-plan-execution/` | `evals/vibe-plan-execution/` |
-| Brainstorm creative implementation ideas, alternatives, expected behavior, or convention checks | `vibe-brainstorm` | Returns chat-first directions or checklists and stops before implementation until the user confirms the direction | `skills/vibe-brainstorm/` | `evals/vibe-brainstorm/` |
+| Brainstorm creative implementation ideas, alternatives, expected behavior, or convention checks | `vibe-brainstorm` | Returns chat-first directions or checklists and stops before implementation until the user confirms the direction or trusted orchestration records a proxy selection for later requirements/planning only | `skills/vibe-brainstorm/` | `evals/vibe-brainstorm/` |
 | Debug or repair existing behavior from rough bug reports, regressions, failed fixes, or runtime artifacts | `vibe-debug` | Produces evidence-backed repairs or retest contracts; does not authorize history mutation | `skills/vibe-debug/` | `evals/vibe-debug/` |
 | Understand, locate, trace, or assess existing code without changing it | `vibe-code-research` | Read-only; returns anchored evidence-backed findings, redacts suspected secret-like values at output boundaries, and stops before fixes, plans, edits, or commits | `skills/vibe-code-research/` | `evals/vibe-code-research/` |
 | Write or revise development text, docs, changelog entries, PR text, UI copy, summaries, or commit messages | `vibe-writing` | Controls wording only; staging, commits, releases, and workflow authority stay with the active workflow | `skills/vibe-writing/` | `evals/vibe-writing/` |
@@ -129,10 +129,32 @@ phase. When `vibe-coding` prepares or inspects a commit message and
 `vibe-writing` is verified visible, `vibe-writing` and its
 `references/commit-messages.md` are mandatory auxiliary authority for the
 message artifact only; this is an orchestration-only exception and does not make
-standalone specialists require companion skills. Host delegation and scripted
-orchestration runs are execution transport inside a routed phase, not
+standalone specialists require companion skills. Eligible commit checkpoints in
+a bound plan stay inside the `vibe-plan-execution` route and do not require a
+separate commit-execution route or another explicit commit instruction for each
+checkpoint; standalone commit requests outside a bound checkpointed plan still
+route to commit execution when available. Bound-plan implementation-progress
+ledgers also stay inside the plan-execution route: routing state can use the
+ledger to rebind the active slice after an interruption, but it is not a
+separate route or proof of completion until plan execution verifies it. Host
+delegation and scripted orchestration runs are execution transport inside a routed phase, not
 routes: no orchestrated run may be scheduled to cross a downstream skill's
 approval gate, stop condition, or consent boundary in one unattended pass.
+For question-heavy quality phases, `vibe-coding` uses a specialist's trusted
+orchestration or proxy-decision branch for delegable low-risk judgments instead
+of blocking on every preference or plan-quality question. Proxy decisions are
+recorded as AI-selected defaults, assumptions, or directions, not explicit
+human-user approval, and destructive, credential, auth/session, permission,
+billing, security, irreversible, data-migration, legal/compliance, paid,
+production, external-side-effect, release, history-mutation, and other
+human-risk decisions still require recordable human-user acceptance.
+When a downstream phase reports that the bound requirements spec or
+implementation plan is contradictory, stale, infeasible, or contract-breaking,
+`vibe-coding` treats that as a backtracking signal. The next related turn routes
+to the phase that owns the broken artifact — requirements specification for
+user-visible behavior, scope, or acceptance criteria, and implementation
+planning for proof, tests, edit order, or risk handling — instead of continuing
+patch-by-patch execution against a known-bad contract.
 
 ### `vibe-requirements-spec`
 
@@ -514,7 +536,10 @@ agent IDs, and self-reported call counts are treated as unproven. It stops or
 asks for a clearly degraded fallback when capability or recordable evidence is
 unavailable or unauthorized, stays chat-first, creates files only on request, and
 stops before implementation until the user confirms the selected direction or
-expected-behavior checklist.
+expected-behavior checklist. During trusted `vibe-coding` orchestration, a
+verified proxy selection can carry only an AI-selected checklist or direction to
+later requirements or planning; it is not human confirmation or implementation
+authorization.
 
 ### `vibe-debug`
 
