@@ -43,7 +43,10 @@ Use the shared runner for repo-level eval suites. The `skill-eval` skill
 (`skills/skill-eval/SKILL.md`) is the authoritative source for the eval test
 operation — workspace placement, the CLI contract, executor and grader
 separation, model passthrough, metric capture and display, and result
-verification before reporting. The commands below are the entry point:
+verification before reporting. Do not launch `eval_runner.py run` unless the
+current user explicitly asks to run evals, run a benchmark, or execute the eval
+runner; otherwise report `evals not run` and keep rerun-dependent claims
+unproven. The commands below are the entry point after that authorization:
 
 ```sh
 python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json
@@ -719,13 +722,13 @@ reporting skill evals through `skills/skill-eval/scripts/eval_runner.py`, when v
 `with_skill`/`without_skill` result before reporting it, or when deciding eval
 workspace placement, executor and grader separation, model passthrough, or
 metric capture for a run. It is the authoritative source for the eval CLI
-contract, keeps the executor and grader as separate agents (no same-agent
-execute-and-grade path), surfaces per-config executor-only execution time and
-token usage with uncaptured metrics shown as absent rather than zero, and
-requires verifying sanity-check status and excluded runs before any pass-rate
-delta is reported. It does not edit the eval suite schema or assertion model and
-leaves general skill creation and quality decisions to `skill-creator` and
-`skill-quality`.
+contract, requires explicit user instruction before launching eval execution,
+keeps the executor and grader as separate agents (no same-agent execute-and-grade
+path), surfaces per-config executor-only execution time and token usage with
+uncaptured metrics shown as absent rather than zero, and requires verifying
+sanity-check status and excluded runs before any pass-rate delta is reported. It
+does not edit the eval suite schema or assertion model and leaves general skill
+creation and quality decisions to `skill-creator` and `skill-quality`.
 
 ### `vibe-review`
 
@@ -798,6 +801,8 @@ only explicit user, DoD, or confirmed-plan evidence.
   message transport, authorship-trailer `--trailer` transport, recovery, and the
   reversible-safety boundary
 - `evals/skill-quality/`: external skill-improvement and eval-hardening prompts
+- `evals/skill-eval/`: external eval-runner operation prompts for run
+  authorization, runner routing, and reporting boundaries
 - `evals/vibe-review/`: external integrated review eval prompts
 - `skills/minecraft-modding-workbench/`: Minecraft modding skill package
 - `skills/vibe-coding/`: explicit top-level vibe-coding orchestration skill package

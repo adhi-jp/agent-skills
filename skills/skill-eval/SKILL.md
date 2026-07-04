@@ -38,6 +38,21 @@ actually applies.
   role. This skill owns the *execution and verification* of a run, not the
   contract-change call.
 
+## Eval Run Authorization
+
+Do not launch eval execution unless the current user explicitly asks to run
+evals, run a benchmark, or execute the eval runner. In this skill, eval
+execution means `python3 skills/skill-eval/scripts/eval_runner.py run ...` or
+any equivalent command that starts executor or grader subprocesses or writes a
+new iteration under `evals/<skill-name>/workspace/<agent>/`.
+
+A request to change a skill, inspect results, validate a suite, report an
+existing iteration, verify a diff, or prove quality does not by itself authorize
+a new eval run. If a claim would require fresh eval execution and that explicit
+instruction is absent, do not run evals; report `evals not run` or an equivalent
+absence status and label rerun-dependent improvement, regression, token, timing,
+or reliability claims as unproven.
+
 ## Executor and Grader Stay Separate
 
 This is a hard rule grounded in a real prior incident where execution and
@@ -70,6 +85,10 @@ grading collapsed into one agent and the run scored its own output.
 
 - Use `python3 skills/skill-eval/scripts/eval_runner.py` for repo-level skill eval runs. It has
   three commands: `validate`, `run`, and `report`.
+- Run `eval_runner.py run` only after the current user has explicitly authorized
+  eval execution. `validate` and `report` may support inspection or existing
+  artifact work, but they are not substitutes for a user-authorized run when a
+  fresh behavior claim depends on execution.
 - The runner drives execution itself. `run` executes the bounded matrix end to
   end: for each eval x config x run it spawns a fresh executor subprocess with
   the prompt only, then a fresh grader subprocess with a clean environment and
@@ -149,7 +168,7 @@ grading collapsed into one agent and the run scored its own output.
   grader output the runner cannot parse into a verdict list is recorded as
   `grader_unparseable` with `pass_rate` absent and excluded from the comparison,
   never scored as a real `0%`.
-- Standard command sequence:
+- Standard command sequence after explicit run authorization:
 
 ```sh
 python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json
@@ -203,10 +222,10 @@ token usage for at least the claude provider.
   it. A run that finished without a crash is not the same as a clean result; do
   not present a `with_skill`/`without_skill` delta as normal completion until the
   verification below passes.
-- After every `run`, read the `Sanity checks` status (printed to stdout and
-  written to `benchmark.md`) and the `error_run_count`. Treat any of the
-  following as a stop-and-verify condition, not a pass: a `REVIEW REQUIRED`
-  sanity status, `error_run_count > 0`, any
+- After every user-authorized `run`, read the `Sanity checks` status (printed to
+  stdout and written to `benchmark.md`) and the `error_run_count`. Treat these
+  as stop-and-verify conditions, not passes: a `REVIEW REQUIRED` sanity status,
+  `error_run_count > 0`, any
   `grader_unparseable`/`grader_failed`/`executor_failed`/timeout status, any
   scored-`0%` cell, any candidate-below-baseline cell, or any dirty
   source-fixture signal before or after execution.

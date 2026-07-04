@@ -11,6 +11,14 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- `skill-eval` now requires explicit current-user instruction before launching
+  eval execution, so skill edits, diff verification, existing-result
+  inspection, and quality-proof requests do not implicitly authorize
+  `eval_runner.py run`; rerun-dependent claims stay unproven when evals were
+  not run.
+
 ## [vibe-coding 1.4.0] - 2026-07-04
 
 ### Changed
