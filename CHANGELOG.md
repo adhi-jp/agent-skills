@@ -11,34 +11,126 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [skill-eval 1.1.0] - 2026-07-04
+
 ### Changed
 
 - `skill-eval` now requires explicit current-user instruction before launching
   eval execution, so skill edits, diff verification, existing-result
   inspection, and quality-proof requests do not implicitly authorize
   `eval_runner.py run`; rerun-dependent claims stay unproven when evals were
-  not run.
+  not run. Adds external eval coverage for run authorization, runner routing,
+  and reporting boundaries.
+
+## [skill-quality 2.2.2] - 2026-07-04
+
+### Changed
+
 - `skill-quality` now treats relayed Claude Code, Codex, or other host-agent
   eval summaries as pointers that need runner-artifact corroboration before
   root-cause, improvement, or changelog claims, and classifies unresolved
   host-continuation stubs as prompt, invocation, recording, or output-set
   completeness issues instead of silently removing scored cells from official
   aggregates.
+
+## [vibe-writing 1.1.3] - 2026-07-04
+
+### Changed
+
 - `vibe-writing` now makes wrapper prose around rewritten artifacts part of the
   output contract, so comment, docstring, policy, template, localization, and
   other artifact-editing tasks emit the revised artifact or requested change
   list without prompt-only task-frame phrases.
-- Subagent-using `vibe-*` skills now treat delegated model choice as
-  fit-for-purpose when the host exposes model selection and the user has not
-  explicitly fixed a model: bounded low-ambiguity delegates may use cheaper or
-  faster models, while complex judgment, broad-context synthesis, adversarial
-  review, security/data-safety, high-risk, or ambiguity-heavy work must use
-  higher-capability or larger-context models rather than blanket top-model
-  inheritance or token-saving downshifts.
-- Oversized `vibe-*` skill instructions now move heavyweight workflow,
-  gate, checklist, and lifecycle details into package references while keeping
-  `SKILL.md` focused on activation, core boundaries, and mandatory reference
-  routing.
+
+## [vibe-coding 1.5.0] - 2026-07-04
+
+### Changed
+
+- `vibe-coding` now keeps delegated model selection inside the selected routed
+  phase's delegation contract, using fit-for-purpose model choices instead of
+  assigning one blanket top-tier or cheapest model to an unattended
+  cross-phase run.
+- `vibe-coding` route-selection and boundary details now live in
+  `references/route-selection-and-boundaries.md`, while `SKILL.md` stays
+  focused on activation, core boundaries, and mandatory reference routing.
+
+## [vibe-requirements-spec 3.3.0] - 2026-07-04
+
+### Changed
+
+- `vibe-requirements-spec` now treats permitted proxy-subagent model selection
+  as fit-for-purpose per proxy when the host exposes model choice and the user
+  has not fixed a model, without treating proxy output or model choice as
+  explicit human-user finish, handoff, or implementation authorization.
+- `vibe-requirements-spec` now moves requirements contract, lifecycle,
+  drafting workflow, and final-audit details into package references while
+  keeping `SKILL.md` focused on startup decisions and non-negotiable
+  boundaries.
+
+## [vibe-planning 4.6.0] - 2026-07-04
+
+### Changed
+
+- `vibe-planning` now records fit-for-purpose reviewer model choices or reasons
+  for plan-review subagents when the host exposes reviewer model selection and
+  the user has not fixed a model.
+- `vibe-planning` now moves core planning controls, planning workflow,
+  edge-case, accepted-risk, and multi-perspective review-gate details into
+  package references while keeping `SKILL.md` focused on plan-only activation
+  and mandatory routing.
+
+## [vibe-plan-execution 3.3.0] - 2026-07-04
+
+### Changed
+
+- `vibe-plan-execution` now records fit-for-purpose delegated implementation or
+  post-implementation reviewer model choices or reasons when the host exposes
+  model selection and the user has not fixed a model.
+- `vibe-plan-execution` now moves execution gates, delegation rules, workflow,
+  review, ledger, communication, commit-checkpoint, and quality details into
+  package references while keeping `SKILL.md` focused on activation and
+  mandatory reference routing.
+
+## [vibe-brainstorm 1.3.0] - 2026-07-04
+
+### Changed
+
+- `vibe-brainstorm` now records fit-for-purpose delegated role model choices or
+  reasons when the host exposes model selection and the user has not fixed a
+  model, avoiding blanket top-tier or cheapest-tier delegation.
+
+## [vibe-debug 3.1.0] - 2026-07-04
+
+### Changed
+
+- `vibe-debug` now records fit-for-purpose delegated diagnosis model choices or
+  reasons per hypothesis when the host exposes model selection and the user has
+  not fixed a model.
+- `vibe-debug` now moves the detailed inspect, reproduce, instrument, repair,
+  verify, and handoff loop into `references/debug-workflow.md`, while
+  `SKILL.md` stays focused on activation and stop conditions.
+
+## [vibe-code-research 1.1.0] - 2026-07-04
+
+### Changed
+
+- `vibe-code-research` now records fit-for-purpose delegated investigator model
+  choices or reasons when the host exposes model selection and the user has not
+  fixed a model, using stronger or larger-context models for cross-subsystem or
+  ambiguous evidence synthesis.
+
+## [vibe-review 1.3.0] - 2026-07-04
+
+### Changed
+
+- `vibe-review` now records fit-for-purpose reviewer model choices or selection
+  reasons when the host exposes reviewer model selection and the user has not
+  fixed a model.
+- `vibe-review` now moves target handling, backend execution, finding
+  normalization, validity, scope triage, cascade containment, terminal audit,
+  and completion details into `references/review-workflow.md`, while
+  `SKILL.md` stays focused on startup contract boundaries and mandatory
+  reference routing.
 
 ## [vibe-coding 1.4.0] - 2026-07-04
 
