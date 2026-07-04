@@ -24,6 +24,10 @@ use `[Repository] - YYYY-MM-DD`.
   host-continuation stubs as prompt, invocation, recording, or output-set
   completeness issues instead of silently removing scored cells from official
   aggregates.
+- `vibe-writing` now makes wrapper prose around rewritten artifacts part of the
+  output contract, so comment, docstring, policy, template, localization, and
+  other artifact-editing tasks emit the revised artifact or requested change
+  list without prompt-only task-frame phrases.
 
 ## [vibe-coding 1.4.0] - 2026-07-04
 

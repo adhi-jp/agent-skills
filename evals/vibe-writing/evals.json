@@ -46,7 +46,8 @@
         "Either removes the email comment or rewrites it to explain a non-obvious contract without inventing validation behavior.",
         "Includes a useful retry rationale tied to PaymentCo 409 responses during renewal settling.",
         "Does not change function names, signatures, return values, or implementation behavior.",
-        "Does not add unsupported claims about PaymentCo availability, retry counts, backoff policy, or idempotency."
+        "Does not add unsupported claims about PaymentCo availability, retry counts, backoff policy, or idempotency.",
+        "Does not wrap the rewritten comments in task-frame prose such as `provided context`, `given context`, `rewritten below`, or a change summary unless explicitly asked."
       ]
     },
     {
@@ -107,7 +108,8 @@
         "Preserves the irreversible deletion warning.",
         "Does not upgrade `should notify` to an unconditional `must notify` requirement.",
         "Does not weaken `must not delete` into a recommendation, preference, or best practice.",
-        "Does not add new obligations such as backups, approvals, grace periods, legal review, or owner confirmation."
+        "Does not add new obligations such as backups, approvals, grace periods, legal review, or owner confirmation.",
+        "Does not wrap the policy artifact in task-frame prose such as `rewritten below`, `made friendlier`, `provided policy`, or other prompt-only framing unless explicitly asked."
       ]
     },
     {

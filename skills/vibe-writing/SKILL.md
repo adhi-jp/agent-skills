@@ -97,6 +97,14 @@ language. Internal evidence checks, source classification, and proof-source
 decisions stay out of the delivered artifact unless the user explicitly asks for
 that explanation.
 
+For rewrite, polish, localization, comment, docstring, policy, template, and
+other artifact-editing tasks, wrapper text is part of the output and can be
+wrong even when the artifact body is right. Do not introduce task-frame phrases
+such as `provided text`, `given context`, `as requested`, `rewritten below`, or
+`made friendlier` around the artifact unless the requested artifact itself
+requires that wording. Emit the revised artifact, or a requested change list,
+without prompt-only provenance.
+
 For LLM-first text, use line breaks as structure, not as an 80-column habit.
 Keep short examples, commands, commit-message snippets, and compact list items on one physical line when the break would add no meaning.
 Preserve required line breaks in verbatim output, quoted source, templates, logs, protocol payloads, JSON, and commit-message transport.
