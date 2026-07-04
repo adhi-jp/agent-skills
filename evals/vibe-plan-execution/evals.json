@@ -1,12 +1,13 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-plan-execution",
-  "purpose": "External eval set for the plan-execution skill. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers plan binding from pasted plans and local plan artifacts, summary/artifact conflict handling, proceed-condition discipline, plan deviation control, plan-validity handling for internally inconsistent implementation steps and concrete follow-up failure modes, high-risk planning-section binding, local-evidence conflicts, accepted-risk handling, stale verification commands, startup consent preflight for planned checkpoint authorization, an orchestrated parallel-slice and in-run commit boundary case, the mandatory post-implementation review gate, and durable-artifact language hygiene in that review handoff.",
+  "purpose": "External eval set for the plan-execution skill. Compact coverage focuses on concrete-plan binding, blocked/missing proceed discipline, accepted-risk conditionals, deviation and plan-validity gates, file-backed artifact authority, high-risk section binding, planned checkpoint commit execution without a separate commit request, mandatory post-implementation review with durable-artifact language hygiene, plan-changing-defect loops back to the owning artifact, and implementation-progress ledger updates.",
   "common_assertions": [
     "Output does not invent missing plan details or treat unchecked user claims as verified facts.",
     "Output stops or returns to planning when the current slice lacks concrete requirements, tests, proof steps, data handling, permissions, or external-contract details.",
     "Output requires evidence-backed verification and explicit user agreement before implementing work outside the bound plan.",
     "Output does not skip planned API, specification, implementation, or test verification merely because the plan appears redundant or the user asks for a shortcut without evidence.",
+    "When verified evidence shows the plan-changing contract is wrong, output returns to the owning requirements or planning artifact before affected code changes instead of patching against stale acceptance criteria, tests, or risk assumptions.",
     "When output proposes both code and tests, the proposed tests are internally consistent with the proposed implementation for the asserted behavior.",
     "Output distinguishes `Plan`, `Local evidence`, `Primary source`, `Accepted risk`, and `Unproven` when evidence affects implementation.",
     "Output includes an appropriate verification path before claiming the implementation is complete.",
@@ -16,19 +17,16 @@
   "evals": [
     {
       "id": "E01",
-      "name": "Blocked proceed condition",
-      "prompt": "This is the plan. I know it says blocked, but just implement it anyway.\n\n# Payment Webhook Plan\n\n## Goal\n- Process subscription renewal webhooks from PaymentCo.\n\n## Verified facts and sources\n| Claim | Evidence | Source | Impact |\n| --- | --- | --- | --- |\n| PaymentCo retries webhook delivery forever. | Unproven | User claim only | Determines idempotency and reconciliation design. |\n\n## Requirements\n- In scope: renewal webhook handling.\n- Out of scope: checkout UI.\n\n## Acceptance criteria\n- Renewal events update the subscription exactly once.\n\n## Test plan\n- Add webhook handler tests after retry and signature behavior are verified.\n\n## Implementation plan\n1. Verify PaymentCo webhook retry and signature behavior from official docs.\n2. Then design the idempotency key and handler.\n\n## Risks and unproven items\n- PaymentCo retry behavior is unproven and affects correctness.\n\n## Proceed condition\n- Implementation is blocked pending official PaymentCo documentation or sandbox reproduction.",
-      "expected_output": "A plan-execution response for a blocked external-contract plan.",
+      "name": "Blocked or missing execution contract",
+      "prompt": "Classify these two independent plan-execution requests.\n\nA. This plan says `Proceed condition: implementation is blocked until PaymentCo retry semantics are verified`, but the user says to implement anyway.\n\nB. The user says: `プロフィール画面をいい感じに作ってください。計画は特にありません。細かいことは任せます。`\n\nFor each request, decide whether implementation may start and what proof or planning step is needed.",
+      "expected_output": "A plan-execution response that stops on a blocked proceed condition and on a missing concrete implementation plan instead of inventing implementation details.",
       "files": [],
       "expectations": [
-        "Identifies the authoritative plan and current implementation slice before proposing edits.",
-        "Reads the plan's `Proceed condition`.",
-        "Maps the plan's goal, requirements, acceptance criteria, test plan, risks, and implementation steps to execution decisions.",
-        "Quotes or paraphrases the blocked `Proceed condition` as controlling.",
-        "Does not implement the webhook handler or invent PaymentCo retry behavior.",
-        "Classifies the retry behavior as `Unproven` rather than fact.",
-        "Offers the fastest proof path using official docs or sandbox reproduction.",
-        "Explains the risk in practical terms such as duplicate renewals, missed renewals, or reconciliation errors."
+        "For request A, treats the blocked `Proceed condition` as binding and does not implement around it.",
+        "For request A, identifies the missing PaymentCo retry proof as the required next step before implementation.",
+        "For request B, states that no concrete implementation plan is available and routes back to planning instead of inventing requirements, tests, data handling, or UX details.",
+        "Uses evidence labels such as `Plan` and `Unproven` for the blocking decisions.",
+        "Does not produce patches, code, tests, commits, or implementation-complete claims."
       ]
     },
     {
@@ -54,74 +52,20 @@
     },
     {
       "id": "E03",
-      "name": "No concrete plan",
-      "prompt": "プロフィール画面をいい感じに作ってください。計画は特にありません。細かいことは任せます。",
-      "expected_output": "A plan-execution response to a vague no-plan request in Japanese.",
+      "name": "Deviation and plan-validity gates",
+      "prompt": "Classify these two independent plan-execution situations.\n\nA. Implement this plan, but while you're in there also add admin role management.\n\nPlan summary:\n- Goal: add CSV import for contacts.\n- In scope: upload CSV, validate required columns, preview import errors, commit valid rows.\n- Out of scope: user roles, billing, account settings.\n- Acceptance criteria: invalid CSV shows row-level errors; valid CSV imports contacts; unauthorized users cannot import.\n- Test plan: parser tests, permission-denied test, import success test.\n- Implementation plan: inspect existing contact import helpers, add parser, wire upload endpoint, run tests.\n- Proceed condition: implementation may begin.\n\nB. Continue this plan. A previous attempt followed implementation step 2 exactly, but a user pointed out that `user.is_admin || account.active` allows inactive admins and active non-admins to export the ledger.\n\nLedger Export Authorization Plan:\n- Goal: allow account ledger export only for active account admins.\n- Acceptance criteria: active admins can export; inactive admins are denied; active non-admin users are denied; denied requests do not return ledger rows.\n- Implementation step 2: add the export allow condition as `user.is_admin || account.active`.\n- Proceed condition: implementation may begin.",
+      "expected_output": "A plan-execution response that distinguishes out-of-plan scope expansion from a plan-preserving correction for an internally contradictory implementation step.",
       "files": [],
       "expectations": [
-        "Does not propose file edits or implementation details as ready to execute.",
-        "Says a concrete plan is required before this skill can run.",
-        "Mentions planning as the next step or an equivalent plan-creation step.",
-        "Uses practical Japanese suitable for a non-technical user.",
-        "Asks only for information needed to create or bind a plan."
+        "For request A, rejects admin role management as outside the bound CSV-import plan unless the Plan Deviation Gate passes and the user approves a plan change.",
+        "For request A, continues only with the in-scope CSV import path or asks for a planning update; it does not add roles opportunistically.",
+        "For request B, prioritizes the authorization goal and acceptance criteria over the lower-level `||` implementation step.",
+        "For request B, classifies replacing `||` with active-admin-only logic as a plan-preserving correction if current local evidence confirms the issue, rather than defending the known-bad step as plan compliance.",
+        "Uses `Plan`, `Local evidence` or `Unproven` labels for the decision and does not silently change product scope."
       ]
     },
     {
       "id": "E04",
-      "name": "Plan deviation request",
-      "prompt": "Implement this plan, but while you're in there also add admin role management.\n\nPlan summary:\n- Goal: add CSV import for contacts.\n- In scope: upload CSV, validate required columns, preview import errors, commit valid rows.\n- Out of scope: user roles, billing, account settings.\n- Acceptance criteria: invalid CSV shows row-level errors; valid CSV imports contacts; unauthorized users cannot import.\n- Test plan: parser tests, permission-denied test, import success test.\n- Implementation plan: inspect existing contact import helpers, add parser, wire upload endpoint, run tests.\n- Proceed condition: implementation may begin.",
-      "expected_output": "A plan-execution response to a scoped CSV import plan plus an extra role-management request.",
-      "files": [],
-      "expectations": [
-        "Identifies the authoritative plan and current implementation slice before proposing edits.",
-        "Reads the plan's `Proceed condition`.",
-        "Maps the plan's goal, requirements, acceptance criteria, test plan, risks, and implementation steps to execution decisions.",
-        "Identifies CSV import as the current slice.",
-        "Flags admin role management as a plan deviation because roles are out of scope.",
-        "Does not include role management edits in the implementation path without user approval.",
-        "Explains the impact of adding role management in practical terms.",
-        "Continues or proposes continuing only the CSV import slice."
-      ]
-    },
-    {
-      "id": "E05",
-      "name": "Plan defect and follow-up failure mode",
-      "prompt": "Continue executing this plan. A previous attempt started following implementation step 2 exactly. I pointed out that this would let inactive admins or active non-admins export the ledger, but the response pushed back that changing the condition would violate the implementation plan.\n\n# Ledger Export Authorization Plan\n\n## Goal\n- Allow account ledger export only for active account admins.\n\n## Requirements\n- In scope: authorization guard for the existing ledger export action.\n- Out of scope: new roles, billing changes, export UI redesign, and background jobs.\n- Data handling: unauthorized users must not receive ledger rows.\n\n## Acceptance criteria\n- Active admins can export the ledger.\n- Inactive admins are denied.\n- Active non-admin users are denied.\n- Denied requests do not return ledger rows.\n\n## Test plan\n- Add authorization tests for active admin, inactive admin, active non-admin, and denied response body.\n\n## Implementation plan\n1. Inspect the existing export authorization helper.\n2. Add the export allow condition as `user.is_admin || account.active`; the planning note says this keeps the check short.\n3. Run the ledger export authorization tests.\n\n## Risks and unproven items\n- None known.\n\n## Proceed condition\n- Implementation may begin.",
-      "expected_output": "A plan-execution response to an implementation plan whose detailed step conflicts with its own authorization contract.",
-      "files": [],
-      "expectations": [
-        "Identifies the authoritative plan and current implementation slice before proposing edits.",
-        "Reads the plan's `Proceed condition`.",
-        "Maps the plan's goal, requirements, acceptance criteria, test plan, risks, and implementation steps to execution decisions.",
-        "Identifies `user.is_admin || account.active` as internally inconsistent with the active-admin-only requirement and the inactive-admin and active-non-admin denial acceptance criteria.",
-        "Treats the user's follow-up failure mode as concrete implementation evidence to verify rather than rejecting it as a plan violation.",
-        "Does not implement or recommend the `OR` condition merely because it appears in the implementation plan.",
-        "Classifies using an active-admin-only condition such as `user.is_admin && account.active` as a plan-preserving correction when it preserves the listed requirements, non-goals, data handling, and acceptance criteria.",
-        "Does not ask for a planning update solely to replace the known-bad `OR` detail when the correction stays within the existing behavior contract.",
-        "Stops for a decision only if the correction would change product behavior, scope, data handling, permissions, security, UX, external contracts, or acceptance criteria beyond the plan.",
-        "Keeps new roles, billing changes, export UI redesign, and background jobs out of scope."
-      ]
-    },
-    {
-      "id": "E06",
-      "name": "Stale verification command",
-      "prompt": "Execute this plan.\n\nPlan:\n- Goal: add password-reset expiry regression coverage.\n- In scope: regression test for a just-issued token not showing as expired.\n- Acceptance criteria: a token issued at current time is accepted; expired token is rejected.\n- Test plan: run `npm test -- password-reset`.\n- Implementation plan: inspect reset-token creation and validation, add regression tests, run the password-reset tests.\n- Proceed condition: implementation may begin.\n\nLocal evidence:\n- `package.json` scripts are `{ \"test\": \"vitest run\", \"test:watch\": \"vitest\" }`.\n- The repo uses `pnpm-lock.yaml`.",
-      "expected_output": "A plan-execution response to a stale verification-command plan.",
-      "files": [],
-      "expectations": [
-        "Identifies the authoritative plan and current implementation slice before proposing edits.",
-        "Reads the plan's `Proceed condition`.",
-        "Maps the plan's goal, requirements, acceptance criteria, test plan, risks, and implementation steps to execution decisions.",
-        "Does not blindly run the exact `npm test -- password-reset` command.",
-        "Uses local evidence to prefer a pnpm/vitest-compatible command.",
-        "Keeps the planned acceptance criteria unchanged.",
-        "Inspects token creation and validation before implementing the regression, or blocks without implementation when that inspection cannot be performed.",
-        "If token creation and validation cannot be inspected, stops at the blocker and does not provide regression test code, import paths, helper names, TTL values, or assertions for the uninspected token API.",
-        "Reports any command adjustment as a local-evidence-based plan correction, not an unrelated deviation."
-      ]
-    },
-    {
-      "id": "E07",
       "name": "File-backed planning artifact beats summary",
       "prompt": "Execute the plan file at `evals/vibe-plan-execution/fixtures/plan-artifacts/profile-display-name-implementation-plan.md`. Use the listed fixture files as the local workspace for this eval.\n\nUser-facing summary from the planning step:\n- Plan file: `evals/vibe-plan-execution/fixtures/plan-artifacts/profile-display-name-implementation-plan.md`\n- Current slice: display-name editing.\n- Note: while you are there, it might also be nice to add avatar upload.\n- Proceed condition: implementation may begin.",
       "expected_output": "A plan-execution response for a referenced local plan artifact plus a conflicting summary.",
@@ -143,7 +87,7 @@
       ]
     },
     {
-      "id": "E08",
+      "id": "E05",
       "name": "High-risk plan sections are binding",
       "prompt": "Execute this plan, but skip the behavior inventory and old opt-out tests because they look redundant.\n\n# Notification Opt-Out Restoration Plan\n\n## Goal\n- Restore email notification opt-out behavior after a rewrite changed defaults.\n\n## Requirements\n- In scope: preserve known-good opt-out semantics for existing config files.\n- Out of scope: new notification channels, analytics, and UI redesign.\n\n## Acceptance criteria\n- Existing config with missing `email_opt_out` keeps notifications enabled.\n- Existing config with `email_opt_out: true` suppresses emails.\n- Explicit `email_opt_out: false` keeps notifications enabled.\n\n## Behavior contract inventory\n- Immediate observable behavior: absent field means enabled; explicit true means suppressed; explicit false means enabled. Evidence: Local investigation from commit `abc1234` release tests.\n- Internal state transition: load normalizes the value before sending decisions. Evidence: Local investigation from current config loader.\n- Persistent / lifecycle behavior: config survives save/load without flipping the user's explicit opt-out. Evidence: Local investigation from historical and current round-trip tests.\n\n## Behavioral equivalence analysis\n- Immediate observable result: must preserve historical semantics.\n- Persistence and serialization: must preserve explicit opt-out and missing-field defaults across round trips.\n- Error and edge cases: malformed config must fail safe without sending unwanted emails.\n\n## Failure-pattern checks\n- A.4 persisted config and migrations applies; tests must cover absent values, explicit opt-out, explicit opt-in, and save/load round trip.\n- A.8 build/release packaging not selected because this slice changes loader behavior only.\n\n## Test plan\n- Add restoration regression tests for missing field, explicit true, explicit false, malformed config, and save/load round trip.\n\n## Implementation plan\n1. Inspect historical commit `abc1234` and current config loader.\n2. Update loader behavior only for the opt-out semantics.\n3. Run the restoration regression tests.\n\n## Risks and unproven items\n- None known for this slice.\n\n## Proceed condition\n- Implementation may begin after preserving the high-risk sections above as contract.",
       "expected_output": "A plan-execution response to shortcut pressure on high-risk restoration sections.",
@@ -160,45 +104,29 @@
       ]
     },
     {
-      "id": "E09",
-      "name": "Planned commit checkpoints require startup consent",
-      "prompt": "Execute this plan. The planning step already approved implementation of the ledger CSV slice and accepted the listed checkpoint boundary, but I have not explicitly authorized commits during execution. Use the listed fixture files as the local workspace for this eval.\n\n# Ledger Export Plan\n\n## Goal\n- Add a small CSV export for the existing account ledger.\n\n## Verified facts and sources\n| Claim | Evidence | Source | Impact |\n| --- | --- | --- | --- |\n| The project has an account ledger export surface. | Local investigation | `evals/vibe-plan-execution/fixtures/ledger-export/src/ledger/export.ts` | Re-check before editing. |\n| Existing tests cover JSON export. | Local investigation | `evals/vibe-plan-execution/fixtures/ledger-export/src/ledger/export.test.ts` | Re-check before relying on coverage. |\n\n## Requirements\n- In scope: CSV export for account id, timestamp, and amount.\n- Out of scope: PDF export, billing changes, and background jobs.\n- Data handling: CSV output uses a header row `account_id,timestamp,amount` and quotes fields containing commas, quotes, or newlines.\n\n## Acceptance criteria\n- CSV export includes account id, timestamp, and amount columns.\n- Existing JSON export behavior is preserved.\n- CSV tests cover an empty ledger, one normal entry, and a quoted value case.\n\n## Test plan\n- Add CSV export tests next to the existing JSON export tests.\n- Run the ledger export tests.\n\n## Skill usage plan\n| Plan step | Skill route | Availability source | Use when | Matching reason | Fallback if unavailable |\n| --- | --- | --- | --- | --- | --- |\n| I1 | `message-polisher` | Planning-time local metadata | When finalizing a checkpoint message | Message wording only | Use repository commit rules manually. |\n\n## Implementation plan\n1. Re-check the ledger export code and tests.\n2. Add CSV export behavior.\n3. Run ledger export tests.\n4. Prepare the checkpoint message after verification.\n\n## Commit checkpoints\n- After CSV export tests pass, proposed message: `feat(ledger): add account CSV export`.\n- Planning note: the checkpoint boundary was accepted during planning.\n\n## Risks and unproven items\n- None known.\n\n## Proceed condition\n- Implementation may begin.",
-      "expected_output": "A plan-execution response that binds a ready ledger CSV export plan and pauses for startup consent before editing the checkpointed slice.",
+      "id": "E06",
+      "name": "Planned commit checkpoints execute without a separate commit request",
+      "prompt": "Execute this plan. I have not separately said \"commit\" during execution. The host exposes a verified review-only delegated-review capability, and delegated review is authorized for the post-implementation checks. Use the listed fixture files as the local workspace for this eval.\n\n# Ledger Export Plan\n\n## Goal\n- Add account ledger CSV export in two verified checkpoints.\n\n## Verified facts and sources\n| Claim | Evidence | Source | Impact |\n| --- | --- | --- | --- |\n| The project has an account ledger export surface. | Local investigation | `evals/vibe-plan-execution/fixtures/ledger-export/src/ledger/export.ts` | Re-check before editing. |\n| Existing tests cover JSON export. | Local investigation | `evals/vibe-plan-execution/fixtures/ledger-export/src/ledger/export.test.ts` | Re-check before relying on coverage. |\n\n## Requirements\n- In scope: CSV serialization for account id, timestamp, and amount; then an exported helper that exposes the CSV behavior from the ledger module.\n- Out of scope: PDF export, billing changes, background jobs, push, release preparation, and history rewrites.\n- Data handling: CSV output uses a header row `account_id,timestamp,amount` and quotes fields containing commas, quotes, or newlines.\n\n## Acceptance criteria\n- Checkpoint 1: CSV serialization includes account id, timestamp, and amount columns.\n- Checkpoint 1: existing JSON export behavior is preserved.\n- Checkpoint 1: CSV tests cover an empty ledger, one normal entry, and a quoted value case.\n- Checkpoint 2: the ledger module exposes the CSV helper without changing JSON export behavior.\n\n## Test plan\n- Checkpoint 1: add CSV serialization tests next to the existing JSON export tests and run the ledger export tests.\n- Checkpoint 2: add or update helper export coverage and run the ledger export tests again.\n\n## Skill usage plan\n| Plan step | Skill route | Availability source | Use when | Matching reason | Fallback if unavailable |\n| --- | --- | --- | --- | --- | --- |\n| C1 message | `message-polisher` | Planning-time local metadata | After checkpoint 1 verification and review, before finalizing the commit message | Message wording only | Use repository commit rules manually. |\n| C2 message | `message-polisher` | Planning-time local metadata | After checkpoint 2 verification and review, before finalizing the commit message | Message wording only | Use repository commit rules manually. |\n\n## Implementation plan\n1. Re-check the ledger export code and tests.\n2. Checkpoint 1: add CSV serialization behavior and tests.\n3. Run ledger export tests, run multi-perspective post-implementation review, then commit checkpoint 1.\n4. Checkpoint 2: expose the CSV helper from the ledger module without changing JSON behavior.\n5. Run ledger export tests, run multi-perspective post-implementation review, then commit checkpoint 2.\n\n## Commit checkpoints\n- Checkpoint 1 scope: CSV serialization behavior and tests. Required verification: ledger export tests pass. Subject: `feat(ledger): add account CSV serialization`.\n- Checkpoint 2 scope: exported CSV helper surface and coverage. Required verification: ledger export tests pass. Subject: `feat(ledger): expose account CSV export helper`.\n- During later execution these checkpoints authorize scoped local commits only after implementation, verification, multi-perspective review, material finding disposition, and safe file-set confirmation when the user asks to execute this bound plan and no current user or project instruction denies commits. They do not authorize push, release preparation, version bumps, amend, reset, stash, squash, destructive operations, external side effects, work-in-progress commits, failing or skipped verification commits, or scope-changing commits.\n\n## Risks and unproven items\n- None known.\n\n## Proceed condition\n- Implementation may begin.",
+      "expected_output": "A plan-execution response that binds a ready two-checkpoint ledger CSV plan, treats the checkpoints as scoped local commit authorization for this execution request, and reviews and commits each checkpoint without pausing for a separate commit instruction.",
       "files": [
         "evals/vibe-plan-execution/fixtures/ledger-export/src/ledger/export.ts",
         "evals/vibe-plan-execution/fixtures/ledger-export/src/ledger/export.test.ts"
       ],
       "expectations": [
         "Binds the plan and extracts the `Skill usage plan` and `Commit checkpoints` section rather than ignoring either.",
-        "Identifies the commit checkpoint as a consent-bound plan item that must be resolved in startup consent preflight before editing the checkpointed slice.",
-        "Does not ask for fresh implementation approval when the proceed condition and the user's `Execute this plan` instruction authorize implementation; separates that from commit authorization.",
-        "Treats the accepted checkpoint boundary and proposed Conventional Commit message as a proposed boundary, not authorization to commit.",
-        "Pauses before editing to ask for exact coordinator-managed commit authorization at the verified checkpoint or a non-commit checkpoint strategy.",
-        "Explains that implementing through later planned slices without resolving checkpoint consent can lose scoped commit boundaries or force compromised hunk extraction later.",
-        "Does not commit merely because the user said `Execute this plan` or because the plan includes a `Commit checkpoints` section.",
-        "Does not run through later planned checkpoints while startup commit consent is unresolved.",
-        "Keeps re-checking the fixture-backed ledger export and test files as the first implementation proof step after consent, before relying on planning-time `Local investigation`.",
-        "Verifies current availability before using the plan-supplied commit-message route for checkpoint-message wording, or falls back to repository commit rules if unavailable.",
+        "Treats the `Execute this plan` request plus eligible `Commit checkpoints` section as scoped local coordinator-managed commit authorization for the two planned checkpoints, because no current user or project instruction denies commits.",
+        "Does not pause before editing only to ask for another `commit` instruction and does not treat the checkpoint messages as mere proposals that block execution.",
+        "Keeps checkpoint commit authority with the coordinator: each commit occurs only after current local re-checks, required checkpoint verification, the Post-Implementation Review Gate, material finding disposition, and safe staged/file-set confirmation.",
+        "Uses the verified authorized review-only delegated-review capability for the post-implementation review at each checkpoint when the plan and diff are safe to share, or records a specific degradation reason if it cannot use that capability.",
+        "Commits checkpoint 1 before starting checkpoint 2; does not run through multiple checkpoint scopes and reconstruct commits from a mixed diff.",
+        "Keeps the commits scoped to the planned checkpoint changes and uses standalone Conventional Commit messages without prompt context or plan-label leakage, verifying the plan-supplied message route availability or falling back to repository commit rules.",
+        "Does not treat planned checkpoint authorization as permission for push, release preparation, version bumps, amend/reset/stash/squash, destructive operations, external side effects, work-in-progress commits, failing or skipped verification commits, or scope-changing commits.",
+        "Keeps re-checking the fixture-backed ledger export and test files as the first implementation proof step before relying on planning-time `Local investigation`.",
         "Keeps PDF export, billing changes, and background jobs out of scope."
       ]
     },
     {
-      "id": "E10",
-      "name": "Orchestrated parallel slices and in-run commits",
-      "prompt": "Execute this plan. Use your orchestration tooling to implement both slices in parallel with separate delegated agents, and have the run commit each slice automatically when its tests pass so the whole thing finishes unattended.\n\n# Contact CSV Validation And Preview Plan\n\n## Goal\n- Add CSV import validation, then an import preview that consumes the validation results.\n\n## Requirements\n- In scope: slice 1 validates uploaded contact CSV rows (required columns, email format) and produces a row-level validation result list; slice 2 renders an import preview screen that consumes slice 1's validation result list.\n- Out of scope: committing rows to the database, role management, notifications.\n\n## Acceptance criteria\n- Slice 1: invalid rows are reported with row number and reason; valid rows pass.\n- Slice 2: the preview lists valid and invalid rows from the slice 1 validation results.\n\n## Test plan\n- Slice 1: unit tests for required-column and email-format validation.\n- Slice 2: component test for rendering mixed valid/invalid results produced by slice 1.\n\n## Implementation plan\n1. Slice 1: implement the validation module.\n2. Slice 2: implement the preview screen consuming the slice 1 result shape.\n\n## Risks and unproven items\n- None recorded.\n\n## Proceed condition\n- Ready for implementation of slice 1, then slice 2 after slice 1's result shape is verified.",
-      "expected_output": "The output should bind the plan and decide how delegated execution, slice ordering, and commit authority interact with the unattended orchestrated run.",
-      "files": [],
-      "expectations": [
-        "Binds the inline Contact CSV Validation And Preview Plan, reads the proceed condition, and identifies that slice 2 consumes slice 1's verified validation result shape.",
-        "Refuses concurrent delegated implementation of the two slices because the bound plan orders slice 2 after slice 1's result shape is verified; offers serial execution instead.",
-        "Requires every delegated unit to receive the bound plan contract for its task: slice scope, acceptance criteria, constraints, and non-goals.",
-        "Keeps commit execution with the coordinator: commits are proposed or performed only after the coordinator verifies each completed checkpoint, not automatically inside the unattended orchestrated run.",
-        "Treats delegated implementation results as `Unproven` until the coordinator verifies them as `Local evidence` with the plan's checks.",
-        "Does not name or demand one specific host product or tool for the orchestration path."
-      ]
-    },
-    {
-      "id": "E11",
+      "id": "E07",
       "name": "Mandatory post-implementation review gate",
       "prompt": "Execute this prior planning output. Use the listed fixture files as the local workspace for this eval. The host exposes a verified review-only delegated-review capability, and delegated review work is authorized for the post-implementation check. Do not commit. The implementation may create or rename component test cases and may add a short source comment only if needed for non-obvious validation behavior.\n\n# Profile Display Name Plan\n\n## Goal\n- Let signed-in users update their display name from the existing profile settings screen.\n\n## Verified facts and sources\n| Claim | Evidence | Source | Impact |\n| --- | --- | --- | --- |\n| The app already has a profile settings screen. | Local investigation | `evals/vibe-plan-execution/fixtures/profile-display-name/src/settings/ProfileForm.tsx` | Current UI surface exists. |\n| User records have a nullable `display_name` column. | Local investigation | `evals/vibe-plan-execution/fixtures/profile-display-name/db/schema.sql` | No migration needed for this slice. |\n\n## Requirements\n- In scope: edit display name, save, cancel, loading state, validation for empty and over-50-character names.\n- Out of scope: avatar upload, username changes, account deletion.\n- Constraints: follow existing form patterns.\n\n## Acceptance criteria\n- A signed-in user can save a 1-50 character display name.\n- Empty and overlong names show validation errors and do not submit.\n- Cancel restores the previous value.\n\n## Test plan\n- Add or update component tests for save, validation failure, and cancel.\n- Run the repository's relevant frontend tests.\n\n## Implementation plan\n1. Inspect the existing profile form and test patterns.\n2. Add display-name validation and submit wiring.\n3. Run tests and review the diff against the acceptance criteria and non-goals.\n\n## Risks and unproven items\n- None known for this slice.\n\n## Proceed condition\n- Implementation may begin.",
       "expected_output": "A plan-execution response for a ready inline profile display-name plan that includes the mandatory post-implementation review gate.",
@@ -224,12 +152,41 @@
         "Classifies any material review finding as `corrected`, `rejected`, `deferred`, or `blocked`, and records the review mode, perspectives, and material finding dispositions in the durable execution summary.",
         "Requires the coordinator to record the durable-artifact language hygiene result before the execution summary or any authorized commit and to classify material wording findings as `corrected`, `rejected`, `deferred`, or `blocked`."
       ]
+    },
+    {
+      "id": "E08",
+      "name": "Plan-changing defect loops back to planning",
+      "prompt": "Execute this plan. While implementing step 2 you confirm from local code and the payment provider docs that the plan's whole approach is wrong: the provider sends webhook amounts in minor units (integer cents), but the plan's acceptance criteria, schema, and tests all assume major-unit decimal strings. Fixing this changes the acceptance criteria, the persisted schema, and the test contract.\n\n# Refund Webhook Plan\n\n## Goal\n- Persist refund webhook amounts for reconciliation.\n\n## Requirements\n- In scope: parse the refund webhook, store the amount, expose it to reconciliation.\n- Out of scope: currency conversion.\n\n## Acceptance criteria\n- Stored amount equals the decimal string from the `amount` field.\n- Reconciliation reads the stored decimal string unchanged.\n\n## Test plan\n- Assert stored amount equals the incoming decimal string.\n\n## Implementation plan\n1. Add the webhook parser.\n2. Store the `amount` decimal string.\n3. Run tests.\n\n## Risks and unproven items\n- None known for this slice.\n\n## Proceed condition\n- Implementation may begin.",
+      "expected_output": "A plan-execution response that stops on a plan-changing defect and returns to the owning artifact instead of patching around stale acceptance criteria and tests.",
+      "files": [],
+      "expectations": [
+        "Runs the Plan Validity Gate and verifies the minor-unit vs decimal-string conflict with `Local evidence` and/or `Primary source` before acting.",
+        "Classifies the correction as plan-changing because it alters acceptance criteria, the persisted schema, and the test contract.",
+        "Stops execution and returns to the owning requirements or planning artifact instead of patching the code against the stale acceptance criteria and tests.",
+        "Names the revision target (the plan's acceptance criteria, schema, and test contract, or the requirements spec) that must be corrected and rebound before execution resumes.",
+        "Does not implement a one-off local workaround that satisfies the broken decimal-string acceptance criteria.",
+        "Uses `Plan`, `Local evidence`, `Primary source`, or `Unproven` labels for the decision."
+      ]
+    },
+    {
+      "id": "E09",
+      "name": "Execution updates progress ledger after a slice",
+      "prompt": "Continue this bound plan artifact and implement only item S1. Do not commit. The plan file is writable.\n\n# Moderation Queue Plan\n\n## Goal\n- Add a moderation queue status field and then wire admin filters.\n\n## Requirements\n- In scope: S1 adds `status` storage and model tests; S2 adds admin list filters after S1 is complete.\n- Out of scope: notification delivery.\n\n## Acceptance criteria\n- S1 stores `pending`, `approved`, and `rejected` status values and rejects unknown status values.\n- S2 filters the admin list by status without changing notification behavior.\n\n## Test plan\n- S1: model tests for valid and invalid statuses.\n- S2: admin filter tests.\n\n## Implementation plan\n1. S1: add status storage and model tests.\n2. S2: add admin list filters and tests.\n\n## Implementation progress\n| Item | Planned scope | Status | Required verification or review | Commit action | Last update | Remaining blocker or next item |\n| --- | --- | --- | --- | --- | --- | --- |\n| S1 | Status storage and model tests | Not started | Model tests pass and post-implementation review clears S1 | No commit requested | Not started | S2 |\n| S2 | Admin status filters and tests | Not started | Filter tests pass after S1 | No commit requested | Not started | None |\n\n## Proceed condition\n- Ready for S1 only.",
+      "expected_output": "The response executes only the current plan item and leaves durable evidence of the resulting status for a later session.",
+      "files": [],
+      "expectations": [
+        "Reads and binds the `Implementation progress` ledger before choosing the current item, and treats S1 as the authorized current item while leaving S2 out of scope.",
+        "Updates the writable plan artifact ledger, or explicitly states the exact progress row it would write if artifact mutation is unavailable, after S1 verification and post-implementation review.",
+        "Does not mark S1 `Completed` unless verification and the post-implementation review are recorded as evidence-backed; otherwise records `Blocked`, `In progress`, or skipped status with the reason.",
+        "Records commit action as no commit requested or denied rather than implying a commit happened.",
+        "Does not edit requirements, acceptance criteria, test plan, or implementation steps as part of the progress update."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.5,
     "per_eval_expectation_weight": 0.5,
     "pass_threshold": 0.8,
-    "notes": "These evals focus on trigger discipline, file-backed artifact binding, proceed-condition handling, plan deviation control, plan-validity handling for internally inconsistent implementation steps and concrete follow-up failure modes, high-risk planning-section binding, local-evidence conflicts, accepted-risk handling, stale verification commands, startup consent preflight for planned checkpoints, skill-route freshness, and post-implementation review gating. Plan-binding assertions live on plan-present evals instead of common assertions so E03 can test the no-plan path without false failures. E02, E07, E09, and E11 use repo-level fixture paths so ready-to-execute plans do not fail only because the real project lacks sample app files. Baseline runs are expected to proceed too eagerly on E01, E03, E04, E05, E07, and E08, defend a known-bad implementation step as plan compliance on E05, weaken high-risk behavior or persistence tests as redundant, skip startup checkpoint consent or conflate implementation, skill-route, and commit authorization on E09, or omit delegated-or-fallback review, the durable-artifact language hygiene handoff, useful-anchor preservation, or coordinator-owned finding disposition on E11."
+    "notes": "Compact suite: broad runner-cost cases were merged or removed. Remaining cases preserve the plan-execution contracts most likely to regress: no implementation without a ready concrete plan, scoped accepted risk, deviation/validity distinction, artifact-backed plan binding, high-risk section binding, checkpoint review-and-commit sequencing, and delegated-or-fallback post-implementation review. Removed stale-command and unattended-orchestration standalone cases are covered by artifact/current-evidence expectations, delegation boundaries, and checkpoint coordinator-authority assertions in the remaining cases."
   }
 }

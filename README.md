@@ -22,7 +22,7 @@ quickstart when changing a skill or its eval suite.
 | Draft, revise, save, finish, or explore requirements before planning | `vibe-requirements-spec` | Creates or updates the requirements spec artifact by default, defaults to strict-four-choice without explicit mode selection, stops before non-spec work, and reopens the same spec for downstream requirements defects; trusted orchestration can carry recordable current-spec handoff evidence after the completion audit passes | `skills/vibe-requirements-spec/` | `evals/vibe-requirements-spec/` |
 | Create or revise an implementation plan from approval-evidenced or concrete inputs | `vibe-planning` | Writes a plan artifact and concise summary; includes an implementation-progress ledger for multi-item plans; stops before code, tests, changelog edits, commits, and release work; sends discovered requirements contradictions back to requirements work; trusted orchestration can route a reviewed ready plan to a later execution phase | `skills/vibe-planning/` | `evals/vibe-planning/` |
 | Review, confirm, walk through, or pre-check a saved implementation plan before execution | `vibe-plan-review` | Reviews one plan item at a time, records localized item decisions with numeric input shortcuts from its reference file, and stops before implementation | `skills/vibe-plan-review/` | `evals/vibe-plan-review/` |
-| Implement an existing concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Edits only after binding the plan and checking proceed conditions; stops before commits unless separately authorized | `skills/vibe-plan-execution/` | `evals/vibe-plan-execution/` |
+| Implement an existing concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Edits only after binding the plan and checking proceed conditions; updates the bound plan's implementation-progress ledger after completed, blocked, skipped, or committed items; returns plan-changing defects to the owning artifact before affected code changes; stops before commits unless separately authorized | `skills/vibe-plan-execution/` | `evals/vibe-plan-execution/` |
 | Brainstorm creative implementation ideas, alternatives, expected behavior, or convention checks | `vibe-brainstorm` | Returns chat-first directions or checklists and stops before implementation until the user confirms the direction | `skills/vibe-brainstorm/` | `evals/vibe-brainstorm/` |
 | Debug or repair existing behavior from rough bug reports, regressions, failed fixes, or runtime artifacts | `vibe-debug` | Produces evidence-backed repairs or retest contracts; does not authorize history mutation | `skills/vibe-debug/` | `evals/vibe-debug/` |
 | Understand, locate, trace, or assess existing code without changing it | `vibe-code-research` | Read-only; returns anchored evidence-backed findings, redacts suspected secret-like values at output boundaries, and stops before fixes, plans, edits, or commits | `skills/vibe-code-research/` | `evals/vibe-code-research/` |
@@ -427,32 +427,47 @@ and non-goals. A Plan Validity Gate handles self-contradictory plans, planned
 steps that would fail acceptance criteria, local evidence that disproves a
 planning assumption, review findings, and concrete user follow-up failure modes.
 Plan-preserving corrections can proceed with recorded evidence; plan-changing
-corrections stop for a decision. It also requires an evidence-backed gate before
-plan deviations, including shortcuts justified by perceived redundancy or a
-preferred smaller implementation. Agents must prove the affected plan item is
-contradicted, impossible, unsafe, stale, or already satisfied, then report the
-evidence, impact, and closest plan-preserving alternative before asking for
-approval.
+corrections stop execution and return to the owning requirements or planning
+artifact before affected code changes. Execution names whether the defect belongs
+in requirements-spec work or implementation-planning work, and resumes only
+after a revised or replacement contract is rebound; a chat-only approval to
+"just patch it" does not replace the artifact loop. It also requires an
+evidence-backed gate before plan deviations, including shortcuts justified by
+perceived redundancy or a preferred smaller implementation. Agents must prove
+the affected plan item is contradicted, impossible, unsafe, stale, or already
+satisfied, then report the evidence, impact, and closest plan-preserving
+alternative before asking for approval.
 When a bound plan includes high-risk planning sections, execution treats them as
-contract and does not weaken them without the Plan Deviation Gate. When commits
-are authorized, it commits only completed and verified checkpoints and uses
-standalone Conventional Commit messages that describe the actual change without
-prompt or plan-label references. Proposed checkpoint messages are not wrapped in
-Markdown fences, and execution summaries name durable plan, file, workspace, or
+contract and does not weaken them without the Plan Deviation Gate. For eligible
+bound-plan commit checkpoints, "execute this plan", "implement this plan",
+"apply this plan", or "continue this plan" authorizes local
+coordinator-managed commits at those checkpoint scopes unless the current user
+instruction or project policy denies commits. Execution commits only after the
+checkpoint is completed, verified, multi-perspective reviewed, material findings
+are dispositioned, and the file set is safely scoped, and it uses standalone
+Conventional Commit messages that describe the actual change without prompt or
+plan-label references. Proposed checkpoint messages are not wrapped in Markdown
+fences, and execution summaries name durable plan, file, workspace, or
 instruction facts instead of prompt-local harness phrases such as `this eval` or
-`current instruction`; inline plans are named by title or goal. Commit
-checkpoints inside a plan are proposals unless the user or explicit plan
-approval separately authorizes commit execution; "execute this plan" alone is
-not commit consent. When a bound plan includes commit checkpoints, "commit after
-each slice" instructions, release work, destructive operations, delegated
-execution, external side effects, or other consent-bound items, execution runs a
-startup consent preflight before editing the affected slice. Missing commit
-consent does not block an otherwise authorized slice only when the plan has no
-planned history operation; planned checkpoint consent is resolved before editing
-or execution stops at the first verified uncommitted checkpoint instead of
-running through later slices. When a plan contains a `Skill usage plan`,
+`current instruction`; inline plans are named by title or goal. Planned
+checkpoint commits do not authorize push, release preparation, version bumps,
+amend/reset/stash/squash, destructive operations, external side effects,
+work-in-progress commits, failing or skipped verification commits, or
+scope-changing commits. When a bound plan includes release work, destructive
+operations, delegated execution, external side effects, history operations
+outside scoped checkpoint commits, or other consent-bound items, execution runs
+a startup consent preflight before editing the affected slice. When a plan
+contains a `Skill usage plan`,
 execution binds it, re-checks route availability, and turns planning-time `Local
-investigation` into current `Local evidence` before relying on it. Host
+investigation` into current `Local evidence` before relying on it. When the
+bound plan contains `Implementation progress`, execution reads it before
+choosing the current item, reconciles it with implementation steps and commit
+checkpoints, treats previous completion claims as stale until current evidence
+confirms them, initializes a minimal ledger for writable older multi-item plans
+that lack one, and updates only that ledger after each completed, blocked,
+skipped, or committed item. If the local plan artifact is unavailable or
+unwritable, the execution summary includes the same evidence-backed progress row
+and says the durable ledger was not changed. Host
 delegation or one scripted, independently recorded
 orchestration run may carry bounded sub-tasks of an authorized slice when each
 delegated unit receives the bound plan contract; deviation decisions, commit
@@ -461,8 +476,9 @@ concurrent slice implementation requires plan-defined independence plus
 host-isolated working state. If a plan requires inspecting code before writing code or
 tests and those files cannot be read, execution stops at the blocker and proof
 path instead of drafting unverified code or test templates. After an implemented
-slice is verified, execution runs a mandatory post-implementation review gate
-before the execution summary and before any authorized commit. The gate uses
+slice or checkpoint is verified, execution runs a mandatory post-implementation
+review gate before the execution summary, before the next checkpoint starts, and
+before any authorized commit. The gate uses
 review-only delegated reviewers when a verified, authorized host capability
 exists; otherwise it runs a coordinator fallback and records the degradation
 reason. Its plan-contract compliance perspective also checks durable artifact

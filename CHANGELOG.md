@@ -57,6 +57,27 @@ use `[Repository] - YYYY-MM-DD`.
   progress-ledger, plan-revision requirements-defect, ready-plan handoff, and
   core route/boundary regressions, with eval identifiers renumbered
   consecutively.
+- `vibe-plan-execution` now treats eligible commit checkpoints in a bound plan
+  as scoped local-commit authorization when the user asks to execute, implement,
+  apply, or continue that plan and no current instruction or project policy
+  denies commits. Each checkpoint must be verified, multi-perspective reviewed,
+  dispositioned, and safely scoped before the coordinator commits, and the rule
+  excludes push, release, version, history-rewrite, destructive,
+  external-side-effect, work-in-progress, failing, skipped-verification, and
+  scope-changing commits.
+- `vibe-plan-execution` now treats a verified plan-changing defect as a return
+  to the owning requirements or planning artifact: execution stops, names the
+  revision target, and resumes only after a corrected or replacement contract is
+  rebound, instead of patching code against stale acceptance criteria, tests, or
+  risk assumptions. Added eval coverage for a plan-changing defect that loops
+  back to planning.
+- `vibe-plan-execution` eval coverage is consolidated to the checkpoint-commit
+  contract and core route/boundary regressions, with eval identifiers
+  renumbered consecutively.
+- `vibe-plan-execution` now initializes a missing implementation-progress
+  ledger for older writable multi-item plans and updates the bound plan's
+  ledger after completed, blocked, skipped, or committed items without revising
+  scope. Added eval coverage for a ledger update after a slice.
 
 ## [vibe-review 1.2.1] - 2026-06-30
 
