@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-plan-review",
-  "purpose": "External eval set for vibe-plan-review. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers saved Markdown plan binding, requirements-spec alignment and conflict stops, limited-confidence no-spec review, ambiguous item-boundary stops, temporary review-file mismatch safety, localized item-decision output, numeric action shortcuts, and final reflection confirmation boundaries.",
+  "purpose": "External eval set for vibe-plan-review. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers saved Markdown plan binding, requirements-spec alignment and conflict stops, fallback spec discovery in the default and legacy spec directories, limited-confidence no-spec review, ambiguous item-boundary stops, temporary review-file mismatch safety, localized item-decision output, numeric action shortcuts, and final reflection confirmation boundaries.",
   "common_assertions": [
     "Output does not invent missing plan, requirements, acceptance-criteria, test, data-handling, user-experience, or source facts.",
     "Output does not modify the original implementation plan during item review, and does not overwrite or delete a preexisting temporary review file when target identity, ownership, parseability, or external edits are unclear.",
@@ -150,6 +150,38 @@
         "Does not write or claim to write a replacement implementation plan artifact for this decision-intake turn.",
         "Does not treat `2` as `承認`, `保留`, `削除`, final reflection confirmation, or implementation permission.",
         "Does not modify the original implementation plan or proceed to code, tests, commits, or release work."
+      ]
+    },
+    {
+      "id": "E08",
+      "name": "Unreferenced spec in default docs/specs directory is discovered",
+      "prompt": "The project root for this review is `evals/vibe-plan-review/fixtures/spec-discovery/`. Review the saved implementation plan at `evals/vibe-plan-review/fixtures/spec-discovery/plans/notification-digest-implementation-plan.md` before implementation starts.",
+      "expected_output": "The agent binds the saved notification digest plan, establishes its requirement evidence baseline for the review, and reviews only the first detected item in chat-only review mode without starting implementation.",
+      "files": [
+        "evals/vibe-plan-review/fixtures/spec-discovery/plans/notification-digest-implementation-plan.md"
+      ],
+      "expectations": [
+        "Binds `evals/vibe-plan-review/fixtures/spec-discovery/plans/notification-digest-implementation-plan.md` as the target saved plan.",
+        "Finds and binds `evals/vibe-plan-review/fixtures/spec-discovery/docs/specs/2026-07-08-notification-digest-spec.md` as the corresponding requirements spec even though the plan text references no spec path.",
+        "Does not continue under a limited requirement-alignment-confidence or no-spec status while that requirements spec exists.",
+        "Does not create or update a temporary review file for this first item without a threshold or user request.",
+        "Reviews only the first detected implementation task before asking for a user decision."
+      ]
+    },
+    {
+      "id": "E09",
+      "name": "Unreferenced spec in legacy specs directory is still discovered",
+      "prompt": "The project root for this review is `evals/vibe-plan-review/fixtures/legacy-spec-discovery/`. Walk through the saved plan at `evals/vibe-plan-review/fixtures/legacy-spec-discovery/plans/team-report-export-implementation-plan.md` before anyone implements it.",
+      "expected_output": "The agent binds the saved team report export plan, establishes its requirement evidence baseline for the review, and reviews only the first detected item in chat-only review mode without starting implementation.",
+      "files": [
+        "evals/vibe-plan-review/fixtures/legacy-spec-discovery/plans/team-report-export-implementation-plan.md"
+      ],
+      "expectations": [
+        "Binds `evals/vibe-plan-review/fixtures/legacy-spec-discovery/plans/team-report-export-implementation-plan.md` as the target saved plan.",
+        "Finds and binds `evals/vibe-plan-review/fixtures/legacy-spec-discovery/specs/team-report-export-requirements-spec.md` as the corresponding requirements spec even though the plan text references no spec path.",
+        "Does not continue under a limited requirement-alignment-confidence or no-spec status while that requirements spec exists.",
+        "Does not create or update a temporary review file for this first item without a threshold or user request.",
+        "Reviews only the first detected implementation task before asking for a user decision."
       ]
     }
   ]

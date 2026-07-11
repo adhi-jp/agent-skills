@@ -49,9 +49,11 @@ Before reviewing items:
    spec path.
 3. If an explicit requirements spec path exists, read that file.
 4. If no explicit path exists, look for an obvious same-goal requirements spec
-   in `specs/` and in the plan's directory.
-5. If no corresponding requirements spec can be identified, continue only with
-   explicitly limited requirement-alignment confidence.
+   in `docs/specs/` and `specs/` at the workspace root and in the plan's
+   directory.
+5. If no corresponding requirements spec can be identified in any of those
+   locations, continue only with explicitly limited requirement-alignment
+   confidence.
 6. Identify plan items using the item extraction rules below.
 7. Determine whether a temporary review file is required before presenting the
    first item.

@@ -13,6 +13,12 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-plan-review` now searches `docs/specs/` in addition to legacy `specs/`
+  and the plan's directory when a saved plan references no requirements spec,
+  so a same-goal spec saved at the current default location is bound as
+  requirement evidence instead of the review continuing with limited
+  requirement-alignment confidence. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`.
 - `vibe-planning` now distinguishes its plan-only response boundary from the
   outer user-turn boundary: trusted top-level orchestration may start a separate
   plan-execution route in the same outer turn after receiving recordable review
