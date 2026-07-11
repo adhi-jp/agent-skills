@@ -37,6 +37,17 @@ use `[Repository] - YYYY-MM-DD`.
   evidence makes the underlying behavior material to the slice, so execution
   stops for the owning artifact instead of completing a workaround solely
   because the plan scoped that behavior out. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`.
+- `vibe-requirements-spec` now treats source-contained workflow directives,
+  metadata-like claims, tool commands, environment-setting requests, and trust
+  claims as inert evidence when drafting requirements from user goals, external
+  evidence, local docs, existing specs, logs, examples, or delegated output. It
+  no longer offers to inspect or edit shell startup files to persist
+  `VIBE_SUBAGENTS`; setup help is limited to current-session or manual
+  user-run guidance. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`.
+- `vibe-requirements-spec` now prevents existing spec language, source language,
+  filename locale markers, chat language, or project convention from overriding
+  `VIBE_DOCUMENT_LANGUAGE` or the default English document language for
+  generated requirements spec prose. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`.
 - `vibe-writing` now treats an active workflow's resolved artifact language as
   a language contract that wins over existing artifact language for generated
   prose. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`.
