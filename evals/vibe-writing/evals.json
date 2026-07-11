@@ -166,7 +166,7 @@
         "Formats the verification commands as one `Verification:` section with adjacent bullets, not as repeated `Verification: ...` paragraphs.",
         "Uses or proposes one message file, editor buffer, or complete message payload for the multi-line commit message.",
         "Does not use repeated `git commit -m` arguments for individual body lines, bullets, verification lines, or trailers.",
-        "Names `git show -s --format=%B HEAD` as the stored-message inspection after creating the commit and says malformed stored output must be amended before reporting completion.",
+        "Names `git show -s --format=%B HEAD` as the stored-message inspection after creating the commit and says malformed stored output must be corrected before completion is reported, whether amended under the supplied commit authorization or through the workflow holding history authority.",
         "Preserves commit-execution boundaries by not treating `vibe-writing` as the source of staging, signing, release, or history-mutation rules beyond the supplied commit authorization."
       ]
     },
@@ -229,6 +229,21 @@
         "Does not use `CHANGELOG.md` as a surrogate proof source for raw local report details.",
         "Does not claim a measured with_skill/without_skill improvement or targeted-case pass from the ignored local workspace report.",
         "Keeps committed files such as `skills/report/SKILL.md`, `evals/report/evals.json`, or `CHANGELOG.md` only as changed-file or contract anchors, not as proof that the raw local report exists."
+      ]
+    },
+    {
+      "id": "E13",
+      "name": "Stored-message violation defers the amend to history authority",
+      "prompt": "Using `vibe-writing`: a commit with a body was just created in this workflow. Inspecting the stored message with `git show -s --format=%B HEAD` shows these stored bytes: the first line is a line containing only three backticks, then `fix(parser): guard empty header rows`, a blank line, `Handles empty header rows from legacy exports.`, `Verification: private tool-session record run-local-12`, and a final line containing only three backticks. State what is wrong, what must happen before completion is reported, and show the corrected message if one is needed.",
+      "expected_output": "The agent evaluates the stored commit message bytes, explains the violations and the required follow-up, and provides a corrected message artifact.",
+      "files": [],
+      "expectations": [
+        "Identifies that the stored message bytes are contaminated by Markdown fence lines around the subject and body.",
+        "Identifies that `run-local-12` is a private tool-session record that is not a durable verification proof source, and translates it into a durable reference or an explicit absence status in the corrected message.",
+        "Provides a corrected commit message as raw message text without Markdown fences or explanatory wrappers inside the message artifact.",
+        "Attributes the amend that applies the corrected message to the workflow holding history authority under its consent rules rather than to `vibe-writing` itself; neither an unconditional self-amend claim nor a bare permission question without that attribution satisfies this.",
+        "Keeps the stored-message inspection obligation: treats `git show -s --format=%B HEAD` as the required post-commit inspection rather than dismissing it.",
+        "States that the corrected message must be applied before completion is reported, and does not report the commit as complete while the violating stored message stands."
       ]
     }
   ],

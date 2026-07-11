@@ -235,14 +235,17 @@ For a multi-line commit message, use one message file, one editor buffer, or one
 complete message payload. Do not use repeated `git commit -m` arguments for body
 lines, bullets, verification lines, or trailers.
 
-Before running `git commit` or an amendment for a message with a body while this
+Before a `git commit` or an amendment for a message with a body runs while this
 skill is active, apply `references/commit-messages.md` to the subject shape, body
 value, verification provenance, durable references, compact bullets, trailers,
 and transport.
 
 After creating or amending a commit with a body, inspect the stored message with
-`git show -s --format=%B HEAD`. If the stored message violates this skill, amend
-it before reporting completion. That inspection includes checking that
+`git show -s --format=%B HEAD`. This post-commit inspection duty and any amend
+belong to the workflow holding history authority under its consent rules;
+`vibe-writing` supplies the corrected message artifact. If the stored message
+violates this skill, the corrected message must be applied through that
+workflow before completion is reported. That inspection includes checking that
 verification lines are signal-bearing proof rather than a session command
 transcript, and that the body does not leak git-unmanaged local generated
 artifacts, ignored result files, local-only run IDs, or private tool-session

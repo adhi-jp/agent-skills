@@ -30,6 +30,13 @@ use `[Repository] - YYYY-MM-DD`.
   route to the review phase, and the README routing prose now names the
   pre-check route. Validation:
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`.
+- `vibe-writing` now attributes the post-commit stored-message inspection duty
+  and any resulting amend to the workflow holding history authority under its
+  consent rules, with `vibe-writing` supplying the corrected message artifact;
+  the `git show -s --format=%B HEAD` inspection obligation and the requirement
+  that a violating stored message is corrected before completion is reported
+  are unchanged. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`.
 - `vibe-planning` now distinguishes its plan-only response boundary from the
   outer user-turn boundary: trusted top-level orchestration may start a separate
   plan-execution route in the same outer turn after receiving recordable review
