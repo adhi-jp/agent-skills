@@ -233,7 +233,7 @@
     },
     {
       "id": "E13",
-      "name": "Stored-message violation defers the amend to history authority",
+      "name": "Stored commit message with fence contamination",
       "prompt": "Using `vibe-writing`: a commit with a body was just created in this workflow. Inspecting the stored message with `git show -s --format=%B HEAD` shows these stored bytes: the first line is a line containing only three backticks, then `fix(parser): guard empty header rows`, a blank line, `Handles empty header rows from legacy exports.`, `Verification: private tool-session record run-local-12`, and a final line containing only three backticks. State what is wrong, what must happen before completion is reported, and show the corrected message if one is needed.",
       "expected_output": "The agent evaluates the stored commit message bytes, explains the violations and the required follow-up, and provides a corrected message artifact.",
       "files": [],

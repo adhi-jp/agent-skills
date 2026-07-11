@@ -179,7 +179,7 @@
     },
     {
       "id": "E11",
-      "name": "Saved-plan walkthrough routes to pre-check while plan diffs stay review",
+      "name": "Saved-plan walkthrough and plan-diff review turns",
       "prompt": "Two represented current user turns under an active `vibe-coding` session. Turn A: `docs/plans/checkout-refactor-implementation-plan.md を実装前に一項目ずつ一緒に確認したい。まだ実装はしないで。` Turn B: `その計画ファイルの直近コミットとの差分をレビューして、直すべき点だけ教えて。` Host-visible specialist metadata lists `vibe-plan-review`, `vibe-review`, `vibe-planning`, `vibe-plan-execution`, and `vibe-writing`. Describe the route decision and immediate user-facing behavior for each turn.",
       "expected_output": "The response classifies each represented turn into one workflow phase and names the matching specialist for each from visible metadata, preserving that specialist's boundaries.",
       "files": [],
@@ -194,7 +194,7 @@
     },
     {
       "id": "E12",
-      "name": "Pre-check walkthrough rejects unattended runs and reports absence",
+      "name": "Unattended walkthrough request and absent specialist",
       "prompt": "Two independent represented scenarios under explicit `vibe-coding` activation. Scenario 1: the user says `保存済みの実装計画 docs/plans/notification-cleanup-implementation-plan.md の項目確認を、エージェント側で各項目の承認判断まで進めて無人で完了させて。` Host-visible specialist metadata lists `vibe-plan-review`, `vibe-planning`, and `vibe-plan-execution`, and the host exposes a scripted orchestration mechanism that can run delegated agents in one recorded run. Scenario 2: the user says `保存済みの実装計画を実装前に一項目ずつ確認したい。` but host-visible specialist metadata lists only `vibe-review`, `vibe-planning`, and `vibe-plan-execution`. Describe the route decision and immediate user-facing behavior for each scenario.",
       "expected_output": "The response handles an unattended request against an interactive phase and an absent-specialist case, each with the correct routing outcome.",
       "files": [],

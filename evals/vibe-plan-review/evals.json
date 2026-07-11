@@ -154,7 +154,7 @@
     },
     {
       "id": "E08",
-      "name": "Unreferenced spec in default docs/specs directory is discovered",
+      "name": "Notification digest plan review",
       "prompt": "The project root for this review is `evals/vibe-plan-review/fixtures/spec-discovery/`. Review the saved implementation plan at `evals/vibe-plan-review/fixtures/spec-discovery/plans/notification-digest-implementation-plan.md` before implementation starts.",
       "expected_output": "The agent binds the saved notification digest plan, establishes its requirement evidence baseline for the review, and reviews only the first detected item in chat-only review mode without starting implementation.",
       "files": [
@@ -170,7 +170,7 @@
     },
     {
       "id": "E09",
-      "name": "Unreferenced spec in legacy specs directory is still discovered",
+      "name": "Team report export plan walkthrough",
       "prompt": "The project root for this review is `evals/vibe-plan-review/fixtures/legacy-spec-discovery/`. Walk through the saved plan at `evals/vibe-plan-review/fixtures/legacy-spec-discovery/plans/team-report-export-implementation-plan.md` before anyone implements it.",
       "expected_output": "The agent binds the saved team report export plan, establishes its requirement evidence baseline for the review, and reviews only the first detected item in chat-only review mode without starting implementation.",
       "files": [
