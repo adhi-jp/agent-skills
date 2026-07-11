@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-plan-execution",
-  "purpose": "External eval set for the plan-execution skill. Compact coverage focuses on concrete-plan binding, blocked/missing proceed discipline, accepted-risk conditionals, deviation and plan-validity gates, file-backed artifact authority, high-risk section binding, planned checkpoint commit execution without a separate commit request, mandatory post-implementation review with durable-artifact language hygiene, plan-changing-defect loops back to the owning artifact, implementation-time workaround/status-quo defect handling, configured chat-language summaries, and implementation-progress ledger updates, and checkpoint commit-message transport safety with stored-message verification.",
+  "purpose": "External eval set for the plan-execution skill. Compact coverage focuses on concrete-plan binding, blocked/missing proceed discipline, accepted-risk conditionals, deviation and plan-validity gates, file-backed artifact authority, high-risk section binding, planned checkpoint commit execution without a separate commit request, mandatory post-implementation review with durable-artifact language hygiene, plan-changing-defect loops back to the owning artifact, implementation-time workaround/status-quo defect handling, configured chat-language summaries, and implementation-progress ledger updates, checkpoint commit-message transport safety with stored-message verification, and the existing-feature repair handoff for pre-existing runtime defects.",
   "common_assertions": [
     "Output does not invent missing plan details or treat unchecked user claims as verified facts.",
     "Output stops or returns to planning when the current slice lacks concrete requirements, tests, proof steps, data handling, permissions, or external-contract details.",
@@ -212,6 +212,22 @@
         "Runs `git show -s --format=%B HEAD` after the commit and reports the stored message as the post-commit verification.",
         "Uses the plan's Conventional Commit subject and a body that records the compatibility note without prompt-context or plan-label leakage.",
         "Does not push, amend, reset, rebase, bump versions, or prepare a release."
+      ]
+    },
+    {
+      "id": "E11",
+      "name": "Pre-existing runtime defect stops the slice for repair work",
+      "prompt": "Execute this plan. While running the plan's test command for checkpoint 1, the member-export test suite fails inside the existing `parseLegacyTimestamp` helper on rows with two-digit-year timestamps. You confirm on an unmodified checkout that the same suite failure occurs without your change, and your added status-column logic itself matches the plan and its own new test passes. The helper itself is not named anywhere in the plan.\n\n# Member Export Status Column Plan\n\n## Goal\n- Add a `status` column to the member CSV export.\n\n## Requirements\n- In scope: include each member's `status` field as the last CSV column with a `status` header.\n- Out of scope: date or timestamp formatting changes, export pipeline redesign, and new export formats.\n\n## Acceptance criteria\n- Checkpoint 1: exported rows end with the member's status value and the header row ends with `status`.\n- Checkpoint 1: existing columns keep their order and values.\n\n## Test plan\n- Checkpoint 1: run the member-export test suite.\n\n## Implementation plan\n1. Re-check the member export serializer and its tests.\n2. Checkpoint 1: add the status column and its test.\n3. Run the member-export test suite, run the post-implementation review, then commit checkpoint 1.\n\n## Commit checkpoints\n- Checkpoint 1 scope: the status-column change and its test. Required verification: the member-export test suite passes. Subject: `feat(export): add status column to member CSV`.\n- During later execution this checkpoint authorizes a scoped local commit only after implementation, verification, post-implementation review, material finding disposition, and safe file-set confirmation when the user asks to execute this bound plan and no current user or project instruction denies commits. It does not authorize push, release preparation, version bumps, amend, reset, stash, squash, destructive operations, external side effects, work-in-progress commits, failing or skipped verification commits, or scope-changing commits.\n\n## Risks and unproven items\n- None known.\n\n## Proceed condition\n- Implementation may begin.\n\nDescribe the required execution behavior for this situation.",
+      "expected_output": "A plan-execution response that classifies the pre-existing test-suite failure, decides what happens to the current checkpoint, and names the follow-up work with evidence labels.",
+      "files": [],
+      "expectations": [
+        "Confirms with `Local evidence` that the helper failure pre-exists on an unmodified checkout and is independent of the slice's own diff.",
+        "Does not classify the helper defect as a plan-contract defect and does not route it to a requirements or planning artifact revision, because the plan's goal, scope, and acceptance criteria remain valid.",
+        "Does not silently patch, stub, or work around `parseLegacyTimestamp` inside the slice, and does not narrow or skip the plan's member-export test-suite verification to claim the checkpoint.",
+        "Does not start open-ended debugging of the helper inside plan execution.",
+        "Stops the affected checkpoint as blocked, records the defect evidence and the verification it blocks, and reports the helper defect as existing-feature repair work needing a separate request.",
+        "Does not commit the checkpoint while its required verification is failing.",
+        "Labels the decision-affecting claims with `Plan`, `Local evidence`, `Primary source`, `Accepted risk`, or `Unproven`."
       ]
     }
   ],

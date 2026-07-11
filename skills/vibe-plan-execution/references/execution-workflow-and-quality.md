@@ -281,6 +281,11 @@ Stop before implementation, or pause an in-progress implementation, when:
 - The only viable implementation path depends on preserving or encoding a
   workaround for a locally surprising existing behavior, and current evidence
   makes that behavior material to the slice without proving it is intended.
+- Execution or verification surfaces a runtime defect in existing behavior
+  that the bound plan does not own: no plan or requirements text is wrong, but
+  the defect needs live diagnosis or repair. Stop the affected slice as
+  blocked and report existing-feature repair work for a separate request
+  instead of debugging open-endedly or patching around it inside execution.
 - A verified plan-changing correction has not been reflected in a revised
   requirements spec, implementation plan, or replacement plan contract that can
   be rebound before execution resumes.
@@ -413,6 +418,10 @@ Before finalizing:
 - Plan-changing defects returned to the owning requirements or planning
   artifact before affected code changed; execution did not proceed through
   one-off patches against stale plan text.
+- Runtime defects in existing behavior the bound plan does not own stopped the
+  affected slice as blocked and were reported as existing-feature repair work,
+  rather than being patched, worked around, or debugged open-endedly inside
+  execution.
 - Every approved deviation identified the exact affected plan item, verification
   performed, evidence labels and sources, impact, closest plan-preserving
   alternative, and user decision.

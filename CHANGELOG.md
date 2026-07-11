@@ -47,6 +47,17 @@ use `[Repository] - YYYY-MM-DD`.
   history repair defers to a commit-execution workflow when one is visible.
   Validation:
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`.
+- `vibe-plan-execution` now separates runtime defects in existing behavior
+  from plan-contract defects with an explicit discriminator: behavior material
+  to the bound plan's scope, contract, or acceptance criteria — including
+  preserved status-quo and workaround triggers — keeps routing through the
+  Plan Validity Gate to a plan-preserving correction or to the owning
+  requirements or planning artifact, while a
+  defect in behavior the plan does not own stops the affected slice as
+  blocked and is reported as existing-feature repair work for a separate
+  request instead of open-ended debugging or silent workarounds inside
+  execution. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`.
 - `vibe-debug` consented closure commits now carry the same self-contained
   transport-safety rules: single-payload multi-line messages via a
   single-quoted heredoc or `-F` message file, trailers via

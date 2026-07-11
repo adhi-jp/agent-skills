@@ -246,8 +246,8 @@ plan or on checked facts.
 Before deviating from a bound plan, correcting a plan defect, crossing a consent
 boundary, or delegating execution or review work, read
 `references/execution-gates-and-delegation.md`. That reference owns the Plan
-Deviation Gate, Plan Validity Gate, Startup Consent Preflight, and Delegated
-Execution Support rules.
+Deviation Gate, Plan Validity Gate, Existing-Feature Repair Handoff, Startup
+Consent Preflight, and Delegated Execution Support rules.
 
 ## Execution Workflow, Review, And Quality Reference
 

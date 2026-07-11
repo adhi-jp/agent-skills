@@ -46,7 +46,9 @@ around a locally surprising existing behavior that may itself be the defect.
 
 Use this gate to avoid two opposite failures: do not rewrite plans based on
 taste, but also do not ship known-bad behavior because it was written in the
-plan. Complete these steps:
+plan. When the suspect behavior may live entirely outside the bound plan's
+contract, classify it with the Existing-Feature Repair Handoff discriminator
+below before applying this gate's steps. Complete these steps:
 
 1. Re-read the affected goal, requirements, acceptance criteria, non-goals,
    constraints, test plan, risks, proceed condition, and implementation step.
@@ -81,6 +83,27 @@ failure mode, run the same gate before arguing from plan text. If the challenge
 is verified and the correction stays within the existing contract, repair it as
 part of the current slice; if it changes the contract, stop for the smallest
 decision needed.
+
+## Existing-Feature Repair Handoff
+
+When implementation or verification surfaces a defective, broken, or surprising
+existing behavior at runtime, classify it with this discriminator before
+continuing:
+
+- Route through the Plan Validity Gate when the behavior is material to the
+  bound plan's scope, behavior contract, or acceptance criteria — including
+  preserved status-quo and planned-workaround triggers — that is, when proving
+  the behavior wrong would change what the bound plan or its owning
+  requirements artifact says. Those triggers and their artifact routing stay
+  unchanged.
+- Hand off instead when the defect lives in existing behavior the bound plan
+  does not own: no plan or requirements text is wrong, but the behavior needs
+  live diagnosis or repair. Do not run open-ended debugging inside plan
+  execution, and do not silently patch or work around the defect inside the
+  slice. Stop the affected slice as blocked, record the defect evidence and
+  the verification it blocks as `Local evidence`, and report the work as
+  existing-feature repair work for a separate request. Slices the bound plan
+  defines as independent of the defective behavior may continue.
 
 ## Startup Consent Preflight
 
