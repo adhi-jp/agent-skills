@@ -132,6 +132,11 @@ Do not use this skill for:
   because the current implementation follows the plan text. Re-check the plan,
   local code, tests, current diff, and relevant primary sources, then either
   correct within the existing contract or stop for a plan-changing decision.
+- Do not treat a plan's status-quo or out-of-scope statement as proof that a
+  locally surprising existing behavior should be preserved. If implementation
+  relies on a workaround for that behavior, or current evidence shows it
+  conflicts with the higher-level behavior contract, run the Plan Validity Gate
+  instead of finishing the workaround because the plan scoped the behavior out.
 - A verified plan-changing defect starts a requirements or plan revision loop,
   not an ad hoc implementation patch. Identify the owning artifact: return to
   requirements-spec work when user-visible behavior, scope, data handling,

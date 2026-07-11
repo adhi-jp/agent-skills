@@ -466,11 +466,14 @@ artifact before affected code changes. Execution names whether the defect belong
 in requirements-spec work or implementation-planning work, and resumes only
 after a revised or replacement contract is rebound; a chat-only approval to
 "just patch it" does not replace the artifact loop. It also requires an
-evidence-backed gate before plan deviations, including shortcuts justified by
-perceived redundancy or a preferred smaller implementation. Agents must prove
-the affected plan item is contradicted, impossible, unsafe, stale, or already
-satisfied, then report the evidence, impact, and closest plan-preserving
-alternative before asking for approval.
+evidence-backed validity check when implementation would preserve an out-of-scope
+or status-quo behavior only by encoding a workaround, because that behavior may
+be the material defect the current slice exposed. Plan deviations also require
+an evidence-backed gate, including shortcuts justified by perceived redundancy
+or a preferred smaller implementation. Agents must prove the affected plan item
+is contradicted, impossible, unsafe, stale, or already satisfied, then report
+the evidence, impact, and closest plan-preserving alternative before asking for
+approval.
 When a bound plan includes high-risk planning sections, execution treats them as
 contract and does not weaken them without the Plan Deviation Gate. For eligible
 bound-plan commit checkpoints, "execute this plan", "implement this plan",

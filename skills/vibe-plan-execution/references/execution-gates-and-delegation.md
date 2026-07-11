@@ -40,8 +40,9 @@ implementation.
 Run this gate before or during implementation whenever the plan appears
 self-contradictory, a planned implementation step would fail the plan's own
 acceptance criteria, local code or tests disprove a planning assumption, a
-review finding exposes a likely regression, or the user names a concrete failure
-mode in follow-up.
+review finding exposes a likely regression, the user names a concrete failure
+mode in follow-up, or the implementation path depends on preserving or working
+around a locally surprising existing behavior that may itself be the defect.
 
 Use this gate to avoid two opposite failures: do not rewrite plans based on
 taste, but also do not ship known-bad behavior because it was written in the
@@ -53,6 +54,11 @@ plan. Complete these steps:
    conflict depends on code, data contracts, permissions, external APIs, current
    diffs, or test behavior. Treat an unverified concern as `Unproven`, not as a
    reason to rewrite the plan.
+   - When the concern is a preserved status quo or planned workaround, re-check
+     the adjacent local surfaces the behavior depends on before accepting the
+     plan's scope boundary. Do not treat inherited plan text, an out-of-scope
+     bullet, or a previous workaround as evidence that the surprising behavior
+     is intended.
 3. Classify the fix:
    - **Plan-preserving correction**: changes the means while preserving the
      existing goal, requirements, acceptance criteria, non-goals, data handling,

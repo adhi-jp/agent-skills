@@ -32,6 +32,11 @@ use `[Repository] - YYYY-MM-DD`.
   user's configured or conversational language while artifacts and technical
   tokens keep their own language contracts. Validation:
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`.
+- `vibe-plan-execution` now treats implementation-time workarounds and
+  status-quo preservation as Plan Validity Gate triggers when current local
+  evidence makes the underlying behavior material to the slice, so execution
+  stops for the owning artifact instead of completing a workaround solely
+  because the plan scoped that behavior out. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`.
 - `vibe-writing` now treats an active workflow's resolved artifact language as
   a language contract that wins over existing artifact language for generated
   prose. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`.

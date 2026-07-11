@@ -128,6 +128,10 @@ and does not authorize the next step or any commit.
    - Run the Plan Validity Gate when a planned implementation step conflicts
      with the plan's higher-level behavior contract, local reality, current
      diff, review evidence, or a concrete user-reported failure mode.
+   - Run the Plan Validity Gate when the planned implementation mainly works
+     around an existing behavior, or preserves a status-quo behavior scoped out
+     by the plan, and current local evidence makes that behavior look material
+     to the current slice rather than intentionally out of scope.
    - When the Plan Validity Gate classifies a plan-changing correction, stop
      execution and return to the requirements or planning artifact that owns the
      changed contract. Do not continue by patching code against stale acceptance
@@ -261,6 +265,9 @@ Stop before implementation, or pause an in-progress implementation, when:
   produce a verified defect, fail acceptance criteria, violate non-goals, or
   contradict safety, data-handling, permission, security, UX, or external
   contract constraints, and no plan-preserving correction is available.
+- The only viable implementation path depends on preserving or encoding a
+  workaround for a locally surprising existing behavior, and current evidence
+  makes that behavior material to the slice without proving it is intended.
 - A verified plan-changing correction has not been reflected in a revised
   requirements spec, implementation plan, or replacement plan contract that can
   be rebound before execution resumes.
@@ -386,6 +393,10 @@ Before finalizing:
   Validity Gate before implementation continued; plan-preserving corrections
   were evidenced and plan-changing corrections stopped for artifact revision
   before implementation resumed.
+- Any implementation-time workaround or status-quo preservation that appeared
+  material to the current slice passed the Plan Validity Gate; the run did not
+  finish by encoding the workaround only because the plan scoped the underlying
+  behavior out.
 - Plan-changing defects returned to the owning requirements or planning
   artifact before affected code changed; execution did not proceed through
   one-off patches against stale plan text.
