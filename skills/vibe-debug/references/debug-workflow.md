@@ -188,3 +188,15 @@ Read this reference when actively diagnosing, repairing, verifying, or handing o
     - If such an operation was requested, perform the repository history
       preflight, get operation-specific consent, and keep the operation scoped
       to paths proven to belong to the repair slice.
+    - When a consented closure commit needs a multi-line message, transport it
+      as one complete payload: a single-quoted heredoc such as
+      `git commit -F - <<'EOF' ... EOF`, or a message file passed with `-F`.
+      Never use repeated `-m` arguments for body lines, bullets, verification
+      lines, or trailers, and never embed a raw newline inside a single `-m`
+      value. Add trailers with
+      `git commit --trailer`, not by typing trailer lines into the message
+      payload.
+    - After a closure commit, verify the stored message with
+      `git show -s --format=%B HEAD` before reporting closure. Defer complex
+      history repair beyond the consented closure commit to a commit-execution
+      workflow when one is visible.

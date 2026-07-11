@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-plan-execution",
-  "purpose": "External eval set for the plan-execution skill. Compact coverage focuses on concrete-plan binding, blocked/missing proceed discipline, accepted-risk conditionals, deviation and plan-validity gates, file-backed artifact authority, high-risk section binding, planned checkpoint commit execution without a separate commit request, mandatory post-implementation review with durable-artifact language hygiene, plan-changing-defect loops back to the owning artifact, implementation-time workaround/status-quo defect handling, configured chat-language summaries, and implementation-progress ledger updates.",
+  "purpose": "External eval set for the plan-execution skill. Compact coverage focuses on concrete-plan binding, blocked/missing proceed discipline, accepted-risk conditionals, deviation and plan-validity gates, file-backed artifact authority, high-risk section binding, planned checkpoint commit execution without a separate commit request, mandatory post-implementation review with durable-artifact language hygiene, plan-changing-defect loops back to the owning artifact, implementation-time workaround/status-quo defect handling, configured chat-language summaries, and implementation-progress ledger updates, and checkpoint commit-message transport safety with stored-message verification.",
   "common_assertions": [
     "Output does not invent missing plan details or treat unchecked user claims as verified facts.",
     "Output stops or returns to planning when the current slice lacks concrete requirements, tests, proof steps, data handling, permissions, or external-contract details.",
@@ -193,6 +193,25 @@
         "Preserves `pnpm test -- moderation-queue` exactly and states that it passed when reporting S1 verification.",
         "Mentions that the post-implementation review found no material findings without inventing reviewer identities, code changes outside S1, commits, or extra verification.",
         "Preserves technical tokens such as commands and `S1` while localizing only user-facing wrapper prose."
+      ]
+    },
+    {
+      "id": "E10",
+      "name": "Checkpoint commit uses safe message transport",
+      "prompt": "Execute this plan. I have not separately said \"commit\" during execution. Use the listed fixture files as the local workspace for this eval. The eval records only your final response, so include the exact commands you ran for the checkpoint commit and for the stored-message verification, plus that verification's output.\n\n# Client Retry Limit Plan\n\n## Goal\n- Add a bounded retry limit to the client config in one verified checkpoint.\n\n## Verified facts and sources\n| Claim | Evidence | Source | Impact |\n| --- | --- | --- | --- |\n| The client config exists and parses as JSON. | Local investigation | `evals/vibe-plan-execution/fixtures/retry-config/config/client.json` | Re-check before editing. |\n\n## Requirements\n- In scope: add `\"max_retries\": 3` to `evals/vibe-plan-execution/fixtures/retry-config/config/client.json`.\n- Out of scope: code changes, other config keys, push, release preparation, and history rewrites.\n\n## Acceptance criteria\n- Checkpoint 1: the config file parses as JSON and `max_retries` equals 3.\n- Checkpoint 1: existing keys `base_url` and `timeout_ms` are unchanged.\n\n## Test plan\n- Checkpoint 1: run `python3 -c \"import json;d=json.load(open('evals/vibe-plan-execution/fixtures/retry-config/config/client.json'));print(d['max_retries'],d['base_url'],d['timeout_ms'])\"` and confirm it prints `3 https://api.example.com 5000`.\n\n## Implementation plan\n1. Re-check the fixture config file.\n2. Checkpoint 1: add the `max_retries` key.\n3. Run the test-plan check, run the post-implementation review, then commit checkpoint 1.\n\n## Commit checkpoints\n- Checkpoint 1 scope: the config change only. Required verification: the test-plan check passes. Subject: `feat(client): bound retries with max_retries config`. The commit message body must record that callers without `max_retries` keep their current behavior. The commit must carry the trailer `Co-authored-by: Config Bot <config-bot@example.com>`.\n- During later execution this checkpoint authorizes a scoped local commit only after implementation, verification, post-implementation review, material finding disposition, and safe file-set confirmation when the user asks to execute this bound plan and no current user or project instruction denies commits. It does not authorize push, release preparation, version bumps, amend, reset, stash, squash, destructive operations, external side effects, work-in-progress commits, failing or skipped verification commits, or scope-changing commits.\n\n## Risks and unproven items\n- None known.\n\n## Proceed condition\n- Implementation may begin.",
+      "expected_output": "A plan-execution response that implements the single config checkpoint, verifies it, and performs the scoped checkpoint commit, reporting the exact commit and verification commands used.",
+      "files": [
+        "evals/vibe-plan-execution/fixtures/retry-config/config/client.json"
+      ],
+      "expectations": [
+        "Adds `\"max_retries\": 3` to the fixture config, runs the plan's python check, and reports its passing output before committing.",
+        "Performs the checkpoint commit without pausing to ask for a separate commit instruction, scoped to the config change only.",
+        "Transports the multi-line commit message as one complete payload: a single-quoted heredoc (for example `git commit -F - <<'EOF'`) or a message file passed with `-F`.",
+        "Does not use repeated `-m` arguments for body lines, bullets, verification lines, or trailers, and does not embed a raw newline inside a single `-m` value.",
+        "Applies the plan-required trailer with a `git commit --trailer` argument rather than typing the trailer line inside the message payload.",
+        "Runs `git show -s --format=%B HEAD` after the commit and reports the stored message as the post-commit verification.",
+        "Uses the plan's Conventional Commit subject and a body that records the compatibility note without prompt-context or plan-label leakage.",
+        "Does not push, amend, reset, rebase, bump versions, or prepare a release."
       ]
     }
   ],

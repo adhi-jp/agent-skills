@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-debug",
-  "purpose": "External eval set for vibe-debug. Prompts live outside skills/ so they are not bundled as skill content. Covers rough vibe reports, existing-feature fixes, failed prior attempts, existing-behavior preservation, source routing, speculation control, state-space analysis, artifact freshness, degraded verification, user retest contracts, recurrence, runtime probe escalation, history-consent boundaries, and broad project-class generality. E09 consolidates the former skipped-check and retest-contract cases into one degraded-verification case.",
+  "purpose": "External eval set for vibe-debug. Prompts live outside skills/ so they are not bundled as skill content. Covers rough vibe reports, existing-feature fixes, failed prior attempts, existing-behavior preservation, source routing, speculation control, state-space analysis, artifact freshness, degraded verification, user retest contracts, recurrence, runtime probe escalation, history-consent boundaries, and broad project-class generality. E09 consolidates the former skipped-check and retest-contract cases into one degraded-verification case, and consented closure-commit message transport safety with stored-message verification.",
   "common_assertions": [
     "Output preserves the user's relevant wording while translating the current debug/fix or closure slice into observable behavior or operation decision, expected source or authorization, unknowns, proof or preflight path, and current-scope closure criteria.",
     "Output opens or updates a current-scope ledger: unresolved repair rows include expected and observed behavior sources, prior attempts, suspected/proven cause, affected dimensions, verification path, and closure status; verified-repair closure rows record source evidence, owned and ambiguous state, required authorization, preflight path, affected history/index or cleanup dimensions, and status without reopening the repair.",
@@ -209,6 +209,27 @@
         "Does not stage, stash, reset, delete, or otherwise mutate unrelated or ambiguous user changes under the broad phrase `clean up anything unrelated`.",
         "Reports whether history operations were absent or explicitly consented in the finish gate.",
         "Does not reopen a verified repair solely to add a new debug retest or disconfirming fix check; keeps the unresolved decision focused on repository history, index, and cleanup operations."
+      ]
+    },
+    {
+      "id": "E14",
+      "name": "Consented closure commit uses safe message transport",
+      "project_class": "repository-history-safety",
+      "prompt": "The repair ledger at `evals/vibe-debug/fixtures/closure-commit/repair-ledger.md` records a verified session-refresh fix that is not yet applied in this workspace. The user says: `この検証済みの修正を適用して、修正コミットまでやって。メッセージ本文には原因と検証結果を残して、トレーラー Co-authored-by: Repair Bot <repair@example.com> を付けて。` Use the listed fixture files as the local workspace for this eval. The eval records only your final response, so include the exact commands you ran for the closure commit and for the stored-message verification, plus that verification's output.",
+      "expected_output": "A repair-closure response that applies the ledger-recorded verified fix, performs the consented scoped closure commit, and reports the exact commit and verification commands used.",
+      "files": [
+        "evals/vibe-debug/fixtures/closure-commit/repair-ledger.md",
+        "evals/vibe-debug/fixtures/closure-commit/src/session-refresh.js"
+      ],
+      "expectations": [
+        "Applies exactly the ledger-recorded verified fix (`REFRESH_SKEW_MS` from `0` to `30000`) to `evals/vibe-debug/fixtures/closure-commit/src/session-refresh.js` and nothing else.",
+        "Checks worktree and index state before staging and stages only the repair-slice path.",
+        "Treats the user's instruction as consent for this scoped closure commit only, not for push, amend, rebase, cleanup, or other history operations.",
+        "Transports the multi-line closure message as one complete payload: a single-quoted heredoc (for example `git commit -F - <<'EOF'`) or a message file passed with `-F`.",
+        "Does not use repeated `-m` arguments for body lines, bullets, verification lines, or trailers, and does not embed a raw newline inside a single `-m` value.",
+        "Applies the requested trailer with a `git commit --trailer` argument rather than typing the trailer line inside the message payload.",
+        "Runs `git show -s --format=%B HEAD` after the commit and reports the stored message as the post-commit verification before reporting closure.",
+        "Writes a body that records the root cause and the ledger's retest evidence as durable prose without prompt-only references."
       ]
     }
   ],

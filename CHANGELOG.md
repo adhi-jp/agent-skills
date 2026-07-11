@@ -37,6 +37,24 @@ use `[Repository] - YYYY-MM-DD`.
   that a violating stored message is corrected before completion is reported
   are unchanged. Validation:
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`.
+- `vibe-plan-execution` checkpoint commits now carry explicit transport-safety
+  rules: multi-line messages travel as one complete payload via a
+  single-quoted heredoc or `-F` message file (no repeated `-m` arguments for
+  body lines, bullets, verification lines, or trailers, and no raw newline
+  inside one `-m`), trailers are added with
+  `git commit --trailer`, the stored message is verified with
+  `git show -s --format=%B HEAD` after each checkpoint commit, and complex
+  history repair defers to a commit-execution workflow when one is visible.
+  Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`.
+- `vibe-debug` consented closure commits now carry the same self-contained
+  transport-safety rules: single-payload multi-line messages via a
+  single-quoted heredoc or `-F` message file, trailers via
+  `git commit --trailer`, and stored-message verification with
+  `git show -s --format=%B HEAD` before reporting closure, deferring complex
+  history repair to a commit-execution workflow when one is visible.
+  Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`.
 - `vibe-planning` now distinguishes its plan-only response boundary from the
   outer user-turn boundary: trusted top-level orchestration may start a separate
   plan-execution route in the same outer turn after receiving recordable review

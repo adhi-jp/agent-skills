@@ -218,6 +218,19 @@ and does not authorize the next step or any commit.
    - Do not commit discovery-only, unverified, failing, or work-in-progress states
      unless the user explicitly accepts that exact state.
    - Use Conventional Commits and the repository's commit rules.
+   - Transport a multi-line commit message as one complete payload: a
+     single-quoted heredoc such as `git commit -F - <<'EOF' ... EOF`, or a
+     message file passed with `-F`. Never use repeated `-m` arguments for body
+     lines, bullets, verification lines, or trailers, and never embed a raw
+     newline inside a single `-m` value.
+   - Add trailers with `git commit --trailer`, not by typing trailer lines
+     into the message payload.
+   - After each checkpoint commit, verify the stored message with
+     `git show -s --format=%B HEAD` before reporting the checkpoint or
+     starting the next one.
+   - Defer complex history repair beyond the scoped checkpoint commit to a
+     commit-execution workflow when one is visible; checkpoint authorization
+     does not cover it.
    - Write commit messages as standalone, durable prose: describe the actual
      behavior or documentation change, not prompt context, conversation context,
      or plan labels. Avoid references like `per the plan`, `above`,
