@@ -25,8 +25,21 @@ non-plan docs, configs, changelogs, commits, or any other non-plan artifact.
 Apply the same boundary to the active task list, checklist, or tool-managed
 plan. Active tasks may cover only plan artifact work. Do not add current-turn
 implementation phases, execution slices, non-plan edit tasks, commit tasks, or
-"now implement the plan" follow-ups. If the user asks for planning and
-implementation in one request, write or revise the plan artifact and stop.
+"now implement the plan" follow-ups inside the `vibe-planning` response. If the
+user asks for planning and implementation in one request, write or revise the
+plan artifact and end this skill's response before any implementation begins.
+
+That response boundary does not require the outer user turn to end. During
+trusted top-level orchestration, when the current user instruction already asks
+for implementation after planning, return recordable plan-review and proceed
+evidence to the orchestrator. If the reviewed plan has a ready proceed condition,
+or a conditional proceed condition whose required human-user accepted risk is
+already recorded, the orchestrator may continue in the same outer turn by
+starting a separate later execution route bound to that plan. Do not tell the
+orchestrator that another user turn is required merely because this planning
+response must stop. Block outer-turn continuation when the plan is blocked,
+discovery-first, contradicted by local evidence, missing required review or
+self-review, or waiting on unrecorded human-risk acceptance.
 
 This skill is independent. Do not assume another planning skill, guard,
 execution skill, commit-message-writing capability, or other companion capability

@@ -8,8 +8,10 @@ Read this reference before finalizing any implementation plan or plan revision. 
   the plan artifact and concise summary. Implementation requires a separate
   execution request outside `vibe-planning`. In a trusted orchestration, that
   separate request may be a recordable later coordinator/host phase invocation
-  after this skill stops; it is never implementation inside the current
-  `vibe-planning` response.
+  after this skill stops, including within the same outer user turn when the
+  current instruction already requested implementation; it is never
+  implementation inside the current `vibe-planning` response. Do not convert
+  this response stop into a categorical requirement for another user prompt.
 - Do not provide patches, edit non-plan files, make commits, or claim that code,
   tests, non-plan docs, evals, configs, changelogs, or other implementation work
   is complete. Non-mutating investigation is allowed when it grounds the plan.

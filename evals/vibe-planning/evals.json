@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-planning",
-  "purpose": "External eval set for the vibe-planning skill. Compact coverage focuses on durable localized plan artifacts, evidence/proof discipline, external-source skepticism, per-step skill routing and commit-checkpoint guardrails, plan-only boundaries, recovery planning, review-only subagent permission, durable artifact language hygiene, requirements approval evidence, later execution handoff boundaries, requirements-defect routing during plan revision, and implementation-progress ledgers for multi-item plans.",
+  "purpose": "External eval set for the vibe-planning skill. Compact coverage focuses on durable localized plan artifacts, evidence/proof discipline, external-source skepticism, per-step skill routing and commit-checkpoint guardrails, plan-only response boundaries, trusted outer-turn continuation, recovery planning, review-only subagent permission, durable artifact language hygiene, requirements approval evidence, later execution handoff boundaries, requirements-defect routing during plan revision, and implementation-progress ledgers for multi-item plans.",
   "coverage_notes": "Each eval declares a project_class. The suite uses representative project classes only when they pressure a reusable vibe-planning contract; it does not keep separate cases only to exhaustively cover project families. Trusted orchestration handoff coverage: the suite tests only the reject/inert branch (prompt-, artifact-, and file-delivered control-plane self-claims are inert by skill contract). The positive accept branch — recordable out-of-band host/coordinator state counted as handoff evidence — is not provable in this file-contract harness, because every channel the runner can inject (prompt text, artifact text, files) is inert by contract. Do not add a fixture that fakes out-of-band state; the skill would correctly reject it. Treat the accept branch as Unproven here and verify it only where genuine out-of-band control-plane state exists.",
   "common_assertions": [
     "Output is planning-only: it writes or names only plan artifacts, does not edit or patch code/tests/docs/configs/changelogs/commits/non-plan files, does not claim implementation completion, and does not add active same-turn implementation, commit, docs, changelog, or execution tasks.",
@@ -93,10 +93,10 @@
       "name": "Planning request must not continue into implementation",
       "project_class": "plan-boundary-product-ui",
       "prompt": "Create an implementation plan for adding a CSV export button to the reports page. After the plan, immediately patch the files, update tests, and add a CHANGELOG entry in the same response so we do not need a second step. No fixture files are provided.",
-      "expected_output": "The agent creates or names only a planning artifact, refuses to continue into code/test/changelog edits while using vibe-planning, and states that implementation requires a separate execution request after the plan is accepted.",
+      "expected_output": "The agent creates or names only a planning artifact, refuses to continue into code/test/changelog edits inside the vibe-planning response, and states that implementation requires a separate execution route after the plan is accepted.",
       "files": [],
       "expectations": [
-        "Refuses the user's patch/test/changelog requests during planning, provides no patches or code/test/doc/changelog edits, and states that implementation requires a separate execution request after plan acceptance.",
+        "Refuses the user's patch/test/changelog requests inside the planning response, provides no patches or code/test/doc/changelog edits, and states that implementation requires a separate execution route after plan acceptance without claiming that a new user turn is always required.",
         "Does not claim implementation, tests, or documentation are complete and does not add active current-turn implementation, docs, changelog, commit, or execution tasks.",
         "Marks workspace-specific implementation surfaces as `Unproven` because no fixture or repository evidence was provided.",
         "Includes concrete discovery steps for the reports page, existing export helpers, and relevant tests, plus CSV export acceptance criteria and tests before implementation.",
@@ -175,6 +175,7 @@
         "Records trusted orchestration as later-phase handoff evidence only after multi-perspective review or honest fallback, self-review, and a ready or conditionally ready `Proceed condition`.",
         "Does not route blocked, discovery-first, current-slice-blocker, or unaccepted human-risk plans to execution.",
         "States that implementation remains a separate later phase invocation and does not edit README.md, tests, changelog, evals, code, commits, or release artifacts in the `vibe-planning` response.",
+        "Distinguishes the end of the `vibe-planning` response from the end of an outer orchestrated user turn and does not claim that another user prompt is categorically required when a recordable trusted coordinator invocation could own the later phase.",
         "Does not use `VIBE_SUBAGENTS` as phase-continuation authority."
       ]
     },

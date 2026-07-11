@@ -11,6 +11,16 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- `vibe-planning` now distinguishes its plan-only response boundary from the
+  outer user-turn boundary: trusted top-level orchestration may start a separate
+  plan-execution route in the same outer turn after receiving recordable review
+  and ready-proceed evidence when the current user instruction already requests
+  implementation. Its eval coverage now rejects treating every planning stop as
+  a mandatory wait for another user turn. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`.
+
 ## [skill-eval 1.1.0] - 2026-07-04
 
 ### Changed
