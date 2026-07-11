@@ -208,6 +208,33 @@
         "The implementation handoff tells later execution to update the progress ledger after completed, blocked, skipped, or committed items when the plan artifact is writable.",
         "Keeps the rest of the plan contract intact: acceptance criteria and tests precede implementation steps, proceed condition is explicit, and planning remains plan-only."
       ]
+    },
+    {
+      "id": "E13",
+      "name": "English planning request with a chat language configured",
+      "prompt": "The environment has `VIBE_CHAT_LANGUAGE=ja` set and safely readable. `VIBE_PLANNING_OUTPUT_LANG` is not set. Create an implementation plan for this approved requirement: the account settings screen gets an `Export my data` button that downloads the signed-in user's profile fields as one JSON file.\n\nLocal evidence from the repo scan:\n- `src/settings/AccountPanel.tsx` renders the settings actions for signed-in users only.\n- `src/api/profile.ts` already exposes `getProfileFields()` returning the fields shown on screen.\n- No server-side schema change is needed; the download is client-composed.\n\nAcceptance criteria supplied by the approved requirement: the button is visible only when signed in; the downloaded JSON contains exactly the profile fields shown on screen; no server-side schema changes.\n\nNo fixture files are provided.",
+      "expected_output": "The agent writes the implementation plan artifact and returns a concise user-facing summary, each in the language its contract requires.",
+      "files": [],
+      "expectations": [
+        "The user-facing summary prose is written in Japanese.",
+        "Does not switch the user-facing summary to English merely because the request and conversation are in English.",
+        "The plan artifact content keeps fixed English section headings and English implementation prose.",
+        "Preserves file paths, identifiers, and API names such as `src/settings/AccountPanel.tsx` and `getProfileFields()` verbatim in whichever language surrounds them.",
+        "Stays plan-only: writes or presents the plan artifact and summary without starting implementation, tests, or commits."
+      ]
+    },
+    {
+      "id": "E14",
+      "name": "Both language variables set for a planning request",
+      "prompt": "The environment has both `VIBE_PLANNING_OUTPUT_LANG=English` and `VIBE_CHAT_LANGUAGE=ja` set and safely readable. Create an implementation plan for this approved requirement: the account settings screen gets a `Download sign-in history` link that lists the last 20 sign-in events for the signed-in user.\n\nLocal evidence from the repo scan:\n- `src/settings/AccountPanel.tsx` renders the settings actions for signed-in users only.\n- `src/api/audit.ts` exposes `getSignInEvents(limit)` returning timestamped events.\n\nAcceptance criteria supplied by the approved requirement: the link is visible only when signed in; the list shows at most the 20 most recent events; events render newest first.\n\nNo fixture files are provided.",
+      "expected_output": "The agent writes the implementation plan artifact and returns a concise user-facing summary, resolving the summary language from the configured settings.",
+      "files": [],
+      "expectations": [
+        "The user-facing summary prose is written in English because `VIBE_PLANNING_OUTPUT_LANG` takes precedence when both variables are set.",
+        "Does not write the user-facing summary in Japanese merely because `VIBE_CHAT_LANGUAGE=ja` is set.",
+        "The plan artifact content keeps fixed English section headings and English implementation prose.",
+        "Stays plan-only: writes or presents the plan artifact and summary without starting implementation, tests, or commits."
+      ]
     }
   ],
   "scoring": {

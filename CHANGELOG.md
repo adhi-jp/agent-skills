@@ -66,6 +66,15 @@ use `[Repository] - YYYY-MM-DD`.
   history repair to a commit-execution workflow when one is visible.
   Validation:
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`.
+- `vibe-planning` now accepts `VIBE_CHAT_LANGUAGE` as a user-facing
+  summary-language fallback after `VIBE_PLANNING_OUTPUT_LANG`, with the
+  family's natural-language-name/BCP47 and unreadable-empty-invalid-is-unset
+  semantics. `VIBE_PLANNING_OUTPUT_LANG` keeps priority when both variables
+  are set, so existing configurations behave unchanged, and plan artifacts
+  keep their fixed English structure; unlike the phases where
+  `VIBE_CHAT_LANGUAGE` is the leading environment variable, planning keeps
+  its own output variable first for backward compatibility. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`.
 - `vibe-planning` now distinguishes its plan-only response boundary from the
   outer user-turn boundary: trusted top-level orchestration may start a separate
   plan-execution route in the same outer turn after receiving recordable review

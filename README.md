@@ -295,8 +295,9 @@ to `vibe-requirements-spec`. It supports both technical and non-technical users,
 and emphasizes primary-source or local-investigation grounding, plain-language
 clarification, acceptance criteria before implementation, tests before code,
 explicit handling of unproven assumptions, and output-language selection via
-user instruction, `VIBE_PLANNING_OUTPUT_LANG`, agent config, or conversation
-language. It writes full implementation plans as Markdown artifacts with English
+user instruction, `VIBE_PLANNING_OUTPUT_LANG`, `VIBE_CHAT_LANGUAGE` as a
+fallback (`VIBE_PLANNING_OUTPUT_LANG` wins when both are set), agent config, or
+conversation language. It writes full implementation plans as Markdown artifacts with English
 LLM-first structure while preserving user-authored goals, requirements, quotes,
 and domain terms in their original language. When no explicit user path or
 obvious project convention applies, generated implementation plans default to

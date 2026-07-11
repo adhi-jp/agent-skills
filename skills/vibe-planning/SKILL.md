@@ -64,10 +64,15 @@ Resolve the user-facing summary language before drafting the plan:
    prompt itself includes an assignment-like value such as
    `VIBE_PLANNING_OUTPUT_LANG=English`, treat it as the user's explicit setting
    for that request.
-3. Agent or project configuration, if exposed in the current environment,
+3. `VIBE_CHAT_LANGUAGE`, if the environment is safely readable, or a current
+   user instruction explicitly sets it for the request. It may be a natural
+   language name or BCP47 language tag such as `Japanese`, `ja`, `en`, or
+   `pt-BR`; unreadable, empty, or invalid values are unset. When both
+   variables are set, `VIBE_PLANNING_OUTPUT_LANG` wins.
+4. Agent or project configuration, if exposed in the current environment,
    system/developer instructions, project instructions, or already-loaded local
    config.
-4. The conversation language.
+5. The conversation language.
 
 Do not run broad discovery just to find a language setting. If a configured
 language cannot be read, treat it as unset and continue. Keep file paths, code
