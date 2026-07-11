@@ -16,18 +16,19 @@ Apply this precedence order:
 4. Review targets and review/fix loops.
 5. Bug reports, regressions, failed fixes, tool failures, runtime artifact
    mismatches, and existing-feature repair.
-6. Commit, staging, and history-repair execution requests.
-7. Wording-only deliverables with no review target or Definition-of-Done triage.
-8. Clear execution requests for concrete implementation plans.
-9. Read-only code-investigation questions with no defect report or edit
-   request.
-10. Idea-generation, direction-exploration, or convention-check requests that
+6. Interactive pre-execution walkthroughs of a saved implementation plan.
+7. Commit, staging, and history-repair execution requests.
+8. Wording-only deliverables with no review target or Definition-of-Done triage.
+9. Clear execution requests for concrete implementation plans.
+10. Read-only code-investigation questions with no defect report or edit
+    request.
+11. Idea-generation, direction-exploration, or convention-check requests that
     do not ask for a saved requirements artifact.
-11. Implementation planning for approval-evidenced specs or inputs that are
+12. Implementation planning for approval-evidenced specs or inputs that are
     insufficient for plan execution.
-12. Requirements specification for new vague, rough, contradictory, creative,
+13. Requirements specification for new vague, rough, contradictory, creative,
     non-technical, or underspecified coding goals.
-13. `no matching specialist` fallback.
+14. `no matching specialist` fallback.
 
 ### Requirements Specification
 
@@ -150,6 +151,25 @@ requests to review a diff, working tree, branch, base ref, git-backed
 implementation plan or document change, findings, scope, Definition of Done
 alignment, or gated fixes.
 
+### Plan Pre-Check Walkthrough
+
+Route to the plan pre-check walkthrough phase when the user asks to
+interactively walk through, pre-check, confirm, or review a saved
+implementation plan artifact item by item before execution starts, and the
+target is the saved plan artifact itself rather than a git-backed diff.
+
+Keep neighboring boundaries intact: reviewing a plan change as a git-backed
+diff, branch, or base-ref target stays in the review phase; revising plan
+content from new requirements or evidence stays in the implementation-planning
+phase; executing the plan stays in the plan-execution phase.
+
+This phase stops before implementation and yields no execution authorization:
+item decisions and plan-reflection consent stay with the user, and a completed
+walkthrough is not proceed evidence for plan execution. This phase has no
+proxy-decision branch. Under unattended orchestration or delegated transport,
+report the interactive requirement and stop rather than emulating item
+decisions, batching approvals, or recording AI-selected item dispositions.
+
 ### Commit Execution
 
 Route requests to stage, commit, split, amend, or repair repository history for
@@ -215,6 +235,10 @@ Downstream specialist boundaries are authoritative:
   repair proof does not authorize history mutation.
 - The review phase owns review target selection, delegated review coordination,
   scope triage, gated fixes, terminal audit, and history-operation consent.
+- The plan pre-check walkthrough phase reviews a saved implementation plan
+  item by item with the user before execution starts; it stops before
+  implementation, keeps item decisions and reflection consent with the user,
+  and yields no execution authorization.
 - The commit-execution phase owns staging, commit safety, message transport,
   trailers, and history repair under operation-specific consent; it does not
   push or rewrite shared history without explicit consent.
@@ -269,6 +293,11 @@ local evidence, existing artifacts, or bounded sub-agent perspectives without
 changing non-delegable risk. Use permitted and recordable sub-agents as proxy
 user/domain/risk perspectives when the specialist allows them; otherwise use the
 specialist's coordinator fallback if it allows one.
+
+The plan pre-check walkthrough phase is inherently interactive and has no
+proxy-decision branch: per-item plan decisions and reflection consent are not
+delegable judgments. When unattended orchestration reaches that phase, report
+the interactive requirement and stop instead of emulating item decisions.
 
 Proxy decisions never become explicit human-user approval. Record them as
 AI-selected defaults, assumptions, or proxy-selected directions using the

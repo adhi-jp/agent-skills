@@ -19,6 +19,17 @@ use `[Repository] - YYYY-MM-DD`.
   requirement evidence instead of the review continuing with limited
   requirement-alignment confidence. Validation:
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`.
+- `vibe-coding` now classifies interactive pre-execution walkthroughs of a
+  saved implementation plan as a distinct plan pre-check walkthrough phase,
+  with a route trigger, a precedence slot after review and existing-feature
+  repair triggers and before commit execution, and a boundary rule: the phase
+  stops before implementation,
+  yields no execution authorization, and has no proxy-decision branch, so
+  unattended orchestration reports the interactive requirement and stops
+  instead of emulating item decisions. Git-backed plan or document diffs still
+  route to the review phase, and the README routing prose now names the
+  pre-check route. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`.
 - `vibe-planning` now distinguishes its plan-only response boundary from the
   outer user-turn boundary: trusted top-level orchestration may start a separate
   plan-execution route in the same outer turn after receiving recordable review

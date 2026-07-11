@@ -125,6 +125,10 @@ is defined by the work it owns, not by a specialist's name:
   mismatches.
 - **Review**: reviewing a git-backed target or running a review/fix loop with
   scope triage and gated fixes.
+- **Plan pre-check walkthrough**: interactively walking through a saved
+  implementation plan artifact item by item with the user before execution
+  starts, collecting per-item user decisions and reflecting them only with
+  explicit consent, without implementing, testing, or committing.
 - **Commit execution**: staging, committing, splitting, amending, or repairing
   repository history for the current changes, including commit file-set and
   message-transport decisions.

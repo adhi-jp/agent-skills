@@ -119,17 +119,24 @@ The skill tracks workflow state through conversation context and existing
 artifact paths, classifies the current instruction into one workflow phase —
 requirements specification, creative direction exploration, read-only code
 investigation, implementation planning, plan execution, debug and repair,
-review, commit execution, or writing — and selects exactly one primary
-specialist whose visible metadata matches that phase. Routes are resolved from
+review, plan pre-check walkthrough, commit execution, or writing — and selects
+exactly one primary specialist whose visible metadata matches that phase.
+Routes are resolved from
 visible skill metadata at routing time instead of a hardcoded specialist
 roster, so in this repository's family underspecified new goals reach
 `vibe-requirements-spec`, idea and convention exploration reaches
 `vibe-brainstorm`, read-only code questions reach `vibe-code-research`,
 planning inputs reach `vibe-planning`, concrete ready implementation plans
 reach `vibe-plan-execution`, bug reports and regressions reach
-`vibe-debug`, review targets reach `vibe-review`, commit and staging
-requests reach `vibe-commit`, and wording-only deliverables reach
-`vibe-writing`. Specialist boundaries remain authoritative: `vibe-coding` does
+`vibe-debug`, review targets reach `vibe-review`, interactive pre-execution
+walkthroughs of a saved implementation plan reach `vibe-plan-review`, commit
+and staging requests reach `vibe-commit`, and wording-only deliverables reach
+`vibe-writing`. The plan pre-check walkthrough route is inherently
+interactive: it stops before implementation, yields no execution
+authorization, and has no proxy-decision branch, so unattended orchestration
+reports the interactive requirement and stops instead of emulating item
+decisions. Git-backed plan or document diffs still route to review, and plan
+content revision still routes to implementation planning. Specialist boundaries remain authoritative: `vibe-coding` does
 not relax approval stops, planning-only behavior, read-only investigation
 scope, proceed conditions, review gates, writing-only scope, release policy, or
 commit authorization. It also distinguishes matched-but-unavailable phases from

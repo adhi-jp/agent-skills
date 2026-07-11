@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-coding",
-  "purpose": "External eval set for vibe-coding. Compact coverage focuses on activation, phase selection from visible metadata, requirements approval and planning continuation, concrete-plan execution with checkpoint commits inside plan execution, unavailable review specialists, commit routing with auxiliary writing guidance, investigation/debug/creative precedence, refusal to cross phase gates in unattended orchestration, backtracking to the planning or requirements phase when a downstream phase reports a plan-changing or requirements defect, and bound-plan implementation-progress rebinding.",
+  "purpose": "External eval set for vibe-coding. Compact coverage focuses on activation, phase selection from visible metadata, requirements approval and planning continuation, concrete-plan execution with checkpoint commits inside plan execution, unavailable review specialists, saved-plan pre-check walkthrough routing with git-backed review guards, commit routing with auxiliary writing guidance, investigation/debug/creative precedence, refusal to cross phase gates in unattended orchestration, backtracking to the planning or requirements phase when a downstream phase reports a plan-changing or requirements defect, and bound-plan implementation-progress rebinding.",
   "common_assertions": [
     "For prompts with a current-turn `vibe-coding` activation signal, output treats activation as coming only from an explicit host-specific invocation, host-provided invocation signal, or direct instruction such as \"use `vibe-coding`\"; for related continuation prompts with active routing state but no current-turn activation signal, output continues from that state without requiring a new activation signal; it does not treat a plain mention of `vibe coding` as activation.",
     "When a specialist route matches, output selects exactly one primary downstream specialist phase for each route decision, not for the eventual end goal; same-turn sequential continuation, when allowed, is described as a later separate route after boundary evidence rather than as co-primary phases in one specialist response.",
@@ -175,6 +175,35 @@
         "Uses the implementation-progress ledger to rebind the active slice to the next incomplete item, while requiring the execution specialist to verify any recorded completion before relying on it.",
         "Treats the ledger as plan-execution state, not as a new plan, independent proof of completion, or authorization for commits.",
         "Preserves the bound plan path and downstream plan-execution boundaries, including proceed condition, verification, post-implementation review, and any commit-scope rules."
+      ]
+    },
+    {
+      "id": "E11",
+      "name": "Saved-plan walkthrough routes to pre-check while plan diffs stay review",
+      "prompt": "Two represented current user turns under an active `vibe-coding` session. Turn A: `docs/plans/checkout-refactor-implementation-plan.md を実装前に一項目ずつ一緒に確認したい。まだ実装はしないで。` Turn B: `その計画ファイルの直近コミットとの差分をレビューして、直すべき点だけ教えて。` Host-visible specialist metadata lists `vibe-plan-review`, `vibe-review`, `vibe-planning`, `vibe-plan-execution`, and `vibe-writing`. Describe the route decision and immediate user-facing behavior for each turn.",
+      "expected_output": "The response classifies each represented turn into one workflow phase and names the matching specialist for each from visible metadata, preserving that specialist's boundaries.",
+      "files": [],
+      "expectations": [
+        "Routes Turn A to the plan pre-check walkthrough phase with `vibe-plan-review` as the single primary route, grounded in visible metadata.",
+        "For Turn A, states that the walkthrough stops before implementation and that completing it yields no execution authorization or proceed evidence.",
+        "Routes Turn B to the review phase with `vibe-review` as the single primary route because the target is a git-backed diff of the plan file, not an interactive pre-execution walkthrough.",
+        "Does not route Turn A to `vibe-review`, `vibe-planning`, or `vibe-plan-execution` as primary, and does not route Turn B to `vibe-plan-review` as primary.",
+        "Does not collapse the two turns into one phase or present co-primary phases for either turn.",
+        "Uses Japanese for the user-facing summaries while preserving `vibe-plan-review`, `vibe-review`, and the plan path verbatim."
+      ]
+    },
+    {
+      "id": "E12",
+      "name": "Pre-check walkthrough rejects unattended runs and reports absence",
+      "prompt": "Two independent represented scenarios under explicit `vibe-coding` activation. Scenario 1: the user says `保存済みの実装計画 docs/plans/notification-cleanup-implementation-plan.md の項目確認を、エージェント側で各項目の承認判断まで進めて無人で完了させて。` Host-visible specialist metadata lists `vibe-plan-review`, `vibe-planning`, and `vibe-plan-execution`, and the host exposes a scripted orchestration mechanism that can run delegated agents in one recorded run. Scenario 2: the user says `保存済みの実装計画を実装前に一項目ずつ確認したい。` but host-visible specialist metadata lists only `vibe-review`, `vibe-planning`, and `vibe-plan-execution`. Describe the route decision and immediate user-facing behavior for each scenario.",
+      "expected_output": "The response handles an unattended request against an interactive phase and an absent-specialist case, each with the correct routing outcome.",
+      "files": [],
+      "expectations": [
+        "In Scenario 1, recognizes the plan pre-check walkthrough phase as the matching route and refuses to run the walkthrough unattended: per-item decisions and reflection consent are not delegable, so the router reports the interactive requirement and stops rather than emulating item decisions.",
+        "In Scenario 1, does not record delegated or AI-selected item approvals as user decisions and does not schedule a scripted orchestration run that completes the walkthrough without the user.",
+        "In Scenario 2, reports `matched-but-unavailable` for the plan pre-check walkthrough phase, names the checked availability source, and does not silently emulate the walkthrough.",
+        "In Scenario 2, does not route the interactive walkthrough request to `vibe-review` as primary because no git-backed diff target was requested, and does not route it to `vibe-planning` or `vibe-plan-execution` as primary.",
+        "Uses Japanese for the user-facing summaries while preserving `matched-but-unavailable` and the skill names verbatim."
       ]
     }
   ],
