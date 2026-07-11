@@ -18,9 +18,11 @@ readable usage in its CLI output the runner captures it and stores it with its
 source; absence is recorded as absence, never a placeholder number.
 
 The provider selector is a registry, so adding another agent CLI is a new
-adapter rather than a hard-coded branch. An optional ``--model`` is passed
+adapter rather than a hard-coded branch. Optional model flags are passed
 through to the selected provider CLI verbatim (whatever model name that CLI
-accepts); when omitted each provider uses its own default model. This script is
+accepts): ``--model`` is the shared default for both roles, and
+``--executor-model`` / ``--grader-model`` override it per role. When a role has
+no resolved model each provider uses its own default model. This script is
 stdlib-only.
 """
 
@@ -38,7 +40,7 @@ import statistics
 import subprocess
 import sys
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
 
@@ -133,6 +135,11 @@ class SandboxContext:
     skill_path: str | None
     git_initialized: bool
     git_error: str | None = None
+    copy_strategy: str = "copytree"
+    contamination_status: str = "unverified"
+    contamination_reason: str | None = None
+    excluded_untracked_count: int = 0
+    excluded_untracked_sample: list[str] = field(default_factory=list)
 
 
 # --------------------------------------------------------------------------- #
@@ -311,7 +318,7 @@ def validate_agent_label(value: str | None) -> str:
     return label
 
 
-def validate_model_label(value: str | None) -> str | None:
+def validate_model_label(value: str | None, flag: str = "--model") -> str | None:
     if value is None:
         return None
     label = value.strip()
@@ -319,7 +326,7 @@ def validate_model_label(value: str | None) -> str | None:
         return None
     if not MODEL_LABEL_RE.match(label):
         raise CommandError(
-            f"--model {value!r}: model must match {MODEL_LABEL_RE.pattern}"
+            f"{flag} {value!r}: model must match {MODEL_LABEL_RE.pattern}"
         )
     return label
 
@@ -618,9 +625,11 @@ ARTIFACT_MAX_CHARS = 400_000
 
 # Provider subprocesses must not run in the real repository. Some eval prompts
 # intentionally pressure file edits, dependency installs, and commits; executing
-# those against the source checkout contaminates later runs. Each run gets a
-# copy of the current tree, with generated and host-local state excluded, and a
-# throwaway git repository so accidental commits stay contained.
+# those against the source checkout contaminates later runs. For git-backed
+# source checkouts, each run gets tracked files copied with their current
+# working-tree contents, with untracked/ignored leftovers and host-local state
+# excluded. A throwaway git repository is initialized so accidental commits stay
+# contained.
 SANDBOX_EXCLUDED_DIR_NAMES = {
     ".git",
     ".agents",
@@ -630,6 +639,41 @@ SANDBOX_EXCLUDED_DIR_NAMES = {
     "__pycache__",
     "node_modules",
 }
+SANDBOX_UNTRACKED_SAMPLE_LIMIT = 10
+
+
+def sanitized_git_env() -> dict[str, str]:
+    env = dict(os.environ)
+    for key in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE"):
+        env.pop(key, None)
+    return env
+
+
+def run_git(repo_root: Path, args: list[str]) -> subprocess.CompletedProcess[str]:
+    git = shutil.which("git")
+    if not git:
+        raise CommandError("git executable not found")
+    return subprocess.run(
+        [git, "-C", str(repo_root), *args],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+        env=sanitized_git_env(),
+        check=False,
+    )
+
+
+def split_nul_paths(output: str) -> list[str]:
+    return [entry for entry in output.split("\0") if entry]
+
+
+def sandbox_relative_path_is_excluded(path: Path) -> bool:
+    parts = path.parts
+    if any(part in SANDBOX_EXCLUDED_DIR_NAMES for part in parts):
+        return True
+    if parts and parts[0] == "evals" and "workspace" in parts[1:]:
+        return True
+    return False
 
 
 def sandbox_copy_ignore(repo_root: Path) -> Callable[[str, list[str]], set[str]]:
@@ -655,9 +699,7 @@ def initialize_sandbox_git(repo_root: Path) -> tuple[bool, str | None]:
     if not git:
         return False, "git executable not found"
 
-    env = dict(os.environ)
-    for key in ("GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE"):
-        env.pop(key, None)
+    env = sanitized_git_env()
     env.update(
         {
             "GIT_AUTHOR_NAME": "Eval Sandbox",
@@ -687,6 +729,67 @@ def initialize_sandbox_git(repo_root: Path) -> tuple[bool, str | None]:
     return True, None
 
 
+def listed_source_paths(source_repo_root: Path, args: list[str]) -> list[str]:
+    result = run_git(source_repo_root, args)
+    if result.returncode != 0:
+        stderr = result.stderr.strip() or result.stdout.strip() or "git command failed"
+        raise CommandError(f"git {' '.join(args)} failed while building eval sandbox: {stderr}")
+    return split_nul_paths(result.stdout)
+
+
+def source_git_toplevel(source_repo_root: Path) -> Path | None:
+    if not shutil.which("git"):
+        if (source_repo_root / ".git").exists():
+            raise CommandError(
+                f"{source_repo_root}: .git exists but git executable was not found; "
+                "refusing contaminated copytree fallback"
+            )
+        return None
+
+    result = run_git(source_repo_root, ["rev-parse", "--show-toplevel"])
+    if result.returncode != 0:
+        if (source_repo_root / ".git").exists():
+            stderr = result.stderr.strip() or result.stdout.strip() or "git rev-parse failed"
+            raise CommandError(f"{source_repo_root}: git repository could not be inspected: {stderr}")
+        return None
+    return Path(result.stdout.strip()).resolve()
+
+
+def collect_excluded_untracked_paths(source_repo_root: Path) -> list[str]:
+    paths: set[str] = set()
+    for args in (
+        ["ls-files", "-z", "--others", "--exclude-standard", "--full-name"],
+        ["ls-files", "-z", "--others", "--ignored", "--exclude-standard", "--full-name"],
+    ):
+        paths.update(listed_source_paths(source_repo_root, args))
+    return sorted(paths)
+
+
+def copy_tracked_working_tree(source_repo_root: Path, sandbox_repo_root: Path) -> tuple[int, list[str]]:
+    tracked_paths = listed_source_paths(source_repo_root, ["ls-files", "-z", "--full-name"])
+    excluded_untracked = collect_excluded_untracked_paths(source_repo_root)
+    sandbox_repo_root.mkdir(parents=True, exist_ok=True)
+    for path_text in tracked_paths:
+        rel_path = Path(path_text)
+        if rel_path.is_absolute() or ".." in rel_path.parts:
+            raise CommandError(f"git tracked path is not repository-relative: {path_text!r}")
+        if sandbox_relative_path_is_excluded(rel_path):
+            continue
+        source_path = source_repo_root / rel_path
+        if not source_path.exists():
+            # Preserve working-tree deletion symmetry: a tracked path deleted
+            # locally must not be resurrected from HEAD in the sandbox.
+            continue
+        if source_path.is_symlink() or not source_path.is_file():
+            # Defensive guard for non-regular tracked entries such as symlinks or
+            # gitlinks. None are expected in the current repository.
+            continue
+        destination = sandbox_repo_root / rel_path
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(source_path, destination)
+    return len(excluded_untracked), excluded_untracked[:SANDBOX_UNTRACKED_SAMPLE_LIMIT]
+
+
 def remap_path_into_sandbox(path: str | None, source_repo_root: Path, sandbox_repo_root: Path) -> str | None:
     if path is None:
         return None
@@ -707,11 +810,29 @@ def create_run_sandbox(source_repo_root: Path, run_dir: Path, skill_path: str | 
     if sandbox_repo_root.exists():
         shutil.rmtree(sandbox_repo_root)
     sandbox_repo_root.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(
-        source_repo_root,
-        sandbox_repo_root,
-        ignore=sandbox_copy_ignore(source_repo_root),
-    )
+    copy_strategy = "git_tracked_working_tree"
+    contamination_status = "verified_tracked_only"
+    contamination_reason: str | None = None
+    excluded_untracked_count = 0
+    excluded_untracked_sample: list[str] = []
+    git_toplevel = source_git_toplevel(source_repo_root)
+    if git_toplevel is None:
+        copy_strategy = "copytree"
+        contamination_status = "unverified"
+        contamination_reason = "source_not_git_repository"
+        shutil.copytree(
+            source_repo_root,
+            sandbox_repo_root,
+            ignore=sandbox_copy_ignore(source_repo_root),
+        )
+    else:
+        if git_toplevel != source_repo_root:
+            raise CommandError(
+                f"{source_repo_root}: eval sandbox source must be the git toplevel; got {git_toplevel}"
+            )
+        excluded_untracked_count, excluded_untracked_sample = copy_tracked_working_tree(
+            source_repo_root, sandbox_repo_root
+        )
     git_initialized, git_error = initialize_sandbox_git(sandbox_repo_root)
     return SandboxContext(
         source_repo_root=source_repo_root,
@@ -719,6 +840,11 @@ def create_run_sandbox(source_repo_root: Path, run_dir: Path, skill_path: str | 
         skill_path=remap_path_into_sandbox(skill_path, source_repo_root, sandbox_repo_root),
         git_initialized=git_initialized,
         git_error=git_error,
+        copy_strategy=copy_strategy,
+        contamination_status=contamination_status,
+        contamination_reason=contamination_reason,
+        excluded_untracked_count=excluded_untracked_count,
+        excluded_untracked_sample=excluded_untracked_sample,
     )
 
 
@@ -757,6 +883,81 @@ def collect_written_artifact(artifact_file: Path) -> tuple[str | None, dict[str,
         raw = raw[:ARTIFACT_MAX_CHARS] + "\n[...artifact truncated for grading...]\n"
         info["truncated"] = True
     return raw, info
+
+
+# The grader otherwise sees only the executor's chat reply plus one designated
+# artifact path, so a self-narrated claim like "I reused/updated an existing
+# spec" cannot be checked. This manifest is the real set of files the executor
+# created, modified, or deleted in its sandbox relative to the pre-execution
+# baseline commit, so the grader can verify such claims. The runtime scaffold is
+# excluded because the runner itself owns those paths.
+SANDBOX_MANIFEST_EXCLUDED_PREFIX = ".eval-runner/"
+
+
+def sha256_path(path: Path) -> str | None:
+    try:
+        digest = hashlib.sha256()
+        with path.open("rb") as handle:
+            for chunk in iter(lambda: handle.read(65536), b""):
+                digest.update(chunk)
+        return digest.hexdigest()
+    except OSError:
+        return None
+
+
+def collect_sandbox_change_manifest(sandbox: SandboxContext) -> dict[str, Any]:
+    """Diff the sandbox working tree against its baseline commit and return the
+    real created/modified/deleted file set outside the runtime scaffold.
+
+    ``--no-renames`` keeps every entry a single-letter status so a rename is
+    reported as an add plus a delete, and untracked additions are read from
+    ``ls-files --others`` so a newly written file is captured without staging.
+    Config-symmetric: the runner computes it identically for ``with_skill`` and
+    ``without_skill``."""
+    if not sandbox.git_initialized:
+        return {
+            "captured": False,
+            "reason": sandbox.git_error or "sandbox git not initialized",
+            "entries": [],
+        }
+    try:
+        diff = run_git(sandbox.repo_root, ["diff", "--name-status", "-z", "--no-renames", "HEAD"])
+        others = run_git(sandbox.repo_root, ["ls-files", "--others", "--exclude-standard", "-z"])
+    except CommandError as exc:
+        return {"captured": False, "reason": str(exc), "entries": []}
+    if diff.returncode != 0:
+        return {"captured": False, "reason": diff.stderr.strip() or "git diff failed", "entries": []}
+    if others.returncode != 0:
+        return {"captured": False, "reason": others.stderr.strip() or "git ls-files failed", "entries": []}
+
+    entries: dict[str, dict[str, Any]] = {}
+    tokens = diff.stdout.split("\0")
+    index = 0
+    while index + 1 < len(tokens):
+        status_code = tokens[index]
+        rel = tokens[index + 1]
+        index += 2
+        if not status_code or not rel or rel.startswith(SANDBOX_MANIFEST_EXCLUDED_PREFIX):
+            continue
+        code = status_code[0]
+        if code == "D":
+            entries[rel] = {"path": rel, "status": "deleted", "sha256": None}
+        elif code == "A":
+            entries[rel] = {"path": rel, "status": "added", "sha256": sha256_path(sandbox.repo_root / rel)}
+        else:
+            entries[rel] = {"path": rel, "status": "modified", "sha256": sha256_path(sandbox.repo_root / rel)}
+    for rel in split_nul_paths(others.stdout):
+        if rel.startswith(SANDBOX_MANIFEST_EXCLUDED_PREFIX):
+            continue
+        entries.setdefault(
+            rel, {"path": rel, "status": "added", "sha256": sha256_path(sandbox.repo_root / rel)}
+        )
+    ordered = sorted(entries.values(), key=lambda entry: entry["path"])
+    return {
+        "captured": True,
+        "excluded_prefix": SANDBOX_MANIFEST_EXCLUDED_PREFIX,
+        "entries": ordered,
+    }
 
 
 # --------------------------------------------------------------------------- #
@@ -877,6 +1078,7 @@ def render_grader_prompt(
     config: str,
     executor_output: str,
     artifact_text: str | None = None,
+    change_manifest: dict[str, Any] | None = None,
 ) -> str:
     assertions = assertions_for_case(suite, case)
     boundary_rules = [
@@ -891,6 +1093,16 @@ def render_grader_prompt(
             "artifact below are the agent's output: grade them together. Assertions about the chat "
             "response (for example concise-summary or no-duplication rules) apply to the recorded "
             "response, and assertions about the plan/spec artifact apply to the written artifact."
+        )
+    manifest_entries = (change_manifest or {}).get("entries") if change_manifest else None
+    if change_manifest is not None and change_manifest.get("captured"):
+        boundary_rules.append(
+            "- The Sandbox File Changes section below is the runner's own record of every file the "
+            "agent created, modified, or deleted, derived from the sandbox baseline, not from the "
+            "agent's narration. Use it to verify claims about writing, reusing, or updating files: a "
+            "claim to have created or updated a file is only supported when that path appears there, "
+            "and a claim to have reused a pre-existing file is contradicted when that path is listed "
+            "as added."
         )
     lines = [
         "# Eval Grader Prompt",
@@ -929,6 +1141,20 @@ def render_grader_prompt(
                 "----- END WRITTEN ARTIFACT -----",
             ]
         )
+    if change_manifest is not None and change_manifest.get("captured"):
+        lines.extend(["", "## Sandbox File Changes", ""])
+        if manifest_entries:
+            lines.append(
+                "The runner recorded these file changes the agent made in its sandbox "
+                "(status, path, and content hash for existing files):"
+            )
+            lines.append("")
+            for entry in manifest_entries:
+                sha = entry.get("sha256")
+                sha_text = f" sha256={sha[:12]}" if isinstance(sha, str) else ""
+                lines.append(f"- {entry['status']}: `{entry['path']}`{sha_text}")
+        else:
+            lines.append("The agent made no file changes in its sandbox outside the runtime scaffold.")
     lines += [
         "",
         "## Required response",
@@ -1206,6 +1432,17 @@ if role == "executor":
     if touch:
         with open(os.path.join(os.getcwd(), touch), "w", encoding="utf-8") as handle:
             handle.write("stub touched cwd\n")
+    # Emulate a skill that creates/modifies several sandbox files, so the
+    # runner's change-manifest capture can be exercised end to end.
+    for item in (spec.get("write_files") or {}).get(config) or []:
+        target = os.path.join(os.getcwd(), item["path"])
+        os.makedirs(os.path.dirname(target) or ".", exist_ok=True)
+        with open(target, "w", encoding="utf-8") as handle:
+            handle.write(item["content"])
+    for rel in (spec.get("delete_files") or {}).get(config) or []:
+        target = os.path.join(os.getcwd(), rel)
+        if os.path.isfile(target):
+            os.remove(target)
     touch_absolute = spec.get("touch_absolute")
     if touch_absolute:
         with open(touch_absolute, "w", encoding="utf-8") as handle:
@@ -1251,10 +1488,16 @@ class StubProvider(Provider):
         schema: dict[str, Any] | None = None,
         cwd: Path | None = None,
     ) -> Invocation:
-        # The hermetic stub runs no real model, so `model` and `schema` are
+        # The hermetic stub runs no real model. A provided model is appended to
+        # argv anyway — the stub script reads only argv[1] (the role), so the
+        # extra entry is inert at runtime but lands in run.json, making the
+        # runner's role-level model wiring auditable end to end. `schema` is
         # accepted to honor the provider contract and then ignored.
+        argv = [sys.executable, "-c", STUB_RUNNER_SOURCE, role]
+        if model:
+            argv.append(model)
         return Invocation(
-            argv=[sys.executable, "-c", STUB_RUNNER_SOURCE, role],
+            argv=argv,
             env=invocation_env((cwd or find_repo_root(run_dir)).resolve()),
             cwd=str((cwd or find_repo_root(run_dir)).resolve()),
             stdin=prompt,
@@ -1452,7 +1695,8 @@ def execute_run(
     task: RunTask,
     skill_path: str | None,
     timeout: float,
-    model: str | None = None,
+    executor_model: str | None = None,
+    grader_model: str | None = None,
 ) -> dict[str, Any]:
     case, config, run_number, run_dir = task.case, task.config, task.run_number, task.run_dir
     outputs_dir = run_dir / "outputs"
@@ -1474,7 +1718,7 @@ def execute_run(
         executor_prompt,
         run_dir=run_dir,
         role="executor",
-        model=model,
+        model=executor_model,
         cwd=sandbox.repo_root,
     )
     e_stdout, e_stderr, e_exit, e_timeout = run_invocation(executor_inv, timeout)
@@ -1488,6 +1732,7 @@ def execute_run(
         shutil.copyfile(artifact_capture_file, output_artifact_file)
         artifact_info["capture_path"] = artifact_info.get("path")
         artifact_info["path"] = str(output_artifact_file.resolve())
+    change_manifest = collect_sandbox_change_manifest(sandbox)
 
     status = "ok"
     grader_inv: Invocation | None = None
@@ -1503,13 +1748,15 @@ def execute_run(
         grader_error = f"executor provider error: {metrics['error']}"
 
     if status == "ok":
-        grader_prompt = render_grader_prompt(suite, case, config, executor_output, artifact_text)
+        grader_prompt = render_grader_prompt(
+            suite, case, config, executor_output, artifact_text, change_manifest
+        )
         write_text(run_dir / "grader_prompt.md", grader_prompt)
         grader_inv = provider.build_invocation(
             grader_prompt,
             run_dir=run_dir,
             role="grader",
-            model=model,
+            model=grader_model,
             schema=grader_schema(),
             cwd=sandbox.repo_root,
         )
@@ -1551,12 +1798,18 @@ def execute_run(
         "expectations": summary["expectations"],
         "metrics": metrics,
         "written_artifact": artifact_info,
+        "change_manifest": change_manifest,
         "sandbox": {
             "source_repo_root": str(sandbox.source_repo_root),
             "repo_root": str(sandbox.repo_root),
             "skill_path": sandbox.skill_path,
             "git_initialized": sandbox.git_initialized,
             "git_error": sandbox.git_error,
+            "copy_strategy": sandbox.copy_strategy,
+            "contamination_status": sandbox.contamination_status,
+            "contamination_reason": sandbox.contamination_reason,
+            "excluded_untracked_count": sandbox.excluded_untracked_count,
+            "excluded_untracked_sample": sandbox.excluded_untracked_sample,
         },
         "executor_invocation": {
             "argv": executor_inv.argv,
@@ -1601,6 +1854,8 @@ def aggregate_runs(
     agent: str,
     skill_path: str | None,
     model: str | None = None,
+    executor_model: str | None = None,
+    grader_model: str | None = None,
     source_fixtures: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     rates_by_eval_config: dict[tuple[str, str], list[float]] = {}
@@ -1663,6 +1918,8 @@ def aggregate_runs(
         "skill_name": suite.skill_name,
         "agent": agent,
         "model": model,
+        "executor_model": executor_model,
+        "grader_model": grader_model,
         "skill_path": skill_path,
         "source_fixtures": source_fixtures,
         "generated_at": utc_now(),
@@ -1935,16 +2192,35 @@ def render_metrics_stdout(sorted_configs: list[str], runs: list[dict[str, Any]])
     return lines
 
 
+def format_model_value(model: Any) -> str:
+    return f"`{model}`" if model else "provider default"
+
+
+def render_model_lines(benchmark: dict[str, Any]) -> list[str]:
+    """Render the benchmark model line(s). Per-role keys fall back to the
+    legacy shared ``model`` key so older ``benchmark.json`` files keep their
+    current single-line rendering; a two-line executor/grader form appears only
+    when the resolved role models differ."""
+    model = benchmark.get("model")
+    executor_model = benchmark.get("executor_model", model)
+    grader_model = benchmark.get("grader_model", model)
+    if executor_model == grader_model:
+        return [f"- Model: {format_model_value(executor_model)}"]
+    return [
+        f"- Executor model: {format_model_value(executor_model)}",
+        f"- Grader model: {format_model_value(grader_model)}",
+    ]
+
+
 def render_benchmark_markdown(benchmark: dict[str, Any]) -> str:
     configs = list(benchmark.get("configs", []))
     sorted_configs = sorted(configs, key=config_sort_key)
     error_run_count = benchmark.get("error_run_count", 0)
-    model = benchmark.get("model")
     lines = [
         f"# Eval Benchmark: {benchmark.get('skill_name', 'unknown')}",
         "",
         f"- Agent: `{benchmark.get('agent', 'unknown')}`",
-        f"- Model: {f'`{model}`' if model else 'provider default'}",
+        *render_model_lines(benchmark),
         f"- Generated: {benchmark.get('generated_at', 'unknown')}",
         f"- Runs: {benchmark.get('run_count', 0)} "
         f"({benchmark.get('scored_run_count', 0)} scored, "
@@ -2018,6 +2294,8 @@ def command_run(args: argparse.Namespace) -> int:
 
     agent = validate_agent_label(args.agent)
     model = validate_model_label(args.model)
+    executor_model = validate_model_label(args.executor_model, "--executor-model") or model
+    grader_model = validate_model_label(args.grader_model, "--grader-model") or model
     configs = parse_csv_values(args.config, DEFAULT_CONFIGS)
 
     runs = args.runs
@@ -2060,6 +2338,8 @@ def command_run(args: argparse.Namespace) -> int:
             agent=agent,
             skill_path=skill_path,
             model=model,
+            executor_model=executor_model,
+            grader_model=grader_model,
             source_fixtures=source_fixtures,
         )
         write_json(iteration_dir / "benchmark.json", benchmark)
@@ -2074,6 +2354,8 @@ def command_run(args: argparse.Namespace) -> int:
             "skill_name": suite.skill_name,
             "agent": agent,
             "model": model,
+            "executor_model": executor_model,
+            "grader_model": grader_model,
             "configs": configs,
             "runs": runs,
             "timeout_seconds": args.timeout,
@@ -2089,10 +2371,12 @@ def command_run(args: argparse.Namespace) -> int:
     # ---- Bounded execution. The thread pool caps concurrent provider
     # subprocesses; each task runs executor then grader sequentially, so at most
     # `concurrency` subprocesses run at any instant. There are no retries. ----
-    results: list[dict[str, Any]] = [None] * len(tasks)  # type: ignore[list-item]
+    results: list[dict[str, Any] | None] = [None] * len(tasks)
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.concurrency) as pool:
         future_to_index = {
-            pool.submit(execute_run, suite, provider, task, skill_path, args.timeout, model): index
+            pool.submit(
+                execute_run, suite, provider, task, skill_path, args.timeout, executor_model, grader_model
+            ): index
             for index, task in enumerate(tasks)
         }
         for future in concurrent.futures.as_completed(future_to_index):
@@ -2131,6 +2415,8 @@ def command_run(args: argparse.Namespace) -> int:
         agent=agent,
         skill_path=skill_path,
         model=model,
+        executor_model=executor_model,
+        grader_model=grader_model,
         source_fixtures=source_fixtures,
     )
     write_json(iteration_dir / "benchmark.json", benchmark)
@@ -2200,7 +2486,18 @@ def build_parser() -> argparse.ArgumentParser:
         "--model",
         default=None,
         help="Model name passed through to the provider CLI verbatim "
-        "(e.g. `claude-sonnet-4-6`, `gpt-5.3-codex-spark`). Omit to use the provider's default model.",
+        "(e.g. `claude-sonnet-4-6`, `gpt-5.3-codex-spark`). Shared default for the "
+        "executor and grader; omit to use the provider's default model.",
+    )
+    run.add_argument(
+        "--executor-model",
+        default=None,
+        help="Model for the executor subprocess only; overrides --model for that role.",
+    )
+    run.add_argument(
+        "--grader-model",
+        default=None,
+        help="Model for the grader subprocess only; overrides --model for that role.",
     )
     run.add_argument(
         "--config",

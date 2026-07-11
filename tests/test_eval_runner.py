@@ -14,6 +14,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "skills" / "skill-eval" / "scripts" / "eval_runner.py"
@@ -103,6 +104,12 @@ class BaseRunnerTest(unittest.TestCase):
         subprocess.run(["git", "config", "user.email", "test@example.invalid"], cwd=self.root, check=True)
         subprocess.run(["git", "add", "-A"], cwd=self.root, check=True)
         subprocess.run(["git", "commit", "-m", "baseline"], cwd=self.root, check=True, capture_output=True, text=True)
+
+    def sandbox_for_first_run(self):
+        record = json.loads(
+            (self.iteration_dir() / "eval-first-eval" / "with_skill" / "run-1" / "run.json").read_text()
+        )
+        return Path(record["sandbox"]["repo_root"]), record
 
     def iteration_dir(self, agent="stub", number=1):
         return self.root / "evals" / "demo" / "workspace" / agent / f"iteration-{number}"
@@ -302,6 +309,113 @@ class SeparationTests(BaseRunnerTest):
         self.assertTrue((sandbox_root / "pollution.txt").is_file())
         self.assertFalse((self.root / "pollution.txt").exists())
 
+    def test_sandbox_excludes_untracked_working_tree_files(self):
+        path = self.write_suite()
+        self.init_git_baseline()
+        untracked = self.root / "docs" / "specs" / "leftover.md"
+        untracked.parent.mkdir(parents=True)
+        untracked.write_text("leftover\n", encoding="utf-8")
+        spec = self.write_stub_spec()
+
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        sandbox_root, record = self.sandbox_for_first_run()
+
+        self.assertFalse((sandbox_root / "docs" / "specs" / "leftover.md").exists())
+        listed = subprocess.run(
+            ["git", "-C", str(sandbox_root), "ls-files"],
+            text=True,
+            capture_output=True,
+            check=True,
+        ).stdout.splitlines()
+        self.assertNotIn("docs/specs/leftover.md", listed)
+        self.assertEqual(record["sandbox"]["copy_strategy"], "git_tracked_working_tree")
+        self.assertEqual(record["sandbox"]["contamination_status"], "verified_tracked_only")
+        self.assertGreaterEqual(record["sandbox"]["excluded_untracked_count"], 1)
+        self.assertIn("docs/specs/leftover.md", record["sandbox"]["excluded_untracked_sample"])
+
+    def test_sandbox_preserves_tracked_fixture_working_tree_content(self):
+        path = self.write_suite()
+        self.init_git_baseline()
+        fixture = self.root / "evals" / "demo" / "fixtures" / "input.txt"
+        fixture.write_text("modified fixture\n", encoding="utf-8")
+        spec = self.write_stub_spec()
+
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        sandbox_root, _record = self.sandbox_for_first_run()
+
+        self.assertEqual(
+            (sandbox_root / "evals" / "demo" / "fixtures" / "input.txt").read_text(encoding="utf-8"),
+            "modified fixture\n",
+        )
+
+    def test_sandbox_preserves_tracked_skill_working_tree_content(self):
+        path = self.write_suite()
+        self.init_git_baseline()
+        skill = self.root / "skills" / "demo" / "SKILL.md"
+        skill.write_text("# Modified Demo Skill\n", encoding="utf-8")
+        spec = self.write_stub_spec()
+
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        sandbox_root, _record = self.sandbox_for_first_run()
+
+        self.assertEqual(
+            (sandbox_root / "skills" / "demo" / "SKILL.md").read_text(encoding="utf-8"),
+            "# Modified Demo Skill\n",
+        )
+
+    def test_sandbox_skips_tracked_files_deleted_from_working_tree(self):
+        path = self.write_suite({
+            "schema_version": "1.0.0",
+            "skill_name": "demo",
+            "common_assertions": ["common assertion"],
+            "evals": [{"id": "E01", "name": "First eval", "prompt": "Do the thing.", "expectations": ["a"]}],
+        })
+        self.init_git_baseline()
+        deleted = self.root / "evals" / "demo" / "fixtures" / "input.txt"
+        deleted.unlink()
+        spec = self.write_stub_spec()
+
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        sandbox_root, _record = self.sandbox_for_first_run()
+
+        self.assertFalse((sandbox_root / "evals" / "demo" / "fixtures" / "input.txt").exists())
+
+    def test_sandbox_filters_tracked_paths_under_excluded_dirs(self):
+        path = self.write_suite()
+        extra = self.root / ".agents" / "tracked.txt"
+        extra.parent.mkdir(parents=True)
+        extra.write_text("must not copy\n", encoding="utf-8")
+        workspace_file = self.root / "evals" / "demo" / "workspace" / "tracked.txt"
+        workspace_file.parent.mkdir(parents=True)
+        workspace_file.write_text("must not copy\n", encoding="utf-8")
+        self.init_git_baseline()
+        spec = self.write_stub_spec()
+
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        sandbox_root, _record = self.sandbox_for_first_run()
+
+        self.assertFalse((sandbox_root / ".agents").exists())
+        self.assertFalse((sandbox_root / "evals" / "demo" / "workspace").exists())
+
+    def test_non_git_source_falls_back_to_unverified_copytree(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        sandbox_root, record = self.sandbox_for_first_run()
+
+        self.assertTrue((sandbox_root / "AGENTS.md").is_file())
+        self.assertEqual(record["sandbox"]["copy_strategy"], "copytree")
+        self.assertEqual(record["sandbox"]["contamination_status"], "unverified")
+        self.assertEqual(record["sandbox"]["contamination_reason"], "source_not_git_repository")
+
+    def test_git_metadata_without_git_executable_fails_loudly(self):
+        (self.root / ".git").mkdir()
+        with mock.patch.object(eval_runner.shutil, "which", return_value=None):
+            with self.assertRaises(eval_runner.CommandError) as raised:
+                eval_runner.create_run_sandbox(self.root, self.root / "run", None)
+        self.assertIn("refusing contaminated copytree fallback", str(raised.exception))
+
     def test_delivered_content_keeps_assertions_out_of_executor(self):
         # Inspect the actual delivered invocation content (argv + stdin recorded
         # in run.json), not just the on-disk prompt.md, so a regression that
@@ -374,6 +488,122 @@ class SeparationTests(BaseRunnerTest):
         self.assertNotIn("## Written Plan Artifact", wos_prompt)
         wos_record = json.loads((wos_dir / "run.json").read_text())
         self.assertFalse(wos_record["written_artifact"]["captured"])
+
+    def test_change_manifest_exact_set_equality(self):
+        # C1: the runner records the executor's real created/modified file set in
+        # the sandbox, config-symmetrically, as exact-set equality (paths +
+        # content hashes, excluding the runtime scaffold).
+        self.init_git_baseline()
+        written = {
+            "with_skill": [
+                {"path": "docs/specs/new-spec.md", "content": "# New Spec\nbody\n"},
+                {"path": "notes/created.txt", "content": "created\n"},
+            ],
+            "without_skill": [
+                {"path": "docs/specs/new-spec.md", "content": "# New Spec\nbody\n"},
+                {"path": "notes/created.txt", "content": "created\n"},
+            ],
+        }
+        path = self.write_suite()
+        spec = self.write_stub_spec({
+            "executor_output": "answer",
+            "grading": {"with_skill": {"pass": True}, "without_skill": {"pass": True}},
+            "write_files": written,
+        })
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+
+        import hashlib
+
+        for config in ("with_skill", "without_skill"):
+            record = json.loads(
+                (self.iteration_dir() / "eval-first-eval" / config / "run-1" / "run.json").read_text()
+            )
+            manifest = record["change_manifest"]
+            self.assertTrue(manifest["captured"])
+            got = {(e["path"], e["status"], e["sha256"]) for e in manifest["entries"]}
+            expected = {
+                (
+                    item["path"],
+                    "added",
+                    hashlib.sha256(item["content"].encode("utf-8")).hexdigest(),
+                )
+                for item in written[config]
+            }
+            self.assertEqual(got, expected)
+            # The runtime scaffold is never surfaced as an agent change.
+            self.assertFalse(
+                any(e["path"].startswith(".eval-runner/") for e in manifest["entries"])
+            )
+
+    def test_change_manifest_records_modifications_and_deletions(self):
+        # C1 edges: a modified tracked file is "modified"; a deleted tracked file
+        # is "deleted" with no hash.
+        self.init_git_baseline()
+        path = self.write_suite()
+        spec = self.write_stub_spec({
+            "executor_output": "answer",
+            "grading": {"with_skill": {"pass": True}, "without_skill": {"pass": True}},
+            "write_files": {
+                "with_skill": [
+                    {"path": "evals/demo/fixtures/input.txt", "content": "changed by agent\n"}
+                ],
+            },
+            "delete_files": {"with_skill": ["AGENTS.md"]},
+        })
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        record = json.loads(
+            (self.iteration_dir() / "eval-first-eval" / "with_skill" / "run-1" / "run.json").read_text()
+        )
+        by_path = {e["path"]: e for e in record["change_manifest"]["entries"]}
+        self.assertEqual(by_path["evals/demo/fixtures/input.txt"]["status"], "modified")
+        self.assertIsInstance(by_path["evals/demo/fixtures/input.txt"]["sha256"], str)
+        self.assertEqual(by_path["AGENTS.md"]["status"], "deleted")
+        self.assertIsNone(by_path["AGENTS.md"]["sha256"])
+
+    def test_change_manifest_folds_into_grader_prompt(self):
+        # C2: a self-narrated "reused existing spec" claim is checkable because
+        # the grader prompt carries the real change record.
+        self.init_git_baseline()
+        path = self.write_suite()
+        spec = self.write_stub_spec({
+            "executor_output": "answer",
+            "grading": {"with_skill": {"pass": True}, "without_skill": {"pass": True}},
+            "write_files": {
+                "with_skill": [{"path": "docs/specs/created.md", "content": "# Created\n"}],
+            },
+        })
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        grader_prompt = (
+            self.iteration_dir() / "eval-first-eval" / "with_skill" / "run-1" / "grader_prompt.md"
+        ).read_text()
+        self.assertIn("## Sandbox File Changes", grader_prompt)
+        self.assertIn("added: `docs/specs/created.md`", grader_prompt)
+        # The without_skill run made no changes: its manifest section says so.
+        wos_prompt = (
+            self.iteration_dir() / "eval-first-eval" / "without_skill" / "run-1" / "grader_prompt.md"
+        ).read_text()
+        self.assertIn("## Sandbox File Changes", wos_prompt)
+        self.assertIn("no file changes", wos_prompt)
+
+    def test_change_manifest_uncaptured_omits_grader_section(self):
+        # When the sandbox git baseline is unavailable the manifest records
+        # captured=false with a reason, and the grader prompt omits the section
+        # rather than folding an empty or misleading one.
+        suite = eval_runner.EvalSuite(
+            path=self.root / "evals" / "demo" / "evals.json",
+            skill_name="demo",
+            common_assertions=["a"],
+            evals=[],
+            scoring={},
+            raw={},
+        )
+        case = eval_runner.EvalCase(
+            eval_id="E01", name="n", prompt="p", expected_output="",
+            project_class=None, archetype=None, files=[], expectations=["a"], raw={},
+        )
+        manifest = {"captured": False, "reason": "git executable not found", "entries": []}
+        prompt = eval_runner.render_grader_prompt(suite, case, "with_skill", "out", None, manifest)
+        self.assertNotIn("## Sandbox File Changes", prompt)
 
     def test_claude_strips_claudecode_for_nesting(self):
         os.environ["CLAUDECODE"] = "1"
@@ -470,9 +700,18 @@ class ModelSelectionTests(BaseRunnerTest):
         )
         manifest = json.loads((self.iteration_dir() / "iteration_manifest.json").read_text())
         self.assertEqual(manifest["model"], "test-model-1")
+        # A shared --model resolves both roles to the same value.
+        self.assertEqual(manifest["executor_model"], "test-model-1")
+        self.assertEqual(manifest["grader_model"], "test-model-1")
         benchmark = json.loads((self.iteration_dir() / "benchmark.json").read_text())
         self.assertEqual(benchmark["model"], "test-model-1")
-        self.assertIn("Model: `test-model-1`", (self.iteration_dir() / "benchmark.md").read_text())
+        self.assertEqual(benchmark["executor_model"], "test-model-1")
+        self.assertEqual(benchmark["grader_model"], "test-model-1")
+        markdown = (self.iteration_dir() / "benchmark.md").read_text()
+        self.assertIn("Model: `test-model-1`", markdown)
+        # Equal role models keep the single shared line, not the two-line form.
+        self.assertNotIn("Executor model:", markdown)
+        self.assertNotIn("Grader model:", markdown)
 
     def test_absent_model_recorded_as_provider_default(self):
         path = self.write_suite()
@@ -480,6 +719,8 @@ class ModelSelectionTests(BaseRunnerTest):
         self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
         benchmark = json.loads((self.iteration_dir() / "benchmark.json").read_text())
         self.assertIsNone(benchmark["model"])
+        self.assertIsNone(benchmark["executor_model"])
+        self.assertIsNone(benchmark["grader_model"])
         self.assertIn("Model: provider default", (self.iteration_dir() / "benchmark.md").read_text())
 
     def test_invalid_model_exits_without_launch(self):
@@ -506,6 +747,149 @@ class ModelSelectionTests(BaseRunnerTest):
         )
         self.assertEqual(result.returncode, 2)
         self.assertFalse(log.exists(), "a provider subprocess launched before model validation")
+
+    def read_run_invocations(self, config="with_skill"):
+        record = json.loads(
+            (self.iteration_dir() / "eval-first-eval" / config / "run-1" / "run.json").read_text()
+        )
+        return record["executor_invocation"]["argv"], record["grader_invocation"]["argv"]
+
+    def test_split_models_reach_their_roles(self):
+        # --executor-model and --grader-model must land in their own role's
+        # delivered argv only, be recorded in the manifest and benchmark, and
+        # render as separate model lines.
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        self.run_cli(
+            "run", path, "--agent", "stub",
+            "--executor-model", "exec-model-1", "--grader-model", "grade-model-1",
+            "--runs", "1", env=self.stub_env(spec), check=True,
+        )
+        executor_argv, grader_argv = self.read_run_invocations()
+        self.assertIn("exec-model-1", executor_argv)
+        self.assertNotIn("grade-model-1", executor_argv)
+        self.assertIn("grade-model-1", grader_argv)
+        self.assertNotIn("exec-model-1", grader_argv)
+        manifest = json.loads((self.iteration_dir() / "iteration_manifest.json").read_text())
+        self.assertIsNone(manifest["model"])
+        self.assertEqual(manifest["executor_model"], "exec-model-1")
+        self.assertEqual(manifest["grader_model"], "grade-model-1")
+        benchmark = json.loads((self.iteration_dir() / "benchmark.json").read_text())
+        self.assertIsNone(benchmark["model"])
+        self.assertEqual(benchmark["executor_model"], "exec-model-1")
+        self.assertEqual(benchmark["grader_model"], "grade-model-1")
+        markdown = (self.iteration_dir() / "benchmark.md").read_text()
+        self.assertIn("- Executor model: `exec-model-1`", markdown)
+        self.assertIn("- Grader model: `grade-model-1`", markdown)
+        self.assertNotIn("- Model:", markdown)
+
+    def test_grader_model_overrides_shared_model(self):
+        # --model stays the shared default; --grader-model overrides only the
+        # grader role.
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        self.run_cli(
+            "run", path, "--agent", "stub",
+            "--model", "base-model-1", "--grader-model", "grade-model-1",
+            "--runs", "1", env=self.stub_env(spec), check=True,
+        )
+        executor_argv, grader_argv = self.read_run_invocations()
+        self.assertIn("base-model-1", executor_argv)
+        self.assertIn("grade-model-1", grader_argv)
+        self.assertNotIn("base-model-1", grader_argv)
+        benchmark = json.loads((self.iteration_dir() / "benchmark.json").read_text())
+        self.assertEqual(benchmark["model"], "base-model-1")
+        self.assertEqual(benchmark["executor_model"], "base-model-1")
+        self.assertEqual(benchmark["grader_model"], "grade-model-1")
+
+    def test_executor_model_alone_leaves_grader_on_provider_default(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        self.run_cli(
+            "run", path, "--agent", "stub", "--executor-model", "exec-model-1",
+            "--runs", "1", env=self.stub_env(spec), check=True,
+        )
+        executor_argv, grader_argv = self.read_run_invocations()
+        self.assertIn("exec-model-1", executor_argv)
+        # No model resolved for the grader: its argv ends at the role argument.
+        self.assertEqual(grader_argv[-1], "grader")
+        markdown = (self.iteration_dir() / "benchmark.md").read_text()
+        self.assertIn("- Executor model: `exec-model-1`", markdown)
+        self.assertIn("- Grader model: provider default", markdown)
+
+    def test_equal_role_models_render_single_model_line(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        self.run_cli(
+            "run", path, "--agent", "stub",
+            "--executor-model", "same-model-1", "--grader-model", "same-model-1",
+            "--runs", "1", env=self.stub_env(spec), check=True,
+        )
+        markdown = (self.iteration_dir() / "benchmark.md").read_text()
+        self.assertIn("- Model: `same-model-1`", markdown)
+        self.assertNotIn("Executor model:", markdown)
+        self.assertNotIn("Grader model:", markdown)
+
+    def test_blank_executor_model_falls_back_to_shared_model(self):
+        # A blank role flag behaves like the flag being unset, so the shared
+        # --model still drives that role.
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        self.run_cli(
+            "run", path, "--agent", "stub",
+            "--model", "base-model-1", "--executor-model", "  ",
+            "--runs", "1", env=self.stub_env(spec), check=True,
+        )
+        executor_argv, _grader_argv = self.read_run_invocations()
+        self.assertIn("base-model-1", executor_argv)
+
+    def test_invalid_executor_model_exits_without_launch(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        log = self.root / "launch.log"
+        result = self.run_cli(
+            "run", path, "--agent", "stub", "--executor-model", "bad model",
+            env=self.stub_env(spec, log=log),
+        )
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("--executor-model", result.stderr)
+        self.assertIn("model must match", result.stderr)
+        self.assertFalse(log.exists(), "a provider subprocess launched before model validation")
+
+    def test_invalid_grader_model_exits_without_launch(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        log = self.root / "launch.log"
+        result = self.run_cli(
+            "run", path, "--agent", "stub", "--grader-model", "bad model",
+            env=self.stub_env(spec, log=log),
+        )
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("--grader-model", result.stderr)
+        self.assertIn("model must match", result.stderr)
+        self.assertFalse(log.exists(), "a provider subprocess launched before model validation")
+
+    def test_legacy_benchmark_without_role_keys_renders_single_model_line(self):
+        # benchmark.json files written before the per-role keys existed must
+        # keep their current rendering: one shared model line, no per-role
+        # lines, for both null and non-null legacy model values.
+        legacy = {
+            "skill_name": "demo",
+            "agent": "claude",
+            "model": "legacy-model-1",
+            "configs": ["with_skill", "without_skill"],
+            "overall_pass_rate": {},
+            "evals": [],
+            "runs": [],
+        }
+        markdown = eval_runner.render_benchmark_markdown(legacy)
+        self.assertIn("- Model: `legacy-model-1`", markdown)
+        self.assertNotIn("Executor model:", markdown)
+        self.assertNotIn("Grader model:", markdown)
+        legacy["model"] = None
+        markdown = eval_runner.render_benchmark_markdown(legacy)
+        self.assertIn("- Model: provider default", markdown)
+        self.assertNotIn("Executor model:", markdown)
 
 
 # --------------------------------------------------------------------------- #

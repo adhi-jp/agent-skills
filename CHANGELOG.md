@@ -13,6 +13,39 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skills/skill-eval/scripts/eval_runner.py run` now accepts `--executor-model`
+  and `--grader-model`, so the executor and grader subprocesses can run on
+  different models. `--model` stays the shared default that either role flag
+  overrides; a blank or omitted role flag falls back to it. All three values
+  are validated before any subprocess launches, with the offending flag named
+  on error. The resolved per-role models are recorded as additive
+  `executor_model`/`grader_model` fields in `iteration_manifest.json` and
+  `benchmark.json`; `benchmark.md` renders separate executor/grader model lines
+  only when the resolved roles differ, and `benchmark.json` files without the
+  new fields keep their existing single-line model rendering. The hermetic stub
+  provider now records a provided model in its recorded argv so role-level
+  wiring is auditable in `run.json`. Validation:
+  `python3 -m unittest tests.test_eval_runner -v`.
+- `skills/skill-eval/scripts/eval_runner.py run` now builds git-backed eval
+  sandboxes from tracked repository paths with current working-tree contents,
+  so untracked or ignored leftovers do not become executor-visible baseline
+  files. The sandbox still filters host-local/generated directories, preserves
+  uncommitted edits to tracked files, honors tracked-file working-tree
+  deletions, records a bounded excluded-path sample and contamination status in
+  `run.json`, uses an unverified copytree fallback only for non-git source
+  roots, and fails instead of falling back when git metadata exists but cannot
+  be inspected. Validation:
+  `python3 -m unittest tests.test_eval_runner.SeparationTests.test_sandbox_excludes_untracked_working_tree_files tests.test_eval_runner.SeparationTests.test_sandbox_preserves_tracked_fixture_working_tree_content tests.test_eval_runner.SeparationTests.test_sandbox_preserves_tracked_skill_working_tree_content tests.test_eval_runner.SeparationTests.test_sandbox_skips_tracked_files_deleted_from_working_tree tests.test_eval_runner.SeparationTests.test_sandbox_filters_tracked_paths_under_excluded_dirs tests.test_eval_runner.SeparationTests.test_non_git_source_falls_back_to_unverified_copytree tests.test_eval_runner.SeparationTests.test_git_metadata_without_git_executable_fails_loudly -v`.
+- `skills/skill-eval/scripts/eval_runner.py run` now records the executor's real
+  sandbox file changes as a `change_manifest` (created/modified/deleted paths
+  with content hashes, diffed against the sandbox baseline commit and excluding
+  the runtime `.eval-runner/` scaffold) and folds it into the grader prompt under
+  a `Sandbox File Changes` section, computed identically for `with_skill` and
+  `without_skill`, so a grader can verify self-narrated create/reuse/update
+  claims instead of trusting the executor's narration. When the sandbox git
+  baseline is unavailable the manifest records `captured = false` with a reason
+  and the section is omitted. Validation:
+  `python3 -m unittest tests.test_eval_runner.SeparationTests.test_change_manifest_exact_set_equality tests.test_eval_runner.SeparationTests.test_change_manifest_records_modifications_and_deletions tests.test_eval_runner.SeparationTests.test_change_manifest_folds_into_grader_prompt -v`.
 - README now documents the vibe family's autonomous-operation contract:
   sequential coordinator continuation requires recordable boundary evidence,
   proxy decisions stay AI-selected and never count as human approval,

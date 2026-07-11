@@ -101,11 +101,14 @@ grading collapsed into one agent and the run scored its own output.
   The core path (execute, grade, compare, aggregate, report) is provider-neutral
   and must work on Codex; Claude-only precision such as opt-in metric capture is
   additive, and other providers skip it.
-- An optional `--model` is passed through to the selected provider CLI verbatim
-  (whatever model name that CLI accepts); it is validated before any subprocess
-  launches, applied to both the executor and grader, and recorded in the
-  iteration manifest and benchmark. Absence means the provider's default model,
-  never an injected or guessed model id.
+- Optional model flags are passed through to the selected provider CLI verbatim
+  (whatever model name that CLI accepts): `--model` is the shared default for
+  both roles, and `--executor-model` / `--grader-model` override it per role, so
+  the executor and grader can run on different models. All three values are
+  validated before any subprocess launches, and the resolved per-role models are
+  recorded as `executor_model`/`grader_model` alongside `model` in the iteration
+  manifest and benchmark. Absence means the provider's default model for that
+  role, never an injected or guessed model id.
 - All input validation runs before any subprocess launches: suite shape, the
   authoritative `with_skill` skill source, provider availability, and run
   bounds. Invalid input exits non-zero with zero subprocess launches. An empty
@@ -127,13 +130,19 @@ grading collapsed into one agent and the run scored its own output.
   files not named `SKILL.md`, and paths outside `skills/<skill-name>/`. The
   executor prompt instructs reading that source directly and not substituting a
   host skill tool, snapshot, link, or cached copy.
-- Provider subprocesses run from a per-run sandbox copy of the current repository
-  tree outside the source checkout, not from the source checkout or a nested
-  directory inside it. The runner excludes host-local and generated state such as
-  `.git`, `.agents`, `.claude`, `.codex`, `evals/*/workspace/`, `node_modules/`,
-  and `__pycache__/`, initializes a throwaway git repository when `git` is
-  available, remaps the `with_skill` skill path to the sandbox copy, sets
-  provider `cwd`/`PWD` to the sandbox, and records sandbox details in `run.json`.
+- Provider subprocesses run from a per-run sandbox outside the source checkout,
+  not from the source checkout or a nested directory inside it. For git-backed
+  source checkouts, the sandbox copies git-tracked paths with their current
+  working-tree contents and excludes untracked or ignored leftovers, while still
+  excluding host-local and generated state such as `.git`, `.agents`, `.claude`,
+  `.codex`, `evals/*/workspace/`, `node_modules/`, and `__pycache__/`. A source
+  root that is not a git repository falls back to the legacy copytree path but is
+  recorded as contamination-unverified; a source root with git metadata that
+  cannot be inspected fails instead of silently using the fallback. The runner
+  initializes a throwaway git repository when `git` is available, remaps the
+  `with_skill` skill path to the sandbox copy, sets provider `cwd`/`PWD` to the
+  sandbox, and records sandbox details in `run.json`, including copy strategy,
+  contamination status, and a bounded untracked/ignored exclusion sample.
   Executor or grader edits, installs, and commits must stay inside that sandbox;
   sandbox git initialization failure is recorded, never worked around by running
   in the real repository. Sandbox isolation prevents new writes from
@@ -157,6 +166,15 @@ grading collapsed into one agent and the run scored its own output.
   and record `written_artifact.captured = false`. The designated path does not
   instruct the executor how to structure the artifact, so it adds no
   target-behavior leakage.
+- The runner also records the executor's real file changes in the sandbox as a
+  `change_manifest`: the created, modified, and deleted paths (with content
+  hashes for existing files) diffed against the sandbox baseline commit,
+  excluding the runtime `.eval-runner/` scaffold, computed identically for
+  `with_skill` and `without_skill`. It folds that record into the grader prompt
+  under a `Sandbox File Changes` section so the grader can verify claims about
+  writing, reusing, or updating files instead of trusting the executor's
+  narration; when the sandbox git baseline is unavailable the manifest records
+  `captured = false` with a reason and the grader prompt omits the section.
 - The grader returns a structured, schema-constrained verdict. Verdicts are keyed
   by the assertion's 1-based `id` (`{"verdicts": [{"id", "passed", "evidence"}]}`),
   not by an echoed assertion string, so a grader cannot break grading by
