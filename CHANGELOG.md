@@ -20,6 +20,21 @@ use `[Repository] - YYYY-MM-DD`.
   implementation. Its eval coverage now rejects treating every planning stop as
   a mandatory wait for another user turn. Validation:
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`.
+- `vibe-plan-execution` now resolves user-facing chat language for progress
+  updates, blocker notices, consent questions, and final execution summaries
+  separately from source plan language, with `VIBE_CHAT_LANGUAGE` support, so
+  English plan files or path-only invocations do not make chat responses switch
+  away from the user's configured or conversational language. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`.
+- `vibe-writing` now resolves chat replies, progress updates, final summaries,
+  and confirmation questions separately from artifact language, with
+  `VIBE_CHAT_LANGUAGE` support, so user-facing wrapper prose can stay in the
+  user's configured or conversational language while artifacts and technical
+  tokens keep their own language contracts. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`.
+- `vibe-writing` now treats an active workflow's resolved artifact language as
+  a language contract that wins over existing artifact language for generated
+  prose. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`.
 
 ## [skill-eval 1.1.0] - 2026-07-04
 

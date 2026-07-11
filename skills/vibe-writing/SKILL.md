@@ -74,19 +74,46 @@ allowed, what is optional, or what happens on failure, it is wrong.
 
 ## Language And Format
 
-Choose language by this precedence:
+Resolve chat language separately from artifact language. User-facing chat
+replies, progress updates, final summaries, and confirmation questions use this
+precedence:
+
+1. Explicit current-user instruction for chat, response, or output language.
+2. `VIBE_CHAT_LANGUAGE`, if the environment is safely readable, or a current
+   user instruction explicitly sets it for the request. It may be a natural
+   language name or BCP47 language tag such as `Japanese`, `ja`, `en`, or
+   `pt-BR`; unreadable, empty, or invalid values are unset.
+3. The user's active conversational language.
+4. The last clear user conversational language available in the current
+   workflow context.
+5. English.
+
+Do not infer chat language from source artifacts, referenced plan files,
+filenames without locale markers, commands, skill invocations, code,
+identifiers, or host-wrapper text. Those inputs are language-neutral for chat
+unless the current user explicitly makes them the response-language contract.
+
+Choose artifact language by this precedence:
 
 1. Explicit user instruction, including translation or localization requests.
-2. Existing artifact language.
-3. Filename locale markers such as `README.ja.md` or `docs/de_de/guide.md`.
-4. Project convention.
-5. English.
+2. Active workflow or artifact-specific language contract already selected for
+   the requested artifact, including configuration-driven document-language
+   settings.
+3. Existing artifact language.
+4. Filename locale markers such as `README.ja.md` or `docs/de_de/guide.md`.
+5. Project convention.
+6. English.
+
+Do not reselect language from an existing artifact when an active workflow has
+already resolved the artifact language. In that case, use the selected artifact
+language for generated prose and preserve original-language source wording only
+where it is a useful quote, term, identifier, or evidence anchor.
 
 Preserve file paths, commands, identifiers, environment variables, locale tags,
 message keys, product names, canonical strings, and code unless the user
-explicitly asks to translate or rename them. Chat replies follow the user's
-active conversational language unless the requested artifact has its own
-language contract.
+explicitly asks to translate or rename them. Chat-language selection controls
+only wrapper prose, progress updates, summaries, and confirmation questions; it
+does not translate the requested artifact or override exact-format output.
 
 When the requested deliverable is the artifact itself, return the artifact
 directly. Do not add process notes, source-read confirmations, "here is"

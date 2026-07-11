@@ -483,8 +483,13 @@ Conventional Commit messages that describe the actual change without prompt or
 plan-label references. Proposed checkpoint messages are not wrapped in Markdown
 fences, and execution summaries name durable plan, file, workspace, or
 instruction facts instead of prompt-local harness phrases such as `this eval` or
-`current instruction`; inline plans are named by title or goal. Planned
-checkpoint commits do not authorize push, release preparation, version bumps,
+`current instruction`; inline plans are named by title or goal. User-facing
+progress updates, blocker notices, consent questions, and execution summaries
+resolve chat language separately from the source plan language, using explicit
+user instruction, `VIBE_CHAT_LANGUAGE` as a language name or BCP47 tag,
+conversation language, or English fallback while preserving technical tokens.
+Planned checkpoint commits do not
+authorize push, release preparation, version bumps,
 amend/reset/stash/squash, destructive operations, external side effects,
 work-in-progress commits, failing or skipped verification commits, or
 scope-changing commits. When a bound plan includes release work, destructive
@@ -638,7 +643,14 @@ otherwise available through a stable system, while preserving explicitly
 supplied current verification facts that are not tied only to those local
 artifacts. When a requested artifact is the deliverable, `vibe-writing` returns
 the artifact itself without process notes, wrappers, separators, proof-source
-analysis, or translation away from the artifact's own language contract.
+analysis, or translation away from the artifact's own language contract. When
+an active workflow has already selected an artifact language, that contract
+wins over existing artifact language and filename locale markers for generated
+prose. Chat replies, progress updates, final summaries, and confirmation
+questions resolve language separately through explicit user instruction,
+`VIBE_CHAT_LANGUAGE` as a language name or BCP47 tag, conversation language, or
+English fallback, so English source artifacts or path-only invocations do not
+change wrapper prose by inertia.
 Commit-message guidance lives in `references/commit-messages.md` and covers
 outcome-focused Conventional Commit subjects, commit-body preserve/cut selection,
 pre-draft context checks, optional non-trivial body labels,

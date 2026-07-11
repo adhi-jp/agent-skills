@@ -7,7 +7,7 @@
     "Output does not invent unsupported reasons, goals, outcomes, roadmap claims, business value, user impact, implementation rationale, tests, rollout status, or performance/security/risk-reduction claims.",
     "Output chooses the correct reader priority: LLM-optimized by default for vibe-coding development text, human-optimized only when the artifact's main reader is human.",
     "Output preserves explicit absence statuses such as tests not run, not measured, no advisory supplied, no rollout plan, or not provided instead of smoothing gaps into confident claims.",
-    "Output follows language precedence: explicit user instruction first, then existing artifact language, filename locale marker, project convention, and English; it preserves file paths, commands, identifiers, environment variables, and canonical strings unless translation is explicitly requested.",
+    "Output follows language precedence: explicit user instruction first, then any active workflow or artifact-specific language contract, existing artifact language, filename locale marker, project convention, and English; it preserves file paths, commands, identifiers, environment variables, and canonical strings unless translation is explicitly requested.",
     "Output stands alone and does not leak prompt-only context such as above, the provided text, as requested, per plan, temporary notes, private branches, local run labels, or author-local paths unless a durable citation is requested.",
     "When the prompt requires an exact machine-readable or template format, output preserves that shape and emits no surrounding prose, Markdown fences, extra headings, or invented fields.",
     "When exact relay is requested or exactness is the value, output preserves verbatim tool or log output instead of summarizing, normalizing, or polishing it.",
@@ -81,17 +81,23 @@
     },
     {
       "id": "E05",
-      "name": "Japanese locale artifact stays Japanese",
-      "prompt": "Please polish this section for docs/README.ja.md. Do not translate filenames, commands, or environment variables.\n\n## セットアップ\nNode 20 を入れます。npm install を実行します。API_URL を .env に設定してください。",
-      "expected_output": "The agent keeps the locale-marked README prose in Japanese while preserving technical tokens in their original form.",
+      "name": "Language precedence across artifacts and chat summaries",
+      "prompt": "Classify and produce these three writing outputs. Preserve file paths, commands, identifiers, environment variables, and canonical strings exactly unless translation is explicitly requested.\n\nA. Polish this section for `docs/README.ja.md`.\n\n## セットアップ\nNode 20 を入れます。npm install を実行します。API_URL を .env に設定してください。\n\nB. Polish this requirements spec section. Active workflow artifact-language contract: English. The existing artifact is mostly Japanese because it was drafted before the workflow language setting changed. Preserve technical tokens and useful quoted wording, but make the revised generated artifact prose follow the active workflow contract.\n\n## 現在の要件\n\n### 確定要件\n\n- ユーザーは週次レポート通知を受け取れる。\n- 通知には `report_id` と `API_URL` を含める。\n- 原文メモ: 「グラフは任意で含めたい」\n\nC. Draft the final chat summary for an active implementation workflow. The requested artifact language is English because the implementation plan and changed docs are English, but the safely readable environment exposes `VIBE_CHAT_LANGUAGE=ja`. Facts supplied by the active workflow: bound plan `docs/plans/account-export-plan.md`; implemented slice CSV export helper; verification `pnpm test -- account-export` passed; remaining step wire the admin button. Return only the chat summary you would send to the user.",
+      "expected_output": "The agent applies language precedence separately for a locale-marked artifact, an active workflow artifact-language contract, and a chat-language setting while preserving technical tokens and avoiding unsupported additions.",
       "files": [],
       "expectations": [
-        "Writes the polished artifact prose in Japanese because `README.ja.md` is locale-marked.",
-        "Preserves `Node 20`, `npm install`, `API_URL`, and `.env` exactly.",
-        "Does not translate commands, file paths, environment variables, product identifiers, or locale markers.",
-        "Does not add an unsupported explanation for `npm install`, such as saying it fetches dependencies.",
-        "Does not switch the section to English because the prompt was written in English.",
-        "Does not add new setup steps or repository assumptions."
+        "For A, writes the polished artifact prose in Japanese because `README.ja.md` is locale-marked.",
+        "For A, preserves `Node 20`, `npm install`, `API_URL`, and `.env` exactly.",
+        "For A, does not add an unsupported explanation for `npm install`, such as saying it fetches dependencies, and does not add new setup steps or repository assumptions.",
+        "For B, writes generated headings and revised artifact prose in English because the active workflow artifact-language contract is English.",
+        "For B, does not keep the revised generated prose in Japanese merely because the existing artifact is Japanese.",
+        "For B, preserves `report_id` and `API_URL` exactly and preserves or clearly labels the useful original Japanese quoted note without translating technical tokens.",
+        "For B, does not add unsupported reasons, implementation details, tests, rollout claims, or benefits.",
+        "For C, writes the chat summary prose in Japanese because `VIBE_CHAT_LANGUAGE=ja` is the chat-language setting.",
+        "For C, does not switch the chat summary to English merely because the plan, docs, artifact language, or supplied workflow facts are English.",
+        "For C, preserves `docs/plans/account-export-plan.md` and `pnpm test -- account-export` exactly, and mentions the implemented CSV export helper, passed verification, and remaining admin-button step from the supplied workflow facts.",
+        "Does not translate commands, file paths, environment variables, product identifiers, locale markers, or evidence tokens.",
+        "Does not add process notes, a `provided text` wrapper, Markdown fences, an explanatory preamble, or a language-selection explanation around any requested artifact or chat summary."
       ]
     },
     {

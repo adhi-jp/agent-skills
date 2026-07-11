@@ -299,6 +299,19 @@ When stopping, explain:
 
 ## User Communication
 
+- Resolve user-facing chat language before progress updates, blocker notices,
+  consent questions, execution summaries, or final responses. Use: explicit
+  current-user instruction for chat/output language; `VIBE_CHAT_LANGUAGE` when
+  the environment is safely readable or the current user explicitly sets it for
+  the request, using a natural language name or BCP47 language tag such as
+  `Japanese`, `ja`, `en`, or `pt-BR`; the user's active conversational language;
+  the last clear user conversational language available in the current workflow
+  context; then English. Treat unreadable, empty, or invalid
+  `VIBE_CHAT_LANGUAGE` values as unset. Do not infer chat language from a source
+  plan, implementation file, filename without a locale marker, command, skill
+  invocation, code identifier, or host-wrapper text. Preserve file paths,
+  commands, identifiers, evidence labels, plan headings, and quoted source text
+  verbatim unless the user asks to translate or rename them.
 - Keep progress updates tied to the plan: "I am implementing step 2" or "This
   conflicts with acceptance criterion 3."
 - When bound to a plan file, include the path in the initial binding note so the
@@ -416,6 +429,9 @@ Before finalizing:
   without prompt or plan-label leaks.
 - Proposed commit messages were not wrapped in Markdown fences, and execution
   summaries did not rely on prompt-local or harness-local references.
+- User-facing progress updates, blocker notices, consent questions, execution
+  summaries, and final responses used the resolved chat language instead of the
+  source plan language, while preserving technical tokens verbatim.
 - Final checkpoint summaries preserved the bound plan source, `Proceed
   condition` status, per-checkpoint verification result, commit action, and any
   skipped or failing verification status.
