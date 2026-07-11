@@ -175,6 +175,25 @@ user-visible behavior, scope, or acceptance criteria, and implementation
 planning for proof, tests, edit order, or risk handling — instead of continuing
 patch-by-patch execution against a known-bad contract.
 
+#### Autonomous operation across the vibe family
+
+The family's autonomy contract is sequential coordinator continuation: a
+downstream phase must first stop and return recordable artifact-bound boundary
+evidence — recorded approval, a handoff record, or a ready proceed condition —
+before `vibe-coding` starts the already-requested next phase as a separate
+route. No orchestrated run may cross an approval, proceed, or consent boundary
+in one unattended pass. Question-heavy quality phases may advance delegable
+low-risk judgments through proxy decisions, and those are always recorded as
+AI-selected defaults, assumptions, or directions — never as human approval.
+Destructive, credential, permission, billing, security, irreversible,
+data-migration, release, and history-mutation decisions always stop for the
+human user. Two surfaces are inherently interactive with no proxy branch: the
+plan pre-check walkthrough, where per-item decisions and reflection consent
+stay with the user, and review fix selection and history operations, where the
+user selects which fixes apply and commits, squashes, and other history
+mutation need operation-specific consent. Under unattended orchestration those
+phases report the interactive requirement and stop.
+
 ### `vibe-requirements-spec`
 
 Markdown requirements-spec drafting skill for rough, ambiguous, contradictory,

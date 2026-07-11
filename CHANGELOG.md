@@ -13,6 +13,12 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- README now documents the vibe family's autonomous-operation contract:
+  sequential coordinator continuation requires recordable boundary evidence,
+  proxy decisions stay AI-selected and never count as human approval,
+  human-risk decisions always stop, and the plan pre-check walkthrough and
+  review fix/history decisions remain inherently interactive with no proxy
+  branch.
 - `vibe-plan-review` now searches `docs/specs/` in addition to legacy `specs/`
   and the plan's directory when a saved plan references no requirements spec,
   so a same-goal spec saved at the current default location is bound as
