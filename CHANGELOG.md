@@ -46,6 +46,13 @@ use `[Repository] - YYYY-MM-DD`.
   baseline is unavailable the manifest records `captured = false` with a reason
   and the section is omitted. Validation:
   `python3 -m unittest tests.test_eval_runner.SeparationTests.test_change_manifest_exact_set_equality tests.test_eval_runner.SeparationTests.test_change_manifest_records_modifications_and_deletions tests.test_eval_runner.SeparationTests.test_change_manifest_folds_into_grader_prompt -v`.
+- The `vibe-requirements-spec` common spec-structure assertion now distinguishes
+  full generated specs from targeted in-place updates of pre-existing partial
+  specs and requires recorded spec content rather than self-narration when
+  judging section separation, so graders do not penalize a narrow in-place
+  update for omitting unrelated empty sections or pass an output whose recorded
+  artifacts do not expose the spec content needed for inspection. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`.
 - README now documents the vibe family's autonomous-operation contract:
   sequential coordinator continuation requires recordable boundary evidence,
   proxy decisions stay AI-selected and never count as human approval,
