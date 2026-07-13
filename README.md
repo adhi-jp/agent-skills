@@ -67,6 +67,10 @@ The `run` summary and `benchmark.md` also show per-config executor execution
 time and token usage (the executor/skill-run subprocess only, grader scoring
 cost excluded); uncaptured or partial provider metrics appear as absent with a
 reason, never a placeholder number.
+For Claude runs, `run.json` can also include redacted `executor_evidence` from
+host transcripts: tool names, host-issued tool-use ids, and sub-agent record ids
+only. The grader prompt receives that evidence when captured so delegation/tool
+claims are checked against runner-recorded host state instead of executor prose.
 
 Generated eval workspaces live under `evals/<skill-name>/workspace/<agent>/`
 and are local artifacts unless explicitly requested for commit.

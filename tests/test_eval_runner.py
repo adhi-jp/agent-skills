@@ -1405,6 +1405,131 @@ class ProviderParserTests(unittest.TestCase):
             self.assertTrue(info["truncated"])
             self.assertIn("artifact truncated", text)
 
+    def test_claude_parse_captures_session_id(self):
+        sample = json.dumps(
+            {
+                "result": "the answer",
+                "session_id": "eb70ba0d-1234",
+                "usage": {"input_tokens": 1, "output_tokens": 1},
+            }
+        )
+        _output, metrics = eval_runner.ClaudeProvider().parse(
+            run_dir=Path("."), stdout=sample, stderr="", exit_code=0, role="executor"
+        )
+        self.assertEqual(metrics["session_id"], "eb70ba0d-1234")
+
+    def test_collect_executor_evidence_absent_for_non_claude(self):
+        # A non-claude provider has no equivalent host transcript, so evidence
+        # stays uncaptured with a reason rather than being coerced to empty.
+        result = eval_runner.collect_executor_evidence(
+            {"provider": "codex"}, Path(".")
+        )
+        self.assertFalse(result["captured"])
+        self.assertEqual(result["source"], "host")
+        self.assertIn("codex", result["reason"])
+
+    def test_collect_executor_evidence_absent_without_session_id(self):
+        result = eval_runner.collect_executor_evidence(
+            {"provider": "claude"}, Path(".")
+        )
+        self.assertFalse(result["captured"])
+        self.assertIn("session id", result["reason"])
+
+    def test_collect_executor_evidence_reads_host_transcript_redacted(self):
+        # A real host transcript with a genuine tool_use plus a host-created
+        # subagent record is reduced to tool name + host-issued ids only;
+        # prompt text and tool_result payloads never leave the collector.
+        with tempfile.TemporaryDirectory() as tmp:
+            config_dir = Path(tmp) / "claude-home"
+            cwd = Path(tmp) / "work"
+            cwd.mkdir()
+            session_id = "eb70ba0d-abcd"
+            project_dir = config_dir / "projects" / eval_runner.encode_claude_project_dir(cwd)
+            project_dir.mkdir(parents=True)
+            transcript = project_dir / f"{session_id}.jsonl"
+            transcript.write_text(
+                "\n".join(
+                    [
+                        json.dumps({"type": "user", "message": {"role": "user", "content": "SECRET PROMPT"}}),
+                        json.dumps({
+                            "message": {
+                                "role": "assistant",
+                                "content": [
+                                    {"type": "text", "text": "private reasoning"},
+                                    {"type": "tool_use", "id": "toolu_0125", "name": "Task", "input": {"x": 1}},
+                                ],
+                            }
+                        }),
+                        json.dumps({
+                            "message": {
+                                "role": "user",
+                                "content": [
+                                    {"type": "tool_result", "tool_use_id": "toolu_0125", "content": "SECRET RESULT"}
+                                ],
+                            }
+                        }),
+                    ]
+                ),
+                encoding="utf-8",
+            )
+            subagents = transcript.parent / session_id / "subagents"
+            subagents.mkdir(parents=True)
+            (subagents / "agent-aa5741b23627c2899.jsonl").write_text("{}\n", encoding="utf-8")
+            env = dict(os.environ)
+            env["CLAUDE_CONFIG_DIR"] = str(config_dir)
+            old = os.environ.get("CLAUDE_CONFIG_DIR")
+            os.environ["CLAUDE_CONFIG_DIR"] = str(config_dir)
+            try:
+                result = eval_runner.collect_executor_evidence(
+                    {"provider": "claude", "session_id": session_id}, cwd
+                )
+            finally:
+                if old is None:
+                    os.environ.pop("CLAUDE_CONFIG_DIR", None)
+                else:
+                    os.environ["CLAUDE_CONFIG_DIR"] = old
+        self.assertTrue(result["captured"])
+        ids = {entry["id"] for entry in result["entries"]}
+        self.assertIn("toolu_0125", ids)
+        self.assertIn("aa5741b23627c2899", ids)
+        # Redaction: no prompt/reasoning/tool-result content leaks into evidence.
+        blob = json.dumps(result)
+        self.assertNotIn("SECRET PROMPT", blob)
+        self.assertNotIn("SECRET RESULT", blob)
+        self.assertNotIn("private reasoning", blob)
+
+    def test_render_grader_prompt_folds_executor_evidence_with_no_fabrication_rule(self):
+        suite = eval_runner.EvalSuite(
+            path=Path("demo.json"), skill_name="demo", common_assertions=["c1"],
+            evals=[], scoring={}, raw={},
+        )
+        case = eval_runner.EvalCase(
+            eval_id="E1", name="n", prompt="p", expected_output="",
+            project_class=None, archetype=None, files=[], expectations=["e1"], raw={},
+        )
+        evidence = {
+            "captured": True,
+            "source": "host",
+            "session_id": "s1",
+            "entries": [
+                {"type": "tool_use", "id": "toolu_0125", "name": "Task"},
+                {"type": "subagent", "id": "aa5741b23627c2899", "record_path": "/x"},
+            ],
+        }
+        prompt = eval_runner.render_grader_prompt(
+            suite, case, "with_skill", "out", None, None, evidence
+        )
+        self.assertIn("## Executor Tool/Delegation Evidence", prompt)
+        self.assertIn("aa5741b23627c2899", prompt)
+        self.assertIn("host-issued", prompt)
+        self.assertNotIn("SECRET", prompt)
+        # Uncaptured evidence adds no section.
+        prompt_absent = eval_runner.render_grader_prompt(
+            suite, case, "with_skill", "out", None, None,
+            {"captured": False, "source": "host", "reason": "no session id", "entries": []},
+        )
+        self.assertNotIn("## Executor Tool/Delegation Evidence", prompt_absent)
+
     def test_render_grader_prompt_includes_artifact_only_when_present(self):
         suite = eval_runner.EvalSuite(
             path=Path("demo.json"),

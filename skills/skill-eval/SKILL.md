@@ -175,6 +175,15 @@ grading collapsed into one agent and the run scored its own output.
   writing, reusing, or updating files instead of trusting the executor's
   narration; when the sandbox git baseline is unavailable the manifest records
   `captured = false` with a reason and the grader prompt omits the section.
+- For Claude runs, the runner also records a redacted host tool/delegation trace
+  as `executor_evidence`. It captures the CLI `session_id`, reads the host
+  transcript under `<CLAUDE_CONFIG_DIR or ~/.claude>/projects/<encoded-cwd>/`,
+  and folds only tool names, host-issued tool-use ids, and host-created
+  sub-agent record ids into the grader prompt under `Executor Tool/Delegation
+  Evidence`. Prompt text, reasoning, and tool results stay redacted. This record
+  is marked `source = host` because it reads host state outside the sandbox. For
+  providers without an equivalent host transcript the field records
+  `captured = false` with a reason, and the grader prompt omits the section.
 - The grader returns a structured, schema-constrained verdict. Verdicts are keyed
   by the assertion's 1-based `id` (`{"verdicts": [{"id", "passed", "evidence"}]}`),
   not by an echoed assertion string, so a grader cannot break grading by

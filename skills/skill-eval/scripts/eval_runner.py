@@ -961,6 +961,190 @@ def collect_sandbox_change_manifest(sandbox: SandboxContext) -> dict[str, Any]:
 
 
 # --------------------------------------------------------------------------- #
+# Executor evidence: host-recorded tool/delegation trace.
+#
+# The grader otherwise sees only the executor's final response, one designated
+# artifact, and the sandbox file manifest. None of those record whether the
+# executor really invoked host tools or delegated sub-agents, so a grader has to
+# guess whether an ``agentId``/``task ID`` a truthful executor cites is a real
+# host record or a fabricated string -- and a guessing grader can wrongly rule a
+# genuine host-issued id "fabricated". This collector reads the host's own
+# transcript for the executor session and folds a *redacted* trace (tool names
+# and host-issued ids only) into the grader prompt, so delegation-proof
+# assertions score against a real record instead of a guess.
+#
+# Redaction is mandatory: the transcript also holds the executor's full prompt,
+# reasoning, and tool results, none of which may reach the grader or the
+# executor's own content would flow back into scoring. Only tool names and
+# host-issued identifiers/locators leave this function.
+#
+# Claude-only precision: the trace is derived from the Claude CLI ``session_id``
+# and the host transcript layout. Providers that expose no equivalent record
+# stay ``captured=false`` with a reason, matching the additive Claude-only
+# contract the metrics path already uses.
+# --------------------------------------------------------------------------- #
+EXECUTOR_EVIDENCE_MAX_ENTRIES = 200
+
+
+def claude_config_dir() -> Path:
+    """Honor CLAUDE_CONFIG_DIR; fall back to the default ~/.claude home."""
+    configured = os.environ.get("CLAUDE_CONFIG_DIR")
+    if configured and configured.strip():
+        return Path(configured).expanduser()
+    return Path.home() / ".claude"
+
+
+def encode_claude_project_dir(cwd: Path) -> str:
+    """Claude Code stores a session transcript under
+    ``<config>/projects/<encoded-cwd>/<session_id>.jsonl``, where the project
+    directory name is the absolute cwd with every non-alphanumeric character
+    replaced by ``-``."""
+    return re.sub(r"[^A-Za-z0-9]", "-", str(cwd.resolve()))
+
+
+def find_claude_transcript(session_id: str, cwd: Path) -> Path | None:
+    """Locate the host transcript for a Claude session id. Prefer the encoded
+    cwd directory; fall back to scanning every project dir so a small encoding
+    mismatch does not lose the record."""
+    projects = claude_config_dir() / "projects"
+    if not projects.is_dir():
+        return None
+    preferred = projects / encode_claude_project_dir(cwd) / f"{session_id}.jsonl"
+    if preferred.is_file():
+        return preferred
+    try:
+        matches = sorted(projects.glob(f"*/{session_id}.jsonl"))
+    except OSError:
+        return None
+    return matches[0] if matches else None
+
+
+def _iter_jsonl(path: Path) -> Any:
+    try:
+        with path.open("r", encoding="utf-8", errors="replace") as handle:
+            for line in handle:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    yield json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+    except OSError:
+        return
+
+
+def extract_claude_tool_evidence(transcript: Path) -> list[dict[str, Any]]:
+    """Pull only tool names and host-issued tool-use ids from a transcript.
+
+    Deliberately ignores every other field -- prompt text, assistant reasoning,
+    and tool_result payloads never leave this function -- so the executor's own
+    content cannot flow back into grading."""
+    entries: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for record in _iter_jsonl(transcript):
+        if not isinstance(record, dict):
+            continue
+        message = record.get("message")
+        content = message.get("content") if isinstance(message, dict) else None
+        if not isinstance(content, list):
+            continue
+        for item in content:
+            if not isinstance(item, dict) or item.get("type") != "tool_use":
+                continue
+            tool_id = item.get("id")
+            name = item.get("name")
+            if not isinstance(tool_id, str) or tool_id in seen:
+                continue
+            seen.add(tool_id)
+            entry: dict[str, Any] = {"type": "tool_use", "id": tool_id}
+            if isinstance(name, str) and name.strip():
+                entry["name"] = name.strip()
+            entries.append(entry)
+            if len(entries) >= EXECUTOR_EVIDENCE_MAX_ENTRIES:
+                return entries
+    return entries
+
+
+def extract_claude_subagent_evidence(transcript: Path, session_id: str) -> list[dict[str, Any]]:
+    """List host-created sub-agent record files by their host-issued id.
+
+    Only the id (from the file name) and the record path are emitted; the
+    sub-agent transcript contents are never read into the grader prompt."""
+    entries: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    candidate_dirs = [
+        transcript.parent / session_id / "subagents",
+        transcript.with_suffix("") / "subagents",
+        transcript.parent / "subagents",
+    ]
+    for directory in candidate_dirs:
+        if not directory.is_dir():
+            continue
+        try:
+            files = sorted(directory.glob("agent-*.jsonl"))
+        except OSError:
+            continue
+        for record_file in files:
+            agent_id = record_file.stem[len("agent-"):]
+            if not agent_id or agent_id in seen:
+                continue
+            seen.add(agent_id)
+            entries.append(
+                {"type": "subagent", "id": agent_id, "record_path": str(record_file)}
+            )
+            if len(entries) >= EXECUTOR_EVIDENCE_MAX_ENTRIES:
+                return entries
+    return entries
+
+
+def collect_executor_evidence(metrics: dict[str, Any], cwd: Path) -> dict[str, Any]:
+    """Return a redacted, host-recorded tool/delegation trace for the executor.
+
+    Reads host state (the Claude transcript under the config home), not sandbox
+    state, so the record is flagged ``source: host`` to keep that boundary
+    explicit. Providers without an exposed session locator, or runs whose
+    transcript cannot be found, stay ``captured=false`` with a reason so the
+    grader never treats absence as disproof."""
+    provider = metrics.get("provider")
+    if provider != "claude":
+        return {
+            "captured": False,
+            "source": "host",
+            "reason": f"executor evidence capture is not available for provider {provider!r}",
+            "entries": [],
+        }
+    session_id = metrics.get("session_id")
+    if not isinstance(session_id, str) or not session_id.strip():
+        return {
+            "captured": False,
+            "source": "host",
+            "reason": "provider did not expose a session id",
+            "entries": [],
+        }
+    session_id = session_id.strip()
+    transcript = find_claude_transcript(session_id, cwd)
+    if transcript is None:
+        return {
+            "captured": False,
+            "source": "host",
+            "session_id": session_id,
+            "reason": "host transcript not found for session id",
+            "entries": [],
+        }
+    entries = extract_claude_tool_evidence(transcript)
+    entries.extend(extract_claude_subagent_evidence(transcript, session_id))
+    return {
+        "captured": True,
+        "source": "host",
+        "session_id": session_id,
+        "transcript_path": str(transcript),
+        "note": "Host-recorded trace read from the Claude transcript home, not the sandbox. Only tool names and host-issued ids are included; prompt text, reasoning, and tool results are redacted.",
+        "entries": entries,
+    }
+
+
+# --------------------------------------------------------------------------- #
 # Prompt rendering: executor gets the task only; grader gets output + assertions.
 # --------------------------------------------------------------------------- #
 def render_executor_prompt(
@@ -1079,6 +1263,7 @@ def render_grader_prompt(
     executor_output: str,
     artifact_text: str | None = None,
     change_manifest: dict[str, Any] | None = None,
+    executor_evidence: dict[str, Any] | None = None,
 ) -> str:
     assertions = assertions_for_case(suite, case)
     boundary_rules = [
@@ -1103,6 +1288,17 @@ def render_grader_prompt(
             "claim to have created or updated a file is only supported when that path appears there, "
             "and a claim to have reused a pre-existing file is contradicted when that path is listed "
             "as added."
+        )
+    evidence_entries = (executor_evidence or {}).get("entries") if executor_evidence else None
+    if executor_evidence is not None and executor_evidence.get("captured"):
+        boundary_rules.append(
+            "- The Executor Tool/Delegation Evidence section below is the runner's own record, read "
+            "from the host session transcript, of the tool calls and sub-agents the executor actually "
+            "invoked. Every id listed there is host-issued, not authored by the executor: do not judge "
+            "any id in that section as fabricated or 'generated-looking'. When the executor cites an id "
+            "that appears there, treat its delegation/tool claim as backed by a real host record. Only "
+            "an id or run/task record that appears in NO runner-provided evidence section may be "
+            "treated as unproven; executor prose in the recorded output is not runner evidence."
         )
     lines = [
         "# Eval Grader Prompt",
@@ -1155,6 +1351,25 @@ def render_grader_prompt(
                 lines.append(f"- {entry['status']}: `{entry['path']}`{sha_text}")
         else:
             lines.append("The agent made no file changes in its sandbox outside the runtime scaffold.")
+    if executor_evidence is not None and executor_evidence.get("captured"):
+        lines.extend(["", "## Executor Tool/Delegation Evidence", ""])
+        lines.append(
+            "Host-recorded trace of the executor's tool calls and sub-agents (host state, not sandbox "
+            "state). Only tool names and host-issued ids are shown; prompt text, reasoning, and tool "
+            "results are redacted. Every id here is host-issued and must not be judged fabricated:"
+        )
+        lines.append("")
+        if evidence_entries:
+            for entry in evidence_entries:
+                kind = entry.get("type", "record")
+                name = entry.get("name")
+                name_text = f" {name}" if isinstance(name, str) else ""
+                lines.append(f"- {kind}{name_text}: `{entry.get('id')}`")
+        else:
+            lines.append(
+                "The transcript recorded no tool calls or sub-agents for this run, so any claim that "
+                "sub-agents ran is unproven."
+            )
     lines += [
         "",
         "## Required response",
@@ -1322,6 +1537,14 @@ class ClaudeProvider(Provider):
             metrics["duration_ms"] = data["duration_ms"]
         if isinstance(data.get("total_cost_usd"), (int, float)):
             metrics["total_cost_usd"] = data["total_cost_usd"]
+        # The session id keys the host transcript at
+        # ``<config>/projects/<encoded-cwd>/<session_id>.jsonl``. It is the only
+        # pointer the runner needs to fold host-issued delegation/tool evidence
+        # into the grader prompt, so record it when the CLI exposes it. It is a
+        # non-sensitive locator, never a usage number.
+        session_id = data.get("session_id")
+        if isinstance(session_id, str) and session_id.strip():
+            metrics["session_id"] = session_id.strip()
         # `claude -p --output-format json` reports an errored turn (for example
         # error_max_turns or error_during_execution) via is_error while still
         # exiting 0 and putting an error message in `result`. Flag it so the
@@ -1733,6 +1956,7 @@ def execute_run(
         artifact_info["capture_path"] = artifact_info.get("path")
         artifact_info["path"] = str(output_artifact_file.resolve())
     change_manifest = collect_sandbox_change_manifest(sandbox)
+    executor_evidence = collect_executor_evidence(metrics, sandbox.repo_root)
 
     status = "ok"
     grader_inv: Invocation | None = None
@@ -1749,7 +1973,7 @@ def execute_run(
 
     if status == "ok":
         grader_prompt = render_grader_prompt(
-            suite, case, config, executor_output, artifact_text, change_manifest
+            suite, case, config, executor_output, artifact_text, change_manifest, executor_evidence
         )
         write_text(run_dir / "grader_prompt.md", grader_prompt)
         grader_inv = provider.build_invocation(
@@ -1799,6 +2023,7 @@ def execute_run(
         "metrics": metrics,
         "written_artifact": artifact_info,
         "change_manifest": change_manifest,
+        "executor_evidence": executor_evidence,
         "sandbox": {
             "source_repo_root": str(sandbox.source_repo_root),
             "repo_root": str(sandbox.repo_root),

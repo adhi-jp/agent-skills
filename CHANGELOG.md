@@ -13,6 +13,20 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skills/skill-eval/scripts/eval_runner.py` now folds a redacted, host-recorded
+  executor tool/delegation trace into the grader prompt and `run.json` as
+  `executor_evidence`. The Claude provider parser records the CLI
+  `session_id`; the runner reads the host transcript at
+  `<CLAUDE_CONFIG_DIR or ~/.claude>/projects/<encoded-cwd>/<session_id>.jsonl`
+  and emits only tool names, host-issued tool-use ids, and host-created
+  sub-agent record ids (prompt text, reasoning, and tool results are redacted).
+  The trace is flagged `source: host` because it reads host state, not sandbox
+  state, and the grader boundary now states that ids in that section are
+  host-issued and must not be judged fabricated. Providers without an exposed
+  session locator (for example codex) stay `captured=false` with a reason,
+  matching the additive Claude-only precision contract. This closes the gap
+  where a grader could wrongly rule a genuine host-issued `agentId` a fabricated
+  string. Validation: `python3 -m unittest tests.test_eval_runner -v`.
 - `skills/skill-eval/scripts/eval_runner.py run` now accepts `--executor-model`
   and `--grader-model`, so the executor and grader subprocesses can run on
   different models. `--model` stays the shared default that either role flag
