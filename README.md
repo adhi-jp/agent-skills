@@ -763,8 +763,9 @@ the same leakage check to its own self-authored assertions, keeps token/time
 claims evidence-bound, requires a closing rerun on a clean, complete run before
 any improvement claim, requires recorded host, runner, or equivalent artifact
 evidence for execution-proof assertions, requires turn-level pairing before
-counting session-history audit evidence, treats excluded or timed-out eval cells
-as partial unmeasured proof until their surface is classified, treats
+counting session-history audit evidence, treats excluded, timed-out, stub, or placeholder eval cells
+as partial unmeasured proof until their surface is classified, keeps any
+diagnostic adjusted aggregate separate from the official runner result, treats
 authoritative source Skill paths as the `with_skill` target instead of host
 tools or snapshots, records lost discrimination and required coverage when an
 assertion or eval case is loosened or deleted, and blocks common regressions

@@ -263,6 +263,15 @@ completeness surface, report the official aggregate with that caveat, and fix
 the eval prompt, runner recording, or proof path before treating the adjusted
 reading as measured improvement.
 
+When you compute an adjusted aggregate that excludes a scored stub,
+placeholder, timeout, or other anomalous cell for diagnosis, label it as
+diagnostic only. Report the official runner aggregate first, list the excluded
+cell ids/configs and exclusion criterion, and use the adjusted number only to
+localize unmeasured or contaminated behavior. Do not replace the benchmark's
+official result, mark the run clean, or use the adjusted reading as proof of
+improvement until a clean rerun or separately scored artifact measures the same
+behavior.
+
 Pure graders stay bound to the suite assertions recorded for the run. The
 change owner treats surprising, repeated, missing, ambiguous, or
 both-config-passing grades as evidence to interpret before editing skill or
@@ -323,6 +332,13 @@ the prior result as a measurement-boundary correction or proof-path
 reclassification unless a separate run isolates a skill-contract change as the
 cause.
 
+If a proof-path or runner-recording change and a skill-contract change land in
+the same rerun, separate what the artifacts prove from what they cannot isolate.
+A grader prompt or verdict that directly cites the new recorded evidence can
+prove the proof path is functioning, but it does not by itself prove how much of
+the pass-rate change came from the skill text, the runner evidence, grader
+behavior, or run variance.
+
 When the proof path, recording contract, assertion boundary, or skill text
 changes, rerun before claiming improvement. Treat single-run headline deltas and
 unstable baselines as caveats. If an action happened but the proof was not
@@ -366,6 +382,8 @@ Before finalizing, reject these common regressions:
   become impossible to satisfy.
 - Counting skipped, flaky, unavailable, self-graded, or incomplete evals as
   proof.
+- Replacing the official runner aggregate with a diagnostic adjusted aggregate
+  that excludes scored anomalous cells.
 - Counting an unrerun or contaminated run — no closing rerun, collapsed
   aggregate metrics, or lost per-eval isolation — as proof of improvement.
 
@@ -387,6 +405,8 @@ Before reporting completion:
 - Did the smallest coupled files change, including evals and changelog when
   required?
 - Are baseline, grader, token, timing, and report claims honest?
+- If any adjusted aggregate excludes anomalous cells, is it labeled diagnostic
+  and kept separate from the official runner result?
 - Are generated workspaces left uncommitted?
 - Did you avoid version bumps unless this is release preparation?
 

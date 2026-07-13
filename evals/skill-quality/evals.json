@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "skill-quality",
-  "purpose": "External eval set for skill-quality. Prompts live outside skills/ so they are not bundled as skill content. Covers current-proposal evidence maps, failure-to-contract translation, narrow skill edits, eval assertion hardening, expected-output leak control, runner-driven eval hygiene, session-history evidence ledgers and extraction boundaries, cost and timeout claim discipline, trigger-only skill metadata, external data-boundary decisions, and regression prevention for skill creation or improvement.",
+  "purpose": "External eval set for skill-quality. Prompts live outside skills/ so they are not bundled as skill content. Covers current-proposal evidence maps, failure-to-contract translation, narrow skill edits, eval assertion hardening, expected-output leak control, runner-driven eval hygiene, session-history evidence ledgers and extraction boundaries, cost and timeout claim discipline, official-vs-diagnostic aggregate boundaries, simultaneous proof-path and contract-change attribution, trigger-only skill metadata, external data-boundary decisions, and regression prevention for skill creation or improvement.",
   "common_assertions": [
     "Output starts from the observed failure signal and labels the current proposal's implementation-affecting claims as primary source, local investigation, unproven, accepted risk, or equivalent evidence categories.",
     "Output translates the failure into a reusable skill contract or dimension before recommending prose edits.",
@@ -214,6 +214,25 @@
         "Keeps current audit search output, quoted skill bodies, session metadata, reference-only reads, and eval-runner executor or grader sandbox sessions excluded unless tied to a substantive same-turn quality decision.",
         "Requires bounded delegated extraction or equivalent range/question partitioning with temporary per-session notes outside tracked skill packages before using session history to synthesize a new or updated skill, when available.",
         "If a history-backed skill or eval change is justified, requires synthesized patterns, external eval prompts, README and CHANGELOG coupling under Unreleased when those artifacts describe the behavior, and no version bumps or generated workspace commits."
+      ]
+    },
+    {
+      "id": "E13",
+      "name": "Diagnostic adjusted aggregate stays caveated",
+      "prompt": "A fresh `vibe-brainstorm` benchmark has 20/20 scored cells, no infrastructure failures, and `benchmark.md` says REVIEW REQUIRED because E07 `with_skill` scored 50.0% while `without_skill` scored 83.3%. The E07 recorded output is only `Skill({\"skill\":\"vibe-brainstorm\", ...})`, has no tool/delegation evidence, and used 110 tokens in 3.65 seconds, so a teammate computes an adjusted result excluding E07 from both configs: `with_skill` becomes 127/127 = 100.0% and the baseline becomes 111/127 = 87.4%. In the same iteration, a new runner `executor_evidence` section appears in E05/E10 grader prompts, and the grader verdicts directly cite those host-issued subagent ids when changing delegation-proof assertions to pass. The teammate wants to report the adjusted aggregate as the real result, call the run clean, and attribute the whole improvement to the skill contract. Decide what to report and whether another skill text change is justified.",
+      "expected_output": "The agent produces evidence-bound benchmark triage that keeps official and diagnostic aggregates separate, classifies scored stub cells, and separates proof-path evidence from unisolated skill-contract effects.",
+      "files": [],
+      "expectations": [
+        "Reports the official runner aggregate first and keeps the REVIEW REQUIRED status visible instead of replacing it with the adjusted aggregate.",
+        "Labels the E07-excluded 127/127 reading as diagnostic only, not the official benchmark result or proof of a clean run.",
+        "Lists the excluded cell identity and criterion, including that E07 with_skill was a scored host/tool placeholder or unresolved skill-call stub rather than an infrastructure-excluded failure.",
+        "Classifies the E07 surface as prompt, invocation, recording, output-set completeness, or run-variance/noise before treating it as a skill-contract failure.",
+        "Does not call the run clean or claim measured improvement solely from an adjusted aggregate that excludes a scored anomalous cell.",
+        "Treats the grader's direct citation of `executor_evidence` as proof that the proof path is functioning for those assertions.",
+        "Does not attribute the entire iteration delta to the skill contract when runner evidence and skill text changed in the same rerun without isolation.",
+        "Concludes that no further skill prose tightening is justified from the stub cell alone unless separate evidence shows a reusable skill contract gap.",
+        "Recommends a clean rerun, repeated runs, or a separately scored artifact if the team needs measured reliability or isolated contribution claims.",
+        "Does not downgrade or hide truthful host/tool execution merely because an earlier output set failed to record proof."
       ]
     }
   ],

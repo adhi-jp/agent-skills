@@ -13,6 +13,16 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skill-quality` now keeps official runner aggregates separate from
+  diagnostic adjusted aggregates that exclude scored anomalous cells such as
+  host-continuation stubs or tool-use placeholders. It requires the adjusted
+  reading to be labeled diagnostic, the excluded cell ids/configs and criteria
+  to be listed, and proof-path or runner-recording changes that land alongside
+  skill-contract changes to be reported as functioning proof-path evidence
+  without attributing the whole pass-rate delta to skill text unless a separate
+  run isolates that cause. A new eval case covers the official-vs-diagnostic
+  aggregate boundary and simultaneous proof-path/contract-change attribution.
+  Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
 - `skills/skill-eval/scripts/eval_runner.py` now folds a redacted, host-recorded
   executor tool/delegation trace into the grader prompt and `run.json` as
   `executor_evidence`. The Claude provider parser records the CLI
