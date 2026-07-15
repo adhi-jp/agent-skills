@@ -319,6 +319,17 @@ text edit. When that stop condition becomes tracked behavior, add or propose
 generic eval coverage for the retry-stop and proof-boundary rule instead of a
 local-case checklist.
 
+If a similar failure moves to a different eval after each targeted wording fix,
+treat that as a moving-failure pattern rather than proof that every new cell
+needs another local sentence. Compare the per-run and cross-run evidence first:
+which assertions fail, whether the failed dimension changes direction, whether
+with-skill remains near ceiling, and whether multi-run results show a stable
+cell or only scattered single-run misses. If repeated runs show low-frequency
+scatter, classify the surface as run variance, prompt or runner leakage, or
+measurement boundary and stop editing skill prose. If repeated runs show a
+stable shared mechanism, choose the broad owner and update that rule or eval
+pressure once instead of adding per-cell patches.
+
 If a targeted fix makes one eval pass while the same failure mechanism appears
 in another eval, stop treating the remaining failure as a local wording problem.
 Classify the shared mechanism, choose its owning artifact, and update the broad
@@ -341,9 +352,12 @@ behavior, or run variance.
 
 When the proof path, recording contract, assertion boundary, or skill text
 changes, rerun before claiming improvement. Treat single-run headline deltas and
-unstable baselines as caveats. If an action happened but the proof was not
-recorded, fix or downgrade the proof claim instead of making the agent deny or
-hide the real action.
+unstable baselines as caveats. If single-run results repeatedly show a moving
+failure or a volatile baseline, use repeated runs or an equivalent separately
+scored artifact before deciding whether to edit again; report per-run spread and
+whether the same cell fails consistently. If an action happened but the proof
+was not recorded, fix or downgrade the proof claim instead of making the agent
+deny or hide the real action.
 
 Do not claim quality, token, time, reliability, safety, or trigger improvement
 unless the run data or review evidence proves that exact claim. Writing
@@ -374,6 +388,8 @@ Before finalizing, reject these common regressions:
 - Weakening proof paths because they are expensive.
 - Continuing wording-only contract tightening after clean reruns leave the
   targeted failure unchanged.
+- Continuing per-cell wording patches when a failure moves across evals and
+  repeated runs have not shown a stable skill-contract gap.
 - Treating a failure that moves across evals after a targeted fix as a new local
   wording problem instead of a shared mechanism.
 - Leaving invalid placeholder text in executable or user-copyable examples

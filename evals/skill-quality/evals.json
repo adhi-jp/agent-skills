@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "skill-quality",
-  "purpose": "External eval set for skill-quality. Prompts live outside skills/ so they are not bundled as skill content. Covers current-proposal evidence maps, failure-to-contract translation, narrow skill edits, eval assertion hardening, expected-output leak control, runner-driven eval hygiene, session-history evidence ledgers and extraction boundaries, cost and timeout claim discipline, official-vs-diagnostic aggregate boundaries, simultaneous proof-path and contract-change attribution, trigger-only skill metadata, external data-boundary decisions, and regression prevention for skill creation or improvement.",
+  "purpose": "External eval set for skill-quality. Prompts live outside skills/ so they are not bundled as skill content. Covers current-proposal evidence maps, failure-to-contract translation, narrow skill edits, eval assertion hardening, expected-output leak control, runner-driven eval hygiene, session-history evidence ledgers and extraction boundaries, cost and timeout claim discipline, official-vs-diagnostic aggregate boundaries, moving-failure and multi-run variance triage, simultaneous proof-path and contract-change attribution, trigger-only skill metadata, external data-boundary decisions, and regression prevention for skill creation or improvement.",
   "common_assertions": [
     "Output starts from the observed failure signal and labels the current proposal's implementation-affecting claims as primary source, local investigation, unproven, accepted risk, or equivalent evidence categories.",
     "Output translates the failure into a reusable skill contract or dimension before recommending prose edits.",
     "Output avoids wording-only optimization, behavior churn, or tracked edits when the evidence does not show a contract gap.",
-    "Output selects the smallest coupled change surface and names SKILL.md, references, evals, README text, and CHANGELOG only when those surfaces own or describe the proposed behavior.",
+    "Output selects the smallest coupled change surface, names the owning file or artifact type when a tracked change is justified, and avoids naming or editing SKILL.md, references, evals, README text, or CHANGELOG when those surfaces do not own or describe the proposed behavior.",
     "Output does not bump skill versions, prepare a release, commit generated workspaces, or assume release authorization unless the user explicitly requested release work.",
     "When a tracked skill/eval behavior change is justified, output updates or proposes eval expectations that are observable, discriminating, and targeted at the failure mode rather than broad style preference.",
     "Output rejects the relevant degeneration shown by the scenario, such as broad rewrites, universal checklists, stale session anecdotes, companion-skill requirements, fake baselines, self-grading bias, or weak proof substitutes."
@@ -23,7 +23,7 @@
         "Rejects the reviewer's suggestion to add concrete empty-name or max-length policy unless a primary product source supports those facts.",
         "Recommends narrowing current acceptance criteria instead of inventing max-length or empty-value constants.",
         "Changes or proposes changes only to the surfaces with an evidence-backed contract gap; if no `vibe-planning` skill gap is shown, scopes the fix to `evals/vibe-planning/evals.json` or the relevant fixture/assertion.",
-        "Adds or proposes negative-pressure eval checks that fail plans which hard-code unsupported product constants or block solely on adjacent optional policy.",
+        "Adds or proposes negative-pressure eval checks, or when no eval gap is justified, identifies existing negative-pressure coverage that fails plans which hard-code unsupported product constants or block solely on adjacent optional policy.",
         "Mentions README and CHANGELOG updates only because the behavior is repository-visible.",
         "Does not weaken high-risk planning safeguards to make the eval pass.",
         "Does not copy a large new checklist into every plan."
@@ -149,21 +149,28 @@
     },
     {
       "id": "E09",
-      "name": "Repeated wording changes stop at proof boundary",
-      "prompt": "After three clean iterations of tightening a skill's output-contract wording, the same execution-proof eval remains near half passing. Each run's private notes say the host tool was used, but the grader sees only final-response text and rejects prose-only IDs. A teammate proposes adding one more stronger sentence banning confirmed labels. Decide the next step.",
-      "expected_output": "The agent produces evidence-bound repeated-rerun triage that compares stable failures with available proof and identifies the next verification path.",
+      "name": "Repeated and moving wording changes stop at proof boundary",
+      "prompt": "After three clean iterations of tightening a skill's output-contract wording, the same execution-proof eval remains near half passing. Each run's private notes say the host tool was used, but the grader sees only final-response text and rejects prose-only IDs. In a later language-gate case, three consecutive `--runs 1` iterations each failed exactly one `with_skill` cell on the same assertion, but the failing cell moved: first E03 English represented turns got Japanese output, then E02 Japanese represented turns got English output, then E10 Japanese continuation got English output. After each single-run failure, a contributor tightened the skill wording and the targeted cell passed, but another cell failed the same class next time. A later `--runs 3` rerun produced 72 scored runs, all ok, with with_skill 98.7% ±0.8pt, without_skill 82.0% ±1.8pt, delta +16.7pt, and only one with_skill language-gate miss across all 72 runs. A teammate proposes adding one more stronger sentence for each latest failure and wants to claim the prior wording edits proved improvement. Decide the next step and how to report the evidence.",
+      "expected_output": "The agent produces evidence-bound repeated-rerun triage that compares stable proof-boundary failures with moving single-run failures, stops per-cell prose churn when evidence points outside skill text, and reports multi-run evidence without overclaiming causality.",
       "files": [],
       "expectations": [
         "Identifies repeated wording-only non-movement as a stop condition rather than a reason for another stronger sentence.",
         "Classifies possible failure surfaces such as measurement or recording gap, prompt or invocation mismatch, grader-boundary issue, assertion scope, skill contract gap, and run variance.",
         "Inspects non-prose levers including runner recording, prompt delivery, grader inputs, assertion scope, output-set completeness, and variance before another skill text edit.",
-        "Does not keep tightening `SKILL.md` prose as the primary next action without new evidence of a skill contract gap.",
         "Separates actual host/tool execution from recorded proof available to the grader.",
         "Requires recorded host or runner evidence, an equivalent non-response artifact, or a downgraded proof claim instead of prose-only IDs or counts.",
+        "Identifies the language-gate misses as a moving-failure pattern rather than independent local skill-contract gaps for E03, E02, and E10.",
+        "Uses the `--runs 3` evidence to classify the language-gate surface as low-frequency run variance, prompt or runner language leakage, or measurement-boundary noise rather than a reason for another `SKILL.md` sentence.",
+        "Stops further per-cell wording patches for the language gate and warns that more prose would overfit the eval noise.",
+        "Reports the official multi-run aggregate and per-run spread before making quality claims: with_skill about 98.7% ±0.8pt, without_skill about 82.0% ±1.8pt, and delta about +16.7pt.",
+        "Treats the +16.7pt multi-run delta as more reliable than the earlier single-run deltas, while still tying the claim to the measured eval set and not to unmeasured reliability or safety.",
+        "Does not claim each prior language wording edit individually caused the improvement, because runner/prompt behavior and run variance were not isolated in those single-run iterations.",
         "Requires a rerun before claiming improvement if the proof path, runner recording, assertion boundary, or skill text changes.",
-        "Treats single-run headline deltas or unstable baselines as variance caveats rather than decisive proof.",
         "Preserves truthful skill behavior and does not force agents to deny real actions solely to satisfy a text-only harness.",
-        "Adds or proposes generic eval coverage for repeated wording-only tightening without adding local domain-specific sections or fixture-derived checklists."
+        "If suggesting future work on language stability, routes it to runner or prompt language isolation rather than skill prose unless new stable evidence shows a skill-contract gap.",
+        "Separates any non-language residual, such as a rare route-selection miss, from the language-noise conclusion and treats it as accepted risk or a candidate for future targeted evidence rather than immediate broad rewrite.",
+        "Does not loosen or delete the language assertion merely because it is noisy; keeps or proposes measurement changes that preserve the contract's coverage.",
+        "Adds or proposes generic eval coverage for repeated wording-only tightening or moving failures without adding local domain-specific sections, fixture-derived checklists, or named language-gate subsections."
       ]
     },
     {

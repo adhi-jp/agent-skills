@@ -13,6 +13,9 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skill-quality` common artifact-surface assertion now accepts no-change or eval-only decisions that avoid naming unrelated `SKILL.md`, reference, README, or changelog surfaces. The assertion still requires the owning file or artifact type when a tracked change is justified, but no longer penalizes concise reports for omitting surfaces that do not own the behavior. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
+- `skill-quality` E01 now accepts an evidence-bound no-change decision when existing negative-pressure coverage already fails plans that hard-code unsupported product constants or block on adjacent optional policy. The eval still requires agents to reject invented empty-name or max-length facts, but no longer requires proposing duplicate eval checks when the current suite already owns that pressure. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
+- `skill-quality` now treats repeated single-run failures that move across eval cells after targeted wording fixes as a moving-failure pattern. Agents should compare per-run and cross-run evidence, use repeated runs when single-run baselines or failure locations are volatile, stop per-cell prose tightening when multi-run evidence shows low-frequency scatter, and route persistent language/prompt leakage to runner or prompt isolation rather than skill prose. The repeated wording/proof-boundary eval case now covers moving-failure and multi-run variance triage without adding a separate case. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
 - `skill-quality` now keeps official runner aggregates separate from
   diagnostic adjusted aggregates that exclude scored anomalous cells such as
   host-continuation stubs or tool-use placeholders. It requires the adjusted
