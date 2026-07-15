@@ -560,6 +560,36 @@ class SeparationTests(BaseRunnerTest):
         self.assertEqual(by_path["AGENTS.md"]["status"], "deleted")
         self.assertIsNone(by_path["AGENTS.md"]["sha256"])
 
+    def test_change_manifest_survives_executor_commit(self):
+        # The manifest is defined relative to the sandbox baseline commit, not
+        # the executor's current HEAD. If the executor correctly commits its
+        # changes, diffing against HEAD would hide the change from the grader.
+        self.init_git_baseline()
+        path = self.write_suite()
+        spec = self.write_stub_spec({
+            "executor_output": "answer",
+            "grading": {"with_skill": {"pass": True}, "without_skill": {"pass": True}},
+            "write_files": {
+                "with_skill": [
+                    {"path": "evals/demo/fixtures/input.txt", "content": "changed and committed\n"}
+                ],
+            },
+            "commit_changes": {"with_skill": True},
+        })
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+
+        record = json.loads(
+            (self.iteration_dir() / "eval-first-eval" / "with_skill" / "run-1" / "run.json").read_text()
+        )
+        by_path = {e["path"]: e for e in record["change_manifest"]["entries"]}
+        self.assertEqual(by_path["evals/demo/fixtures/input.txt"]["status"], "modified")
+        sandbox_root = Path(record["sandbox"]["repo_root"])
+        head = subprocess.check_output(
+            ["git", "-C", str(sandbox_root), "log", "--oneline", "-2"],
+            text=True,
+        )
+        self.assertIn("stub executor commit", head)
+
     def test_change_manifest_folds_into_grader_prompt(self):
         # C2: a self-narrated "reused existing spec" claim is checkable because
         # the grader prompt carries the real change record.

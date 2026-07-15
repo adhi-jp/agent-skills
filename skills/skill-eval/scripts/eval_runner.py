@@ -135,6 +135,7 @@ class SandboxContext:
     skill_path: str | None
     git_initialized: bool
     git_error: str | None = None
+    baseline_commit: str | None = None
     copy_strategy: str = "copytree"
     contamination_status: str = "unverified"
     contamination_reason: str | None = None
@@ -694,10 +695,10 @@ def sandbox_copy_ignore(repo_root: Path) -> Callable[[str, list[str]], set[str]]
     return ignore
 
 
-def initialize_sandbox_git(repo_root: Path) -> tuple[bool, str | None]:
+def initialize_sandbox_git(repo_root: Path) -> tuple[bool, str | None, str | None]:
     git = shutil.which("git")
     if not git:
-        return False, "git executable not found"
+        return False, "git executable not found", None
 
     env = sanitized_git_env()
     env.update(
@@ -725,8 +726,19 @@ def initialize_sandbox_git(repo_root: Path) -> tuple[bool, str | None]:
         )
         if result.returncode != 0:
             stderr = result.stderr.strip() or result.stdout.strip() or "unknown git error"
-            return False, f"{command[:2]} failed: {stderr}"
-    return True, None
+            return False, f"{command[:2]} failed: {stderr}", None
+    baseline = subprocess.run(
+        [git, "rev-parse", "--verify", "HEAD"],
+        cwd=repo_root,
+        text=True,
+        capture_output=True,
+        env=env,
+        check=False,
+    )
+    if baseline.returncode != 0:
+        stderr = baseline.stderr.strip() or baseline.stdout.strip() or "git rev-parse failed"
+        return False, f"baseline commit lookup failed: {stderr}", None
+    return True, None, baseline.stdout.strip()
 
 
 def listed_source_paths(source_repo_root: Path, args: list[str]) -> list[str]:
@@ -833,13 +845,14 @@ def create_run_sandbox(source_repo_root: Path, run_dir: Path, skill_path: str | 
         excluded_untracked_count, excluded_untracked_sample = copy_tracked_working_tree(
             source_repo_root, sandbox_repo_root
         )
-    git_initialized, git_error = initialize_sandbox_git(sandbox_repo_root)
+    git_initialized, git_error, baseline_commit = initialize_sandbox_git(sandbox_repo_root)
     return SandboxContext(
         source_repo_root=source_repo_root,
         repo_root=sandbox_repo_root,
         skill_path=remap_path_into_sandbox(skill_path, source_repo_root, sandbox_repo_root),
         git_initialized=git_initialized,
         git_error=git_error,
+        baseline_commit=baseline_commit,
         copy_strategy=copy_strategy,
         contamination_status=contamination_status,
         contamination_reason=contamination_reason,
@@ -920,8 +933,17 @@ def collect_sandbox_change_manifest(sandbox: SandboxContext) -> dict[str, Any]:
             "reason": sandbox.git_error or "sandbox git not initialized",
             "entries": [],
         }
+    if not sandbox.baseline_commit:
+        return {
+            "captured": False,
+            "reason": "sandbox baseline commit unavailable",
+            "entries": [],
+        }
     try:
-        diff = run_git(sandbox.repo_root, ["diff", "--name-status", "-z", "--no-renames", "HEAD"])
+        diff = run_git(
+            sandbox.repo_root,
+            ["diff", "--name-status", "-z", "--no-renames", sandbox.baseline_commit],
+        )
         others = run_git(sandbox.repo_root, ["ls-files", "--others", "--exclude-standard", "-z"])
     except CommandError as exc:
         return {"captured": False, "reason": str(exc), "entries": []}
@@ -1606,7 +1628,7 @@ class CodexProvider(Provider):
 # instead of a network CLI. Its behavior is driven entirely by environment
 # pointers so production runs never select it unless explicitly configured.
 STUB_RUNNER_SOURCE = r'''
-import json, os, re, sys, time
+import json, os, re, subprocess, sys, time
 
 role = sys.argv[1]
 prompt = sys.stdin.read()
@@ -1666,6 +1688,26 @@ if role == "executor":
         target = os.path.join(os.getcwd(), rel)
         if os.path.isfile(target):
             os.remove(target)
+    if (spec.get("commit_changes") or {}).get(config):
+        subprocess.run(["git", "add", "-A"], cwd=os.getcwd(), check=True, capture_output=True, text=True)
+        subprocess.run(
+            [
+                "git",
+                "-c",
+                "user.name=Eval Stub",
+                "-c",
+                "user.email=eval-stub@example.invalid",
+                "commit",
+                "--no-gpg-sign",
+                "--no-verify",
+                "-m",
+                "stub executor commit",
+            ],
+            cwd=os.getcwd(),
+            check=True,
+            capture_output=True,
+            text=True,
+        )
     touch_absolute = spec.get("touch_absolute")
     if touch_absolute:
         with open(touch_absolute, "w", encoding="utf-8") as handle:
