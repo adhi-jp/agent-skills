@@ -282,7 +282,7 @@ class SeparationTests(BaseRunnerTest):
         self.assertNotIn("CLAUDECODE", executor["env_keys"])
         self.assertNotIn("CLAUDECODE", grader["env_keys"])
 
-    def test_executor_and_grader_run_in_sandbox_repo(self):
+    def test_executor_runs_in_sandbox_and_grader_is_isolated(self):
         path = self.write_suite()
         spec = self.write_stub_spec()
         self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
@@ -290,13 +290,24 @@ class SeparationTests(BaseRunnerTest):
         record = json.loads((run_dir / "run.json").read_text())
 
         sandbox_root = Path(record["sandbox"]["repo_root"])
+        # The executor works inside the per-run sandbox repo copy.
         self.assertEqual(Path(record["executor_invocation"]["cwd"]), sandbox_root)
-        self.assertEqual(Path(record["grader_invocation"]["cwd"]), sandbox_root)
         self.assertTrue(sandbox_root.is_absolute())
         self.assertFalse(eval_runner.path_is_lexically_relative_to(sandbox_root, self.root))
         self.assertTrue((sandbox_root / "AGENTS.md").is_file())
         self.assertFalse((sandbox_root / ".agents").exists())
         self.assertFalse((sandbox_root / "evals" / "demo" / "workspace").exists())
+
+        # The grader must grade from its prompt alone. It runs in an isolated,
+        # empty working directory -- never the sandbox repo -- so it cannot
+        # re-read fixtures and grade against ground truth the executor never had.
+        grader_cwd = Path(record["grader_invocation"]["cwd"])
+        self.assertTrue(grader_cwd.is_absolute())
+        self.assertNotEqual(grader_cwd, sandbox_root)
+        self.assertFalse(eval_runner.path_is_lexically_relative_to(grader_cwd, sandbox_root))
+        self.assertFalse(eval_runner.path_is_lexically_relative_to(grader_cwd, self.root))
+        # Empty: no fixtures, no suite files, nothing to read as ground truth.
+        self.assertEqual(list(grader_cwd.iterdir()), [])
 
     def test_executor_writes_stay_in_sandbox(self):
         path = self.write_suite()

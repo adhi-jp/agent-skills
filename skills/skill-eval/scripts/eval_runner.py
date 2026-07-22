@@ -3,9 +3,12 @@
 
 The runner drives execution itself. For each eval x config x run it spawns a
 fresh executor subprocess with the prompt only (no assertions), then a fresh
-grader subprocess with a clean environment and only the executor output plus the
-assertions. It aggregates a ``with_skill`` vs ``without_skill`` raw pass-rate
-comparison into ``benchmark.json`` and ``benchmark.md``.
+grader subprocess with a clean environment, an isolated empty working directory,
+and only the executor output plus the assertions. The executor runs inside the
+per-run sandbox repo; the grader does not, so it cannot re-derive ground truth by
+reading fixture files and must grade from its prompt alone. It aggregates a
+``with_skill`` vs ``without_skill`` raw pass-rate comparison into
+``benchmark.json`` and ``benchmark.md``.
 
 All input validation (suite shape, skill source, provider availability, run
 bounds) runs before any subprocess launches; invalid input exits non-zero with
@@ -873,6 +876,26 @@ def external_sandbox_repo_root(run_dir: Path) -> Path:
     digest = hashlib.sha256(str(resolved_run_dir).encode("utf-8")).hexdigest()[:16]
     slug = re.sub(r"[^A-Za-z0-9_.-]+", "-", resolved_run_dir.name).strip("-") or "run"
     return (sandbox_base_dir() / f"{slug}-{digest}" / "repo").resolve()
+
+
+def grader_working_dir(run_dir: Path) -> Path:
+    """Return an empty, isolated working directory for the grader subprocess.
+
+    The grader must decide pass/fail from its prompt alone (recorded output,
+    assertions, and the runner-provided file-change/tool-evidence sections). If
+    the grader ran in the sandbox repo it could re-read fixtures and grade
+    against ground truth the executor never had -- and when two evals share a
+    plan title (for example an inline plan and a file-backed fixture plan with
+    the same heading), it can silently bind to the wrong file and fail an
+    accurate executor for "inventing" text that only lives in the other file.
+    Pointing the grader at an empty per-run directory removes that filesystem
+    escape hatch without touching the executor's sandbox.
+    """
+    grader_dir = (external_sandbox_repo_root(run_dir).parent / "grader-cwd").resolve()
+    if grader_dir.exists():
+        shutil.rmtree(grader_dir)
+    grader_dir.mkdir(parents=True, exist_ok=True)
+    return grader_dir
 
 
 def collect_written_artifact(artifact_file: Path) -> tuple[str | None, dict[str, Any]]:
@@ -2024,7 +2047,7 @@ def execute_run(
             role="grader",
             model=grader_model,
             schema=grader_schema(),
-            cwd=sandbox.repo_root,
+            cwd=grader_working_dir(run_dir),
         )
         g_stdout, g_stderr, g_exit, g_timeout = run_invocation(grader_inv, timeout)
         grader_output, grader_metrics = provider.parse(

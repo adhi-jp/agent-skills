@@ -149,6 +149,16 @@ grading collapsed into one agent and the run scored its own output.
   contaminating the source checkout, but it does not prove the source fixtures
   were clean before copy; the runner records declared fixture-root dirtiness
   before and after execution as a sanity-check anomaly.
+- Only the executor runs inside the sandbox repo copy. The grader runs in a
+  separate empty per-run working directory, never the sandbox repo, so it cannot
+  re-read fixtures, suite files, or the skill source to reconstruct ground truth
+  the executor never had. This matters when two evals share a plan title (for
+  example an inline plan and a same-titled file-backed fixture plan): a
+  filesystem-roaming grader can bind to the wrong file and fail an accurate
+  executor for text that only lives in the other file. The grader decides
+  pass/fail from its prompt alone: the recorded output, the assertions, and the
+  runner-provided `Sandbox File Changes` and `Executor Tool/Delegation Evidence`
+  sections.
 - Executor and grader stay separate. The executor prompt carries the task only
   and no assertions; the grader prompt carries the recorded output plus the
   assertions and must return a structured verdict. The runner derives pass/fail

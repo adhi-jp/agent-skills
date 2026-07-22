@@ -46,6 +46,19 @@ use `[Repository] - YYYY-MM-DD`.
   README, final-audit guidance, and a hostile exact-payload eval case cover the
   contract. Validation:
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`.
+- `skills/skill-eval/scripts/eval_runner.py` now runs the grader subprocess in
+  an isolated empty per-run working directory instead of the executor's sandbox
+  repo copy. The grader could previously read fixtures, suite files, and the
+  skill source directly, and when two evals shared a plan title (an inline plan
+  and a same-titled file-backed fixture plan) it bound to the wrong file and
+  failed accurate executors for "inventing" text that only lived in the other
+  file. The grader now grades from its prompt alone (recorded output,
+  assertions, and the runner-provided file-change and tool-evidence sections).
+  The former `test_executor_and_grader_run_in_sandbox_repo` test, which pinned
+  the grader to the sandbox repo, is renamed to
+  `test_executor_runs_in_sandbox_and_grader_is_isolated` and now asserts an
+  isolated empty grader working directory. Validation:
+  `python3 -m unittest tests.test_eval_runner -v`.
 - `vibe-debug` now requires implemented repairs to pass a self-review before
   final repair claims and treats a scoped local closure commit as the default
   after verified repair-owned file changes unless the user disables commits,
