@@ -21,7 +21,7 @@
 ## When to Read This
 
 Read this file when you already know which high-level MCP entry tool you need,
-but you want a payload shape that validates on the MCP 5.0.0 surface.
+but you want a payload shape that validates on the MCP 6.3.0 surface.
 
 This file uses the `minecraft-modding` MCP's canonical hyphenated tool names, such as `inspect-minecraft`, `validate-project`, and `nbt-to-json`.
 
@@ -36,6 +36,8 @@ These are starting points, not mandatory templates. Keep the first pass small an
 - Expert and batch tools use the same response-shaping vocabulary:
   `detail: "summary" | "standard" | "full"` plus `include[]`. Treat
   `compact` only as an old-shape migration clue.
+- Use batch tools for fixed 1..50-entry shortlists that share one resolved artifact or Minecraft version; keep dependent discovery chains sequential.
+- Treat `ERR_CLASS_NOT_FOUND.didYouMean[]` as candidate hints that require verification, not as proof that a candidate exists or is the right migration.
 - Prefer workspace-aware calls when a real mod workspace exists.
 - When a tool still requires `version`, pass it explicitly even if you also pass `projectPath`.
 - If `summary` already answers the question, stop there instead of drilling down by default.
@@ -168,7 +170,7 @@ What to do:
 ## Old Shape to Current Shape
 
 Use this section when an older example or model memory suggests a removed or
-stale payload or response path. The current recipes prefer MCP 5.0.0 shapes.
+stale payload or response path. The current recipes prefer MCP 6.3.0 shapes.
 
 When answering a stale-shape or retry-posture question, keep the response as an
 MCP-shape correction unless the current task already reached a real fallback
@@ -182,14 +184,19 @@ jar, or Gradle fallback playbook just because a fallback gate is named.
 | expert or batch `compact: true` / `compact: false` | `detail: "summary"` / `detail: "full"` plus `include[]` for specific field groups |
 | `target: "1.21.1"` | `subject: { "kind": "version", "version": "1.21.1", ... }` where the tool supports a version subject |
 | flat artifact `target` under `inspect-minecraft` | `subject: { "kind": "artifact", "artifact": { "type": "resolve-target", "target": { "kind": "jar", "value": "/path.jar" } } }` |
-| bare class name passed as the whole subject | `subject: { "kind": "class", "name": "<fqcn>" }` or the tool-specific `focus` form |
+| bare class name passed as the whole subject | `subject: { "kind": "class", "className": "<fqcn>" }` or the workspace `focus: { "kind": "class", "className": "<fqcn>" }` form |
 | workspace path as a top-level string | `subject: { "kind": "workspace", "projectPath": "/path/to/mod", ... }` where the tool expects a workspace subject |
+| workspace `subject.focus` as a string | `focus: { "kind": "class", "className": "<fqcn>" }`, `{ "kind": "search", "query": "<text>" }`, or `{ "kind": "file", "filePath": "<path>" }`; string focus returns schema-validated `exampleCalls` to reuse |
 | reading requested inspect input from `result.summary.subject.requested` | read top-level `subject.requested` / `subject.resolved`, or correlate by `requestId` |
 | reading warning text from `meta.warningDetails[].message` | read `meta.warnings[detail.index]` |
 | `get-class-source` / `get-class-members` `target: { "type": "artifact", "artifactId": "..." }` | `target: { "kind": "artifact", "artifactId": "..." }`; for member reads also mention the 150-member default page, `nextCursor`, shared `members.ownerFqn`, modifiers from `javaSignature`, and `include: ["descriptors"]` or `includeDescriptors: true` when field descriptors matter |
 | relying on `get-class-members` per-member `accessFlags` or always-present `ownerFqn` | derive modifiers from `javaSignature`; read owner from `members.ownerFqn` and fall back to per-member `ownerFqn` only when inherited members expose multiple owners |
 | expecting field `jvmDescriptor` by default | pass `include: ["descriptors"]` or `includeDescriptors: true`; method and constructor descriptors remain present for overloads |
+| using full member output for simple existence checks | pass `projection: "names"` or `"signatures"`; do not use lean projections when descriptors or annotation metadata matter |
+| treating class-not-found as a dead end | inspect top-level `didYouMean[]` candidates and verify any chosen candidate before patching imports, descriptors, or mappings |
+| matching unobfuscated-version warning text | read `mappingContext.unobfuscatedRuntime`, `mappingContext.runtimeValidated`, or top-level `unobfuscatedRuntime` on `get-class-api-matrix` |
 | interpreting missing per-result validator `resolvedMembers`, `toolHealth`, or `resolutionTrace` as absence | pass `reportMode: "full"` or `explain: true`; default validator output is `summary-first` |
+| treating `validate-project` timeout as success or a restart loop | read `ERR_TOOL_TIMEOUT` `meta.timeout`; split/narrow or use validator fallback, and do not infer replacement completion from `workerRestartInitiated` |
 | unbounded `analyze-symbol task="lifecycle"` using old five-version assumptions | pass `fromVersion`, `toVersion`, `maxVersions`, `includeTimeline`, and `includeSnapshots` for the intended range |
 | changing tools after `ERR_INVALID_INPUT` | fix `fieldErrors` and retry the same high-level tool once |
 
@@ -318,6 +325,12 @@ The `subject.kind: "artifact"` form requires the nested `artifact: { type, ... }
 }
 ```
 
+If a workspace `subject.focus` string is rejected, read the returned
+`exampleCalls[]` and choose the class, search, or file object shape that matches
+the intended retry. Do not coerce prose into a focus shape yourself; `task:
+"auto"` dispatches from `subject.kind` and `focus.kind`, not from natural
+language.
+
 ## `analyze-symbol`
 
 ### Check whether a class exists
@@ -334,6 +347,8 @@ The `subject.kind: "artifact"` form requires the nested `artifact: { type, ... }
   }
 }
 ```
+
+With MCP 6.3.0, `analyze-symbol` can infer an omitted `version` when `projectPath` is supplied. If you rely on that, record the returned `versionInference { version, source }` and warning. Keep an explicit `version` when reproducibility matters or workspace detection is uncertain.
 
 ### Map a method between namespaces
 
@@ -412,7 +427,7 @@ Use `api-overview` when you want a single mapping-aware class/members table with
 }
 ```
 
-For lifecycle work, always bound the range you intend. MCP 5.0.0 accepts
+For lifecycle work, always bound the range you intend. MCP 6.3.0 accepts
 `fromVersion`, `toVersion`, `maxVersions`, `includeTimeline`, and
 `includeSnapshots` only for `task: "lifecycle"`; the old implicit narrow scan is
 not the default.
@@ -449,6 +464,22 @@ not the default.
   }
 }
 ```
+
+## `verify-mixin-target`
+
+Use this for a single owner/member probe before writing or repairing a Mixin `@Shadow`, `@Accessor`, or `@Invoker`. It verifies existence and access advice from bytecode without requiring a whole source/config validation. Use `validate-project` or `validate-mixin` when you need config discovery, injection-point validation, side checks, or batch project health.
+
+```json
+{
+  "target": { "kind": "version", "value": "1.21.10" },
+  "owner": "net.minecraft.world.entity.LivingEntity",
+  "member": { "kind": "method", "name": "tick", "descriptor": "()V" },
+  "mapping": "mojang",
+  "autoRemap": true
+}
+```
+
+Set `autoRemap: true` only when a version-based target lets the tool translate readable owner/member names into the artifact namespace. If the probe says an accessor or invoker shape is needed, still verify the mixin member name and descriptor against the workspace's mapping namespace before editing.
 
 ## `validate-project`
 
@@ -500,6 +531,8 @@ Use the default `summary-first` validator output for triage. When the work needs
 per-result `resolvedMembers`, per-result `toolHealth`, or `resolutionTrace`,
 request `reportMode: "full"` or `explain: true` before declaring the validator
 unable to provide detail.
+
+`validate-project` has a supervisor-owned timeout. If it returns `ERR_TOOL_TIMEOUT`, inspect `meta.timeout.phase`, `retryRecommendation`, and `workerRestartInitiated`; split or narrow the validation, or switch to `validator-fallbacks.md` for that fact. Do not report validator success from a timeout.
 
 ### Validate a NeoForge Access Transformer directly
 
@@ -569,6 +602,22 @@ Pass `atNamespace: "srg"` for legacy Forge projects whose AT files still use SRG
 }
 ```
 
+### Read mod class members without decompiling
+
+```json
+{
+  "task": "members",
+  "detail": "summary",
+  "subject": {
+    "kind": "class",
+    "jarPath": "/path/to/mod.jar",
+    "className": "com.example.mymod.mixin.PlayerMixin"
+  }
+}
+```
+
+`task: "members"` reads constructors, fields, and methods directly from bytecode, including private/protected members, and returns `extractionMethod: "bytecode-only"`. Prefer it over `class-source` when you only need signatures from a mod jar.
+
 ### Preview a remap without mutating the JAR
 
 ```json
@@ -584,7 +633,17 @@ Pass `atNamespace: "srg"` for legacy Forge projects whose AT files still use SRG
 }
 ```
 
-Start with `summary`. Use `search`, `class-source`, `decompile`, or `remap` only after metadata tells you the jar is the right target.
+Start with `summary`. Use `search`, `class-source`, `members`, `decompile`, or `remap` only after metadata tells you the jar is the right target.
+
+## Source and artifact lookup helpers
+
+`get-class-source` and `get-class-members` accept the shared `target` shape directly. Use `target: { "kind": "workspace" }` with `projectPath` for workspace-derived Minecraft versions, and `target: { "kind": "dependency", "group": "net.fabricmc.fabric-api", "name": "fabric-api", "versionFromProject": true }` for loader dependency classes. Reuse `target: { "kind": "artifact", "artifactId": "..." }` after a prior resolve.
+
+Flat artifact tools (`find-class`, `search-class-source`, `get-artifact-file`, `list-artifact-files`, `index-artifact`) accept exactly one of `artifactId` or `target`. Use direct `target` when the target is self-contained. `find-class` also accepts top-level `projectPath`, which lets it resolve `target.kind="workspace"` and dependency targets using `versionFromProject` directly; for the other flat artifact tools, resolve first and pass the returned `artifactId` when workspace context is required.
+
+`get-artifact-file` can read exact text files under `assets/**` and `data/**` directly from a backing jar when the source index has no row. Treat `deliveryMode: "jar-read-through"` as exact jar evidence. Binary files return size metadata plus `contentOmittedReason`; misses can include `nearbyPaths`.
+
+Jar-in-Jar shell jars carry `qualityFlags: ["shell-jar"]` and `provenance.nestedJars`. `find-class` searches nested `.class` inventories for simple or qualified names, deduplicates repeated class names, honors `limit`, and returns dotted inner-class names that can be read through `get-class-source`. `get-class-source` and `get-class-members` redirect only when one nested jar uniquely contains a top-level class. If the tool returns `ERR_NESTED_JAR_AMBIGUOUS`, choose from `nestedJarCandidates` or resolve the nested jar directly instead of guessing. A dependency or shell miss is not evidence of Minecraft obfuscation and should not trigger a `mapping="mojang"` retry unless the artifact is a Minecraft runtime artifact.
 
 ## `get-registry-data`
 
@@ -724,14 +783,15 @@ Switch to `executionMode: "apply"` only after the preview output is what you exp
   to a low-level tool. Keep payload-shape recovery separate from target
   Minecraft facts; no class, API, version, mapping, or workspace fact is
   MCP-verified until the corrected call succeeds.
-- Artifact context missing in `inspect-minecraft`: switch to a workspace subject with `focus`, or resolve the artifact explicitly with the nested `artifact: { type, ... }` shape first.
+- Artifact context missing in `inspect-minecraft`: switch to a workspace subject with structured `focus`, rely on direct-subject workspace auto-resolution only when exactly one workspace is known, or resolve the artifact explicitly with the nested `artifact: { type, ... }` shape first. If a string focus is rejected, reuse the returned schema-validated `exampleCalls[]`.
 - Inspect response correlation: use top-level `subject.requested` /
   `subject.resolved`, not `summary.subject`.
-- Workspace mapping unresolved: keep `projectPath`, but also pass an explicit `version` and state that compile mapping detection was uncertain.
-- `summary.status="not_found"`: verify namespace and version once, then treat the symbol as absent and choose a verified alternative.
+- Workspace mapping unresolved: keep `projectPath`, but also pass an explicit `version` and state that compile mapping detection was uncertain. If `analyze-symbol` inferred a version, record `versionInference`; if it could not, handle `ERR_WORKSPACE_VERSION_UNRESOLVED` as missing workspace evidence.
+- `summary.status="not_found"`: verify namespace and version once, inspect any `didYouMean[]` hints, then treat the symbol as absent and choose a verified alternative.
 - Access transformer namespace mismatch: set `atNamespace` to match the file header (`mojang` on modern NeoForge, `srg` on legacy projects) and re-run `validate-project` / `validate-access-transformer` before editing entries.
 - NBT decode fails with "invalid compression" or a truncated header: retry with `compression: "auto"`, then commit to the detected format when re-encoding.
 - Error envelope has `retryClass: "server"`: do not retry the identical call as
   transient; use fallback evidence or report the MCP server fault.
+- `validate-project` returns `ERR_TOOL_TIMEOUT` or `ERR_LIMIT_EXCEEDED`: narrow/split the request or wait; do not queue more validator work or claim validation success.
 - Suspected stale MCP data: read `get-runtime-metrics`, then run `manage-cache` with `action: "verify"` before a mutating call.
 - File or jar path error: fix the path or say the fixture is missing. Do not pretend the file was analyzed.

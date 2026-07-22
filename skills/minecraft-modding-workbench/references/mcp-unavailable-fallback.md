@@ -8,11 +8,15 @@ skill recipes expect, stale, timing out, or repeatedly restarting.
 - If neither `inspect-minecraft` nor `analyze-symbol` is exposed by the host,
   report `minecraft-modding MCP unavailable` once and do not keep searching for
   unrelated tool names.
-- If a v5 tool, argument, or response-shaping field from `SKILL.md` is rejected
+- If an MCP 6.3.0 tool, argument, or response-shaping field from `SKILL.md` is rejected
   as unknown, classify the installed MCP as older than the recipes or
   version-skewed, then use an older-compatible tool or local fallback.
 - If a high-level call restarts or times out, retry once with a narrower
   high-level payload. If that fails, stop using that tool for the current task.
+- If `validate-project` returns `ERR_TOOL_TIMEOUT`, read `meta.timeout` for
+  phase and retry guidance, then split/narrow or switch to validator fallback;
+  do not claim validation success from a timeout. If it returns
+  `ERR_LIMIT_EXCEEDED`, wait or narrow instead of queuing more validator work.
 - If a validator restarts once, switch to `validator-fallbacks.md` for that
   validator. Do not loop validators.
 - If `ERR_INVALID_INPUT` occurs, fix the payload once using `mcp-recipes.md`.

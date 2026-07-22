@@ -7,9 +7,12 @@ old for the requested validation task.
 
 Do not loop a failing validator. After one restart or transport failure, record
 the validator as unavailable for the current task and perform the matching
-manual checks.
+manual checks. Treat `ERR_TOOL_TIMEOUT` the same way for the timed-out fact after
+reading `meta.timeout.phase`, `retryRecommendation`, and `workerRestartInitiated`;
+narrow or split the request if another MCP validation attempt is still useful,
+and do not infer worker replacement completion from `workerRestartInitiated`.
 
-MCP 5.0.0 validator output defaults to `summary-first`. Missing per-result
+MCP 6.3.0 validator output defaults to `summary-first`. Missing per-result
 `resolvedMembers`, `toolHealth`, or `resolutionTrace` in that default shape is
 not validator absence. When exact per-result detail matters, retry once with
 `reportMode: "full"` or `explain: true` before using these manual checks.
@@ -28,8 +31,10 @@ Record these facts before editing:
 
 Manual checks:
 
+- Prefer `verify-mixin-target` for a single owner/member existence and accessor/invoker probe when the MCP tool is available and has not timed out for this fact.
 - Read the target class source or bytecode for the same Minecraft version.
 - Confirm the method or field exists with the recorded descriptor.
+- Treat `didYouMean[]` candidates from class lookup as hints; verify the selected owner before editing.
 - Confirm injection point ownership and call descriptor for `@At`.
 - Prefer accessor or invoker Mixins when access is the only goal.
 - Keep client-only targets out of server-reachable mixin arrays.

@@ -123,12 +123,17 @@ inspecting Minecraft Java Edition mods for Fabric, NeoForge, or Architectury. It
 is designed around the `minecraft-modding` MCP server from
 `@adhisang/minecraft-modding-mcp` and focuses on full implementation slices,
 version-aware debugging, mapping work, mod JAR inspection, and multi-loader
-project structure. It also defines MCP preflight and fallback behavior for
-unavailable or unstable tool servers, dependency source lookup, resource/codec
-validation, GameTest wiring, HUD/client-rendering verification, and narrow
-reference routing for task-relevant playbooks. It records project profile facts
-and verification sources when plans or debugging answers will guide later
-implementation.
+project structure. It tracks the MCP 6.3.0 surface, including structured
+workspace focus payloads, direct workspace and dependency targets, `find-class`
+workspace/dependency `projectPath` handling, nested Jar-in-Jar class search,
+batch lookups, one-call Mixin target probes, Jar-in-Jar shell handling, jar
+read-through for exact `assets/**` and `data/**` text files, and validator
+timeout handling. It also defines MCP preflight and fallback behavior for
+unavailable or unstable tool servers, dependency source lookup,
+resource/codec validation, GameTest wiring, HUD/client-rendering verification,
+and narrow reference routing for task-relevant playbooks. It records project
+profile facts and verification sources when plans or debugging answers will
+guide later implementation.
 
 ### `vibe-coding`
 

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "minecraft-modding-workbench",
-  "purpose": "External eval set for the minecraft-modding-workbench skill. Covers MCP availability preflight, MCP 5.0.0 response contracts, bounded MCP failure handling, dependency source lookup, resource codec validation, HUD projection/FOV checks, GameTest/access-widener wiring, and narrow reference routing.",
+  "purpose": "External eval set for the minecraft-modding-workbench skill. Covers MCP availability preflight, MCP 6.3.0 response contracts, bounded MCP failure handling, dependency source lookup, resource codec validation, HUD projection/FOV checks, GameTest/access-widener wiring, and narrow reference routing.",
   "common_assertions": [
     "Output treats minecraft-modding MCP as the preferred source of truth when available, but does not invent MCP results when tools are missing or failing.",
     "Output records a project profile or explicitly identifies missing profile facts before making version, loader, mapping, or Java-version-sensitive claims.",
@@ -134,7 +134,7 @@
       "expectations": [
         "Classifies `ERR_INVALID_INPUT` as invalid payload shape, not MCP unavailability.",
         "Reads or cites `references/mcp-recipes.md` only for the relevant payload shape and error recovery.",
-        "Corrects the old-shape request toward the current MCP 5.0.0 high-level shape, such as replacing unsupported `compact` response shaping with `detail` and `include[]` where needed.",
+        "Corrects the old-shape request toward the current MCP 6.3.0 high-level shape, such as replacing unsupported `compact` response shaping with `detail` and `include[]` where needed.",
         "Corrects the payload once and retries the same high-level `inspect-minecraft` path before changing tools.",
         "Does not switch to `references/mcp-unavailable-fallback.md` unless the corrected call also fails under the stated failure budget.",
         "Does not guess alternate tool names or drop to low-level tools before the corrected high-level retry.",
@@ -144,11 +144,11 @@
     {
       "id": "E09",
       "name": "Older MCP fallback route",
-      "prompt": "The host exposes `inspect-minecraft`, but it rejects a named MCP 5.0.0 argument from the current recipes as unknown while inspecting a Fabric 1.21.x workspace. Explain how to proceed.",
-      "expected_output": "The agent treats the installed MCP as older than the current v5 recipes or version-skewed, says so once, uses the nearest older-compatible tool shape or workspace/source fallback, and avoids random tool-name guessing or unrelated recipe restatement.",
+      "prompt": "The host exposes `inspect-minecraft`, but it rejects a named MCP 6.3.0 argument from the current recipes as unknown while inspecting a Fabric 1.21.x workspace. Explain how to proceed.",
+      "expected_output": "The agent treats the installed MCP as older than the current MCP 6.3.0 recipes or version-skewed, says so once, uses the nearest older-compatible tool shape or workspace/source fallback, and avoids random tool-name guessing or unrelated recipe restatement.",
       "files": [],
       "expectations": [
-        "States that the installed MCP appears older than the current MCP 5.0.0 recipes, version-skewed, or does not support the named argument.",
+        "States that the installed MCP appears older than the current MCP 6.3.0 recipes, version-skewed, or does not support the named argument.",
         "Does not keep guessing random `minecraft-modding` tool names or argument names.",
         "Uses the nearest older-compatible path when one is known, otherwise switches to workspace/source fallback.",
         "Labels facts from the fallback path as workspace/source-jar fallback, not MCP-verified.",
@@ -158,9 +158,9 @@
     },
     {
       "id": "E10",
-      "name": "MCP 5 response shape and server retry posture",
-      "prompt": "A Minecraft 1.21.x workspace is being debugged with MCP 5.0.0 tools exposed. While checking a Mixin target, an old note says to read `result.summary.subject.requested`, read warning text from `meta.warningDetails[].message`, call `get-class-members` with `compact: false` and `target: { type: \"artifact\", artifactId }`, then retry an `ERR_INTERNAL` response because it used to be transient. The default validator summary also omits per-result `resolvedMembers` and `resolutionTrace`. Explain the next MCP and fallback steps.",
-      "expected_output": "The agent updates stale response-shape assumptions to MCP 5.0.0, requests exact detail only where needed, and avoids retrying deterministic server faults while preserving fallback labels.",
+      "name": "MCP 6.3 response shape and server retry posture",
+      "prompt": "A Minecraft 1.21.x workspace is being debugged with MCP 6.3.0 tools exposed. While checking a Mixin target, an old note says to read `result.summary.subject.requested`, read warning text from `meta.warningDetails[].message`, call `get-class-members` with `compact: false` and `target: { type: \"artifact\", artifactId }`, then retry an `ERR_INTERNAL` response because it used to be transient. The default validator summary also omits per-result `resolvedMembers` and `resolutionTrace`. Explain the next MCP and fallback steps.",
+      "expected_output": "The agent updates stale response-shape assumptions to MCP 6.3.0, requests exact detail only where needed, and avoids retrying deterministic server faults while preserving fallback labels.",
       "files": [],
       "expectations": [
         "Inspects or relies on the exposed callable schema before sending the corrected MCP payload.",
@@ -173,6 +173,59 @@
         "Does not retry the identical `ERR_INTERNAL` call when the envelope has `retryClass: \"server\"`; records MCP unable to verify that fact or switches to a narrow fallback.",
         "Keeps `Verified by MCP`, `Verified by workspace/source jar fallback`, `Runtime/user-observed`, and `Unverified` labels distinct.",
         "Does not restate unrelated loader, HUD, GameTest, NBT, worldgen, or dependency-jar guidance."
+      ]
+    },
+    {
+      "id": "E11",
+      "name": "MCP 6.3 dependency and artifact ergonomics",
+      "prompt": "A Fabric API class lookup in the workspace fails because the umbrella dependency jar is a Jar-in-Jar shell. The agent also needs to read an exact `assets/fabric/...json` text file from the dependency jar, and an old class FQCN returns `ERR_CLASS_NOT_FOUND` with `didYouMean`. Explain the MCP-first lookup route without manual Gradle cache spelunking.",
+      "expected_output": "The agent uses MCP 6.3.0 dependency targets, shell-jar/nested-jar evidence, nested class search, jar read-through for exact assets/data text files, and didYouMean only as verified candidate hints before falling back to manual cache inspection.",
+      "files": [],
+      "expectations": [
+        "Uses `get-class-source` or `get-class-members` with `target: { kind: \"dependency\", group, name, versionFromProject: true }` and `projectPath` before manual Gradle cache scanning.",
+        "Uses `find-class` with `target.kind=\"workspace\"` or a dependency target plus top-level `projectPath` when only a simple or qualified dependency class name is known, before manual Gradle cache scanning.",
+        "If a non-`find-class` flat artifact lookup needs workspace context, says to resolve first and pass `artifactId`; otherwise uses exactly one of `artifactId` or the shared `target` shape.",
+        "Recognizes `qualityFlags: [\"shell-jar\"]` and `provenance.nestedJars` as Jar-in-Jar shell evidence instead of treating the umbrella jar as a decompiler failure.",
+        "Recognizes that `find-class` searches nested `.class` inventories in Jar-in-Jar shells and that dotted inner-class matches can continue to `get-class-source`.",
+        "Handles `ERR_NESTED_JAR_AMBIGUOUS` by choosing from `nestedJarCandidates` or resolving a nested jar directly, not by guessing a module jar.",
+        "Uses `get-artifact-file` for exact `assets/**` or `data/**` text entries and treats `deliveryMode: \"jar-read-through\"` as backing-jar evidence.",
+        "Does not claim `list-artifact-files` proves assets or data files are absent, because it indexes Java source paths only.",
+        "Treats `ERR_CLASS_NOT_FOUND.didYouMean[]` entries as hints that require verification before changing imports, descriptors, or mappings.",
+        "Keeps fallback facts separate if MCP cannot verify the dependency class or resource.",
+        "Does not treat a dependency or Jar-in-Jar shell miss as proof of Minecraft obfuscated names or automatically recommend `mapping=\"mojang\"` for that artifact."
+      ]
+    },
+    {
+      "id": "E12",
+      "name": "MCP 6.3 mixin and validator timeout route",
+      "prompt": "A single Mixin accessor target may be wrong in a Minecraft 1.21.10 workspace. `validate-project` first returns `ERR_TOOL_TIMEOUT` with `meta.timeout.phase=\"running\"` and `workerRestartInitiated=true`; a teammate wants to call it again unchanged and then infer the worker recovered. Explain the next MCP and fallback steps.",
+      "expected_output": "The agent uses `verify-mixin-target` for the single owner/member probe when possible, treats validate-project timeout metadata as unavailable validation evidence, narrows or falls back instead of looping, and does not infer replacement completion from workerRestartInitiated.",
+      "files": [],
+      "expectations": [
+        "Uses `verify-mixin-target` for a single owner/member existence check and `@Accessor`/`@Invoker`/`@Shadow` advice when that tool is available.",
+        "Includes owner FQN, member kind/name, JVM descriptor, mapping namespace, target version, and `autoRemap` guidance when the requested mapping differs from the resolved artifact namespace and a version-based target can translate names.",
+        "Uses `validate-mixin` or `validate-project` only when source/config/project validation is needed beyond the single probe.",
+        "Treats `ERR_TOOL_TIMEOUT` from `validate-project` as no successful validator result for the timed-out fact.",
+        "Reads `meta.timeout.phase`, `retryRecommendation`, and `workerRestartInitiated` before deciding whether to narrow, split, or fall back.",
+        "Does not retry the identical timed-out `validate-project` payload unchanged as a loop.",
+        "Does not infer worker replacement startup or replay completed merely because `workerRestartInitiated` is true.",
+        "If fallback is used, labels owner/member facts as workspace/source jar fallback rather than MCP-verified."
+      ]
+    },
+    {
+      "id": "E13",
+      "name": "MCP 6.3 inspect workspace focus recovery",
+      "prompt": "`inspect-minecraft` is exposed in a Fabric 1.21.x workspace. A teammate sends `subject: { kind: \"workspace\", projectPath: \"/mod\", focus: \"net.minecraft.world.item.Item\" }` with `task: \"auto\"`; MCP returns `ERR_INVALID_INPUT` with `exampleCalls` for class, search, and file focus shapes. Explain the retry without changing to Gradle cache fallback.",
+      "expected_output": "The agent treats string focus as invalid payload shape, uses a structured workspace `subject.focus` object from the schema-validated `exampleCalls`, retries `inspect-minecraft`, and keeps target facts unverified until the corrected MCP call succeeds.",
+      "files": [],
+      "expectations": [
+        "Classifies the response as invalid payload shape, not MCP unavailability.",
+        "States that workspace `subject.focus` must be an object, not a string.",
+        "Uses one of the schema-validated `exampleCalls` or equivalent structured shapes such as `{ kind: \"class\", className: \"net.minecraft.world.item.Item\" }` for the retry.",
+        "States that `task=\"auto\"` dispatches from `subject.kind` and `focus.kind`, not from natural-language prose.",
+        "Retries the same high-level `inspect-minecraft` path once before using Gradle cache or source-jar fallback.",
+        "Keeps Minecraft class facts unverified until the corrected MCP call or later fallback actually verifies them.",
+        "Does not guess alternate tool names or restate unrelated loader, HUD, GameTest, NBT, dependency-jar, or validator recipes."
       ]
     }
   ],

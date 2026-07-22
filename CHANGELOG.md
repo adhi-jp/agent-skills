@@ -208,6 +208,19 @@ use `[Repository] - YYYY-MM-DD`.
   shortcuts from allowed specialist-owned proposed defaults, assumptions,
   blockers, or accepted-risk decisions. Validation:
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`.
+- `minecraft-modding-workbench` now tracks the `minecraft-modding` MCP
+  6.3.0 surface: structured workspace `subject.focus` payloads and retryable
+  `exampleCalls`, direct workspace and dependency targets, flat artifact-tool
+  `target` addressing, `find-class` top-level `projectPath` support for
+  workspace and dependency targets, nested Jar-in-Jar class search, batch
+  lookup tools, `verify-mixin-target`, mod-JAR bytecode member reads,
+  annotation/default metadata, class-not-found `didYouMean` hints, exact
+  `assets/**` / `data/**` jar read-through, unobfuscated-version
+  `mappingContext` flags, `analyze-symbol` workspace version inference, and
+  `validate-project` timeout/queue handling. The bundled MCP recipes,
+  dependency lookup, validator fallback notes, README, and eval coverage now
+  use the MCP 6.3.0 contracts. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/minecraft-modding-workbench/evals.json`.
 - `skills/skill-eval/scripts/eval_runner.py run` now accepts `--executor-model`
   and `--grader-model`, so the executor and grader subprocesses can run on
   different models. `--model` stays the shared default that either role flag
