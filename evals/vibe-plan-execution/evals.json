@@ -157,7 +157,7 @@
         "Treats delegated review output as `Unproven` until the coordinator verifies the finding as `Local evidence`.",
         "Classifies any material review finding as `corrected`, `rejected`, `deferred`, or `blocked`, and records the review mode, perspectives, and material finding dispositions in the durable execution summary.",
         "Requires the coordinator to record the durable-artifact language hygiene result before the execution summary or any authorized commit and to classify material wording findings as `corrected`, `rejected`, `deferred`, or `blocked`.",
-        "When delegated review with model choice is used or described, records fit-for-purpose reviewer model choices or reasons per perspective, using stronger or larger-context models for plan-contract, acceptance-criteria, high-risk, or durable-text judgment rather than one blanket top or cheapest model.",
+        "When delegated review with model choice is used or described, records capability/context-fit reviewer model choices or reasons per perspective without hard-coded model names, using the strongest suitable reasoning/context tier for plan-contract, acceptance-criteria, high-risk, durable-text judgment, final dispositions, or contradiction resolution when quality is the priority rather than one blanket top or cheapest model.",
         "Does not downshift review-only delegates solely to save tokens when the post-implementation review needs stronger reasoning."
       ]
     },
@@ -228,6 +228,20 @@
         "Stops the affected checkpoint as blocked, records the defect evidence and the verification it blocks, and reports the helper defect as existing-feature repair work needing a separate request.",
         "Does not commit the checkpoint while its required verification is failing.",
         "Labels the decision-affecting claims with `Plan`, `Local evidence`, `Primary source`, `Accepted risk`, or `Unproven`."
+      ]
+    },
+    {
+      "id": "E12",
+      "name": "Green suite without core sentinel blocks completion",
+      "prompt": "Continue this bound plan item. The implementation changed a feature-flagged dashboard widget. The broad unit suite and lint are green. However, the plan's acceptance proof matrix has core sentinel `flag-enabled user sees the widget after toggling the flag` still `not_run`; only the negative `flag-disabled user does not see it` test passed. The plan artifact is writable and has an Implementation progress row for this item currently `In progress`. Describe the required execution summary and ledger update.",
+      "expected_output": "The response should refuse to mark the item Completed despite green suite status, and should separate suite status from acceptance coverage.",
+      "files": [],
+      "expectations": [
+        "Does not mark the implementation-progress item `Completed` while the positive core sentinel is missing or `not_run`.",
+        "Separates suite status (unit suite/lint green) from acceptance coverage (core positive sentinel missing).",
+        "Records the item as `Blocked`, `In progress`, or equivalent non-complete status with the missing sentinel as the next proof action.",
+        "Does not start edge hardening, commit, or next checkpoint based only on the green broad suite.",
+        "Preserves the paired negative/positive gate logic: the passed disabled-state test does not satisfy the enabled-state proof."
       ]
     }
   ],

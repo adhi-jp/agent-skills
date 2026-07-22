@@ -1,8 +1,8 @@
 # Agent Skills
 
-Agent skills and eval prompts for vibe-coding orchestration, brainstorming,
-requirements specs, plans, code research, review loops, writing, skill quality,
-and Minecraft modding.
+Agent skills and eval prompts for vibe-coding orchestration, goal alignment,
+brainstorming, requirements specs, plans, code research, review loops, writing,
+skill quality, and Minecraft modding.
 
 ## Start Here
 
@@ -18,18 +18,20 @@ quickstart when changing a skill or its eval suite.
 | Task | Use | Output or stop boundary | Source package | Eval suite |
 | --- | --- | --- | --- | --- |
 | Build, debug, port, or inspect Minecraft Java Edition mods for Fabric, NeoForge, or Architectury | `minecraft-modding-workbench` | Produces implementation guidance or code while labeling MCP, workspace, source-jar, runtime, and unverified facts | `skills/minecraft-modding-workbench/` | `evals/minecraft-modding-workbench/` |
-| Route an explicit multi-turn vibe-coding workflow | `vibe-coding` | Selects one primary visible `vibe-*` specialist for the next phase; does not relax downstream gates; uses proxy decisions only for delegable question-heavy judgments; backtracks to the artifact-owning phase when a spec or plan is defective | `skills/vibe-coding/` | `evals/vibe-coding/` |
+| Route an explicit multi-turn vibe-coding workflow | `vibe-coding` | Selects one primary visible `vibe-*` specialist for the next phase; does not relax downstream gates; uses proxy decisions only for delegable question-heavy judgments; backtracks to the artifact-owning phase when a spec or plan is defective; leaves review for debug or artifact backtracking when runtime symptoms, core regressions, repeated findings, or architecture expansion make review the wrong owner | `skills/vibe-coding/` | `evals/vibe-coding/` |
+| Coordinate subagents for bounded research, edits, repairs, or review while preserving coordinator-owned scope, verification, and consent boundaries | `vibe-orchestrate` | Produces delegation contracts, recovery/monitoring guidance, verification/review discipline, direct-intervention rules, and parallel-writer accident cleanup; reference-only first version with no scripts or runner adapters | `skills/vibe-orchestrate/` | `evals/vibe-orchestrate/` |
+| Align the agent's understanding with the user's intent before action, especially after misinterpretation or before risky release/version/commit/destructive work | `vibe-goal-alignment` | Produces an explicit understanding record with goal, success criteria, non-goals, assumptions, blockers, and next step; stops before downstream state changes until the user confirms or corrects the record | `skills/vibe-goal-alignment/` | `evals/vibe-goal-alignment/` |
 | Draft, revise, save, finish, or explore requirements before planning | `vibe-requirements-spec` | Creates or updates the requirements spec artifact by default, defaults to strict-four-choice without explicit mode selection, stops before non-spec work, and reopens the same spec for downstream requirements defects; trusted orchestration can carry recordable current-spec handoff evidence after the completion audit passes | `skills/vibe-requirements-spec/` | `evals/vibe-requirements-spec/` |
-| Create or revise an implementation plan from approval-evidenced or concrete inputs | `vibe-planning` | Writes a plan artifact and concise summary; includes an implementation-progress ledger for multi-item plans; ends its plan-only response before code, tests, changelog edits, commits, and release work; sends discovered requirements contradictions back to requirements work; trusted orchestration can route a reviewed ready plan to a separate later execution phase in the same outer user turn when the current instruction already requests implementation | `skills/vibe-planning/` | `evals/vibe-planning/` |
+| Create or revise an implementation plan from approval-evidenced or concrete inputs | `vibe-planning` | Writes a plan artifact and concise summary; pairs positive and negative proof for visibility, permission, unlock, feature-flag, and state-transition gates; includes an implementation-progress ledger for multi-item plans; ends its plan-only response before code, tests, changelog edits, commits, and release work; sends discovered requirements contradictions back to requirements work; trusted orchestration can route a reviewed ready plan to a separate later execution phase in the same outer user turn when the current instruction already requests implementation | `skills/vibe-planning/` | `evals/vibe-planning/` |
 | Review, confirm, walk through, or pre-check a saved implementation plan before execution | `vibe-plan-review` | Reviews one plan item at a time, records localized item decisions with numeric input shortcuts from its reference file, and stops before implementation | `skills/vibe-plan-review/` | `evals/vibe-plan-review/` |
-| Implement an existing concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Edits only after binding the plan and checking proceed conditions; updates the bound plan's implementation-progress ledger after completed, blocked, skipped, or committed items; returns plan-changing defects to the owning artifact before affected code changes; stops before commits unless separately authorized | `skills/vibe-plan-execution/` | `evals/vibe-plan-execution/` |
+| Implement an existing concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Edits only after binding the plan and checking proceed conditions; runs core acceptance sentinels before hardening; updates the bound plan's implementation-progress ledger only from evidence-backed status; returns plan-changing defects to the owning artifact before affected code changes; stops before commits unless separately authorized | `skills/vibe-plan-execution/` | `evals/vibe-plan-execution/` |
 | Brainstorm creative implementation ideas, alternatives, expected behavior, or convention checks | `vibe-brainstorm` | Returns chat-first directions or checklists and stops before implementation until the user confirms the direction or trusted orchestration records a proxy selection for later requirements/planning only | `skills/vibe-brainstorm/` | `evals/vibe-brainstorm/` |
-| Debug or repair existing behavior from rough bug reports, regressions, failed fixes, or runtime artifacts | `vibe-debug` | Produces evidence-backed repairs or retest contracts; does not authorize history mutation | `skills/vibe-debug/` | `evals/vibe-debug/` |
+| Debug or repair existing behavior from rough bug reports, regressions, failed fixes, or runtime artifacts | `vibe-debug` | Produces evidence-backed repairs or retest contracts; keeps a concrete runtime regression as the exclusive primary symptom until it is closed, deferred, accepted, or blocked; self-reviews implemented repairs and defaults to scoped local closure commits unless disabled or blocked | `skills/vibe-debug/` | `evals/vibe-debug/` |
 | Understand, locate, trace, or assess existing code without changing it | `vibe-code-research` | Read-only; returns anchored evidence-backed findings, redacts suspected secret-like values at output boundaries, and stops before fixes, plans, edits, or commits | `skills/vibe-code-research/` | `evals/vibe-code-research/` |
-| Write or revise development text, docs, changelog entries, PR text, UI copy, summaries, or commit messages | `vibe-writing` | Controls wording only; staging, commits, releases, and workflow authority stay with the active workflow | `skills/vibe-writing/` | `evals/vibe-writing/` |
+| Write or revise development text, docs, changelog entries, PR text, UI copy, summaries, or commit messages | `vibe-writing` | Controls wording only; separates suite status, acceptance coverage, unresolved scope, and unverified shared edits in progress/final summaries; staging, commits, releases, and workflow authority stay with the active workflow | `skills/vibe-writing/` | `evals/vibe-writing/` |
 | Commit or stage changes from a vague request — pick the right files, exclude junk, re-verify staging, or fix message transport, history, or trailers | `vibe-commit` | Executes the commit and git safety with self-contained message-content rules; does not push or rewrite shared history without explicit consent | `skills/vibe-commit/` | `evals/vibe-commit/` |
 | Decide what to change in a skill or eval from benchmark results, grader feedback, reviews, or regressions | `skill-quality` | Produces evidence-bound quality decisions; release/version changes still require explicit release instruction | `skills/skill-quality/` | `evals/skill-quality/` |
-| Review a git-backed working tree, branch, base ref, PR-style diff, or review/fix loop | `vibe-review` | Reviews only non-empty git-backed targets; history operations require separate consent and safety checks | `skills/vibe-review/` | `evals/vibe-review/` |
+| Review a git-backed working tree, branch, base ref, PR-style diff, or review/fix loop | `vibe-review` | Reviews only non-empty git-backed targets; maps material acceptance criteria to proof, checkpoint-blocks compound stop signals, and keeps history operations behind separate consent and safety checks | `skills/vibe-review/` | `evals/vibe-review/` |
 
 `vibe-planning` is not for rough unapproved requirements drafting. Route those
 requests to `vibe-requirements-spec` first. `vibe-plan-execution` needs a
@@ -39,12 +41,29 @@ code area to inspect, and known risks or an explicit absence of known risks.
 
 For `vibe-*` skills that use subagents or delegated review, model selection is
 fit-for-purpose when the host exposes model choice and the user has not fixed a
-model explicitly. Bounded low-ambiguity lookup, extraction, and simple checks may
-use cheaper or faster models; complex judgment, broad context, adversarial
-review, security/data-safety, high-risk, or synthesis-heavy work should use a
-higher-capability or larger-context model. The skills should neither inherit the
-top model for every small delegate nor downshift solely to save tokens when
-stronger reasoning is needed.
+model explicitly. The contract is capability-based, not model-ID-based: newer
+high-performing models should be selected by reasoning strength, context window,
+tool reliability, and role fit rather than by a hard-coded vendor name. Bounded
+low-ambiguity lookup, extraction, and simple checks may use cheaper, faster, or
+previous-generation models only when lower capability is quality-neutral or the
+user prioritizes cost/latency. Complex judgment, broad context, adversarial
+review, security/data-safety, high-risk, synthesis-heavy work, final
+recommendations, contract compliance, or contradiction resolution should bias
+upward to the strongest suitable reasoning/context tier available. The
+coordinator keeps decomposition, final synthesis, verification interpretation,
+review dispositions, and non-delegable user-risk choices. Token-saving loops
+should reduce repeated context by inlining verified facts, sending compact
+per-worker digests, and passing only deltas after each checkpoint; they must not
+reduce proof, acceptance coverage, or required user/domain perspectives. The
+skills should neither inherit the top model for every small delegate nor
+downshift solely to save tokens when stronger reasoning is needed. Delegated
+units should also have a bounded task contract: deliverable, question or
+hypothesis, elapsed-time and path/change budget, compact context digest,
+verification receipt, and stop-and-return conditions. Repeated empty waits,
+contradictory delegated findings, or repeated contract misses trigger checkpoint,
+split, rebind, or escalation decisions instead of no-change polling updates, and
+shared-root edits require explicit changed-path and verification status before
+they count as progress.
 
 ## Run Skill Evals
 
@@ -93,6 +112,7 @@ and are local artifacts unless explicitly requested for commit.
 | `vibe-commit` | `1.0.3` |
 | `skill-quality` | `2.2.2` |
 | `vibe-review` | `1.3.0` |
+
 
 ## Included Skills
 
@@ -175,9 +195,10 @@ When a downstream phase reports that the bound requirements spec or
 implementation plan is contradictory, stale, infeasible, or contract-breaking,
 `vibe-coding` treats that as a backtracking signal. The next related turn routes
 to the phase that owns the broken artifact — requirements specification for
-user-visible behavior, scope, or acceptance criteria, and implementation
-planning for proof, tests, edit order, or risk handling — instead of continuing
-patch-by-patch execution against a known-bad contract.
+wrong requirements artifacts, user-visible behavior, scope, or source
+acceptance criteria, and implementation planning for the bound plan's acceptance
+criteria, proof, schema, tests, edit order, or risk handling — instead of
+continuing patch-by-patch execution against a known-bad contract. It also preserves long-session state such as frozen review targets, primary journeys, acceptance sentinels, active stop signals, wait/update policies, delegation budgets, last verified checkpoints, and unverified shared edits so compaction or later continuation does not reset the user's progress/noise preferences.
 
 #### Autonomous operation across the vibe family
 
@@ -198,12 +219,55 @@ user selects which fixes apply and commits, squashes, and other history
 mutation need operation-specific consent. Under unattended orchestration those
 phases report the interactive requirement and stop.
 
+### `vibe-orchestrate`
+
+Coordinator-owned subagent orchestration skill for bounded delegated research,
+edits, repairs, and review. It is used when workers may drift, stall, crash,
+duplicate, or edit a shared workspace and the main agent must keep scope,
+verification, review disposition, progress tracking, and user-consent boundaries.
+
+The first version is reference-only. It ships no watchdog script, runner adapter,
+or command wrapper. Instead it provides contract templates and guidance for
+verified-fact inlining, model/context budgets, editable-path whitelists,
+stop-as-blocker behavior, progress journals, frontier-coordinator loops with
+token-efficient delegates, worker-death recovery, appearance/liveness/staleness
+monitoring concepts, coordinator-run verification gates, read-only review
+perspectives, direct-intervention disclosure, and parallel-writer accident
+cleanup. It does not replace requirements capture, implementation planning,
+plan execution, review, commit execution, release work, or debugging ownership;
+it is the transport discipline for delegation inside those workflows.
+
+### `vibe-goal-alignment`
+
+Pre-action alignment skill for user-agent understanding repair. It activates
+when the user asks to confirm, align, or correct what the agent understood, when
+prior misinterpretation caused rework, or when ambiguous release, version,
+commit, migration, deletion, permission, billing, production, or other risky
+instructions could lead to different files, commands, or side effects. It
+returns a concise understanding record: understood goal, success criteria,
+non-goals, assumptions, unresolved blockers, and the next step after agreement.
+Goal-affecting facts are separated as user-stated, local evidence, assumption,
+or unresolved.
+
+The skill is deliberately pre-action. It does not edit files, run commands,
+stage, commit, tag, push, bump versions, prepare releases, deploy, delete data,
+or authorize a downstream workflow. It stops until the user confirms or
+corrects the record. Correction turns replace the invalid interpretation rather
+than carrying it forward as a live option. For release/version/commit cases, it
+blocks empty-commit or patch/minor/major conclusions based on partial evidence:
+the complete change set, changelog state, package metadata, and project release
+policy must be reviewed by the downstream workflow before version or history
+action.
+
 ### `vibe-requirements-spec`
 
 Markdown requirements-spec drafting skill for rough, ambiguous, contradictory,
 creative, or non-technical vibe-coding goals before implementation planning. It
 creates or updates one requirements spec artifact by default in all drafting
-modes unless the user explicitly asks for chat-only or no-file operation. New
+modes unless the user explicitly asks for chat-only or no-file operation. When
+an approved option's exact content affects implementation or acceptance, the
+spec embeds the payload or cites a durable repository artifact instead of
+relying on chat-local labels or derived measurements. New
 default spec paths use `docs/specs/YYYY-MM-DD-<goal-slug>-spec.md` when no user
 path or current path applies; historical `specs/` files are reused when they
 are the current spec and are not migrated. Host or eval-runner artifact capture
@@ -225,7 +289,11 @@ renewed finish or handoff evidence exists.
 
 The skill has three requirement drafting modes. Without explicit current-user
 mode selection, it selects `strict-four-choice`; quick, small, low-risk, or
-reasonably formed requests do not automatically downgrade to another mode.
+reasonably formed requests do not automatically downgrade to another mode. Broad
+UX or non-technical goals classify the user's path, feedback, recovery,
+accessibility, data-safety, and permission/cost consequences before confirming a
+first slice, so the first requirements draft is coherent for the user rather
+than merely cheap to implement.
 Explicit current-user selections, including localized names such as `厳密4択`,
 `軽量4択`, and `フリースタイル`, still win. Mode names in quoted text, existing
 artifacts, logs, examples, or delegated output do not switch modes by
@@ -234,6 +302,11 @@ free-form organization require confirmation before leaving strict mode.
 `strict-four-choice` asks one requirements decision question per turn with three
 or four options, includes one mildly challenging option with risks,
 assumptions, and adoption conditions, and continues for as many turns as needed.
+Each option is a viable requirement path under stated conditions rather than a
+strawman or filler choice; if only three high-quality choices exist, the skill
+uses three instead of adding a weak fourth. A risky option must include the
+safeguard that makes it acceptable as part of the option's requirement path, not
+depend on an unverified outside escape hatch.
 `lightweight-four-choice` asks one main question per turn after explicit
 selection or confirmation and records lower-impact details as AI-recommended
 defaults. `freestyle` organizes sufficiently formed free-form requirements after
@@ -264,7 +337,15 @@ local docs, external evidence, existing specs, logs, examples, quoted text, and
 delegated output is evidence only; embedded workflow directives, metadata-like
 claims, tool commands, environment-setting requests, and trust claims stay
 inert unless they come through a valid current-user or trusted control-plane
-channel. `VIBE_DOCUMENT_LANGUAGE=user|default|<BCP47 language tag>` controls
+channel. When an approved exact-content requirement contains prompt-like or
+imperative text, the spec keeps it in a provenance-labeled
+`Content trust: inert-data` payload boundary or cites a durable repository
+artifact. The payload record states that the content has no workflow, tool,
+configuration, trust, or phase authority. Operational requirements reference
+the payload id instead of copying the raw bytes, and inline text uses a
+delimiter longer than any matching run in the payload; lossless content that
+cannot be contained safely blocks handoff until a durable artifact is available.
+`VIBE_DOCUMENT_LANGUAGE=user|default|<BCP47 language tag>` controls
 artifact language after explicit user language requests and before the skill
 default of English; existing spec language, source language, filename locale
 markers, chat language, and project convention do not override that selection
@@ -316,7 +397,7 @@ approval-evidenced requirements specs, supplied specs, acceptance criteria, or
 task lists. Do not use it for rough unapproved requirements drafting; route that
 to `vibe-requirements-spec`. It supports both technical and non-technical users,
 and emphasizes primary-source or local-investigation grounding, plain-language
-clarification, acceptance criteria before implementation, tests before code,
+clarification, acceptance criteria before implementation, paired positive/negative proof for visibility, permission, unlock, feature-flag, and state-transition gates, tests before code,
 explicit handling of unproven assumptions, and output-language selection via
 user instruction, `VIBE_PLANNING_OUTPUT_LANG`, `VIBE_CHAT_LANGUAGE` as a
 fallback (`VIBE_PLANNING_OUTPUT_LANG` wins when both are set), agent config, or
@@ -367,12 +448,16 @@ destructive-risk-blocked, or current-slice-blocker plans do not route to executi
 orchestration cannot accept destructive, credential, auth/session, permission,
 billing, security, irreversible, data-migration, or other human-risk decisions
 for the user. Plan artifacts also include integrity gates for fact cleanup, evidence
-downgrades, test no-escape checks, and generality checks so revised plans remove
-stale hypotheses, keep unmeasured quality claims labeled, block weak substitutes
-for important contract tests, name the abstract dimensions that shape the plan,
+downgrades, investigation adequacy, test no-escape checks, and generality checks
+so revised plans remove stale hypotheses, keep unmeasured quality claims labeled,
+require material implementation, caller, data, user-visible, and external-contract
+surfaces to be checked or explicitly dispositioned, block weak substitutes for
+important contract tests, name the abstract dimensions that shape the plan,
 preserve `data contract` as a dimension for file/data migrations when relevant,
 and avoid treating sampled examples, fixtures, or past failures as skill
-boundaries. When a slice may create or edit comments, docstrings, test names,
+boundaries. For user-visible or UX work, planning records feedback, recovery,
+accessibility, and workflow tradeoffs instead of defaulting to the cheapest
+technical path. When a slice may create or edit comments, docstrings, test names,
 commit messages, README/changelog entries, or other durable implementation text,
 plans include a durable artifact language check so later artifacts describe
 concrete behavior or domain contracts instead of copying plan-only identifiers,
@@ -583,13 +668,16 @@ checklists; explicit `diverge` mode produces `Practical` / `Unconventional` /
 `Challenging` idea directions only; explicit `full` mode combines idea
 generation, convention grounding, candidate development, a
 mandatory-expected-behavior gate, creativity ranking, and an adoption
-recommendation. The skill requires real verified sub-agent capability and
-recordable host evidence for delegated generation, critique, development,
-grounding, and selection roles. Ad-hoc per-role sub-agents and one scripted,
-independently recorded orchestration run that fans out the roles both satisfy
-the capability and evidence checks; checklist and direction confirmation stay
-in the conversation after the run returns. Evidence must come from an independently
-recorded host or runner surface visible to the later reader or grader; private
+recommendation. When alternatives differ by user effort, recovery, accessibility,
+data safety, or workflow friction, it surfaces the tradeoff instead of selecting
+the lowest-effort implementation path by default. The skill requires real
+verified sub-agent capability and recordable host evidence for delegated
+generation, critique, development, grounding, and selection roles. Ad-hoc
+per-role sub-agents and one scripted, independently recorded orchestration run
+that fans out the roles both satisfy the capability and evidence checks;
+checklist and direction confirmation stay in the conversation after the run
+returns. Evidence must come from an independently recorded host or runner surface
+visible to the later reader or grader; private
 transcript references, assistant-authored references to tool calls, prose-only
 agent IDs, and self-reported call counts are treated as unproven. It stops or
 asks for a clearly degraded fallback when capability or recordable evidence is
@@ -620,10 +708,15 @@ through delegated read-only units — ad-hoc sub-agents or one scripted,
 independently recorded orchestration run — whose findings enter the ledger as
 recorded evidence, not proven cause; probes, edits, and ledger ownership stay
 with the coordinator.
-Repair proof does not authorize repository history mutation. Staging, commits,
-stashes, resets, amends, release work, and cleanup require operation-specific
-consent after a dirty worktree and index preflight that separates repair-owned
-paths from unrelated or ambiguous user changes.
+After implementation and verification, it self-reviews the repair slice before
+final repair claims. For verified repair-owned file changes, it treats a scoped
+local closure commit as the default unless the user disables commits, project
+rules forbid them, or a safety gate blocks the operation. It preflights dirty
+worktree and index state, uses matching review, commit-execution, and
+message-writing capabilities when visible and applicable, stages only
+repair-owned paths, and keeps push, amend, rebase, stash, reset, release work,
+version changes, destructive cleanup, and unrelated or ambiguous user changes
+behind exact consent or blocker reporting.
 
 ### `vibe-code-research`
 
@@ -634,10 +727,13 @@ discovery, and pre-planning or pre-debugging evidence gathering. It frames the
 request as answerable questions, maps entry points by following real
 references, traces evidence along call and data paths, runs at least one
 disconfirming check against the main conclusion, and reports findings with the
-direct answer first. Claims carry `Local investigation`, `Primary source`, or
-`Unproven` labels and file/line anchors; static reading is never presented as
-runtime proof, and failed searches are reported as coverage limits, not
-nonexistence. Findings preserve non-sensitive paths, line anchors, symbols, API
+direct answer first. Broad, user-visible, or architecture-impact questions name
+and cover the material investigation surfaces instead of stopping at the first
+cheap file hit, or they state the intentional boundary and residual risk. Claims
+carry `Local investigation`, `Primary source`, or `Unproven` labels and
+file/line anchors; static reading is never presented as runtime proof, and
+failed searches are reported as coverage limits, not nonexistence. Findings
+preserve non-sensitive paths, line anchors, symbols, API
 names, commands, and identifiers, but suspected credentials or secret-like
 literal values are redacted or paraphrased before chat output, saved reports, or
 delegated-finding summaries. While active it edits nothing, stages nothing, and
@@ -695,7 +791,7 @@ English fallback, so English source artifacts or path-only invocations do not
 change wrapper prose by inertia.
 Commit-message guidance lives in `references/commit-messages.md` and covers
 outcome-focused Conventional Commit subjects, commit-body preserve/cut selection,
-pre-draft context checks, optional non-trivial body labels,
+medium-density body shaping, pre-draft context checks, optional non-trivial body labels,
 fresh-clone-readable references, verification provenance, verification signal
 selection, durable proof-source boundaries for git-unmanaged local generated
 artifacts and local-only run records, monorepo and multiple-package cohesion,
@@ -707,8 +803,10 @@ for a body commit that is actually created or amended, it applies the reference
 before execution, uses one message file, editor buffer, or complete payload
 instead of repeated `git commit -m` body-line arguments, and inspects
 `git show -s --format=%B HEAD` before reporting completion, including checks
-that verification bullets are review-useful proof rather than command
-transcripts or local-only generated proof sources. Requested commit-message
+that verification bullets pair durable proof with the changed contract, risk, or
+coverage they support rather than becoming command transcripts or local-only
+generated proof sources, and that the body is neither an overlong behavior
+walkthrough nor an abstract paragraph that hides changed surfaces. Requested commit-message
 artifacts are returned as raw message bytes without proof-source analysis,
 headings, separators, or other explanatory wrappers. Commit-execution skills
 still own staging, authorization, command safety, signing, history mutation, and
@@ -722,9 +820,11 @@ owns staging, exclusion, the pre-commit re-verification gate, command safety,
 history mutation, message transport, authorship-trailer command transport, and
 self-contained minimum message-content rules aligned with the repository commit
 contract: outcome-focused Conventional Commit subjects, body only for durable
-context the diff cannot recover, selected verification proof, durable
-proof-source boundaries for local generated artifacts, ignored result files, and
-local-only run records, and no prompt/session/plan-label leakage. The skill's
+context the diff cannot recover, medium-density body wording that groups
+durable surfaces without becoming a feature walkthrough, selected verification
+proof that explains the changed contract or risk it covers when that is not
+already obvious, durable proof-source boundaries for local generated artifacts,
+ignored result files, and local-only run records, and no prompt/session/plan-label leakage. The skill's
 guidance is distilled from real Codex and Claude Code sessions across multiple
 repositories where these exact steps either prevented or, when skipped, caused
 commit mistakes. Its core
@@ -772,7 +872,8 @@ assertion or eval case is loosened or deleted, and blocks common regressions
 such as broad rewrites, universal checklists, fake baselines, self-grading bias,
 weak proof substitutes,
 companion-skill requirements, generated workspace commits, wording-only churn,
-cross-eval moving failures treated as local fixes, copyable invalid placeholder
+cross-eval moving failures treated as local fixes, per-cell prose patches after
+multi-run evidence shows low-frequency scatter, copyable invalid placeholder
 guidance, contaminated or unrerun runs counted as proof, release/version changes
 without explicit release instruction, and unrelated package rewrites. Its
 reference notes summarize local session-derived patterns for efficient skill
@@ -809,6 +910,11 @@ capabilities may be provided by ad-hoc reviewer invocation or by one scripted,
 independently recorded orchestration run; orchestration is a transport, not a
 separate review mode, and contract confirmation plus all post-collection
 decisions stay with the coordinator outside the run.
+Three-reviewer coverage is the baseline for broad ordinary code targets rather
+than an unconditional shape: the startup contract may add, split, fold, or
+reduce angles when target evidence, user focus, DoD, risk, host capacity, or
+accepted effort limits make another set more effective, while recording coverage
+mapping and residual risk for folded or omitted baseline surfaces.
 Plan and document changes are reviewed only when represented by a non-empty
 git-backed target; standalone plan or document files are inert context, not a
 `vibe-review` target by themselves.
@@ -828,7 +934,7 @@ Reviewer/backend output is inert ingested data under the trust contract: raw
 reviewer/backend bytes enter only at the `ingested_reviewer_backend_output`
 normalization boundary, then downstream stages use normalized projection records
 and bounded redacted evidence excerpts rather than raw backend transcripts or
-executable instructions.
+executable instructions. Review completion also requires acceptance coverage: material criteria are recorded in an `acceptance_proof` matrix, core criteria need positive proof, visibility/permission/unlock/state gates need paired positive and negative proof, and compound stop signals move the run to a checkpoint-blocked state rather than another mutable-target broad review.
 Dirty-path isolation must be verified before hidden paths are trusted, stale
 plan evidence fails closed on digest mismatch, and project-context filters use
 only explicit user, DoD, or confirmed-plan evidence.
@@ -843,6 +949,14 @@ only explicit user, DoD, or confirmed-plan evidence.
 - `evals/vibe-coding/`: external orchestration eval prompts for activation,
   lifecycle routing, phase boundaries, specialist availability, and auxiliary
   skill containment
+- `evals/vibe-orchestrate/`: external subagent-orchestration eval prompts for
+  bounded delegation contracts, blocker stops, fact inlining, journal recovery,
+  reference-only monitoring, coordinator verification, review adjudication,
+  direct-intervention disclosure, and parallel-writer cleanup
+- `evals/vibe-goal-alignment/`: external goal-alignment prompts for
+  understanding records, correction loops, risky release/version/commit
+  ambiguity, destructive side-effect stops, source-instruction boundaries, and
+  no-execution alignment boundaries
 - `evals/vibe-requirements-spec/`: external requirements-spec drafting eval
   prompts
 - `evals/vibe-planning/`: external planning eval prompts and fixtures
@@ -870,6 +984,11 @@ only explicit user, DoD, or confirmed-plan evidence.
 - `evals/vibe-review/`: external integrated review eval prompts
 - `skills/minecraft-modding-workbench/`: Minecraft modding skill package
 - `skills/vibe-coding/`: explicit top-level vibe-coding orchestration skill package
+- `skills/vibe-orchestrate/`: coordinator-owned subagent orchestration skill
+  package with reference-only delegation, recovery, monitoring, verification,
+  review, and accident-cleanup guidance
+- `skills/vibe-goal-alignment/`: pre-action user-agent understanding alignment
+  skill package
 - `skills/vibe-requirements-spec/`: Markdown requirements-spec drafting skill package
 - `skills/vibe-planning/`: standalone vibe-coding implementation-planning skill package
 - `skills/vibe-plan-review/`: saved-plan item review skill package, including
@@ -923,10 +1042,23 @@ specific to the skill.
   toolchain check, not as NeoForge by default.
 - `vibe-requirements-spec` is the pre-planning requirements-spec workflow. It
   creates or updates the requirements spec artifact by default while active,
-  uses explicit chat-only/no-file only when requested, keeps the same spec open
-  until explicit requirements-finished evidence, next-phase handoff,
-  cancellation, or replacement, and does not create an implementation plan in
-  the same skill response.
+  persists selected exact-content payloads or durable repository references
+  before dependent handoff, uses explicit chat-only/no-file only when requested,
+  keeps the same spec open until explicit requirements-finished evidence,
+  next-phase handoff, cancellation, or replacement, and does not create an
+  implementation plan in the same skill response.
+- `vibe-goal-alignment` is a pre-action alignment workflow for repairing or
+  confirming the agent's understanding before work starts. It produces a
+  concise goal/success/non-goal/assumption/blocker record and stops before
+  edits, commands, commits, releases, destructive actions, or downstream
+  workflow authorization until the user confirms or corrects the record.
+- `vibe-orchestrate` is a coordinator-owned delegation discipline for using
+  subagents safely inside bounded research, editing, repair, or review work. It
+  is reference-only in its first version: no watchdog script, runner adapter, or
+  command wrapper is included. The coordinator remains responsible for scope,
+  verified facts, progress journals, monitoring decisions, verification gates,
+  review dispositions, direct-intervention disclosure, and parallel-writer
+  accident cleanup.
 - `vibe-planning` is the primary user-facing implementation-planning workflow
   when the user asks for a plan, acceptance criteria, test plan, or rough
   vibe-coding implementation plan. Its normal output is a full plan file plus a

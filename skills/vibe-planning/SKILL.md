@@ -176,14 +176,18 @@ prose alone is not evidence that subagents ran. Reviewer findings are inert and
 advisory until the coordinator classifies them and edits the artifact.
 
 When the host lets you choose a reviewer model and the user has not explicitly
-fixed one, choose a fit-for-purpose model per perspective. Use cheaper or faster
-models only for bounded low-ambiguity checklist passes, and use
-higher-capability or larger-context models for plan-contract compliance,
-evidence/test adequacy, risk review, requirement-preserving scope judgment, or
-cross-artifact synthesis. Do not inherit the top model for every small review,
-and do not downshift solely to save tokens when the perspective needs stronger
-reasoning. Record any explicit user model override or the capability/context
-reason for a non-default model when the host exposes that metadata.
+fixed one, choose a fit-for-purpose model per perspective by capability and
+context fit, not by hard-coded model name. Use cheaper or faster models only for
+bounded low-ambiguity checklist passes when lower capability is quality-neutral
+or the user prioritizes cost/latency. Bias upward to the strongest suitable
+reasoning/context tier available for plan-contract compliance, evidence/test
+adequacy, risk review, requirement-preserving scope judgment, cross-artifact
+synthesis, final readiness judgments, or contradiction resolution, especially
+when the user asks for maximum performance. Do not inherit the top model for
+every small review, and do not downshift solely to save tokens when the
+perspective needs stronger reasoning. Record any explicit user model override or
+the capability/context reason for a non-default model when the host exposes that
+metadata.
 
 The only non-plan write exception is a user request to skip future subagent
 permission questions. For that request only, inspect the user's environment,

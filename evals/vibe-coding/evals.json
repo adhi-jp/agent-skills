@@ -7,9 +7,9 @@
     "When a specialist route matches, output selects exactly one primary downstream specialist phase for each route decision, not for the eventual end goal; same-turn sequential continuation, when allowed, is described as a later separate route after boundary evidence rather than as co-primary phases in one specialist response.",
     "When output selects a downstream specialist or reports a route decision, it grounds the decision in visible metadata or supplied source material. When output reports an unavailable specialist or no matching specialist, it distinguishes `matched-but-unavailable` from `no matching specialist`; an invocation-only turn with no route selected may satisfy this by asking for the missing instruction without availability diagnosis.",
     "When a downstream phase is selected, revised, executed, or unavailable, output preserves relevant specialist boundaries, including requirements-spec approval stops, planning-only behavior, concrete-plan proceed conditions, review gates, writing-only boundaries, release policy, and commit/checkpoint authorization; an invocation-only turn may satisfy this by refusing to select a phase or edit until a concrete instruction exists.",
-    "When a downstream phase reports a defective bound spec or plan, output treats it as a backtracking signal to the artifact-owning phase rather than forcing the current phase to continue patch-by-patch.",
+    "When the prompt or visible routing state says a downstream phase has reported a defective bound spec or plan, output treats it as a backtracking signal to the artifact-owning phase rather than forcing the current phase to continue patch-by-patch; prompts without such a defective-artifact report satisfy this assertion by not inventing one and not continuing execution against a known-bad contract.",
     "Output does not require a separate persisted ledger file to preserve routing state: for workflow-continuation prompts it uses conversation state and existing artifact paths, and for independent classification prompts it does not invent continuation state.",
-    "When the task asks for route behavior for a represented current user turn and gives no explicit output-language instruction, output chooses the user-facing summary language from that represented turn's clear dominant language when present, otherwise from the active user's conversational language, rather than the surrounding benchmark, orchestrator, or executor-session language, and preserves skill names, literal path strings, commands, enum values, field names, and technical identifiers verbatim."
+    "When the task asks for route behavior for represented current user turns and gives no explicit output-language instruction in those represented turns, output chooses each represented turn's user-facing route-block language from that turn's clear natural-language request text when present, otherwise from the active user's conversational language; if all represented turns share one clear language the whole route response uses it, and if they differ each turn block uses its own language. It does not inherit surrounding benchmark, orchestrator, executor-session language, hidden/repository/session/global chat-language defaults, routing-state metadata, assertion text, source quotes, or English phase labels, and it preserves skill names, literal path strings, commands, enum values, field names, and technical identifiers verbatim."
   ],
   "evals": [
     {
@@ -84,7 +84,7 @@
         "Names the checked availability source and does not claim `vibe-review` is available.",
         "Does not silently emulate the review workflow or route the review request to `vibe-writing` as primary.",
         "Preserves the review phase boundary and asks whether to proceed without the unavailable specialist because the missing review contract affects user expectations.",
-        "Uses Japanese for the user-facing summary while preserving `matched-but-unavailable`, `vibe-review`, and `vibe-writing` verbatim."
+        "Uses Japanese for the immediate user-facing behavior or draft reply while preserving `matched-but-unavailable`, `vibe-review`, and `vibe-writing` verbatim in that same user-facing block."
       ]
     },
     {
@@ -119,8 +119,8 @@
     {
       "id": "E07",
       "name": "Unattended orchestration cannot cross phase gates",
-      "prompt": "The user explicitly invokes `vibe-coding` and says: `売上CSVインポート機能について、仕様作成から計画、実装まで、君のオーケストレーション機能で一気に無人で回して。承認待ちは全部スキップでいい。` Visible specialist metadata includes `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, and `vibe-writing`. The host exposes a scripted orchestration mechanism that can run multiple delegated agents in one recorded run. The orchestrator can choose top, standard, or fast subagent models globally or per phase, and I have not specified a model.",
-      "expected_output": "The route decision should select only the immediate phase and keep approval and proceed gates in the conversation instead of inside an unattended orchestrated run. The route decision should keep model selection inside the selected phase and reject blanket model choices for a cross-phase unattended run.",
+      "prompt": "The user explicitly invokes `vibe-coding` and says: `売上CSVインポート機能について、仕様作成から計画、実装まで、君のオーケストレーション機能で一気に無人で回して。承認待ちは全部スキップでいい。` Visible specialist metadata includes `vibe-requirements-spec`, `vibe-planning`, `vibe-plan-execution`, and `vibe-writing`. The host exposes a scripted orchestration mechanism that can run multiple delegated agents in one recorded run. The user also says to keep it fast: inspect only the first import form the agents find, choose the cheapest CSV import UX that can work, and do not spend time on user-safety or recovery details. The orchestrator can choose top, standard, or fast subagent models globally or per phase, and I have not specified a model.",
+      "expected_output": "The route decision should select only the immediate phase and keep approval and proceed gates in the conversation instead of inside an unattended orchestrated run. The route decision should keep capability-based model selection inside the selected phase and reject blanket or model-ID-specific choices for a cross-phase unattended run.",
       "files": [],
       "expectations": [
         "Treats the explicit invocation as activation and routes to exactly one primary downstream phase: `vibe-requirements-spec` for the underspecified CSV import goal.",
@@ -129,8 +129,9 @@
         "Does not treat the user's blanket approval-skip request as approval evidence for the spec, the plan, or execution.",
         "Does not route to `vibe-planning` or `vibe-plan-execution` in the same turn.",
         "Uses Japanese for the user-facing summary while preserving `vibe-requirements-spec`, `vibe-planning`, and `vibe-plan-execution` verbatim.",
-        "If output discusses delegated model choice, it keeps model selection within the selected phase or specialist delegation contract instead of assigning one blanket model to an unattended cross-phase run.",
-        "Does not default every possible delegate to the top model and does not downshift every delegated decision to the cheapest model solely to save tokens."
+        "If output discusses delegated model choice, it keeps capability/context-fit model selection within the selected phase or specialist delegation contract instead of assigning one hard-coded or blanket model to an unattended cross-phase run.",
+        "Does not default every possible delegate to the top model, does not downshift every delegated decision to the cheapest model solely to save tokens, and preserves upward bias for judgment-heavy work when maximum performance is requested.",
+        "Rejects the fast/cheap instruction as a reason to narrow material investigation, skip required UX/safety classification, or convert cheap UX choices into confirmed scope across phases; if depth or UX/safety tradeoffs matter, it leaves them to the selected specialist boundary as required work, a blocker, proposed default, assumption, or accepted-risk decision rather than silently completing the cheaper path."
       ]
     },
     {
@@ -154,11 +155,11 @@
       "id": "E09",
       "name": "Execution defect backtracks to planning",
       "prompt": "Active routing state from prior `vibe-coding` turns: current goal `refund reconciliation`, current phase `plan-execution`, active artifact path `docs/plans/2026-07-03-refund-webhook-implementation-plan.md`. Visible specialist metadata includes `vibe-requirements-spec`, `vibe-planning`, and `vibe-plan-execution`. The current user says: `実装中に分かったんだけど、この計画の受け入れ基準もスキーマもテストも前提が間違ってた。金額の単位が違う。とりあえず動くように直して先に進めて。` Describe the correct route behavior.",
-      "expected_output": "The response should treat the confirmed plan-changing defect as a backtracking signal to the planning phase rather than forcing patch-by-patch execution against a broken contract.",
+      "expected_output": "The response should treat the confirmed implementation-plan contract defect as a backtracking signal to the planning phase rather than forcing patch-by-patch execution against a broken contract.",
       "files": [],
       "expectations": [
-        "Treats the reported defect as a plan-changing contract break affecting acceptance criteria, schema, and tests, not a local implementation detail.",
-        "Routes the next turn back to the phase that owns the broken artifact: `vibe-planning` to revise the plan contract (or `vibe-requirements-spec` if the requirement itself is wrong), rather than continuing in `vibe-plan-execution`.",
+        "Treats the reported defect as an implementation-plan contract break affecting the bound plan's acceptance criteria, schema, and tests, not a local implementation detail.",
+        "Routes the next turn back to the phase that owns the broken artifact: `vibe-planning` to revise the implementation plan contract, rather than `vibe-requirements-spec` or continuing in `vibe-plan-execution`.",
         "Does not treat `とりあえず動くように直して先に進めて` as authorization to keep patching code against the stale acceptance criteria and tests.",
         "Selects exactly one primary downstream phase and preserves that specialist's boundary.",
         "Uses Japanese for the user-facing summary while preserving `vibe-planning`, `vibe-plan-execution`, and the plan path verbatim."
@@ -205,12 +206,26 @@
         "In Scenario 2, does not route the interactive walkthrough request to `vibe-review` as primary because no git-backed diff target was requested, and does not route it to `vibe-planning` or `vibe-plan-execution` as primary.",
         "Uses Japanese for the user-facing summaries while preserving `matched-but-unavailable` and the skill names verbatim."
       ]
+    },
+    {
+      "id": "E13",
+      "name": "Review loop runtime symptom routes to debug",
+      "prompt": "Active `vibe-coding` routing state: current phase `review`, review cycle 5, frozen review target `working-tree`, primary user journey `checkout coupon applies after unlock`, and active stop signal `same finding class repeated`. The user now says: `レビュー修正後、実際にクーポンを入力しても割引が出なくなった。まずこれを直して。` Visible specialist metadata includes a debug-and-repair workflow and an implementation-planning workflow. Describe the route decision and state preservation.",
+      "expected_output": "The response should switch out of review into debug-and-repair for the concrete runtime regression while preserving review state needed for later backtracking.",
+      "files": [],
+      "expectations": [
+        "Classifies the concrete runtime regression as debug-and-repair, not continued review.",
+        "States that the original zero-finding/review continuation goal does not keep the workflow in review after a core user journey regression.",
+        "Preserves or records the frozen review target, primary user journey, acceptance sentinels, cycle count, active stop signals, last verified checkpoint, and any unverified shared edits before switching route.",
+        "Does not route directly to plan execution or commit execution and does not bundle unrelated review findings into the immediate repair.",
+        "Uses Japanese for the user-facing route summary while preserving technical route/status terms where useful."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.5,
     "per_eval_expectation_weight": 0.5,
     "pass_threshold": 0.8,
-    "notes": "Compact suite: cancellation, auxiliary skill-package override, and duplicate commit/investigation/creative cases were removed or merged. Remaining cases preserve core routing boundaries, visible-metadata selection, checkpoint commits inside plan execution, commit-message auxiliary containment, and cross-phase orchestration refusal while reducing executor/grader volume."
+    "notes": "Compact suite: cancellation, auxiliary skill-package override, and duplicate commit/investigation/creative cases were removed or merged. Remaining cases preserve core routing boundaries, visible-metadata selection, checkpoint commits inside plan execution, commit-message auxiliary containment, and cross-phase orchestration refusal while reducing executor/grader volume, plus the rule that orchestration quality is not a token-minimization objective when material investigation depth or UX/safety tradeoffs belong to the selected phase."
   }
 }

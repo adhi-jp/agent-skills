@@ -311,7 +311,13 @@ skill must satisfy these minimums:
 - Body only when it adds durable value the diff cannot recover: the triggering
   failure or review finding, the public/CLI/schema contract, a rejected
   alternative, an accepted risk or non-goal, or verification that changes review
-  confidence. Skip file-by-file inventories.
+  confidence. Use a medium-density shape for body-worthy commits: usually one
+  to three short paragraphs or 2-5 bullets grouped by durable surface,
+  constraint, risk, or non-goal before `Verification:`. Split or summarize when
+  the body turns into a feature walkthrough, file inventory, helper list,
+  assertion list, or manual-test transcript. Do not collapse unrelated surfaces
+  into one abstract paragraph that hides what changed. Skip file-by-file
+  inventories.
 - Verification lines are selected proof, not a session command transcript. Keep
   exact commands when they are useful rerun or audit anchors such as tests,
   builds, type/lint checks, schema or metadata validation, migration dry runs,
@@ -320,7 +326,14 @@ skill must satisfy these minimums:
   equivalent probes when their durable meaning is clearer than the exact bytes.
   Omit search/string-presence probes, file-list checks, and metadata checks that
   only restate diff-visible changes unless they prove a non-obvious cross-file,
-  generated, packaging, release, or registration contract.
+  generated, packaging, release, or registration contract. When enough
+  information is available, make each kept bullet explain what the proof means:
+  `- <evidence> passed; covers <changed contract/risk/scope>.` Use explicit
+  absence statuses such as `not run`, `not measured`, or `benchmark not durably
+  recorded` instead of inventing coverage. Omit the coverage phrase only when
+  the command or suite name already carries the useful scope, the commit is
+  small enough that the proof meaning is obvious, or available evidence is too
+  thin.
 - Small/mechanical changes (lock bumps, generated syncs) are often
   subject-only.
 - Keep durable references (issue IDs, error codes, commands, committed paths,

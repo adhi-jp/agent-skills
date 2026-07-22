@@ -26,6 +26,11 @@ Read this reference when actively diagnosing, repairing, verifying, or handing o
    - If none apply or one is unavailable, continue with this workflow.
 
 4. **Open the debug ledger**
+   - When a concrete runtime regression is the user's active report, open a
+     primary-symptom record first: reported symptom, reproduction or first
+     failing proof, root-cause hypothesis, minimal patch envelope, positive
+     sentinel, negative sentinel, last verified checkpoint, adjacent findings
+     held as ledger-only, and the closure status.
    - Maintain a ledger with these fields for each current-scope symptom:
      reported symptom; expected behavior and source; observed behavior and
      source; prior attempts and why each failed or remains unproven; suspected
@@ -130,7 +135,8 @@ Read this reference when actively diagnosing, repairing, verifying, or handing o
       source trace, isolation proof, or exact manual proof path.
     - Keep edits close to the proven cause and existing local patterns.
     - Preserve unrelated behavior and defer adjacent hardening unless it is
-      needed to close a current ledger item.
+      needed to close the primary symptom or a current ledger item with the same
+      proven root cause and verification path.
 
 12. **Prove artifact freshness**
     - Before asking the user to retest or declaring a runtime issue fixed,
@@ -181,13 +187,35 @@ Read this reference when actively diagnosing, repairing, verifying, or handing o
     - Add at least one disconfirming or negative check for the neighboring case
       most likely to have been missed.
 
-16. **Close repository operations separately**
-    - If no staging, commit, stash, reset, amend, release, or other history
-      operation was requested, say none was performed when that matters for
-      closure.
-    - If such an operation was requested, perform the repository history
-      preflight, get operation-specific consent, and keep the operation scoped
-      to paths proven to belong to the repair slice.
+16. **Self-review before closure**
+    - After implementation and verification, review the repair slice before
+      final repair claims. Use a matching available review workflow when one is
+      visible and applicable; otherwise run the review directly in this workflow.
+    - Check the ledger closure, minimal patch envelope, preserved behavior,
+      verification proof, artifact freshness, temporary or generated surfaces,
+      and user-visible summary.
+    - Resolve material findings and rerun affected proof before closure, or
+      record the remaining item as `deferred`, `accepted-residual`, or `blocked`.
+
+17. **Close repository operations**
+    - When the repair changed files and verification plus self-review are
+      complete, create a scoped local closure commit by default unless the user
+      explicitly said not to commit, project instructions forbid commits, or a
+      safety gate blocks the operation.
+    - Before staging or committing, refresh dirty worktree and index state,
+      identify repair-owned paths, surface unrelated or ambiguous dirty paths,
+      and confirm self-review and verification coverage for the repair-owned
+      paths.
+    - Stage and commit only paths proven to belong to the repair slice. Do not
+      mutate unrelated or ambiguous user changes. Push, amend, rebase, stash,
+      reset, release preparation, version changes, destructive cleanup, or other
+      non-closure history operations still require exact operation-specific
+      consent.
+    - Use matching available commit-execution and message-writing capabilities
+      when they are visible and applicable. If they are unavailable, keep the
+      same safeguards in this workflow: verify the staged set before commit,
+      use a Conventional Commit message with durable repair outcome and proof,
+      and inspect the stored message after commit.
     - When a consented closure commit needs a multi-line message, transport it
       as one complete payload: a single-quoted heredoc such as
       `git commit -F - <<'EOF' ... EOF`, or a message file passed with `-F`.
@@ -200,3 +228,6 @@ Read this reference when actively diagnosing, repairing, verifying, or handing o
       `git show -s --format=%B HEAD` before reporting closure. Defer complex
       history repair beyond the consented closure commit to a commit-execution
       workflow when one is visible.
+    - If the user explicitly disabled commits or a safety gate blocks the
+      default closure commit, finish with the reviewed uncommitted state,
+      verification status, and proposed commit scope or message when useful.

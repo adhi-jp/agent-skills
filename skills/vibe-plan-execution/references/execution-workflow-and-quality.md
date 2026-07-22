@@ -76,7 +76,10 @@ and does not authorize the next step or any commit.
    - Name the source plan, including the local path when it came from a file,
      and the current slice being implemented.
    - Extract in-scope behavior, out-of-scope behavior, acceptance criteria,
-     tests, constraints, and explicit non-goals.
+     tests, constraints, explicit non-goals, and any acceptance proof matrix or
+     core sentinels. For paired visibility, permission, unlock, feature-flag, or
+     state-transition gates, identify both the positive and negative paths before
+     editing.
    - Extract any high-risk planning sections: behavior inventory, equivalence
      dimensions, recovery or known-good evidence, diagnostic-scope controls,
      failure-pattern applicability, plan integrity gates, and current-slice
@@ -158,7 +161,10 @@ and does not authorize the next step or any commit.
      section for the locked item to `In progress` before meaningful edits when
      that update itself is safe and does not overwrite unrelated plan changes.
 5. **Prove behavior before or alongside code**
-   - Follow the test or proof strategy in the plan.
+   - Follow the test or proof strategy in the plan. Run or create the core
+     acceptance sentinels before edge hardening when the plan contains paired
+     gates; a broad green suite does not prove completion if the core positive
+     path is missing.
    - For bug fixes, reproduce the failure or add a regression test when feasible.
    - For refactors, protect existing behavior with equivalence checks.
    - When the plan includes behavior inventory, equivalence, recovery, or
@@ -184,10 +190,13 @@ and does not authorize the next step or any commit.
      authorized commit; classify any material wording finding with the other
      review findings.
    - Review the final diff against the plan's acceptance criteria and non-goals.
-   - Report any skipped check with the reason and residual risk.
+   - Report suite status, acceptance-coverage status, unresolved scope, and any
+     unverified shared edits as separate facts. Report any skipped check with the
+     reason and residual risk.
    - Update `Implementation progress` after the item is verified and reviewed:
      record `Completed` only with evidence-backed verification and review
-     disposition, or record `Blocked` / `Skipped with approved deviation` with
+     disposition, and only when all core acceptance sentinels are passed or
+     explicitly accepted as residual; otherwise record `Blocked` / `Skipped with approved deviation` with
      the evidence, residual risk, and next required action. If the local plan
      artifact is unavailable or unwritable, put the same progress row in the
      execution summary and say the artifact was not updated.

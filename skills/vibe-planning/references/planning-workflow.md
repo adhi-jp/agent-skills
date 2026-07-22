@@ -20,7 +20,16 @@ Read this reference when drafting or revising the implementation-plan body. It o
      the current outcome.
 2. **Investigate before asking**
    - Inspect the workspace and primary sources relevant to the current slice.
+   - Before deep implementation design, name the material investigation surfaces
+     the slice depends on: direct implementation, callers, registration or
+     configuration, data/schema boundaries, tests or fixtures, user-visible
+     states or copy, and external contracts when relevant. For UI/UX, graphical,
+     game-object, or workflow changes, include visible/physical surfaces,
+     feedback, failure or undo paths, and accessibility expectations when they
+     affect the user's experience.
    - Record facts with evidence labels.
+   - If a material surface is unavailable or intentionally skipped, record the
+     impact and whether the plan becomes discovery-first, blocked, or narrowed.
    - If primary sources are unavailable, say why and keep dependent claims
      `Unproven`.
 3. **Clarify intent**
@@ -28,7 +37,9 @@ Read this reference when drafting or revising the implementation-plan body. It o
    - In trusted top-level orchestration, decide delegable plan-quality
      questions with AI-selected defaults or assumptions instead of turning them
      into a multi-turn user interview, then make the proof path or revisit
-     trigger explicit in the plan.
+     trigger explicit in the plan. Do not use proxy defaults to hide a
+     non-delegable UX, safety, data, permission, or scope tradeoff from the
+     user.
    - Do not block the whole plan on optional constants, future enhancements, or
      adjacent product decisions that can be deferred after narrowing the current
      acceptance criteria.
@@ -48,7 +59,14 @@ Read this reference when drafting or revising the implementation-plan body. It o
 5. **Define acceptance criteria**
    - Convert the clarified specification into observable pass/fail criteria.
    - Include negative cases, permissions, failure states, empty states, migration
-     or compatibility expectations, and UX states when relevant.
+     or compatibility expectations, and UX states when relevant. For visibility,
+     permission, unlock, feature-flag, and state-transition behavior, define the
+     positive success path and the matching negative or before-state path as a
+     pair; a hide/deny test without the corresponding show/allow/unlocked proof
+     is not enough for a core criterion. Include
+     user-visible feedback, recovery, and accessibility checks whenever a
+     cheaper implementation path could technically pass while feeling broken or
+     unsafe to a reasonable user.
    - For editable forms or settings screens, explicitly decide whether cancel,
      reset, or navigation-away behavior is in scope; when it already exists,
      preserve it with acceptance criteria and tests.
@@ -75,8 +93,9 @@ Read this reference when drafting or revising the implementation-plan body. It o
    - For UI, include interaction, state, responsive layout, and accessibility
      checks when relevant.
 7. **Run plan integrity gates**
-   - Apply the `Fact cleanup gate`, `Evidence downgrade gate`, `Test
-     no-escape gate`, and `Generality gate` before finalizing the plan.
+   - Apply the `Fact cleanup gate`, `Evidence downgrade gate`, `Investigation
+     adequacy gate`, `Test no-escape gate`, and `Generality gate` before
+     finalizing the plan.
    - Apply the success-criteria freeze, diagnostic-finding restraint, plan-body
      firewall, completion gate, and selective failure-pattern applicability
      record when their preconditions matched the current slice.
@@ -217,6 +236,11 @@ Read this reference when drafting or revising the implementation-plan body. It o
 12. **Run the plan multi-perspective review gate**
    - Run this gate after the draft artifact exists, or after a chat-fallback
      draft is assembled, and before the final coordinator self-review.
+   - When delegated plan-review units are permitted, give each unit a bounded
+     review contract: deliverable, perspective question, maximum elapsed time,
+     allowed artifact sections, context digest, expected finding format, and
+     stop-and-return conditions. Three empty waits require a checkpoint or
+     coordinator fallback, not repeated no-change user notifications.
    - Resolve permission with `VIBE_SUBAGENTS=ask|allow|deny` and current-turn
      override rules before launching any review-only subagent. Use subagents
      only when permission, host-neutral review-only capability, content safety,
@@ -227,10 +251,12 @@ Read this reference when drafting or revising the implementation-plan body. It o
      ran.
    - Include `vibe-planning contract compliance` as a required perspective in
      both delegated and fallback review. When capacity allows, also include
-     `evidence/proof/test adequacy`, `scope/specification alignment`, and
-     `risk/handoff feasibility`. If capacity is limited, preserve
-     `vibe-planning contract compliance` plus at least two other relevant
-     perspectives, or record why only local fallback was possible.
+     `evidence/proof/test adequacy`, `scope/specification alignment`,
+     `user/UX expectation`, and `risk/handoff feasibility`. If capacity is
+     limited, preserve `vibe-planning contract compliance`, include
+     `user/UX expectation` when the slice changes user-visible behavior, plus at
+     least one other relevant perspective, or record why only local fallback was
+     possible.
    - If trusted orchestration used AI-selected planning defaults or proxy
      assumptions, include them in the review prompt or fallback review and ask
      whether any one should become a human-user blocker instead.
@@ -251,11 +277,12 @@ Read this reference when drafting or revising the implementation-plan body. It o
    - Re-read the artifact or chat-fallback draft as a later implementer and
      check at least:
      step-to-skill-route completeness, unavailable-skill leakage, evidence
-     labels, acceptance-criteria/test ordering, multi-perspective review
-     completion or degraded fallback, `vibe-planning` contract compliance,
-     reviewer-disposition consistency, scope creep from review feedback,
-     plan-only boundary, proceed condition, unresolved `Unproven`
-     implementation blockers, and whether any relevant durable artifact language
+     labels, investigation adequacy, acceptance-criteria/test ordering,
+     multi-perspective review completion or degraded fallback, `vibe-planning`
+     contract compliance, reviewer-disposition consistency, user/UX expectation
+     coverage, scope creep from review feedback, plan-only boundary, proceed
+     condition, unresolved `Unproven` implementation blockers, and whether any
+     relevant durable artifact language
      hygiene check is present without inviting plan-only identifiers into later
      comments, test names, messages, or documentation. For eligible commit
      checkpoints, also check that later-execution scoped local-commit

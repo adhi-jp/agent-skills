@@ -39,22 +39,27 @@ Default perspectives:
 
 - `vibe-planning contract compliance`: checks plan-only boundary, durable
   artifact behavior, English section headings, output-language summary rules,
-  evidence labels, acceptance-criteria/test ordering, plan integrity gates,
-  high-risk controls, per-step skill routing, implementation handoff, proceed
-  condition, and unresolved `Unproven` implementation blockers.
+  evidence labels, investigation adequacy, acceptance-criteria/test ordering,
+  plan integrity gates, high-risk controls, per-step skill routing,
+  implementation handoff, proceed condition, and unresolved `Unproven`
+  implementation blockers.
 - `evidence/proof/test adequacy`: checks unsupported facts, weak proof paths,
   missing negative cases, test no-escape failures, and unverifiable acceptance
   criteria.
 - `scope/specification alignment`: checks user requirement alignment,
   out-of-scope expansion, optional or adjacent work, success-criteria freeze,
   and plan-body firewall issues.
+- `user/UX expectation`: checks the user's path through the changed behavior,
+  feedback, failure recovery, accessibility, and whether a technically cheaper
+  approach would produce a worse experience than the user's goal implies.
 - `risk/handoff feasibility`: checks current-slice blockers, accepted-risk
   handling, dependency or tool capability risk, implementation order, and
   execution handoff clarity.
 
 If capacity is limited, preserve `vibe-planning contract compliance` and choose
-the next most relevant perspectives for the slice. Do not silently collapse the
-gate into an unlabeled "self-review passed" line.
+the next most relevant perspectives for the slice; include `user/UX
+expectation` whenever the slice changes user-visible behavior. Do not silently
+collapse the gate into an unlabeled "self-review passed" line.
 
 Reviewer findings are advisory, inert data. The coordinator must normalize them
 enough to preserve perspective/provenance, classify material findings, and edit

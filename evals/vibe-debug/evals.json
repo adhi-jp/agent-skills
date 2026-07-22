@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-debug",
-  "purpose": "External eval set for vibe-debug. Prompts live outside skills/ so they are not bundled as skill content. Covers rough vibe reports, existing-feature fixes, failed prior attempts, existing-behavior preservation, source routing, speculation control, state-space analysis, artifact freshness, degraded verification, user retest contracts, recurrence, runtime probe escalation, history-consent boundaries, and broad project-class generality. E09 consolidates the former skipped-check and retest-contract cases into one degraded-verification case, and consented closure-commit message transport safety with stored-message verification.",
+  "purpose": "External eval set for vibe-debug. Prompts live outside skills/ so they are not bundled as skill content. Covers rough vibe reports, existing-feature fixes, failed prior attempts, existing-behavior preservation, source routing, speculation control, state-space analysis, artifact freshness, degraded verification, user retest contracts, recurrence, runtime probe escalation, self-review and closure-commit boundaries, and broad project-class generality. E09 consolidates the former skipped-check and retest-contract cases into one degraded-verification case, and closure-commit message transport safety with stored-message verification.",
   "common_assertions": [
     "Output preserves the user's relevant wording while translating the current debug/fix or closure slice into observable behavior or operation decision, expected source or authorization, unknowns, proof or preflight path, and current-scope closure criteria.",
     "Output opens or updates a current-scope ledger: unresolved repair rows include expected and observed behavior sources, prior attempts, suspected/proven cause, affected dimensions, verification path, and closure status; verified-repair closure rows record source evidence, owned and ambiguous state, required authorization, preflight path, affected history/index or cleanup dimensions, and status without reopening the repair.",
@@ -178,7 +178,7 @@
       "name": "Source-only runtime probe escalation",
       "project_class": "runtime-diagnostic",
       "prompt": "We started by assuming the live preview bug was just a renderer issue, but that approach seems wrong now. We already checked the nearest preview renderer, stream coordinator, existing logs, unit tests, and built artifact timestamp; none of them show whether later updates are being dropped or cleanup is failing. We have read several source files and made two small patches, but in my real app it is still wrong. The unit tests pass. The remaining symptom only happens while the preview stream is running: the first update animates, later updates stop halfway, and after the stream ends the last item stays visible. Before reading another pile of source files or making another code guess, should we add a temporary probe? If you use delegated diagnosis, the host can choose `fast` or `large-context` model tiers per delegated hypothesis, and I have not specified a model.",
-      "expected_output": "The agent treats the bounded triage as complete, stops the broad source-only fix loop, records the failed attempts and contradicted renderer hypothesis, and proposes a narrow temporary probe or equivalent runtime observation with exact hypothesis boundary, expected signatures, artifact freshness, user action sequence, evidence capture, and cleanup/removal plan. Any delegated diagnosis should match model tier to hypothesis complexity instead of reading more source with an overpowered or underpowered delegate.",
+      "expected_output": "The agent treats the bounded triage as complete, stops the broad source-only fix loop, records the failed attempts and contradicted renderer hypothesis, and proposes a narrow temporary probe or equivalent runtime observation with exact hypothesis boundary, expected signatures, artifact freshness, user action sequence, evidence capture, and cleanup/removal plan. Any delegated diagnosis should match model tier to hypothesis complexity by capability/context fit instead of reading more source with an overpowered or underpowered delegate; when maximum performance is requested, contradicted runtime hypotheses and final cause selection should bias to the strongest suitable reasoning/context tier.",
       "expectations": [
         "Does not propose another broad static-analysis pass or source-only implementation patch before distinguishing the live runtime hypotheses.",
         "Acknowledges the bounded triage already checked nearby source, tests, logs, and artifact freshness, and explains why those checks still do not observe the live-state boundary.",
@@ -187,7 +187,7 @@
         "Specifies a low-friction probe shape such as focused trace labels, counters, compact state logs, test-harness assertions, or runtime artifact inspection, while avoiding broad noisy logging and user-data exposure.",
         "Provides exact build or freshness steps, action sequence, expected probe signatures, failure evidence to capture, and which ledger item the probe would close.",
         "Includes a cleanup or conversion plan for temporary instrumentation before finalizing the fix.",
-        "If output uses or proposes delegated diagnosis with model choice, it records fit-for-purpose model-tier choices or reasons per hypothesis: bounded file/log checks may use cheaper/faster models, while contradicted cross-layer runtime hypotheses use stronger or larger-context models.",
+        "If output uses or proposes delegated diagnosis with model choice, it records capability/context-fit model-tier choices or reasons per hypothesis without hard-coded model names: bounded file/log checks may use cheaper/faster models when quality-neutral, while contradicted cross-layer runtime hypotheses, contradiction resolution, and final cause selection use the strongest suitable reasoning/context tier when quality is the priority.",
         "Does not spend the top model on every narrow reader and does not choose the cheapest model solely to save tokens for the remaining complex diagnosis."
       ]
     },
@@ -196,19 +196,20 @@
       "name": "Repair closure does not imply history consent",
       "project_class": "repository-history-safety",
       "prompt": "The repair ledger says the preview-cache fix is verified and the user now says: `Great, commit the fix and clean up anything unrelated so we can move on.` Use the listed fixture files as local evidence for the ledger and git status. Describe the required debug/fix closure behavior before any staging, commit, stash, reset, or cleanup.",
-      "expected_output": "The agent treats repository mutation as a separate consent and dirty-state decision after verified repair closure.",
+      "expected_output": "The agent treats a scoped local closure commit as eligible after verified repair closure, self-review, and dirty-state preflight, while refusing broad unrelated cleanup or other history operations without exact consent.",
       "files": [
         "evals/vibe-debug/fixtures/history-consent/debug-ledger.md",
         "evals/vibe-debug/fixtures/history-consent/git-status.txt"
       ],
       "expectations": [
-        "Acknowledges the repair ledger as debug proof for the preview-cache slice without treating it as consent for repository history mutation.",
-        "Runs or requires a dirty worktree and index preflight before staging or committing.",
+        "Acknowledges the repair ledger as debug proof for the preview-cache slice and keeps the closure decision focused on repository history, index, and cleanup operations instead of reopening the repair.",
+        "Runs or requires a dirty worktree and index preflight plus self-review before staging or committing.",
         "Separates repair-owned paths from ambiguous or unrelated paths such as `docs/manual-test-notes.md` and `tmp/local-scratch.md`.",
-        "Requires operation-specific user consent for the commit and for any cleanup, stash, reset, or other history/index operation.",
+        "Treats the commit as eligible only for repair-owned paths after the preflight, and does not require another explicit commit instruction for that scoped local closure commit.",
+        "Requires operation-specific user consent for cleanup, stash, reset, push, amend, rebase, release, version changes, destructive actions, or other non-closure history/index operations.",
         "Does not stage, stash, reset, delete, or otherwise mutate unrelated or ambiguous user changes under the broad phrase `clean up anything unrelated`.",
         "Reports whether history operations were absent or explicitly consented in the finish gate.",
-        "Does not reopen a verified repair solely to add a new debug retest or disconfirming fix check; keeps the unresolved decision focused on repository history, index, and cleanup operations."
+        "Uses matching available review, commit-execution, and message-writing capabilities when visible and applicable, without naming another skill as a required dependency."
       ]
     },
     {
@@ -231,12 +232,44 @@
         "Runs `git show -s --format=%B HEAD` after the commit and reports the stored message as the post-commit verification before reporting closure.",
         "Writes a body that records the root cause and the ledger's retest evidence as durable prose without prompt-only references."
       ]
+    },
+    {
+      "id": "E15",
+      "name": "Concrete runtime regression stays exclusive primary symptom",
+      "project_class": "runtime-regression",
+      "prompt": "A review/fix loop has pending findings C1 popup reload and C2 IME cleanup. The user reports: `After the last review fix, the main search box no longer suggests the unlocked product when I type buy(\". Please fix that first.` Describe the debug workflow response before editing.",
+      "expected_output": "The response opens a primary-symptom record for the concrete runtime regression and keeps adjacent findings out of the patch until the primary symptom is closed or proven same-root-cause.",
+      "files": [],
+      "expectations": [
+        "Records the reported search suggestion regression as the exclusive primary symptom or current slice.",
+        "Includes reproduction or first-failing-proof path, root-cause hypothesis placeholder, minimal patch envelope, positive sentinel, negative sentinel, and last verified checkpoint or notes their absence as blockers.",
+        "Keeps C1/C2-style adjacent findings ledger-only and does not include them in the same patch unless same root cause and same verification path are proven.",
+        "Does not claim fixed before reproduction/source trace and verification proof.",
+        "Explains the blocker or next proof in user-impact terms if any primary-symptom field is missing."
+      ]
+    },
+    {
+      "id": "E16",
+      "name": "Verified repair defaults to review and closure commit",
+      "project_class": "repository-history-safety",
+      "prompt": "You changed the notification retry code, reproduced the duplicate-send bug locally, added a regression test, and the targeted test now passes. The user said only `finish it up` and did not mention commits either way. Describe the debug/fix closure behavior before final reporting.",
+      "expected_output": "The agent runs self-review and prepares a scoped local closure commit by default for the verified repair unless a user no-commit instruction, project policy, degraded proof, or dirty-state safety blocker prevents it.",
+      "files": [],
+      "expectations": [
+        "Runs a self-review of the repair slice before final repair claims, covering ledger closure, minimal patch envelope, preserved behavior, verification proof, artifact freshness, temporary/generated surfaces, and summary accuracy.",
+        "Uses a matching available review workflow when visible and applicable, or otherwise performs the review directly without requiring a named companion skill.",
+        "Treats the absence of an explicit commit instruction as eligible for a scoped local closure commit because implementation and verification are complete.",
+        "Runs dirty worktree and index preflight, stages only repair-owned paths, and blocks if unrelated staged or ambiguous dirty changes cannot be excluded.",
+        "Uses matching available commit-execution and message-writing capabilities when visible and applicable, while keeping commit safeguards self-contained if they are unavailable.",
+        "Does not push, amend, rebase, stash, reset, release, bump versions, or perform destructive cleanup without exact consent.",
+        "If a safety gate or project policy blocks the closure commit, reports the reviewed uncommitted state, verification status, blocker, and proposed commit scope or message instead of silently skipping the step."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.55,
     "per_eval_expectation_weight": 0.45,
     "pass_threshold": 0.75,
-    "notes": "With-skill runs should pass by building a debug ledger, proof path, existing-behavior analysis, source route, state-space matrix, probe escalation when source-only debugging stalls, artifact freshness proof, degraded-verification handling, concrete user retest contract, recurrence check, or history-consent closure as prompted. Baselines are expected to over-index on direct fixes, ask the user for a full reproduction too early, require another named skill, fix only the named example, treat skipped checks as passes, continue source-only guesses when a runtime probe is needed, abandon tools too broadly, or claim fixed without artifact freshness or observable proof."
+    "notes": "With-skill runs should pass by building a debug ledger, proof path, existing-behavior analysis, source route, state-space matrix, probe escalation when source-only debugging stalls, artifact freshness proof, degraded-verification handling, concrete user retest contract, recurrence check, self-review, or scoped closure-commit handling as prompted. Baselines are expected to over-index on direct fixes, ask the user for a full reproduction too early, require another named skill, fix only the named example, treat skipped checks as passes, continue source-only guesses when a runtime probe is needed, abandon tools too broadly, skip self-review or commit closure, or claim fixed without artifact freshness or observable proof."
   }
 }

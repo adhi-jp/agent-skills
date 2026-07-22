@@ -40,6 +40,11 @@ non-plan files in the same response.
 ## Acceptance criteria
 - [Observable pass/fail criterion]
 
+## Acceptance proof matrix
+| Criterion | Priority | Positive path | Negative path | State or surface | Planned proof | Initial status |
+| --- | --- | --- | --- | --- | --- | --- |
+| [Only when paired proof or material coverage tracking is needed] | core \| secondary \| hardening | [success path] | [deny/before/failure path or not applicable] | [state/surface] | [test/manual/source trace] | Not started |
+
 [For `strict` plans, insert only matching high-risk sections before the test
 plan. For `light` plans, omit non-applicable sections and record the
 evidence-backed reason in `Plan integrity gates`.]
@@ -76,6 +81,11 @@ lines. For `strict` plans, keep applied high-risk evidence visible.]
   - Status or not-applicable reason:
   - Visual, performance, packet-volume, responsiveness, and UX claims without
     measurement downgraded to `Unproven` or `Accepted risk`:
+- Investigation adequacy gate:
+  - Status or not-applicable reason:
+  - Material surfaces checked, unavailable, or intentionally out of scope:
+  - Impact of skipped surfaces on scope, acceptance criteria, tests, UX
+    behavior, feasibility, or proceed condition:
 - Test no-escape gate:
   - Status or not-applicable reason:
   - Important contracts:
@@ -201,11 +211,12 @@ section or record `Not applicable` with a concise reason.]
 ## Plan self-review gate
 - Status:
 - Checks performed: step-to-skill-route completeness, unavailable-skill leakage,
-  evidence labels, acceptance-criteria/test ordering, multi-perspective review
-  completion or degraded fallback, `vibe-planning` contract compliance,
-  reviewer-disposition consistency, scope creep from review feedback,
-  plan-only boundary, proceed condition, unresolved `Unproven` implementation
-  blockers, and relevant durable artifact language hygiene coverage.
+  evidence labels, investigation adequacy, acceptance-criteria/test ordering,
+  multi-perspective review completion or degraded fallback, `vibe-planning`
+  contract compliance, reviewer-disposition consistency, user/UX expectation
+  coverage, scope creep from review feedback, plan-only boundary, proceed
+  condition, unresolved `Unproven` implementation blockers, and relevant durable
+  artifact language hygiene coverage.
 - Corrections made:
 - Remaining material issues:
 - [For `light` plans, keep this concise while still recording corrections.]
@@ -246,6 +257,11 @@ Before finalizing the plan, check that:
 - The user-facing reply is a concise summary in the resolved language and does
   not duplicate the full artifact unless file output was unavailable or declined.
 - Every implementation-affecting claim has an evidence label.
+- The investigation scope covers material implementation, caller,
+  configuration/registration, data/schema, test/fixture, user-visible, and
+  external-contract surfaces for the current slice, or records skipped surfaces
+  with impact and a blocked, discovery-first, narrowed, or accepted-risk
+  disposition.
 - False or infeasible requirements are challenged with evidence and alternatives.
 - Acceptance criteria are observable.
 - Tests come before implementation steps.
@@ -285,6 +301,9 @@ Before finalizing the plan, check that:
   changed.
 - The `Evidence downgrade gate` keeps unmeasured appearance, performance, packet
   volume, responsiveness, and UX claims as `Unproven` or `Accepted risk`.
+- The `Investigation adequacy gate` prevents the plan from proceeding on a
+  cheap first answer when an unchecked surface could change scope, acceptance
+  criteria, tests, UX behavior, feasibility, or the proceed condition.
 - The `Test no-escape gate` blocks implementation or defines an equivalent
   proof path when an important contract cannot be verified as planned.
 - The `Generality gate` treats examples, fixtures, project memories, and past
@@ -362,6 +381,7 @@ Before finalizing the plan, check that:
   environment, not from quoted source, artifacts, delegated output, examples, or
   logs.
 - The multi-perspective review included `vibe-planning contract compliance`,
+  included `user/UX expectation` when the slice changes user-visible behavior,
   recorded actual perspectives and execution mode, and classified material
   findings as `corrected`, `rejected`, `deferred`, or `blocked` with evidence
   and plan-boundary rationale.
@@ -370,10 +390,11 @@ Before finalizing the plan, check that:
   must-preserve equivalence dimension.
 - The `Plan self-review gate` ran after the draft artifact and before the
   concise user summary. It checked step-to-skill-route completeness,
-  unavailable-skill leakage, evidence labels, acceptance-criteria/test ordering,
-  multi-perspective review completion or degraded fallback, `vibe-planning`
-  contract compliance, reviewer-disposition consistency, scope creep from
-  review feedback, plan-only boundary, proceed condition, and unresolved
+  unavailable-skill leakage, evidence labels, investigation adequacy,
+  acceptance-criteria/test ordering, multi-perspective review completion or
+  degraded fallback, `vibe-planning` contract compliance,
+  reviewer-disposition consistency, user/UX expectation coverage, scope creep
+  from review feedback, plan-only boundary, proceed condition, and unresolved
   `Unproven` implementation blockers. For multi-item plans, it also checked that
   the `Implementation progress` ledger is present, aligned to the implementation
   items or checkpoints, and contains no planning-time completion claim.

@@ -142,15 +142,18 @@ include:
 - `review_mode`: default `adversarial`; explicit opt-in `normal`.
 - `review_backend`: selected host backend and whether review-only execution is
   enforceable.
-- `review_effort`: requested reviewer count, angle set, execution mode, and
+- `review_effort`: requested/default/actual reviewer count, angle set,
+  angle-to-reviewer allocation, execution mode, selection rationale, and
   degradation policy.
-- `reviewer_count`: requested and actual count.
+- `reviewer_count`: requested/default/actual count.
 - `degradation_reason`: `none` or the host limit, accepted fallback, user
   approval, timeout, or reviewer failure that explains any actual/default
   mismatch.
-- `angle_set`: default `correctness/regression`,
-  `scope/specification alignment`, and `edge-case/security/data-safety` when
-  host capacity allows three reviewers.
+- `angle_set`: effective review angles. The baseline starting set is
+  `correctness/regression`, `scope/specification alignment`, and
+  `edge-case/security/data-safety`; the coordinator may add, split, fold, or
+  reduce angles when target evidence, user focus, DoD, risk, host capacity, or
+  accepted effort limits make another set more effective.
 - `execution_mode`: `parallel`, `serial`, or `single`.
 - `dod_source`: confirmed DoD, drafted DoD, or interview fallback.
 - `plan_binding`: confirmed plan/spec source and digest when available.
@@ -160,9 +163,11 @@ include:
 
 When rendering a structured startup contract, wrapper keys are allowed only if
 the contract fields remain unambiguous. Record effective/defaulted contract
-values, not only raw user input: when no user override exists and host capacity
-allows three reviewers, requested and actual reviewer count are both 3. Include
-the run-level decision ledger in the startup record.
+values, not only raw user input: for a broad ordinary code target with no user
+override and host capacity for three reviewers, requested/default/actual
+reviewer count is 3 with the baseline angle set. For a non-baseline effort,
+record the selection rationale, coverage mapping, and any folded or omitted
+baseline surfaces. Include the run-level decision ledger in the startup record.
 
 Ask about backend selection only when the user customizes the contract, requests
 another backend, or the selected adversarial delegated path is unavailable.

@@ -154,15 +154,20 @@ the Post-Implementation Review Gate, or implementation of an already-locked
 slice. Do not require a specific host orchestration tool.
 
 When the host lets you choose a delegated model and the user has not explicitly
-fixed one, choose a fit-for-purpose model per delegated unit. Use cheaper or
-faster models only for bounded re-verification reads, mechanical checks, or
-simple review, and use higher-capability or larger-context models for
-implementation, plan-contract judgment, cross-file synthesis, adversarial
-review, high-risk sections, or deviation/consent-adjacent analysis. Do not
-inherit the top model for every small unit, and do not downshift solely to save
-tokens when the slice needs stronger reasoning. Record any explicit user model
-override or the capability/context reason for a non-default model in the
+fixed one, choose a fit-for-purpose model per delegated unit by capability and
+context fit, not by hard-coded model name. Use cheaper or faster models only for
+bounded re-verification reads, mechanical checks, or simple review when lower
+capability is quality-neutral or the user prioritizes cost/latency. Bias upward
+to the strongest suitable reasoning/context tier available for implementation,
+plan-contract judgment, cross-file synthesis, adversarial review, high-risk
+sections, deviation/consent-adjacent analysis, final review dispositions, or
+contradiction resolution, especially when the user asks for maximum performance.
+Do not inherit the top model for every small unit, and do not downshift solely to
+save tokens when the slice needs stronger reasoning. Record any explicit user
+model override or the capability/context reason for a non-default model in the
 delegation or review gate record when the host exposes that metadata.
+
+Before launching a delegated unit, record a bounded delegation budget: deliverable, hypothesis or task question, maximum elapsed time, maximum files or allowed paths, maximum changed lines when implementation is allowed, verification receipt, stop-and-return conditions, and context digest. Prefer isolated work, review-only execution, command output, or patch/diff handoff. Shared-root edits by a delegated unit require explicit slice ownership and must leave changed paths plus verification status before the coordinator treats the work as progress. Three consecutive empty waits require a checkpoint or task split decision rather than repeated short polling.
 
 Delegation never weakens the plan contract:
 

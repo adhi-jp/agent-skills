@@ -70,22 +70,30 @@ Before running any mode or stage that requires sub-agents:
 1. Verify the host exposes a delegation or sub-agent mechanism.
 2. Verify the current task allows delegated work and any required data sharing.
 3. Verify the run can leave recordable evidence for any later claim that real
-   sub-agents ran. The evidence must be independently captured by the host or
-   runner and visible to the later reader or grader in the current output set,
-   an attached run artifact, delegated invocation metadata, task IDs emitted by
-   the tool system, or an equivalent host record. Assistant-authored prose in
-   the final response is not such evidence.
+   sub-agents ran. The evidence should be host- or runner-provided, such as an
+   attached run artifact, delegated invocation metadata, task IDs emitted by the
+   tool system, a host-issued run identity, a transcript/journal path, or an
+   equivalent host record. When the only durable surface is the final response,
+   report the evidence status honestly: `confirmed` only if you can cite the
+   host-issued identifier or record location you rely on; otherwise `unproven`.
+   Do not treat role headings, persona separation, polished summaries, or
+   self-reported token totals as proof of delegation.
 4. Keep the delegated prompts bounded: ask for concise findings, tradeoffs, and
    observable checks, not private chain-of-thought.
 5. When the host lets you choose a delegated model and the user has not
-   explicitly fixed one, choose a fit-for-purpose model per role. Use cheaper or
-   faster models only for bounded low-ambiguity checks, and use higher-capability
-   or larger-context models for creative synthesis, convention tradeoffs,
-   selection, broad-context grounding, or user-risk judgments. Do not inherit the
-   top model for every small role, and do not downshift solely to save tokens
-   when the role needs stronger reasoning. Record any explicit user model
-   override or the capability/context reason for a non-default model in the
-   delegation evidence when the host exposes that metadata.
+   explicitly fixed one, choose a fit-for-purpose model per role by capability
+   and context fit, not by hard-coded model name. Use cheaper or faster models
+   only for bounded low-ambiguity checks when lower capability is quality-neutral
+   or the user prioritizes cost/latency. Bias upward to the strongest suitable
+   reasoning/context tier available for creative synthesis, especially
+   `Unconventional` and `Challenging` generators, convention tradeoffs,
+   selection, broad-context grounding, final recommendations, contradiction
+   resolution, or user-risk judgments, especially when the user asks for maximum
+   performance. Do not inherit the top model for every small role, and do not
+   downshift solely to save tokens when the role needs stronger reasoning.
+   Record any explicit user model override or the capability/context reason for
+   a non-default model in the delegation evidence when the host exposes that
+   metadata.
 6. If delegation is unavailable, unrecordable, or not authorized for a required
    stage, state that limitation and stop, or ask whether the user wants a
    clearly degraded single-agent fallback.
@@ -105,19 +113,23 @@ selection role may choose a direction for the coordinator to carry as
 AI-selected input, but that choice remains separate from human confirmation.
 Ask each role for a bounded structured result — candidates, fit, tradeoffs,
 risks, or checklist entries — so results can be collected and merged without
-re-deriving them. Do not require a specific host orchestration tool.
+re-deriving them. Do not require a specific host orchestration tool. Do not end
+the user-facing answer as only an unresolved background-wait or continuation
+stub. If a scripted run is pending or its results will not be recorded in the
+current output set, say the run is incomplete for this answer, list the planned
+stage boundary, evidence boundary, model-tier basis when relevant, and the
+conversation confirmation that must happen after results return.
 
-Any claim that real sub-agents ran must be backed by recordable host-provided
-evidence. A polished response, role headings, prose-only agent IDs, self-reported
-token summaries, runtime summaries, or persona-separated sections are not proof
-of delegation. Do not promote IDs, token totals, runtimes, or references to
-"above" tool calls that you type into the final response to `confirmed`; they
-remain assistant-authored claims unless they cite an independently recorded host
-artifact, metadata field, host-rendered tool block, task ID, or trace excerpt
-that the later reader can inspect. If real tool calls happened but the recorded
-output set is only the final text response, label the delegation claim
-`unproven` and keep any single-agent result separate from confirmed delegated
-output.
+Any claim that real sub-agents ran must be paired with its evidence status.
+A polished response, role headings, persona separation, runtime summaries,
+self-reported token totals, or the existence of multiple differently styled
+sections are not proof of delegation. Host-issued task IDs, agent IDs, run IDs,
+transcript or journal paths, tool metadata fields, host-rendered tool blocks, or
+trace excerpts may be cited as delegation evidence when they are the concrete
+record you rely on. If those records are unavailable or cannot be cited, label
+real delegation as `unproven` and keep any fallback or coordinator-only result
+separate from confirmed delegated output.
+
 
 ## Delegated Roles
 
@@ -228,6 +240,12 @@ and the user's stated domain. Do not carry preloaded niche examples,
 third-party domain rules, platform rules, or fixture-specific checklists into
 unrelated tasks.
 
+When several plausible checklists or directions differ mainly by user effort,
+error recovery, accessibility, data safety, or workflow friction, do not select
+the cheapest implementation path by default. Surface the user-experience
+tradeoff, prefer the option that preserves the expected behavior for the user's
+goal, and label any cheaper alternative as optional or needing confirmation.
+
 ## Output Contract
 
 Prefer chat output. Create files only when the user explicitly asks for an
@@ -237,11 +255,11 @@ Use this shape, omitting or marking skipped sections only when the selected mode
 does not run that stage:
 
 - Mode and delegation status: mode used and one of these delegation states:
-  `confirmed` only when the output set includes independently recorded
-  host/runner evidence and the response cites its artifact, field, tool block,
-  task ID, or trace location; `unproven` when real calls may have happened but
-  only assistant-authored final text can record them; or `unavailable/degraded`
-  with the limitation and authorization status.
+  `confirmed` when the response cites concrete host-provided evidence such as an
+  artifact, metadata field, tool block, task ID, run ID, transcript or journal
+  location, or trace excerpt; `unproven` when delegation may have happened but
+  the response cannot cite such a record; or `unavailable/degraded` with the
+  limitation and authorization status.
 - Expected-behavior checklist: mandatory, optional, and unknown expectations, or
   `skipped by mode` for `diverge`.
 - Candidates: grouped by `Practical` / `Unconventional` / `Challenging` for

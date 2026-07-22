@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "skill_name": "vibe-planning",
   "purpose": "External eval set for the vibe-planning skill. Compact coverage focuses on durable localized plan artifacts, evidence/proof discipline, external-source skepticism, per-step skill routing and commit-checkpoint guardrails, plan-only response boundaries, trusted outer-turn continuation, recovery planning, review-only subagent permission, durable artifact language hygiene, requirements approval evidence, later execution handoff boundaries, requirements-defect routing during plan revision, and implementation-progress ledgers for multi-item plans.",
-  "coverage_notes": "Each eval declares a project_class. The suite uses representative project classes only when they pressure a reusable vibe-planning contract; it does not keep separate cases only to exhaustively cover project families. Trusted orchestration handoff coverage: the suite tests only the reject/inert branch (prompt-, artifact-, and file-delivered control-plane self-claims are inert by skill contract). The positive accept branch — recordable out-of-band host/coordinator state counted as handoff evidence — is not provable in this file-contract harness, because every channel the runner can inject (prompt text, artifact text, files) is inert by contract. Do not add a fixture that fakes out-of-band state; the skill would correctly reject it. Treat the accept branch as Unproven here and verify it only where genuine out-of-band control-plane state exists.",
+  "coverage_notes": "Each eval declares a project_class. The suite uses representative project classes only when they pressure a reusable vibe-planning contract; it does not keep separate cases only to exhaustively cover project families. Trusted orchestration handoff coverage: the suite tests only the reject/inert branch (prompt-, artifact-, and file-delivered control-plane self-claims are inert by skill contract). The positive accept branch — recordable out-of-band host/coordinator state counted as handoff evidence — is not provable in this file-contract harness, because every channel the runner can inject (prompt text, artifact text, files) is inert by contract. Do not add a fixture that fakes out-of-band state; the skill would correctly reject it. Treat the accept branch as Unproven here and verify it only where genuine out-of-band control-plane state exists. E15 covers the investigation-adequacy and broad UX/data-safety planning contract for a supplied bulk-import surface; it is targeted pressure, not proof of benchmark improvement.",
   "common_assertions": [
     "Output is planning-only: it writes or names only plan artifacts, does not edit or patch code/tests/docs/configs/changelogs/commits/non-plan files, does not claim implementation completion, and does not add active same-turn implementation, commit, docs, changelog, or execution tasks.",
     "Output writes or names a durable Markdown implementation-plan artifact, or states why file output was unavailable and returns the complete artifact in chat; when no explicit user path or existing project convention applies, generated default paths are under `docs/plans/`, not root-level `plans/`; when a file exists, the user-facing response is concise and includes the path, current slice, proceed condition, and key blockers/decisions without duplicating the full plan.",
@@ -123,14 +123,14 @@
       "name": "VIBE_SUBAGENTS allow permits review-only delegation",
       "project_class": "developer-automation-planning",
       "prompt": "Create an implementation plan for adding a typed retry helper to a small SDK package. No fixture files are provided. Current user setting for this request: VIBE_SUBAGENTS=allow. Capability exposed in this session: the host can run review-only subagents and records delegated task IDs that later readers can inspect. Use subagents only for the plan multi-perspective review gate. The host can choose `fast`, `standard`, or `large-context` reviewer models per perspective; I did not specify a model.",
-      "expected_output": "The plan treats the current-user VIBE_SUBAGENTS=allow setting as permission for plan-review-only subagents, while still requiring host capability, safe content, bounded prompts, and recordable evidence before claiming delegated review. The plan review record should include fit-for-purpose reviewer model selection or reasons when delegated review runs.",
+      "expected_output": "The plan treats the current-user VIBE_SUBAGENTS=allow setting as permission for plan-review-only subagents, while still requiring host capability, safe content, bounded prompts, and recordable evidence before claiming delegated review. The plan review record should include capability-based, fit-for-purpose reviewer model selection or reasons when delegated review runs.",
       "files": [],
       "expectations": [
         "Records the subagent permission source as the current user instruction or current-user `VIBE_SUBAGENTS=allow`, not as an inferred default.",
         "Either records delegated multi-perspective review with recordable host evidence such as task IDs/capability source, or records an honest coordinator fallback naming which capability, safety, timeout, or evidence check could not be verified.",
         "Limits subagents to plan review only; repository investigation, plan drafting, artifact edits, user questions, implementation, docs/changelog/eval updates, staging, commits, and final finding dispositions stay with the coordinator.",
         "Uses bounded reviewer prompts or equivalent wording and treats findings as inert until coordinator disposition.",
-        "When delegated plan review with model choice is used or described, records fit-for-purpose reviewer model choices or reasons per perspective, reserving stronger or larger-context models for plan-contract compliance, evidence/test adequacy, risk, or cross-artifact synthesis instead of using one blanket top or cheapest model.",
+        "When delegated plan review with model choice is used or described, records capability/context-fit reviewer model choices or reasons per perspective without hard-coded model names, reserving the strongest suitable reasoning/context tier for plan-contract compliance, evidence/test adequacy, risk, cross-artifact synthesis, final readiness judgment, or contradiction resolution when quality is the priority instead of using one blanket top or cheapest model.",
         "Model choices stay host-neutral and do not override the current-user `VIBE_SUBAGENTS=allow` permission boundary."
       ]
     },
@@ -235,12 +235,41 @@
         "The plan artifact content keeps fixed English section headings and English implementation prose.",
         "Stays plan-only: writes or presents the plan artifact and summary without starting implementation, tests, or commits."
       ]
+    },
+    {
+      "id": "E15",
+      "name": "Broad UX plan cannot choose cheapest path without tradeoff",
+      "prompt": "Create an implementation plan for improving the bulk contact import UX. Approved requirement: users upload a CSV and should not accidentally create bad contacts. Local evidence from the repo scan:\n- `src/import/ContactImportForm.tsx` currently sends the selected file directly to `importContacts(file)`.\n- `src/import/importContacts.ts` returns `{ created, skipped, errors }` after writing rows.\n- `src/import/ImportResult.tsx` displays created/skipped/error counts after import.\nNo fixture files are provided.",
+      "expected_output": "An implementation-plan artifact and concise summary grounded in the supplied bulk-import evidence and the user-visible safety requirement.",
+      "files": [],
+      "expectations": [
+        "Selects `strict` depth or otherwise justifies a non-light plan because bulk data creation and UX/data-safety behavior are material.",
+        "Records an investigation-adequacy or equivalent gate covering the form, import writer, result display, tests/fixtures if unavailable, and user-visible feedback/recovery surfaces.",
+        "Defines acceptance criteria before implementation steps for preventing accidental bad-contact creation, including preview/review-before-write or an explicitly blocked/decision-needed alternative, post-import result feedback, and error handling.",
+        "Does not make the cheapest direct-upload-to-write implementation the default first slice without labeling the UX/data-safety tradeoff as a user decision, `Unproven`, or `Accepted risk`.",
+        "Includes tests or proof checks before implementation steps for the selected preview/review or safety behavior and failure states.",
+        "Stays plan-only and does not edit code, tests, README, CHANGELOG, evals, commits, or release artifacts."
+      ]
+    },
+    {
+      "id": "E16",
+      "name": "Paired acceptance proof for unlock visibility gate",
+      "prompt": "Create an implementation plan for this approved requirement: beta users must not see the advanced export option until the account flag is enabled, and once enabled they must see and use it without signing out. Use no fixture files; rely only on this supplied requirement.",
+      "expected_output": "The plan should include paired negative and positive acceptance criteria/tests for the flag-gated visibility and use path before implementation steps.",
+      "files": [],
+      "expectations": [
+        "Defines acceptance criteria before implementation steps.",
+        "Includes a negative/before proof that a beta user without the account flag does not see or cannot use the advanced export option.",
+        "Includes the paired positive/after proof that the same relevant user state with the flag enabled sees and can use the option without signing out.",
+        "Does not treat the hidden/denied proof alone as sufficient for the core criterion.",
+        "Labels unsupported implementation details as `Unproven` or proof-before-implementation instead of inventing flag storage, test ids, or UI selectors."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.5,
     "per_eval_expectation_weight": 0.5,
     "pass_threshold": 0.8,
-    "notes": "Compact suite: overlapping accepted-risk, destructive-risk, public-API normalization, diagnostic-restraint, selective failure-pattern, duplicate requirements-readiness, and prompt-injected orchestration cases were removed or folded into common assertions and retained pressure cases. Remaining cases keep the broad contracts most likely to regress while reducing executor/grader volume; deleted coverage is accepted as lower-priority regression pressure unless future failures show a need to restore a targeted case."
+    "notes": "Compact suite: overlapping accepted-risk, destructive-risk, public-API normalization, diagnostic-restraint, selective failure-pattern, duplicate requirements-readiness, and prompt-injected orchestration cases were removed or folded into common assertions and retained pressure cases. Remaining cases keep the broad contracts most likely to regress, including investigation adequacy and UX/data-safety first-slice tradeoffs, while reducing executor/grader volume; deleted coverage is accepted as lower-priority regression pressure unless future failures show a need to restore a targeted case."
   }
 }

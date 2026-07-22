@@ -211,7 +211,7 @@ Do not use this skill for:
   approved deviation`, and include the verification command or manual check
   result, review disposition, commit action if any, remaining blocker, and next
   item. Do not mark an item `Completed` when verification was skipped, failing,
-  unavailable, or only self-reported by delegated output.
+  unavailable, only self-reported by delegated output, or when any core acceptance sentinel from the bound plan is missing, failed, stale, or unmapped even though the broader suite is green.
 
 ## Evidence Classes
 

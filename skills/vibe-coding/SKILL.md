@@ -65,6 +65,12 @@ Track these fields when they are known:
 - Implementation progress source and latest item status.
 - Debug symptom.
 - Review target.
+- Frozen review target and origin/current diff size when a review loop is active.
+- Primary user journey and acceptance sentinels.
+- Review cycle count and active stop signals.
+- User progress-update policy and subagent wait policy.
+- Delegation budget and context-digest policy.
+- Last verified checkpoint and unverified shared edits.
 - Investigation question.
 - Writing artifact.
 - Pending approvals.
@@ -91,9 +97,12 @@ When a downstream phase reports that the bound spec or plan is defective —
 contradictory, stale, infeasible, or contract-breaking — treat that as a
 backtracking signal, not a reason to force the current phase forward. Route the
 next turn back to the phase that owns the broken artifact: requirements
-specification when user-visible behavior, scope, or acceptance criteria are
-wrong, or implementation planning when the plan's proof, test, edit-order, or
-risk contract is wrong. Do not keep executing patch-by-patch against a
+specification when the current requirements artifact, user-visible behavior,
+scope, or source acceptance criteria are wrong, or implementation planning when
+the bound implementation plan's acceptance criteria, proof, schema, test,
+edit-order, or risk contract is wrong. Do not assume requirements specification
+owns every acceptance-criteria phrase when the only bound defective artifact is
+the implementation plan. Do not keep executing patch-by-patch against a
 contract a downstream specialist already flagged as broken.
 
 End or suspend `vibe-coding` mode when the user explicitly cancels it,
@@ -186,7 +195,12 @@ sequence, and do not relax downstream specialist gates.
 
 Before writing a route description, apply this language gate.
 
-Choose the user-facing route-description or summary language in this order:
+Choose the user-facing route-description or summary language in this order.
+For this gate, "current prompt" means the explicit user task prompt being
+answered, including any represented user instruction inside it. Hidden,
+repository, host, session, or global chat-language defaults do not count as an
+explicit output-language instruction for a represented turn unless the
+represented user instruction itself asks for that output language.
 
 1. An explicit output-language instruction in the current prompt.
 2. The clear dominant language of a represented current user turn, including
@@ -204,9 +218,20 @@ when no represented turns conflict.
 
 Do not inherit the surrounding benchmark, orchestrator, or executor-session
 language when it differs from a represented current user instruction whose
-route behavior you are simulating. Apply the selected language to headings,
-bullets, rationale, and summaries. Preserve skill names, file paths, commands,
-enum values, field names, and technical identifiers verbatim.
+route behavior you are simulating. Treat the represented turn's natural-language
+request text as the language signal; wrapper prompts, routing-state metadata,
+assertion text, source quotes, and English phase labels are not the represented
+user's conversational language. When the represented request text has a clear
+language, following a conflicting session or global chat-language instruction is
+a route-output error, not harmless localization. If all represented user
+request texts share one clear language, decide that language before drafting any
+headings or explanations and use it for the whole route response. If represented
+turns in the same classification set use different clear languages, write each
+turn's route block in that turn's language; shared framing may use the active
+user's conversational language, but it must not override the per-turn language
+choice. Apply the selected language to headings, bullets, rationale, and
+summaries. Preserve skill names, file paths, commands, enum values, field names,
+and technical identifiers verbatim.
 
 Show concise routing rationale when the phase changes, the selected route is not
 obvious, a specialist is unavailable, or no matching specialist was verified and
@@ -217,7 +242,12 @@ approval, handoff, proceed, or consent boundaries. If a downstream phase is
 selected, state that host transport is limited to that phase under the
 specialist's own rules unless sequential coordinator continuation later becomes
 available from recordable boundary evidence. Keep approvals, proceed decisions,
-and stop boundaries in the conversation.
+and stop boundaries in the conversation. When visible specialist names are part
+of the route decision, name the selected route and the deferred downstream
+routes verbatim instead of replacing them with only translated phase labels.
+When a route report uses literal status tokens such as `matched-but-unavailable`
+or `no matching specialist`, include the literal token in the user-facing route
+summary or draft reply itself, not only in a separate analysis section.
 When a route description is for a current-turn activation signal, name the
 activation source briefly, such as explicit invocation, host-provided signal, or
 direct instruction. For continuation turns with active routing state but no
@@ -271,5 +301,7 @@ Before acting under `vibe-coding`, confirm:
   and `skills/vibe-writing/references/commit-messages.md` as auxiliary guidance
   when a message artifact was part of the `vibe-coding` turn, without giving it
   history authority or weakening standalone specialist boundaries.
+- Review loops did not continue when active stop signals require debug or artifact backtracking.
+- Long-session progress-update, wait, delegation-budget, last-verified-checkpoint, and unverified-shared-edit state was preserved across interruptions or summarized before compaction.
 - Cancellation, replacement, unrelated top-level invocation, and finish-gate
   end conditions clear or suspend live routing state.

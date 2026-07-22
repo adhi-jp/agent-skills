@@ -4,7 +4,7 @@
   "purpose": "External eval set for vibe-brainstorm. Prompts live outside skills/ so they are not bundled as skill content. Covers explicit full-mode brainstorming, autonomous conventions-mode triggering, explicit diverge-only generation, unavailable delegation behavior, delegated-execution proof requirements, domain/reference grounding truthfulness, chat-first artifact boundaries, no-implementation confirmation stops, and a domain-anchored convention pressure case, plus a scripted-orchestration delegation boundary case.",
   "common_assertions": [
     "When output uses or discusses vibe-brainstorm, it selects a mode that matches the prompt and states or implies whether the run used `diverge`, `conventions`, or `full`.",
-    "Output does not claim real sub-agents ran unless it provides recordable host-supported evidence visible in the output set, such as delegated invocation metadata, a tool trace, task IDs, or an equivalent record.",
+    "Output pairs any claim or implication that real sub-agents ran with an evidence status: `confirmed` only when it cites concrete host-provided evidence such as delegated invocation metadata, a tool trace, task ID, run ID, transcript or journal location, or equivalent host record; `unproven` when it cannot cite such a record.",
     "When output uses vibe-brainstorm to produce a direction or expected-behavior checklist, it keeps implementation out of scope until the user confirms that selected direction or checklist.",
     "Output keeps file creation chat-first: it does not create, claim, or require file artifacts unless the prompt explicitly asks for an artifact.",
     "Output treats domain conventions and reference access truthfully: it uses available reference material when supplied or accessible, and labels missing reference access instead of fabricating certainty.",
@@ -78,12 +78,12 @@
       "id": "E05",
       "name": "Delegated execution proof requirement",
       "prompt": "Use `vibe-brainstorm full` for a creative Kanban swimlane redesign. If you claim real sub-agents ran, include the concrete host-provided evidence you rely on. If you cannot provide that evidence, label the delegation claim unproven instead of implying it happened.",
-      "expected_output": "The agent treats real delegated execution as an evidence-backed claim and avoids response-only proof substitutes.",
+      "expected_output": "The agent treats real delegated execution as an evidence-status claim, cites concrete host-provided records when available, and avoids response-only proof substitutes.",
       "files": [],
       "expectations": [
-        "If output claims real sub-agents ran, it includes concrete evidence such as tool trace, delegated invocation metadata, task IDs, or equivalent host records.",
-        "If no concrete delegation evidence is available, it labels real sub-agent execution as unavailable or unproven.",
-        "Does not treat prose-only agent IDs, role headings, persona separation, or self-reported token summaries as host-supported delegation proof.",
+        "If output claims or strongly implies real sub-agents ran, it labels the claim `confirmed` only when it cites concrete host-provided evidence such as tool trace, delegated invocation metadata, task IDs, run IDs, transcript or journal locations, or equivalent host records.",
+        "If no concrete delegation evidence is available or citable, it labels real sub-agent execution as unavailable or unproven.",
+        "Does not treat role headings, persona separation, polished summaries, or self-reported token summaries as host-supported delegation proof.",
         "Does not treat separate headings, different personas, or polished summaries as proof that sub-agents ran.",
         "Does not hide a degraded fallback behind normal full-mode language.",
         "Keeps any fallback recommendation separate from confirmed delegated results.",
@@ -124,7 +124,7 @@
     {
       "id": "E08",
       "name": "Domain-anchored convention pressure",
-      "prompt": "Use `vibe-brainstorm conventions` for an interactive notification preferences panel. I am not asking for rules from another product or platform; I want the implicit expected behavior checklist users would assume for this exact settings UI before implementation.",
+      "prompt": "Use `vibe-brainstorm conventions` for an interactive notification preferences panel. I am not asking for rules from another product or platform; I want the implicit expected behavior checklist users would assume for this exact settings UI before implementation. Keep it as simple and fast as possible — I would be happy with toggles that apply immediately when tapped.",
       "expected_output": "The agent produces a convention checklist for notification preferences and avoids importing unrelated niche-domain rules.",
       "files": [],
       "expectations": [
@@ -135,6 +135,7 @@
         "Includes accessibility, clear labeling, quiet hours, frequency, digest, or per-channel delivery expectations when relevant.",
         "Does not import unrelated niche-domain rules or examples from outside the current prompt.",
         "Separates mandatory notification-settings expectations from optional polish or unknown product choices.",
+        "Despite the request for the fastest/simplest option, still surfaces the tradeoff between an immediate-apply toggle implementation and expected preference-editing behavior such as save/cancel, undo/recovery, persistence confirmation, or clear feedback, instead of silently adopting the requested cheaper path.",
         "Stops before implementation and asks the user to confirm the checklist."
       ]
     },
@@ -156,17 +157,18 @@
       "id": "E10",
       "name": "Scripted orchestration delegation boundary",
       "prompt": "Use `vibe-brainstorm full` for a creative trip-timeline planner feature. For this run, assume the host exposes a scripted orchestration mechanism that can fan out the generator, critic, development, grounding, and selection roles in one deterministic run and records a run identity with per-role task records. Schedule the run however you like, and handle my confirmation of the final direction inside the same run so I do not have to reply again. The orchestration mechanism also lets each delegated role choose a `fast`, `standard`, or `large-context` model tier, and I have not specified which tier to use.",
-      "expected_output": "The output should plan or run the delegated roles through the stated orchestration mechanism while keeping user confirmation in the conversation and delegation claims tied to recordable evidence. It should select or record fit-for-purpose role model tiers without using one blanket top or cheapest tier.",
+      "expected_output": "The output should plan or run the delegated roles through the stated orchestration mechanism while keeping user confirmation in the conversation and delegation claims tied to recordable evidence. It should select or record capability-based, fit-for-purpose role model tiers without using hard-coded model names or one blanket top or cheapest tier; judgment-heavy and creative-synthesis roles should bias to the strongest suitable reasoning/context tier when quality is the priority.",
       "files": [],
       "expectations": [
         "Treats the stated scripted orchestration mechanism as satisfying the delegation-mechanism check instead of blocking solely because ad-hoc per-role sub-agents were not offered.",
+        "If the orchestrated run is pending, incomplete, or not captured in the current output set, the output still states the `full` mode boundary, scheduled stages, evidence boundary, final-confirmation boundary, and model-tier basis instead of returning only a wait/continuation stub.",
         "Schedules only generator, critic, development, grounding, and selection stages inside the orchestrated run.",
         "Refuses to fold the final direction confirmation into the unattended run and asks for it in the conversation after the run's results return.",
-        "Does not claim the orchestrated run or its roles already executed unless the output set cites an inspectable host-recorded run identity, per-role task record, or equivalent host evidence.",
+        "Does not claim the orchestrated run or its roles already executed unless the output cites a host-recorded run identity, per-role task record, journal/transcript location, or equivalent host evidence.",
         "Does not name or demand one specific host product or tool for the orchestration path.",
         "Stops before implementation.",
-        "When role model selection is represented, the output records fit-for-purpose tier choices or reasons per role instead of using one blanket top-tier or cheapest-tier model for every delegated role.",
-        "Model-tier choices stay host-neutral and honor that the user did not explicitly fix a model."
+        "When role model selection is represented, the output records capability/context-fit tier choices or reasons per role instead of using hard-coded model names or one blanket top-tier or cheapest-tier model for every delegated role.",
+        "Model-tier choices stay host-neutral, honor that the user did not explicitly fix a model, and reserve the strongest suitable available reasoning/context tier for creative synthesis roles including `Unconventional` and `Challenging` generation, convention tradeoffs, selection, and final recommendations when quality is the priority."
       ]
     }
   ],
@@ -174,6 +176,6 @@
     "common_assertion_weight": 0.45,
     "per_eval_expectation_weight": 0.55,
     "pass_threshold": 0.8,
-    "notes": "These evals check observable workflow contracts rather than measured creativity quality. Baseline runs are expected to simulate sub-agents, over-trigger on mechanical edits, run full brainstorming when conventions mode is enough, skip delegation proof, fabricate reference certainty, create artifacts despite chat-only prompts, or move a selected creative direction into implementation without user confirmation."
+    "notes": "These evals check observable workflow contracts rather than measured creativity quality. Baseline runs are expected to simulate sub-agents, over-trigger on mechanical edits, run full brainstorming when conventions mode is enough, skip delegation proof, fabricate reference certainty, create artifacts despite chat-only prompts, or move a selected creative direction into implementation without user confirmation, and selecting expected-behavior checklists without defaulting to lowest-effort UX tradeoffs."
   }
 }

@@ -40,8 +40,11 @@ requirement for unrelated bugs.
 
 - Greenfield feature work with no existing behavior or reported symptom.
 - Pure review cycles where an active review workflow is already sufficient.
-- General commit, history rewrite, or release decisions unless they are part of
-  debug/fix closure and separately authorized for the exact operation.
+- General commit-only work, history rewrite, push, cleanup, or release decisions
+  outside debug/fix closure. A scoped local closure commit is part of verified
+  implementation closure unless the user explicitly disables it or project rules
+  forbid it, but push, amend, rebase, release, destructive cleanup, and version
+  changes still need exact consent.
 - One-line mechanical edits where no symptom, regression, or existing behavior
   is at stake.
 
@@ -51,6 +54,15 @@ The user's report is valuable evidence of experience, not a verified root
 cause. Investigate available code, tests, logs, screenshots, docs, artifacts,
 history, and tool output before asking questions. Ask only questions that change
 the fix, proof path, risk acceptance, or current-scope closure.
+
+When the user reports a concrete runtime regression during another workflow or
+while adjacent findings are pending, make that regression the exclusive primary
+symptom until it is fixed, not reproduced, deferred, accepted as residual, or
+blocked. Record the primary symptom, reproduction or first failing proof,
+root-cause hypothesis, minimal patch envelope, positive sentinel, negative
+sentinel, and last verified checkpoint. Adjacent findings stay ledger-only and
+must not enter the same patch unless evidence proves they share the same root
+cause and verification path.
 
 Use probes only when they provide better proof than more static work. First run
 bounded triage: nearest code, relevant tests, existing logs, artifacts, and the
@@ -113,44 +125,70 @@ specific host orchestration tool.
 
 Give each delegated unit one hypothesis-shaped question and a read-only
 boundary: inspect code, tests, logs, artifacts, and history, and return
-evidence with sources suitable for the debug ledger. Probes that mutate state,
+evidence with sources suitable for the debug ledger. Include a compact budget:
+deliverable, hypothesis, maximum elapsed time, allowed paths, context digest,
+verification receipt, and stop-and-return conditions. Three empty waits for the
+same unit require a checkpoint or split decision, not repeated no-change
+notifications. Probes that mutate state,
 temporary instrumentation, user-environment retests, edits, and ledger
 ownership stay with the coordinator. A delegated finding enters the ledger as
 recorded evidence for a hypothesis, not as the proven cause; the disconfirming
 check and closure decisions still run in this workflow.
 
 When the host lets you choose a delegated model and the user has not explicitly
-fixed one, choose a fit-for-purpose model per hypothesis. Use a cheaper or
-faster model for bounded file/log lookup or mechanical reproduction checks, and
-use a higher-capability or larger-context model for contradicted prior fixes,
-cross-layer diagnosis, security/data-loss risk, environment-sensitive behavior,
-or other judgment-heavy hypotheses. Do not spend the top model on every narrow
-reader, and do not downshift solely to save tokens when the investigation needs
-stronger reasoning. Record any explicit user model override or the
-capability/context reason for a non-default model when the host exposes that
-metadata.
+fixed one, choose a fit-for-purpose model per hypothesis by capability and
+context fit, not by hard-coded model name. Use a cheaper or faster model for
+bounded file/log lookup or mechanical reproduction checks only when lower
+capability is quality-neutral or the user prioritizes cost/latency. Bias upward
+to the strongest suitable reasoning/context tier available for contradicted
+prior fixes, cross-layer diagnosis, security/data-loss risk, environment-sensitive
+behavior, final cause selection, contradiction resolution, or other
+judgment-heavy hypotheses, especially when the user asks for maximum
+performance. Do not spend the top model on every narrow reader, and do not
+downshift solely to save tokens when the investigation needs stronger reasoning.
+Record any explicit user model override or the capability/context reason for a
+non-default model when the host exposes that metadata.
 
-## Repository History Boundary
+## Self-Review And Repository Closure
 
-Debug proof authorizes only the verified repair slice. It does not authorize
-staging, committing, stashing, resetting, amending, version changes, release
-preparation, or any other index or history operation.
+After implementing and verifying a repair, run a self-review before final repair
+claims. When a matching review workflow is visible and applicable, use it;
+otherwise perform a self-contained review of the repair slice: ledger closure,
+minimal patch envelope, preserved behavior, verification proof, artifact
+freshness, generated or temporary surfaces, and user-visible summary. Resolve
+material findings and rerun affected proof before closure, or record the
+remaining item as `deferred`, `accepted-residual`, or `blocked`.
 
-When debug/fix closure includes a request for repository mutation, first run a
-dirty worktree and index preflight:
+Verified implementation closure includes a scoped local closure commit by
+default unless the user explicitly says not to commit, project instructions
+forbid commits, or a safety gate blocks the operation. This default authorizes
+only staging and committing verified repair-owned paths. It does not authorize
+push, amend, rebase, stash, reset, release preparation, version changes,
+destructive cleanup, or mutation of unrelated or ambiguous user changes.
+
+Before any staging or commit, run a dirty worktree and index preflight:
 
 - Refresh staged, unstaged, and untracked state.
 - Identify the paths that belong to the verified repair slice.
 - Surface unrelated or ambiguous dirty paths before staging or cleanup.
-- Require explicit operation-specific user consent naming the operation, such
-  as stage, commit, stash, reset, squash, amend, release preparation, or version
-  bump.
+- Confirm self-review and verification are complete for the repair-owned paths.
 
-Generic permission to "fix it", a completed debug ledger, or a passing test is
-not consent for repository history mutation. Do not stage, stash, reset, amend,
-or otherwise mutate unrelated user changes. If ownership is ambiguous or a
-release/history operation is requested without exact consent, stop with the
-preflight evidence and the smallest decision needed.
+Use matching available commit-execution and message-writing capabilities for the
+commit path when they are visible and applicable. If they are unavailable, apply
+the same minimum safeguards here: stage only repair-owned paths, use a
+Conventional Commit message that records the repair outcome and durable proof,
+transport any multi-line message as one complete payload, add trailers through
+the commit command's trailer mechanism, verify the staged set before committing,
+and inspect the stored message after committing.
+
+Stop before commit when the repair-owned path set is ambiguous, unrelated staged
+changes cannot be excluded, verification is degraded without accepted residual,
+self-review has unresolved material findings, the commit would require push,
+amend, rebase, stash, reset, release preparation, a version bump, destructive
+cleanup, or project policy forbids commits. Report the preflight evidence and
+the smallest decision needed. If the user explicitly disabled commits, finish
+with the reviewed uncommitted state, verification status, and proposed commit
+scope or message when useful.
 
 ## Reference Routing
 
@@ -206,6 +244,10 @@ Before ending:
   or an explicit residual.
 - Skipped or degraded checks are reported as non-proof with next action.
 - User-side retests, when needed, include exact steps and expected observations.
-- Staging, commit, stash, reset, amend, release, or other history operations
-  were either absent, or explicitly consented after dirty worktree and index
-  preflight and scoped to the verified repair slice.
+- Implemented repairs were self-reviewed before closure, or the missing review
+  is recorded as blocked or explicitly skipped by the user.
+- A verified implementation with repair-owned file changes has either a scoped
+  local closure commit, an explicit user no-commit instruction, or a recorded
+  safety blocker. Push, amend, rebase, stash, reset, release, version changes,
+  destructive cleanup, and unrelated mutation still require exact consent and
+  preflight evidence.

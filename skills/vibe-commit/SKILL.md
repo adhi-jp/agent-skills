@@ -27,8 +27,10 @@ Commit work splits cleanly between message content and execution:
 
 - The commit message content must stand on its own: an outcome-focused
   Conventional Commit subject, body only for durable context the diff cannot
-  recover, durable verification references, no prompt/session/plan labels, and
-  no Markdown wrappers in message bytes.
+  recover, medium-density body wording that names durable contract surfaces
+  without becoming a feature walkthrough, a compact `Verification:` section that
+  explains what durable proof covers instead of replaying session commands, no
+  prompt/session/plan labels, and no Markdown wrappers in message bytes.
 - `vibe-commit` owns the **execution**: staging, exclusion, the pre-commit
   verification gate, command safety, history mutation, message transport, and
   trailers as a transport mechanism.
@@ -96,8 +98,12 @@ deeper on the judgment calls.
    `references/history-and-trailers.md`.
 8. **Compose the message.** Conventional Commits `type(scope): summary`
    (imperative, ≤72 chars) naming the outcome, blank line, then a body only when
-   it preserves durable context the diff cannot recover. Detect
-   the repo's trailer convention first: `git log -5 --format='%H%n%B'`.
+   it preserves durable context the diff cannot recover. For body-worthy
+   commits, use a medium-density shape: one to three short paragraphs or a few
+   labeled bullets that group changes by durable surface, constraint, non-goal,
+   or risk. If the message wants a long feature walkthrough, file inventory, or
+   manual-test transcript, summarize or split the commit. Detect the repo's
+   trailer convention first: `git log -5 --format='%H%n%B'`.
 9. **Transport the message safely.** For any multi-line body, use a heredoc
    (`git commit -F - <<'EOF' … EOF`, single-quoted delimiter) or `git commit -F
    <file>`. Add or repair authorship trailers with a `git commit ... --trailer
@@ -109,11 +115,12 @@ deeper on the judgment calls.
     subject/body/trailer landed byte-correct and the trailer parsed as a footer;
     for newly added or repaired authorship trailers, also confirm the command
     path used `git commit ... --trailer`. For body messages, inspect the stored
-    message for low-signal verification dumps and local-only proof-source
-    leakage such as git-unmanaged local generated artifacts, ignored result
-    files, local-only run IDs, or private tool-session records. `git show --stat
-    HEAD` confirms the committed file set; `git status --short` confirms only
-    intentionally-left files remain and nothing leaked.
+    message for low-signal verification dumps, bullets that only list session
+    commands without review meaning, and local-only proof-source leakage such as
+    git-unmanaged local generated artifacts, ignored result files, local-only
+    run IDs, or private tool-session records. `git show --stat HEAD` confirms
+    the committed file set; `git status --short` confirms only intentionally-left
+    files remain and nothing leaked.
 11. **Recover reversibly if wrong.** Prefer the least-destructive fix:
     `git restore --staged <file>` to unstage, `git reset --soft HEAD~1` to undo
     a commit while keeping changes, `git commit --amend --no-edit --trailer …`

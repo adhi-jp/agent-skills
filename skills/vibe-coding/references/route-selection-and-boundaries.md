@@ -142,7 +142,10 @@ its plan-binding rules.
 
 Route bug reports, regressions, failed prior fixes, repeated "still broken"
 feedback, rough repair requests, tool failures, and runtime artifact mismatches
-to the debug-and-repair phase.
+to the debug-and-repair phase. This is for existing-feature behavior and repair
+proof, not for continuing execution against a bound plan after the plan contract
+itself is reported wrong; those turns use the backtracking rule in Routing
+State.
 
 ### Review
 
@@ -150,6 +153,17 @@ Route review targets and review/fix loops to the review phase, including
 requests to review a diff, working tree, branch, base ref, git-backed
 implementation plan or document change, findings, scope, Definition of Done
 alignment, or gated fixes.
+
+Do not keep a workflow in the review phase when review evidence now requires a
+different owner. A new user-reported runtime symptom, or a review fix that
+regresses a core user journey, routes next to debug-and-repair. A repeated
+finding class beyond the review workflow's threshold, a fix that needs material
+architecture expansion, or evidence that the bound spec/plan cannot decide the
+repair depth routes to the artifact-owning requirements or implementation
+planning phase. This applies even when the original request said to continue
+reviewing until no findings remain. Preserve the frozen review target, primary
+journey, acceptance sentinels, cycle count, active stop signals, last verified
+checkpoint, and unverified shared edits in routing state before switching.
 
 ### Plan Pre-Check Walkthrough
 
@@ -271,17 +285,39 @@ delegation internally under its own delegation rules, but no orchestrated run
 may be scheduled to cross a downstream skill's approval gate, stop condition,
 or consent boundary in one unattended pass.
 
+Before a routed phase delegates work, its delegation record should bound the
+unit: deliverable, hypothesis or question, maximum elapsed time, file/path or
+surface boundary, changed-line budget when edits are allowed, verification
+receipt, stop-and-return conditions, and compact context digest. Full parent
+context inheritance in long sessions requires a phase-recorded reason. Three
+consecutive empty waits for the same unit are a task-design signal: request a
+checkpoint, split the task, or stop rather than continuing short polling.
+User-facing updates require a new result, blocker, policy change, requested
+decision, or user-requested reporting cadence; no-change polling is not
+progress. Delegated shared-root edits must be avoided unless the phase permits
+them and records changed paths plus verification status; otherwise use isolated
+work or patch/diff handoff.
+
 When the host lets a routed phase choose delegated models and the user has not
 explicitly fixed a model, model selection stays inside that phase's delegation
-contract and must be fit-for-purpose for each delegated unit. Use cheaper or
-faster models only for bounded low-ambiguity lookup, extraction, or simple
-review, and use higher-capability or larger-context models for complex judgment,
-cross-artifact synthesis, adversarial review, human-risk reasoning, or work
-where weak reasoning would become the bottleneck. Do not inherit the top model
-for every small delegate, and do not downshift solely to save tokens when the
-delegated decision needs stronger reasoning. Record explicit user model
-overrides or the capability/context reason when the selected specialist records
-delegation evidence.
+contract and must be fit-for-purpose for each delegated unit by capability and
+context fit, not by hard-coded model name. Use cheaper or faster models only for
+bounded low-ambiguity lookup, extraction, or simple review when lower capability
+is quality-neutral or the user prioritizes cost/latency. Bias upward to the
+strongest suitable reasoning/context tier available for complex judgment,
+cross-artifact synthesis, adversarial review, human-risk reasoning, final
+recommendations, contract compliance, contradiction resolution, or work where
+weak reasoning would become the bottleneck, especially when the user asks for
+maximum performance. Do not inherit the top model for every small delegate, and
+do not downshift solely to save tokens when the delegated decision needs stronger
+reasoning. Record explicit user model overrides or the capability/context reason
+when the selected specialist records delegation evidence.
+Likewise, orchestration quality is not a token-minimization objective. Do not
+narrow investigation scope, skip user/domain perspectives, or choose a poorer UX
+path only because it is faster when the selected phase's contract says those
+surfaces are material. If the current budget, capability, or time cannot support
+the needed depth, report a degraded route, blocked surface, or accepted-risk
+decision instead of silently completing the cheaper path.
 
 When a routed quality phase would normally ask a series of user questions to
 improve requirements, creative direction, planning, or similar judgment quality,

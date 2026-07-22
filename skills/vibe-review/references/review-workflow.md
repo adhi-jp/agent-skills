@@ -105,14 +105,18 @@ identity immediately before launch and validate digests when the run returns.
 Do not require a specific host orchestration tool for platform-neutral use.
 
 When the host lets you choose reviewer models and the user has not explicitly
-fixed them, choose a fit-for-purpose model per angle. Use cheaper or faster
-models only for bounded low-ambiguity checks, and use higher-capability or
-larger-context models for adversarial reasoning, broad diff/spec synthesis,
-security/data-safety angles, cascade analysis, or findings where weak reasoning
-would become the bottleneck. Do not default every reviewer to the top model, and
-do not downshift solely to save tokens when a review angle needs stronger
-reasoning. Record explicit user model overrides or the capability/context reason
-for non-default reviewer models when the host exposes that metadata.
+fixed them, choose a fit-for-purpose model per angle by capability and context
+fit, not by hard-coded model name. Use cheaper or faster models only for bounded
+low-ambiguity checks when lower capability is quality-neutral or the user
+prioritizes cost/latency. Bias upward to the strongest suitable
+reasoning/context tier available for adversarial reasoning, broad diff/spec
+synthesis, security/data-safety angles, cascade analysis, final validity
+judgments, contradiction resolution, or findings where weak reasoning would
+become the bottleneck, especially when the user asks for maximum performance. Do
+not default every reviewer to the top model, and do not downshift solely to save
+tokens when a review angle needs stronger reasoning. Record explicit user model
+overrides or the capability/context reason for non-default reviewer models when
+the host exposes that metadata.
 
 Default to adversarial delegated review where the host supports a review-only
 delegated path. If that selected path is unavailable, pause for explicit user
@@ -127,21 +131,42 @@ effort and angle set unless the user requests reduced effort, single-reviewer
 behavior, or a different angle set. Absence of an adversarial delegated path is
 not a fallback condition in confirmed normal mode.
 
-If host capacity allows three reviewers, propose the default three angles:
+Use three reviewers as the baseline for a broad ordinary code target when host
+capacity allows it and the user has not customized effort. Start from these
+coverage surfaces:
 
 - `correctness/regression`
 - `scope/specification alignment`
 - `edge-case/security/data-safety`
 
-Degrade to two or one reviewer only for host capability limits, an accepted
-review-effort fallback, or user-approved reduced count. Delegated serial
-execution remains delegated review and must be labeled `serial`; it is not a
-downgrade to normal review. After contract confirmation, dropping a reviewer or
-angle requires a compact contract-amendment prompt, with special visibility
-when edge-case/security/data-safety coverage is removed or folded into another
-angle.
+Choose the actual angle set from the review target, DoD, plan context, user
+focus, risk, and host capacity. The coordinator may add or split angles when a
+target has materially distinct risk surfaces, such as data migration,
+authentication, concurrency, accessibility, public API compatibility,
+performance, release/ops, or documentation-only contract risk. The coordinator
+may fold or reduce angles when the target is narrow, the user requests lower
+effort, or host capacity is limited, but must keep the baseline coverage
+accounted for by explicit fold/omit records instead of silently dropping it.
+When reducing below the broad-target baseline without a host limit, record why
+separate reviewers would be low-value for this target, where the folded
+correctness, scope/specification, and edge/security/data-safety coverage will be
+handled, and what residual risk is accepted.
+
+One reviewer may own multiple folded angles only when the startup record names
+the folded surfaces. More than three reviewers are allowed when the extra angles
+map to target-specific risks and do not duplicate the baseline reviews. Do not
+split angles merely to spend available capacity, and do not reduce to one
+generic pass for convenience on a broad or risky target.
+
+Delegated serial execution remains delegated review and must be labeled
+`serial`; it is not a downgrade to normal review. After contract confirmation,
+dropping, folding, adding, or splitting a reviewer or angle requires a compact
+contract-amendment prompt, with special visibility when
+edge-case/security/data-safety coverage is removed, folded, or reduced.
 
 ## Review Execution
+
+Before launching delegated reviewers, record a bounded delegation budget for each unit. The record must include the deliverable, review angle or question, expected maximum elapsed time, allowed target paths or surfaces, context digest, verification or evidence receipt, stop-and-return conditions, and whether the unit is read-only. Long-session review uses a compact frozen target/context digest by default; full parent-session context requires a recorded reason tied to the review angle. If the same reviewer or scripted run reaches three consecutive timeouts or empty polls, stop simple waiting and request a checkpoint with completed work, unresolved work, changed paths if any, last verification, estimated remaining time, and whether the task must be split. Do not send user-facing “still waiting” updates unless there is a new result, a blocker, a policy change, a needed user decision, or a user-requested reporting cadence.
 
 Before every reviewer invocation:
 
@@ -188,6 +213,13 @@ title: <redacted title or explicit missing>
 summary_or_recommendation: <redacted evidence/recommendation or explicit missing>
 severity: <source value or missing>
 confidence: <source value or missing>
+origin: original_target | prior_review_fix | test_harness | adjacent_change | unrelated | unknown
+supported_input: yes | no | unknown
+product_reachability: core | supported_advanced | unsupported | unknown
+expected_frequency: common | occasional | rare | theoretical | unknown
+product_impact: critical | high | medium | low | unknown
+fix_weight: local | cross_file | architectural | unknown
+architecture_expansion: none | bounded | material | unknown
 location: <file/line/range or missing>
 backend: <backend label>
 review_mode: adversarial | normal
@@ -350,6 +382,26 @@ Decision order is must-fix/security, ledger lookup for non-must-fix findings,
 out-of-scope, noise, then minimal-hygiene fall-through. Do not add a fifth
 category.
 
+Before making a finding selectable, classify origin, supported input, product reachability, expected frequency, product impact, fix weight, and architecture expansion in the normalized record. A theoretical or unsupported case with architectural fix weight is not `must-fix` until reachability proof, a user requirement, security evidence, or an explicit product decision makes it part of the review target. Findings whose only origin is the immediately previous review fix are shrink candidates unless they improve original-target acceptance proof or a must-preserve equivalence dimension.
+
+## Acceptance Proof Matrix
+
+Before terminal completion, maintain an `acceptance_proof` record for every material acceptance criterion or DoD item the review claims to satisfy:
+
+```yaml
+acceptance_proof:
+  - criterion_id: <stable id>
+    priority: core | secondary | hardening
+    positive_path: <observable success path or not-applicable reason>
+    negative_path: <observable deny/hide/failure path or not-applicable reason>
+    product_state: <state, role, flag, lifecycle, or input condition>
+    surface: <UI/API/file/command/runtime surface>
+    proof: <test id, command, manual scenario, source trace, or not_observable>
+    status: passed | failed | not_run | blocked
+```
+
+Core criteria require at least one positive proof path. Visibility, permission, unlock, feature-flag, and state-transition gates require paired proof: the negative hide/deny/before-state path and the positive show/allow/after-state path are evaluated together. A negative proof alone does not satisfy a core gate. If any core criterion is `failed`, `not_run`, `blocked`, or unmapped, terminal output may say the executed suite is green but must state that acceptance coverage is incomplete; the review must not report completion or zero-material-risk closure. Re-run core acceptance sentinels before adding or accepting additional edge/hardening tests.
+
 ## Secret Hygiene
 
 Apply the overlay before render, persistence, backend forwarding, ledger
@@ -419,10 +471,23 @@ Evaluate inherited stop signals from available run evidence:
 - `reactive-testing`: test growth outpacing required features when test and
   required-feature counts are available.
 
-Stop signals are hints, not automatic loop termination. Render only active,
-warning, or advisory signals plus a compact note for metrics that are unavailable
-or structurally unevaluable in the current caller shape. Do not spam unchanged
-`not evaluated` rows every cycle.
+Render only active, warning, or advisory signals plus a compact note for metrics
+that are unavailable or structurally unevaluable in the current caller shape. Do
+not spam unchanged `not evaluated` rows every cycle.
+
+When two or more material stop signals are active, set `run_state:
+checkpoint_blocked`. Material signals include the listed inherited stop signals,
+three or more cycles with the same subsystem or finding class, a fix delta larger
+than the frozen origin target, review-generated code becoming the source of most
+new findings, test-harness growth exceeding the product-feature delta, material
+architecture expansion not supported by the bound spec/DoD, or any failed or
+unproven core acceptance criterion. From `checkpoint_blocked`, the legal next
+actions are only: End with known residuals, shrink to the frozen origin target,
+backtrack to the owning artifact workflow for requirements or implementation
+planning, or continue after explicit user approval of the expanded target with
+updated acceptance criteria and cycle policy. A prior instruction such as
+“review until no findings remain” does not authorize continuing a mutable target
+through this gate.
 
 Final-cycle scope health also accounts for self-induced findings,
 out-of-context hardening, and material target growth. Findings that refine the
@@ -492,9 +557,15 @@ does not lose the post-edit record contract.
 
 ## Cycles, Terminal Audit, And History Operations
 
-Default to two cycles. The user may elect extension cycles with the same focus
-or a materially different angle. A zero-selectable-finding state still runs
-terminal audit, then terminates without asking whether to continue.
+Default to two cycles. The normal convergence shape is: cycle 1 broad review of
+the frozen origin target, implementation of selected findings only, cycle 2
+targeted review of the fix delta plus acceptance sentinels, and at most one
+final broad review when the target and criteria remain fixed. The user may elect
+extension cycles with the same focus or a materially different angle only when
+`checkpoint_blocked` is not active or after its legal transition is resolved. A
+zero-selectable-finding state still runs terminal audit, then terminates without
+asking whether to continue. New scope starts a new run or backtrack; it does not
+increment the same mutable-target cycle indefinitely.
 
 When residual selectable findings remain, render a final-cycle assessment before
 the End / Continue / New-angle decision. The assessment must include:
@@ -565,6 +636,7 @@ At the end of a run, summarize:
 - Normal findings applied, declined, rejected, invalid, and unresolved.
 - Lightweight specification gaps and their decisions.
 - Cascade receipts and accepted residuals.
+- Suite status for executed checks, acceptance coverage from `acceptance_proof`, unresolved scope, and any unverified shared edits as separate facts.
 - Verification performed and gaps that remain.
 - Terminal audit result.
 - History operations performed only with explicit consent, or the absence of

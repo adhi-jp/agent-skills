@@ -50,7 +50,11 @@ Read this reference before finalizing any implementation plan or plan revision. 
   handoff, execution handoff, implementation, staging, commits, or release work.
 - Ground the plan in primary sources or actual investigation before asking the
   user to decide. Read relevant local code, tests, configs, schemas, docs, logs,
-  issue text, or official documentation first.
+  issue text, or official documentation first. Do not treat the cheapest
+  plausible path, first matching file, or inherited summary as enough when the
+  slice's behavior depends on adjacent surfaces such as callers, registration,
+  stored data, permissions, UI state, layout, rendering, accessibility, or
+  external contracts.
 - Use official docs, upstream source, vendor documentation, standards, or
   user-provided source material for claims about external systems. Use local
   reproduction or direct repository inspection for claims about the current
@@ -90,24 +94,32 @@ Read this reference before finalizing any implementation plan or plan revision. 
   example changes scope, acceptance criteria, tests, or implementation order,
   map it to a broader planning dimension it represents, such as external
   contracts, data shape, lifecycle state, destructive risk, local evidence
-  grounding, or optional tool usage. Name dimensions that shape the generated
-  plan.
+  grounding, optional tool usage, or user-experience expectation. Name
+  dimensions that shape the generated plan.
 - Respect the user's requested outcome as far as reality allows. When a request
   cannot be implemented literally, preserve the intent and adjust the mechanism.
 - When the user asks for broad UX improvements, make the first slice complete
   or improve an existing verified surface before adding adjacent unverified
-  channels, providers, modes, or settings.
+  channels, providers, modes, or settings. Include the user's path through the
+  changed behavior, state transitions, failure recovery, and accessibility or
+  feedback expectations when they are material to the slice; do not choose a
+  technically cheap approach that leaves a worse user experience unless the
+  plan labels the tradeoff, offers the better alternative, and records user
+  preference or accepted risk.
 - Ask questions only for intent, tradeoffs, permissions, business rules, or
   missing context that investigation cannot determine. In trusted orchestration,
   use AI-selected planning defaults for delegable choices before asking the
   user, and reserve questions for non-delegable risk, requirement changes, or
   blocked proceed conditions.
 - For non-technical users, explain choices in plain language and translate
-  technical consequences into product or workflow impact.
+  technical consequences into product or workflow impact. Do not make the
+  low-effort engineering choice the default when a reasonable user would notice
+  poorer recovery, clarity, accessibility, performance, data safety, or workflow
+  fit; surface the tradeoff as a decision or accepted risk.
 - For non-technical "what should we build first" requests, recommend the first
   slice supported by local evidence. Ask only for product wording, business
   rules, or tradeoffs that local investigation cannot settle.
-- Define acceptance criteria and tests before implementation steps.
+- Define acceptance criteria and tests before implementation steps. For visibility, permission, unlock, feature-flag, and state-transition gates, pair the negative/before proof with the positive/after proof in the current-slice criteria and test plan; do not let hardening or denial tests stand in for the core user success path.
 - Do not invent numeric limits, thresholds, timing windows, quotas, or product
   constants. Use values only when they come from user requirements, local
   evidence, primary sources, or accepted risk; otherwise label the value
@@ -220,7 +232,9 @@ implementation.
 ## Plan Depth and Unproven Triage
 
 Choose plan depth after initial investigation. Escalate when new evidence
-reveals a `strict` trigger.
+reveals a `strict` trigger. Do not choose `light` because it is faster when the
+missing investigation could change scope, acceptance criteria, UX behavior,
+proof strategy, or the proceed condition.
 
 - `light` plans are for small, localized, low-risk slices after local evidence
   shows the slice has no existing-behavior change, external contract,
@@ -323,7 +337,22 @@ to prove that no prior plan exists.
      `Accepted risk` with impact, fastest proof path, and revisit trigger.
    - Do not let optimistic wording such as "should be fine", "small enough", or
      "visually cleaner" appear as verified fact.
-3. **Test no-escape gate**
+3. **Investigation adequacy gate**
+   - List the current slice's material surfaces before finalizing scope: direct
+     implementation, callers, registration or configuration, data/schema
+     boundaries, tests/fixtures, user-visible states or copy, and external
+     contracts when relevant. For UI/UX, graphical, game-object, or workflow
+     changes, include the visible/physical surface, feedback path, failure or
+     undo path, and accessibility expectation when they affect the user's
+     experience.
+   - Mark each surface as inspected with evidence, not applicable with a reason,
+     unavailable with impact, or deferred because it is outside the narrowed
+     slice.
+   - If a skipped or unavailable surface could change scope, acceptance
+     criteria, tests, UX behavior, feasibility, or the proceed condition, keep
+     the plan discovery-first or block implementation until the surface is
+     checked or the user accepts the scoped risk.
+4. **Test no-escape gate**
    - Identify important contracts that the plan depends on, especially API
      fields, serialization, persistence, network behavior, permissions,
      migrations, visual behavior, cross-loader behavior, and external-service
@@ -335,7 +364,7 @@ to prove that no prior plan exists.
    - If the alternative proof path reduces coverage, record the reduced claim as
      `Unproven` or `Accepted risk` and keep implementation blocked unless the
      user explicitly accepts that risk.
-4. **Generality gate**
+5. **Generality gate**
    - Treat any concrete example, fixture, project memory, copied handoff, or
      history-derived failure case that influenced the plan as a sampled case, not
      an exhaustive list or mandatory project shape.

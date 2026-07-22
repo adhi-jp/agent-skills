@@ -24,6 +24,18 @@ partial hunk, or an accidental deletion shows up in the diff, not the name list.
 `--check` is worth the half-second: trailing whitespace and CRLF issues
 otherwise surface at a commit hook or in review and force an amend cycle.
 
+When the final command will use pathspecs, `--only`, or another option that
+could change what `git commit` records, add a command-shape dry run after the
+staged-diff gate:
+
+```sh
+git commit --dry-run --short -- <path1> <path2>
+```
+
+Use this as a safety cross-check for the commit command, not as a substitute for
+reading `git diff --cached`; a dry-run summary cannot prove the hunks are the
+intended ones.
+
 This gate appeared as the most universally emphasized discipline across mined
 sessions; commits made *without* it were the most common source of "wrong files
 in history."

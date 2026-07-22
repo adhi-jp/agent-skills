@@ -1,0 +1,85 @@
+{
+  "case": "adaptive-angle-selection",
+  "scenarios": [
+    {
+      "id": "narrow-docs",
+      "user_request": "Review my current uncommitted docs-only wording changes. Keep it lightweight; I'm only changing README and CHANGELOG wording for an already approved behavior.",
+      "target_evidence": {
+        "kind": "working tree against HEAD",
+        "changed_paths": [
+          "README.md",
+          "CHANGELOG.md"
+        ],
+        "patch_digest": "sha256:adaptive-docs-working-tree",
+        "diff_summary": "README clarifies existing review workflow wording; CHANGELOG adds one Unreleased entry; no code, config, data, or runtime path changed."
+      },
+      "definition_of_done": {
+        "confirmed": true,
+        "source": "user-stated docs-only wording accuracy and changelog consistency",
+        "digest": "sha256:adaptive-docs-dod",
+        "quality_bars": [
+          "no invented behavior claims",
+          "preserve release policy",
+          "keep changelog format"
+        ]
+      },
+      "host_capability": {
+        "default_adversarial_path_available": true,
+        "review_only_delegation_enforceable": true,
+        "parallel_reviewers_available": 4
+      },
+      "user_choices": {
+        "mode": "not specified",
+        "backend": "not specified",
+        "reviewer_count": "keep it lightweight",
+        "angle_set": "not specified"
+      }
+    },
+    {
+      "id": "risky-auth-migration",
+      "user_request": "Review this branch very thoroughly before merge. It changes login, session refresh, database migration, and rollout docs.",
+      "target_evidence": {
+        "kind": "branch against main",
+        "base_ref": "main",
+        "base_sha": "abc1234",
+        "head_sha": "def5678",
+        "changed_paths": [
+          "src/auth/login.ts",
+          "src/auth/session.ts",
+          "src/auth/session.test.ts",
+          "db/migrations/20260716_sessions.sql",
+          "docs/rollout/session-refresh.md"
+        ],
+        "patch_digest": "sha256:adaptive-auth-branch",
+        "risk_notes": [
+          "authentication boundary",
+          "persistent data migration",
+          "rollout and recovery documentation"
+        ]
+      },
+      "definition_of_done": {
+        "confirmed": true,
+        "source": "approved implementation plan",
+        "digest": "sha256:adaptive-auth-dod",
+        "quality_bars": [
+          "preserve login compatibility",
+          "safe migration and rollback",
+          "do not log credentials",
+          "rollout docs match behavior"
+        ]
+      },
+      "host_capability": {
+        "default_adversarial_path_available": true,
+        "review_only_delegation_enforceable": true,
+        "parallel_reviewers_available": 5
+      },
+      "user_choices": {
+        "mode": "not specified",
+        "backend": "not specified",
+        "reviewer_count": "not specified",
+        "angle_set": "not specified",
+        "effort": "very thorough"
+      }
+    }
+  ]
+}

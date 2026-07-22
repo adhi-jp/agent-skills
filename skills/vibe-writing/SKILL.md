@@ -208,6 +208,19 @@ depth when the user asks for rationale, verification, limitations, recovery, or
 comparison. Avoid ritual closing offers, generic next steps, and template
 sections when a short answer resolves the request.
 
+For implementation, debug, review, or verification summaries, do not collapse
+`green` into `complete`. Keep these facts separate when they differ:
+`suite_status` (what ran and passed or failed), `acceptance_coverage` (which
+core criteria or sentinels are proven, missing, stale, failed, or blocked),
+`unresolved_scope` (product decisions, deferred findings, accepted residuals, or
+out-of-scope items), and `unverified_shared_edits` (changed paths or delegated
+edits without final receipt). Do not imply acceptance completion from test
+counts, reviewer counts, screenshot counts, or a green suite alone.
+
+Do not send state-change-free waiting updates merely because a poll or timeout
+happened. A progress update needs a new result, blocker, policy change, user
+decision, or user-requested periodic cadence.
+
 Do not turn every progress update or final summary in an active workflow into a
 separate primary writing workflow. Apply the writing rules to the text only
 after the active workflow has determined what can be said.
@@ -237,8 +250,8 @@ lines, bullets, verification lines, or trailers.
 
 Before a `git commit` or an amendment for a message with a body runs while this
 skill is active, apply `references/commit-messages.md` to the subject shape, body
-value, verification provenance, durable references, compact bullets, trailers,
-and transport.
+value, message density, verification provenance, durable references, compact
+bullets, trailers, and transport.
 
 After creating or amending a commit with a body, inspect the stored message with
 `git show -s --format=%B HEAD`. This post-commit inspection duty and any amend
@@ -246,11 +259,25 @@ belong to the workflow holding history authority under its consent rules;
 `vibe-writing` supplies the corrected message artifact. If the stored message
 violates this skill, the corrected message must be applied through that
 workflow before completion is reported. That inspection includes checking that
-verification lines are signal-bearing proof rather than a session command
-transcript, and that the body does not leak git-unmanaged local generated
-artifacts, ignored result files, local-only run IDs, or private tool-session
-records as proof sources. Pure message-drafting tasks do not need this Git
-inspection because no stored commit artifact was created.
+`Verification:` is a compact proof section for the next reviewer, not a session
+command transcript: each kept bullet should normally pair a stable evidence
+anchor with the outcome and the changed contract, risk, or coverage it supports.
+Omit that coverage phrase only when the command or suite name already carries
+the useful scope, the commit is small enough that the proof meaning is obvious,
+or the available evidence is too thin; in thin cases preserve the explicit
+absence status instead of forcing a template. The body must not leak
+git-unmanaged local generated artifacts, ignored result files, local-only run
+IDs, or private tool-session records as proof sources. Pure message-drafting
+tasks do not need this Git inspection because no stored commit artifact was
+created.
+
+For commit-message bodies, default to a medium-density shape: enough durable
+context for a future AI to recover the commit's intent, changed contract
+surfaces, constraints, non-goals, and proof, but not a feature walkthrough or
+file-by-file transcript. Use one to three short paragraphs or a few labeled
+bullets before `Verification:` for ordinary commits. If a draft needs many
+bullets or multiple long behavior sections, summarize by durable surfaces or
+split the commit instead of stuffing implementation details into the message.
 
 When the requested deliverable is the commit message itself, return raw commit
 message text: no Markdown fence, example label, or explanatory prose unless the
@@ -312,9 +339,9 @@ Before returning text, check:
 - Did exact-format output stay exact?
 - Did locale and technical-token preservation rules hold?
 - Did durable references replace prompt-only or machine-local context?
-- For commit-message bodies, did verification lines preserve durable,
-  review-useful proof instead of a session command transcript or local-only
-  generated proof source?
+- For commit-message bodies, did the body use medium density and did
+  verification lines preserve durable, review-useful proof instead of a session
+  command transcript or local-only generated proof source?
 - If text was written through a tool, did the stored artifact match the intended
   artifact? For created or amended commits with a body, inspect the stored
   message, not only the command used to create it.

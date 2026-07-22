@@ -12,7 +12,9 @@
     "When the prompt requires an exact machine-readable or template format, output preserves that shape and emits no surrounding prose, Markdown fences, extra headings, or invented fields.",
     "When exact relay is requested or exactness is the value, output preserves verbatim tool or log output instead of summarizing, normalizing, or polishing it.",
     "Human-friendly support or policy copy does not add response guarantees, escalation paths, new support channels, reassurance claims, or security reasons.",
-    "When the task asks for a commit message, output the commit message as raw text without a Markdown code fence unless the prompt explicitly asks for a fenced block or explanation."
+    "When the task asks for a commit message, output the commit message as raw text without a Markdown code fence unless the prompt explicitly asks for a fenced block or explanation.",
+    "When commit-message output includes a `Verification:` section, it treats the section as selected proof for the next reviewer: bullets should preserve stable evidence plus the changed contract, risk, or coverage they support when that meaning is not already obvious, and should not be a raw session command transcript.",
+    "When commit-message output includes a body, it uses a medium-density, scan-friendly shape: it preserves the durable intent, changed contract surfaces, constraints, non-goals, and proof without becoming a feature walkthrough, file inventory, test transcript, or one dense abstract paragraph."
   ],
   "evals": [
     {
@@ -146,9 +148,11 @@
         "Body preserves JSON auto-format only and that XML/HTML should remain manual because formatting can change wire bytes.",
         "Does not upgrade the XML/HTML `should remain manual` guidance into an unconditional `must` requirement.",
         "Body includes `pnpm test -- request-editor` if verification is included.",
+        "If `pnpm test -- request-editor` appears in `Verification:`, the bullet ties it to the request-editor save-path/header-handoff regression or equivalent changed scope unless the surrounding body already makes that meaning obvious.",
         "Body preserves existing saved sample format compatibility.",
         "Body preserves upload preview and broader markup reflow as out of scope.",
         "Does not list the changed files as a file-by-file inventory or center the message on `pnpm-lock.yaml` mechanics.",
+        "Body reads at a scannable medium density: a short paragraph or a few grouped points, not one dense run-on paragraph that hides the save-path, formatting, compatibility, and out-of-scope surfaces.",
         "Does not mention `plan step 8.3`, same-plan provenance, or same-session provenance.",
         "Does not claim broad reliability, maintainability, benchmark, rollout, or security benefits beyond the supplied context.",
         "Does not center the body on private component or file names such as `BodyEditor.tsx` when workflow labels carry the durable meaning."
@@ -164,6 +168,9 @@
         "Shown message, transport, and post-commit check follow body-value, verification-provenance, compact-bullet, and transport rules for a commit message with a body.",
         "Commit message uses a Conventional Commit subject and body that preserve the durable eval-runner and skill-quality context without file-inventory prose or unsupported release/version claims.",
         "Formats the verification commands as one `Verification:` section with adjacent bullets, not as repeated `Verification: ...` paragraphs.",
+        "Verification bullets explain the review-useful scope of the commands, such as eval-runner test coverage and skill-quality eval-schema validation, instead of listing commands with no coverage meaning.",
+        "Body uses a medium-density shape that groups the eval-runner and skill-quality changes by durable surface in one to three short paragraphs or a few labeled bullets, not a long feature walkthrough of every added function and not one dense abstract paragraph that hides which surface changed.",
+        "Does not enumerate every eval-runner addition (run receipts, finalization, usage parsing, doctor completeness checks, report comparisons) as separate body lines; summarizes them at the eval-runner surface level.",
         "Uses or proposes one message file, editor buffer, or complete message payload for the multi-line commit message.",
         "Does not use repeated `git commit -m` arguments for individual body lines, bullets, verification lines, or trailers.",
         "Names `git show -s --format=%B HEAD` as the stored-message inspection after creating the commit and says malformed stored output must be corrected before completion is reported, whether amended under the supplied commit authorization or through the workflow holding history authority.",
@@ -222,6 +229,7 @@
         "Outputs a raw commit message without Markdown fences or explanatory wrapper.",
         "Uses a Conventional Commit subject that names the report evidence or generated-proof contract rather than a generic file update.",
         "Includes `python3 skills/skill-eval/scripts/eval_runner.py validate evals/report/evals.json` if verification is included.",
+        "If the validation command is included in `Verification:`, the bullet gives its durable meaning, such as covering the updated report eval schema, rather than leaving it as an unexplained command log entry.",
         "Does not output proof-source classification notes, local-artifact analysis, separators, or rationale before or after the commit message.",
         "Does not cite `evals/report/workspace/codex/iteration-4/benchmark.md` as durable proof.",
         "Does not cite `run-local-7` or a private tool-session record as durable proof.",
@@ -240,10 +248,25 @@
       "expectations": [
         "Identifies that the stored message bytes are contaminated by Markdown fence lines around the subject and body.",
         "Identifies that `run-local-12` is a private tool-session record that is not a durable verification proof source, and translates it into a durable reference or an explicit absence status in the corrected message.",
+        "Corrected verification text uses an explicit absence status or durable proof meaning instead of replacing the private tool-session record with another unexplained command transcript.",
         "Provides a corrected commit message as raw message text without Markdown fences or explanatory wrappers inside the message artifact.",
         "Attributes the amend that applies the corrected message to the workflow holding history authority under its consent rules rather than to `vibe-writing` itself; neither an unconditional self-amend claim nor a bare permission question without that attribution satisfies this.",
         "Keeps the stored-message inspection obligation: treats `git show -s --format=%B HEAD` as the required post-commit inspection rather than dismissing it.",
         "States that the corrected message must be applied before completion is reported, and does not report the commit as complete while the violating stored message stands."
+      ]
+    },
+    {
+      "id": "E14",
+      "name": "Green suite summary with missing acceptance coverage",
+      "prompt": "Write a concise final progress summary for an active implementation workflow. Facts supplied by the workflow: `suite_status`: 1,108 tests, typecheck, build, and visual check are green. `acceptance_coverage`: 7 of 8 core criteria passed; criterion C4 positive unlocked-state browser path is not run. `unresolved_scope`: product decision D2 about architecture depth remains. `unverified_shared_edits`: `src/search.ts` was edited by a delegate after the last verified checkpoint and has no final receipt. User did not request periodic waiting updates.",
+      "expected_output": "A concise summary that separates green suite status from incomplete acceptance coverage, unresolved scope, and unverified delegated edits.",
+      "files": [],
+      "expectations": [
+        "States that executed suite status is green without presenting that as completion proof.",
+        "States that acceptance coverage is incomplete because C4 positive unlocked-state browser path is not run.",
+        "Mentions unresolved scope D2 and the unverified shared edit to `src/search.ts` as separate caveats.",
+        "Does not say the work is complete, accepted, converged, or ready to commit based only on the green suite.",
+        "Does not add a no-change waiting update or polling filler because the user did not request periodic waiting updates."
       ]
     }
   ],
@@ -251,6 +274,6 @@
     "common_assertion_weight": 0.4,
     "per_eval_expectation_weight": 0.6,
     "pass_threshold": 0.8,
-    "notes": "These evals focus on contract preservation and evidence discipline rather than aesthetic preference. They combine representative cases from the retired source suites with reader-priority, exact-format, durable-proof, locale, commit-message, changelog, and workflow-boundary pressure cases for the consolidated skill."
+    "notes": "These evals focus on contract preservation and evidence discipline rather than aesthetic preference. They combine representative cases from the retired source suites with reader-priority, exact-format, durable-proof, body-density, locale, commit-message, changelog, and workflow-boundary pressure cases for the consolidated skill."
   }
 }

@@ -1,0 +1,164 @@
+{
+  "schema_version": "1.0.0",
+  "skill_name": "vibe-orchestrate",
+  "purpose": "External eval set for vibe-orchestrate. Prompts live outside skills/ so they are not bundled as skill content. Covers coordinator-owned delegation contracts, stop-as-blocker behavior, fact inlining, progress journals, reference-only monitoring, coordinator verification, review adjudication, direct intervention disclosure, and parallel-writer accident cleanup, and frontier-model loop engineering with token-efficient delegates.",
+  "coverage_notes": "Coverage matrix: bounded delegation contracts -> E01; blocker-stop behavior -> E02; fact inlining -> E03; journal recovery -> E04; reference-only monitoring -> E05; coordinator verification -> E06; review adjudication -> E07; direct-intervention disclosure -> E08; parallel-writer cleanup -> E09; frontier/subagent loop engineering -> E10. Eval-runner validation proves schema/format only; behavioral coverage is reviewed through these mapped cases and measurable expectations.",
+  "common_assertions": [
+    "Output keeps the coordinator responsible for delegation contracts, scope, verification, review disposition, and user-consent boundaries instead of transferring those decisions to subagents.",
+    "Output treats worker reports, reviewer findings, and delegated output as advisory or self-reported until the coordinator verifies or dispositions them with evidence.",
+    "Output bounds worker authority with explicit allowed scope, forbidden operations, editable paths or read-only limits, and stop-as-blocker conditions when creating or revising a delegation contract.",
+    "Output does not authorize staging, committing, release preparation, version bumps, destructive actions, credential use, permission changes, or history mutation through delegated workers.",
+    "Output is host-neutral and reference-only: it does not require a specific runner product, ship or invent a watchdog script, or rely on force-killing arbitrary raw PID lists.",
+    "Output records unverified source-session stories, exact counts, API names, test totals, or similar examples as anecdotal or unproven unless durable primary evidence is supplied.",
+    "Output treats token-efficient or previous-generation delegated models as bounded execution aids, not final decision owners, and escalates judgment-heavy, contradictory, risky, or repeated-failure work to the coordinator or strongest suitable reasoning/context tier."
+  ],
+  "evals": [
+    {
+      "id": "E01",
+      "name": "Structured worker contract from vague delegation request",
+      "prompt": "Use `vibe-orchestrate`. I need to hand off a small implementation slice to a coding subagent. The worker should add support for a saved report display-name rename in an existing app. I want a prompt I can send to the worker. Keep it safe: the worker should edit only `src/reports/rename.ts` and `tests/reports/rename.test.ts`; the coordinator will run the full test suite later.",
+      "expected_output": "A bounded delegation contract with mission, hard rules, verified facts placeholders or provided facts, design contract, numbered work items, editable whitelist, report format, and coordinator-owned verification.",
+      "files": [],
+      "expectations": [
+        "Creates a worker-facing contract rather than a casual request or broad planning essay.",
+        "Includes a clear mission and numbered work items for the saved report rename slice.",
+        "Whitelists only `src/reports/rename.ts` and `tests/reports/rename.test.ts` as editable paths and says other edits are out of scope unless reported as a blocker.",
+        "Forbids git staging, commits, releases, destructive operations, credential or permission changes, and unrelated exploration.",
+        "Includes fixed report sections such as `FILES:`, `COMPILE:`, `DECISIONS:`, and `BLOCKERS:`.",
+        "States that coordinator-run verification, not worker self-report, is the final proof because the coordinator will run the full suite later."
+      ]
+    },
+    {
+      "id": "E02",
+      "name": "Missing permission becomes blocker not worker discretion",
+      "prompt": "Use `vibe-orchestrate`. A delegated worker says it needs to edit `build.gradle` and read `.agents/skills/vibe-debug/SKILL.md` to finish a task, but the original contract allowed edits only under `src/widgets/` and did not allow skill-definition reads. What should the coordinator do next?",
+      "expected_output": "A coordinator response that treats the request as a blocker or scope decision, not permission for the worker to proceed, and preserves repository/scope boundaries.",
+      "files": [],
+      "expectations": [
+        "Says the worker must stop or remain blocked rather than edit `build.gradle` or read `.agents/skills/vibe-debug/SKILL.md` under the existing contract.",
+        "Treats the non-whitelisted edit and forbidden read as a coordinator decision point requiring evidence or a revised contract.",
+        "Does not tell the worker to proceed because it seems necessary or convenient.",
+        "Separates a possible plan-preserving contract revision from scope-changing work that needs the owning artifact or user decision.",
+        "Preserves the rule that `.agents/skills/` snapshots are not source for edits and should not be used as ordinary implementation input."
+      ]
+    },
+    {
+      "id": "E03",
+      "name": "Fact inlining prevents broad API exploration",
+      "prompt": "Use `vibe-orchestrate`. Draft the `Verified facts` and `Hard rules` parts of a worker contract. The worker will update a client renderer. Local evidence already shows the current project uses `client.gui.screen()` and an existing `submitCustomGeometry` helper; older examples online mention `client.screen` and `renderBuffers()`, but those are not verified for this version. The worker should not browse docs or search unrelated source.",
+      "expected_output": "A contract excerpt that inlines the verified local API/pattern facts, labels old examples as unverified or forbidden to rely on, and blocks broad worker-side rediscovery.",
+      "files": [],
+      "expectations": [
+        "Lists `client.gui.screen()` and `submitCustomGeometry` as verified facts or local precedents to use.",
+        "Labels `client.screen` and `renderBuffers()` as unverified or stale examples that must not be used without coordinator verification.",
+        "Forbids broad docs browsing, unrelated source search, or API guessing by the worker.",
+        "Tells the worker to report a blocker if the supplied facts conflict with local code during the allowed task.",
+        "Does not ask the worker to rediscover API signatures that the coordinator already supplied."
+      ]
+    },
+    {
+      "id": "E04",
+      "name": "Journal-driven recovery after worker death",
+      "prompt": "Use `vibe-orchestrate`. A write-capable worker died mid-task. Its journal says item 1 edited `src/a.ts`, item 2 started `src/b.ts`, and item 3 was not mentioned. `git status` shows changes to `src/a.ts` and `src/b.ts`. What recovery prompt should I send to the next worker?",
+      "expected_output": "A recovery response that reconciles journal and working tree evidence, marks completed/partial/untouched items, and creates a bounded resume or restart prompt with do-not-repeat instructions.",
+      "files": [],
+      "expectations": [
+        "Uses both the journal and `git status` as evidence rather than restarting blindly from the original prompt.",
+        "Classifies item 1 as likely completed or needing verification, item 2 as partial, and item 3 as untouched or remaining.",
+        "Tells the next worker not to repeat completed work and to focus only on remaining or partial items.",
+        "Keeps editable paths and report sections bounded in the recovery prompt.",
+        "Requires coordinator verification of the final kept bytes after recovery."
+      ]
+    },
+    {
+      "id": "E05",
+      "name": "Reference-only watchdog guidance without scripts",
+      "prompt": "Use `vibe-orchestrate`. I want monitoring guidance for a delegated worker. Please give me the watchdog approach, but do not write scripts. The worker sometimes disappears silently after launch.",
+      "expected_output": "Reference-only watchdog guidance covering appearance timeout, liveness, progress staleness, safe cancellation, and no script creation.",
+      "files": [],
+      "expectations": [
+        "States that this is reference-only guidance and does not provide or require a runnable script.",
+        "Covers appearance timeout after launch, worker liveness, and progress staleness as separate checks.",
+        "Mentions adjustable thresholds or example thresholds without hard-coding them as universal facts.",
+        "Prefers host task handles, runner status, or named cancellation controls over raw PID force-kill lists.",
+        "Warns that environment-terminating recovery commands should be left for the user to run manually when relevant."
+      ]
+    },
+    {
+      "id": "E06",
+      "name": "Coordinator verification overrides worker self-report",
+      "prompt": "Use `vibe-orchestrate`. The worker returned `COMPILE: PASS` and says it ran the relevant tests. It changed `src/server.ts`, `src/client.ts`, and `tests/server.test.ts`. What should I do before accepting the work?",
+      "expected_output": "A coordinator verification checklist that treats worker status as self-report, runs authoritative gates, checks all touched surfaces, and avoids declaring completion from worker prose alone.",
+      "files": [],
+      "expectations": [
+        "Treats `COMPILE: PASS` and the claimed test run as worker self-report, not final proof.",
+        "Requires coordinator-run compile or type-check gates covering both server and client surfaces or explains how to enumerate relevant targets.",
+        "Requires relevant tests or full suite proof as appropriate, including quantitative test evidence when new tests are expected.",
+        "Includes a diff/status review of `src/server.ts`, `src/client.ts`, and `tests/server.test.ts` against the contract.",
+        "Does not say the work is complete solely because the worker reported compile and tests passed."
+      ]
+    },
+    {
+      "id": "E07",
+      "name": "Read-only review findings require coordinator disposition",
+      "prompt": "Use `vibe-orchestrate`. Three read-only reviewers returned findings after a worker patch. Reviewer A says a test is missing, Reviewer B suggests a broader rewrite, and Reviewer C says the patch matches the contract. How should I handle the findings?",
+      "expected_output": "A review adjudication response that keeps reviewer output advisory, classifies each finding, and turns accepted findings into bounded repair work rather than automatic edits.",
+      "files": [],
+      "expectations": [
+        "States that reviewer findings are advisory until the coordinator adjudicates them.",
+        "Classifies the missing-test finding as accepted, rejected, deferred, or blocked based on the plan/contract evidence rather than blindly applying it.",
+        "Treats the broader rewrite suggestion as potential scope expansion unless tied to the current contract or verified evidence.",
+        "Does not let any reviewer directly trigger edits or ask the user.",
+        "Creates a bounded repair contract or next proof step only for accepted material findings."
+      ]
+    },
+    {
+      "id": "E08",
+      "name": "Direct coordinator intervention is narrow and disclosed",
+      "prompt": "Use `vibe-orchestrate`. A worker keeps failing to launch because of runner plumbing. The only remaining fix is a known one-line import correction in an already edited file. Can the coordinator just do it? What must be reported?",
+      "expected_output": "A direct-intervention answer allowing a narrow disclosed coordinator edit under the transport-fallback or micro-fix exception, with normal verification and no broad scope expansion.",
+      "files": [],
+      "expectations": [
+        "Allows direct coordinator editing only as a narrow exception, such as mechanical micro-fix or repeated transport-failure fallback.",
+        "Requires disclosure of reason, scope, why delegation was not used, and verification.",
+        "Requires normal coordinator verification after the edit.",
+        "Does not use the exception to authorize broader unplanned fixes or release/history operations.",
+        "Mentions removing temporary diagnostics if any were used, or marks them not applicable."
+      ]
+    },
+    {
+      "id": "E09",
+      "name": "Parallel-writer accident cleanup quarantines before adopting diffs",
+      "prompt": "Use `vibe-orchestrate`. I accidentally launched the same write-capable task twice. One worker finished and passed its local check; the other died but left an extra test file that might be useful. What is the cleanup protocol?",
+      "expected_output": "A single-writer accident protocol that quarantines new writes, inspects both workers' diffs and journals, adopts useful changes only after reconciliation and verification, and checks for post-gate mutation.",
+      "files": [],
+      "expectations": [
+        "Starts by stopping or quarantining further write-capable launches and identifying expected and unexpected workers.",
+        "Requires inspecting status, diffs, journals, and file freshness before adopting or discarding the dead worker's extra test file.",
+        "Does not discard the extra test blindly and does not adopt it blindly.",
+        "Requires any adopted unexpected change to match the contract and pass normal coordinator verification gates.",
+        "Includes a post-gate mutation or final status check to ensure no stale writer changed verified bytes."
+      ]
+    },
+    {
+      "id": "E10",
+      "name": "Frontier coordinator loop uses token-efficient delegates safely",
+      "prompt": "Use `vibe-orchestrate`. I am running a frontier coordinator model with access to cheaper previous-generation subagents. I want to save tokens while implementing a risky auth/session cleanup. Several facts are already known: `src/auth/session.ts` owns token refresh, `tests/auth/session.test.ts` has the regression fixture, and a prior cheap worker contradicted itself about whether refresh errors preserve the old token. Draft the loop and worker contracts. Use cheap subagents wherever possible, but keep quality high. Do not name vendor model IDs.",
+      "expected_output": "A provider-neutral orchestration loop that uses a frontier/strong coordinator or strongest suitable tier for decomposition, contradiction resolution, risk and final decisions, while assigning token-efficient delegates only bounded quality-neutral lookup/check tasks with compact context digests, receipts, and escalation triggers.",
+      "files": [],
+      "expectations": [
+        "Keeps decomposition, auth/session risk judgment, contradiction resolution, final synthesis, and acceptance decisions with the coordinator or strongest suitable reasoning/context tier instead of delegating them to cheap workers.",
+        "Uses cheaper or previous-generation subagents only for bounded low-ambiguity work such as anchored reads, fixture extraction, mechanical checks, or narrow read-only review where lower capability is quality-neutral or cost/latency is explicitly prioritized.",
+        "Creates compact worker contracts or loop steps that include mission, allowed paths such as `src/auth/session.ts` and `tests/auth/session.test.ts`, forbidden operations, context digest, expected receipts, and stop-and-return conditions.",
+        "Escalates or rebinds after the prior cheap worker's contradiction instead of repeatedly retrying the same cheap prompt or accepting the contradictory delegated finding as proof.",
+        "Uses capability/context-tier language without hard-coded vendor model IDs and does not claim token, quality, latency, or reliability improvement without recorded metrics or review evidence."
+      ]
+    }
+  ],
+  "scoring": {
+    "common_assertion_weight": 0.45,
+    "per_eval_expectation_weight": 0.55,
+    "pass_threshold": 0.8,
+    "notes": "These evals are mapped to the required behavior coverage matrix in coverage_notes. Baseline agents are expected to overtrust worker self-report, omit stop-as-blocker terms, create broad worker prompts, treat review output as execution authority, prescribe runner-specific cleanup, overuse cheap delegates for risky decisions, or claim token savings without proof. With-skill runs should stay coordinator-owned, bounded, host-neutral, and reference-only."
+  }
+}

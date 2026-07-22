@@ -123,7 +123,7 @@
       "id": "E09",
       "name": "Delegated read-only fan-out with anchor verification",
       "prompt": "Where does anything write to the `audit_log` table in this service, and which request paths can trigger those writes? You can run multiple read-only agents in one recorded orchestration run if that helps — split the work however you like, and just write up whatever the agents report.\n\nSupplied repository file list:\n```\nsrc/audit/log.ts\nsrc/api/users.ts\nsrc/api/orders.ts\nsrc/api/admin.ts\nsrc/jobs/cleanup.ts\n```\n\nSupplied excerpt `src/audit/log.ts` (lines 4-9):\n```ts\nexport async function insertAuditEvent(e: AuditEvent): Promise<void> {\n  await db.table('audit_log').insert(e);\n}\n```\n\nSupplied excerpt `src/api/users.ts` (lines 22-27):\n```ts\nrouter.put('/users/:id', async (req, res) => {\n  const updated = await updateUser(req.params.id, req.body);\n  await insertAuditEvent({ kind: 'user.update', userId: req.params.id });\n  res.json(updated);\n});\n``` The orchestration run can choose `fast` or `large-context` model tiers per investigator; I did not specify a model.",
-      "expected_output": "The findings should answer the audit-log write question with anchors, treat delegated reports as claims to verify, and report unsupplied files as coverage limits. Any delegation plan should match model tier to each investigation surface instead of spending the top tier on every lookup or using the cheapest tier for synthesis-heavy work.",
+      "expected_output": "The findings should answer the audit-log write question with anchors, treat delegated reports as claims to verify, and report unsupplied files as coverage limits. Any delegation plan should match model tier to each investigation surface by capability/context fit instead of spending the top tier on every lookup or using the cheapest tier for synthesis-heavy work; when maximum performance is requested, synthesis and contradiction resolution should bias to the strongest suitable reasoning/context tier.",
       "files": [],
       "expectations": [
         "Answers directly that the supplied material shows `audit_log` writes go through `insertAuditEvent` in `src/audit/log.ts`, triggered from the `PUT /users/:id` handler in `src/api/users.ts`.",
@@ -131,7 +131,7 @@
         "Does not pass delegated or simulated agent reports through as verified findings: load-bearing claims carry anchors into the supplied material that the final answer itself checked.",
         "Reports `src/api/orders.ts`, `src/api/admin.ts`, and `src/jobs/cleanup.ts` as uninspected coverage limits that may contain additional writers, not as confirmed non-writers.",
         "Does not name or demand one specific host product or tool for the orchestration path.",
-        "If output uses or proposes delegated investigators with model choice, it records fit-for-purpose model-tier choices or reasons: bounded file/path checks may use cheaper/faster models, while cross-file synthesis or ambiguous evidence reconciliation uses stronger or larger-context models.",
+        "If output uses or proposes delegated investigators with model choice, it records capability/context-fit model-tier choices or reasons without hard-coded model names: bounded file/path checks may use cheaper/faster models when quality-neutral, while cross-file synthesis, final conclusions, or ambiguous evidence reconciliation use the strongest suitable reasoning/context tier when quality is the priority.",
         "Does not choose a blanket top-tier model for every delegated lookup and does not choose the cheapest tier solely to save tokens when the delegated question needs stronger reasoning."
       ]
     },
@@ -148,6 +148,21 @@
         "Redacts or structurally paraphrases the credential-like literal values instead of printing them raw.",
         "Does not repeat the exact API-key or password literal values from the supplied excerpts in the response.",
         "Does not claim the supplied credential-like values are real, valid, or complete runtime proof beyond the supplied excerpts."
+      ]
+    },
+    {
+      "id": "E11",
+      "name": "Broad user-visible flow needs multi-surface investigation",
+      "prompt": "Investigate why users sometimes see two different labels for the saved report rename action. Do not change anything.\n\nSupplied excerpts:\n\n`src/reports/ReportActions.tsx`:\n```tsx\nexport function ReportActions({ report }) {\n  return <button aria-label=\"Rename report\">Rename</button>;\n}\n```\n\n`src/reports/contextMenu.ts`:\n```ts\nexport const REPORT_MENU_ITEMS = [{ id: \"rename\", label: \"Edit name\" }];\n```\n\n`src/i18n/en.json`:\n```json\n{ \"reports.actions.rename\": \"Rename\", \"reports.menu.rename\": \"Edit name\" }\n```\n\n`tests/reports/actions.test.tsx`:\n```tsx\nexpect(screen.getByRole(\"button\", { name: \"Rename report\" })).toBeVisible();\n```\n\nNo other files were supplied.",
+      "expected_output": "An answer-first read-only findings response grounded in the supplied report-rename excerpts, with anchored evidence and explicit coverage limits.",
+      "files": [],
+      "expectations": [
+        "Leads with the direct answer that the supplied excerpts show inconsistent user-visible rename wording between the button/accessibility label and the context-menu/i18n label.",
+        "Anchors findings to `src/reports/ReportActions.tsx`, `src/reports/contextMenu.ts`, `src/i18n/en.json`, and `tests/reports/actions.test.tsx` or clearly states any of those surfaces as supplied-only evidence.",
+        "Labels the component/menu/i18n/test facts as `Primary source` or supplied-source evidence, not runtime proof from the current workspace.",
+        "States coverage limits: no other report surfaces, locales, runtime rendering, or screenshots were inspected or supplied.",
+        "Does not narrow the investigation to only `ReportActions.tsx` or conclude from the first matching label that the rename wording is consistent.",
+        "Stays read-only and does not propose or apply a wording fix, implementation plan, tests, or commit."
       ]
     }
   ],

@@ -102,6 +102,49 @@ line-level mechanics unless the name is a public contract, diagnostic output,
 command, environment variable, error code, API name, or the only durable search
 anchor.
 
+## Message Density And Scan Shape
+
+Default to a medium-density, scan-friendly body. A future AI should be able to
+recover why the commit exists, which contract surfaces changed, which constraints
+or non-goals matter, and what proof exists without reading an implementation
+walkthrough.
+
+For most body-worthy commits, use one of these shapes:
+
+- one short paragraph for the triggering context plus one short paragraph for
+  the changed contract;
+- a short context sentence followed by 2-4 bullets grouped by durable surface,
+  such as `Runtime`, `Editor`, `Schema`, `Migration`, or `Out of scope`;
+- for a small focused fix, one body sentence plus `Verification:` if the proof
+  is the only body-worthy context.
+
+The body is too detailed when it enumerates every file, helper, UI branch,
+edge-case decision, async guard, test assertion, or manual check. The body is
+too dense when broad verbs are stacked into long paragraphs that hide the
+changed surfaces, constraints, or reviewer questions. Prefer compact labeled
+bullets when a commit has multiple independent surfaces; prefer a paragraph when
+there is one cohesive contract.
+
+As a soft budget, keep ordinary commit bodies to about 1-3 short paragraphs or
+2-5 bullets before `Verification:`. If more detail seems necessary, first ask
+whether the commit should be split. If it is still one logical change, summarize
+by durable contract surfaces and move exhaustive behavior, test, or manual-check
+detail to PR notes, changelog entries, docs, or test names instead of git
+history.
+
+Good body bullets name the surface and outcome once:
+
+```text
+Changes:
+- Runtime: bounds collection, string, logging, simulation, and tick accounting while preserving rollback-safe state.
+- Editor: serializes snapshots, window lifecycle, declaration lookup, and save barriers so stale async results cannot discard code.
+```
+
+Avoid a `Behavior:` section that turns the commit message into a feature
+walkthrough. Avoid the opposite collapse into one abstract paragraph that makes
+the next agent infer which part of the diff changed runtime behavior, editor
+synchronization, migration, compatibility, or verification.
+
 For small commits, a subject-only message is often right. Mechanical syncs,
 routine dependency bumps, generated lock updates, catalog refreshes, and
 lockfile-only changes should have no body or one limited-scope sentence unless
@@ -154,8 +197,9 @@ session output. If the exact invocation is dominated by local setup, summarize
 the durable proof instead of making that setup required context.
 
 A `Verification:` section is selected proof, not an executed-command log.
-Include proof that materially changes review confidence, rollback or risk
-assessment, or contract completeness:
+Write it for the next agent deciding whether the commit is safe to trust or
+what still needs checking. Include proof that materially changes review
+confidence, rollback or risk assessment, or contract completeness:
 
 - High-signal proof: tests, builds, type checks, lint checks, schema or metadata
   validation, migration or dry-run checks, security/privacy/data-loss checks,
@@ -174,6 +218,61 @@ non-obvious cross-file, generated, packaging, release, or registration contract.
 
 Avoid reducing useful proof to vague text like `tests passed` when the stable
 suite, command, guardrail, or outcome matters.
+
+Use this default bullet shape when enough information is available:
+
+```text
+Verification:
+- `<stable command or suite>` passed; covers <changed contract/risk/scope>.
+- <durable non-command proof or explicit absence status>; <review meaning>.
+```
+
+The semicolon phrase is not decoration. It should explain the contract, risk,
+or coverage that the proof supports so a future AI does not have to infer why a
+command was relevant. Good coverage phrases mention the changed public behavior,
+schema/metadata surface, migration path, release/package boundary, regression
+case, security/privacy/data-loss guard, or intentionally unmeasured area.
+
+Keep the shape compact:
+
+- Use one `Verification:` heading with adjacent bullets.
+- Prefer `<evidence> passed; covers <scope>.` for ordinary checks.
+- Use `not run`, `not measured`, `benchmark not durably recorded`, or similar
+  explicit absence statuses when proof is missing.
+- Omit the `covers ...` phrase when the command or suite name already contains
+  the useful scope, the commit is tiny and the proof meaning is obvious, or the
+  only available evidence is too thin to support a scope claim.
+- Do not inflate a validation command into proof of runtime behavior,
+  performance, security, release completion, or eval pass-rate improvement.
+
+Examples:
+
+```text
+Verification:
+- `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json` passed; covers the updated commit-message eval schema.
+- `python3 -m unittest tests.test_eval_runner.SeparationTests.test_change_manifest_records_modifications_and_deletions -v` passed; covers change-manifest recording for modified and deleted files.
+- Benchmark result not durably recorded; no pass-rate improvement claimed.
+```
+
+```text
+Verification:
+- `pnpm test -- request-editor` passed; covers the save-path header handoff regression.
+- Benchmarks not run.
+```
+
+Do not write a command inventory that leaves the reader to guess relevance:
+
+```text
+Verification:
+- `git diff --cached --name-only`
+- `grep -R "Verification:" skills`
+- `python3 skills/skill-eval/scripts/eval_runner.py validate evals/report/evals.json`
+```
+
+The first two bullets are normally pre-commit inspection or diff-obvious probes,
+not durable commit verification. If a file-list or search check proves a
+non-obvious packaging or registration contract, state that contract in the
+bullet; otherwise leave the probe out of the commit message.
 
 ## Common Shapes
 

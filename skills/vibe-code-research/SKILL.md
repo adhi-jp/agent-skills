@@ -77,7 +77,11 @@ phases that the user must request.
 - **Answer the question asked.** Investigate to the depth the question needs,
   not the depth the codebase allows. Resist inventorying everything touched
   along the way; depth beyond the question is noise unless it changes the
-  answer.
+  answer. Do not shrink the question to the cheapest lookup when the user's
+  wording, a named user-visible behavior, a cross-file contract, or an
+  architecture claim needs multiple entry points, competing hypotheses, or an
+  adjacent subsystem check to be reliable. If you intentionally bound a broad
+  question, state the boundary and the risk it leaves.
 - **Coverage honesty.** Say what was inspected and what was not. A search that
   found nothing is reported as "not found where I looked", with where you
   looked, never as "does not exist".
@@ -97,6 +101,12 @@ phases that the user must request.
      strings, routes, schema names, user-visible text.
    - Prefer following real references — imports, call sites, registrations,
      configuration wiring — over guessing from file names or directory layout.
+   - For broad, user-visible, or architecture-impact questions, name the
+     investigation surfaces before reading deeply: direct implementation,
+     callers, configuration or registration, tests or fixtures, data/schema
+     boundaries, and user-visible text or docs when relevant. Mark a surface as
+     inspected, not relevant with evidence, unavailable, or intentionally out of
+     scope.
 3. **Trace the evidence**
    - Read along the call or data path far enough to answer the question,
      recording anchors as you go.
@@ -129,16 +139,19 @@ When fanning out:
 - Ask for findings in collectable shape: direct answer, anchors (`path`,
   `path:line`, or symbol), evidence labels, and what was not inspected.
 - When the host lets you choose a delegated model and the user has not
-  explicitly fixed one, choose a fit-for-purpose model per investigator. Use a
-  cheaper or faster model for narrow path/symbol lookup, mechanical extraction,
-  or small-context anchor checks; use a higher-capability or larger-context
-  model for cross-subsystem synthesis, ambiguous architecture tracing,
-  security-sensitive evidence handling, or investigations where weak reasoning
-  would become the bottleneck. Do not default every small lookup to the top
-  model, and do not downshift solely to save tokens when the question needs
-  stronger reasoning. Record any explicit user model override or the
-  capability/context reason for a non-default model when the host exposes that
-  metadata.
+  explicitly fixed one, choose a fit-for-purpose model per investigator by
+  capability and context fit, not by hard-coded model name. Use a cheaper or
+  faster model for narrow path/symbol lookup, mechanical extraction, or
+  small-context anchor checks only when lower capability is quality-neutral or
+  the user prioritizes cost/latency. Bias upward to the strongest suitable
+  reasoning/context tier available for cross-subsystem synthesis, ambiguous
+  architecture tracing, security-sensitive evidence handling, contradiction
+  resolution, final conclusions, or investigations where weak reasoning would
+  become the bottleneck, especially when the user asks for maximum performance.
+  Do not default every small lookup to the top model, and do not downshift
+  solely to save tokens when the question needs stronger reasoning. Record any
+  explicit user model override or the capability/context reason for a
+  non-default model when the host exposes that metadata.
 - The fan-out may run as ad-hoc sub-agent calls or as one scripted
   orchestration run: a host mechanism that runs the investigators under a
   single deterministic, independently recorded run and returns their results.
@@ -201,6 +214,9 @@ commit anything.
   places searched".
 - Dumping everything discovered instead of answering the question, or padding
   a narrow answer into a report.
+- Narrowing a broad or user-visible question to the first cheap file hit without
+  checking callers, configuration, tests, data boundaries, or another surface
+  that could change the answer.
 - Sliding from findings into fixes, plans, or refactors because the problem
   became obvious along the way.
 - Treating a test name, comment, or commit message as proof of current
@@ -220,6 +236,8 @@ Before responding, check:
   qualified?
 - Did at least one disconfirming check run against the main conclusion?
 - Are uninspected areas and failed searches reported as coverage limits?
+- For broad or user-visible questions, did the search cover every named
+  investigation surface, or explicitly justify why a surface was out of scope?
 - Would the response, saved report, delegated finding summary, or quoted snippet
   emit any suspected credential or secret-like literal that should be redacted or
   paraphrased first?
