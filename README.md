@@ -873,9 +873,12 @@ as partial unmeasured proof until their surface is classified, keeps any
 diagnostic adjusted aggregate separate from the official runner result, treats
 authoritative source Skill paths as the `with_skill` target instead of host
 tools or snapshots, records lost discrimination and required coverage when an
-assertion or eval case is loosened or deleted, and blocks common regressions
-such as broad rewrites, universal checklists, fake baselines, self-grading bias,
-weak proof substitutes,
+assertion or eval case is loosened or deleted, and treats eval-suite compaction
+as a case-to-contract accounting change: suite-specific safe floors, natural
+representative prompts, per-case replacement coverage, explicit accepted risk,
+and no effectiveness claim from static validation alone. It blocks common
+regressions such as broad rewrites, universal checklists, fake baselines,
+self-grading bias, weak proof substitutes,
 companion-skill requirements, generated workspace commits, wording-only churn,
 cross-eval moving failures treated as local fixes, per-cell prose patches after
 multi-run evidence shows low-frequency scatter, copyable invalid placeholder

@@ -196,6 +196,44 @@ discriminating, observable, and hard to pass with the old failure mode.
 - If an eval expectation encodes an unsupported product fact, correct the eval
   instead of teaching the skill to invent that fact.
 
+### Eval Suite Compaction
+
+Treat case-count reduction as an eval-quality change, not mechanical cleanup.
+Before deleting, merging, or folding a case, inventory the current suite and
+write a compaction ledger with:
+
+- old case IDs and the abstract contract dimensions each guards
+- the retained case, per-eval expectation, common assertion, or fixture that
+  will carry each dimension
+- discrimination lost, including distinct state, language, exact-format,
+  no-change, failure, or proof-boundary pressure
+- the decision: keep, merge, delete, or `Accepted risk`
+
+Compress by contract overlap, not by a uniform case-count target. A narrow,
+expensive, passing, or both-config-passing case may still be the only regression
+guard for a known failure. Keep it when no stronger case naturally covers the
+same behavior. Stop when the next cut would lose a distinct contract, require an
+artificial multi-scenario prompt, or broaden a common assertion beyond every eval
+class it would govern.
+
+Prefer these compaction moves:
+
+- remove a common assertion that is scenario-specific or vacuous on unrelated
+  cases, after moving its pressure to the owning per-eval expectations
+- merge cases only when one realistic prompt can exercise the combined behavior
+  without becoming a harness-only matrix
+- fold repeated expectations into their owning case while preserving the
+  strongest observable positive and negative pressure
+- remove a case when a stronger retained case covers the same contract and the
+  lost input variation is explicitly recorded
+
+After compaction, reconcile every old case to retained coverage or accepted
+risk; update suite `purpose`, `coverage_notes`, and scoring notes if their
+coverage description changed. Static validation proves schema and fixture
+integrity only. Do not claim preserved discrimination, effectiveness, or cost
+improvement without an authorized clean comparative rerun; if that rerun is not
+performed, report it as not measured.
+
 External eval prompts stay under `evals/<skill-name>/`; generated run output
 stays under `evals/<skill-name>/workspace/<agent>/` and is not committed unless
 the user explicitly asks.
@@ -308,9 +346,9 @@ Compare behavior before declaring improvement:
 - Did the skill overfit to a fixture, phrase, project class, or old session?
 - Did the change create new obligations, dependencies, or workflow authority
   beyond the user's goal?
-- When converting or deleting an eval case, did you confirm the contract lines
-  the old case guarded are still covered by another eval? Lost coverage is a
-  regression even when every remaining eval passes.
+- For any compacted suite, does every old case map to retained coverage or an
+  explicit accepted risk, and did the merge remain a natural skill prompt?
+  Lost coverage is a regression even when every remaining eval passes.
 
 If repeated wording-only contract changes do not move the targeted failure,
 stop tightening prose. Inspect runner recording, prompt delivery, grader inputs,
@@ -396,6 +434,9 @@ Before finalizing, reject these common regressions:
   because nearby prose says to replace it later.
 - Expanding common assertions so exact-format, localized, or verbatim cases
   become impossible to satisfy.
+- Forcing every suite toward one numeric target, deleting narrow cases without a
+  contract ledger, or replacing natural prompts with artificial multi-scenario
+  matrices.
 - Counting skipped, flaky, unavailable, self-graded, or incomplete evals as
   proof.
 - Replacing the official runner aggregate with a diagnostic adjusted aggregate
@@ -418,6 +459,8 @@ Before reporting completion:
   always-visible `SKILL.md` guidance?
 - Did wording edits preserve modality, exceptions, anchors, and absence
   statuses?
+- For eval compaction, did the ledger reconcile old cases, replacement coverage,
+  lost discrimination, and accepted risks before deletion or merge?
 - Did the smallest coupled files change, including evals and changelog when
   required?
 - Are baseline, grader, token, timing, and report claims honest?

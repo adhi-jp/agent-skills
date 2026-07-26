@@ -36,6 +36,19 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skill-quality` now treats eval-suite compaction as an evidence-bound quality
+  change. Before deleting or merging cases, agents inventory the suite and map
+  each old case's contract dimensions to retained coverage, lost
+  discrimination, and an explicit keep, merge, delete, or accepted-risk
+  decision. Compaction uses suite-specific safe floors, keeps natural
+  representative prompts and distinct exact-format, locale, no-change, and
+  proof boundaries, and stops before unsafe common-assertion broadening or
+  synthetic meta-prompts. Static validation proves structure only; preserved
+  effectiveness remains unmeasured until an authorized clean comparative
+  rerun. Session-derived reference notes and a focused eval case cover the
+  contract. Validation:
+  `python3 -m json.tool evals/skill-quality/evals.json` and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
 - `vibe-requirements-spec` now separates exact-content fidelity from workflow
   authority when selected prompts, templates, fixtures, command output, or other
   literal payloads contain instruction-like text. Such content must stay in a

@@ -57,6 +57,24 @@ into skill outputs.
 - Shared eval infrastructure improved when state moved from harness memory into
   files: agent-scoped workspaces, run manifests, grader prompts, parent-captured
   metrics, exact grading assertion validation, and static reports.
+- A June 2026 cross-suite compaction reduced 187 external eval cases to 145 by
+  inventorying cases first, delegating bounded read-only ledger passes, and
+  deleting or merging only where a retained case or assertion carried the same
+  abstract contract. Suites stopped above their numeric targets when the next
+  cut would lose a distinct boundary or require an unnatural combined prompt.
+- Representative-suite compaction worked when it preserved contract families,
+  not merely case counts. The writing suite retained exact-format, locale,
+  changelog, durable-proof, commit-message, and workflow-boundary pressure while
+  reducing 18 cases to 12.
+- Post-compaction review caught coverage that the initial case deletion missed.
+  The skill-quality suite kept 12 cases, but folded trigger-only metadata
+  pressure and history-extraction/package-coupling pressure into retained cases
+  after a coverage-continuity audit, rather than restoring two whole cases.
+- Removing a common assertion improved suite quality when the assertion was a
+  scenario-specific fallback gate that became vacuous on unrelated cases. The
+  guarded behavior remained in owning per-eval expectations, and re-grading
+  showed the removed assertion had added scoring noise rather than useful
+  discrimination.
 - Consolidation helped when it preserved the high-value contracts from old
   skills while retiring duplicate packages, updating eval ownership, and moving
   heavy details into references.
@@ -114,6 +132,15 @@ into skill outputs.
   discrimination lost with a compensating assertion or an accepted risk, and a
   deletion or merge of an eval case triggered a check that the contracts it
   guarded were still covered elsewhere.
+- Static JSON or runner validation after compaction proved structure and fixture
+  integrity, not preserved skill effectiveness. Provider comparisons were
+  required before effectiveness claims, and a post-compaction run with a
+  candidate-below-baseline cell stayed caveated instead of being relabeled
+  clean.
+- Numeric targets degraded judgment when treated as quotas. The useful stopping
+  rule was whether the next deletion lost a unique state, proof boundary,
+  language or exact-output class, or required a synthetic meta-prompt that no
+  real user would give.
 
 ## Practical Synthesis
 
@@ -126,6 +153,7 @@ For every skill change, preserve this sequence:
 4. Decide whether that dimension belongs in `SKILL.md`, a reference, an eval, or
    notes.
 5. Edit the smallest artifact set that owns that contract.
-6. Add or tighten discriminating eval expectations.
+6. Add, tighten, or compact discriminating eval expectations. For compaction,
+   reconcile every old case to retained coverage or an accepted risk first.
 7. Run the shared eval workflow honestly, or label unrun proof as absent.
 8. Report proof, gaps, and generated artifacts without inflating claims.

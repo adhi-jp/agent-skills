@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "skill-quality",
-  "purpose": "External eval set for skill-quality. Prompts live outside skills/ so they are not bundled as skill content. Covers current-proposal evidence maps, failure-to-contract translation, narrow skill edits, eval assertion hardening, expected-output leak control, runner-driven eval hygiene, session-history evidence ledgers and extraction boundaries, cost and timeout claim discipline, official-vs-diagnostic aggregate boundaries, moving-failure and multi-run variance triage, simultaneous proof-path and contract-change attribution, trigger-only skill metadata, external data-boundary decisions, and regression prevention for skill creation or improvement.",
+  "purpose": "External eval set for skill-quality. Prompts live outside skills/ so they are not bundled as skill content. Covers current-proposal evidence maps, failure-to-contract translation, narrow skill edits, eval assertion hardening, expected-output leak control, eval-suite compaction and coverage ledgers, runner-driven eval hygiene, session-history evidence ledgers and extraction boundaries, cost and timeout claim discipline, official-vs-diagnostic aggregate boundaries, moving-failure and multi-run variance triage, simultaneous proof-path and contract-change attribution, trigger-only skill metadata, external data-boundary decisions, and regression prevention for skill creation or improvement.",
   "common_assertions": [
     "Output starts from the observed failure signal and labels the current proposal's implementation-affecting claims as primary source, local investigation, unproven, accepted risk, or equivalent evidence categories.",
     "Output translates the failure into a reusable skill contract or dimension before recommending prose edits.",
@@ -116,16 +116,27 @@
     },
     {
       "id": "E07",
-      "name": "Loosen-to-pass without a coverage ledger",
-      "prompt": "Two evals were failing. To make the suite pass, a contributor loosened one assertion from requiring every claim to carry an evidence category down to merely mentioning evidence, deleted a both-config-pass eval that was the only case checking the skill refuses version bumps, and merged two eval cases into one while dropping the assertion that guarded the static-report no-server rule. The headline pass rate rose. The user asks whether this is a good change.",
-      "expected_output": "The agent produces evidence-bound loosening-and-coverage triage that separates a genuine skill improvement from a suite made easier and states what must be recorded before deletion or relaxation.",
+      "name": "Compaction without a coverage ledger",
+      "prompt": "A contributor wants every skill eval suite capped at 10 cases. To make one suite fit, they loosened an assertion from requiring every claim to carry an evidence category down to merely mentioning evidence, deleted a both-config-pass eval that was the only case checking the skill refuses version bumps, merged two cases while dropping the static-report no-server rule, moved locale, exact-JSON, verbatim relay, changelog proof-source, and commit-message transport expectations into three common assertions, and proposed one large `writing edge cases` prompt for the rest. Static `validate` passes and the headline pass rate rose, so the contributor says coverage and effectiveness are preserved. Session history also shows that an earlier compaction initially lost trigger-only metadata and history-extraction/package-coupling pressure, then restored those contracts by folding them into retained cases without increasing the case count. Decide whether the change is good and how the suite should be compacted.",
+      "expected_output": "The agent produces evidence-bound eval-suite compaction triage with case-to-contract accounting, supported consolidation choices, and honest verification boundaries.",
       "files": [],
       "expectations": [
         "Identifies that loosening the assertion and deleting cases made the suite easier, so the rising headline pass rate does not prove the skill improved.",
+        "Treats eval-suite compaction as a quality change requiring evidence and coverage accounting, not as mechanical cleanup or a case-count quota.",
+        "Requires a pre-edit compaction ledger that records old case IDs, abstract contract dimensions, replacement coverage, lost discrimination, and keep, merge, delete, or accepted-risk decisions.",
         "Requires a loosening ledger: relaxing or deleting an assertion or a both-config-pass eval records the discrimination lost plus a compensating assertion or an explicit `Accepted risk`.",
         "Requires a coverage-continuity check that the version-bump and no-server contract lines the deleted and merged cases guarded are still covered by another eval.",
+        "Rejects deleting cases solely because they are narrow, expensive, passing, or both-config-passing when they may be the only guard for a distinct regression.",
+        "Rejects the artificial `writing edge cases` meta-prompt because it combines locale, exact-format, verbatim, changelog, and commit transport surfaces that normal users would not naturally request together.",
+        "Rejects moving scenario-specific expectations into common assertions unless they apply to every governed eval class, including exact-format, localized, verbatim, narrow-boundary, and no-change cases.",
+        "Uses suite-specific safe floors or a stop condition rather than forcing every suite to exactly 10 cases.",
+        "Allows a stronger retained case or owning per-eval expectation to replace a redundant case when the lost input variation is recorded.",
+        "Requires a post-edit reconciliation mapping every removed or merged case to retained coverage or explicit accepted risk, including a follow-up audit for accidentally lost contracts.",
+        "Updates suite purpose, coverage notes, or scoring notes when the advertised coverage shape changes.",
         "Treats lost coverage as a regression even though every remaining eval passes.",
-        "Does not accept the higher pass rate as proof of improvement."
+        "States that JSON or runner validation proves schema and fixture integrity only, not preserved discrimination, effectiveness, reliability, or cost.",
+        "Requires an authorized clean comparative rerun before claiming preserved effectiveness or improvement; otherwise reports provider-level preservation as not measured.",
+        "Does not accept the higher pass rate as proof of improvement or propose a new standalone skill for behavior already owned by skill-quality."
       ]
     },
     {
@@ -247,6 +258,6 @@
     "common_assertion_weight": 0.45,
     "per_eval_expectation_weight": 0.55,
     "pass_threshold": 0.8,
-    "notes": "These evals test skill-improvement judgment, not subjective prose quality. Baselines are expected to over-edit skills, under-harden assertions, over-trust benchmarks, miss repository eval-runner constraints, overpromote sampled evidence, push workflow process into metadata, or make unsupported improvement claims."
+    "notes": "These evals test skill-improvement judgment, not subjective prose quality. Baselines are expected to over-edit skills, under-harden assertions, over-trust benchmarks, miss repository eval-runner constraints, compact suites by numeric quota without coverage accounting, overpromote sampled evidence, push workflow process into metadata, or make unsupported improvement claims."
   }
 }
