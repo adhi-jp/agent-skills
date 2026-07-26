@@ -36,6 +36,20 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-review` now treats delegated response isolation as a backend capability
+  requirement rather than admitting reviewer or free-form backend transcripts
+  into the coordinator context for prompt-side normalization. A host-side
+  adapter must discard original responses outside that context, reject unknown,
+  over-limit, reviewer-authored free-text, tool-call, and trailing fields, and
+  deliver closed-schema structural `delegated_result_record` objects with
+  opaque provenance and closed validation codes;
+  otherwise the delegated path is unavailable and the workflow pauses for an
+  approved backend or mode. The coordinator independently validates accepted
+  candidates against the frozen target and never requests raw transcripts as a
+  fallback. This reduces the source-level W011 exposure surface, but host
+  enforcement and external scanner closure remain unproven until separately
+  verified. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
 - Explicit use of a state-changing `vibe-*` workflow now grants scoped
   local-checkpoint permission for verified workflow-owned changes unless the
   user opts out, project policy forbids commits, or dirty-state, verification,

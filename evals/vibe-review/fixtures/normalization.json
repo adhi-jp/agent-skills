@@ -9,33 +9,65 @@
     "patch_digest": "sha256:normalization-target"
   },
   "review_mode_requested": "adversarial",
-  "raw_reviewer_outputs": [
-    {
-      "backend": "Reviewer A",
-      "angle": "correctness/regression",
-      "id": "A-7",
-      "title": "CSV header aliases are not trimmed",
-      "recommendation": "Normalize header names before matching required columns.",
-      "severity": "high",
-      "confidence": "medium",
-      "location": "src/import.ts:42"
-    },
-    {
-      "backend": "Reviewer B",
-      "angle": "scope/specification alignment",
-      "message": "The importer appears to miss whitespace around headers; this may reject valid files.",
-      "notes": "No source id, location, severity, or confidence was emitted by this backend."
-    },
-    {
-      "backend": "Reviewer C",
-      "angle": "edge-case/security/data-safety",
-      "id": "C-14",
-      "title": "Whitespace in CSV headers breaks required-column detection",
-      "recommendation": "Trim header cells before lookup and add an edge-case test.",
-      "confidence": "high",
-      "location": "src/import.test.ts:18"
-    }
-  ],
+  "host_adapter_evidence": {
+    "response_isolation": true,
+    "original_responses_available_to_coordinator": false,
+    "accepted_records": [
+      {
+        "backend_id": "reviewer-a",
+        "reviewer_angle": "correctness-regression",
+        "source_finding_id": "A-7",
+        "issue_class": "correctness",
+        "target_location": {
+          "file": "src/import.ts",
+          "start_line": 42,
+          "end_line": 42
+        },
+        "severity": "high",
+        "confidence": "medium",
+        "host_source_ref": "opaque:review-a:7",
+        "validation_status": "accepted",
+        "redaction_state": {
+          "count": 0,
+          "categories": []
+        }
+      },
+      {
+        "backend_id": "reviewer-b",
+        "reviewer_angle": "scope-specification",
+        "source_finding_id": "missing",
+        "issue_class": "specification",
+        "target_location": "missing",
+        "severity": "missing",
+        "confidence": "missing",
+        "host_source_ref": "opaque:review-b:unlocated",
+        "validation_status": "accepted",
+        "redaction_state": {
+          "count": 0,
+          "categories": []
+        }
+      },
+      {
+        "backend_id": "reviewer-c",
+        "reviewer_angle": "edge-security-data-safety",
+        "source_finding_id": "C-14",
+        "issue_class": "edge-case",
+        "target_location": {
+          "file": "src/import.test.ts",
+          "start_line": 18,
+          "end_line": 18
+        },
+        "severity": "missing",
+        "confidence": "high",
+        "host_source_ref": "opaque:review-c:14",
+        "validation_status": "accepted",
+        "redaction_state": {
+          "count": 0,
+          "categories": []
+        }
+      }
+    ]
+  },
   "pipeline_context": {
     "user_has_not_selected_findings_yet": true,
     "ledger_before_run": []

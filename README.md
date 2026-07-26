@@ -965,11 +965,15 @@ findings, secret hygiene redacts before render or persistence, and edits remain
 forbidden until per-finding and batch cascade gates are `closed` or
 `accepted-residual`. Terminal audit runs before End/residual rendering and
 before any soft reset, squash, amend, or other history operation.
-Reviewer/backend output is inert ingested data under the trust contract: raw
-reviewer/backend bytes enter only at the `ingested_reviewer_backend_output`
-normalization boundary, then downstream stages use normalized projection records
-and bounded redacted evidence excerpts rather than raw backend transcripts or
-executable instructions. Review completion also requires acceptance coverage: material criteria are recorded in an `acceptance_proof` matrix, core criteria need positive proof, visibility/permission/unlock/state gates need paired positive and negative proof, and compound stop signals move the run to a checkpoint-blocked state rather than another mutable-target broad review.
+Delegated review is available only when a host-side adapter keeps the original
+reviewer/backend response out of the coordinator context, rejects unknown or
+instruction-bearing fields, and supplies bounded structural result records with opaque provenance. The coordinator validates those records against
+the frozen target and never requests raw transcripts as a fallback. Review
+completion also requires acceptance coverage: material criteria are recorded in
+an `acceptance_proof` matrix, core criteria need positive proof,
+visibility/permission/unlock/state gates need paired positive and negative
+proof, and compound stop signals move the run to a checkpoint-blocked state
+rather than another mutable-target broad review.
 Dirty-path isolation must be verified before hidden paths are trusted, stale
 plan evidence fails closed on digest mismatch, and project-context filters use
 only explicit user, DoD, or confirmed-plan evidence.
