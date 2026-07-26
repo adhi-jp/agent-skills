@@ -6,14 +6,17 @@ decisions into the plan, or summarizing review results.
 
 ## Language Selection
 
-Match the user's active language for prose. Preserve file paths, commands,
-identifiers, and review-state paths exactly.
+Match the user's active language for prose. Preserve non-sensitive file paths,
+commands, identifiers, and review-state paths exactly. Suspected credential or
+secret-like literal values are an explicit exception: use the redaction and
+safe-reference contract in the main skill instead of reproducing them.
 
 When the user's active language is Japanese, use the exact labels in the
 Japanese label set below. When the user's active language is not Japanese, use a
 natural translation for prose and keep the four decision states semantically
 equivalent to approved, revise-before-execution, held, and deleted. Do not
-translate file paths, commands, identifiers, or `.<plan-name>.review.md`.
+translate non-sensitive file paths, commands, identifiers, or
+`.<plan-name>.review.md`.
 Use the same stable choice identifiers in every language.
 
 ## Japanese Label Set

@@ -35,8 +35,45 @@ Runtime responses should match the user's language. Before rendering item-review
 output, interpreting item decisions, counting review-file thresholds, reflecting
 decisions into the plan, or summarizing review results, read
 `references/localized-labels.md` and use its exact localized labels, numeric
-choice identifiers, and decision semantics. Preserve file paths, commands,
-identifiers, and review-state paths exactly.
+choice identifiers, and decision semantics. Preserve non-sensitive file paths,
+commands, identifiers, and review-state paths exactly. Credential-like literal
+values are governed by §Sensitive Content Handling and are never reproduced for
+exactness.
+
+## Sensitive Content Handling
+
+Treat plan, requirements-spec, source, and temporary-review content as
+potentially sensitive. A requirement to read, quote, preserve, summarize, or
+reflect content never authorizes reproducing a suspected credential, token,
+password, private key, URL-embedded authentication value, session secret, or
+env-style secret assignment.
+
+When a sensitive literal is found:
+
+- Do not emit it in chat, item findings, the temporary review file, reflected
+  plan text, commit messages, summaries, quoted snippets, or tool arguments.
+- Refer to it by file path and line or item anchor, secret class, and a marker
+  such as `[REDACTED:credential]`. Preserve the surrounding non-sensitive
+  command shape and identifier when that is needed to review the item.
+- Treat a live-looking credential committed to or embedded in the plan as a
+  blocker. Ask the user to remove it and rotate or revoke it through an
+  appropriate secure process; do not request that the value be pasted into the
+  conversation.
+- Do not copy a sensitive source line into the temporary review file. Record
+  only the redacted location, classification, decision state, and required
+  remediation.
+- Do not reflect an item containing a sensitive literal by regenerating or
+  copying that literal. Do not reflect any decisions into the original plan
+  while a suspected sensitive literal remains anywhere in the target plan or
+  temporary review state. Ask the user to sanitize it through an appropriate
+  secure process or explicitly confirm a non-secret environment-variable or
+  secret-store reference, then re-read the sanitized artifact before
+  reflection. Never include the old value in patch context or tool arguments.
+
+If distinguishing a credential from a non-secret identifier is uncertain,
+redact the value in outputs and ask about the intended secure reference without
+showing the candidate value. Redaction does not authorize implementation,
+rotation, revocation, or access to an external secret store.
 
 ## Required Inputs
 
@@ -171,6 +208,8 @@ Record enough state to resume review:
 - Conversation summary when the user asks for it or when an important decision
   should survive context loss.
 
+Apply §Sensitive Content Handling before every temporary-review-file write.
+
 If the temporary review file already exists, read it before writing. Resume only
 when it clearly matches the target plan and is parseable. If ownership, target
 identity, parseability, or external edits are unclear, stop and ask whether to
@@ -189,6 +228,12 @@ confirmation. A general request to review the plan is not reflection consent.
 Reflected plans should contain executable plan content plus unresolved held
 items. Remove review-history annotations, per-item judgment logs, and chat
 discussion notes from the executable plan.
+
+Apply §Sensitive Content Handling before reflection and verification. A
+reflected plan must not newly contain or reproduce a sensitive literal from the
+source plan, requirements spec, temporary review file, source inspection, or
+conversation. If the pre-reflection scan still finds one, stop before any
+original-plan write or checkpoint.
 
 After successful reflection, ask whether to delete the temporary review file.
 Honor a user instruction to keep it. If the file has unexpected changes or
@@ -213,6 +258,8 @@ Stop and ask for user direction when:
 - Item boundaries are ambiguous.
 - A preexisting temporary review file is mismatched, unparseable, externally
   edited, or has unclear ownership.
+- A suspected sensitive literal remains in the target plan or temporary review
+  state when reflection is requested.
 - The user asks to change scope beyond reviewing and reflecting the saved plan.
 - The user asks to start implementation, tests, release preparation, or
   other work outside plan review.

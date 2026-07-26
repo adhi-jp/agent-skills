@@ -36,6 +36,16 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-plan-review` now makes credential-like literals an explicit exception
+  to command and identifier preservation. Suspected credentials, tokens,
+  passwords, private keys, URL authentication, session secrets, and env-style
+  secret assignments must be redacted from chat, temporary review state,
+  reflected plans, summaries, commit messages, quoted snippets, and tool
+  arguments; affected items block or remain held until the user confirms a safe
+  environment-variable or secret-store reference. A focused eval covers a
+  credential-bearing deployment command without reproducing its value.
+  Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`.
 - `vibe-review` now treats delegated response isolation as a backend capability
   requirement rather than admitting reviewer or free-form backend transcripts
   into the coordinator context for prompt-side normalization. A host-side
