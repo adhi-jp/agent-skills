@@ -19,7 +19,7 @@ quickstart when changing a skill or its eval suite.
 | --- | --- | --- | --- | --- |
 | Build, debug, port, or inspect Minecraft Java Edition mods for Fabric, NeoForge, or Architectury | `minecraft-modding-workbench` | Produces implementation guidance or code while labeling MCP, workspace, source-jar, runtime, and unverified facts | `skills/minecraft-modding-workbench/` | `evals/minecraft-modding-workbench/` |
 | Route an explicit multi-turn vibe-coding workflow | `vibe-coding` | Selects one primary visible `vibe-*` specialist for the next phase; does not relax downstream gates; carries default scoped local-checkpoint permission to state-changing phases; backtracks to the artifact-owning phase when a spec or plan is defective; leaves review for debug or artifact backtracking when runtime symptoms, core regressions, repeated findings, or architecture expansion make review the wrong owner | `skills/vibe-coding/` | `evals/vibe-coding/` |
-| Coordinate subagents for bounded research, edits, repairs, or review while preserving coordinator-owned scope, verification, and consent boundaries | `vibe-orchestrate` | Produces delegation contracts, recovery/monitoring guidance, verification/review discipline, direct-intervention rules, and parallel-writer accident cleanup; reference-only first version with no scripts or runner adapters | `skills/vibe-orchestrate/` | `evals/vibe-orchestrate/` |
+| Coordinate subagents for bounded research, edits, repairs, or review while preserving coordinator-owned scope, verification, and consent boundaries | `vibe-orchestrate` | Produces work-graph and delegation contracts, deliberate multi-subagent fan-out, recovery/monitoring guidance, verification/review discipline, direct-intervention rules, and parallel-writer accident cleanup; reference-only first version with no scripts or runner adapters | `skills/vibe-orchestrate/` | `evals/vibe-orchestrate/` |
 | Align the agent's understanding with the user's intent before action, especially after misinterpretation or before risky release/version/commit/destructive work | `vibe-goal-alignment` | Produces an explicit understanding record with goal, success criteria, non-goals, assumptions, blockers, and next step; stops before downstream state changes until the user confirms or corrects the record | `skills/vibe-goal-alignment/` | `evals/vibe-goal-alignment/` |
 | Draft, revise, save, finish, or explore requirements before planning | `vibe-requirements-spec` | Creates or updates the requirements spec artifact by default, defaults to strict-four-choice without explicit mode selection, stops before non-spec work, reopens the same spec for downstream requirements defects, and locally checkpoints a verified tracked spec unless commits are denied or blocked | `skills/vibe-requirements-spec/` | `evals/vibe-requirements-spec/` |
 | Create or revise an implementation plan from approval-evidenced or concrete inputs | `vibe-planning` | Writes a plan artifact and concise summary; pairs positive and negative proof for material gates; includes an implementation-progress ledger for multi-item plans; ends before implementation and locally checkpoints a reviewed tracked plan unless commits are denied or blocked | `skills/vibe-planning/` | `evals/vibe-planning/` |
@@ -242,14 +242,19 @@ verification, review disposition, progress tracking, and user-consent boundaries
 
 The first version is reference-only. It ships no watchdog script, runner adapter,
 or command wrapper. Instead it provides contract templates and guidance for
-verified-fact inlining, model/context budgets, editable-path whitelists,
-stop-as-blocker behavior, progress journals, frontier-coordinator loops with
-token-efficient delegates, worker-death recovery, appearance/liveness/staleness
-monitoring concepts, coordinator-run verification gates, read-only review
-perspectives, direct-intervention disclosure, and parallel-writer accident
-cleanup. It does not replace requirements capture, implementation planning,
-plan execution, review, commit execution, release work, or debugging ownership;
-it is the transport discipline for delegation inside those workflows.
+work-graph mapping, deliberate multi-subagent decomposition, verified-fact
+inlining, model/context budgets, editable-path whitelists, stop-as-blocker
+behavior, progress journals, frontier-coordinator loops with token-efficient
+delegates, worker-death recovery, appearance/liveness/staleness monitoring
+concepts, coordinator-run verification gates, read-only review perspectives,
+direct-intervention disclosure, and parallel-writer accident cleanup. It
+actively fans out material independent units while retaining one context owner
+for tightly coupled work; concurrent writers require separate isolated
+workspaces, disjoint write surfaces, and an integrated coordinator join gate,
+while a shared tree permits only one writer at a time. It does not replace
+requirements capture, implementation planning, plan execution, review, commit
+execution, release work, or debugging ownership; it is the transport discipline
+for delegation inside those workflows.
 
 ### `vibe-goal-alignment`
 
@@ -981,8 +986,9 @@ only explicit user, DoD, or confirmed-plan evidence.
   skill containment
 - `evals/vibe-orchestrate/`: external subagent-orchestration eval prompts for
   bounded delegation contracts, blocker stops, fact inlining, journal recovery,
-  reference-only monitoring, coordinator verification, review adjudication,
-  direct-intervention disclosure, and parallel-writer cleanup
+  reference-only monitoring, deliberate multi-subagent work-graph selection,
+  coordinator verification, review adjudication, direct-intervention disclosure,
+  and parallel-writer cleanup
 - `evals/vibe-goal-alignment/`: external goal-alignment prompts for
   understanding records, correction loops, risky release/version/commit
   ambiguity, destructive side-effect stops, source-instruction boundaries, and
@@ -1086,9 +1092,9 @@ specific to the skill.
   subagents safely inside bounded research, editing, repair, or review work. It
   is reference-only in its first version: no watchdog script, runner adapter, or
   command wrapper is included. The coordinator remains responsible for scope,
-  verified facts, progress journals, monitoring decisions, verification gates,
-  review dispositions, direct-intervention disclosure, and parallel-writer
-  accident cleanup.
+  work-graph and fan-out decisions, verified facts, progress journals,
+  monitoring decisions, verification gates, review dispositions,
+  direct-intervention disclosure, and parallel-writer accident cleanup.
 - `vibe-planning` is the primary user-facing implementation-planning workflow
   when the user asks for a plan, acceptance criteria, test plan, or rough
   vibe-coding implementation plan. Its normal output is a full plan file plus a

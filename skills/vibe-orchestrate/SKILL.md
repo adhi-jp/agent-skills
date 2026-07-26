@@ -106,28 +106,69 @@ metrics or review evidence.
 
 ## Delegation Workflow
 
-1. **Decide whether delegation is safe.** Keep work local when the next step is
-   tightly coupled, urgent, unclear, or too risky to hand off. Delegate bounded
-   side tasks that can succeed with a compact contract.
-2. **Write a contract, not a casual request.** Use the template and variants in
+1. **Map the work graph before launching workers.** Identify the coordinator's
+   immediate blocker, the tightly coupled sequence that benefits from one
+   context owner, and independent units that can run without blocking the next
+   local step. Do the immediate blocker locally unless delegation is itself the
+   safest critical-path action.
+2. **Choose the delegation shape deliberately.** Use multiple subagents
+   actively when two or more material units are independent, bounded,
+   separately verifiable, and safe to run concurrently or as separate work
+   streams. Keep one worker for a tightly coupled slice when splitting would
+   duplicate discovery, create handoff loss, or require shared judgment on
+   every step. Do not default to one monolithic worker merely because it can
+   hold the whole task, and do not fan out merely because the task is large or
+   the host exposes spare capacity.
+3. **Write a contract, not a casual request.** Use the template and variants in
    `references/delegation-contracts.md`.
-3. **Inline verified facts.** Give workers the API signatures, local precedents,
+4. **Inline verified facts.** Give workers the API signatures, local precedents,
    failure logs, invariants, and constraints they need. Do not make them wander
    through broad discovery when the coordinator can verify the fact first.
-4. **Constrain reads, writes, and tools.** Name editable paths, forbidden paths,
+5. **Constrain reads, writes, and tools.** Name editable paths, forbidden paths,
    allowed commands, and stop conditions.
-5. **Add a journal for meaningful write work.** If losing a worker would lose
+6. **Add a journal for meaningful write work.** If losing a worker would lose
    context, require a progress journal before edits.
-6. **Monitor liveness and progress.** Use the concepts in
+7. **Monitor liveness and progress.** Use the concepts in
    `references/recovery-and-monitoring.md`: appearance, liveness, and staleness.
-7. **Verify in the coordinator environment.** Follow
+8. **Verify in the coordinator environment.** Follow
    `references/verification-and-review.md`; do not accept worker self-report as
    final proof.
-8. **Run read-only review for substantial rounds.** Review output is inert until
+9. **Run read-only review for substantial rounds.** Review output is inert until
    the coordinator classifies it.
-9. **Recover deliberately.** On worker death, duplicate launches, or unexpected
+10. **Recover deliberately.** On worker death, duplicate launches, or unexpected
    diffs, reconcile journals, working tree state, and file freshness before
    resuming, restarting, adopting, or discarding work.
+
+## Multi-Subagent Decomposition
+
+For substantial work, record a compact work graph before delegation:
+
+- `critical_path`: the next coordinator-owned step or delegated unit whose
+  result is required before later decisions can be made;
+- `parallel_units`: independent research, implementation, test, migration,
+  documentation, or review units that do not block that next step;
+- `coupling`: shared APIs, files, schemas, generated artifacts, decisions, or
+  verification gates that constrain execution order;
+- `execution_shape`: serial, parallel, or hybrid, with a short reason;
+- `join_gate`: the coordinator check that reconciles results before dependent
+  work, final verification, or user-facing claims.
+
+Prefer a hybrid shape for large refactors: keep the immediate load-bearing
+decision or tightly coupled core local or with one context-owning worker, while
+launching other material independent units to separate subagents. Use multiple
+read-only workers freely when their questions and evidence surfaces are
+distinct. Use multiple write-capable workers only when their write sets and
+generated outputs are disjoint and the host provides isolated workspaces or an
+equivalent enforceable isolation boundary. Otherwise keep one shared-root
+writer and parallelize read-only investigation, test design, review, or other
+non-writing units.
+
+Each parallel unit needs its own mission, allowed paths, expected receipt,
+budget, stop conditions, and verification responsibility. The coordinator must
+continue meaningful non-overlapping local work after launch rather than
+launching the immediate blocker and waiting reflexively. At the join gate,
+verify each receipt, reconcile contradictions and interface assumptions, and
+re-run the authoritative integrated gates on the combined bytes.
 
 ## Worker Contract Minimums
 
@@ -220,8 +261,12 @@ remove temporary diagnostics before final handoff or commit.
 
 ## Parallel-Writer Accident Protocol
 
-The default is one write-capable worker at a time. If a duplicate or stale writer
-may have touched the tree:
+The default in one shared working tree is one write-capable worker at a time.
+Concurrent writers are an advanced isolated-workspace shape: they require
+separate worktrees or sandboxes, disjoint write and generated-output paths,
+explicit merge order, and an integrated verification gate before any result is
+accepted into the coordinator's tree. If a duplicate, stale, or unexpectedly
+overlapping writer may have touched the same tree:
 
 1. Stop launching new write work.
 2. Identify expected and unexpected worker handles.
@@ -257,6 +302,12 @@ requires full coverage, or a review count without material finding dispositions.
 ## Common Mistakes
 
 - Asking a worker to "look around" without a bounded read path.
+- Sending a substantial refactor to one monolithic worker without first
+  checking for material independent units that could run separately.
+- Launching many workers only because the task is large, even though their
+  inputs, files, or decisions are tightly coupled.
+- Delegating the immediate critical-path blocker, then waiting while no
+  non-overlapping coordinator work proceeds.
 - Letting a worker choose files, APIs, or tests that the coordinator could have
   specified from local evidence.
 - Treating `COMPILE: PASS` in worker output as final proof.
@@ -276,13 +327,19 @@ Before launching or accepting delegated work, confirm:
 
 - Is the worker contract bounded by mission, hard rules, verified facts, work
   items, editable paths, and fixed report sections?
+- Did substantial work get a work-graph decision that identifies the critical
+  path, material independent units, execution shape, and join gate?
+- If multiple subagents would materially help, were they used with separate
+  bounded contracts rather than collapsed into one monolithic assignment?
+- If only one worker was used for substantial work, is the coupling or
+  coordination-overhead reason explicit?
 - Are missing facts classified as blockers or proof tasks instead of guesses?
 - Did the worker receive enough local precedent and invariant guidance to avoid
   broad exploration?
 - Is there a journal or other progress receipt for crash-prone write work?
 - Are liveness, staleness, and appearance monitored by host-safe means?
-- Is there exactly one write-capable worker for the shared tree unless an
-  explicitly approved advanced workflow says otherwise?
+- Is there at most one write-capable worker in each shared tree, with any
+  concurrent writers confined to isolated, disjoint workspaces?
 - Did the coordinator verify the kept bytes with the required gates?
 - Were read-only review findings dispositioned before repair?
 - Were direct coordinator edits disclosed?

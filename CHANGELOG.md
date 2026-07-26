@@ -78,6 +78,24 @@ use `[Repository] - YYYY-MM-DD`.
   contract. Validation:
   `python3 -m json.tool evals/skill-quality/evals.json` and
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
+- The `vibe-orchestrate` eval review retains all 12 distinct contract cases as
+  `E01` through `E12`, removes scenario-specific common assertions that
+  over-constrained unrelated cases, and consolidates redundant stop,
+  rediscovery, self-report, and unexpected-diff expectations within their
+  owning cases. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`.
+- `vibe-orchestrate` now maps the critical path, independent work units,
+  coupling, execution shape, and coordinator join gate before substantial
+  delegation. It actively uses multiple subagents when material units are
+  independent, bounded, separately verifiable, and safe to isolate, while
+  retaining one context owner for tightly coupled work and rejecting fan-out
+  based only on task size or spare host capacity. Concurrent writers now require
+  separate isolated workspaces, disjoint source and generated paths, explicit
+  merge order, and integrated coordinator verification; one shared tree still
+  permits only one writer at a time. README,
+  delegation/recovery references, and a new large-refactor eval case cover the
+  contract. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`.
 - `vibe-requirements-spec` now separates exact-content fidelity from workflow
   authority when selected prompts, templates, fixtures, command output, or other
   literal payloads contain instruction-like text. Such content must stay in a

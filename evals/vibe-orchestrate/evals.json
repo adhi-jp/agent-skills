@@ -1,17 +1,9 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-orchestrate",
-  "purpose": "External eval set for vibe-orchestrate. Prompts live outside skills/ so they are not bundled as skill content. Covers coordinator-owned delegation contracts, stop-as-blocker behavior, fact inlining, progress journals, reference-only monitoring, coordinator verification, review adjudication, direct intervention disclosure, and parallel-writer accident cleanup, and frontier-model loop engineering with token-efficient delegates, and startup local-commit confirmation with coordinator-owned closure.",
-  "coverage_notes": "Coverage matrix: bounded delegation contracts -> E01; blocker-stop behavior -> E02; fact inlining -> E03; journal recovery -> E04; reference-only monitoring -> E05; coordinator verification -> E06; review adjudication -> E07; direct-intervention disclosure -> E08; parallel-writer cleanup -> E09; frontier/subagent loop engineering -> E10; startup commit confirmation and coordinator-owned closure -> E12. Eval-runner validation proves schema/format only; behavioral coverage is reviewed through these mapped cases and measurable expectations.",
-  "common_assertions": [
-    "Output keeps the coordinator responsible for delegation contracts, scope, verification, review disposition, and user-consent boundaries instead of transferring those decisions to subagents.",
-    "Output treats worker reports, reviewer findings, and delegated output as advisory or self-reported until the coordinator verifies or dispositions them with evidence.",
-    "Output bounds worker authority with explicit allowed scope, forbidden operations, editable paths or read-only limits, and stop-as-blocker conditions when creating or revising a delegation contract.",
-    "Output does not authorize staging, committing, release preparation, version bumps, destructive actions, credential use, permission changes, or history mutation through delegated workers.",
-    "Output is host-neutral and reference-only: it does not require a specific runner product, ship or invent a watchdog script, or rely on force-killing arbitrary raw PID lists.",
-    "Output records unverified source-session stories, exact counts, API names, test totals, or similar examples as anecdotal or unproven unless durable primary evidence is supplied.",
-    "Output treats token-efficient or previous-generation delegated models as bounded execution aids, not final decision owners, and escalates judgment-heavy, contradictory, risky, or repeated-failure work to the coordinator or strongest suitable reasoning/context tier."
-  ],
+  "purpose": "External eval set for vibe-orchestrate. Prompts live outside skills/ so they are not bundled as skill content. Covers coordinator-owned delegation contracts, stop-as-blocker behavior, fact inlining, progress journals, reference-only monitoring, coordinator verification, review adjudication, direct intervention disclosure, parallel-writer accident cleanup, frontier-model loop engineering with token-efficient delegates, and deliberate multi-subagent decomposition for substantial work, and startup local-commit confirmation with coordinator-owned closure.",
+  "coverage_notes": "Coverage matrix: bounded delegation contracts -> E01; blocker-stop behavior -> E02; fact inlining -> E03; journal recovery -> E04; reference-only monitoring -> E05; coordinator verification -> E06; review adjudication -> E07; direct-intervention disclosure -> E08; parallel-writer cleanup -> E09; frontier/subagent loop engineering -> E10; multi-subagent work-graph selection -> E11; startup commit confirmation and coordinator-owned closure -> E12. All cases have distinct contract coverage, so E01-E12 are retained in sequence. Scenario-specific behavior is graded only by each case's expectations rather than duplicated through common assertions. Eval-runner validation proves schema/format only; behavioral coverage is reviewed through these mapped cases and measurable expectations.",
+  "common_assertions": [],
   "evals": [
     {
       "id": "E01",
@@ -35,9 +27,8 @@
       "expected_output": "A coordinator response that treats the request as a blocker or scope decision, not permission for the worker to proceed, and preserves repository/scope boundaries.",
       "files": [],
       "expectations": [
-        "Says the worker must stop or remain blocked rather than edit `build.gradle` or read `.agents/skills/vibe-debug/SKILL.md` under the existing contract.",
+        "Says the worker must stop or remain blocked rather than edit `build.gradle` or read `.agents/skills/vibe-debug/SKILL.md` under the existing contract, and does not authorize proceeding merely because the access seems necessary or convenient.",
         "Treats the non-whitelisted edit and forbidden read as a coordinator decision point requiring evidence or a revised contract.",
-        "Does not tell the worker to proceed because it seems necessary or convenient.",
         "Separates a possible plan-preserving contract revision from scope-changing work that needs the owning artifact or user decision.",
         "Preserves the rule that `.agents/skills/` snapshots are not source for edits and should not be used as ordinary implementation input."
       ]
@@ -51,9 +42,8 @@
       "expectations": [
         "Lists `client.gui.screen()` and `submitCustomGeometry` as verified facts or local precedents to use.",
         "Labels `client.screen` and `renderBuffers()` as unverified or stale examples that must not be used without coordinator verification.",
-        "Forbids broad docs browsing, unrelated source search, or API guessing by the worker.",
-        "Tells the worker to report a blocker if the supplied facts conflict with local code during the allowed task.",
-        "Does not ask the worker to rediscover API signatures that the coordinator already supplied."
+        "Forbids broad docs browsing, unrelated source search, API guessing, or rediscovery of signatures that the coordinator already supplied.",
+        "Tells the worker to report a blocker if the supplied facts conflict with local code during the allowed task."
       ]
     },
     {
@@ -91,11 +81,10 @@
       "expected_output": "A coordinator verification checklist that treats worker status as self-report, runs authoritative gates, checks all touched surfaces, and avoids declaring completion from worker prose alone.",
       "files": [],
       "expectations": [
-        "Treats `COMPILE: PASS` and the claimed test run as worker self-report, not final proof.",
+        "Treats `COMPILE: PASS` and the claimed test run as worker self-report rather than final proof or a sufficient completion claim.",
         "Requires coordinator-run compile or type-check gates covering both server and client surfaces or explains how to enumerate relevant targets.",
         "Requires relevant tests or full suite proof as appropriate, including quantitative test evidence when new tests are expected.",
-        "Includes a diff/status review of `src/server.ts`, `src/client.ts`, and `tests/server.test.ts` against the contract.",
-        "Does not say the work is complete solely because the worker reported compile and tests passed."
+        "Includes a diff/status review of `src/server.ts`, `src/client.ts`, and `tests/server.test.ts` against the contract."
       ]
     },
     {
@@ -134,8 +123,7 @@
       "files": [],
       "expectations": [
         "Starts by stopping or quarantining further write-capable launches and identifying expected and unexpected workers.",
-        "Requires inspecting status, diffs, journals, and file freshness before adopting or discarding the dead worker's extra test file.",
-        "Does not discard the extra test blindly and does not adopt it blindly.",
+        "Requires inspecting status, diffs, journals, and file freshness before adopting or discarding the dead worker's extra test file, rather than keeping or removing it blindly.",
         "Requires any adopted unexpected change to match the contract and pass normal coordinator verification gates.",
         "Includes a post-gate mutation or final status check to ensure no stale writer changed verified bytes."
       ]
@@ -155,6 +143,21 @@
       ]
     },
     {
+      "id": "E11",
+      "name": "Substantial refactor uses deliberate multi-subagent decomposition",
+      "prompt": "Use `vibe-orchestrate`. Coordinate a large notification-system refactor. The host supports four subagents and isolated workspaces. Before later implementation decisions, the coordinator must locally confirm the event-envelope contract in `src/notifications/envelope.ts`. After that check, three material units are independent: migrate email delivery under `src/notifications/email/`, migrate push delivery under `src/notifications/push/`, and update integration fixtures under `tests/notifications/fixtures/`. The email and push directories do not overlap, but fixture expectations must be reconciled against both migrations before the final suite. Decide the execution shape and draft the orchestration outline. Do not maximize agent count merely because four are available.",
+      "expected_output": "A bounded orchestration outline that explains the dependency shape, assigns independent work streams deliberately, and retains coordinator-owned integration and proof.",
+      "files": [],
+      "expectations": [
+        "Performs or schedules the coordinator-owned event-envelope check as the immediate critical-path action before downstream implementation assumptions are fixed, rather than delegating it and waiting reflexively.",
+        "Uses multiple subagents for at least the independent email and push migration units instead of collapsing the whole refactor into one monolithic worker assignment.",
+        "Treats fixture work as a separately bounded unit but records its dependency or reconciliation relationship to both migrations rather than pretending all three units are fully uncoupled.",
+        "Gives each delegated unit a distinct mission, allowed paths, expected receipt, stop conditions, and verification responsibility, with isolated or disjoint writer boundaries.",
+        "Defines a coordinator join gate that reconciles envelope and fixture assumptions, inspects combined changes, and runs authoritative integrated verification before completion claims.",
+        "Does not launch four workers solely to consume capacity and does not claim that parallel execution is always superior to a single context owner."
+      ]
+    },
+    {
       "id": "E12",
       "name": "Coordinator owns startup commit confirmation and closure",
       "prompt": "Use `vibe-orchestrate` inside an explicitly invoked state-changing coding workflow. The host requires a separate human confirmation before local commits. Two write-capable workers will edit isolated disjoint paths, and the owning workflow expects a verified local checkpoint after integration. This is the first turn before delegation. Describe the permission and commit ownership.",
@@ -171,9 +174,9 @@
     }
   ],
   "scoring": {
-    "common_assertion_weight": 0.45,
-    "per_eval_expectation_weight": 0.55,
+    "common_assertion_weight": 0.0,
+    "per_eval_expectation_weight": 1.0,
     "pass_threshold": 0.8,
-    "notes": "These evals are mapped to the required behavior coverage matrix in coverage_notes. Baseline agents are expected to overtrust worker self-report, omit stop-as-blocker terms, create broad worker prompts, treat review output as execution authority, prescribe runner-specific cleanup, overuse cheap delegates for risky decisions, or claim token savings without proof. With-skill runs should stay coordinator-owned, bounded, host-neutral, and reference-only."
+    "notes": "These evals are mapped to the required behavior coverage matrix in coverage_notes. Every assertion is scenario-specific; no common assertion is applied to unrelated exact-scope, monitoring, recovery, verification, review, model-tier, or fan-out cases. Baseline agents are expected to overtrust worker self-report, omit stop-as-blocker terms, create broad worker prompts, treat review output as execution authority, prescribe runner-specific cleanup, collapse substantial independent work into one monolithic delegate, maximize fan-out without a dependency reason, overuse cheap delegates for risky decisions, or claim token savings without proof, defer host-required commit confirmation until after delegated edits, or transfer commit authority to workers. With-skill runs should stay coordinator-owned, bounded, host-neutral, and reference-only."
   }
 }

@@ -85,17 +85,23 @@ Do not normalize force-killing arbitrary raw PID lists. If a PID-specific action
 is unavoidable, first prove the process identity and ask the user when there is
 any chance it belongs to the active agent environment.
 
-## Single-Writer Controls
+## Concurrent-Writer Controls
 
 Before launching a write-capable worker:
 
 - Check the host or runner for active write-capable tasks in the same workspace.
-- Confirm the editable whitelist does not overlap with another active writer.
+- Permit only one write-capable worker in a shared working tree.
+- Confirm its editable whitelist and generated-output paths do not overlap with
+  another active writer.
+- Require an isolated workspace or equivalent enforceable isolation boundary
+  for concurrent write-capable workers.
+- Record the merge order and the integrated coordinator verification gate.
 - Record the expected worker handle or thread identity.
 
 After a worker returns or dies:
 
 - Check for unexpected still-running workers.
+- Reconcile parallel receipts and shared interface assumptions before merging.
 - Check whether files changed after coordinator verification.
 - Treat delayed callbacks as suspect until the tree is rechecked.
 

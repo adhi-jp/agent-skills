@@ -5,6 +5,50 @@ test creation, repair, or review. A delegation prompt is a contract: it defines
 what the worker may do, what it must not do, when it must stop, and how the
 coordinator will verify the result.
 
+## Work-Graph And Fan-Out Gate
+
+Before writing worker contracts for substantial work, split the task only where
+the dependency graph supports it.
+
+Record:
+
+```markdown
+Critical path:
+- [coordinator action or delegated unit required before later decisions]
+
+Parallel units:
+- [unit id]: [deliverable], depends on [none or named prerequisite]
+
+Coupling:
+- [shared file, API, schema, generated output, decision, or verification gate]
+
+Execution shape:
+- [serial | parallel | hybrid]: [why this shape preserves context and reduces
+  unnecessary waiting]
+
+Join gate:
+- [receipts to verify, interfaces to reconcile, and integrated command or
+  manual acceptance check]
+```
+
+Create multiple contracts when at least two material units can be described
+independently, have bounded evidence or write surfaces, and can be verified
+separately. A large task is not enough by itself. Keep tightly coupled work with
+one context owner when every unit depends on the same unresolved decision, the
+same changing files, or continuous cross-step reasoning.
+
+For parallel writers, require separate worktrees, sandboxes, or an equivalent
+enforceable isolation boundary; never run them concurrently in one shared
+working tree. Whitelist disjoint source and generated-output paths, name the
+merge order, and reserve integrated verification for the coordinator. If the
+host cannot isolate writers, use one shared-root writer and fan out read-only
+investigation, test design, review, or other non-writing work instead.
+
+Do not delegate the coordinator's immediate blocker merely to appear parallel.
+Start the next local critical-path action first, then launch non-blocking
+sidecars. Waiting is appropriate only when the next coordinator action truly
+depends on a worker receipt.
+
 ## Contract Template
 
 ```markdown
@@ -35,6 +79,13 @@ Model and context budget:
 - Capability tier: [token-efficient / standard / strongest suitable / user-fixed], because [quality-neutral lookup, broad synthesis, risk, or user priority].
 - Context digest: [facts and anchors the worker needs; omit unrelated parent transcript].
 - Escalate to coordinator or stronger reasoning/context tier when [contradiction, uncertainty, blocker, risk, or repeated failure].
+
+Work-graph position:
+- Unit id: [id].
+- Depends on: [none or named prerequisite].
+- May run with: [independent unit ids].
+- Join receipt: [artifact, finding record, changed paths, or verification status
+  required by the coordinator].
 
 Design contract:
 - [classes, functions, files, data shapes, semantics, public behavior,
@@ -138,9 +189,12 @@ Read-only scope:
 When the worker returns:
 
 - Compare `FILES:` against the editable whitelist.
+- Match the receipt to the unit's work-graph position and join gate.
 - Treat `COMPILE:` as self-report until the coordinator verifies it.
 - Check every `DECISIONS:` entry for scope impact.
 - Treat any missing `BLOCKERS:` section as a contract failure to inspect before
   trusting the result.
 - Reconcile the progress journal with the working tree for long or interrupted
   work.
+- For parallel units, reconcile shared assumptions and interface claims before
+  accepting any combined result.
