@@ -200,16 +200,18 @@ and does not authorize the next step or any commit.
      the evidence, residual risk, and next required action. If the local plan
      artifact is unavailable or unwritable, put the same progress row in the
      execution summary and say the artifact was not updated.
-8. **Review and commit verified planned checkpoints**
-   - Treat eligible commit checkpoints in a bound plan as scoped authorization
-     for local coordinator-managed commits when the current user request asks to
-     execute, implement, apply, or continue that plan and no current user or
-     project instruction denies commits.
-   - Do not pause only to ask for another "commit" instruction before a planned
+8. **Review and commit verified checkpoints**
+   - Treat an explicit request to execute, implement, apply, or continue the
+     bound plan as scoped permission for local coordinator-managed checkpoints
+     when no current user or project instruction denies commits.
+   - Use eligible plan-authored checkpoints when present. Otherwise choose
+     natural independently verified and reviewed slice boundaries; do not leave
+     the whole run uncommitted merely because the plan omitted checkpoint text.
+   - Do not pause only to ask for another "commit" instruction before a
      verified checkpoint. Commit each completed checkpoint after verification,
      the Post-Implementation Review Gate, material finding disposition, and
      staged/file-set confirmation, before starting the next planned checkpoint.
-   - Planned checkpoint authorization covers only the checkpoint's scoped local
+   - Checkpoint permission covers only the checkpoint's scoped local
      commit. It does not authorize push, release preparation, version bumps,
      amend, reset, stash, squash, destructive operations, external side effects,
      work-in-progress commits, failing or skipped verification commits, or
@@ -218,11 +220,6 @@ and does not authorize the next step or any commit.
      checkpointed plan, follow that decision; do not run through later
      checkpoints by default. Stop at the first verified uncommitted checkpoint
      unless the user explicitly chooses another non-commit checkpoint strategy.
-   - When the bound plan has no planned commit or history operation and
-     implementation is authorized, missing commit authorization does not block
-     the ready slice. Implement and verify it, then report the verified
-     uncommitted state and any proposed checkpoint message before staging,
-     committing, or other history mutation.
    - Keep each commit logically scoped to the verified checkpoint change.
    - Do not commit discovery-only, unverified, failing, or work-in-progress states
      unless the user explicitly accepts that exact state.
@@ -315,12 +312,13 @@ Stop before implementation, or pause an in-progress implementation, when:
 - The only available path is destructive, irreversible, credential-exposing, or
   unsafe without additional proof or permission.
 
-Missing commit authorization by itself is not a stop condition for an
-implementation-ready slice when the bound plan has no planned history operation,
-or when the bound plan has eligible local commit checkpoints and the user asks
-to execute, implement, apply, or continue that plan without denying commits.
-Stop only when the needed history operation falls outside that scoped checkpoint
-authorization, the current user instruction or project policy denies commits, or
+Missing plan-authored checkpoint text is not a stop condition for an
+implementation-ready slice. An explicit request to execute, implement, apply,
+or continue the bound plan supplies scoped local checkpoint permission unless
+the user or project denies commits. Use eligible plan checkpoints when present;
+otherwise choose natural independently verified and reviewed slice boundaries.
+Stop only when the needed history operation falls outside that scoped
+permission, the current user instruction or project policy denies commits, or
 the checkpoint cannot be verified, reviewed, or scoped safely.
 
 When stopping, explain:
@@ -454,17 +452,13 @@ Before finalizing:
 - `Skill usage plan` rows, when present, were bound and route availability was
   re-checked before use.
 - Consent-bound plan items were extracted during plan binding, and unresolved
-  exact authorization for operations outside scoped planned checkpoint commits
+  exact authorization for operations outside scoped local checkpoint commits
   was handled by Startup Consent Preflight before the affected slice.
-- Eligible planned commit checkpoints were treated as scoped local commit
-  authorization for the checkpointed plan only when the user asked to execute,
-  implement, apply, or continue that bound plan and no current user or project
-  instruction denied commits.
-- Missing commit authorization did not block an otherwise ready slice when the
-  bound plan had no planned history operation, or when the bound plan contained
-  eligible commit checkpoints covered by the scoped checkpoint rule. Denied,
-  unsafe, unverified, failing, unscopable, or out-of-scope history operations
-  stopped before the next checkpoint or affected operation.
+- Explicit plan execution supplied scoped local checkpoint permission unless the
+  user or project denied commits. Eligible planned checkpoints were used when
+  present; otherwise natural independently verified slice boundaries were used.
+  Denied, unsafe, unchanged, unverified, failing, unscopable, or out-of-scope
+  history operations stopped before the checkpoint or affected operation.
 - Checkpoint commits, if any, were made only after verification,
   Post-Implementation Review Gate completion, material finding disposition, and
   staged/file-set confirmation, and used standalone Conventional Commit messages

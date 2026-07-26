@@ -47,6 +47,12 @@ of that line unless the user says otherwise.
 
 - **Commit when asked; do not push.** A request to commit is not a request to
   push. Do not `git push` unless the user explicitly asks.
+- **Accept owning-workflow handoffs.** An owning state-changing workflow may
+  hand off a verified scoped checkpoint under its invocation-level local commit
+  permission even when the user did not separately say `commit`. Treat that
+  recorded permission like a commit request for the named paths only. It does
+  not authorize broad staging, empty commits, push, release work, version
+  changes, or history rewriting.
 - **Do not rewrite shared history.** Amending or rebasing an already-pushed
   commit rewrites history other clones depend on. Only amend/rebase commits that
   have not left this machine, and never force-push a shared branch without an
@@ -77,12 +83,14 @@ deeper on the judgment calls.
    the docs/CHANGELOG/spec it fulfills — versus (b) out-of-scope edits or
    generated artifacts. Split unrelated concerns into separate commits. See
    `references/file-selection.md`.
-4. **Exclude deliberately.** Leave generated, scratch, plan/spec, build,
+4. **Exclude deliberately.** Leave generated, scratch, unowned plan/spec, build,
    unrelated lock, agent-state (`.agents/`, `.claude/`, `.codex/`), and secret
-   paths unstaged. A lockfile that records a dependency change needed by the
-   selected commit is in-scope with the manifest; do not drop it just because it
-   is a lockfile. When unsure whether a path is ignored, `git check-ignore -v
-   <path>`. See `references/file-selection.md`.
+   paths unstaged. A verified requirements or plan artifact named by an owning
+   workflow's scoped checkpoint handoff is owned content, not generic scratch.
+   A lockfile that records a dependency change needed by the selected commit is
+   in-scope with the manifest; do not drop it just because it is a lockfile.
+   When unsure whether a path is ignored, `git check-ignore -v <path>`. See
+   `references/file-selection.md`.
 5. **Stage explicitly.** `git add -- <path1> <path2> …` by full name. Avoid `git
    add .` / `-A` / globs in a dirty tree — they silently sweep in strays. For a
    file with mixed in-scope and out-of-scope hunks, `git add -p <file>`.

@@ -174,7 +174,7 @@
       "expectations": [
         "Routes to exactly one primary downstream phase: plan execution for the bound implementation plan, not planning or commit execution.",
         "Uses the implementation-progress ledger to rebind the active slice to the next incomplete item, while requiring the execution specialist to verify any recorded completion before relying on it.",
-        "Treats the ledger as plan-execution state, not as a new plan, independent proof of completion, or authorization for commits.",
+        "Treats the ledger as plan-execution state, not as a new plan or independent proof of completion; any scoped local commit permission comes from the explicit active `vibe-coding`/execution workflow, not from ledger text.",
         "Preserves the bound plan path and downstream plan-execution boundaries, including proceed condition, verification, post-implementation review, and any commit-scope rules."
       ]
     },
@@ -219,6 +219,21 @@
         "Preserves or records the frozen review target, primary user journey, acceptance sentinels, cycle count, active stop signals, last verified checkpoint, and any unverified shared edits before switching route.",
         "Does not route directly to plan execution or commit execution and does not bundle unrelated review findings into the immediate repair.",
         "Uses Japanese for the user-facing route summary while preserving technical route/status terms where useful."
+      ]
+    },
+    {
+      "id": "E14",
+      "name": "Explicit state-changing invocation carries local checkpoint permission",
+      "prompt": "Classify these three independent explicit `vibe-coding` turns. Visible specialists match each requested phase.\n\nA. `use vibe-coding. Implement the approved account-export plan. The plan has two independently verifiable slices but no Commit checkpoints section. Do not push.`\nB. `use vibe-coding. Investigate where account-export authorization is checked. Do not change files.`\nC. Host policy requires a separate human confirmation before any local commit. The user says: `use vibe-coding. Fix the account-export bug.` This is the first turn, before edits.\n\nDescribe the route and local-commit handling for each turn.",
+      "expected_output": "The response preserves phase routing while treating explicit state-changing invocation as scoped local-checkpoint permission, exempting read-only work, and front-loading any host-required confirmation.",
+      "files": [],
+      "expectations": [
+        "For A, routes to plan execution and treats explicit `vibe-coding` use as permission for scoped local commits after verified reviewed slices even though the plan omitted a Commit checkpoints section.",
+        "For A, chooses natural independently verifiable slice boundaries rather than stopping at the end with an uncommitted working tree solely because no checkpoint prose exists.",
+        "For A, does not authorize push, release/version changes, amend, rebase, reset, stash, squash, destructive cleanup, or unrelated dirty paths.",
+        "For B, routes to read-only code investigation and neither asks for commit permission nor proposes an empty commit.",
+        "For C, routes to debug and repair but asks once for the host-required local-commit confirmation in the first turn before edits, not after the fix is complete.",
+        "For C, records or carries that decision for later checkpoints instead of re-asking at closure."
       ]
     }
   ],

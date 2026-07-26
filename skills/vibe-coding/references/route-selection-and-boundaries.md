@@ -232,32 +232,65 @@ Downstream specialist boundaries are authoritative:
 
 - The requirements-specification phase writes or updates only the current
   requirements spec artifact, stays downstream-neutral while active, and stops
-  after approval.
+  after approval. When it wrote a verified tracked artifact, the coordinator may
+  create a scoped local checkpoint commit under the invocation-level permission
+  before later phases start.
 - The creative-exploration phase stays chat-first and stops at a confirmed
   direction or trusted orchestration proxy selection; neither is implementation
   authorization.
 - The code-investigation phase is read-only: it produces evidence-backed
   findings and never edits files, fixes defects, or mutates state.
 - The implementation-planning phase writes implementation-plan artifacts only
-  and does not authorize same-turn implementation.
+  and does not authorize same-turn implementation. A verified tracked plan
+  artifact may receive its own scoped local checkpoint commit before execution.
 - The plan-execution phase requires a concrete bound plan and its proceed or
   accepted-risk condition before code execution, then preserves the bound
   plan's scope, acceptance criteria, required documentation or changelog
   coupling, release policy, verification path, implementation-progress ledger,
   and scoped checkpoint commit policy.
 - The debug-and-repair phase owns existing-feature diagnosis and repair proof;
-  repair proof does not authorize history mutation.
+  after proof and review it may use the invocation-level permission for a
+  repair-owned local closure commit.
 - The review phase owns review target selection, delegated review coordination,
   scope triage, gated fixes, terminal audit, and history-operation consent.
 - The plan pre-check walkthrough phase reviews a saved implementation plan
   item by item with the user before execution starts; it stops before
   implementation, keeps item decisions and reflection consent with the user,
-  and yields no execution authorization.
+  and yields no execution authorization. If confirmed reflection changed the
+  tracked plan, the reflected-plan update may receive a scoped local checkpoint
+  commit; chat-only review state and temporary review files do not.
 - The commit-execution phase owns staging, commit safety, message transport,
   trailers, and history repair under operation-specific consent; it does not
   push or rewrite shared history without explicit consent.
-- The writing phase owns wording and text-quality deliverables; it does not
-  authorize release, commit, staging, or workflow shortcuts.
+- The writing phase owns wording and text-quality deliverables. A standalone
+  explicit writing route may commit verified tracked text edits under the
+  invocation-level permission, but a chat-only reply or commit-message draft
+  does not authorize staging or history mutation.
+
+## Invocation-Level Local Commit Permission
+
+Treat explicit `vibe-coding` use for a state-changing request as permission for
+scoped local commits that preserve verified rollback points. The permission
+travels with later related turns in the same active workflow until the user
+denies commits, replaces or cancels the workflow, or project policy forbids
+them. It applies only to tracked changes owned by the selected phase after that
+phase's verification, review, and file-set gates pass.
+
+If the host requires a separate human approval for local commits, ask once
+before the first state-changing phase starts when the request can reasonably
+produce tracked changes. Record the answer in routing state and do not defer the
+question until completion or re-ask at each checkpoint. Host command approval
+prompts may still appear when the commit command runs; the startup decision is
+the workflow-level permission record.
+
+Do not infer a commit from a route that produced no tracked change. Read-only
+investigation, chat-only creative work, no-file requirements work, unreflected
+plan walkthroughs, progress summaries, and commit-message drafting must not
+create empty commits or ask an irrelevant commit question.
+
+The permission excludes push, release preparation, version changes, tags,
+amend, rebase, reset, stash, squash, destructive cleanup, force-adds, and
+unrelated or ambiguous dirty paths. Those remain operation-specific decisions.
 
 Do not collapse phases inside one downstream specialist response when that
 specialist requires stopping after an artifact, summary, approval, or

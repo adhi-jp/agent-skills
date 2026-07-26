@@ -166,6 +166,12 @@ only staging and committing verified repair-owned paths. It does not authorize
 push, amend, rebase, stash, reset, release preparation, version changes,
 destructive cleanup, or mutation of unrelated or ambiguous user changes.
 
+If the host or harness requires an additional confirmation for local commits,
+ask once at debug startup when the repair can reasonably change tracked files.
+Do not wait until the repair is complete or ask again at closure. Diagnosis-only,
+not-reproduced, no-change, or retest-only work does not need the question and
+must not create an empty commit.
+
 Before any staging or commit, run a dirty worktree and index preflight:
 
 - Refresh staged, unstaged, and untracked state.

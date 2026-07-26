@@ -36,6 +36,35 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- Explicit use of a state-changing `vibe-*` workflow now grants scoped
+  local-checkpoint permission for verified workflow-owned changes unless the
+  user opts out, project policy forbids commits, or dirty-state, verification,
+  review, or file-ownership gates block the operation. Hosts that require an
+  additional human confirmation must ask once at workflow startup before likely
+  edits instead of waiting until completion; read-only, chat-only, no-file,
+  unchanged, message-drafting, generated-output, and empty-file-set cases do not
+  ask or commit. Requirements, planning, confirmed plan reflection, plan
+  execution, debug repair, review-selected fixes, and standalone tracked writing
+  edits now define their own safe checkpoint timing, while orchestration keeps
+  staging and commits with the coordinator and the commit-execution workflow
+  accepts recorded owning-workflow handoffs. Push, release preparation, version
+  changes, tags, amend, rebase, reset, stash, squash, destructive cleanup, and
+  unrelated or ambiguous paths still require separate authority. README and
+  focused eval cases cover invocation permission, startup confirmation,
+  no-change exclusions, natural plan slice boundaries, coordinator ownership,
+  and safe commit handoff. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-goal-alignment/evals.json`,
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`,
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`,
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`,
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
+  and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`.
 - `skill-quality` now treats eval-suite compaction as an evidence-bound quality
   change. Before deleting or merging cases, agents inventory the suite and map
   each old case's contract dimensions to retained coverage, lost

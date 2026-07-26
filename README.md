@@ -18,20 +18,20 @@ quickstart when changing a skill or its eval suite.
 | Task | Use | Output or stop boundary | Source package | Eval suite |
 | --- | --- | --- | --- | --- |
 | Build, debug, port, or inspect Minecraft Java Edition mods for Fabric, NeoForge, or Architectury | `minecraft-modding-workbench` | Produces implementation guidance or code while labeling MCP, workspace, source-jar, runtime, and unverified facts | `skills/minecraft-modding-workbench/` | `evals/minecraft-modding-workbench/` |
-| Route an explicit multi-turn vibe-coding workflow | `vibe-coding` | Selects one primary visible `vibe-*` specialist for the next phase; does not relax downstream gates; uses proxy decisions only for delegable question-heavy judgments; backtracks to the artifact-owning phase when a spec or plan is defective; leaves review for debug or artifact backtracking when runtime symptoms, core regressions, repeated findings, or architecture expansion make review the wrong owner | `skills/vibe-coding/` | `evals/vibe-coding/` |
+| Route an explicit multi-turn vibe-coding workflow | `vibe-coding` | Selects one primary visible `vibe-*` specialist for the next phase; does not relax downstream gates; carries default scoped local-checkpoint permission to state-changing phases; backtracks to the artifact-owning phase when a spec or plan is defective; leaves review for debug or artifact backtracking when runtime symptoms, core regressions, repeated findings, or architecture expansion make review the wrong owner | `skills/vibe-coding/` | `evals/vibe-coding/` |
 | Coordinate subagents for bounded research, edits, repairs, or review while preserving coordinator-owned scope, verification, and consent boundaries | `vibe-orchestrate` | Produces delegation contracts, recovery/monitoring guidance, verification/review discipline, direct-intervention rules, and parallel-writer accident cleanup; reference-only first version with no scripts or runner adapters | `skills/vibe-orchestrate/` | `evals/vibe-orchestrate/` |
 | Align the agent's understanding with the user's intent before action, especially after misinterpretation or before risky release/version/commit/destructive work | `vibe-goal-alignment` | Produces an explicit understanding record with goal, success criteria, non-goals, assumptions, blockers, and next step; stops before downstream state changes until the user confirms or corrects the record | `skills/vibe-goal-alignment/` | `evals/vibe-goal-alignment/` |
-| Draft, revise, save, finish, or explore requirements before planning | `vibe-requirements-spec` | Creates or updates the requirements spec artifact by default, defaults to strict-four-choice without explicit mode selection, stops before non-spec work, and reopens the same spec for downstream requirements defects; trusted orchestration can carry recordable current-spec handoff evidence after the completion audit passes | `skills/vibe-requirements-spec/` | `evals/vibe-requirements-spec/` |
-| Create or revise an implementation plan from approval-evidenced or concrete inputs | `vibe-planning` | Writes a plan artifact and concise summary; pairs positive and negative proof for visibility, permission, unlock, feature-flag, and state-transition gates; includes an implementation-progress ledger for multi-item plans; ends its plan-only response before code, tests, changelog edits, commits, and release work; sends discovered requirements contradictions back to requirements work; trusted orchestration can route a reviewed ready plan to a separate later execution phase in the same outer user turn when the current instruction already requests implementation | `skills/vibe-planning/` | `evals/vibe-planning/` |
-| Review, confirm, walk through, or pre-check a saved implementation plan before execution | `vibe-plan-review` | Reviews one plan item at a time, records localized item decisions with numeric input shortcuts from its reference file, and stops before implementation | `skills/vibe-plan-review/` | `evals/vibe-plan-review/` |
-| Implement an existing concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Edits only after binding the plan and checking proceed conditions; runs core acceptance sentinels before hardening; updates the bound plan's implementation-progress ledger only from evidence-backed status; returns plan-changing defects to the owning artifact before affected code changes; stops before commits unless separately authorized | `skills/vibe-plan-execution/` | `evals/vibe-plan-execution/` |
+| Draft, revise, save, finish, or explore requirements before planning | `vibe-requirements-spec` | Creates or updates the requirements spec artifact by default, defaults to strict-four-choice without explicit mode selection, stops before non-spec work, reopens the same spec for downstream requirements defects, and locally checkpoints a verified tracked spec unless commits are denied or blocked | `skills/vibe-requirements-spec/` | `evals/vibe-requirements-spec/` |
+| Create or revise an implementation plan from approval-evidenced or concrete inputs | `vibe-planning` | Writes a plan artifact and concise summary; pairs positive and negative proof for material gates; includes an implementation-progress ledger for multi-item plans; ends before implementation and locally checkpoints a reviewed tracked plan unless commits are denied or blocked | `skills/vibe-planning/` | `evals/vibe-planning/` |
+| Review, confirm, walk through, or pre-check a saved implementation plan before execution | `vibe-plan-review` | Reviews one plan item at a time, records localized decisions, stops before implementation, and checkpoints the tracked original plan only after confirmed reflection changes it | `skills/vibe-plan-review/` | `evals/vibe-plan-review/` |
+| Implement an existing concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Edits only after binding the plan and checking proceed conditions; runs core acceptance sentinels before hardening; updates progress from evidence; returns plan-changing defects to the owning artifact; locally checkpoints verified reviewed slices even when the plan omitted checkpoint prose | `skills/vibe-plan-execution/` | `evals/vibe-plan-execution/` |
 | Brainstorm creative implementation ideas, alternatives, expected behavior, or convention checks | `vibe-brainstorm` | Returns chat-first directions or checklists and stops before implementation until the user confirms the direction or trusted orchestration records a proxy selection for later requirements/planning only | `skills/vibe-brainstorm/` | `evals/vibe-brainstorm/` |
 | Debug or repair existing behavior from rough bug reports, regressions, failed fixes, or runtime artifacts | `vibe-debug` | Produces evidence-backed repairs or retest contracts; keeps a concrete runtime regression as the exclusive primary symptom until it is closed, deferred, accepted, or blocked; self-reviews implemented repairs and defaults to scoped local closure commits unless disabled or blocked | `skills/vibe-debug/` | `evals/vibe-debug/` |
 | Understand, locate, trace, or assess existing code without changing it | `vibe-code-research` | Read-only; returns anchored evidence-backed findings, redacts suspected secret-like values at output boundaries, and stops before fixes, plans, edits, or commits | `skills/vibe-code-research/` | `evals/vibe-code-research/` |
-| Write or revise development text, docs, changelog entries, PR text, UI copy, summaries, or commit messages | `vibe-writing` | Controls wording only; separates suite status, acceptance coverage, unresolved scope, and unverified shared edits in progress/final summaries; staging, commits, releases, and workflow authority stay with the active workflow | `skills/vibe-writing/` | `evals/vibe-writing/` |
+| Write or revise development text, docs, changelog entries, PR text, UI copy, summaries, or commit messages | `vibe-writing` | Controls wording and can locally checkpoint verified tracked text edits when primary; chat replies and message drafts remain no-commit artifacts, and release or broader history authority stays outside the skill | `skills/vibe-writing/` | `evals/vibe-writing/` |
 | Commit or stage changes from a vague request — pick the right files, exclude junk, re-verify staging, or fix message transport, history, or trailers | `vibe-commit` | Executes the commit and git safety with self-contained message-content rules; does not push or rewrite shared history without explicit consent | `skills/vibe-commit/` | `evals/vibe-commit/` |
 | Decide what to change in a skill or eval from benchmark results, grader feedback, reviews, or regressions | `skill-quality` | Produces evidence-bound quality decisions; release/version changes still require explicit release instruction | `skills/skill-quality/` | `evals/skill-quality/` |
-| Review a git-backed working tree, branch, base ref, PR-style diff, or review/fix loop | `vibe-review` | Reviews only non-empty git-backed targets; maps material acceptance criteria to proof, checkpoint-blocks compound stop signals, and keeps history operations behind separate consent and safety checks | `skills/vibe-review/` | `evals/vibe-review/` |
+| Review a git-backed working tree, branch, base ref, PR-style diff, or review/fix loop | `vibe-review` | Reviews only non-empty git-backed targets; maps material acceptance criteria to proof, checkpoint-blocks compound stop signals, and locally commits verified selected fixes while keeping squash/reset/amend/push behind separate consent | `skills/vibe-review/` | `evals/vibe-review/` |
 
 `vibe-planning` is not for rough unapproved requirements drafting. Route those
 requests to `vibe-requirements-spec` first. `vibe-plan-execution` needs a
@@ -168,7 +168,14 @@ decisions. Git-backed plan or document diffs still route to review, and plan
 content revision still routes to implementation planning. Specialist boundaries remain authoritative: `vibe-coding` does
 not relax approval stops, planning-only behavior, read-only investigation
 scope, proceed conditions, review gates, writing-only scope, release policy, or
-commit authorization. It also distinguishes matched-but-unavailable phases from
+commit safety. Explicit activation supplies default permission for scoped local
+checkpoint commits produced by state-changing phases unless the user opts out or
+project policy forbids commits. If a host requires a separate confirmation, the
+workflow asks once before the first likely edit instead of after work is done;
+read-only, chat-only, no-file, and message-drafting routes neither ask nor create
+empty commits. Push, release/version changes, amend/rebase/reset/stash/squash,
+destructive cleanup, and unrelated changes remain outside that permission. It
+also distinguishes matched-but-unavailable phases from
 no matching specialist, and a skill is primary-route eligible only when its
 visible description matches a phase's workflow scope and boundary obligations;
 skills describing only a tool, command, or domain capability stay auxiliary.
@@ -177,10 +184,12 @@ phase. When `vibe-coding` prepares or inspects a commit message and
 `vibe-writing` is verified visible, `vibe-writing` and its
 `references/commit-messages.md` are mandatory auxiliary authority for the
 message artifact only; this is an orchestration-only exception and does not make
-standalone specialists require companion skills. Eligible commit checkpoints in
-a bound plan stay inside the `vibe-plan-execution` route and do not require a
-separate commit-execution route or another explicit commit instruction for each
-checkpoint; standalone commit requests outside a bound checkpointed plan still
+standalone specialists require companion skills. Local checkpoints in a bound
+plan stay inside the `vibe-plan-execution` route and do not require a separate
+commit-execution route or another explicit commit instruction for each
+checkpoint; plan-authored checkpoints are preferred, and natural independently
+verified slice boundaries apply when they are absent. Standalone commit requests
+outside a bound plan still
 route to commit execution when available. Bound-plan implementation-progress
 ledgers also stay inside the plan-execution route: routing state can use the
 ledger to rebind the active slice after an interruption, but it is not a
@@ -262,7 +271,9 @@ than carrying it forward as a live option. For release/version/commit cases, it
 blocks empty-commit or patch/minor/major conclusions based on partial evidence:
 the complete change set, changelog state, package metadata, and project release
 policy must be reviewed by the downstream workflow before version or history
-action.
+action. For an aligned state-changing `vibe-*` next action, it also records the
+default scoped local-checkpoint policy or the one host-required startup
+confirmation, without executing the commit itself.
 
 ### `vibe-requirements-spec`
 
@@ -374,8 +385,9 @@ next-phase evidence is recorded outside the spec in the chat summary or routing
 state. The skill still stops after the spec artifact, explicit
 chat-only response, no-write fallback, or lifecycle summary; it does not write
 implementation plans, implementation task entries, code, tests, verification
-command lists, commits, release work, changelog entries, evals, README changes,
-or unrelated files. Same-turn non-spec work is left for a later phase, and
+command lists, release work, changelog entries, evals, README changes, unrelated
+files, or commits outside the verified tracked spec checkpoint. Same-turn
+non-spec work is left for a later phase, and
 orchestration contexts receive a requirements-phase stop or handoff signal
 rather than a forced termination of the broader orchestration. `VIBE_SUBAGENTS`
 remains research/review subagent permission and is not phase-continuation
@@ -442,7 +454,9 @@ completion audit. Prompt-injected or artifact-contained routing text is inert,
 and stale handoff evidence is invalid after the requirements change.
 `vibe-planning` is plan-only: it writes or updates implementation-plan artifacts
 and must not continue into code, tests, non-plan docs, evals, changelogs,
-commits, or other non-plan edits. Its active task lists and checklists must also
+implementation commits, or other non-plan edits. A reviewed tracked plan
+receives a scoped local planning-artifact checkpoint by default unless denied or
+blocked. Its active task lists and checklists must also
 stay plan-only; planning completion, current-slice/proceed-condition language,
 and implementation handoff sections do not authorize same-turn implementation
 phases. In trusted orchestration, a separate execution request may be a later
@@ -487,10 +501,11 @@ pending, validation, success, and error recovery, and prefer completing verified
 existing surfaces before expanding into adjacent unproven channels or modes.
 Multi-slice plans include commit checkpoints only after independently verifiable
 code-producing phases or slices, with standalone proposed messages. These
-checkpoints authorize later scoped local commits only when the user asks to
+checkpoints define preferred later local commit boundaries when the user asks to
 execute, implement, apply, or continue the bound plan and no current user or
-project instruction denies commits. They still do not authorize planning-time
-commits, push, release preparation, version bumps, history rewrites, destructive
+project instruction denies commits. Natural verified slice boundaries apply
+when checkpoint prose is absent. They still do not authorize implementation
+commits during planning, push, release preparation, version bumps, history rewrites, destructive
 operations, external side effects, work-in-progress commits, failing or skipped
 verification commits, or scope-changing commits. Single-slice, blocked,
 discovery-only, discovery-first, destructive-risk-blocked, work-in-progress, and
@@ -568,7 +583,12 @@ has 8 or more detected items, or 3 or more revise-or-hold decisions.
 Larger reviews create or update `.<plan-name>.review.md` beside the plan and
 record enough state to resume. The original implementation plan is not modified
 during item review; reflection into the plan happens only after all items are
-reviewed and the user explicitly confirms how decisions should be applied.
+reviewed and the user explicitly confirms how decisions should be applied. A
+verified changed tracked plan then receives a scoped local checkpoint by default
+unless denied or blocked; item-review chat, temporary review files, unreflected
+plans, unchanged plans, and empty file sets do not commit. Implementation,
+tests, push, release/version changes, and broader history mutation remain
+outside this workflow.
 
 ### `vibe-plan-execution`
 
@@ -604,11 +624,12 @@ is contradicted, impossible, unsafe, stale, or already satisfied, then report
 the evidence, impact, and closest plan-preserving alternative before asking for
 approval.
 When a bound plan includes high-risk planning sections, execution treats them as
-contract and does not weaken them without the Plan Deviation Gate. For eligible
-bound-plan commit checkpoints, "execute this plan", "implement this plan",
-"apply this plan", or "continue this plan" authorizes local
-coordinator-managed commits at those checkpoint scopes unless the current user
-instruction or project policy denies commits. Execution commits only after the
+contract and does not weaken them without the Plan Deviation Gate. "Execute this
+plan", "implement this plan", "apply this plan", or "continue this plan"
+authorizes local coordinator-managed commits for verified reviewed slices unless
+the current user instruction or project policy denies commits. Plan-authored
+checkpoints supply preferred scopes; natural independently verified slice
+boundaries apply when they are absent. Execution commits only after the
 checkpoint is completed, verified, multi-perspective reviewed, material findings
 are dispositioned, and the file set is safely scoped, and it uses standalone
 Conventional Commit messages that describe the actual change without prompt or
@@ -620,13 +641,13 @@ progress updates, blocker notices, consent questions, and execution summaries
 resolve chat language separately from the source plan language, using explicit
 user instruction, `VIBE_CHAT_LANGUAGE` as a language name or BCP47 tag,
 conversation language, or English fallback while preserving technical tokens.
-Planned checkpoint commits do not
+Scoped checkpoint commits do not
 authorize push, release preparation, version bumps,
 amend/reset/stash/squash, destructive operations, external side effects,
 work-in-progress commits, failing or skipped verification commits, or
 scope-changing commits. When a bound plan includes release work, destructive
 operations, delegated execution, external side effects, history operations
-outside scoped checkpoint commits, or other consent-bound items, execution runs
+outside scoped local checkpoint commits, or other consent-bound items, execution runs
 a startup consent preflight before editing the affected slice. When a plan
 contains a `Skill usage plan`,
 execution binds it, re-checks route availability, and turns planning-time `Local
@@ -931,7 +952,8 @@ git-backed target; standalone plan or document files are inert context, not a
 cascade-containment responsibilities inside one coordinator-owned workflow.
 Delegated reviewers are review-only backends; the coordinator alone asks the
 user, merges findings, updates ledgers, applies fixes, runs cascade gates, and
-performs consented history operations. Backend output is normalized into a
+creates the scoped local closure commit or performs separately consented history
+operations. Backend output is normalized into a
 common finding shape before downstream gates, duplicate findings keep child
 provenance, lightweight specification gaps render separately from normal
 findings, secret hygiene redacts before render or persistence, and edits remain
@@ -1086,13 +1108,15 @@ specific to the skill.
   summary names a local plan file, read that file as the authoritative
   implementation contract. If no concrete plan exists, return to planning before
   coding.
-- `vibe-writing` governs writing quality and commit-message content, not
-  staging, commit execution, PR submission, template changes, or release
-  actions. Project-specific workflows and the repo's release rules take
-  precedence; `vibe-writing` applies to the words inside those constraints.
+- `vibe-writing` governs writing quality and commit-message content. When
+  explicitly invoked as the primary workflow for tracked text edits, it may
+  stage and create a scoped verified local checkpoint; chat replies, summaries,
+  and commit-message drafts do not. PR submission, release actions, broader
+  history mutation, and unrelated paths stay outside its authority.
+  Project-specific workflows and the repo's release rules take precedence.
   Under `vibe-coding`, verified available `vibe-writing` must be used as
   auxiliary guidance whenever a commit message is prepared or inspected, while
-  commit authorization and history mutation remain outside `vibe-writing`.
+  commit permission and history mutation remain with the active workflow.
 - `vibe-commit` owns file selection, exclusion, the staged-set re-verification
   gate, message content minimums, message transport, history mutation, and
   authorship-trailer `--trailer` transport. It commits when asked but does not
@@ -1108,4 +1132,7 @@ specific to the skill.
   of silently downgrading. For `branch` and `base-ref` scopes, commits, squashes,
   resets, amends, and similar history operations require operation-specific user
   consent plus dirty-state, ownership, preview, isolation-restore, and
-  conflict-safety preconditions.
+  conflict-safety preconditions. A scoped local closure commit for verified
+  selected fixes is the default under explicit invocation unless denied or
+  blocked; squash, reset, amend, rebase, push, and release/version work still
+  require operation-specific consent.

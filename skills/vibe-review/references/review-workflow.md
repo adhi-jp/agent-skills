@@ -595,12 +595,18 @@ operation. It checks:
   editability.
 - Dirty-isolation refresh and recovery status.
 
-Commit, squash, reset, amend, and similar history-changing operations require
-explicit user consent for that operation. Generic review consent or cycle policy
-does not authorize history rewriting. Consent must include dirty-state and
-cycle-owned ownership audit, user-visible preview of commits and cumulative
-diff, isolation-restore status, and conflict-safety preconditions. Never run
-history mutation while isolation restore or conflict handling is pending.
+A scoped local closure commit for verified review-selected fixes is authorized
+by explicit invocation unless the user or project denied commits. Before that
+commit, run the dirty-state and cycle-owned ownership audit, show or internally
+verify the staged file set and cumulative fix diff, confirm isolation-restore
+status, and satisfy conflict-safety preconditions. Inspect the stored message
+and committed file set afterward.
+
+Squash, reset, amend, rebase, push, release preparation, version changes, and
+other history-changing operations outside that closure commit require explicit
+operation-specific user consent. Generic review consent or cycle policy does not
+authorize those operations. Never run history mutation while isolation restore
+or conflict handling is pending.
 
 ## Failure And Stop Conditions
 
@@ -622,7 +628,9 @@ Stop or pause before proceeding when:
   interpretation and no user decision has resolved it.
 - Cascade or batch gates are not editable.
 - Terminal audit fails.
-- A history operation lacks operation-specific consent and preconditions.
+- A history operation outside the scoped local closure commit lacks
+  operation-specific consent and preconditions, or the closure commit cannot
+  satisfy its verification, ownership, or isolation gates.
 
 Report the blocking evidence, the affected contract field, and the closest
 plan-preserving next action. Do not silently fall back, skip checks, or continue
@@ -639,5 +647,5 @@ At the end of a run, summarize:
 - Suite status for executed checks, acceptance coverage from `acceptance_proof`, unresolved scope, and any unverified shared edits as separate facts.
 - Verification performed and gaps that remain.
 - Terminal audit result.
-- History operations performed only with explicit consent, or the absence of
-  history operations.
+- Scoped local closure commit status for applied fixes, plus any additional
+  history operations performed only with operation-specific consent.

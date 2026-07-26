@@ -15,7 +15,21 @@ control over every plan item decision.
 
 This skill reviews the plan; it does not execute it. Stop after item review and
 the final plan-reflection confirmation workflow. Do not proceed into
-implementation, tests, commits, releases, or adjacent coding work.
+implementation, tests, releases, or adjacent coding work.
+
+An explicit invocation permits a scoped local checkpoint commit only when the
+user later confirms reflection and that reflection changes the tracked original
+plan. The commit may include only the reflected plan-owned tracked paths after
+the reflection result is verified. Do not commit item-review chat, temporary
+review files, an unreflected plan, an unchanged plan, or an empty file set. The
+permission is denied by an explicit no-commit instruction or project policy and
+does not include implementation, push, release preparation, version changes,
+amend, rebase, reset, stash, squash, or deletion of unrelated state.
+
+If the host requires separate confirmation for local commits, ask once at
+review startup when reflection may update a tracked plan. Do not wait until
+after reflection. A review that is guaranteed to remain chat-only does not need
+the question.
 
 Runtime responses should match the user's language. Before rendering item-review
 output, interpreting item decisions, counting review-file thresholds, reflecting
@@ -180,6 +194,13 @@ After successful reflection, ask whether to delete the temporary review file.
 Honor a user instruction to keep it. If the file has unexpected changes or
 ownership is unclear, preserve it and report the reason.
 
+After successful reflected-plan verification, create the scoped local
+checkpoint when permitted. Run dirty-state and staged-diff checks, stage only
+the reflected plan-owned paths, use a standalone Conventional Commit message,
+and inspect the stored message and committed file set. If the user denied
+commits, project policy forbids them, or unrelated changes cannot be excluded,
+leave the reflected plan reviewed but uncommitted and report the blocker.
+
 ## Stop Conditions
 
 Stop and ask for user direction when:
@@ -193,7 +214,7 @@ Stop and ask for user direction when:
 - A preexisting temporary review file is mismatched, unparseable, externally
   edited, or has unclear ownership.
 - The user asks to change scope beyond reviewing and reflecting the saved plan.
-- The user asks to start implementation, tests, commits, release preparation, or
+- The user asks to start implementation, tests, release preparation, or
   other work outside plan review.
 
 When stopping, state the blocker, the evidence that triggered it, the effect on
@@ -211,4 +232,6 @@ When the review workflow completes, summarize:
 - Unresolved blockers or held items.
 - Whether the original plan was reflected after explicit confirmation.
 - Whether the temporary review file was created, kept, or deleted.
+- Whether the reflected plan received its scoped local checkpoint, was unchanged,
+  was explicitly left uncommitted, or was blocked by a named safety condition.
 - That implementation was not started.

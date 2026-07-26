@@ -18,8 +18,23 @@ metadata matches it, while preserving each specialist's own write boundary,
 approval gate, stop condition, and verification rules.
 
 This skill routes work; it does not replace specialist skills and does not
-authorize host command plumbing, release preparation, commits, generated eval
+authorize host command plumbing, release preparation, generated eval
 workspaces, or implementation outside a selected downstream phase.
+
+An explicit `vibe-coding` invocation also carries default permission for scoped
+local checkpoint commits created by a selected state-changing phase, unless the
+user says not to commit or project policy forbids commits. The selected phase
+still owns whether tracked changes exist, when they are verified and reviewed,
+which paths belong to the checkpoint, and whether a safety gate blocks the
+commit. This default never authorizes push, release preparation, version
+changes, amend, rebase, reset, stash, squash, destructive cleanup, or mutation
+of unrelated or ambiguous changes.
+
+If the host or harness requires an additional human confirmation before local
+commits, ask once at workflow startup when the classified request can reasonably
+produce tracked changes. Do not wait until after editing or repeat the question
+at every checkpoint. A read-only, chat-only, no-file, or message-drafting route
+does not need this confirmation and must not create an empty commit.
 
 This skill does not hardcode a specialist roster. Routes are resolved at
 routing time from the skill metadata visible in the current environment, so the
@@ -60,6 +75,8 @@ Track these fields when they are known:
 - Next route.
 - Active artifact paths.
 - Approval evidence or handoff state.
+- Local checkpoint commit policy, permission source, and any host confirmation
+  status.
 - Implementation plan path.
 - Active execution slice.
 - Implementation progress source and latest item status.
@@ -282,6 +299,11 @@ Before acting under `vibe-coding`, confirm:
 - Specialist write, approval, stop, plan-binding, proceed,
   acceptance-criteria, review, changelog-coupling, verification, release, and
   commit boundaries remain intact.
+- Explicit `vibe-coding` use supplied default scoped local-checkpoint permission
+  to state-changing routes unless the user or project denied commits; any
+  host-required confirmation was requested at startup rather than after edits.
+- Read-only, chat-only, no-file, and message-drafting routes neither requested
+  unnecessary commit permission nor created empty commits.
 - Bound-plan checkpoint commits stayed inside the plan-execution route when the
   plan supplied eligible checkpoints; standalone commit requests still route to
   commit execution when available.

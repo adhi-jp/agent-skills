@@ -27,6 +27,20 @@ If no concrete plan exists, return to planning before coding. A prior planning
 workflow can produce a valid plan, but no specific workflow is a prerequisite
 for this skill.
 
+An explicit invocation to execute, implement, apply, or continue a concrete
+plan supplies default permission for scoped local checkpoint commits after
+verified and reviewed plan-owned changes, unless the user says not to commit or
+project policy forbids commits. Use plan-authored `Commit checkpoints` when they
+exist; otherwise choose natural independently verified slice boundaries instead
+of leaving the whole run uncommitted. Do not create a commit for discovery-only,
+blocked, unchanged, failing, or work-in-progress state. This permission never
+includes push, release preparation, version changes, amend, rebase, reset,
+stash, squash, destructive cleanup, or unrelated or ambiguous changes.
+
+If the host or harness requires separate confirmation for local commits, ask
+once during startup before the first edit when the plan can produce tracked
+changes. Do not wait until a slice is complete or ask again at every checkpoint.
+
 ## Plan Sources
 
 This skill executes any concrete bound implementation plan. The plan may come
@@ -145,19 +159,17 @@ Do not use this skill for:
   but the plan's proof strategy, test strategy, edit order, implementation
   surface, or risk handling is wrong. Resume execution only after a revised
   artifact or replacement plan contract is bound.
-- Missing commit authorization is not a generic implementation blocker for a
-  plan that has no planned history operation. When the plan's proceed condition
-  and the user's instruction to execute or implement the plan allow
-  implementation but do not authorize commits, implement and verify the ready
-  slice, then stop before staging, committing, or other history mutation.
 - A plan-authored `Commit checkpoints` section or "commit after each slice"
-  instruction is scoped local-commit authorization for those checkpoints when
-  the user asks to execute, implement, apply, or continue that bound plan, unless
-  the current user instruction or project policy denies commits. Do not stop only
-  to ask for another "commit" instruction at each planned checkpoint. This
-  authorization does not cover push, release preparation, version bumps, amend,
-  reset, stash, squash, destructive operations, external side effects,
-  work-in-progress commits, unverified commits, or checkpoint scope changes.
+  instruction defines the preferred local checkpoint boundaries. When it is
+  absent, choose natural independently verified and reviewed slice boundaries
+  from the plan instead of treating missing checkpoint prose as a reason to
+  leave all implementation uncommitted. The explicit execution invocation
+  supplies the scoped permission unless the current user instruction or project
+  policy denies commits. Do not stop only to ask for another "commit"
+  instruction at each checkpoint. This authorization does not cover push,
+  release preparation, version bumps, amend, reset, stash, squash, destructive
+  operations, external side effects, work-in-progress commits, unverified
+  commits, or checkpoint scope changes.
 - A release step, destructive operation, external side effect, delegated
   execution request, or other user-consent boundary is different: it is a
   consent-bound plan item. If exact authorization is missing, run the Startup

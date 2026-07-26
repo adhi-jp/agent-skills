@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-orchestrate",
-  "purpose": "External eval set for vibe-orchestrate. Prompts live outside skills/ so they are not bundled as skill content. Covers coordinator-owned delegation contracts, stop-as-blocker behavior, fact inlining, progress journals, reference-only monitoring, coordinator verification, review adjudication, direct intervention disclosure, and parallel-writer accident cleanup, and frontier-model loop engineering with token-efficient delegates.",
-  "coverage_notes": "Coverage matrix: bounded delegation contracts -> E01; blocker-stop behavior -> E02; fact inlining -> E03; journal recovery -> E04; reference-only monitoring -> E05; coordinator verification -> E06; review adjudication -> E07; direct-intervention disclosure -> E08; parallel-writer cleanup -> E09; frontier/subagent loop engineering -> E10. Eval-runner validation proves schema/format only; behavioral coverage is reviewed through these mapped cases and measurable expectations.",
+  "purpose": "External eval set for vibe-orchestrate. Prompts live outside skills/ so they are not bundled as skill content. Covers coordinator-owned delegation contracts, stop-as-blocker behavior, fact inlining, progress journals, reference-only monitoring, coordinator verification, review adjudication, direct intervention disclosure, and parallel-writer accident cleanup, and frontier-model loop engineering with token-efficient delegates, and startup local-commit confirmation with coordinator-owned closure.",
+  "coverage_notes": "Coverage matrix: bounded delegation contracts -> E01; blocker-stop behavior -> E02; fact inlining -> E03; journal recovery -> E04; reference-only monitoring -> E05; coordinator verification -> E06; review adjudication -> E07; direct-intervention disclosure -> E08; parallel-writer cleanup -> E09; frontier/subagent loop engineering -> E10; startup commit confirmation and coordinator-owned closure -> E12. Eval-runner validation proves schema/format only; behavioral coverage is reviewed through these mapped cases and measurable expectations.",
   "common_assertions": [
     "Output keeps the coordinator responsible for delegation contracts, scope, verification, review disposition, and user-consent boundaries instead of transferring those decisions to subagents.",
     "Output treats worker reports, reviewer findings, and delegated output as advisory or self-reported until the coordinator verifies or dispositions them with evidence.",
@@ -152,6 +152,21 @@
         "Creates compact worker contracts or loop steps that include mission, allowed paths such as `src/auth/session.ts` and `tests/auth/session.test.ts`, forbidden operations, context digest, expected receipts, and stop-and-return conditions.",
         "Escalates or rebinds after the prior cheap worker's contradiction instead of repeatedly retrying the same cheap prompt or accepting the contradictory delegated finding as proof.",
         "Uses capability/context-tier language without hard-coded vendor model IDs and does not claim token, quality, latency, or reliability improvement without recorded metrics or review evidence."
+      ]
+    },
+    {
+      "id": "E12",
+      "name": "Coordinator owns startup commit confirmation and closure",
+      "prompt": "Use `vibe-orchestrate` inside an explicitly invoked state-changing coding workflow. The host requires a separate human confirmation before local commits. Two write-capable workers will edit isolated disjoint paths, and the owning workflow expects a verified local checkpoint after integration. This is the first turn before delegation. Describe the permission and commit ownership.",
+      "expected_output": "The coordinator front-loads the one required confirmation, keeps all commit authority out of workers, and commits only after integrated verification under the owning workflow.",
+      "files": [],
+      "expectations": [
+        "Asks once at startup for the host-required local-commit confirmation before delegating write work, rather than waiting until workers finish.",
+        "Records the confirmation or denial for the active owning workflow and does not have each worker ask again.",
+        "Forbids subagents from staging, committing, pushing, releasing, or mutating history.",
+        "Keeps the final scoped checkpoint with the coordinator after receipts, merge or integration, authoritative verification, review, and file-set checks.",
+        "Does not extend the permission to push, release/version changes, history rewriting, destructive cleanup, or unrelated paths.",
+        "States that read-only or no-change orchestration would not require the question or create an empty commit."
       ]
     }
   ],

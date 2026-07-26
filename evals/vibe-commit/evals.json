@@ -193,6 +193,21 @@
         "Shows post-commit stored-message and file-set inspection such as `git show -s --format=%B HEAD`, `git show --stat HEAD`, and `git status --short`.",
         "Does not add unsupported security, performance, release, rollout, or broad reliability claims."
       ]
+    },
+    {
+      "id": "E12",
+      "name": "Owning workflow handoff counts as scoped commit request",
+      "prompt": "A state-changing `vibe-*` workflow hands off a verified local checkpoint with recorded invocation-level permission. It names exactly `src/export.ts` and `tests/export.test.ts`, says project policy allows local commits, and says the user did not separately type `commit`. Unrelated generated and dirty files exist. Show the commit-execution decision and command gates.",
+      "expected_output": "The commit workflow accepts the recorded scoped handoff as commit permission for the named paths while applying its normal staging and verification safety.",
+      "files": [],
+      "expectations": [
+        "Treats the owning workflow handoff as a commit request for the two named verified paths and does not ask for duplicate commit wording.",
+        "Inspects repository and diff state, stages only `src/export.ts` and `tests/export.test.ts`, and excludes generated and unrelated dirty files.",
+        "Runs staged-set name, stat, full diff, and check verification before committing.",
+        "Uses a concrete Conventional Commit message based on the export change and verifies the stored message and file set after committing.",
+        "Does not create an empty commit, use broad `git add .` or `git add -A`, push, release, bump versions, or rewrite history.",
+        "Stops with the concrete safety blocker if the named scope cannot be isolated or verification is incomplete."
+      ]
     }
   ],
   "scoring": {

@@ -247,6 +247,21 @@
         "The response does not schedule another ordinary broad review cycle merely because the original user asked to continue until zero findings.",
         "The response tracks review-generated code, harness growth, repeated finding class, or frozen-origin target evidence rather than treating all findings as automatic must-fix work."
       ]
+    },
+    {
+      "id": "E15",
+      "name": "Selected verified fixes receive local closure commit",
+      "prompt": "Return JSON only. Produce the terminal review decision for an explicitly invoked working-tree review/fix run. The user selected two in-scope fixes, both passed cascade checks, verification, acceptance proof, and terminal audit. Project policy allows local commits, unrelated dirty paths are isolated, and the user did not separately say commit. No squash, amend, reset, push, release, or version change is requested.",
+      "expected_output": "The JSON records a scoped local closure commit as the default terminal action while preserving separate consent boundaries for broader history operations.",
+      "files": [],
+      "expectations": [
+        "Response is valid JSON only, with no Markdown fence or prose outside the JSON value.",
+        "JSON treats explicit review invocation as permission for a scoped local closure commit of the verified selected fixes without requiring a second commit instruction.",
+        "JSON records or requires staged-file-set, cumulative fix diff, ownership, isolation restore, conflict safety, and post-commit stored-artifact checks.",
+        "JSON excludes unrelated dirty paths and does not create an empty commit.",
+        "JSON does not authorize squash, amend, reset, rebase, push, release preparation, version changes, or destructive cleanup.",
+        "If any closure gate is represented as failing, JSON blocks the commit and records the reviewed uncommitted state rather than silently skipping for lack of explicit commit wording."
+      ]
     }
   ],
   "scoring": {

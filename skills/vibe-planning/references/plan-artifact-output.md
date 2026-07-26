@@ -146,7 +146,8 @@ section or record `Not applicable` with a concise reason.]
   review, material finding disposition, and safe file-set confirmation, when the
   user asks to execute, implement, apply, or continue this bound plan and no
   current user or project instruction denies commits. They do not authorize
-  planning-time commits, push, release preparation, version bumps, amend, reset,
+  implementation commits during planning, push, release preparation, version
+  bumps, amend, reset,
   stash, squash, destructive operations, external side effects, work-in-progress
   commits, failing/skipped-verification commits, or scope-changing commits. For
   single-slice, blocked, discovery-only, discovery-first without a verified
@@ -177,8 +178,9 @@ section or record `Not applicable` with a concise reason.]
   committed item when the plan artifact is writable, and stop if the `Proceed
   condition` is blocked or local evidence contradicts the plan. This plan
   artifact is not implementation authorization; code, tests,
-  non-plan docs, evals, configs, changelogs, commits, and other non-plan edits
-  require a separate execution request.
+  non-plan docs, evals, configs, changelogs, implementation commits, and other
+  non-plan edits require a separate execution request. The reviewed plan
+  artifact itself may receive the planning phase's scoped local checkpoint.
 - If implementation evidence shows that requirements, acceptance criteria,
   tests, data handling, permissions, security posture, UX, external contracts,
   or the plan's proof strategy are wrong, return to the owning requirements or

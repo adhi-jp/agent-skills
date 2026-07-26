@@ -128,12 +128,13 @@ Consent-bound items include:
 
 For each item, record the `Plan` source, the exact operation, when it would
 occur, current authorization evidence, and the fallback if authorization is
-denied or absent. Current authorization must name the operation or decision,
-except that an eligible bound-plan `Commit checkpoints` section or "commit after
-each slice" instruction names local checkpoint commits for the plan's verified
-checkpoint scopes when the user asks to execute, implement, apply, or continue
-that plan. A general request such as "execute this plan", "continue", or "go
-ahead" does not authorize other consent-bound operations.
+denied or absent. Current authorization must name the operation or decision.
+An explicit request to execute, implement, apply, or continue the bound plan
+supplies scoped local checkpoint permission for verified and reviewed
+plan-owned changes; eligible `Commit checkpoints` or "commit after each slice"
+text names preferred boundaries, and natural verified slice boundaries apply
+when that text is absent. The same general request does not authorize other
+consent-bound operations.
 
 If any consent-bound item lacks exact authorization, pause before implementing
 the affected slice and ask for the smallest exact decision. If the current user

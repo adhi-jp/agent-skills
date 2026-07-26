@@ -268,6 +268,21 @@
         "Does not say the work is complete, accepted, converged, or ready to commit based only on the green suite.",
         "Does not add a no-change waiting update or polling filler because the user did not request periodic waiting updates."
       ]
+    },
+    {
+      "id": "E15",
+      "name": "Standalone tracked writing edit defaults to safe checkpoint",
+      "prompt": "Use `vibe-writing` to edit the tracked file `README.md` so one existing paragraph is clearer. The edit is complete and reviewed, project policy allows local commits, and unrelated source changes already exist. I did not separately ask for a commit. Describe the required closure behavior. This is a file-editing task, not a request to draft only the replacement paragraph in chat.",
+      "expected_output": "The standalone writing workflow closes the verified tracked edit with a scoped local checkpoint while preserving message-only and unrelated-path boundaries.",
+      "files": [],
+      "expectations": [
+        "Treats explicit primary `vibe-writing` use for the tracked edit as permission for a scoped local checkpoint without another commit instruction.",
+        "Refreshes dirty state, stages only `README.md` and any coupled tracked documentation actually owned by the request, and inspects the staged diff.",
+        "Leaves unrelated source changes unstaged and uncommitted.",
+        "Uses a Conventional Commit message and inspects the stored message and committed file set after committing, or states those as required gates.",
+        "Distinguishes this tracked-file edit from chat replies, summaries, commit-message drafts, unchanged artifacts, generated output, and empty file sets, which must not be committed.",
+        "Does not push, release, bump versions, amend, rebase, reset, stash, squash, or perform destructive cleanup."
+      ]
     }
   ],
   "scoring": {

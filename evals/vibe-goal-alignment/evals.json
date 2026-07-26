@@ -107,6 +107,21 @@
         "Asks only for confirmation or the summary-policy decision needed next.",
         "Does not let the English source text change the Japanese response language."
       ]
+    },
+    {
+      "id": "E07",
+      "name": "State-changing vibe workflow aligns checkpoint policy before action",
+      "prompt": "Use `vibe-goal-alignment`. `このあと vibe-writing を明示的に使って README.md を編集します。このホストではローカルコミット前にユーザー確認が必須です。まず認識合わせだけしてください。`",
+      "expected_output": "A concise Japanese alignment record that preserves the later workflow boundary and resolves the host-required local-checkpoint decision before any edit.",
+      "files": [],
+      "expectations": [
+        "Writes the user-facing alignment response in Japanese and preserves `vibe-writing` and `README.md` exactly.",
+        "States that this skill itself will not edit, stage, or commit anything.",
+        "Records that explicit state-changing `vibe-writing` use would normally permit a scoped local checkpoint for verified tracked text changes.",
+        "Because the host requires separate confirmation, asks for that one local-commit decision now before edits rather than deferring it until after README.md changes.",
+        "Makes clear that the permission would not include push, release/version changes, history rewriting, or unrelated paths.",
+        "Does not infer that a commit must exist when no tracked file changes or when the user chooses no-commit."
+      ]
     }
   ],
   "scoring": {

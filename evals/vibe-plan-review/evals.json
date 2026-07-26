@@ -5,7 +5,7 @@
   "common_assertions": [
     "Output does not invent missing plan, requirements, acceptance-criteria, test, data-handling, user-experience, or source facts.",
     "Output does not modify the original implementation plan during item review, and does not overwrite or delete a preexisting temporary review file when target identity, ownership, parseability, or external edits are unclear.",
-    "Output does not start implementation, tests, commits, release work, or adjacent coding workflow steps, and does not name or require neighboring skills as prerequisites or next steps."
+    "Output does not start implementation, tests, implementation commits, release work, or adjacent coding workflow steps, and does not name or require neighboring skills as prerequisites or next steps. Only a verified tracked original-plan change made after explicit reflection confirmation may receive the scoped local reflected-plan checkpoint; item-review chat, temporary review files, unreflected or unchanged plans do not commit."
   ],
   "evals": [
     {
@@ -182,6 +182,21 @@
         "Does not continue under a limited requirement-alignment-confidence or no-spec status while that requirements spec exists.",
         "Does not create or update a temporary review file for this first item without a threshold or user request.",
         "Reviews only the first detected implementation task before asking for a user decision."
+      ]
+    },
+    {
+      "id": "E10",
+      "name": "Confirmed reflection checkpoints only the tracked plan",
+      "prompt": "Use `vibe-plan-review`. All items in `docs/plans/account-export-implementation-plan.md` have been reviewed, and the user now explicitly confirms reflection into the original plan. Reflection changes the tracked plan. Project policy allows local commits, unrelated dirty files exist, and no temporary review file should be committed. Describe the completion behavior.",
+      "expected_output": "The workflow reflects the confirmed decisions and creates a safely scoped local checkpoint for the changed tracked plan while excluding review state and unrelated work.",
+      "files": [],
+      "expectations": [
+        "Requires explicit reflection confirmation before changing the original plan and treats that confirmation as already supplied.",
+        "Verifies the reflected result, then treats explicit skill invocation as permission for a scoped local checkpoint without another commit instruction.",
+        "Stages only `docs/plans/account-export-implementation-plan.md` and any plan-owned tracked paths changed by reflection.",
+        "Does not commit a temporary `.<plan-name>.review.md` file, item-review chat, unrelated dirty files, an unchanged plan, or an empty file set.",
+        "Keeps implementation, tests, push, release/version changes, amend, rebase, reset, stash, and squash outside scope.",
+        "If safe isolation fails, reports the reflected reviewed uncommitted state and exact blocker."
       ]
     }
   ]

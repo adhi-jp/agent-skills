@@ -53,13 +53,21 @@ Keep these responsibilities with the coordinator:
 - Treat worker self-report as status, not proof.
 - Adjudicate review findings before any repair work begins.
 - Maintain the durable progress ledger when a bound plan provides one.
-- Stage, commit, release, tag, push, or mutate history only through the owning
-  workflow's explicit authorization.
+- Stage or commit only through the owning workflow's explicit invocation-level
+  scoped permission or other explicit authorization. Release, tag, push, or
+  mutate history beyond a local closure checkpoint only through
+  operation-specific authorization.
 - Ask the user for non-delegable decisions.
 
 Subagents must not ask the user, expand scope, stage, commit, release, decide
 credentials or permissions, accept destructive risk, mutate history, or make
 human-risk choices for the coordinator.
+
+When the active owning workflow can produce tracked changes and the host
+requires separate confirmation for local commits, the coordinator asks once at
+startup before delegating write work. Subagents never ask for or exercise that
+permission. Read-only or no-change orchestration does not ask and does not
+create an empty commit.
 
 ## Frontier Coordinator And Model-Tier Loops
 

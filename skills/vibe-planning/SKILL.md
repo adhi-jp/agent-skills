@@ -20,11 +20,11 @@ uncertainty visible.
 
 `vibe-planning` is plan-only. While using it, create or update only the plan
 artifact. Do not implement, edit application code, tests, skill packages, evals,
-non-plan docs, configs, changelogs, commits, or any other non-plan artifact.
+non-plan docs, configs, changelogs, or any other non-plan artifact.
 
 Apply the same boundary to the active task list, checklist, or tool-managed
 plan. Active tasks may cover only plan artifact work. Do not add current-turn
-implementation phases, execution slices, non-plan edit tasks, commit tasks, or
+implementation phases, execution slices, or non-plan edit tasks, or
 "now implement the plan" follow-ups inside the `vibe-planning` response. If the
 user asks for planning and implementation in one request, write or revise the
 plan artifact and end this skill's response before any implementation begins.
@@ -47,6 +47,20 @@ is available.
 When skill metadata is visible in the current environment, use it only to plan
 availability-driven skill usage in the generated artifact; do not make an
 unavailable skill a requirement.
+
+An explicit invocation that writes a tracked plan artifact permits a scoped
+local checkpoint commit after the plan multi-perspective review and self-review
+gates pass, unless the user says not to commit, project policy forbids commits,
+or dirty-state safety cannot isolate the plan-owned paths. This is the planning
+artifact's closure commit, not an implementation step or a planned future
+implementation checkpoint. It must not include unrelated files, temporary
+review state, generated output, unverified plan content, or an empty file set,
+and it never authorizes push, release preparation, version changes, amend,
+rebase, reset, stash, squash, or implementation.
+
+If the host or harness requires an additional confirmation for local commits,
+ask once at planning startup before writing the artifact. Do not wait until the
+plan is complete or repeat the question for later execution checkpoints.
 
 `vibe-planning` starts when the input is ready for implementation planning. If
 the current request is still requirements drafting, rough product exploration,

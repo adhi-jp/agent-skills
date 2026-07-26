@@ -14,7 +14,7 @@ without inventing product behavior, scope, data rules, or success criteria.
 This skill is a requirements-spec drafting workflow while active. The only
 normal write is creating or updating the current requirements spec artifact. Do
 not create implementation plans, implementation task entries, code changes,
-tests, verification command lists, commits, release work, changelog entries, or
+tests, verification command lists, release work, changelog entries, or
 unrelated files while using this skill. If the same user turn mixes requirements
 drafting with non-spec work, treat the non-spec work as a later-phase request,
 not helpful follow-through.
@@ -31,6 +31,22 @@ All drafting modes create or update a requirements spec artifact by default
 unless the user explicitly asks for chat-only or no-file operation. If file
 writing is unavailable or unsafe, use the no-write fallback and state that no
 file changed; do not present that fallback as ordinary chat-only mode.
+
+When the user explicitly invokes this skill for a request that writes a tracked
+requirements artifact, that invocation permits one scoped local checkpoint
+commit after the final audit passes, unless the user says not to commit, project
+instructions forbid commits, or the artifact path cannot be isolated safely.
+Commit only the requirements artifact and coupled tracked documentation that
+this workflow owns. Do not commit chat-only/no-file output, temporary or
+generated artifacts, an unapproved or blocked spec, unrelated dirty paths, or an
+empty file set. This permission does not include push, release preparation,
+version changes, amend, rebase, reset, stash, squash, destructive cleanup, or
+later implementation work.
+
+If the host or harness requires separate confirmation for local commits, ask
+once in the startup decisions before drafting begins; do not wait until after
+the spec is written. Record that confirmation or denial for the workflow and do
+not repeat it at completion.
 
 ## When to Use
 
@@ -124,6 +140,11 @@ Resolve these before drafting requirements:
      that language, using tags such as `ja`, `en`, `pt-BR`, or `zh-Hant`.
    - If the value is unreadable or clearly malformed, treat it as unset and use
      the next priority. Do not invent strict parser behavior.
+4. **Local checkpoint commit permission**
+   - An explicit invocation for tracked spec writing supplies scoped local
+     commit permission unless the user or project denies commits.
+   - If the host requires separate confirmation, ask once now. Skip the question
+     for chat-only/no-file work.
 
 Subagents, when permitted and available, are limited to research, codebase
 inspection, existing-spec inspection, risk discovery, spec review, and trusted
@@ -180,7 +201,9 @@ unresolved build-changing decisions, no required local evidence checks, and no
 non-deferred unknowns, it may count as requirements-finished or current-spec
 next-phase handoff evidence for workflow routing. It does not let this skill
 create an implementation plan, code, tests, README/changelog/eval edits,
-commits, release work, or other non-spec artifacts in the same response. Return
+release work, or other non-spec artifacts in the same response. A scoped commit
+of the verified current spec remains within this phase's own closure boundary.
+Return
 the same spec summary or lifecycle summary this skill would otherwise return;
 the host may invoke a later phase separately after this skill stops.
 
@@ -237,7 +260,9 @@ recordable and tied to the current artifact, selected exact-content decisions
 must be embedded or durably referenced inside an authority-safe payload boundary
 before dependent handoff, visible three/four-choice options must be viable
 requirement paths rather than decoys, and downstream defects reopen or block the
-affected requirements contract.
+affected requirements contract. A tracked spec that passes the final audit is
+committed as a scoped local checkpoint by default under explicit invocation,
+unless denied or blocked by project or dirty-state safety.
 
 ## Final Audit Reference
 

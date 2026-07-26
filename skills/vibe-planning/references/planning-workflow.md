@@ -181,7 +181,7 @@ Read this reference when drafting or revising the implementation-plan body. It o
      authorization after the checkpoint is implemented, verified, reviewed, and
      safely scoped, when the user asks to execute, implement, apply, or continue
      the bound plan and no current user or project instruction denies commits.
-     They do not authorize planning-time commits, push, release preparation,
+     They do not authorize implementation commits during planning, push, release preparation,
      version bumps, amend, reset, stash, squash, destructive operations, external
      side effects, work-in-progress commits, failing or skipped verification
      commits, or scope-changing commits.
@@ -303,3 +303,18 @@ Read this reference when drafting or revising the implementation-plan body. It o
      corrections made, and any remaining material issues. If remaining material
      issues exist, the `Proceed condition` must block or clearly state the
      required decision/proof.
+14. **Create the planning-artifact checkpoint**
+   - When explicit invocation supplied local checkpoint permission and the
+     tracked plan changed, run a dirty worktree and index preflight after both
+     review gates. Stage only the plan-owned tracked paths and any coupled
+     tracked documentation this phase actually changed.
+   - Do not commit a chat fallback, an unchanged plan, temporary review state,
+     generated output, unrelated dirty paths, or a plan whose material review
+     finding remains unresolved.
+   - Use a standalone Conventional Commit message for the planning artifact,
+     verify the staged diff before committing, and inspect the stored message
+     and committed file set afterward.
+   - If the user or project denied commits, or safe isolation is impossible,
+     preserve the reviewed uncommitted artifact and report the exact blocker.
+   - This checkpoint does not authorize implementation, push, release
+     preparation, version changes, amend, rebase, reset, stash, or squash.

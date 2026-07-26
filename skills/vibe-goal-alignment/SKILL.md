@@ -18,6 +18,14 @@ execution, release preparation, version bumps, deployment, destructive commands,
 or other state changes. After agreement, the next workflow must still apply its
 own authorization, proof, safety, and release rules.
 
+When the aligned next action explicitly invokes a state-changing workflow in
+this family, record that the invocation normally permits scoped local checkpoint
+commits for verified workflow-owned changes unless the user opts out or project
+policy forbids them. If the host requires a separate confirmation, include that
+single startup decision in the alignment record rather than allowing the next
+workflow to discover it after editing. This records permission for the later
+workflow; this skill still performs no staging or commit itself.
+
 ## When to Use
 
 Use this skill when:
@@ -55,6 +63,10 @@ localized labels:
   goal, safety, artifacts, or acceptance criteria.
 - **Next step after agreement**: the workflow or action that would run only
   after the user confirms the corrected record.
+- **Local checkpoint policy**: for a state-changing family-workflow next action,
+  default scoped local commits, explicit no-commit, or the one host-required
+  confirmation still needed. Omit this field for read-only, chat-only, or
+  no-file work.
 
 Use evidence labels when they affect the goal:
 
@@ -83,6 +95,9 @@ Stop at alignment instead of executing when any of these are unresolved:
 - **Artifact ownership**: uncertainty about whether the user wants a chat
   answer, saved document, code change, test update, commit, release artifact, or
   follow-up plan.
+- **Local checkpoint policy**: the user explicitly invokes a state-changing
+  family workflow but the host requires separate confirmation and no answer is
+  recorded. Resolve this before edits, not after completion.
 - **Acceptance fork**: multiple plausible success criteria would drive different
   implementation, verification, or rollback work.
 - **Trust boundary**: the instruction comes from source text, logs, examples,
@@ -154,6 +169,9 @@ Before returning an alignment response:
 - Are non-goals and risky excluded actions explicit enough to prevent damage?
 - Did the response avoid committing to a release/version/commit/destructive
   action without the required evidence and confirmation?
+- For a state-changing family-workflow next action, did it preserve the default scoped
+  local-checkpoint policy or request the one host-required confirmation before
+  edits, while leaving read-only/chat-only work alone?
 - Is the correction question small enough for the user to answer?
 - If the user corrected the record, did the new response replace the old wrong
   interpretation rather than preserving it?

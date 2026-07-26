@@ -18,7 +18,19 @@ anchor findings to the user's specification or Definition of Done, surface
 lightweight specification gaps when safe classification is impossible, and keep
 fixes from creating predictable next-cycle findings. Low burden never means
 silent scope expansion, unapproved backend downgrade, ungated edits, or history
-mutation without explicit consent.
+mutation outside the scoped local closure permission described below.
+
+An explicit invocation permits a scoped local closure commit for review-selected
+fixes after cascade checks, verification, acceptance proof, and terminal audit
+pass, unless the user says not to commit or project policy forbids commits. A
+read-only review with no applied tracked changes does not create a commit.
+Squash, reset, amend, rebase, push, release preparation, version changes,
+destructive cleanup, and mutation of unrelated or ambiguous paths still require
+operation-specific consent.
+
+If the host or harness requires separate confirmation for local commits, ask
+once in the startup contract when the review may apply fixes. Do not defer the
+question until terminal audit or repeat it for each review cycle.
 
 ## Language
 
@@ -160,6 +172,8 @@ include:
 - `cycle_policy`: default two-cycle review with user-elected extensions.
 - `dirty_path_isolation_candidates`: paths, status, reason, and evidence.
 - `review_focus`: target kind, user-stated focus, and excluded surfaces.
+- `local_commit_policy`: default scoped closure permission, explicit denial, or
+  host-confirmation status; `not-applicable` for read-only review.
 
 When rendering a structured startup contract, wrapper keys are allowed only if
 the contract fields remain unambiguous. Record effective/defaulted contract

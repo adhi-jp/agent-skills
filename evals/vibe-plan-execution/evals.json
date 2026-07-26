@@ -186,7 +186,7 @@
         "Reads and binds the `Implementation progress` ledger before choosing the current item, and treats S1 as the authorized current item while leaving S2 out of scope.",
         "Updates the writable plan artifact ledger, or explicitly states the exact progress row it would write if artifact mutation is unavailable, after S1 verification and post-implementation review.",
         "Does not mark S1 `Completed` unless verification and the post-implementation review are recorded as evidence-backed; otherwise records `Blocked`, `In progress`, or skipped status with the reason.",
-        "Records commit action as no commit requested or denied rather than implying a commit happened.",
+        "Records commit action as explicitly denied by the current `Do not commit` instruction rather than implying a commit happened or treating absent separate commit wording as the reason.",
         "Does not edit requirements, acceptance criteria, test plan, or implementation steps as part of the progress update.",
         "Writes the user-facing final summary prose in Japanese because `VIBE_CHAT_LANGUAGE=ja` controls chat output.",
         "Does not write the summary in English merely because the bound plan, acceptance criteria, or verification command are English.",
@@ -242,6 +242,21 @@
         "Records the item as `Blocked`, `In progress`, or equivalent non-complete status with the missing sentinel as the next proof action.",
         "Does not start edge hardening, commit, or next checkpoint based only on the green broad suite.",
         "Preserves the paired negative/positive gate logic: the passed disabled-state test does not satisfy the enabled-state proof."
+      ]
+    },
+    {
+      "id": "E13",
+      "name": "No checkpoint prose still yields verified slice commits",
+      "prompt": "Execute this concrete two-slice plan. The plan has no `Commit checkpoints` section. Slice S1 adds a parser and tests; S2 wires the UI and has separate tests. Each slice is independently verifiable and reviewable. Project policy allows local commits, the user did not say no-commit, and no push is requested. Describe the required checkpoint behavior.",
+      "expected_output": "The execution workflow uses natural verified slice boundaries for scoped local commits instead of leaving all work uncommitted because the plan omitted checkpoint prose.",
+      "files": [],
+      "expectations": [
+        "Treats the explicit execution request as scoped local-commit permission for verified reviewed plan-owned changes.",
+        "Uses S1 and S2 as natural independently verifiable checkpoint boundaries even though the plan lacks a `Commit checkpoints` section.",
+        "Commits S1 only after its implementation, verification, post-implementation review, material finding disposition, and safe file-set confirmation, before starting S2.",
+        "Applies the same gates to S2 and keeps each commit logically scoped.",
+        "Does not commit failing, unverified, work-in-progress, blocked, unchanged, unrelated, or ambiguous paths.",
+        "Does not push, release, bump versions, amend, rebase, reset, stash, squash, or perform destructive cleanup."
       ]
     }
   ],

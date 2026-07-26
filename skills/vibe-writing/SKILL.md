@@ -14,8 +14,22 @@ stable anchors, and explicit evidence. Optimize for human readers only when the
 artifact's main reader is human.
 
 This skill controls wording quality and message content. It does not authorize
-commits, releases, staging, PR submission, template changes, or workflow
-shortcuts.
+releases, PR submission, template changes, or workflow shortcuts.
+
+When the user explicitly invokes this skill to edit tracked text files, that
+invocation permits a scoped local checkpoint commit after the text artifact is
+verified, unless the user says not to commit, project policy forbids commits, or
+the changed paths cannot be isolated safely. Commit only the tracked writing
+artifact and coupled tracked documentation owned by the request. Do not commit a
+chat reply, progress update, final summary, commit-message draft, unchanged
+artifact, generated output, or empty file set. This permission does not include
+push, release preparation, version changes, amend, rebase, reset, stash, squash,
+destructive cleanup, or unrelated changes.
+
+If the host or harness requires separate confirmation for local commits, ask
+once at startup when the requested writing work can change tracked files. Do
+not wait until after editing. When this skill is auxiliary, the active workflow
+supplies and owns the commit permission instead.
 
 When another workflow is active, use this skill only as auxiliary wording
 guidance unless the user asks for a standalone writing deliverable. Incidental
@@ -294,6 +308,12 @@ authorization, command safety, signing, release processes, and history mutation.
 verification wording, durable references, trailers, compact bullets, and
 multi-line transport.
 
+For a standalone tracked-text edit under this skill's scoped permission, apply
+the same minimum commit safety: refresh dirty state, stage only owned paths,
+inspect the staged diff, use a Conventional Commit message, and inspect the
+stored message and committed file set. If any gate fails, report the reviewed
+uncommitted state rather than silently saying commit instructions were absent.
+
 ## Durable References
 
 Artifacts should stand alone outside the prompt. Remove prompt-only references
@@ -323,8 +343,9 @@ codes.
 - Wrapping a requested commit message in a Markdown code fence.
 - Adding safety, security, performance, rollout, or support promises because
   they sound helpful.
-- Treating this skill as permission to ignore exact templates, release rules,
-  commit authorization, PR formats, or staging procedures.
+- Treating scoped tracked-text commit permission as authority to ignore exact
+  templates, release rules, PR formats, staging procedures, or unrelated dirty
+  paths.
 
 ## Self-Check
 

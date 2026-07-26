@@ -12,9 +12,11 @@ Read this reference before finalizing any implementation plan or plan revision. 
   current instruction already requested implementation; it is never
   implementation inside the current `vibe-planning` response. Do not convert
   this response stop into a categorical requirement for another user prompt.
-- Do not provide patches, edit non-plan files, make commits, or claim that code,
-  tests, non-plan docs, evals, configs, changelogs, or other implementation work
-  is complete. Non-mutating investigation is allowed when it grounds the plan.
+- Do not provide patches, edit non-plan files, or claim that code, tests,
+  non-plan docs, evals, configs, changelogs, or other implementation work is
+  complete. The only commit this phase may make is the reviewed tracked
+  planning-artifact checkpoint described by the owning skill. Non-mutating
+  investigation is allowed when it grounds the plan.
 - Plan-readiness language is later-execution handoff, not current-turn
   authorization. `Implementation plan`, `Commit checkpoints`, `Implementation
   handoff`, `Current slice`, `Proceed condition`, `implementation-ready`, or a
