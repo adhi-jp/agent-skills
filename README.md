@@ -885,7 +885,10 @@ or quality regressions. It starts from evidence, writes a small
 failure-to-contract delta, labels the current proposal's evidence,
 classifies surprising or repeated eval failures by skill-contract, assertion,
 recording, prompt, grader-boundary, and variance surfaces before changing skill
-text, leaves artifacts unchanged when there is no evidence-backed contract gap,
+text, maps security diagnostics to source-boundary-sink predicates and
+enforcement ownership, gives credential and trust-boundary safety explicit
+precedence over exact-content preservation, leaves artifacts unchanged when
+there is no evidence-backed contract gap,
 chooses the smallest coupled artifact set, checks whether abstracted examples
 belong in `SKILL.md`, references, evals, or notes before adding standing
 guidance, updates discriminating repo-level evals, and uses the shared eval
@@ -908,8 +911,11 @@ self-grading bias, weak proof substitutes,
 companion-skill requirements, generated workspace commits, wording-only churn,
 cross-eval moving failures treated as local fixes, per-cell prose patches after
 multi-run evidence shows low-frequency scatter, copyable invalid placeholder
-guidance, contaminated or unrerun runs counted as proof, release/version changes
-without explicit release instruction, and unrelated package rewrites. Its
+guidance, prompt-side inert labels mistaken for data-flow isolation,
+preserve-exactly rules that propagate credentials, scanner-clearance claims
+from static validation, contaminated or unrerun runs counted as proof,
+release/version changes without explicit release instruction, and unrelated
+package rewrites. Its
 reference notes summarize local session-derived patterns for efficient skill
 improvement and skill degradation.
 

@@ -78,6 +78,22 @@ into skill outputs.
 - Consolidation helped when it preserved the high-value contracts from old
   skills while retiring duplicate packages, updating eval ownership, and moving
   heavy details into references.
+- Security diagnostics became actionable when the warning was translated into
+  a source-boundary-sink predicate instead of another reminder sentence. A
+  third-party-content warning required preventing original free-form responses
+  from entering the coordinator context, while preserving review usefulness
+  through bounded structural locations and independent local verification.
+- Analyzer prose was useful as primary evidence of what was reported, but not
+  as proof of the alleged root cause. Current source inspection still had to
+  confirm the path before a durable skill contract was changed.
+- Credential-handling corrections held when exactness rules gained an explicit
+  safety precedence and every output or persistence sink was audited. Redacting
+  chat alone was insufficient when temporary review state, reflected files,
+  commit messages, or tool arguments could still reproduce the same literal.
+- Contract-closure searches caught sibling artifacts that still taught the old
+  unsafe path after the main skill text changed. Eval fixtures and prompts were
+  part of the current behavior contract, while old release notes remained
+  historical evidence rather than text to rewrite.
 
 ## Changes That Risked Degrading Skills
 
@@ -141,6 +157,18 @@ into skill outputs.
   rule was whether the next deletion lost a unique state, proof boundary,
   language or exact-output class, or required a synthetic meta-prompt that no
   real user would give.
+- Prompt-side inert labels and downstream redaction degraded security triage
+  when they were counted as closure even though the reported third-party bytes
+  still crossed into the same model context.
+- Generic preserve-exactly rules degraded credential safety when agents applied
+  them to secret-like literals without a higher-priority redaction and
+  fail-closed reflection rule.
+- Static validation and synthetic safety fixtures were overread when they were
+  reported as proof that an external analyzer cleared or that a host enforced
+  isolation at runtime.
+- An alternative security check could support the underlying safety property,
+  but it could not prove that a named scanner warning disappeared without a
+  rerun of that scanner.
 
 ## Practical Synthesis
 
@@ -149,11 +177,14 @@ For every skill change, preserve this sequence:
 1. Identify the concrete failed behavior or ambiguous eval result.
 2. Classify the failure surface: skill contract, eval assertion, measurement or
    recording, prompt or invocation, grader boundary, or variance.
-3. Translate any real skill or eval gap into a reusable contract dimension.
-4. Decide whether that dimension belongs in `SKILL.md`, a reference, an eval, or
+3. For safety diagnostics, derive the prohibited source-boundary-sink predicate
+   and the layer that can enforce it.
+4. Translate any real skill or eval gap into a reusable contract dimension.
+5. Decide whether that dimension belongs in `SKILL.md`, a reference, an eval, or
    notes.
-5. Edit the smallest artifact set that owns that contract.
-6. Add, tighten, or compact discriminating eval expectations. For compaction,
+6. Edit the smallest artifact set that owns that contract.
+7. Add, tighten, or compact discriminating eval expectations. For compaction,
    reconcile every old case to retained coverage or an accepted risk first.
-7. Run the shared eval workflow honestly, or label unrun proof as absent.
-8. Report proof, gaps, and generated artifacts without inflating claims.
+8. Run a closure search for stale current-contract text, then use the shared
+   eval workflow honestly or label unrun proof as absent.
+9. Report proof, gaps, and generated artifacts without inflating claims.

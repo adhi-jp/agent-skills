@@ -36,6 +36,19 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skill-quality` now separates wording mitigations from by-construction closure
+  for security analyzer, trust-boundary, and credential-propagation findings.
+  It maps the reported source, boundary, sinks, unsafe behavior, and enforcement
+  owner; prefers omission, closed structural records, capability-unavailable
+  fallbacks, or blocked persistence over prompt reminders; gives credential and
+  privacy controls explicit precedence over exact-content preservation; and
+  audits coupled current-contract artifacts for stale paths that still authorize
+  the warning. Static validation, synthetic fixtures, and skill prose no longer
+  count as proof of host isolation, credential revocation, or external scanner
+  clearance; analyzer prose proves what was reported but current source evidence
+  must verify the alleged path, and only a rerun of the reporting analyzer
+  proves that its warning cleared. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
 - `vibe-plan-review` now makes credential-like literals an explicit exception
   to command and identifier preservation. Suspected credentials, tokens,
   passwords, private keys, URL authentication, session secrets, and env-style
