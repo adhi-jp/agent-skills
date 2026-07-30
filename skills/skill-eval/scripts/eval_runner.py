@@ -1256,7 +1256,9 @@ def render_executor_prompt(
             f"artifact to a file as its deliverable, write that file to this exact path: `{artifact_path}`. "
             "The grader is shown both your final response and the contents of any file written to that "
             "path, so a concise final response that points to that file is graded together with the "
-            "file's contents."
+            "file's contents. This is a capture destination, not a request to create an artifact: "
+            "write it only when the user prompt or the workflow's normal deliverable contract independently "
+            "requires a file; otherwise answer in chat and leave the path unused."
         )
     return "\n".join(lines) + "\n"
 

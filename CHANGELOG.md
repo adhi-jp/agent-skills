@@ -36,6 +36,34 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-brainstorm` now treats generic host/runner artifact destinations as
+  transport affordances rather than user requests, so chat-first runs do not
+  create a file merely because a conditional output path is available; a
+  pre-write persistence gate keeps brainstorms, checklists, and orchestration
+  schedules in chat unless the user explicitly requests a saved artifact.
+  Supplied reference excerpts now retain visible source provenance in
+  convention checklists, and user-declared scripted orchestration capability
+  produces a bounded stage/model/evidence/confirmation schedule when the
+  current host cannot invoke or record the run instead of silently collapsing
+  into a coordinator-only brainstorm. The eval suite moves mode and candidate
+  obligations out of common assertions that did not apply to the mechanical
+  no-trigger case, clarifies that an explicit no-delegation statement needs no
+  separate evidence label, and makes supplied-reference provenance directly
+  observable. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-brainstorm/evals.json`.
+  Closing `gpt-5.4-mini` Codex evaluation: 20/20 cells scored, zero
+  infrastructure failures, `Sanity checks: OK`, `with_skill` 95.0%,
+  `without_skill` 79.9%, delta +15.1 points. Generated workspace artifacts
+  remain uncommitted.
+- The shared skill eval runner now labels its designated Markdown artifact path
+  as a capture destination rather than a file-creation request. Executors use
+  it only when the represented user prompt or the workflow's independent
+  deliverable contract requires a file; response-only and chat-first cases
+  leave it unused. The contract remains config-symmetric and the runner still
+  folds any legitimately written artifact into the grader prompt. Regression
+  coverage checks that both configs receive the non-authorizing capture-path
+  wording. Validation: `python3 -m unittest tests.test_eval_runner -v` (112
+  tests).
 - `skill-quality` now treats iterative eval repair as a sequence of explicit
   measurement epochs. A run is closing evidence only for the exact skill,
   assertion, prompt, fixture, and proof-surface state it measured; later edits

@@ -190,7 +190,10 @@ grading collapsed into one agent and the run scored its own output.
   recorded output under a delimited `Written Plan Artifact` section, capped and
   with truncation recorded, never silently dropped. Runs whose executor writes no
   such file (the deliverable is the chat reply) keep the grader prompt unchanged
-  and record `written_artifact.captured = false`. The designated path does not
+  and record `written_artifact.captured = false`. The prompt labels the path as a
+  capture destination rather than an artifact request: executors write it only
+  when the user prompt or the workflow's normal deliverable contract independently
+  requires a file, and otherwise answer in chat. The designated path does not
   instruct the executor how to structure the artifact, so it adds no
   target-behavior leakage.
 - The runner also records the executor's real file changes in the sandbox as a

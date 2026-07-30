@@ -610,6 +610,8 @@ class SeparationTests(BaseRunnerTest):
             ).read_text()
             self.assertIn("exact path:", prompt)
             self.assertIn(".eval-runner/outputs/plan.md", prompt)
+            self.assertIn("capture destination, not a request to create an artifact", prompt)
+            self.assertIn("otherwise answer in chat and leave the path unused", prompt)
             self.assertNotIn(str(self.iteration_dir() / "eval-first-eval" / config / "run-1" / "outputs" / "plan.md"), prompt)
 
     def test_written_artifact_is_folded_into_grader_prompt(self):

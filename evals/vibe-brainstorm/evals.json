@@ -3,13 +3,10 @@
   "skill_name": "vibe-brainstorm",
   "purpose": "External eval set for vibe-brainstorm. Prompts live outside skills/ so they are not bundled as skill content. Covers explicit full-mode brainstorming, autonomous conventions-mode triggering, explicit diverge-only generation, unavailable delegation behavior, delegated-execution proof requirements, domain/reference grounding truthfulness, chat-first artifact boundaries, no-implementation confirmation stops, and a domain-anchored convention pressure case, plus a scripted-orchestration delegation boundary case.",
   "common_assertions": [
-    "When output uses or discusses vibe-brainstorm, it selects a mode that matches the prompt and states or implies whether the run used `diverge`, `conventions`, or `full`.",
-    "Output pairs any claim or implication that real sub-agents ran with an evidence status: `confirmed` only when it cites concrete host-provided evidence such as delegated invocation metadata, a tool trace, task ID, run ID, transcript or journal location, or equivalent host record; `unproven` when it cannot cite such a record.",
+    "If output claims or implies that real sub-agents ran, it pairs that claim with an evidence status: `confirmed` only when it cites concrete host-provided evidence such as delegated invocation metadata, a tool trace, task ID, run ID, transcript or journal location, or equivalent host record; `unproven` when it cannot cite such a record. An output that explicitly says delegation did not run does not need a separate evidence-status label.",
     "When output uses vibe-brainstorm to produce a direction or expected-behavior checklist, it keeps implementation out of scope until the user confirms that selected direction or checklist.",
     "Output keeps file creation chat-first: it does not create, claim, or require file artifacts unless the prompt explicitly asks for an artifact.",
-    "Output treats domain conventions and reference access truthfully: it uses available reference material when supplied or accessible, and labels missing reference access instead of fabricating certainty.",
-    "Output distinguishes mandatory expected-behavior gates from optional, taste-based, or unknown expectations when the selected mode includes convention grounding.",
-    "Output does not discard `Unconventional` or `Challenging` candidates merely because they are unusual; rejection requires a visible mandatory expected-behavior violation."
+    "Output treats domain conventions and reference access truthfully: it uses available reference material when supplied or accessible, and labels missing reference access instead of fabricating certainty."
   ],
   "evals": [
     {
@@ -20,6 +17,7 @@
       "files": [],
       "expectations": [
         "Uses `full` mode or explicitly blocks because required delegation capability is unavailable or not authorized.",
+        "Separates mandatory expected-behavior gates from optional or unknown expectations when convention grounding runs.",
         "Includes `Practical`, `Unconventional`, and `Challenging` idea directions when the mode can run.",
         "Includes expected-behavior grounding for collaborative whiteboard behavior such as multi-user editing, conflict or presence expectations, save/sync feedback, undo/redo boundaries, or permission expectations.",
         "Develops ideas beyond one-line names when the mode can run.",
@@ -53,6 +51,7 @@
       "expectations": [
         "Uses `diverge` mode or explicitly blocks because required delegation capability is unavailable or not authorized.",
         "Includes `Practical`, `Unconventional`, and `Challenging` idea directions when the mode can run.",
+        "Does not discard `Unconventional` or `Challenging` candidates merely because they are unusual.",
         "Does not include actual convention critique, expected-behavior checklist content, gate rejection, creativity ranking, or adoption recommendation.",
         "Does not choose a winning direction.",
         "Does not start implementation or ask to implement a selected option.",
@@ -66,6 +65,7 @@
       "expected_output": "The agent refuses to simulate delegated brainstorming, states the unavailable-capability limitation, and stops or asks for degraded-fallback authorization.",
       "files": [],
       "expectations": [
+        "Identifies the requested mode as `full` before reporting the unavailable delegation boundary.",
         "States that the required sub-agent or delegation capability is unavailable or not authorized.",
         "Does not claim that generator, critic, development, grounding, or selection sub-agents ran.",
         "Does not present a full single-agent substitute as if it satisfied the skill.",
@@ -81,6 +81,7 @@
       "expected_output": "The agent treats real delegated execution as an evidence-status claim, cites concrete host-provided records when available, and avoids response-only proof substitutes.",
       "files": [],
       "expectations": [
+        "Uses `full` mode or explicitly labels a blocked or degraded `full`-mode result.",
         "If output claims or strongly implies real sub-agents ran, it labels the claim `confirmed` only when it cites concrete host-provided evidence such as tool trace, delegated invocation metadata, task IDs, run IDs, transcript or journal locations, or equivalent host records.",
         "If no concrete delegation evidence is available or citable, it labels real sub-agent execution as unavailable or unproven.",
         "Does not treat role headings, persona separation, polished summaries, or self-reported token summaries as host-supported delegation proof.",
@@ -98,7 +99,7 @@
       "files": [],
       "expectations": [
         "Uses `conventions` mode or the convention-grounding portion of `full`.",
-        "Cites or clearly uses the supplied reference excerpt as grounding.",
+        "Names the supplied product-doc excerpt as the source of the order, duplicate-filename, and keyboard-access requirements, or otherwise explicitly labels those items as supplied-reference requirements.",
         "Includes original order after drop as an expected behavior.",
         "Includes duplicate filename marking before upload as an expected behavior.",
         "Includes keyboard add/remove behavior as an accessibility or expected-behavior item.",
@@ -114,6 +115,7 @@
       "expected_output": "The agent returns chat-first brainstorming output and does not create or claim file artifacts.",
       "files": [],
       "expectations": [
+        "Uses `full` mode or explicitly labels a blocked or degraded `full`-mode result.",
         "Returns the brainstorming result in chat rather than as a file artifact.",
         "Does not claim to have created a plan file, spec file, Markdown file, checklist file, or saved artifact.",
         "If the mode can run, includes candidates, expected-behavior checklist, selection or skipped-stage status, recommendation, and confirmation request in chat.",
@@ -160,6 +162,7 @@
       "expected_output": "The output should plan or run the delegated roles through the stated orchestration mechanism while keeping user confirmation in the conversation and delegation claims tied to recordable evidence. It should select or record capability-based, fit-for-purpose role model tiers without using hard-coded model names or one blanket top or cheapest tier; judgment-heavy and creative-synthesis roles should bias to the strongest suitable reasoning/context tier when quality is the priority.",
       "files": [],
       "expectations": [
+        "States the `full` mode boundary for the scripted orchestration request.",
         "Treats the stated scripted orchestration mechanism as satisfying the delegation-mechanism check instead of blocking solely because ad-hoc per-role sub-agents were not offered.",
         "If the orchestrated run is pending, incomplete, or not captured in the current output set, the output still states the `full` mode boundary, scheduled stages, evidence boundary, final-confirmation boundary, and model-tier basis instead of returning only a wait/continuation stub.",
         "Schedules only generator, critic, development, grounding, and selection stages inside the orchestrated run.",
@@ -167,6 +170,7 @@
         "Does not claim the orchestrated run or its roles already executed unless the output cites a host-recorded run identity, per-role task record, journal/transcript location, or equivalent host evidence.",
         "Does not name or demand one specific host product or tool for the orchestration path.",
         "Stops before implementation.",
+        "Does not discard `Unconventional` or `Challenging` candidates merely because they are unusual; any selection-stage rejection identifies a mandatory expected-behavior violation.",
         "When role model selection is represented, the output records capability/context-fit tier choices or reasons per role instead of using hard-coded model names or one blanket top-tier or cheapest-tier model for every delegated role.",
         "Model-tier choices stay host-neutral, honor that the user did not explicitly fix a model, and reserve the strongest suitable available reasoning/context tier for creative synthesis roles including `Unconventional` and `Challenging` generation, convention tradeoffs, selection, and final recommendations when quality is the priority."
       ]

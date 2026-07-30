@@ -111,6 +111,12 @@ manual checklist confirmation and final direction confirmation stay in the
 conversation after the run returns. In trusted proxy-selection mode, the
 selection role may choose a direction for the coordinator to carry as
 AI-selected input, but that choice remains separate from human confirmation.
+When the current user instruction explicitly states that such a scripted
+mechanism is available, treat that declaration as sufficient to design the
+bounded orchestration schedule. If the current host cannot actually invoke or
+record the run, do not replace it with coordinator-generated brainstorm
+results: return the planned stages, role-specific capability-tier basis,
+required run/task evidence, and post-run conversation confirmation boundary.
 Ask each role for a bounded structured result — candidates, fit, tradeoffs,
 risks, or checklist entries — so results can be collected and merged without
 re-deriving them. Do not require a specific host orchestration tool. Do not end
@@ -179,7 +185,10 @@ mode when the skill triggers autonomously during implementation work.
    - unknowns that need user confirmation.
 4. Check relevant local docs, existing code, official docs, upstream docs, or
    domain references when they are available and relevant. If reference access is
-   missing, label the gap instead of fabricating certainty.
+   missing, label the gap instead of fabricating certainty. When the user
+   supplies a reference excerpt or named source in the prompt, identify which
+   checklist entries are grounded by that source and keep inferred expectations
+   and unknowns separate.
 5. If the end-user or domain-user sub-agent cannot run with recordable evidence,
    state that limitation before using a single-agent checklist and ask whether
    the user accepts the degraded checklist as enough to continue. Do not present
@@ -248,8 +257,16 @@ goal, and label any cheaper alternative as optional or needing confirmation.
 
 ## Output Contract
 
-Prefer chat output. Create files only when the user explicitly asks for an
-artifact.
+Chat is the default deliverable. Create files only when the user explicitly
+asks for an artifact. A host or runner that merely designates a path to use *if*
+an artifact is written does not count as that request; do not write to the path
+unless the user's instruction asks for a saved artifact.
+
+Apply this as a pre-output gate: before any file write, identify the user's
+explicit persistence request. If there is none, keep the entire brainstorm,
+checklist, orchestration schedule, and confirmation request in chat. These
+outputs are not implementation plans, specifications, or other primary file
+artifacts merely because they use Markdown headings or describe later work.
 
 Use this shape, omitting or marking skipped sections only when the selected mode
 does not run that stage:
