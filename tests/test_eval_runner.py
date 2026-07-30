@@ -98,6 +98,70 @@ class BaseRunnerTest(unittest.TestCase):
             self.fail(f"command failed: {result.args}\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}")
         return result
 
+    def fake_codex_env(self, *, fail=False, log=None, pretty_json=False):
+        bin_dir = self.root / "fake-bin"
+        bin_dir.mkdir(exist_ok=True)
+        fake = bin_dir / "codex"
+        fake.write_text(
+            """#!/usr/bin/env python3
+import json, os, re, sys
+if sys.argv[1:] == ["--version"]:
+    print("codex-test 1.0")
+    raise SystemExit(0)
+args = sys.argv[1:]
+if len(args) < 2 or args[0] != "exec" or args[-1] != "-":
+    raise SystemExit(20)
+if "--skip-git-repo-check" not in args:
+    raise SystemExit(21)
+prompt = sys.stdin.read()
+if not prompt:
+    raise SystemExit(22)
+log_path = os.environ.get("FAKE_CODEX_LOG")
+if log_path:
+    role = "grader" if "--output-schema" in args else "executor"
+    kind = "preflight" if "PREFLIGHT" in prompt or "Return exactly" in prompt else "suite"
+    with open(log_path, "a", encoding="utf-8") as handle:
+        handle.write(json.dumps({"role": role, "kind": kind, "cwd": os.getcwd()}) + "\\n")
+out = args[args.index("-o") + 1]
+if not os.path.isabs(out):
+    raise SystemExit(23)
+if "--output-schema" in args:
+    schema = args[args.index("--output-schema") + 1]
+    if not os.path.isabs(schema):
+        raise SystemExit(24)
+    assertions = re.findall(r"^\\d+\\. (.+)$", prompt, re.M)
+    message = json.dumps({"verdicts": [
+        {"id": i, "passed": True, "evidence": "fake"} for i, _ in enumerate(assertions, 1)
+    ]}, indent=2 if os.environ.get("FAKE_CODEX_PRETTY_JSON") == "1" else None)
+else:
+    if "CODEX_PREFLIGHT_EXECUTOR" in prompt:
+        message = "CODEX_PREFLIGHT_EXECUTOR"
+    else:
+        message = prompt
+if os.environ.get("FAKE_CODEX_FAIL") == "1":
+    sys.stderr.write("X" * 70000)
+    raise SystemExit(25)
+with open(out, "w", encoding="utf-8") as handle:
+    handle.write(message)
+print(json.dumps({"type": "item.completed", "item": {"type": "agent_message", "text": message}}))
+print(json.dumps({"type": "turn.completed", "usage": {
+    "input_tokens": 11, "cached_input_tokens": 3, "output_tokens": 7,
+    "reasoning_output_tokens": 2
+}}))
+""",
+            encoding="utf-8",
+        )
+        fake.chmod(0o755)
+        env = dict(os.environ)
+        env["PATH"] = str(bin_dir) + os.pathsep + env.get("PATH", "")
+        if fail:
+            env["FAKE_CODEX_FAIL"] = "1"
+        if log is not None:
+            env["FAKE_CODEX_LOG"] = str(log)
+        if pretty_json:
+            env["FAKE_CODEX_PRETTY_JSON"] = "1"
+        return env
+
     def init_git_baseline(self):
         subprocess.run(["git", "init"], cwd=self.root, check=True, capture_output=True, text=True)
         subprocess.run(["git", "config", "user.name", "Test"], cwd=self.root, check=True)
@@ -223,6 +287,88 @@ class FailFastTests(BaseRunnerTest):
         benchmark = json.loads((self.iteration_dir() / "benchmark.json").read_text())
         self.assertEqual(benchmark["run_count"], 0)
         self.assertEqual(benchmark["evals"], [])
+
+    def test_codex_preflight_failure_creates_no_iteration(self):
+        path = self.write_suite()
+        log = self.root / "codex-launches.jsonl"
+        result = self.run_cli(
+            "run", path, "--agent", "codex", env=self.fake_codex_env(fail=True, log=log)
+        )
+        self.assertEqual(result.returncode, 2)
+        self.assertFalse(self.iteration_dir("codex").exists())
+        preflight = json.loads(
+            (self.root / "evals" / "demo" / "workspace" / "codex" / "preflight.json").read_text()
+        )
+        self.assertFalse(preflight["ok"])
+        self.assertEqual(preflight["probes"][0]["role"], "executor")
+        self.assertLessEqual(len(preflight["probes"][0]["stderr"]["text"].encode()), 64 * 1024)
+        self.assertTrue(preflight["probes"][0]["stderr"]["truncated"])
+        launches = [json.loads(line) for line in log.read_text().splitlines()]
+        self.assertEqual([(item["kind"], item["role"]) for item in launches], [("preflight", "executor")])
+
+    def test_codex_preflight_success_runs_matrix_and_records_metrics(self):
+        path = self.write_suite(
+            {
+                "skill_name": "demo",
+                "common_assertions": ["common assertion"],
+                "evals": [{"id": "E01", "prompt": "Do the thing.", "expectations": ["per-eval assertion"]}],
+            }
+        )
+        log = self.root / "codex-launches.jsonl"
+        result = self.run_cli(
+            "run",
+            path,
+            "--agent",
+            "codex",
+            "--config",
+            "with_skill",
+            env=self.fake_codex_env(log=log),
+            check=True,
+        )
+        self.assertIn("Ran 1 runs", result.stdout)
+        preflight = json.loads(
+            (self.root / "evals" / "demo" / "workspace" / "codex" / "preflight.json").read_text()
+        )
+        self.assertTrue(preflight["ok"])
+        self.assertEqual([probe["role"] for probe in preflight["probes"]], ["executor", "grader"])
+        run_dir = self.iteration_dir("codex") / "eval-e01" / "with_skill" / "run-1"
+        record = json.loads((run_dir / "run.json").read_text())
+        self.assertEqual(record["status"], "ok")
+        self.assertEqual(record["pass_rate"], 1.0)
+        self.assertEqual(record["metrics"]["total_tokens"], 18)
+        self.assertIsInstance(record["metrics"]["duration_ms"], (int, float))
+        self.assertGreaterEqual(record["metrics"]["duration_ms"], 0)
+        launches = [json.loads(line) for line in log.read_text().splitlines()]
+        self.assertEqual(
+            [(item["kind"], item["role"]) for item in launches],
+            [
+                ("preflight", "executor"),
+                ("preflight", "grader"),
+                ("suite", "executor"),
+                ("suite", "grader"),
+            ],
+        )
+
+    def test_codex_preflight_accepts_semantically_equal_pretty_grader_json(self):
+        path = self.write_suite(
+            {"skill_name": "demo", "evals": [{"id": "E01", "prompt": "x", "expectations": ["a"]}]}
+        )
+        result = self.run_cli(
+            "run",
+            path,
+            "--agent",
+            "codex",
+            "--config",
+            "with_skill",
+            env=self.fake_codex_env(pretty_json=True),
+            check=True,
+        )
+        self.assertIn("Ran 1 runs", result.stdout)
+        preflight = json.loads(
+            (self.root / "evals" / "demo" / "workspace" / "codex" / "preflight.json").read_text()
+        )
+        self.assertTrue(preflight["ok"])
+        self.assertTrue(preflight["probes"][1]["parsed_expected_output"])
 
 
 # --------------------------------------------------------------------------- #
@@ -658,7 +804,11 @@ class SeparationTests(BaseRunnerTest):
         self.assertEqual(invocation.cwd, str((self.root / "sandbox").resolve()))
         self.assertEqual(invocation.env["PWD"], invocation.cwd)
         self.assertEqual(invocation.argv[:2], ["claude", "-p"])
+        self.assertEqual(invocation.argv[2], "prompt")
+        self.assertIsNone(invocation.stdin)
         self.assertIn("--output-format", invocation.argv)
+        self.assertNotIn("--skip-git-repo-check", invocation.argv)
+        self.assertNotIn("--output-schema", invocation.argv)
 
 
 # --------------------------------------------------------------------------- #
@@ -689,22 +839,30 @@ class ModelSelectionTests(BaseRunnerTest):
         provider = eval_runner.ClaudeProvider()
         without = provider.build_invocation("prompt", run_dir=self.root, role="executor")
         self.assertNotIn("--model", without.argv)
+        self.assertEqual(without.argv[:3], ["claude", "-p", "prompt"])
+        self.assertIsNone(without.stdin)
+        self.assertNotIn("--skip-git-repo-check", without.argv)
+        self.assertNotIn("--output-schema", without.argv)
         with_model = provider.build_invocation(
             "prompt", run_dir=self.root, role="executor", model="claude-sonnet-4-6"
         )
         self.assertEqual(with_model.argv[-2:], ["--model", "claude-sonnet-4-6"])
 
-    def test_codex_build_invocation_passes_model_before_prompt(self):
+    def test_codex_build_invocation_uses_stdin_and_passes_model(self):
         provider = eval_runner.CodexProvider()
         without = provider.build_invocation("the prompt", run_dir=self.root, role="executor")
         self.assertNotIn("--model", without.argv)
-        self.assertEqual(without.argv[-1], "the prompt")
+        self.assertEqual(without.argv[-1], "-")
+        self.assertEqual(without.stdin, "the prompt")
+        self.assertNotIn("the prompt", without.argv)
+        self.assertIn("--skip-git-repo-check", without.argv)
+        self.assertTrue(Path(without.argv[without.argv.index("-o") + 1]).is_absolute())
         with_model = provider.build_invocation(
             "the prompt", run_dir=self.root, role="executor", model="gpt-5.3-codex-spark"
         )
-        # The prompt stays positional/last; the model is an option before it.
-        self.assertEqual(with_model.argv[-1], "the prompt")
-        self.assertEqual(with_model.argv[-3:-1], ["--model", "gpt-5.3-codex-spark"])
+        self.assertEqual(with_model.argv[-1], "-")
+        model_index = with_model.argv.index("--model")
+        self.assertEqual(with_model.argv[model_index + 1], "gpt-5.3-codex-spark")
 
     def test_codex_grader_invocation_writes_schema_file(self):
         provider = eval_runner.CodexProvider()
@@ -716,10 +874,49 @@ class ModelSelectionTests(BaseRunnerTest):
         self.assertIn("--output-schema", inv.argv)
         schema_path = run_dir / "grader_schema.json"
         self.assertTrue(schema_path.is_file())
+        self.assertTrue(Path(inv.argv[inv.argv.index("--output-schema") + 1]).is_absolute())
         self.assertEqual(json.loads(schema_path.read_text())["required"], ["verdicts"])
         # The executor invocation carries no schema.
         ex = provider.build_invocation("p", run_dir=run_dir, role="executor")
         self.assertNotIn("--output-schema", ex.argv)
+
+    def test_codex_fake_accepts_large_stdin_and_isolated_grader(self):
+        provider = eval_runner.CodexProvider()
+        with mock.patch.dict(os.environ, self.fake_codex_env(), clear=True):
+            with tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                executor_cwd = root / "repo"
+                executor_cwd.mkdir()
+                subprocess.run(["git", "init", "--quiet"], cwd=executor_cwd, check=True)
+                run_dir = root / "artifacts"
+                run_dir.mkdir()
+                prompt = "P" * (2 * 1024 * 1024 + 1)
+                invocation = provider.build_invocation(
+                    prompt, run_dir=run_dir, role="executor", cwd=executor_cwd
+                )
+                stdout, stderr, exit_code, timed_out = eval_runner.run_invocation(invocation, 10)
+                self.assertEqual((exit_code, timed_out, stderr), (0, False, ""))
+                output, metrics = provider.parse(
+                    run_dir=run_dir, stdout=stdout, stderr=stderr, exit_code=exit_code, role="executor"
+                )
+                self.assertEqual(output, prompt)
+                self.assertEqual(metrics["total_tokens"], 18)
+
+                grader_cwd = root / "empty-grader"
+                grader_cwd.mkdir()
+                grader_run_dir = root / "grader-artifacts"
+                grader_run_dir.mkdir()
+                grader = provider.build_invocation(
+                    "1. assertion", run_dir=grader_run_dir, role="grader",
+                    schema=eval_runner.grader_schema(), cwd=grader_cwd,
+                )
+                g_stdout, g_stderr, g_exit, g_timeout = eval_runner.run_invocation(grader, 10)
+                verdict, _ = provider.parse(
+                    run_dir=grader_run_dir, stdout=g_stdout, stderr=g_stderr,
+                    exit_code=g_exit, role="grader",
+                )
+                self.assertEqual((g_exit, g_timeout), (0, False))
+                self.assertEqual(json.loads(verdict)["verdicts"][0]["id"], 1)
 
     def test_claude_grader_invocation_passes_json_schema(self):
         provider = eval_runner.ClaudeProvider()
@@ -1135,6 +1332,46 @@ class NegativeTests(BaseRunnerTest):
         self.assertIsNone(benchmark["comparison"]["candidate_pass_rate"])
         self.assertIsNone(benchmark["comparison"]["delta"])
 
+    def test_executor_failure_persists_bounded_stderr_and_failure_metadata(self):
+        path = self.write_suite(
+            {"skill_name": "demo", "evals": [{"id": "E01", "prompt": "x", "expectations": ["a"]}]}
+        )
+        spec = self.write_stub_spec({
+            "executor_output": "answer", "executor_exit": 2,
+            "executor_stderr": "é" * 40000,
+            "grading": {"without_skill": {"pass": True}},
+        })
+        self.run_cli("run", path, "--agent", "stub", env=self.stub_env(spec), check=True)
+        run_dir = self.iteration_dir() / "eval-e01" / "with_skill" / "run-1"
+        record = json.loads((run_dir / "run.json").read_text())
+        self.assertEqual(record["failure"]["role"], "executor")
+        self.assertEqual(record["failure"]["exit_code"], 2)
+        self.assertFalse(record["failure"]["timed_out"])
+        self.assertTrue(record["failure"]["stderr"]["truncated"])
+        stderr_path = run_dir / "outputs" / "executor_stderr.txt"
+        self.assertLessEqual(len(stderr_path.read_bytes()), 64 * 1024)
+        self.assertIn("truncated", stderr_path.read_text())
+
+    def test_grader_failure_persists_bounded_stderr_and_failure_metadata(self):
+        path = self.write_suite(
+            {"skill_name": "demo", "evals": [{"id": "E01", "prompt": "x", "expectations": ["a"]}]}
+        )
+        spec = self.write_stub_spec({
+            "executor_output": "answer",
+            "grader_exit": 2,
+            "grader_stderr": "grader failure " * 6000,
+            "grading": {"with_skill": {"unparseable": True}, "without_skill": {"pass": True}},
+        })
+        self.run_cli("run", path, "--agent", "stub", env=self.stub_env(spec), check=True)
+        run_dir = self.iteration_dir() / "eval-e01" / "with_skill" / "run-1"
+        record = json.loads((run_dir / "run.json").read_text())
+        self.assertEqual(record["status"], "grader_failed")
+        self.assertEqual(record["failure"]["role"], "grader")
+        self.assertEqual(record["failure"]["exit_code"], 2)
+        stderr_path = run_dir / "outputs" / "grader_stderr.txt"
+        self.assertTrue(stderr_path.is_file())
+        self.assertLessEqual(len(stderr_path.read_bytes()), 64 * 1024)
+
     def test_grader_unparseable_excluded_and_not_a_pass(self):
         path = self.write_suite()
         spec = self.write_stub_spec(
@@ -1157,7 +1394,7 @@ class NegativeTests(BaseRunnerTest):
         benchmark = json.loads((self.iteration_dir() / "benchmark.json").read_text())
         self.assertIsNone(benchmark["overall_pass_rate"]["with_skill"])
 
-    def test_parseable_grader_output_scores_when_grader_exits_nonzero(self):
+    def test_parseable_grader_output_is_unscored_when_grader_exits_nonzero(self):
         path = self.write_suite()
         spec = self.write_stub_spec(
             {
@@ -1170,13 +1407,14 @@ class NegativeTests(BaseRunnerTest):
         record = json.loads(
             (self.iteration_dir() / "eval-first-eval" / "with_skill" / "run-1" / "run.json").read_text()
         )
-        self.assertEqual(record["status"], "ok")
-        self.assertTrue(record["scored"])
-        self.assertEqual(record["pass_rate"], 1.0)
-        self.assertIsNone(record["grader_error"])
+        self.assertEqual(record["status"], "grader_failed")
+        self.assertFalse(record["scored"])
+        self.assertIsNone(record["pass_rate"])
+        self.assertEqual(record["failure"]["role"], "grader")
+        self.assertEqual(record["failure"]["exit_code"], 2)
         benchmark = json.loads((self.iteration_dir() / "benchmark.json").read_text())
-        self.assertEqual(benchmark["overall_pass_rate"]["with_skill"], 1.0)
-        self.assertEqual(benchmark["error_run_count"], 0)
+        self.assertIsNone(benchmark["overall_pass_rate"]["with_skill"])
+        self.assertGreaterEqual(benchmark["error_run_count"], 1)
 
     def test_sanity_checks_flag_infrastructure_failure(self):
         path = self.write_suite()
@@ -1253,15 +1491,38 @@ class ProviderParserTests(unittest.TestCase):
         )
         self.assertEqual(metrics.get("error"), "error_max_turns")
 
-    def test_codex_metrics_absent_in_slim_core(self):
+    def test_codex_last_message_wins_and_usage_is_captured(self):
         with tempfile.TemporaryDirectory() as tmp:
             run_dir = Path(tmp)
             (run_dir / "executor_codex_last.txt").write_text("codex answer", encoding="utf-8")
+            stdout = "\n".join([
+                json.dumps({"type": "item.completed", "item": {"type": "agent_message", "text": "jsonl"}}),
+                json.dumps({"type": "turn.completed", "usage": {
+                    "input_tokens": 10, "cached_input_tokens": 4,
+                    "output_tokens": 5, "reasoning_output_tokens": 2,
+                }}),
+            ])
             output, metrics = eval_runner.CodexProvider().parse(
-                run_dir=run_dir, stdout="{}", stderr="", exit_code=0, role="executor"
+                run_dir=run_dir, stdout=stdout, stderr="", exit_code=0, role="executor"
             )
         self.assertEqual(output, "codex answer")
-        self.assertIs(metrics["captured"], False)
+        self.assertEqual(metrics["total_tokens"], 15)
+        self.assertEqual(metrics["cached_input_tokens"], 4)
+        self.assertEqual(metrics["reasoning_output_tokens"], 2)
+
+    def test_codex_jsonl_message_fallback_and_malformed_usage_absence(self):
+        stdout = "\n".join([
+            json.dumps({"type": "item.completed", "item": {"type": "agent_message", "text": "first"}}),
+            json.dumps({"type": "item.completed", "item": {"type": "agent_message", "text": "final"}}),
+            json.dumps({"type": "turn.completed", "usage": {"input_tokens": "bad"}}),
+        ])
+        with tempfile.TemporaryDirectory() as tmp:
+            output, metrics = eval_runner.CodexProvider().parse(
+                run_dir=Path(tmp), stdout=stdout, stderr="", exit_code=0, role="executor"
+            )
+        self.assertEqual(output, "final")
+        self.assertFalse(metrics["captured"])
+        self.assertNotIn("total_tokens", metrics)
 
     def test_parse_grader_output_handles_wrapped_and_garbage(self):
         valid = '{"expectations": [{"text": "a", "passed": true, "evidence": "x"}]}'

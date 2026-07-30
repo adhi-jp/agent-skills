@@ -85,6 +85,12 @@ grading collapsed into one agent and the run scored its own output.
 
 - Use `python3 skills/skill-eval/scripts/eval_runner.py` for repo-level skill eval runs. It has
   three commands: `validate`, `run`, and `report`.
+- When drafting or executing this command sequence, preserve the runner's
+  documented CLI literally: the suite JSON is positional, provider selection
+  uses `--agent`, configs use `--config`, and repetition uses `--runs`. Do not
+  invent convenience flags such as `--eval-id`, `--configuration`, `--mode`, or
+  translate one bounded matrix into separate role/config runs unless the actual
+  parser exposes that form.
 - Run `eval_runner.py run` only after the current user has explicitly authorized
   eval execution. `validate` and `report` may support inspection or existing
   artifact work, but they are not substitutes for a user-authorized run when a
@@ -114,16 +120,27 @@ grading collapsed into one agent and the run scored its own output.
   bounds. Invalid input exits non-zero with zero subprocess launches. An empty
   suite is not an error: it exits 0 with an explicit empty result and zero
   subprocess launches.
+- For a non-empty Codex run, the runner performs a Codex-only readiness
+  preflight after static validation and before creating an iteration or
+  launching suite cells. It probes an executor-shaped invocation in a
+  disposable Git repository and a grader-shaped invocation in an empty non-Git
+  directory, records bounded evidence at
+  `evals/<skill-name>/workspace/codex/preflight.json`, and stops with zero suite
+  executor/grader cells if either probe fails. The grader probe compares its
+  schema-constrained JSON result semantically rather than requiring one exact
+  whitespace serialization, and failed probes retain bounded parsed-output and
+  stderr diagnostics. Claude and other providers do not receive these extra
+  probe launches.
 - Total work is bounded. `--runs` is capped at 1..5 (default 1), `--timeout`
   bounds each subprocess (default 600s), and `--concurrency` caps concurrent
   provider subprocesses (1..16, default 4). A timed-out or failed executor is
   recorded as a failed run, not a pass, and the grader is skipped for it; there
   are no retries.
 - Metrics are never hand-typed or estimated. No flag injects a token or duration
-  value. When a provider exposes machine-readable usage (for example
-  `claude -p --output-format json`), the runner captures it into `metrics.json`
-  with its source; when a provider does not, absence is recorded as absence,
-  never a placeholder number.
+  value. Claude usage comes from its JSON envelope. Codex usage comes from the
+  `turn.completed` JSONL event, while Codex executor duration is measured by the
+  runner around the subprocess. Missing usage fields remain explicitly absent;
+  they are never replaced with placeholder token values.
 - `with_skill` runs must use the authoritative `skills/<skill-name>/SKILL.md`
   source package. The runner resolves `--skill-path` from the repo root and, for
   every provider, rejects `.agents/skills` snapshots, `.claude/skills` links,
@@ -205,6 +222,15 @@ grading collapsed into one agent and the run scored its own output.
   grader output the runner cannot parse into a verdict list is recorded as
   `grader_unparseable` with `pass_rate` absent and excluded from the comparison,
   never scored as a real `0%`.
+- Codex prompts are sent through stdin with a terminal `-`, never as a
+  positional command-line prompt. Codex-owned `--output-last-message` and
+  `--output-schema` paths are absolute, and the adapter explicitly permits the
+  isolated non-Git grader cwd with `--skip-git-repo-check`. Claude retains its
+  existing `claude -p <prompt> --output-format json` invocation contract.
+- Failed or timed-out executor/grader invocations persist bounded
+  `outputs/executor_stderr.txt` or `outputs/grader_stderr.txt` diagnostics and a
+  structured `failure` object in `run.json`. Truncation is explicit, and raw
+  unbounded stderr is not embedded in the run record.
 - Standard command sequence after explicit run authorization:
 
 ```sh
@@ -248,10 +274,10 @@ token usage for at least the claude provider.
   numeric value for that metric, so a single captured value or the `--runs 1`
   default never produces a misleading spread.
 - Uncaptured or partial provider metrics are shown as absent with a reason, never
-  a placeholder. This includes a claude run whose output was not a JSON envelope,
-  individual missing sub-fields on an otherwise captured run, and providers such
-  as codex whose metric capture is not enabled. Never read an absent metric as
-  `0`.
+  a placeholder. This includes a Claude run whose output was not a JSON envelope,
+  individual missing sub-fields on an otherwise captured run, and a Codex run
+  whose JSONL omitted usage even though runner-measured duration is available.
+  Never read an absent metric as `0`.
 
 ## Result Verification and Reporting
 

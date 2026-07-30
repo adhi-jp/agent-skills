@@ -86,6 +86,20 @@ The `run` summary and `benchmark.md` also show per-config executor execution
 time and token usage (the executor/skill-run subprocess only, grader scoring
 cost excluded); uncaptured or partial provider metrics appear as absent with a
 reason, never a placeholder number.
+Use the documented runner syntax literally when drafting automation: pass the
+suite JSON positionally and use `--agent`, `--config`, and `--runs`; do not
+invent aliases such as `--eval-id`, `--configuration`, or `--mode`.
+Codex runs send prompts through stdin, use absolute provider output/schema
+paths, and run a two-role readiness preflight before creating a non-empty
+iteration. The preflight uses a disposable Git-backed executor cwd and an empty
+non-Git grader cwd, records bounded evidence at
+`evals/<skill-name>/workspace/codex/preflight.json`, and launches zero suite
+cells when readiness fails. Schema-constrained grader probe output is compared
+as JSON rather than by one exact whitespace serialization, and failed probes
+record bounded parsed output and stderr. Failed or timed-out suite invocations
+persist bounded role-specific stderr artifacts plus a structured `failure` record.
+These Codex adapter rules do not change Claude's `claude -p` prompt transport or
+its host-transcript evidence path.
 For Claude runs, `run.json` can also include redacted `executor_evidence` from
 host transcripts: tool names, host-issued tool-use ids, and sub-agent record ids
 only. The grader prompt receives that evidence when captured so delegation/tool

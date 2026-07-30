@@ -36,6 +36,41 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- The shared skill eval runner hardens Codex execution without changing Claude
+  Code's invocation contract. Codex executor and grader prompts now travel over
+  stdin with a terminal `-`; provider-owned last-message and schema paths are
+  absolute; isolated non-Git grader directories use the adapter-local
+  `--skip-git-repo-check`; and `turn.completed` JSONL usage plus runner-measured
+  executor duration feed executor-only metrics. Non-empty Codex runs perform a
+  two-role readiness preflight before iteration creation and write bounded
+  evidence to `evals/<skill-name>/workspace/codex/preflight.json`; a failed
+  preflight launches zero suite cells. Grader readiness accepts semantically
+  equal schema-valid JSON regardless of whitespace serialization, and failed
+  probes retain bounded parsed output plus stderr. Failed or timed-out provider
+  roles write bounded executor/grader stderr artifacts and a structured
+  `failure` record instead of requiring command replay or embedding unbounded stderr. Hermetic
+  fake-Codex coverage exercises prompts larger than typical argv limits,
+  absolute paths, the empty grader cwd, JSONL usage, readiness failure and
+  success, and role-specific diagnostics, while Claude `-p`, clean environment,
+  structured output, session metrics, transcript evidence, and stub launch
+  counts remain covered. The `skill-eval` operation suite now keeps only the
+  universally applicable no-premature-delta assertion as common pressure and
+  makes its explicit-run case a non-executing represented-turn exercise, so a
+  runner self-eval cannot recursively launch a different hosted suite and
+  authorization-only cases are not graded on execution-only workspace or
+  subprocess details. The runner-operation contract and E02 pressure also
+  preserve the documented positional suite path plus `--agent`, `--config`, and
+  `--runs`, rejecting invented `--eval-id`, `--configuration`, or `--mode`
+  aliases and separate config runs. Validation:
+  `python3 -m unittest tests.test_eval_runner -v`,
+  `python3 -m unittest discover -s tests -p 'test*.py'`, and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-eval/evals.json`.
+  Closing `gpt-5.4-mini` Codex evaluation:
+  4/4 scored cells, zero infrastructure failures, `Sanity checks: OK`,
+  `with_skill` 94.4%, `without_skill` 61.1%, delta +33.3 points. E01 remained a
+  both-config authorization regression guard at 100%/100%; E02 discriminated
+  the documented CLI and verification contract at 88.9%/22.2%. Generated
+  workspace artifacts remain uncommitted.
 - `skill-quality` now separates wording mitigations from by-construction closure
   for security analyzer, trust-boundary, and credential-propagation findings.
   It maps the reported source, boundary, sinks, unsafe behavior, and enforcement

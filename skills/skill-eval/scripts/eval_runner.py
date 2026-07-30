@@ -43,6 +43,7 @@ import statistics
 import subprocess
 import sys
 import tempfile
+import time
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Callable
@@ -81,6 +82,7 @@ MAX_RUNS = 5
 DEFAULT_TIMEOUT_SECONDS = 600.0
 DEFAULT_CONCURRENCY = 4
 MAX_CONCURRENCY = 16
+STDERR_MAX_BYTES = 64 * 1024
 SANDBOX_ROOT_ENV = "EVAL_RUNNER_SANDBOX_ROOT"
 AGENT_LABEL_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 # A model name is whatever the selected provider CLI accepts. Stay permissive
@@ -1615,24 +1617,28 @@ class CodexProvider(Provider):
         schema: dict[str, Any] | None = None,
         cwd: Path | None = None,
     ) -> Invocation:
-        last_message = run_dir / f"{role}_codex_last.txt"
-        argv = ["codex", "exec", "-s", "read-only", "-o", str(last_message), "--json"]
+        last_message = (run_dir / f"{role}_codex_last.txt").resolve()
+        argv = [
+            "codex", "exec", "-s", "read-only", "-o", str(last_message),
+            "--json", "--skip-git-repo-check",
+        ]
         if model:
             argv += ["--model", model]
         # Constrain the grader's final response to the verdict schema when one is
         # supplied. codex reads the schema from a file, so write it next to the
         # run before pointing ``--output-schema`` at it.
         if schema is not None:
-            schema_path = run_dir / f"{role}_schema.json"
+            schema_path = (run_dir / f"{role}_schema.json").resolve()
             run_dir.mkdir(parents=True, exist_ok=True)
             write_text(schema_path, json.dumps(schema, indent=2) + "\n")
             argv += ["--output-schema", str(schema_path)]
-        argv.append(prompt)
+        argv.append("-")
         resolved_cwd = (cwd or find_repo_root(run_dir)).resolve()
         return Invocation(
             argv=argv,
             env=invocation_env(resolved_cwd),
             cwd=str(resolved_cwd),
+            stdin=prompt,
         )
 
     def parse(self, *, run_dir: Path, stdout: str, stderr: str, exit_code: int | None, role: str) -> tuple[str, dict[str, Any]]:
@@ -1640,10 +1646,57 @@ class CodexProvider(Provider):
         if last_message.is_file():
             output = last_message.read_text(encoding="utf-8")
         else:
-            output = stdout
-        # codex token usage is exposed in turn.completed events but is recorded
-        # as a deferred enhancement; the slim core keeps Codex metrics absent.
-        return output, metrics_absent(self.name, "codex metrics capture is not enabled in the slim core")
+            output = codex_final_agent_message(stdout) or stdout
+        usage: dict[str, Any] | None = None
+        for event in codex_jsonl_events(stdout):
+            if event.get("type") == "turn.completed" and isinstance(event.get("usage"), dict):
+                usage = event["usage"]
+        if usage is None:
+            metrics = metrics_absent(self.name, "codex JSONL had no numeric turn.completed usage")
+        else:
+            numeric = {
+                key: value for key in (
+                    "input_tokens", "cached_input_tokens", "output_tokens", "reasoning_output_tokens"
+                ) if isinstance((value := usage.get(key)), (int, float)) and not isinstance(value, bool)
+            }
+            if numeric:
+                metrics = {
+                    "captured": True,
+                    "source": "codex exec --json turn.completed",
+                    "provider": self.name,
+                    **numeric,
+                }
+                if "input_tokens" in numeric and "output_tokens" in numeric:
+                    metrics["total_tokens"] = numeric["input_tokens"] + numeric["output_tokens"]
+            else:
+                metrics = metrics_absent(self.name, "codex turn.completed usage had no numeric fields")
+        return output, metrics
+
+
+def codex_jsonl_events(stdout: str) -> list[dict[str, Any]]:
+    events: list[dict[str, Any]] = []
+    for line in stdout.splitlines():
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(event, dict):
+            events.append(event)
+    return events
+
+
+def codex_final_agent_message(stdout: str) -> str | None:
+    final: str | None = None
+    for event in codex_jsonl_events(stdout):
+        item = event.get("item")
+        if event.get("type") == "item.completed" and isinstance(item, dict):
+            if item.get("type") == "agent_message" and isinstance(item.get("text"), str):
+                final = item["text"]
+        if event.get("type") in ("agent_message", "message.completed"):
+            text = event.get("text") or event.get("message")
+            if isinstance(text, str):
+                final = text
+    return final
 
 
 # A hermetic provider used by tests. It is dispatched through the exact same run
@@ -1754,8 +1807,10 @@ record("exit")
 # failures so the runner's failure handling can be exercised.
 if config == "with_skill":
     if role == "executor":
+        sys.stderr.write(str(spec.get("executor_stderr", "")))
         sys.exit(int(spec.get("executor_exit", 0) or 0))
     if role == "grader":
+        sys.stderr.write(str(spec.get("grader_stderr", "")))
         sys.exit(int(spec.get("grader_exit", 0) or 0))
 '''
 
@@ -1833,6 +1888,58 @@ def run_invocation(invocation: Invocation, timeout: float) -> tuple[str, str, in
         if isinstance(stderr, bytes):
             stderr = stderr.decode("utf-8", "replace")
         return stdout, stderr, None, True
+
+
+def bounded_utf8_text(text: str, max_bytes: int = STDERR_MAX_BYTES) -> tuple[str, dict[str, Any]]:
+    raw = text.encode("utf-8", "replace")
+    truncated = len(raw) > max_bytes
+    kept = raw[:max_bytes]
+    if truncated:
+        kept = kept.decode("utf-8", "ignore").encode("utf-8")
+    rendered = kept.decode("utf-8")
+    if truncated:
+        marker = "\n[...stderr truncated to 64 KiB...]\n"
+        marker_bytes = marker.encode("utf-8")
+        kept = kept[: max(0, max_bytes - len(marker_bytes))]
+        rendered = kept.decode("utf-8", "ignore") + marker
+    return rendered, {
+        "captured": True,
+        "original_bytes": len(raw),
+        "stored_bytes": len(rendered.encode("utf-8")),
+        "truncated": truncated,
+        "limit_bytes": max_bytes,
+    }
+
+
+def persist_failure_stderr(outputs_dir: Path, role: str, stderr: str) -> dict[str, Any]:
+    rendered, metadata = bounded_utf8_text(stderr)
+    path = (outputs_dir / f"{role}_stderr.txt").resolve()
+    write_text(path, rendered)
+    return {**metadata, "path": str(path)}
+
+
+def provider_failure_reason(summary: str, stderr: str) -> str:
+    detail = " ".join(stderr.strip().split())
+    return f"{summary}: {detail[:512]}" if detail else summary
+
+
+def failure_record(
+    role: str,
+    status: str,
+    exit_code: int | None,
+    timed_out: bool,
+    reason: str,
+    stderr_metadata: dict[str, Any],
+) -> dict[str, Any]:
+    return {
+        "role": role,
+        "kind": "timeout" if timed_out else "provider_error",
+        "status": status,
+        "exit_code": exit_code,
+        "timed_out": timed_out,
+        "reason": reason,
+        "stderr": stderr_metadata,
+    }
 
 
 def balanced_json_objects(text: str) -> list[str]:
@@ -2009,10 +2116,24 @@ def execute_run(
         model=executor_model,
         cwd=sandbox.repo_root,
     )
+    executor_started = time.perf_counter()
     e_stdout, e_stderr, e_exit, e_timeout = run_invocation(executor_inv, timeout)
+    executor_duration_ms = (time.perf_counter() - executor_started) * 1000
     executor_output, metrics = provider.parse(
         run_dir=run_dir, stdout=e_stdout, stderr=e_stderr, exit_code=e_exit, role="executor"
     )
+    if isinstance(provider, CodexProvider):
+        usage_captured = metrics.get("captured") is True
+        if not usage_captured:
+            metrics["usage_reason"] = metrics.pop("reason", "codex usage was not captured")
+        metrics["usage_captured"] = usage_captured
+        metrics["captured"] = True
+        metrics["source"] = (
+            "codex exec --json turn.completed + runner wall clock"
+            if usage_captured
+            else "runner wall clock"
+        )
+        metrics["duration_ms"] = executor_duration_ms
     write_text(outputs_dir / "output.txt", executor_output)
     artifact_text, artifact_info = collect_written_artifact(artifact_capture_file)
     if artifact_text is not None:
@@ -2027,14 +2148,30 @@ def execute_run(
     grader_inv: Invocation | None = None
     grading: dict[str, Any] | None = None
     grader_error: str | None = None
+    failure: dict[str, Any] | None = None
 
     if e_timeout:
         status = "executor_timeout"
+        reason = provider_failure_reason("executor provider invocation timed out", e_stderr)
+        failure = failure_record(
+            "executor", status, e_exit, True, reason,
+            persist_failure_stderr(outputs_dir, "executor", e_stderr),
+        )
     elif e_exit not in (0, None):
         status = "executor_failed"
+        reason = provider_failure_reason(f"executor provider exited with code {e_exit}", e_stderr)
+        failure = failure_record(
+            "executor", status, e_exit, False, reason,
+            persist_failure_stderr(outputs_dir, "executor", e_stderr),
+        )
     elif metrics.get("error"):
         status = "executor_failed"
         grader_error = f"executor provider error: {metrics['error']}"
+        reason = provider_failure_reason(grader_error, e_stderr)
+        failure = failure_record(
+            "executor", status, e_exit, False, reason,
+            persist_failure_stderr(outputs_dir, "executor", e_stderr),
+        )
 
     if status == "ok":
         grader_prompt = render_grader_prompt(
@@ -2056,13 +2193,38 @@ def execute_run(
         write_text(outputs_dir / "grader_output.txt", grader_output)
         if g_timeout:
             status = "grader_timeout"
+            reason = provider_failure_reason("grader provider invocation timed out", g_stderr)
+            failure = failure_record(
+                "grader", status, g_exit, True, reason,
+                persist_failure_stderr(outputs_dir, "grader", g_stderr),
+            )
         elif grader_metrics.get("error"):
             status = "grader_failed"
             grader_error = f"grader provider error: {grader_metrics['error']}"
+            reason = provider_failure_reason(grader_error, g_stderr)
+            failure = failure_record(
+                "grader", status, g_exit, False, reason,
+                persist_failure_stderr(outputs_dir, "grader", g_stderr),
+            )
+        elif g_exit not in (0, None):
+            status = "grader_failed"
+            grader_error = f"grader provider exited with code {g_exit}"
+            reason = provider_failure_reason(grader_error, g_stderr)
+            failure = failure_record(
+                "grader", status, g_exit, False, reason,
+                persist_failure_stderr(outputs_dir, "grader", g_stderr),
+            )
         else:
             grading, grader_error = parse_grader_output(grader_output)
             if grading is None:
-                status = "grader_failed" if g_exit not in (0, None) else "grader_unparseable"
+                status = "grader_unparseable"
+                reason = provider_failure_reason(
+                    grader_error or "grader output was not parseable", g_stderr
+                )
+                failure = failure_record(
+                    "grader", status, g_exit, False, reason,
+                    persist_failure_stderr(outputs_dir, "grader", g_stderr),
+                )
 
     summary = summarize_grading(grading, assertions)
     write_json(run_dir / "grading.json", summary)
@@ -2118,6 +2280,7 @@ def execute_run(
             else None
         ),
         "grader_error": grader_error,
+        "failure": failure,
         "run_dir": str(run_dir),
     }
     write_json(run_dir / "run.json", record)
@@ -2572,6 +2735,134 @@ def build_matrix(suite: EvalSuite, configs: list[str], runs: int, iteration_dir:
     return tasks
 
 
+def codex_cli_version() -> str | None:
+    try:
+        completed = subprocess.run(
+            ["codex", "--version"], capture_output=True, text=True, timeout=5, check=False
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    text = (completed.stdout or completed.stderr).strip()
+    return text[:512] if text else None
+
+
+def run_codex_preflight(
+    provider: CodexProvider,
+    workspace_root: Path,
+    executor_model: str | None,
+    grader_model: str | None,
+    timeout: float,
+) -> bool:
+    report: dict[str, Any] = {
+        "provider": "codex",
+        "attempted_at": utc_now(),
+        "cli_version": codex_cli_version(),
+        "models": {"executor": executor_model, "grader": grader_model},
+        "probes": [],
+        "ok": False,
+    }
+    with tempfile.TemporaryDirectory(prefix="eval-runner-codex-preflight-") as tmp:
+        root = Path(tmp)
+        executor_cwd = root / "executor-repo"
+        executor_cwd.mkdir()
+        try:
+            git_result = subprocess.run(
+                ["git", "init", "--quiet"],
+                cwd=executor_cwd,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        except OSError as exc:
+            stderr_text, stderr_meta = bounded_utf8_text(str(exc))
+            report["probes"].append({
+                "role": "executor", "cwd_shape": "git-backed", "status": "setup_failed",
+                "exit_code": None, "timed_out": False,
+                "reason": "could not start git for the disposable executor repository",
+                "stderr": {**stderr_meta, "text": stderr_text},
+            })
+            write_json(workspace_root / "preflight.json", report)
+            return False
+        if git_result.returncode != 0:
+            stderr_text, stderr_meta = bounded_utf8_text(git_result.stderr)
+            report["probes"].append({
+                "role": "executor", "cwd_shape": "git-backed", "status": "setup_failed",
+                "exit_code": git_result.returncode, "timed_out": False,
+                "reason": "could not initialize disposable git repository",
+                "stderr": {**stderr_meta, "text": stderr_text},
+            })
+            write_json(workspace_root / "preflight.json", report)
+            return False
+
+        probe_specs = [
+            (
+                "executor",
+                executor_cwd,
+                "git-backed",
+                executor_model,
+                None,
+                "Reply with exactly CODEX_PREFLIGHT_EXECUTOR and no other text.",
+                "CODEX_PREFLIGHT_EXECUTOR",
+            ),
+            (
+                "grader",
+                root / "grader-empty",
+                "empty-non-git",
+                grader_model,
+                grader_schema(),
+                'Return exactly {"verdicts": []} and no other text.',
+                '{"verdicts": []}',
+            ),
+        ]
+        (root / "grader-empty").mkdir()
+        for role, cwd, cwd_shape, model, schema, prompt, expected in probe_specs:
+            run_dir = root / f"{role}-artifacts"
+            run_dir.mkdir()
+            invocation = provider.build_invocation(
+                prompt, run_dir=run_dir, role=role, model=model, schema=schema, cwd=cwd
+            )
+            stdout, stderr, exit_code, timed_out = run_invocation(invocation, min(timeout, 60.0))
+            parsed, _metrics = provider.parse(
+                run_dir=run_dir, stdout=stdout, stderr=stderr, exit_code=exit_code, role=role
+            )
+            output_path = run_dir / f"{role}_codex_last.txt"
+            if role == "grader":
+                try:
+                    parsed_value = json.loads(parsed)
+                    expected_value = json.loads(expected)
+                except json.JSONDecodeError:
+                    parse_ok = False
+                else:
+                    parse_ok = parsed_value == expected_value
+            else:
+                parse_ok = parsed.strip() == expected
+            parse_ok = parse_ok and output_path.is_file()
+            ok = exit_code == 0 and not timed_out and parse_ok
+            stderr_text, stderr_meta = bounded_utf8_text(stderr)
+            output_text, output_meta = bounded_utf8_text(parsed, 4096)
+            probe = {
+                "role": role,
+                "model": model,
+                "cwd_shape": cwd_shape,
+                "status": "ok" if ok else ("timeout" if timed_out else "failed"),
+                "exit_code": exit_code,
+                "timed_out": timed_out,
+                "output_file": str(output_path.resolve()),
+                "output_file_present": output_path.is_file(),
+                "parsed_expected_output": parse_ok,
+                "reason": None if ok else "provider readiness probe did not produce the expected output",
+                "stderr": {**stderr_meta, "text": stderr_text},
+                "parsed_output": {**output_meta, "text": output_text},
+            }
+            report["probes"].append(probe)
+            if not ok:
+                write_json(workspace_root / "preflight.json", report)
+                return False
+    report["ok"] = True
+    write_json(workspace_root / "preflight.json", report)
+    return True
+
+
 def command_run(args: argparse.Namespace) -> int:
     # ---- Fail-fast pre-flight: no subprocess launches past this point until
     # every check passes. ----
@@ -2636,6 +2927,15 @@ def command_run(args: argparse.Namespace) -> int:
         write_text(iteration_dir / "benchmark.md", render_benchmark_markdown(benchmark))
         print(f"No evals in suite; wrote empty benchmark to {iteration_dir}")
         return 0
+
+    if isinstance(provider, CodexProvider) and not run_codex_preflight(
+        provider, workspace_root, executor_model, grader_model, args.timeout
+    ):
+        print(
+            f"--agent codex: readiness preflight failed; see {workspace_root / 'preflight.json'}",
+            file=sys.stderr,
+        )
+        return 2
 
     tasks = build_matrix(suite, configs, runs, iteration_dir)
     write_json(

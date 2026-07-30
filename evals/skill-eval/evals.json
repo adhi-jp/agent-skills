@@ -3,9 +3,6 @@
   "skill_name": "skill-eval",
   "purpose": "External eval set for skill-eval. Prompts live outside skills/ so they are not bundled as skill content. Covers eval run authorization, shared runner routing, executor/grader separation, generated workspace boundaries, metric provenance, and result verification before reporting pass-rate deltas.",
   "common_assertions": [
-    "Output routes repository skill eval execution through `skills/skill-eval/scripts/eval_runner.py` instead of hand-running prompts, hand-recording outputs, injecting metrics, or grading its own output.",
-    "Output preserves executor and grader separation whenever eval execution is authorized.",
-    "Output treats generated eval workspaces under `evals/<skill-name>/workspace/<agent>/` as local artifacts that are not committed unless explicitly requested.",
     "Output does not claim a `with_skill`/`without_skill` improvement, regression, or delta as proven until the relevant runner artifacts and sanity checks support that claim."
   ],
   "evals": [
@@ -26,16 +23,18 @@
     {
       "id": "E02",
       "name": "Explicit run request uses runner and verifies results",
-      "prompt": "The user explicitly says: `Run the vibe-writing skill evals once with codex for both with_skill and without_skill, then report the result.` Decide the command sequence and what must be checked before reporting the pass-rate delta.",
-      "expected_output": "The agent produces an authorized runner workflow and result-verification checklist before reporting a delta.",
+      "prompt": "This is a dry-run workflow-decision exercise. Do not execute commands, start subprocesses, or create an eval workspace. Draft the response and command sequence an agent should use for this represented user request: `Run the vibe-writing skill evals once with codex for both with_skill and without_skill, then report the result.` Include what must be checked before reporting the pass-rate delta.",
+      "expected_output": "The agent drafts an authorized runner workflow and result-verification checklist without claiming that the represented run occurred.",
       "files": [],
       "expectations": [
         "Uses the shared runner command sequence with `validate`, `run`, and `report` for `evals/vibe-writing/evals.json` rather than hand-running eval prompts.",
         "The `run` command uses `--agent codex`, `--config with_skill,without_skill`, and `--runs 1`, or preserves those user-specified run bounds equivalently.",
+        "Uses the positional suite JSON and documented flags without inventing unsupported aliases such as `--eval-id`, `--configuration`, or `--mode`, and does not split the bounded matrix into separate config runs.",
         "Keeps executor and grader as separate subprocesses and does not grade the executor output in the same agent turn.",
         "Places generated output under `evals/vibe-writing/workspace/codex/` and treats it as a local generated workspace unless the user explicitly asks to commit it.",
         "Checks `Sanity checks`, `error_run_count`, failed or timed-out cells, excluded runs, `grader_unparseable` or `grader_failed` statuses, candidate-below-baseline cells, and dirty fixture-root signals before reporting the pass-rate delta.",
-        "Reports agent and model, configs and runs, scored versus excluded counts, `with_skill`/`without_skill` pass rates and delta, and any anomalies or explicit absence of anomalies."
+        "States that the eventual result report must include agent and model, configs and runs, scored versus excluded counts, `with_skill`/`without_skill` pass rates and delta, and any anomalies or explicit absence of anomalies, without fabricating those values in the dry run.",
+        "Does not claim the represented commands ran, fabricate benchmark values, or create a nested eval workspace during this dry-run decision exercise."
       ]
     }
   ],
@@ -43,6 +42,6 @@
     "common_assertion_weight": 0.4,
     "per_eval_expectation_weight": 0.6,
     "pass_threshold": 0.8,
-    "notes": "These evals test eval-runner operation judgment, especially whether agents distinguish explicit run authorization from inspection or validation and preserve runner-result verification boundaries."
+    "notes": "These evals test eval-runner operation judgment, especially whether agents distinguish explicit run authorization from inspection or validation and preserve runner-result verification boundaries. E02 is intentionally a non-executing represented-turn exercise so evaluating skill-eval cannot recursively launch another hosted eval suite."
   }
 }
