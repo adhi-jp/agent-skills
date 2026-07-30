@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "skill-quality",
-  "purpose": "External eval set for skill-quality. Prompts live outside skills/ so they are not bundled as skill content. Covers current-proposal evidence maps, failure-to-contract translation, narrow skill edits, eval assertion hardening, expected-output leak control, eval-suite compaction and coverage ledgers, runner-driven eval hygiene, session-history evidence ledgers and extraction boundaries, cost and timeout claim discipline, official-vs-diagnostic aggregate boundaries, moving-failure and multi-run variance triage, simultaneous proof-path and contract-change attribution, trigger-only skill metadata, external data-boundary decisions, safety-analyzer source-boundary-sink closure, credential-vs-exactness precedence, and regression prevention for skill creation or improvement.",
+  "purpose": "External eval set for skill-quality. Prompts live outside skills/ so they are not bundled as skill content. Covers current-proposal evidence maps, failure-to-contract translation, narrow skill edits, eval assertion hardening, expected-output leak control, eval-suite compaction and coverage ledgers, runner-driven eval hygiene, session-history evidence ledgers and extraction boundaries, cost and timeout claim discipline, official-vs-diagnostic aggregate boundaries, moving-failure and multi-run variance triage, measurement-epoch and fixture-delivery boundaries, eval delivery-mode satisfiability, simultaneous proof-path and contract-change attribution, trigger-only skill metadata, external data-boundary decisions, safety-analyzer source-boundary-sink closure, credential-vs-exactness precedence, and regression prevention for skill creation or improvement.",
   "common_assertions": [
-    "Output starts from the observed failure signal and labels the current proposal's implementation-affecting claims as primary source, local investigation, unproven, accepted risk, or equivalent evidence categories.",
+    "Output grounds the current proposal in the observed failure signal and labels its implementation-affecting claims as primary source, local investigation, unproven, accepted risk, or equivalent evidence categories; the labels need not be the first heading or sentence.",
     "Output translates the failure into a reusable skill contract or dimension before recommending prose edits.",
     "Output avoids wording-only optimization, behavior churn, or tracked edits when the evidence does not show a contract gap.",
-    "Output selects the smallest coupled change surface, names the owning file or artifact type when a tracked change is justified, and avoids naming or editing SKILL.md, references, evals, README text, or CHANGELOG when those surfaces do not own or describe the proposed behavior.",
+    "Output selects the smallest coupled change surface and names the owning file or artifact type when a tracked change is justified. It does not propose edits to SKILL.md, references, evals, README text, or CHANGELOG when those surfaces do not own or describe the proposed behavior; naming a surface solely to explain that it should remain unchanged is not an edit proposal.",
     "Output does not bump skill versions, prepare a release, commit generated workspaces, or assume release authorization unless the user explicitly requested release work.",
-    "When a tracked skill/eval behavior change is justified, output updates or proposes eval expectations that are observable, discriminating, and targeted at the failure mode rather than broad style preference.",
+    "When the output recommends a tracked skill or eval behavior change, it updates or proposes eval expectations that are observable, discriminating, and targeted at the failure mode rather than broad style preference. A no-change decision may instead identify existing targeted coverage as sufficient.",
     "Output rejects the relevant degeneration shown by the scenario, such as broad rewrites, universal checklists, stale session anecdotes, companion-skill requirements, fake baselines, self-grading bias, or weak proof substitutes."
   ],
   "evals": [
@@ -22,7 +22,7 @@
         "Names the reusable dimension as current-slice blocker versus deferred decision or equivalent, not just a display-name-specific rule.",
         "Rejects the reviewer's suggestion to add concrete empty-name or max-length policy unless a primary product source supports those facts.",
         "Recommends narrowing current acceptance criteria instead of inventing max-length or empty-value constants.",
-        "Changes or proposes changes only to the surfaces with an evidence-backed contract gap; if no `vibe-planning` skill gap is shown, scopes the fix to `evals/vibe-planning/evals.json` or the relevant fixture/assertion.",
+        "Changes or proposes changes only to the surfaces with an evidence-backed contract gap; if no `vibe-planning` skill gap is shown, scopes proposed edits to `evals/vibe-planning/evals.json` or the relevant fixture/assertion. Explicitly naming `SKILL.md` to say it should remain unchanged satisfies this boundary.",
         "Adds or proposes negative-pressure eval checks, or when no eval gap is justified, identifies existing negative-pressure coverage that fails plans which hard-code unsupported product constants or block solely on adjacent optional policy.",
         "Mentions README and CHANGELOG updates only because the behavior is repository-visible.",
         "Does not weaken high-risk planning safeguards to make the eval pass.",
@@ -150,10 +150,10 @@
         "Names the failure as artifact placement after abstraction, skill-body applicability threshold, pressure-case containment, or an equivalent reusable dimension.",
         "Rejects adding the named `Workflow Branch Pressure` section or a fixture-derived checklist to `SKILL.md` on one sampled case alone.",
         "Distinguishes promotion on one sampled case from the multiple-independent-evidence or user-approved-scope threshold that would justify standing skill-body guidance, rather than rejecting every named section by reflex.",
-        "States that a `SKILL.md` change, if any, should be a concise generic placement gate for deciding whether abstracted examples belong in the skill body, references, evals, or notes.",
+        "States that a `SKILL.md` change, if any, should be a concise generic placement gate for deciding whether abstracted examples belong in the skill body, references, evals, or notes, or identifies an existing equivalent placement gate as sufficient and leaves it unchanged.",
         "Keeps the concrete settings-workflow case in a targeted eval or rejected/deferred note, or allows a reference only with explicit applicability, instead of making it always-visible workflow guidance.",
         "Keeps the frontmatter `description` focused on trigger and context conditions, with workflow steps or checklists kept in the skill body or references rather than always-visible metadata.",
-        "Updates or proposes `evals/skill-quality/evals.json` coverage that fails promotion of sampled pressure cases into standing skill guidance.",
+        "Updates or proposes `evals/skill-quality/evals.json` coverage that fails promotion of sampled pressure cases into standing skill guidance, or identifies existing targeted coverage as sufficient and explains why no new eval mutation is justified.",
         "Updates README and CHANGELOG only if they own or describe the behavior, records changelog text under Unreleased when a behavior change is made, and does not bump versions or edit generated workspaces or snapshots.",
         "Does not treat the issue merely as unsupported product facts, verbatim prompt leakage, or loosen-to-pass coverage loss."
       ]
@@ -271,6 +271,27 @@
         "States that only a rerun of the reporting scanner proves that its warning cleared; another authoritative check may prove an underlying safety property but not the named scanner outcome, and host runtime isolation remains unproven without host evidence.",
         "Treats static eval validation and synthetic fixtures as structural or regression-contract proof only, not proof that the external scanner cleared, a credential was revoked, or the host enforced isolation.",
         "Selects the smallest coupled skill, reference, eval, README, and Unreleased changelog changes that own the behavior, without version bumps, snapshot edits, generated workspace commits, or unrelated security rewrites."
+      ]
+    },
+    {
+      "id": "E15",
+      "name": "Closing run predates fixture and assertion edits",
+      "prompt": "A skill-quality repair loop has a clean comparative run for iteration 21. After that run, a contributor edits the skill, moves several scenario-specific common assertions into per-eval expectations, converts one case from implementation execution to a response-only decision, and adds a new fixture file. The fixture exists in the source checkout but remains untracked; this repository runner copies only git-tracked working-tree paths into executor sandboxes. No run occurs after the edits. A later attempt reports that the response-only case could not read the fixture and safely stopped, but its grader still required completed file mutations and a full implementation artifact. The contributor compares iteration 21 with the new assertion layout, calls the skill improved, and wants to add the claim to CHANGELOG. Decide what is proven, what should change, and which rerun is required.",
+      "expected_output": "The agent separates measurement epoch, fixture delivery, eval delivery mode, and contract-denominator changes; repairs the owning eval boundaries and withholds improvement claims until an affected-suite run occurs after the final relevant edit.",
+      "files": [],
+      "expectations": [
+        "Builds a short evidence map that treats iteration 21 and the later safe stop as local investigation, and keeps the effect of the post-run skill/eval edits unproven.",
+        "Classifies the surfaces separately as stale closing evidence or measurement epoch, fixture delivery or sandbox-copy boundary, assertion or delivery-mode mismatch, and changed comparison denominator rather than one skill defect.",
+        "States that iteration 21 is historical evidence but cannot be the closing run for skill, assertion, prompt, fixture, or proof-path edits made afterward.",
+        "Requires rerunning the affected suite after the last relevant edit and verifies the iteration manifest records the intended model, configs, run count, and authoritative skill source before making an improvement claim.",
+        "Does not require rerunning unrelated suites as a substitute for the missing affected-suite closing run.",
+        "Recognizes that an untracked fixture is excluded by the repository runner’s git-tracked copy contract even when it exists in the source checkout, and treats the resulting missing-file response as a fixture-delivery gap rather than a skill failure.",
+        "Requires checking declared fixtures, source-fixture dirtiness, sandbox copy strategy or excluded-path evidence, and change manifest before attributing missing or substituted artifacts to the skill.",
+        "Repairs the fixture boundary by tracking the intended fixture when it should be delivered, or by making the response-only prompt self-contained when no fixture is needed; it does not teach the skill about an unrelated substitute fixture.",
+        "Checks that each expectation is satisfiable from the case delivery mode and recorded proof surface: a response-only decision is not graded on completed mutations or a full implementation artifact unless the prompt explicitly requests an exact command plan or artifact.",
+        "Separates retained-contract comparison from raw aggregate score movement because moving common assertions and changing case modes changed the assertion set and denominator.",
+        "Declines to call the skill improved or add an improvement claim to CHANGELOG until the corrected affected suite has a post-edit closing run; records the effect as unproven in the meantime.",
+        "Does not bump versions, edit managed snapshots, commit generated eval workspaces, or turn this scenario into a domain-specific checklist."
       ]
     }
   ],

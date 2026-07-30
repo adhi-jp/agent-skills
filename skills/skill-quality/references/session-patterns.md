@@ -94,6 +94,30 @@ into skill outputs.
   unsafe path after the main skill text changed. Eval fixtures and prompts were
   part of the current behavior contract, while old release notes remained
   historical evidence rather than text to rewrite.
+- Repeated cross-suite repair loops became more reliable when each run was tied
+  to a measurement epoch: the exact skill, prompt, assertion, fixture, and proof
+  surface state it measured. A later edit invalidated the prior run as closing
+  evidence for that behavior even when the earlier headline score looked
+  stronger.
+- Runner-isolated fixture checks prevented false skill diagnoses. In a
+  git-backed tracked-only sandbox, a newly created untracked fixture existed in
+  the source checkout but was deliberately absent from executor copies; the
+  resulting missing-file response was a fixture-delivery failure, not evidence
+  that the skill could not use the artifact.
+- Response-only, closure-only, artifact-writing, blocked, and state-changing
+  evals needed different proof contracts. Assertions that required completed
+  commands or a full implementation artifact from a decision-only prompt
+  produced systematic false negatives even when the decision itself was
+  correct.
+- No-change cases produced another false-negative class when graders treated
+  "`SKILL.md`: no edit" as a proposed skill mutation or required a fresh eval
+  edit after the output identified existing targeted coverage as sufficient.
+  The observable contract is the evidence-bound decision and owned surface, not
+  mutation for its own sake.
+- Aggregate comparisons across edited assertion sets required contract mapping.
+  A higher or lower pass rate after moving common assertions or changing case
+  modes measured a different denominator, so retained-contract behavior was
+  more informative than the headline delta alone.
 
 ## Changes That Risked Degrading Skills
 
@@ -169,6 +193,16 @@ into skill outputs.
 - An alternative security check could support the underlying safety property,
   but it could not prove that a named scanner warning disappeared without a
   rerun of that scanner.
+- Re-running a full suite after every local edit consumed time without improving
+  attribution when the run lacked a pre-registered question. The useful loop
+  ran only affected suites after the latest edit and stopped when failures moved
+  without a stable shared mechanism.
+- Source-checkout presence was mistaken for executor availability when untracked
+  fixtures were excluded by the runner's copy policy. Grading the resulting
+  safe stop as a skill failure encouraged the wrong prose change.
+- Common assertions degraded decision-only and closure cases when they required
+  full artifact sections, performed mutations, or proof that could not exist in
+  the recorded output mode.
 
 ## Practical Synthesis
 
@@ -185,6 +219,11 @@ For every skill change, preserve this sequence:
 6. Edit the smallest artifact set that owns that contract.
 7. Add, tighten, or compact discriminating eval expectations. For compaction,
    reconcile every old case to retained coverage or an accepted risk first.
-8. Run a closure search for stale current-contract text, then use the shared
-   eval workflow honestly or label unrun proof as absent.
-9. Report proof, gaps, and generated artifacts without inflating claims.
+8. Check the eval delivery mode and runner fixture-copy boundary so every
+   expectation is observable from the executor's actual inputs and outputs.
+9. Record the measurement epoch and the question the next affected-suite run is
+   intended to answer.
+10. Run a closure search for stale current-contract text, then use the shared
+    eval workflow honestly or label unrun proof as absent.
+11. Report proof, gaps, changed coverage, and generated artifacts without
+    inflating claims.

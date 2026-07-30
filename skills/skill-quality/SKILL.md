@@ -103,6 +103,39 @@ prompt or invocation mismatch, grader-boundary issue, or run variance/noise. If
 the classification points outside the skill contract, fix or record that
 boundary instead of tightening skill prose.
 
+## Evaluation Iteration Boundaries
+
+Treat each benchmark as a measurement of one exact skill/eval/fixture state,
+not as a floating verdict on the current working tree.
+
+- Before a run, record the affected suite, target failure mechanism, relevant
+  skill/eval/fixture paths, and the current change boundary (for example the
+  working-tree diff or commit plus iteration manifest).
+- A skill, assertion, prompt, fixture, or proof-path edit made after a run
+  supersedes that run as closing evidence for the changed behavior. Keep the
+  earlier result as historical evidence, but label the latest edit's effect
+  `Unproven` until the affected suite runs again.
+- Run only suites affected by the latest change unless a broader regression
+  claim needs more coverage. Re-running unrelated suites does not repair a
+  missing closing run for the changed suite.
+- Before reporting or committing a measured improvement, verify that the
+  cited closing run occurred after the last relevant tracked edit and that its
+  manifest points to the intended model, configs, run count, and skill source.
+- When suite assertions or case coverage changed between iterations, raw
+  pass-rate movement is not an apples-to-apples trend. Compare retained
+  contracts or mapped assertions, and report the coverage change separately.
+
+Maintain a compact iteration ledger during repair loops:
+
+| Iteration | Artifact boundary | Target mechanism | Result/anomalies | Decision |
+| --- | --- | --- | --- | --- |
+| [run directory] | [diff/commit and affected paths] | [contract or measurement question] | [official result and flagged cells] | [keep, edit, rerun, variance, blocked] |
+
+Stop launching more full-suite runs when the next run has no pre-registered
+question or when failures move without a stable shared mechanism. More samples
+can measure variance; they are not a substitute for deciding what the next run
+is intended to prove.
+
 ## Failure To Contract
 
 Before changing skill text or eval behavior, write a one-sentence contract
@@ -216,6 +249,29 @@ discriminating, observable, and hard to pass with the old failure mode.
   it will govern, including activation-only, exact-format, localized, verbatim,
   narrow-boundary, and no-change cases. Move scenario-specific stop gates or
   narrow behavior into per-eval expectations.
+- Classify each eval's delivery mode before writing expectations: executing
+  changes, response-only decision or command plan, artifact creation/revision,
+  closure-only, or blocked/no-change. Every expectation must be satisfiable and
+  observable in that mode. Do not require performed commands from a
+  response-only case unless the prompt explicitly requests the exact command
+  sequence; do not require a complete plan body from a closure-only decision;
+  and do not grade a blocked case as completed implementation.
+- In a no-change or blocked case, allow the output to prove scope by naming an
+  existing rule, eval, or artifact as sufficient and explicitly declining to
+  edit it. Do not treat that no-change explanation as a proposed mutation, and
+  do not require a new eval, doc, or skill edit merely to demonstrate that
+  existing coverage already owns the failure mode.
+- Verify that every declared fixture reaches the executor through the runner's
+  copy contract. In this repository's git-backed tracked-only sandbox, a newly
+  created but untracked fixture is excluded even when it exists in the source
+  checkout. Treat a missing or excluded fixture as a fixture-delivery or
+  measurement gap, not a skill failure.
+- Before interpreting a missing-file or wrong-artifact response, compare the
+  declared fixture set, source fixture dirtiness, sandbox copy strategy,
+  excluded-path sample, and change manifest. If the intended target was absent
+  and the executor substituted a nearby unrelated fixture, fix the prompt or
+  fixture boundary rather than teaching the skill about the substituted
+  example.
 - Write expectations against visible output, files, commands, records, or
   decisions, not against style taste.
 - If the eval runner shows `expected_output` or an expected-output summary to
@@ -360,6 +416,12 @@ change owner treats surprising, repeated, missing, ambiguous, or
 both-config-passing grades as evidence to interpret before editing skill or
 eval behavior.
 
+Before comparing two iterations, confirm whether their skill source, prompts,
+fixtures, assertion set, and recorded proof surface are equivalent. If not,
+state which contract changed and avoid presenting the aggregate delta as a
+direct model or skill improvement. A newer run can validate the new contract,
+but it does not retroactively isolate which prior edit caused the difference.
+
 Treat eval execution as a data-boundary decision. Do not send private skill
 packages, eval prompts, fixtures, outputs, or session excerpts to an external
 agent or hosted service unless the user or project explicitly authorizes that
@@ -494,6 +556,15 @@ Before finalizing, reject these common regressions:
   that excludes scored anomalous cells.
 - Counting an unrerun or contaminated run — no closing rerun, collapsed
   aggregate metrics, or lost per-eval isolation — as proof of improvement.
+- Calling a run "closing" when a relevant skill, assertion, prompt, fixture, or
+  proof-path edit happened afterward.
+- Comparing headline pass rates across changed assertion sets as though they
+  measured the same denominator and contract.
+- Treating a source-checkout fixture as delivered evidence without checking
+  that the runner copied it into the executor sandbox.
+- Requiring execution proof, full artifact content, or implementation completion
+  from an eval mode that can only record a response-only decision, closure, or
+  blocker.
 
 ## Self-Check
 
@@ -524,6 +595,17 @@ Before reporting completion:
 - Did the smallest coupled files change, including evals and changelog when
   required?
 - Are baseline, grader, token, timing, and report claims honest?
+- Did the cited closing run occur after the last relevant edit, and does the
+  iteration ledger identify what that run was intended to prove?
+- If iterations changed prompts, assertions, fixtures, or proof surfaces, were
+  coverage changes separated from raw score movement?
+- Are declared fixtures present in the executor sandbox under the runner's copy
+  contract, not merely present or untracked in the source checkout?
+- Can every assertion be satisfied from the eval's delivery mode and recorded
+  proof surface?
+- For a no-change or blocked case, did the grader distinguish naming an existing
+  sufficient artifact from proposing an edit, and avoid requiring a new
+  mutation solely as proof?
 - If any adjusted aggregate excludes anomalous cells, is it labeled diagnostic
   and kept separate from the official runner result?
 - Are generated workspaces left uncommitted?

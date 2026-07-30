@@ -923,9 +923,16 @@ guidance, updates discriminating repo-level evals, and uses the shared eval
 runner honestly. It keeps executor-visible eval summaries high-level, applies
 the same leakage check to its own self-authored assertions, keeps token/time
 claims evidence-bound, requires a closing rerun on a clean, complete run before
-any improvement claim, requires recorded host, runner, or equivalent artifact
-evidence for execution-proof assertions, requires turn-level pairing before
-counting session-history audit evidence, treats excluded, timed-out, stub, or placeholder eval cells
+any improvement claim, ties each closing run to the exact post-edit skill,
+assertion, prompt, fixture, and proof-surface state it measured, checks that
+declared fixtures reach the executor under the runner's copy contract, and
+requires assertions to be satisfiable from the case's response-only,
+artifact-writing, closure, blocked, or state-changing delivery mode. For
+no-change and blocked cases, it distinguishes naming an existing sufficient
+artifact from proposing an edit and does not require a new mutation solely as
+proof. It requires recorded host, runner, or equivalent artifact evidence for
+execution-proof assertions, requires turn-level pairing before counting
+session-history audit evidence, treats excluded, timed-out, stub, or placeholder eval cells
 as partial unmeasured proof until their surface is classified, keeps any
 diagnostic adjusted aggregate separate from the official runner result, treats
 authoritative source Skill paths as the `with_skill` target instead of host

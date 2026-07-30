@@ -36,6 +36,27 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skill-quality` now treats iterative eval repair as a sequence of explicit
+  measurement epochs. A run is closing evidence only for the exact skill,
+  assertion, prompt, fixture, and proof-surface state it measured; later edits
+  require a new affected-suite run before improvement claims. Eval design now
+  verifies that declared fixtures reach git-tracked executor sandboxes, checks
+  missing or substituted artifacts against fixture dirtiness, copy strategy,
+  excluded-path evidence, and change manifests, and requires expectations to be
+  satisfiable from the case's actual delivery mode. Response-only, closure-only,
+  blocked, artifact-writing, and state-changing cases no longer borrow proof
+  obligations from one another. No-change and blocked cases may identify an
+  existing sufficient rule, eval, or artifact without that explanation being
+  treated as a proposed edit, and do not need a gratuitous new mutation to prove
+  existing coverage. Cross-iteration score comparisons must separate
+  retained-contract behavior from changed assertion sets or denominators, and
+  repeated full-suite runs need a pre-registered measurement question instead
+  of substituting volume for attribution. A focused eval covers a stale closing
+  run, an untracked fixture excluded by the runner copy contract, a
+  response-only case graded on impossible mutations, and the required
+  affected-suite rerun. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`
+  and `python3 -m unittest discover -s tests -p 'test*.py'`.
 - The shared skill eval runner hardens Codex execution without changing Claude
   Code's invocation contract. Codex executor and grader prompts now travel over
   stdin with a terminal `-`; provider-owned last-message and schema paths are
