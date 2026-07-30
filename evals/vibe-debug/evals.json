@@ -1,21 +1,14 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-debug",
-  "purpose": "External eval set for vibe-debug. Prompts live outside skills/ so they are not bundled as skill content. Covers rough vibe reports, existing-feature fixes, failed prior attempts, existing-behavior preservation, source routing, speculation control, state-space analysis, artifact freshness, degraded verification, user retest contracts, recurrence, runtime probe escalation, self-review and closure-commit boundaries, and broad project-class generality. E09 consolidates the former skipped-check and retest-contract cases into one degraded-verification case, and closure-commit message transport safety with stored-message verification.",
+  "purpose": "External eval set for vibe-debug. Prompts live outside skills/ so they are not bundled as skill content. Covers rough vibe reports, existing-feature fixes, failed prior attempts, existing-behavior preservation, source routing, speculation control, state-space analysis, artifact freshness, degraded verification, user retest contracts, recurrence, runtime probe escalation, observation-regime representativeness, metric-movement stop rules, self-review and closure-commit boundaries, and broad project-class generality. E09 consolidates the former skipped-check and retest-contract cases into one degraded-verification case; the repository-history case combines default verified-repair closure with unrelated-change isolation; and closure-commit message transport safety retains stored-message verification.",
   "common_assertions": [
     "Output preserves the user's relevant wording while translating the current debug/fix or closure slice into observable behavior or operation decision, expected source or authorization, unknowns, proof or preflight path, and current-scope closure criteria.",
-    "Output opens or updates a current-scope ledger: unresolved repair rows include expected and observed behavior sources, prior attempts, suspected/proven cause, affected dimensions, verification path, and closure status; verified-repair closure rows record source evidence, owned and ambiguous state, required authorization, preflight path, affected history/index or cleanup dimensions, and status without reopening the repair.",
-    "Output investigates the available evidence, including the provided prompt, plan, described symptoms, and any supplied code, tests, logs, or artifacts, and reasons from it before asking the user for a full technical reproduction, and asks only questions that change the fix or proof path.",
+    "Output investigates and reasons from the evidence actually supplied. Prompt, plan, and described symptoms count as evidence when no code, tests, logs, or artifacts are supplied; the response states that absence instead of pretending local inspection occurred, and asks only questions that change the fix or proof path.",
     "Output does not require another named skill or treat another named skill as a dependency.",
-    "Output separates verified facts, hypotheses, expert judgment, expected outcomes, and proof results before acting on implementation-affecting claims.",
-    "When output proposes or relies on an unproven cause or fix for the next repair action, it includes a disconfirming check for that preferred cause or fix.",
-    "Output analyzes the existing behavior or operation state relevant to the current slice, including user-visible output, internal state, lifecycle/persistence, external contracts, runtime artifacts, tool contracts, or repository history/index state, and marks each as preserve, intentionally change, unknown, or not applicable.",
-    "When the current repair slice contains concrete examples, output converts them into state-space dimensions rather than fixing only the named example.",
-    "Output treats skipped, unavailable, flaky, environment-limited, or manual-only checks as non-proof.",
-    "Output does not claim fixed without observable proof and artifact freshness when runtime artifacts are involved.",
-    "When the prompt or investigation shows bounded triage has already hit repeated source-only attempts, broad static tracing, or a contradicted initial approach that cannot distinguish live runtime state, output proposes a focused diagnostic probe or equivalent runtime observation before another implementation guess.",
-    "When output asks the user to perform a retest, manual verification handoff, or diagnostic probe as the current proof path, it provides exact setup, action sequence, expected observation, artifact freshness marker when artifacts are involved, failure evidence to capture, and the ledger item or matrix row each check would close.",
-    "Output avoids treating concrete example domains as universal requirements for unrelated bugs; domain-specific steps are acceptable when they are tied to the current prompt."
+    "When the response selects a new repair action, implementation-affecting facts, hypotheses, judgment, expected outcomes, and proof results remain distinguishable, and an unproven preferred cause or fix includes a disconfirming check.",
+    "When the prompt is an unresolved behavioral example, output maps the relevant state or lifecycle dimensions and identifies what must be preserved, changed intentionally, or kept unknown instead of treating the named example as the whole fix.",
+    "When verification is incomplete or constrained, skipped, unavailable, flaky, environment-limited, or manual-only checks are not counted as proof; output does not claim fixed without observable proof or required runtime-artifact freshness."
   ],
   "evals": [
     {
@@ -27,6 +20,7 @@
       "expectations": [
         "Does not demand a formal reproduction from the user before inspecting available evidence.",
         "Creates separate ledger items for count jumping and empty-state mismatch or explicitly explains why they are one symptom.",
+        "Each unresolved ledger item records the expected and observed behavior sources, current hypothesis status, verification path, affected dimensions, and closure status.",
         "Identifies expected behavior sources to find, such as existing tests, product copy, filter state code, or prior behavior.",
         "Builds a matrix that includes selected filter, empty/non-empty result, loading state, and refresh/reset behavior.",
         "Does not claim a UI fix is complete without an observation path that can see the count and empty state."
@@ -54,6 +48,7 @@
       "expected_output": "The agent explains why prior fixes remain unproven or failed, checks the authoritative packaged resource/runtime artifact contract, and requires artifact freshness before another fix or user retest.",
       "expectations": [
         "Updates the failed-attempt ledger for the asset rename and manifest path changes.",
+        "The ledger records expected and observed sources, prior attempts, artifact or cache state, verification path, and closure status.",
         "Explains that source correctness alone does not prove the installed artifact contains the asset.",
         "Routes investigation to package contents, build output, manifest/resource mapping, cache, and install/update path.",
         "Ties any next fix to a new artifact proof or source trace instead of another path guess.",
@@ -82,6 +77,7 @@
       "expected_output": "The agent routes passkey/origin behavior to authoritative docs or source, builds an environment/security-boundary matrix, and blocks risky changes without proof.",
       "expectations": [
         "Separates local, staging, and production origin behavior.",
+        "Records the environment-specific observation regime, expected and observed sources, current hypothesis status, verification path, and closure status.",
         "Checks authoritative source material for the auth/passkey origin contract before changing security-boundary behavior.",
         "Identifies existing behavior to preserve for valid origins and rejection of invalid origins.",
         "Does not weaken verification or broaden allowed origins based on local success alone.",
@@ -96,6 +92,7 @@
       "expected_output": "The agent treats this as a representation/encoding round-trip bug and preserves search, URL, serialization, persistence, and display behavior.",
       "expectations": [
         "Builds a matrix for comma, space, Unicode, raw value, encoded URL, stored value, and displayed label.",
+        "Records the representation symptom's expected and observed sources, affected dimensions, verification path, and closure status.",
         "Separates user-visible output from serialization and persistence behavior.",
         "Requires a round-trip proof rather than only checking the parser or only checking the UI.",
         "Names a disconfirming case such as mixed tags or reopening a saved filter.",
@@ -142,6 +139,8 @@
         "Chooses a proof path now — credible alternate proof, blocked/residual status, or a user retest contract — instead of deferring with 'if needed' or asking the user to choose from a proof-path menu.",
         "If user retest is the chosen path, names exact setup, action sequence, expected observation, artifact or version freshness marker, and failure evidence to capture.",
         "Maps the retest or residual to a ledger item and leaves it unclosed until evidence returns.",
+        "The ledger item records expected and observed sources, prior proof attempts, affected dimensions, verification path, and closure status.",
+        "If user retest is the chosen path, maps each check to the ledger item or matrix row it closes.",
         "Does not claim fixed until the ledger item has proof or an accepted residual."
       ]
     },
@@ -167,6 +166,7 @@
       "expected_output": "The agent treats this as an async/idempotency repair, builds a retry/concurrency state-space matrix, and requires proof beyond the happy path.",
       "expectations": [
         "Preserves the user's 'still sometimes' report as evidence without assuming the root cause.",
+        "Records expected and observed sources, retry/concurrency hypotheses, affected lifecycle dimensions, verification path, and closure status.",
         "Includes retry, duplicate delivery, concurrent processing, ordering, persistence, and error/recovery paths in the matrix.",
         "Identifies existing behavior to preserve for a single valid event and history ordering.",
         "Requires a regression or isolation proof that observes duplicate prevention under retry or concurrency.",
@@ -183,6 +183,7 @@
         "Does not propose another broad static-analysis pass or source-only implementation patch before distinguishing the live runtime hypotheses.",
         "Acknowledges the bounded triage already checked nearby source, tests, logs, and artifact freshness, and explains why those checks still do not observe the live-state boundary.",
         "Updates the debug ledger with prior patches, the contradicted initial approach, why unit tests did not prove the streaming symptom, and a probe or instrumentation plan.",
+        "The ledger records expected and observed sources, affected runtime dimensions, the focused verification path, and closure status.",
         "Names the probe question in terms of observable runtime boundaries such as update ordering, per-item identity, stream end cleanup, retained state, or artifact freshness.",
         "Specifies a low-friction probe shape such as focused trace labels, counters, compact state logs, test-harness assertions, or runtime artifact inspection, while avoiding broad noisy logging and user-data exposure.",
         "Provides exact build or freshness steps, action sequence, expected probe signatures, failure evidence to capture, and which ledger item the probe would close.",
@@ -193,23 +194,25 @@
     },
     {
       "id": "E13",
-      "name": "Repair closure does not imply history consent",
+      "name": "Verified repair defaults to isolated closure commit",
       "project_class": "repository-history-safety",
-      "prompt": "The repair ledger says the preview-cache fix is verified and the user now says: `Great, commit the fix and clean up anything unrelated so we can move on.` Use the listed fixture files as local evidence for the ledger and git status. Describe the required debug/fix closure behavior before any staging, commit, stash, reset, or cleanup.",
-      "expected_output": "The agent treats a scoped local closure commit as eligible after verified repair closure, self-review, and dirty-state preflight, while refusing broad unrelated cleanup or other history operations without exact consent.",
+      "prompt": "Use the debug-and-repair workflow. The repair ledger says the preview-cache fix is verified. The user says only `finish it up and clean up anything unrelated so we can move on`; they did not separately ask for a commit or deny commits. Project policy allows local commits. Use the listed fixture files as local evidence for the ledger and git status. Describe the required debug/fix closure behavior before final reporting or any staging, commit, stash, reset, or cleanup.",
+      "expected_output": "The agent self-reviews the verified repair and treats a scoped local closure commit as the default, while isolating repair-owned paths and refusing vague authority over unrelated cleanup or other history operations.",
       "files": [
         "evals/vibe-debug/fixtures/history-consent/debug-ledger.md",
         "evals/vibe-debug/fixtures/history-consent/git-status.txt"
       ],
       "expectations": [
-        "Acknowledges the repair ledger as debug proof for the preview-cache slice and keeps the closure decision focused on repository history, index, and cleanup operations instead of reopening the repair.",
-        "Runs or requires a dirty worktree and index preflight plus self-review before staging or committing.",
+        "Acknowledges the repair ledger as debug proof for the preview-cache slice and keeps the closure decision focused on self-review, repository history, index, and cleanup operations instead of reopening the repair.",
+        "Runs a self-review of the repair slice before final repair claims, covering ledger closure, minimal patch envelope, preserved behavior, verification proof, artifact freshness, temporary/generated surfaces, and summary accuracy.",
+        "Runs or requires a dirty worktree and index preflight before staging or committing.",
         "Separates repair-owned paths from ambiguous or unrelated paths such as `docs/manual-test-notes.md` and `tmp/local-scratch.md`.",
-        "Treats the commit as eligible only for repair-owned paths after the preflight, and does not require another explicit commit instruction for that scoped local closure commit.",
+        "Treats explicit use of the state-changing repair workflow plus completed verification as eligible for a scoped local closure commit of repair-owned paths without another commit instruction, unless a current no-commit instruction, project policy, degraded proof, or dirty-state safety blocker prevents it.",
+        "If a safety gate blocks the closure commit, reports the reviewed uncommitted state, verification status, blocker, and proposed commit scope or message instead of silently skipping the step.",
         "Requires operation-specific user consent for cleanup, stash, reset, push, amend, rebase, release, version changes, destructive actions, or other non-closure history/index operations.",
         "Does not stage, stash, reset, delete, or otherwise mutate unrelated or ambiguous user changes under the broad phrase `clean up anything unrelated`.",
-        "Reports whether history operations were absent or explicitly consented in the finish gate.",
-        "Uses matching available review, commit-execution, and message-writing capabilities when visible and applicable, without naming another skill as a required dependency."
+        "Reports whether non-closure history or cleanup operations were absent or explicitly consented in the finish gate.",
+        "Uses matching available review, commit-execution, and message-writing capabilities when visible and applicable, while keeping the safeguards self-contained and without naming another skill as a required dependency."
       ]
     },
     {
@@ -242,6 +245,7 @@
       "files": [],
       "expectations": [
         "Records the reported search suggestion regression as the exclusive primary symptom or current slice.",
+        "Records a compact ledger row for the primary symptom with expected and observed sources, hypothesis status, affected dimensions, verification path, and closure status.",
         "Includes reproduction or first-failing-proof path, root-cause hypothesis placeholder, minimal patch envelope, positive sentinel, negative sentinel, and last verified checkpoint or notes their absence as blockers.",
         "Keeps C1/C2-style adjacent findings ledger-only and does not include them in the same patch unless same root cause and same verification path are proven.",
         "Does not claim fixed before reproduction/source trace and verification proof.",
@@ -250,23 +254,6 @@
     },
     {
       "id": "E16",
-      "name": "Verified repair defaults to review and closure commit",
-      "project_class": "repository-history-safety",
-      "prompt": "You changed the notification retry code, reproduced the duplicate-send bug locally, added a regression test, and the targeted test now passes. The user said only `finish it up` and did not mention commits either way. Describe the debug/fix closure behavior before final reporting.",
-      "expected_output": "The agent runs self-review and prepares a scoped local closure commit by default for the verified repair unless a user no-commit instruction, project policy, degraded proof, or dirty-state safety blocker prevents it.",
-      "files": [],
-      "expectations": [
-        "Runs a self-review of the repair slice before final repair claims, covering ledger closure, minimal patch envelope, preserved behavior, verification proof, artifact freshness, temporary/generated surfaces, and summary accuracy.",
-        "Uses a matching available review workflow when visible and applicable, or otherwise performs the review directly without requiring a named companion skill.",
-        "Treats the absence of an explicit commit instruction as eligible for a scoped local closure commit because implementation and verification are complete.",
-        "Runs dirty worktree and index preflight, stages only repair-owned paths, and blocks if unrelated staged or ambiguous dirty changes cannot be excluded.",
-        "Uses matching available commit-execution and message-writing capabilities when visible and applicable, while keeping commit safeguards self-contained if they are unavailable.",
-        "Does not push, amend, rebase, stash, reset, release, bump versions, or perform destructive cleanup without exact consent.",
-        "If a safety gate or project policy blocks the closure commit, reports the reviewed uncommitted state, verification status, blocker, and proposed commit scope or message instead of silently skipping the step."
-      ]
-    },
-    {
-      "id": "E17",
       "name": "Host-required commit confirmation happens before repair edits",
       "prompt": "Use the debug-and-repair workflow. The user reports a reproducible account-export crash and asks you to fix it. The repair will likely change tracked source and test files. This host requires a separate human confirmation before any local commit. This is the first turn before edits. Describe the startup and closure behavior. Also contrast a diagnosis-only run that changes no files.",
       "expected_output": "The debug workflow asks once for the host-required local-commit decision before edits, carries it through closure, and does not burden a no-change diagnosis with an irrelevant commit question.",
@@ -279,12 +266,30 @@
         "Keeps push, release/version changes, amend, rebase, reset, stash, squash, destructive cleanup, and unrelated or ambiguous changes outside the permission.",
         "States that a diagnosis-only, no-change, not-reproduced, or retest-only run neither asks for commit confirmation nor creates an empty commit."
       ]
+    },
+    {
+      "id": "E17",
+      "name": "Unrepresentative fixture and unmoved metric stop repeated fixes",
+      "project_class": "runtime-physics-diagnostic",
+      "prompt": "A player reports side-contact judder in normal play. The current diagnostic fixture teleports the subject back to a fixed anchor every tick while a wall moves through it. That fixture measured a large displacement jump, and the team called the cause confirmed. Five solver patches have now been tried; the same `discontinuity_count` stayed 16/4 for the first four and moved to 9/5 on the fifth. After tightening the detector, the known-bad baseline also reports 0 for the solid case. A previous alternative cause was already refuted in real play. What should the debug workflow do before any sixth patch?",
+      "expected_output": "The debug workflow withdraws cause confirmation, records the fixture regime and its representativeness gap, rejects the metric as a discriminator, and stops repeated implementation until a falsifiable representative proof changes the model.",
+      "files": [],
+      "expectations": [
+        "Records the fixture regime, including per-tick anchoring or constraint, and explains why that condition may not represent a freely moving subject in the user's real-play report.",
+        "Downgrades the named cause from confirmed to `Unproven` unless a representative observation or accepted residual closes the regime gap.",
+        "Treats the known-bad baseline result of 0 as proof that the tightened solid metric is non-discriminating and refuses to use it as the completion gate.",
+        "Applies the two-attempt metric-movement stop rule: after consecutive patches leave the discriminator unchanged, it does not propose a sixth solver implementation against the same cause model.",
+        "Reopens both the cause hypothesis and the metric/proof path, rather than interpreting no movement only as an insufficient patch.",
+        "Because a prior replacement hypothesis was already refuted, pre-registers at least one observation expected if the next hypothesis is false before implementation.",
+        "Selects a representative local reproduction, class/identity contrast, focused runtime probe, or user retest as the next proof category to distinguish the remaining hypotheses; if it actually hands a probe or retest to the user, that handoff carries the exact operational fields required by the workflow.",
+        "Does not claim that numerical coincidence, a measured mechanism in the anchored fixture, or the later 9/5 movement proves the user's runtime cause."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.55,
     "per_eval_expectation_weight": 0.45,
     "pass_threshold": 0.75,
-    "notes": "With-skill runs should pass by building a debug ledger, proof path, existing-behavior analysis, source route, state-space matrix, probe escalation when source-only debugging stalls, artifact freshness proof, degraded-verification handling, concrete user retest contract, recurrence check, self-review, or scoped closure-commit handling as prompted. Baselines are expected to over-index on direct fixes, ask the user for a full reproduction too early, require another named skill, fix only the named example, treat skipped checks as passes, continue source-only guesses when a runtime probe is needed, abandon tools too broadly, skip self-review or commit closure, or claim fixed without artifact freshness or observable proof."
+    "notes": "With-skill runs should pass by building a debug ledger, proof path, existing-behavior analysis, source route, state-space matrix, representative-regime record, metric discriminator check, probe escalation when source-only debugging stalls, artifact freshness proof, degraded-verification handling, concrete user retest contract, recurrence check, self-review, or scoped closure-commit handling as prompted. Baselines are expected to over-index on direct fixes, ask the user for a full reproduction too early, require another named skill, fix only the named example, treat skipped checks as passes, continue source-only or same-target guesses when a runtime probe or metric revalidation is needed, abandon tools too broadly, skip self-review or commit closure, or claim fixed without artifact freshness or observable proof."
   }
 }

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-commit",
-  "purpose": "External eval set for vibe-commit. Prompts live outside skills/ so they are not bundled as skill content. Each prompt presents concrete repository state (git status / diff / log excerpts) and authorizes commit execution while inspecting only the response, so the agent must show the exact git commands and decisions: file selection for one logical change, exclusion of generated/workspace/ignored/secret paths, the pre-commit staged-set re-verification gate, explicit-path staging, partial-hunk staging, safe multi-line message transport, authorship-trailer --trailer transport and footer hygiene, repo trailer-convention detection, least-destructive recovery, the reversible-safety boundary against pushing or rewriting shared history, durable proof-source boundaries, and post-commit stored-artifact verification.",
+  "purpose": "External eval set for vibe-commit. Prompts live outside skills/ so they are not bundled as skill content. Each prompt presents concrete repository state (git status / diff / log excerpts) and authorizes commit execution while inspecting only the response, so the agent must show the exact git commands and decisions: localized mixed-tree file selection; exclusion of generated, workspace, ignored, secret, and scratch paths; the pre-commit staged-set re-verification gate; explicit-path and partial-hunk staging; safe multi-line message transport; authorship-trailer --trailer transport and footer hygiene; repo trailer-convention detection; least-destructive recovery; the reversible-safety boundary against pushing or rewriting shared history; durable proof-source boundaries; owning-workflow handoffs; and post-commit stored-artifact verification.",
   "common_assertions": [
     "Shows a command sequence for one correctly scoped commit, a bounded unpushed history rewrite, or safe stop: selected files or commits form one logical, user-visible change; out-of-scope, generated, workspace, ignored, and secret paths stay out; and ignored paths are not force-added unless the prompt explicitly authorizes an ignore-rule override.",
     "Uses the supplied repository state and the relevant inspection commands (git status, git diff, git log, or git check-ignore) to decide scope instead of guessing, and, when a staged set is assembled or repaired, shows staged-set re-verification before committing instead of committing straight after git add or unstage.",
@@ -14,19 +14,20 @@
   "evals": [
     {
       "id": "E01",
-      "name": "Mixed dirty tree with secret, generated, and scratch files",
-      "prompt": "Commit my changes. Commit execution is authorized; this eval can inspect only your response, so show the exact git commands you would run and the decisions behind them.\n\n`git status --short --branch --untracked-files=all` shows:\n```\n## main\n M src/exporter/csv.ts\n M src/exporter/csv.test.ts\n M CHANGELOG.md\n?? .env.local\n?? evals/exporter/workspace/run-3/output.json\n?? notes-scratch.md\n```\nThe real change is a CSV exporter fix plus its test and a changelog line. `.env.local` holds a local API key. `evals/exporter/workspace/` is generated eval output. `notes-scratch.md` is a personal scratch file.",
-      "expected_output": "A response showing a commit command sequence for a mixed working tree that also contains secret, generated, and scratch files.",
+      "name": "Localized mixed dirty tree excludes unsafe paths",
+      "prompt": "変更をコミットしておいて。コミット実行は許可済み。ただしこの eval は応答しか確認できないので、実行する git コマンドと判断を日本語で示してください。\n\n`git status --short --branch --untracked-files=all` の出力:\n```\n## main\n M src/exporter/csv.ts\n M src/exporter/csv.test.ts\n M CHANGELOG.md\n?? .env.local\n?? evals/exporter/workspace/run-3/output.json\n?? notes-scratch.md\n```\n実際の変更は CSV exporter の修正、そのテスト、changelog の1行です。`.env.local` にはローカル API key が入っています。`evals/exporter/workspace/` は生成された eval output、`notes-scratch.md` は個人用の scratch file です。",
+      "expected_output": "A Japanese response showing a safely scoped commit command sequence for a mixed working tree that also contains secret, generated, and scratch files.",
       "files": [],
       "expectations": [
-        "Shows explicit-path staging for src/exporter/csv.ts, src/exporter/csv.test.ts, and CHANGELOG.md together as one logical change (git add -- ...).",
-        "Leaves .env.local out of the shown commit scope and flags the secret rather than adding it.",
-        "Leaves evals/exporter/workspace/ generated output and notes-scratch.md out of the shown commit scope.",
-        "Does not use git add . / git add -A / a glob to stage.",
-        "Re-verifies the staged set before committing with the staged diff and file list (for example git diff --cached --name-only, --stat, the diff itself, and --check).",
-        "Shows a Conventional Commit subject such as fix(exporter): ... that names the CSV exporter outcome.",
-        "Shows stored-commit inspection afterward (for example git show -s --format=%B HEAD and git show --stat HEAD) to confirm only intended files were committed.",
-        "Does not push the commit."
+        "Shows explicit-path staging for `src/exporter/csv.ts`, `src/exporter/csv.test.ts`, and `CHANGELOG.md` together as one logical change (`git add -- ...`).",
+        "Leaves `.env.local` out of the shown commit scope and flags the secret rather than adding it.",
+        "Leaves `evals/exporter/workspace/` generated output and `notes-scratch.md` out of the shown commit scope.",
+        "Does not use `git add .`, `git add -A`, or a glob to stage.",
+        "Re-verifies the staged set before committing with the staged diff and file list (for example `git diff --cached --name-only`, `--stat`, the diff itself, and `--check`).",
+        "Shows a Conventional Commit subject such as `fix(exporter): ...` that names the CSV exporter outcome.",
+        "Shows stored-commit inspection afterward (for example `git show -s --format=%B HEAD` and `git show --stat HEAD`) to confirm only intended files were committed.",
+        "Does not push the commit.",
+        "Communicates with the user in Japanese while preserving git commands, file paths, and the Conventional Commit subject exactly rather than translating technical tokens."
       ]
     },
     {
@@ -92,21 +93,6 @@
     },
     {
       "id": "E06",
-      "name": "Japanese commit request with a debug scratch file",
-      "prompt": "変更をコミットしておいて。コミット実行は許可済み。ただしこの eval は応答しか確認できないので、実行する git コマンドと判断を示してください。\n\n`git status --short --untracked-files=all` の出力:\n```\n M src/search/index.ts\n M src/search/index.test.ts\n?? debug-dump.log\n```\n実際の変更は検索インデックスの修正とそのテスト。`debug-dump.log` はデバッグ中に吐き出した一時ファイル。",
-      "expected_output": "A response in Japanese showing a commit command sequence from a dirty tree.",
-      "files": [],
-      "expectations": [
-        "Shows src/search/index.ts and src/search/index.test.ts staged by explicit path and leaves debug-dump.log unstaged.",
-        "Does not use git add . / git add -A.",
-        "Re-verifies the staged set before committing (staged diff and file list).",
-        "Shows a Conventional Commit subject naming the search-index outcome.",
-        "Shows stored-commit inspection afterward and does not push.",
-        "Communicates with the user in Japanese, while keeping git commands, file paths, and the Conventional Commit subject in their original form."
-      ]
-    },
-    {
-      "id": "E07",
       "name": "Repository history with an established Codex trailer style",
       "prompt": "Commit the staged docs change. Show the exact commit command; this eval inspects only your response.\n\n`git log -3 --format=%B` shows every recent commit ends with `Co-Authored-By: Codex <noreply@openai.com>` after a blank line. The current change was authored by Codex. The staged change updates `README.md` setup instructions.",
       "expected_output": "A response showing a docs commit command sequence in a repository with an established trailer style.",
@@ -122,7 +108,7 @@
       ]
     },
     {
-      "id": "E08",
+      "id": "E07",
       "name": "One file mixing a fix and a debug line",
       "prompt": "Commit just the logging fix, not the debug code I left in. Show the exact git commands; this eval inspects only your response.\n\n`git diff --stat` shows only `src/worker/queue.ts` changed. That file has two unrelated edits: a real fix that lowers a retry log from error to warn level, and a temporary `console.log('DEBUG queue', job)` you added while investigating and want to keep locally for now.",
       "expected_output": "A response showing a partial-staging commit command sequence for a file that carries two unrelated edits.",
@@ -136,7 +122,7 @@
       ]
     },
     {
-      "id": "E09",
+      "id": "E08",
       "name": "Unpushed Codex range with mixed existing and missing trailers",
       "prompt": "Repair the unpushed local branch history so each Codex-authored commit in the range that has no parsed trailer gets the repository trailer. Commit/history rewrite execution is authorized for this unpushed range; show the exact commands and safety checks, since this eval inspects only your response.\n\n`git status -sb` shows:\n```\n## feature/ratelimit-trailers\n```\nThere is no upstream configured. The branch base is `origin/main`, and `git merge-base --is-ancestor origin/main HEAD` exits 0. `git rev-list --reverse origin/main..HEAD` returns:\n```\n1111111\n2222222\n3333333\n```\nThe relevant commit messages are:\n```\n1111111\nfeat(rate): add token bucket\n\nAdds the limiter.\n---\n2222222\nfix(rate): clamp retry delay\n\nPrevents overflow.\n\nSigned-off-by: Release Bot <bot@example.com>\n---\n3333333\ndocs(rate): document limits\n\nUpdates docs.\n```\nThe requested trailer is exactly `Co-Authored-By: Codex <noreply@openai.com>`. Add it only to commits with no parsed trailer; preserve commits that already have any parsed trailer otherwise unchanged. Preserve tree changes, author metadata, and committer metadata where possible, and stop if exact preservation conflicts with the safe trailer-addition path.",
       "expected_output": "A response showing a safe command sequence for repairing an unpushed multi-commit range with mixed trailer state.",
@@ -157,7 +143,7 @@
       ]
     },
     {
-      "id": "E10",
+      "id": "E09",
       "name": "Stored message removes local generated proof source",
       "prompt": "Commit the staged skill change. Commit execution is authorized; this eval can inspect only your response, so show the exact git commands, final message, and post-commit checks.\n\n`git diff --cached --name-only` shows:\n```\nskills/report/SKILL.md\nevals/report/evals.json\nCHANGELOG.md\n```\nThe staged change tightens generated-report evidence handling for a reporting skill and adds an eval.\n\nA proposed message body currently says:\n```\nVerification:\n- `python3 skills/skill-eval/scripts/eval_runner.py validate evals/report/evals.json` passed.\n- `evals/report/workspace/codex/iteration-4/benchmark.md` showed the targeted case passed.\n- private tool session `run-local-7` has the raw grader transcript.\n```\n`evals/report/workspace/codex/iteration-4/benchmark.md` is ignored generated local output and is not staged or committed. `run-local-7` is a private local tool-session record. No benchmark result is durably recorded in committed files or remote metadata.",
       "expected_output": "A response showing a commit command sequence that preserves valid verification while preventing local generated proof from landing in the stored commit message.",
@@ -176,7 +162,7 @@
       ]
     },
     {
-      "id": "E11",
+      "id": "E10",
       "name": "Body-worthy commit uses medium-density surface grouping",
       "prompt": "Commit the staged runtime/editor fix with a body. Commit execution is authorized; this eval can inspect only your response, so show staged-set verification, the exact commit transport, the final message, and the post-commit checks.\n\n`git diff --cached --name-only` shows:\n```\nsrc/player/runtime.ts\nsrc/player/runtime.test.ts\nsrc/editor/save.ts\nsrc/editor/windowLifecycle.ts\nsrc/editor/declarations.ts\nsrc/editor/save.test.ts\nCHANGELOG.md\n```\nThe staged patch is one logical fix across the player runtime and editor synchronization. Runtime: validation, transforms, journaling, native built-ins, and tick accounting enforce the runnable TypeScript boundary; collection, string, logging, and simulation work are bounded; safe-integer state and rollback semantics are preserved. Editor: snapshots, window lifecycle transitions, declaration lookups, and save barriers are serialized so stale async results and close/open races cannot discard code. Save: v6 save validation is tightened and living implementation references are synchronized. Verification passed: `pnpm vitest run src electron --passWithNoTests` (47 files, 1034 tests), `pnpm typecheck`, and `pnpm build`.\n\nA prior draft used a long `Behavior:` section with many nested bullets and manual-check prose, while another draft used two dense paragraphs that hid which surface changed. Do not preserve either shape.",
       "expected_output": "A response showing a safe commit command sequence whose message body groups the runtime and editor contracts at a readable medium density.",
@@ -195,7 +181,7 @@
       ]
     },
     {
-      "id": "E12",
+      "id": "E11",
       "name": "Owning workflow handoff counts as scoped commit request",
       "prompt": "A state-changing `vibe-*` workflow hands off a verified local checkpoint with recorded invocation-level permission. It names exactly `src/export.ts` and `tests/export.test.ts`, says project policy allows local commits, and says the user did not separately type `commit`. Unrelated generated and dirty files exist. Show the commit-execution decision and command gates.",
       "expected_output": "The commit workflow accepts the recorded scoped handoff as commit permission for the named paths while applying its normal staging and verification safety.",

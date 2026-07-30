@@ -78,6 +78,9 @@ Stop before implementation when the current issue lacks any of these:
   path.
 - An authoritative expected behavior source.
 - A verification path that can observe the claimed fix.
+- A representative observation regime for any claimed cause, or an explicit
+  statement of why the fixture/runtime conditions differ and keep the cause
+  unproven.
 - Current-scope closure criteria for each reported symptom.
 
 Explain blockers in user-impact terms: what the user could still see, lose,
@@ -102,16 +105,21 @@ the user, include a compact current-scope record:
   cleanup remains, do not reopen the repair; record a closure-decision row with
   source evidence, owned and ambiguous paths, affected history/index state,
   required consent, preflight path, and status.
-- Claim labels: separate verified facts, hypotheses, expert judgment, expected
-  outcomes, and proof results for implementation-affecting claims.
-- Existing behavior or state: name the user-visible output, internal state,
-  persistence/lifecycle, external contract, runtime artifact, tool contract, or
-  repository history/index state that must be preserved, changed
-  intentionally, is unknown, or is not applicable.
+- Claim labels: when a decision depends on disputed evidence, distinguish the
+  load-bearing fact, hypothesis or judgment, and proof status. Do not emit empty
+  categories.
+- Existing behavior or state: name only the dimensions that can change the
+  current fix or proof path, and mark each as preserve, intentionally change,
+  unknown, or not applicable when that status is material.
 
 If the only available evidence is the prompt, plan, or supplied fixture, say
 that explicitly and reason from it before asking for the smallest missing
 decision. A narrow question is not a substitute for the current-scope record.
+Do not substitute an unrelated repository fixture, generated file, or nearby
+example merely because it shares a domain term or plausible constant. If the
+reported tool or artifact is absent, keep the evidence prompt-only, record the
+missing artifact as the blocker, and do not hand-edit a different generated
+surface.
 
 ## Delegated Diagnosis
 
@@ -187,6 +195,13 @@ transport any multi-line message as one complete payload, add trailers through
 the commit command's trailer mechanism, verify the staged set before committing,
 and inspect the stored message after committing.
 
+When the final response must prove the closure commit from recorded text, show
+the preflight/staged-set commands, one complete multi-line message transport
+(`git commit -F - <<'EOF'` or `git commit -F <file>`), any requested
+`git commit --trailer` argument, and the exact
+`git show -s --format=%B HEAD` result. Do not replace these artifacts with a
+summary, repeated `-m` body arguments, or a different log command.
+
 Stop before commit when the repair-owned path set is ambiguous, unrelated staged
 changes cannot be excluded, verification is degraded without accepted residual,
 self-review has unresolved material findings, the commit would require push,
@@ -229,6 +244,9 @@ Stop and report a blocker or ask the smallest plan-changing question when:
 - The symptom cannot be reproduced, isolated, source-traced, or handed off with
   exact manual proof.
 - A repeated report arrives and you cannot explain why the prior fix failed.
+- Two consecutive repair attempts under the same cause hypothesis leave the
+  acceptance discriminator unchanged, and neither the discriminator nor the
+  observation regime has been revalidated.
 - A needed source, artifact, tool, or runtime path is unavailable and no
   alternate proof is credible.
 - A needed diagnostic probe, trace, log, assertion, or runtime observation is

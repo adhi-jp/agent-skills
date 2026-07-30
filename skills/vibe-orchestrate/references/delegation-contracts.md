@@ -37,6 +37,11 @@ separately. A large task is not enough by itself. Keep tightly coupled work with
 one context owner when every unit depends on the same unresolved decision, the
 same changing files, or continuous cross-step reasoning.
 
+One contract should normally have one coherent verification command group and
+one acceptance receipt. If its deliverables need independent verification
+methods that can pass or fail separately, split them unless the coupling makes
+the combined contract safer and the reason is recorded.
+
 For parallel writers, require separate worktrees, sandboxes, or an equivalent
 enforceable isolation boundary; never run them concurrently in one shared
 working tree. Whitelist disjoint source and generated-output paths, name the
@@ -62,6 +67,10 @@ Hard rules:
 - Do not read these paths: [agent config, unrelated skill definitions, planning
   artifacts, credentials, build config, or other task-irrelevant paths].
 - Edit only these paths: [editable whitelist]. Everything else is out of scope.
+- Do not run repository-wide or package-wide formatters, auto-fix linters,
+  codemods, dependency updates, or generators. Apply such tools only to the
+  explicitly edited files, unless a numbered work item requires broader effect
+  scope and the contract names that scope.
 - Do not run git staging, committing, reset, stash, amend, rebase, tag, push,
   release, destructive, credential, billing, permission, or external-side-effect
   operations.
@@ -70,10 +79,23 @@ Hard rules:
 - If the task needs a non-whitelisted file, broader command, missing fact,
   user decision, credential, destructive action, or invariant change, stop and
   report it under `BLOCKERS:`.
+- If evidence contradicts a premise listed below as verified, stop and report
+  the exact premise and observation under `BLOCKERS:`. Do not resolve the
+  contradiction by changing protected evidence, redefining the requirement, or
+  deciding that the contract premise is correct.
 
 Verified facts:
-- [API signature, version behavior, local convention, current failure log,
-  known flake, accepted invariant, unverified limit]
+- [claim; measured | source-read | derived; verification anchor; authority for
+  this claim class; invariant | configurable default | local choice; assumptions
+  and break condition when derived]
+
+Known execution-environment constraints:
+- [sandbox, stdin, process, filesystem, test-harness, resource, cache, port, or
+  helper constraint; how to report rather than weaken behavior]
+
+Protected evidence:
+- [external artifact or parity test that must not be edited, deleted, ignored,
+  regenerated, or replaced without coordinator approval]
 
 Model and context budget:
 - Capability tier: [token-efficient / standard / strongest suitable / user-fixed], because [quality-neutral lookup, broad synthesis, risk, or user priority].
@@ -105,6 +127,8 @@ FILES:
 - [changed files]
 COMPILE:
 - [PASS / FAIL / SKIPPED(reason), with command if run]
+REMOVED TESTS:
+- [removed or renamed named tests, or `none`, when the harness can enumerate]
 DECISIONS:
 - [each discretionary choice made, or `none`]
 BLOCKERS:
@@ -155,6 +179,17 @@ Inline facts that affect correctness before sending the worker:
 Label unverified claims. Do not ask a worker to rediscover broad API or local
 architecture facts unless the assignment is explicitly read-only research.
 
+For facts copied from another implementation, classify the force of each value
+or rule:
+
+- `invariant`: an authoritative format, specification, or runtime enforces it.
+- `default`: the other implementation uses it by default but allows override.
+- `choice`: it is that implementation's local design decision.
+
+Do not turn `default` or `choice` into a hard local contract merely because the
+source line was quoted accurately. Record the independent reason or stop for a
+coordinator decision.
+
 ## Repair Contract Variant
 
 For repair work, add this block to the contract:
@@ -166,6 +201,11 @@ Repair invariants:
   pass.
 - If a protected expectation appears wrong, report it under `BLOCKERS:` with the
   evidence. Do not weaken the test or change the requirement.
+- Ordinary project-owned tests may be updated only when the contract change
+  makes their expectation wrong and every update is reported. Self-generated
+  golden files may be regenerated only through the repository's named generator.
+  External, vendor, corpus, or independently sourced parity tests and fixtures
+  must not be changed, deleted, or ignored; a conflict is a blocker.
 - Keep diagnostic instrumentation temporary. Remove it before reporting done,
   unless the coordinator explicitly asked to keep it.
 ```
@@ -188,10 +228,18 @@ Read-only scope:
 
 When the worker returns:
 
-- Compare `FILES:` against the editable whitelist.
+- Compare the coordinator's before/after round snapshot against `FILES:` and the
+  editable whitelist. A current `git status` alone cannot attribute changes to
+  the round and does not reveal content changes inside already-untracked files.
 - Match the receipt to the unit's work-graph position and join gate.
 - Treat `COMPILE:` as self-report until the coordinator verifies it.
 - Check every `DECISIONS:` entry for scope impact.
+- Inspect `DECISIONS:` and `BLOCKERS:` for premise contradiction language such
+  as a contract fact being described as wrong, defective, contradicted, or
+  unexpectedly different. Do not accept the report until the coordinator
+  resolves that contradiction.
+- Compare baseline and final named-test sets when removal would weaken proof;
+  aggregate pass counts cannot prove non-deletion.
 - Treat any missing `BLOCKERS:` section as a contract failure to inspect before
   trusting the result.
 - Reconcile the progress journal with the working tree for long or interrupted

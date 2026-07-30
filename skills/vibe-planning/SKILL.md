@@ -104,6 +104,12 @@ Use this file path selection order:
 3. `docs/plans/YYYY-MM-DD-<goal-slug>-implementation-plan.md` at the workspace root,
    using the current local date and a short lowercase ASCII slug.
 
+When the runner or host designates a primary artifact capture path for an eval
+or recording run, write the plan there so the grader can inspect the complete
+artifact. Treat that path as transport for the run, not as the repository's
+durable plan-location convention; the plan content still records the path that
+a real repository workflow would use when that distinction matters.
+
 Do not overwrite an existing plan file. If an explicit user path already exists,
 ask before replacing it; use a non-destructive sibling only when the user allowed
 that behavior. For generated default names, append a numeric suffix such as `-2`
@@ -309,3 +315,17 @@ proceed-condition wording, and final quality checklist.
 The reference is mandatory output guidance, not optional background. Use it to
 shape the artifact; do not paste the full checklist into chat or into ordinary
 plans. Compact output reduces rendering, not planning discipline.
+
+Before the concise summary, verify the stored artifact contains the selected
+depth and rationale, evidence labels, acceptance criteria and tests before
+implementation steps, integrity-gate outcomes, skill routes, implementation
+handoff, review and self-review records, and proceed condition. If any required
+section is absent, repair the artifact before responding rather than relying on
+the summary to carry the missing contract.
+
+For a response-only closure request whose supplied repository state is
+authoritative, do not ask whether to record the already-authorized planning
+checkpoint. Show the exact safe command sequence: refresh status, stage the
+plan-owned path explicitly, inspect the staged file list/diff and `--check`,
+create a standalone planning commit, inspect the stored message and committed
+file set, and show the final status while leaving unrelated paths untouched.

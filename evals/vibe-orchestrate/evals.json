@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-orchestrate",
-  "purpose": "External eval set for vibe-orchestrate. Prompts live outside skills/ so they are not bundled as skill content. Covers coordinator-owned delegation contracts, stop-as-blocker behavior, fact inlining, progress journals, reference-only monitoring, coordinator verification, review adjudication, direct intervention disclosure, parallel-writer accident cleanup, frontier-model loop engineering with token-efficient delegates, and deliberate multi-subagent decomposition for substantial work, and startup local-commit confirmation with coordinator-owned closure.",
-  "coverage_notes": "Coverage matrix: bounded delegation contracts -> E01; blocker-stop behavior -> E02; fact inlining -> E03; journal recovery -> E04; reference-only monitoring -> E05; coordinator verification -> E06; review adjudication -> E07; direct-intervention disclosure -> E08; parallel-writer cleanup -> E09; frontier/subagent loop engineering -> E10; multi-subagent work-graph selection -> E11; startup commit confirmation and coordinator-owned closure -> E12. All cases have distinct contract coverage, so E01-E12 are retained in sequence. Scenario-specific behavior is graded only by each case's expectations rather than duplicated through common assertions. Eval-runner validation proves schema/format only; behavioral coverage is reviewed through these mapped cases and measurable expectations.",
+  "purpose": "External eval set for vibe-orchestrate. Prompts live outside skills/ so they are not bundled as skill content. Covers coordinator-owned delegation contracts, stop-as-blocker behavior, fact inlining, progress journals, reference-only monitoring, coordinator verification, review adjudication, direct intervention disclosure, parallel-writer accident cleanup, frontier-model loop engineering with token-efficient delegates, deliberate multi-subagent decomposition for substantial work, startup local-commit confirmation with coordinator-owned closure, and evidence-authority/premise-contradiction handling for protected external proof.",
+  "coverage_notes": "Coverage matrix: bounded delegation contracts -> E01; blocker-stop behavior -> E02; fact inlining -> E03; journal recovery -> E04; reference-only monitoring -> E05; coordinator verification -> E06; review adjudication -> E07; direct-intervention disclosure -> E08; parallel-writer cleanup -> E09; frontier/subagent loop engineering -> E10; multi-subagent work-graph selection -> E11; startup commit confirmation and coordinator-owned closure -> E12; evidence authority, premise contradiction, protected parity evidence, round-boundary attribution, named-test non-deletion, and command effect scope -> E13. All cases have distinct contract coverage, so E01-E13 are retained in sequence. Scenario-specific behavior is graded only by each case's expectations rather than duplicated through common assertions. Eval-runner validation proves schema/format only; behavioral coverage is reviewed through these mapped cases and measurable expectations.",
   "common_assertions": [],
   "evals": [
     {
@@ -30,7 +30,7 @@
         "Says the worker must stop or remain blocked rather than edit `build.gradle` or read `.agents/skills/vibe-debug/SKILL.md` under the existing contract, and does not authorize proceeding merely because the access seems necessary or convenient.",
         "Treats the non-whitelisted edit and forbidden read as a coordinator decision point requiring evidence or a revised contract.",
         "Separates a possible plan-preserving contract revision from scope-changing work that needs the owning artifact or user decision.",
-        "Preserves the rule that `.agents/skills/` snapshots are not source for edits and should not be used as ordinary implementation input."
+        "Does not authorize reading `.agents/skills/vibe-debug/SKILL.md` as ordinary implementation input under the current contract; any broader access requires a coordinator-approved contract change."
       ]
     },
     {
@@ -63,12 +63,14 @@
     {
       "id": "E05",
       "name": "Reference-only watchdog guidance without scripts",
-      "prompt": "Use `vibe-orchestrate`. I want monitoring guidance for a delegated worker. Please give me the watchdog approach, but do not write scripts. The worker sometimes disappears silently after launch.",
-      "expected_output": "Reference-only watchdog guidance covering appearance timeout, liveness, progress staleness, safe cancellation, and no script creation.",
+      "prompt": "Use `vibe-orchestrate`. I want monitoring guidance before fanning out five reviewers through a background command form we have not used in this session. Please give me the watchdog approach, but do not write scripts. A prior worker stayed `running` while its startup log stopped changing.",
+      "expected_output": "Reference-only monitoring guidance covering a pre-fan-out transport canary, appearance timeout, liveness, progress staleness, safe cancellation, and no script creation.",
       "files": [],
       "expectations": [
         "States that this is reference-only guidance and does not provide or require a runnable script.",
+        "Runs or requires one minimal round-trip canary before the five-reviewer fan-out because the transport/background mode is unverified in the current session.",
         "Covers appearance timeout after launch, worker liveness, and progress staleness as separate checks.",
+        "Treats unchanged progress or log receipts beyond the staleness budget as a stall even when the task status still says `running`.",
         "Mentions adjustable thresholds or example thresholds without hard-coding them as universal facts.",
         "Prefers host task handles, runner status, or named cancellation controls over raw PID force-kill lists.",
         "Warns that environment-terminating recovery commands should be left for the user to run manually when relevant."
@@ -77,14 +79,15 @@
     {
       "id": "E06",
       "name": "Coordinator verification overrides worker self-report",
-      "prompt": "Use `vibe-orchestrate`. The worker returned `COMPILE: PASS` and says it ran the relevant tests. It changed `src/server.ts`, `src/client.ts`, and `tests/server.test.ts`. What should I do before accepting the work?",
+      "prompt": "Use `vibe-orchestrate`. The worker returned `COMPILE: PASS` and says it ran the relevant tests. It changed `src/server.ts`, `src/client.ts`, and `tests/server.test.ts`. The same worker also reports that an interactive smoke check failed with `Connection closed` in its sandbox and calls that a product blocker; the coordinator has not reproduced that failure in the authoritative environment. What should I do before accepting the work?",
       "expected_output": "A coordinator verification checklist that treats worker status as self-report, runs authoritative gates, checks all touched surfaces, and avoids declaring completion from worker prose alone.",
       "files": [],
       "expectations": [
         "Treats `COMPILE: PASS` and the claimed test run as worker self-report rather than final proof or a sufficient completion claim.",
         "Requires coordinator-run compile or type-check gates covering both server and client surfaces or explains how to enumerate relevant targets.",
         "Requires relevant tests or full suite proof as appropriate, including quantitative test evidence when new tests are expected.",
-        "Includes a diff/status review of `src/server.ts`, `src/client.ts`, and `tests/server.test.ts` against the contract."
+        "Includes a diff/status review of `src/server.ts`, `src/client.ts`, and `tests/server.test.ts` against the contract.",
+        "Treats the sandbox `Connection closed` failure as worker self-report and classifies possible environment divergence before accepting it as a product defect or weakening product/test behavior."
       ]
     },
     {
@@ -111,7 +114,7 @@
         "Allows direct coordinator editing only as a narrow exception, such as mechanical micro-fix or repeated transport-failure fallback.",
         "Requires disclosure of reason, scope, why delegation was not used, and verification.",
         "Requires normal coordinator verification after the edit.",
-        "Does not use the exception to authorize broader unplanned fixes or release/history operations.",
+        "Does not use the exception to authorize broader unplanned fixes, new behavior-changing design choices, or release/history operations.",
         "Mentions removing temporary diagnostics if any were used, or marks them not applicable."
       ]
     },
@@ -122,7 +125,7 @@
       "expected_output": "A single-writer accident protocol that quarantines new writes, inspects both workers' diffs and journals, adopts useful changes only after reconciliation and verification, and checks for post-gate mutation.",
       "files": [],
       "expectations": [
-        "Starts by stopping or quarantining further write-capable launches and identifying expected and unexpected workers.",
+        "Starts by stopping further write-capable launches, identifies the intended and unintended workers, and cancels any still-running unintended overlapping writer with named host/task controls rather than logging a warning and continuing to wait.",
         "Requires inspecting status, diffs, journals, and file freshness before adopting or discarding the dead worker's extra test file, rather than keeping or removing it blindly.",
         "Requires any adopted unexpected change to match the contract and pass normal coordinator verification gates.",
         "Includes a post-gate mutation or final status check to ensure no stale writer changed verified bytes."
@@ -165,11 +168,28 @@
       "files": [],
       "expectations": [
         "Asks once at startup for the host-required local-commit confirmation before delegating write work, rather than waiting until workers finish.",
-        "Records the confirmation or denial for the active owning workflow and does not have each worker ask again.",
-        "Forbids subagents from staging, committing, pushing, releasing, or mutating history.",
-        "Keeps the final scoped checkpoint with the coordinator after receipts, merge or integration, authoritative verification, review, and file-set checks.",
-        "Does not extend the permission to push, release/version changes, history rewriting, destructive cleanup, or unrelated paths.",
+        "States that the coordinator records and reuses the confirmation or denial for the active workflow and that workers do not ask again.",
+        "Explicitly forbids subagents from staging, committing, pushing, releasing, or mutating history.",
+        "Keeps the final scoped checkpoint with the coordinator and names receipts, merge or integration, authoritative verification, review disposition, and file-set checks as pre-commit gates.",
+        "Explicitly limits the permission against push, release/version changes, history rewriting, destructive cleanup, and unrelated paths.",
         "States that read-only or no-change orchestration would not require the question or create an empty commit."
+      ]
+    },
+    {
+      "id": "E13",
+      "name": "Contract premise conflicts with protected external parity evidence",
+      "prompt": "Use `vibe-orchestrate`. A coordinator delegated a binary-serializer correction after a popular compatibility library appeared to disagree with the local writer. The contract described the local writer as wrong. During implementation, the worker found that the repository's independently sourced compatibility corpus matches the local bytes instead. It then replaced the corpus round-trip test with a model-only test, refreshed several opaque fixtures, ran an automatic repository cleanup command, and reported that the suite now has more passing tests than before. Its changed-file receipt is shorter than the coordinator's before/after snapshot. Decide whether this round can be accepted and what must change before another worker starts.",
+      "expected_output": "A coordinator decision and recovery plan for conflicting contract evidence, proof-artifact changes, incomplete change attribution, and a green aggregate.",
+      "files": [],
+      "expectations": [
+        "Classifies the worker's corpus finding as a contradiction of a verified contract premise and stops acceptance or follow-up implementation until the coordinator adjudicates it; it does not let the worker resolve the contradiction by redefining the corpus as wrong.",
+        "For a serialized-artifact claim, independently ranks the compatibility corpus, any normative format source, and the other implementation rather than treating the cited library as automatically authoritative; it separates the observed disagreement from the inference about which behavior is correct.",
+        "Treats the independently sourced corpus and its round-trip test as protected parity evidence that a worker must not replace, weaken, delete, or ignore to make the contract pass.",
+        "Does not accept increased passing-test totals as proof that no valuable property disappeared; it compares named tests or equivalent contract sentinels and identifies the lost parity property.",
+        "Uses the coordinator's pre-round and post-round snapshot or equivalent attribution method to reconstruct changes omitted from the worker receipt and treats the mismatch as lowering confidence in the rest of the report.",
+        "Classifies the opaque fixtures before acceptance and requires the repository's authoritative generator plus semantic decode/inspection for self-generated goldens, while blocking external or vendor artifact mutation.",
+        "Adds a language-neutral command-effect rule that repository-wide formatters, auto-fixers, codemods, generators, or dependency updates cannot exceed the editable whitelist merely because the worker invoked them.",
+        "Requires coordinator-run authoritative verification after restoring or reworking the evidence boundary and does not repair the alleged serializer defect merely from the compatibility-library citation."
       ]
     }
   ],
@@ -177,6 +197,6 @@
     "common_assertion_weight": 0.0,
     "per_eval_expectation_weight": 1.0,
     "pass_threshold": 0.8,
-    "notes": "These evals are mapped to the required behavior coverage matrix in coverage_notes. Every assertion is scenario-specific; no common assertion is applied to unrelated exact-scope, monitoring, recovery, verification, review, model-tier, or fan-out cases. Baseline agents are expected to overtrust worker self-report, omit stop-as-blocker terms, create broad worker prompts, treat review output as execution authority, prescribe runner-specific cleanup, collapse substantial independent work into one monolithic delegate, maximize fan-out without a dependency reason, overuse cheap delegates for risky decisions, or claim token savings without proof, defer host-required commit confirmation until after delegated edits, or transfer commit authority to workers. With-skill runs should stay coordinator-owned, bounded, host-neutral, and reference-only."
+    "notes": "These evals are mapped to the required behavior coverage matrix in coverage_notes. Every assertion is scenario-specific; no common assertion is applied to unrelated exact-scope, monitoring, recovery, verification, review, model-tier, or fan-out cases. Baseline agents are expected to overtrust worker self-report, omit stop-as-blocker terms, create broad worker prompts, treat review output as execution authority, prescribe runner-specific cleanup, collapse substantial independent work into one monolithic delegate, maximize fan-out without a dependency reason, overuse cheap delegates for risky decisions, claim token savings without proof, defer host-required commit confirmation until after delegated edits, transfer commit authority to workers, accept reference-source citations as format authority, let workers resolve premise contradictions, trust aggregate test growth, or miss whitelist-escaping tool effects. With-skill runs should stay coordinator-owned, bounded, host-neutral, evidence-authority-aware, and reference-only."
   }
 }

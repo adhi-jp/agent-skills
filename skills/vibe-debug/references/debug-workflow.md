@@ -33,10 +33,11 @@ Read this reference when actively diagnosing, repairing, verifying, or handing o
      held as ledger-only, and the closure status.
    - Maintain a ledger with these fields for each current-scope symptom:
      reported symptom; expected behavior and source; observed behavior and
-     source; prior attempts and why each failed or remains unproven; suspected
-     causes; probe or instrumentation plan and result when source-only evidence
-     cannot distinguish live-state hypotheses; proven cause; affected
-     state-space dimensions; verification path; closure status.
+     source; observation regime and representativeness; prior attempts and why
+     each failed or remains unproven; suspected causes; probe or instrumentation
+     plan and result when source-only evidence cannot distinguish live-state
+     hypotheses; proven cause; affected state-space dimensions; verification
+     path; acceptance discriminator with before/current result; closure status.
    - Closure status is exactly one of `fixed`, `not-reproduced`, `deferred`,
      `accepted-residual`, or `blocked`.
    - Do not claim "fixed" until every current-scope ledger item has proof and a
@@ -93,6 +94,15 @@ Read this reference when actively diagnosing, repairing, verifying, or handing o
      or automated observation.
    - Name one fast disconfirming check that could show the chosen cause or fix
      is wrong.
+   - A cause is not confirmed merely because a measured mechanism exists in a
+     fixture. Record the measurement regime and why it represents the reported
+     user path. If constraint, initial state, external force, environment,
+     identity/class, or timing differs materially, keep the cause `Unproven`
+     until a representative observation or explicit residual closes the gap.
+   - After a prior cause hypothesis is refuted for the same symptom, pre-register
+     at least one observation expected if the replacement hypothesis is false
+     before implementing against it. A numerical coincidence or source-level
+     difference is not that falsification proof.
 
 9. **Choose diagnostic probes at the right time**
    - Run bounded static triage first: nearest source path, relevant tests,
@@ -129,6 +139,12 @@ Read this reference when actively diagnosing, repairing, verifying, or handing o
      did not address the symptom before proposing another fix.
    - The next fix must be tied to new proof, a source trace, or a state-space
      finding. Do not make another independent guess.
+   - If two consecutive attempts under the same cause hypothesis do not
+     materially move the acceptance discriminator, stop implementation. Before
+     a third attempt, prove that the discriminator fails on the known-bad
+     baseline or replace it, and re-open the cause hypothesis or observation
+     regime. Treat no movement as evidence against the current model, not only
+     as evidence that the patch was too small.
 
 11. **Fix the smallest verified slice**
     - Prefer reproduction first. If local reproduction is not feasible, use a

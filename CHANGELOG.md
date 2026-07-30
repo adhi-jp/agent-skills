@@ -71,6 +71,105 @@ use `[Repository] - YYYY-MM-DD`.
   both-config authorization regression guard at 100%/100%; E02 discriminated
   the documented CLI and verification contract at 88.9%/22.2%. Generated
   workspace artifacts remain uncommitted.
+- Repeated Codex `gpt-5.4-mini` benchmark triage narrows the changed-skill
+  follow-up to stable contract gaps while treating moving single-run failures as
+  variance rather than adding per-cell prose. `vibe-debug` keeps common pressure
+  conditional on unresolved repair, constrained verification, or exhausted
+  source-only triage and makes recorded closure commits prove staged state,
+  message transport, trailers, and stored messages. `vibe-orchestrate` records
+  startup commit decisions and coordinator-owned closure gates, and consolidates
+  protected-parity contradiction handling into one acceptance checklist.
+  `vibe-plan-execution` moves scenario-specific behavior out of universal common
+  assertions, makes artifact binding and checkpoint proof visible, and records
+  blocked-source and Plan Validity handoffs without rewriting the plan.
+  `vibe-planning` compacts the plan-body contract into load-bearing sections,
+  treats runner artifact paths as transport, and makes response-only plan
+  closure show the exact scoped commit gates. Repeated sequential Codex runs
+  scored every cell with zero infrastructure exclusions. The closing
+  `gpt-5.4-mini` readings were: `vibe-commit` 74.0% vs 43.2% (+30.9 points,
+  Sanity OK); `vibe-debug` 76.1% vs 59.0% (+17.0 points, two
+  candidate-below-baseline cells); `vibe-orchestrate` 82.9% vs 72.8% (+10.1
+  points, two zero-scored/candidate-below-baseline cells);
+  `vibe-plan-execution` 77.8% vs 55.5% (+22.3 points, two
+  candidate-below-baseline cells); and `vibe-planning` 83.3% vs 37.3% (+46.0
+  points, Sanity OK). Flagged cells were inspected against executor and grader
+  outputs; none were runner or grader infrastructure failures. Debug and
+  plan-execution flags moved across repeated single-run cells, while stable
+  orchestration permission/parity and execution checkpoint boundaries were
+  tightened at their owning contracts. Runs remain one sample per cell, so
+  assertion-level reliability beyond the measured runs is not claimed.
+  Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
+  and `python3 -m unittest discover -s tests -p 'test*.py'`.
+- `vibe-orchestrate`, `vibe-debug`, `vibe-planning`, and `vibe-plan-execution`
+  now harden recurring evidence and proof failures in delegated implementation
+  and repair workflows.
+  Delegation captures a round-zero baseline, ranks evidence authority by claim
+  class, separates observed propositions from inference, stops on contract
+  premise contradictions, protects external parity artifacts, constrains
+  repository-wide tool effects, treats delegated failures as environment-bound
+  self-report until reproduced, compares named-test sets rather than relying on
+  pass-count growth, inspects non-text artifacts, aborts unintended overlapping
+  writers, and canaries unverified fan-out transports. Debugging records the
+  observation regime and representativeness of cause evidence, validates repair
+  metrics against the known-bad baseline, and stops a third same-model patch
+  after two attempts fail to move the discriminator. Planning distinguishes
+  derived values from measurements, requires assumptions and empirical proof
+  before freezing derived limits, adds falsifiability pressure to acceptance
+  gates, and maps public outcomes across terminal paths to internal observers and
+  carriers. Plan execution rejects non-discriminating metrics and re-reviews
+  lifecycle, ordering, concurrency, timeout, fallback, and first-winner repairs
+  for inverse regressions before completion or checkpoint commits. Focused eval
+  cases cover protected artifact conflicts, sandbox failure attribution,
+  transport staleness, unrepresentative fixtures, derived protocol limits,
+  missing internal carriers, and inverse lifecycle races. No change was made to
+  `vibe-writing`: its existing separation of suite status, acceptance coverage,
+  unresolved scope, and unverified edits already owns the relevant summary
+  wording contract. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
+  and `python3 -m unittest tests.test_eval_runner tests.test_sync_dev_agent_skills`.
+  Behavioral improvement is not measured because no fresh eval run was
+  requested.
+- Follow-up analysis of the clean `claude-sonnet-5` comparative run narrows the
+  remaining quality work to eval discrimination and one planning-contract gap.
+  `vibe-planning` now requires representation coverage to split terminal paths
+  whose observers, carriers, cleanup state, precedence, or field availability
+  can differ, instead of collapsing them into one generic failure row.
+  `vibe-planning` common assertions now apply full plan-body requirements only
+  to creation or revision cases, so closure-only checkpoint prompts are graded
+  on closure behavior rather than being required to recreate an already-reviewed
+  plan. `vibe-debug` moves exact user-retest/probe handoff fields out of the
+  common assertions and into the scenarios that actually hand work to the user.
+  The new orchestration and execution pressure prompts no longer disclose the
+  target contract names or conclusions in `expected_output`; they require the
+  model to infer evidence authority, protected-proof handling, metric
+  discrimination, and symmetric race review. The prior clean run remains the
+  official result for the pre-follow-up suite; the effect of these follow-up
+  changes is not measured until a fresh authorized rerun.
+- The `vibe-*` eval audit compacts two overlapping cases without forcing a
+  family-wide numeric target. `vibe-commit` folds its separate Japanese
+  simple-dirty-tree case into the stronger secret/generated/scratch mixed-tree
+  case, retaining localized chat and technical-token preservation; its
+  remaining cases are renumbered `E01` through `E11`. `vibe-debug` folds the
+  standalone default closure-commit case into the fixture-backed
+  repository-history case, retaining self-review, default scoped commit
+  eligibility, dirty-state isolation, blocker reporting, and refusal of vague
+  unrelated cleanup; its remaining cases are renumbered `E01` through `E16`.
+  The other `vibe-*` suites retain their current cases because the apparent
+  overlaps protect distinct state, language-precedence, exact-format,
+  discovery-path, or proof-boundary contracts. Static validation confirms
+  schema and fixture integrity only; preserved discrimination and runtime cost
+  changes are not measured because no comparative eval run was requested.
+  Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`
+  and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`.
 - `skill-quality` now separates wording mitigations from by-construction closure
   for security analyzer, trust-boundary, and credential-propagation findings.
   It maps the reported source, boundary, sinks, unsafe behavior, and enforcement

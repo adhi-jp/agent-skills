@@ -87,6 +87,12 @@ contracts. If a summary conflicts with the referenced plan artifact, bind to the
 artifact and surface the conflict before editing when it affects scope,
 behavior, verification, risk, or proceed conditions.
 
+Before reporting completion, make the binding visible: name the authoritative
+plan path and the current slice, then summarize the acceptance and verification
+gates that controlled the kept changes. A final reply that only lists edited
+files and behavior is not proof that the referenced artifact was read or that
+summary-only scope additions were rejected.
+
 ## Concrete Plan Requirements
 
 A plan is concrete enough to execute only when the current slice has:
@@ -106,6 +112,18 @@ corrected local path instead of implementing from the summary.
 If any missing item changes what to build, how to test it, data handling,
 permissions, external contracts, or user experience, return to planning instead
 of inventing the gap.
+
+When execution stops because the target source or proof surface is absent, keep
+the bound plan intact. Report the current plan item, the exact missing local
+evidence, the verification or review that could not run, the evidence-backed
+progress status, any current no-commit instruction, and the path or artifact
+needed to resume. Do not rewrite requirements, acceptance criteria, or plan
+steps merely to create a progress artifact.
+
+When a current instruction says `Do not commit`, preserve that exact reason in
+the progress ledger's commit-action field and in the execution summary. Do not
+replace it with `No commit requested`, missing verification, or another inferred
+reason.
 
 ## When Not to Use
 
@@ -159,6 +177,11 @@ Do not use this skill for:
   but the plan's proof strategy, test strategy, edit order, implementation
   surface, or risk handling is wrong. Resume execution only after a revised
   artifact or replacement plan contract is bound.
+- A Plan Validity stop is visible in the handoff: name the conflicting `Plan`
+  claim, the `Local evidence` or `Primary source` that contradicts it, the
+  contract surfaces affected, the owning artifact to revise, and the condition
+  for rebinding execution. Do not silently rewrite the plan and report only the
+  corrected conclusion.
 - A plan-authored `Commit checkpoints` section or "commit after each slice"
   instruction defines the preferred local checkpoint boundaries. When it is
   absent, choose natural independently verified and reviewed slice boundaries
@@ -170,6 +193,20 @@ Do not use this skill for:
   release preparation, version bumps, amend, reset, stash, squash, destructive
   operations, external side effects, work-in-progress commits, unverified
   commits, or checkpoint scope changes.
+- Before an eligible checkpoint commit, run or report the staged-file and
+  staged-diff gate, the required verification result, the post-implementation
+  review result and material-finding dispositions, and the stored commit
+  inspection. If any gate is unavailable, blocked, or failing, leave the slice
+  uncommitted and record that status instead of substituting a lighter check.
+- When the checkpoint message has a body, transport it as one complete payload
+  with `git commit -F - <<'EOF'` or `git commit -F <file>`, apply requested
+  trailers through `git commit --trailer`, and inspect the stored message with
+  `git show -s --format=%B HEAD`. Repeated `-m` body arguments and substitute
+  log formats do not satisfy this gate.
+- An acceptance metric is executable proof only after current `Local evidence`
+  shows it distinguishes the before state from the required after state. A
+  known-bad baseline that already passes the metric blocks completion and
+  returns to the plan's proof strategy.
 - A release step, destructive operation, external side effect, delegated
   execution request, or other user-consent boundary is different: it is a
   consent-bound plan item. If exact authorization is missing, run the Startup
@@ -229,8 +266,9 @@ Do not use this skill for:
 
 Use these labels internally and in user-facing blockers, questions, plan
 deviation notices, commit-checkpoint decisions, and execution summaries when
-they affect scope, behavior, verification, risk, commit authorization, or
-whether implementation may proceed:
+provenance affects scope, behavior, verification, risk, commit authorization,
+or whether implementation may proceed. Label the load-bearing claims; do not
+list unused classes merely to satisfy a template:
 
 - `Plan`: stated by the bound implementation plan, specification, acceptance
   criteria, or task list.

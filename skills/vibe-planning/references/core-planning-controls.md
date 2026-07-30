@@ -310,6 +310,14 @@ tests, or implementation order:
 Every `Unproven` or `Accepted risk` item must include impact, `Phase
 relevance`, the fastest proof path, and where it must be revisited.
 
+A value calculated from measured or source-backed inputs is a derivation, not a
+measurement. Record it as `Local investigation (derived)` with the formula,
+assumptions, and at least one condition that would break the derivation. When a
+derived value becomes a public limit, frozen constant, acceptance threshold, or
+test invariant, confirm it empirically before implementation or keep it
+`Unproven` with proof before implementation. Do not let verified inputs
+silently upgrade unchecked arithmetic assumptions.
+
 ## Plan Integrity Gates
 
 Run these gates before finalizing any plan and every time a plan is revised
@@ -366,7 +374,31 @@ to prove that no prior plan exists.
    - If the alternative proof path reduces coverage, record the reduced claim as
      `Unproven` or `Accepted risk` and keep implementation blocked unless the
      user explicitly accepts that risk.
-5. **Generality gate**
+   - For each metric used as an acceptance gate, record the known-bad or current
+     baseline. The gate must fail, differ, or otherwise expose the defect before
+     the planned fix. If the baseline already satisfies the threshold, the
+     metric is non-discriminating and cannot gate implementation completion.
+   - Ask what wrong implementation would still pass each load-bearing
+     assertion. Reject proof based only on an unused observation seam,
+     expectations imported from the implementation, best-case input for a
+     general claim, final-state traces for forbidden-call claims, or missing
+     lifecycle/encoding branches.
+5. **Representation coverage gate**
+   - When the plan freezes both a public contract and an internal protocol,
+     state machine, schema, or result representation, map every required public
+     field or outcome across terminal paths or states to the internal carrier
+     that can observe and transport it.
+   - Split paths when their origin, available evidence, cleanup state,
+     precedence, or carrier can differ. Do not use one broad `error`, `fatal`,
+     or `failure` row when assertion/script failure, connection failure,
+     timeout, cancellation, partial cleanup, or another terminal class can
+     observe or transport different values. Group paths only when current
+     evidence proves the same observer, carrier, and field availability apply,
+     and record that grouping basis.
+   - If only one component can observe a value, make the handoff explicit. An
+     internal representation that cannot carry a required public value blocks
+     freezing the design; do not rely on the receiving component to infer it.
+6. **Generality gate**
    - Treat any concrete example, fixture, project memory, copied handoff, or
      history-derived failure case that influenced the plan as a sampled case, not
      an exhaustive list or mandatory project shape.

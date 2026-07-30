@@ -43,7 +43,10 @@ Default perspectives:
   integration surfaces touched by the diff.
 - `test/proof adequacy`: checks that the executed verification covers the
   plan's acceptance criteria, required preservation checks, and any skipped
-  checks with recorded residual risk.
+  checks with recorded residual risk. It also asks which wrong implementation
+  would still pass each load-bearing assertion, whether an observation seam is
+  actually consumed, whether expectations come from an independent source, and
+  whether lifecycle, encoding, failure, or ordering branches are missing.
 
 Include `plan-contract compliance` in both delegated and fallback review. When
 capacity allows, include the other perspectives; if capacity is limited, choose
@@ -166,6 +169,10 @@ and does not authorize the next step or any commit.
      gates; a broad green suite does not prove completion if the core positive
      path is missing.
    - For bug fixes, reproduce the failure or add a regression test when feasible.
+   - For an acceptance metric intended to distinguish the defect, record its
+     current or known-bad baseline before relying on it. If the baseline already
+     meets the planned threshold, stop and return to the proof strategy rather
+     than implementing toward a non-discriminating gate.
    - For refactors, protect existing behavior with equivalence checks.
    - When the plan includes behavior inventory, equivalence, recovery, or
      selected failure-pattern checks, verify every current-slice contract those
@@ -185,6 +192,10 @@ and does not authorize the next step or any commit.
    - Classify material review findings as `corrected`, `rejected`, `deferred`,
      or `blocked`; verify delegated findings as `Local evidence` before relying
      on them, and do not treat the review itself as a pass.
+   - Treat a correction that changes control flow, ordering, lifecycle,
+     concurrency, priority, timeout, fallback, or first-winner behavior as a new
+     reviewable change. Re-run at least the perspective that found the original
+     issue and check the inverse or symmetric failure mode before closure.
    - If the diff creates or edits durable text, inspect durable-artifact
      language hygiene and record the result before the execution summary or any
      authorized commit; classify any material wording finding with the other
@@ -307,6 +318,9 @@ Stop before implementation, or pause an in-progress implementation, when:
 - The Post-Implementation Review Gate cannot run in delegated mode or
   coordinator fallback, or material review findings remain unclassified or
   blocked before the execution summary or any authorized commit.
+- A control-flow, ordering, lifecycle, concurrency, priority, timeout, fallback,
+  or first-winner correction has not been re-reviewed for the inverse or
+  symmetric failure it could introduce.
 - The only reason for deviating is perceived redundancy, minimalism, preference,
   speed, memory, or another unverified assumption.
 - The only available path is destructive, irreversible, credential-exposing, or
@@ -439,11 +453,16 @@ Before finalizing:
   affected slice.
 - False or infeasible plan items were challenged with evidence and alternatives.
 - Tests or proof checks matched the plan's acceptance criteria.
+- Each acceptance metric used as a completion gate was shown to distinguish the
+  current or known-bad baseline from the required after state.
 - The Post-Implementation Review Gate ran after implementation and verification,
   before the execution summary or any authorized commit; the review mode,
   degradation reason when applicable, perspectives, material findings, and
   dispositions were recorded, and delegated output was treated as `Unproven`
   until coordinator-verified as `Local evidence`.
+- Corrections to control flow, ordering, lifecycle, concurrency, priority,
+  timeout, fallback, or first-winner behavior were treated as new reviewable
+  changes and checked for inverse or symmetric regressions before closure.
 - When the diff created or edited durable text, the review handoff included the
   durable-artifact language hygiene item, the coordinator recorded its result,
   and any material wording finding was classified before the execution summary or

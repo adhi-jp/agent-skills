@@ -89,7 +89,16 @@ lines. For `strict` plans, keep applied high-risk evidence visible.]
 - Test no-escape gate:
   - Status or not-applicable reason:
   - Important contracts:
+  - Acceptance metrics and known-bad/current baseline:
+  - Falsifiability risks in planned assertions:
   - Blockers before implementation or alternative proof paths:
+- Representation coverage gate:
+  - Status or not-applicable reason:
+  - Public fields/outcomes mapped across materially distinct terminal paths or
+    states:
+  - Grouped paths and evidence that observer/carrier/field availability match:
+  - Internal observer/carrier for each required value:
+  - Uncarried values or blockers:
 - High-risk controls:
   - Status or not-applicable reason:
   - Behavior inventory / equivalence / recovery controls applied:
@@ -105,6 +114,10 @@ lines. For `strict` plans, keep applied high-risk evidence visible.]
   - Overfit risks and scope corrections:
 
 ## Skill usage plan
+
+[Map every step whose method, authority, or verification would materially
+change when a matching skill is available. Repeated mechanical steps may share
+one route; do not repeat a row merely to enumerate every implementation item.]
 | Plan step | Skill route | Availability source | Use when | Matching reason | Fallback if unavailable |
 | --- | --- | --- | --- | --- | --- |
 | [Step identifier from Discovery plan, Implementation plan, Test plan, Multi-perspective plan review, Plan self-review gate, or Commit checkpoints] | [Verified matching skill, `No matching optional skill verified`, or `No skill needed`] | [Visible session metadata, user-supplied list, project instructions, local skill metadata, host capability metadata, or `Not applicable`] | [Exact timing for this step] | [Why the route matches, or why no skill is needed/no match was verified] | [How to proceed if the skill is unavailable, or the normal-plan fallback for no-skill/no-match routes] |
@@ -308,6 +321,15 @@ Before finalizing the plan, check that:
   criteria, tests, UX behavior, feasibility, or the proceed condition.
 - The `Test no-escape gate` blocks implementation or defines an equivalent
   proof path when an important contract cannot be verified as planned.
+- Acceptance metrics used as gates include a known-bad or current baseline and
+  are not treated as discriminators when that baseline already passes.
+- The `Representation coverage gate` maps required public fields and outcomes
+  across terminal paths or states to an internal observer and carrier whenever
+  the plan freezes both public and internal contracts.
+- Representation coverage does not collapse materially different assertion,
+  script, connection, timeout, cancellation, cleanup, or equivalent terminal
+  classes into one generic failure row unless evidence proves their observer,
+  carrier, and field availability are identical.
 - The `Generality gate` treats examples, fixtures, project memories, and past
   failures as sampled cases, not exhaustive lists or mandatory branches.
 - When existing behavior is touched, the plan includes a behavior contract

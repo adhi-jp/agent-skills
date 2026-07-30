@@ -56,6 +56,17 @@ Suggested starting thresholds are appearance around 5 minutes, staleness around
 10 minutes, and polling around 20 seconds. Adjust for task size, runner behavior,
 and known long quiet phases.
 
+`running` is not progress proof. When the journal, output, or activity receipt
+exceeds the predeclared staleness budget, treat the unit as stalled regardless
+of a live process or task status and start the recovery classification. A fixed
+startup log whose size does not change is a staleness signal, not evidence that
+the worker is working.
+
+Before fanning out over a delegation transport, command form, background mode,
+or flag combination not yet used in the current session, run one minimal
+round-trip canary and verify a known short receipt. Shared transport mistakes
+replicate to every worker; capacity is not a reason to skip the canary.
+
 ## Loop Engineering For Long Delegations
 
 Use checkpoint loops instead of repeated full-context retries. A useful loop
@@ -97,6 +108,9 @@ Before launching a write-capable worker:
   for concurrent write-capable workers.
 - Record the merge order and the integrated coordinator verification gate.
 - Record the expected worker handle or thread identity.
+- Immediately after launch, re-check active writers. Timeout retries and
+  forwarding retries are duplicate-launch risks until the original handle is
+  proven absent.
 
 After a worker returns or dies:
 
@@ -109,8 +123,10 @@ After a worker returns or dies:
 
 If two write-capable workers may have touched the same tree:
 
-1. Quarantine: stop new writer launches.
-2. Identify expected and unexpected task handles.
+1. Quarantine: stop new writer launches and cancel every unintended overlapping
+   writer through the host's named task control. Do not continue waiting after
+   merely logging a duplicate warning.
+2. Identify the one intended writer and every unexpected task handle.
 3. Capture current `git status`, relevant diffs, journal entries, and file
    modification evidence.
 4. Do not discard unexpected diffs blindly.

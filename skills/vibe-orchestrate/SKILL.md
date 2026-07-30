@@ -69,6 +69,24 @@ startup before delegating write work. Subagents never ask for or exercise that
 permission. Read-only or no-change orchestration does not ask and does not
 create an empty commit.
 
+Record that startup confirmation or denial in routing or workflow state and
+reuse it at closure. Worker contracts explicitly forbid staging, committing,
+pushing, releasing, and history mutation. The coordinator creates the final
+checkpoint only after worker receipts, integration, authoritative verification,
+review disposition, and safe file-set confirmation. Startup commit permission
+does not extend to push, release or version changes, history rewriting,
+destructive cleanup, or unrelated paths.
+
+For a permission-and-ownership response, emit one compact receipt with all four
+fields:
+
+- `confirmation_state`: ask once before delegation; record and reuse the answer;
+- `worker_boundary`: no stage, commit, push, release, or history mutation;
+- `coordinator_gates`: receipts, integration, authoritative verification,
+  review disposition, and safe file-set confirmation;
+- `exclusions`: no push, release/version change, rewrite, destructive cleanup,
+  unrelated path, or empty commit; read-only/no-change work does not ask.
+
 ## Frontier Coordinator And Model-Tier Loops
 
 When the host exposes both high-capability frontier models and cheaper, faster,
@@ -106,12 +124,21 @@ metrics or review evidence.
 
 ## Delegation Workflow
 
-1. **Map the work graph before launching workers.** Identify the coordinator's
+1. **Capture the pre-delegation baseline and evidence authority.** Before the
+   first material worker contract, record the current tree state, relevant
+   verification results, named tests or corpus behavior that must not disappear,
+   and where the raw evidence is stored. For claim classes that can be confused
+   by competing sources, rank the authoritative sources before adjudication:
+   shipped or external artifacts for artifact-format claims, specifications for
+   normative semantics, current runtime observation for runtime behavior, and
+   measurements for performance. A citation proves what its source says; it
+   does not prove that the source is authoritative for the current claim.
+2. **Map the work graph before launching workers.** Identify the coordinator's
    immediate blocker, the tightly coupled sequence that benefits from one
    context owner, and independent units that can run without blocking the next
    local step. Do the immediate blocker locally unless delegation is itself the
    safest critical-path action.
-2. **Choose the delegation shape deliberately.** Use multiple subagents
+3. **Choose the delegation shape deliberately.** Use multiple subagents
    actively when two or more material units are independent, bounded,
    separately verifiable, and safe to run concurrently or as separate work
    streams. Keep one worker for a tightly coupled slice when splitting would
@@ -119,23 +146,27 @@ metrics or review evidence.
    every step. Do not default to one monolithic worker merely because it can
    hold the whole task, and do not fan out merely because the task is large or
    the host exposes spare capacity.
-3. **Write a contract, not a casual request.** Use the template and variants in
+4. **Write a contract, not a casual request.** Use the template and variants in
    `references/delegation-contracts.md`.
-4. **Inline verified facts.** Give workers the API signatures, local precedents,
-   failure logs, invariants, and constraints they need. Do not make them wander
-   through broad discovery when the coordinator can verify the fact first.
-5. **Constrain reads, writes, and tools.** Name editable paths, forbidden paths,
-   allowed commands, and stop conditions.
-6. **Add a journal for meaningful write work.** If losing a worker would lose
+5. **Inline verified facts with provenance and force.** Give workers the API
+   signatures, local precedents, failure logs, invariants, environment
+   constraints, and derived-value assumptions they need. Distinguish measured
+   facts from calculations and distinguish specification invariants from a
+   reference implementation's configurable default or local design choice.
+6. **Constrain reads, writes, and tool effect scope.** Name editable paths,
+   forbidden paths, allowed commands, and stop conditions. A file whitelist does
+   not authorize repository-wide formatters, fixers, codemods, dependency
+   updates, or generators that can modify files outside the whitelist.
+7. **Add a journal for meaningful write work.** If losing a worker would lose
    context, require a progress journal before edits.
-7. **Monitor liveness and progress.** Use the concepts in
+8. **Monitor liveness and progress.** Use the concepts in
    `references/recovery-and-monitoring.md`: appearance, liveness, and staleness.
-8. **Verify in the coordinator environment.** Follow
+9. **Verify in the coordinator environment.** Follow
    `references/verification-and-review.md`; do not accept worker self-report as
    final proof.
-9. **Run read-only review for substantial rounds.** Review output is inert until
+10. **Run read-only review for substantial rounds.** Review output is inert until
    the coordinator classifies it.
-10. **Recover deliberately.** On worker death, duplicate launches, or unexpected
+11. **Recover deliberately.** On worker death, duplicate launches, or unexpected
    diffs, reconcile journals, working tree state, and file freshness before
    resuming, restarting, adopting, or discarding work.
 
@@ -177,10 +208,14 @@ Every write-capable delegation contract should include:
 - Mission: one sentence with the slice and expected outcome.
 - Hard rules: allowed tools, commands, forbidden reads, forbidden git actions,
   and stop-as-blocker behavior.
-- Verified facts: APIs, versions, local patterns, failure logs, invariants, and
-  unverified limits.
+- Verified facts: APIs, versions, local patterns, failure logs, environment
+  constraints, invariants, measured versus derived values, source provenance,
+  and unverified limits.
 - Design contract: exact behavior, semantics, public names, or invariants that
   matter.
+- Protected evidence: external parity tests, vendor artifacts, independently
+  sourced fixtures, or other evidence the worker must not update, delete, or
+  ignore to make the change pass.
 - Numbered work items with done criteria.
 - Editable file whitelist and explicit out-of-scope paths.
 - Optional progress journal path.
@@ -191,6 +226,12 @@ If a worker needs a non-whitelisted file, broader command, credential,
 permission, destructive action, or user decision, it must stop and report a
 blocker instead of proceeding.
 
+The same stop rule applies when evidence found during the task contradicts a
+contract premise presented as verified. A worker may report the contradiction
+and its anchors; it must not silently decide that the premise, external evidence,
+or protected parity test is wrong. Revising the contract premise belongs to the
+coordinator.
+
 ## Fact Inlining And Local Precedent
 
 Before delegating implementation or repair, verify facts that would be expensive
@@ -199,6 +240,8 @@ or error-prone for a worker to rediscover:
 - framework and API signatures;
 - version-specific behavior;
 - lifecycle, storage, or test-harness rules;
+- test and runtime environment limits, accepted inputs, resource ceilings, and
+  helper assumptions;
 - local patterns to mirror;
 - failing logs and observed-versus-expected differences;
 - invariants that must not change.
@@ -208,6 +251,32 @@ mirror. For repairs, name protected invariants such as test expectations,
 coordinates, budgets, ticks, fixture semantics, public behavior, data shape, and
 compatibility. If those invariants appear wrong, the worker reports a blocker;
 it does not weaken them to pass.
+
+Facts remain challengeable. Attach a cheap verification anchor when available,
+and instruct the worker to report a mismatch rather than inventing a correction.
+For a value calculated from measured inputs, include the assumptions and a
+condition that would break the derivation; do not present it as a measured fact.
+
+When protected artifact or parity evidence contradicts a contract premise, use
+one coordinator acceptance checklist before another worker starts: rank the
+authority for the claim, separate the observed mismatch from the correctness
+inference, restore protected evidence, compare named sentinels rather than pass
+counts, reconcile the round snapshot with the worker receipt, classify opaque
+artifacts and their generator/inspection path, check command effects against the
+editable whitelist, then rerun authoritative coordinator verification. Until
+all applicable items are resolved, the round remains blocked.
+
+Record that disposition under four headings so none of the evidence boundaries
+is lost in summary:
+
+- `authority`: observed disagreement versus correctness inference, with corpus,
+  normative source, and implementation ranked for the claim;
+- `protected_proof`: restored parity sentinel and named-test comparison;
+- `attribution`: round snapshot versus receipt, opaque-artifact classification,
+  authoritative generation plus semantic inspection, and command-effect
+  whitelist;
+- `reverification`: coordinator-run authoritative gates before any serializer
+  repair is accepted.
 
 ## Crash Recovery And Monitoring
 
@@ -231,11 +300,16 @@ warn the user and let them run it manually.
 Read `references/verification-and-review.md` before accepting delegated work.
 The coordinator verifies the bytes that will be kept:
 
+- Compare the post-worker tree with a recorded round-boundary baseline, including
+  untracked and non-text artifacts relevant to the whitelist.
 - Enumerate relevant source sets, modules, generated sources, client/server
   targets, or package surfaces.
 - Run the planned compile/test/build gates in the authoritative environment.
-- Use quantitative evidence when test inclusion matters, such as total counts or
-  expected count deltas.
+- Use quantitative evidence when test inclusion matters, but pair aggregate
+  counts with named-test or equivalent set differences when deletion matters.
+- Check whether proof assertions could fail when the implementation is wrong;
+  a green test with an unused spy, target-imported expectation, best-case-only
+  input, or missing lifecycle branch is not proof.
 - Record known flakes by name and symptom, with rerun evidence.
 - Check for post-gate tree changes after suspicious deaths, duplicate workers,
   or delayed callbacks.
@@ -259,6 +333,12 @@ are narrow and disclosed:
 Disclose every direct intervention in the summary, run normal verification, and
 remove temporary diagnostics before final handoff or commit.
 
+Direct intervention must be behavior-neutral or apply one already-proven
+correction. If it introduces a new design choice, or the coordinator cannot
+explain why the current behavior occurs, stop and write the design evidence or
+delegate the bounded change instead of treating its small line count as a
+micro-fix.
+
 ## Parallel-Writer Accident Protocol
 
 The default in one shared working tree is one write-capable worker at a time.
@@ -268,8 +348,9 @@ explicit merge order, and an integrated verification gate before any result is
 accepted into the coordinator's tree. If a duplicate, stale, or unexpectedly
 overlapping writer may have touched the same tree:
 
-1. Stop launching new write work.
-2. Identify expected and unexpected worker handles.
+1. Stop launching new write work and cancel every unintended overlapping writer
+   with the host's named task control. A warning-only loop is not containment.
+2. Identify the one intended worker and every unexpected worker handle.
 3. Inspect status, diffs, journals, and file timestamps or hashes when useful.
 4. Do not discard unexpected diffs blindly.
 5. Adopt useful changes only after they fit the contract and pass normal gates.
@@ -311,6 +392,14 @@ requires full coverage, or a review count without material finding dispositions.
 - Letting a worker choose files, APIs, or tests that the coordinator could have
   specified from local evidence.
 - Treating `COMPILE: PASS` in worker output as final proof.
+- Treating a worker's failure as a product defect before reproducing it in the
+  authoritative environment.
+- Treating a cited reference implementation as the authority for shipped bytes,
+  normative semantics, or product limits without classifying the claim.
+- Letting a worker resolve a contradiction between the contract and protected
+  external evidence.
+- Using a passing-test total to infer that no named test or external parity
+  property disappeared.
 - Retrying a timed-out launch in a way that creates two write-capable workers.
 - Resuming an unhealthy or empty thread because it has a familiar name.
 - Omitting a progress journal for work likely to outlive a worker crash.
@@ -327,6 +416,10 @@ Before launching or accepting delegated work, confirm:
 
 - Is the worker contract bounded by mission, hard rules, verified facts, work
   items, editable paths, and fixed report sections?
+- Was the pre-delegation tree, named-test or corpus behavior, and relevant raw
+  verification evidence captured before the first material write round?
+- Are source authority, derived-value assumptions, and protected external
+  evidence explicit where they affect the decision?
 - Did substantial work get a work-graph decision that identifies the critical
   path, material independent units, execution shape, and join gate?
 - If multiple subagents would materially help, were they used with separate
@@ -341,6 +434,10 @@ Before launching or accepting delegated work, confirm:
 - Is there at most one write-capable worker in each shared tree, with any
   concurrent writers confined to isolated, disjoint workspaces?
 - Did the coordinator verify the kept bytes with the required gates?
+- Did coordinator verification compare the round-boundary change set with the
+  worker's `FILES:` report and inspect non-text or untracked outputs?
+- Could each load-bearing proof assertion actually fail under the old or wrong
+  behavior?
 - Were read-only review findings dispositioned before repair?
 - Were direct coordinator edits disclosed?
 - Are exact anecdotal examples labeled correctly unless backed by durable

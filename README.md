@@ -257,11 +257,14 @@ verification, review disposition, progress tracking, and user-consent boundaries
 The first version is reference-only. It ships no watchdog script, runner adapter,
 or command wrapper. Instead it provides contract templates and guidance for
 work-graph mapping, deliberate multi-subagent decomposition, verified-fact
-inlining, model/context budgets, editable-path whitelists, stop-as-blocker
-behavior, progress journals, frontier-coordinator loops with token-efficient
-delegates, worker-death recovery, appearance/liveness/staleness monitoring
-concepts, coordinator-run verification gates, read-only review perspectives,
-direct-intervention disclosure, and parallel-writer accident cleanup. It
+inlining, evidence-authority ranking, derived-value assumptions, protected
+external parity evidence, model/context budgets, editable-path and command-effect
+whitelists, premise-contradiction stops, progress journals, frontier-coordinator
+loops with token-efficient delegates, worker-death recovery,
+appearance/liveness/staleness monitoring, pre-fan-out transport canaries,
+coordinator-run falsifiability and named-test-set verification gates, read-only
+review perspectives, direct-intervention disclosure, and abort-on-detect
+parallel-writer cleanup. It
 actively fans out material independent units while retaining one context owner
 for tightly coupled work; concurrent writers require separate isolated
 workspaces, disjoint write surfaces, and an integrated coordinator join gate,
@@ -485,12 +488,18 @@ recorded explicit human-user accepted risk. Blocked, discovery-first,
 destructive-risk-blocked, or current-slice-blocker plans do not route to execution, and
 orchestration cannot accept destructive, credential, auth/session, permission,
 billing, security, irreversible, data-migration, or other human-risk decisions
-for the user. Plan artifacts also include integrity gates for fact cleanup, evidence
-downgrades, investigation adequacy, test no-escape checks, and generality checks
+for the user. Plan artifacts also include integrity gates for fact cleanup,
+evidence downgrades, investigation adequacy, test no-escape checks,
+public-contract/internal-representation coverage, and generality checks
 so revised plans remove stale hypotheses, keep unmeasured quality claims labeled,
 require material implementation, caller, data, user-visible, and external-contract
 surfaces to be checked or explicitly dispositioned, block weak substitutes for
-important contract tests, name the abstract dimensions that shape the plan,
+important contract tests, validate acceptance metrics against a current or
+known-bad baseline, distinguish derived calculations from measurements, ensure
+required public values have an internal observer and carrier across terminal
+paths, split terminal classes when their evidence, cleanup state, precedence, or
+carrier differs, and group them only with an evidence-backed equivalence, name
+the abstract dimensions that shape the plan,
 preserve `data contract` as a dimension for file/data migrations when relevant,
 and avoid treating sampled examples, fixtures, or past failures as skill
 boundaries. For user-visible or UX work, planning records feedback, recovery,
@@ -689,7 +698,9 @@ tests and those files cannot be read, execution stops at the blocker and proof
 path instead of drafting unverified code or test templates. After an implemented
 slice or checkpoint is verified, execution runs a mandatory post-implementation
 review gate before the execution summary, before the next checkpoint starts, and
-before any authorized commit. The gate uses
+before any authorized commit. Acceptance metrics must first distinguish the
+current or known-bad state, and lifecycle/control-flow repairs are re-reviewed
+for inverse or symmetric regressions. The gate uses
 review-only delegated reviewers when a verified, authorized host capability
 exists; otherwise it runs a coordinator fallback and records the degradation
 reason. Its plan-contract compliance perspective also checks durable artifact
@@ -748,7 +759,10 @@ dimensions before domain-specific cases, verifies artifact freshness, escalates
 stalled or over-broad source-only debugging to focused probes after bounded
 triage, handles degraded verification as non-proof, gives exact user retest
 contracts as soon as local proof is unavailable, and keeps unresolved symptoms
-alive across resume or recurrence. Independent hypotheses may be investigated
+alive across resume or recurrence. Cause claims record the observation regime
+and why it represents the user's path; acceptance metrics must fail or differ on
+the known-bad baseline, and two unchanged repair attempts stop a third patch
+until the cause model or discriminator is revalidated. Independent hypotheses may be investigated
 through delegated read-only units — ad-hoc sub-agents or one scripted,
 independently recorded orchestration run — whose findings enter the ledger as
 recorded evidence, not proven cause; probes, edits, and ledger ownership stay

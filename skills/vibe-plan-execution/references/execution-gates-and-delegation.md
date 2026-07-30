@@ -61,6 +61,11 @@ below before applying this gate's steps. Complete these steps:
      plan's scope boundary. Do not treat inherited plan text, an out-of-scope
      bullet, or a previous workaround as evidence that the surprising behavior
      is intended.
+   - When current evidence contradicts a plan premise presented as verified,
+     do not resolve the contradiction inside implementation by weakening tests,
+     protected artifacts, or acceptance evidence. Stop the affected work,
+     record the exact premise and observation, and revise or rebind the owning
+     artifact before continuing when the contradiction changes the contract.
 3. Classify the fix:
    - **Plan-preserving correction**: changes the means while preserving the
      existing goal, requirements, acceptance criteria, non-goals, data handling,
