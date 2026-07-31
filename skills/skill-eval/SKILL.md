@@ -153,8 +153,10 @@ grading collapsed into one agent and the run scored its own output.
 - For a non-empty Codex run, the runner performs a Codex-only readiness
   preflight after static validation and before creating an iteration or
   launching suite cells. It probes an executor-shaped invocation in a
-  disposable Git repository and a grader-shaped invocation in an empty non-Git
-  directory, records bounded evidence at
+  disposable Git repository whose setup ignores ambient repository-steering
+  `GIT_*` variables, and a grader-shaped invocation in an atomically created,
+  empty non-Git directory that is not adjacent to the executor repository. It
+  records bounded evidence at
   `evals/<skill-name>/workspace/codex/preflight.json`, and stops with zero suite
   executor/grader cells if either probe fails. The grader probe compares its
   schema-constrained JSON result semantically rather than requiring one exact
@@ -204,6 +206,10 @@ grading collapsed into one agent and the run scored its own output.
   `with_skill` skill path to the sandbox copy, sets provider `cwd`/`PWD` to the
   sandbox, and records sandbox details in `run.json`, including copy strategy,
   contamination status, and a bounded untracked/ignored exclusion sample.
+  Before copying a tracked regular file, the runner rejects symlinked ancestors,
+  requires the resolved source to remain inside the source repository, opens the
+  leaf without following symlinks, and compares the expected, opened, and current
+  identities and resolutions. An observed replacement fails the copy.
   Codex executors use `workspace-write` inside that isolated repository so an
   independently required file deliverable can reach the designated capture
   path. Codex graders remain `read-only` in their separate empty working
@@ -213,16 +219,14 @@ grading collapsed into one agent and the run scored its own output.
   contaminating the source checkout, but it does not prove the source fixtures
   were clean before copy; the runner records declared fixture-root dirtiness
   before and after execution as a sanity-check anomaly.
-- Only the executor runs inside the sandbox repo copy. The grader runs in a
-  separate empty per-run working directory, never the sandbox repo, so it cannot
-  re-read fixtures, suite files, or the skill source to reconstruct ground truth
-  the executor never had. This matters when two evals share a plan title (for
-  example an inline plan and a same-titled file-backed fixture plan): a
-  filesystem-roaming grader can bind to the wrong file and fail an accurate
-  executor for text that only lives in the other file. The grader decides
-  pass/fail from its prompt alone: the recorded output, the assertions, and the
-  runner-provided `Sandbox File Changes` and `Executor Tool/Delegation Evidence`
-  sections.
+- Only the executor runs inside the sandbox repo copy. The grader runs in an
+  atomically created, empty per-run working directory that is not adjacent to
+  the executor repository and is registered for runner cleanup. Claude graders
+  disable tools and session persistence and enable safe mode. Codex graders
+  ignore user configuration and rules, use ephemeral strict configuration, and
+  disable shell, multi-agent, web-search, and image-viewing capabilities. These
+  are CLI-level controls, not an OS sandbox. The grader decides from its prompt:
+  recorded output, assertions, sandbox changes, and captured executor evidence.
 - Executor fixture delivery and grader ground-truth visibility are separate
   proof surfaces. If a verdict depends on fixture semantics, such as whether the
   executor invented or faithfully used a source fact, the suite must carry the
@@ -262,23 +266,26 @@ grading collapsed into one agent and the run scored its own output.
   instruct the executor how to structure the artifact, so it adds no
   target-behavior leakage.
 - The runner also records the executor's real file changes in the sandbox as a
-  `change_manifest`: the created, modified, and deleted paths (with content
-  hashes for existing files) diffed against the sandbox baseline commit,
-  excluding the runtime `.eval-runner/` scaffold, computed identically for
-  `with_skill` and `without_skill`. It folds that record into the grader prompt
-  under a `Sandbox File Changes` section so the grader can verify claims about
-  writing, reusing, or updating files instead of trusting the executor's
-  narration; when the sandbox git baseline is unavailable the manifest records
-  `captured = false` with a reason and the grader prompt omits the section.
+  `change_manifest`: baseline-relative created, modified, and deleted paths plus
+  non-ignored and ignored executor additions, excluding `.eval-runner/`.
+  Regular files carry type and hash; symlinks, directories, and other entries
+  carry type only. A path below an unsafe symlink ancestor is recorded as
+  `unsafe-symlink-ancestor` without following or hashing it. Both configurations
+  use the same collection, and grader prompts receive one line-safe inert JSON
+  record per path. Without a sandbox Git baseline, the manifest records
+  `captured = false` and the grader prompt omits the section.
 - For Claude runs, the runner also records a redacted host tool/delegation trace
   as `executor_evidence`. It captures the CLI `session_id`, reads the host
   transcript under `<CLAUDE_CONFIG_DIR or ~/.claude>/projects/<encoded-cwd>/`,
-  and folds only tool names, host-issued tool-use ids, and host-created
+  accepts sub-agent records only from layouts bound to that exact executor
+  session, and rejects project-wide aggregate sub-agent directories. It folds
+  only tool names, host-issued tool-use ids, and session-bound host-created
   sub-agent record ids into the grader prompt under `Executor Tool/Delegation
   Evidence`. Prompt text, reasoning, and tool results stay redacted. This record
   is marked `source = host` because it reads host state outside the sandbox. For
-  providers without an equivalent host transcript the field records
-  `captured = false` with a reason, and the grader prompt omits the section.
+  providers without an equivalent session-bound host transcript the field
+  records `captured = false` with a reason, and the grader prompt omits the
+  section.
 - The grader returns a structured, schema-constrained verdict. Verdicts are keyed
   by the assertion's 1-based `id` (`{"verdicts": [{"id", "passed", "evidence"}]}`),
   not by an echoed assertion string, so a grader cannot break grading by
@@ -295,7 +302,9 @@ grading collapsed into one agent and the run scored its own output.
   `--output-schema` paths are absolute, and the adapter explicitly permits the
   isolated non-Git grader cwd with `--skip-git-repo-check`. The adapter gives
   only the executor `workspace-write` in its throwaway repository and keeps the
-  grader `read-only`. Claude retains its existing
+  grader `read-only`; grader-only strict ephemeral overrides ignore user
+  configuration and rules and disable shell, multi-agent, web-search, and
+  image-viewing capabilities. Claude retains its existing
   `claude -p <prompt> --output-format json` invocation contract.
 - Failed or timed-out executor/grader invocations persist bounded
   `outputs/executor_stderr.txt` or `outputs/grader_stderr.txt` diagnostics and a

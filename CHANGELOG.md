@@ -11,6 +11,22 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- `.gitignore` now treats `docs/reports/` as local development output, keeping
+  repository-local reports outside normal Git staging unless they are explicitly
+  included under repository policy.
+
+### Fixed
+
+- `skill-eval` fixes runner isolation and evidence capture: graders use fresh
+  non-adjacent empty directories with provider CLI controls and cleanup; tracked
+  copies reject symlink ancestors and verify containment and identity; manifests
+  include ignored additions, exclude `.eval-runner/`, hash only regular files,
+  record `unsafe-symlink-ancestor` without following it, and emit inert JSON.
+  Claude sub-agent evidence is session-bound, while Codex preflight sanitizes
+  ambient `GIT_*`. Regression coverage exercises each boundary.
+
 ## [vibe-goal-alignment 1.0.0] - 2026-08-01
 
 ### Added

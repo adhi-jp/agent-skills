@@ -96,8 +96,10 @@ or `report` or replace closure with an all-id filtered run. Do not invent aliase
 such as `--evals`, `--iteration-dir`, `--configuration`, or `--mode`.
 Codex runs send prompts through stdin, use absolute provider output/schema
 paths, and run a two-role readiness preflight before creating a non-empty
-iteration. The preflight uses a disposable Git-backed executor cwd and an empty
-non-Git grader cwd, records bounded evidence at
+iteration. The preflight uses a disposable Git-backed executor cwd whose setup
+ignores ambient repository-steering `GIT_*` variables and an atomically created,
+empty non-Git grader cwd that is not adjacent to the executor repository. It
+records bounded evidence at
 `evals/<skill-name>/workspace/codex/preflight.json`, and launches zero suite
 cells when readiness fails. Schema-constrained grader probe output is compared
 as JSON rather than by one exact whitespace serialization, and failed probes
@@ -106,9 +108,19 @@ persist bounded role-specific stderr artifacts plus a structured `failure` recor
 These Codex adapter rules do not change Claude's `claude -p` prompt transport or
 its host-transcript evidence path.
 For Claude runs, `run.json` can also include redacted `executor_evidence` from
-host transcripts: tool names, host-issued tool-use ids, and sub-agent record ids
-only. The grader prompt receives that evidence when captured so delegation/tool
-claims are checked against runner-recorded host state instead of executor prose.
+the exact executor session's supported transcript layouts: tool names,
+host-issued tool-use ids, and session-bound sub-agent record ids only.
+Project-wide aggregate sub-agent records are excluded. The grader prompt
+receives that evidence when captured so delegation/tool claims are checked
+against runner-recorded host state instead of executor prose.
+
+Tracked sandbox copies reject symlinked ancestors, require resolved sources to
+remain inside the source repository, and use no-follow identity checks while
+copying regular files; non-Git source roots retain their contamination-unverified
+fallback. Change manifests include ignored executor additions, exclude
+`.eval-runner/`, hash only regular files, and record unsafe symlink ancestors or
+other entry types without following them. Manifest paths reach graders only as
+line-safe inert JSON records.
 
 Generated eval workspaces live under `evals/<skill-name>/workspace/<agent>/`
 and are local artifacts unless explicitly requested for commit.
@@ -1055,8 +1067,10 @@ workspace placement, executor and grader separation, model passthrough, or
 metric capture for a run. It is the authoritative source for the eval CLI
 contract, requires explicit user instruction before launching eval execution,
 keeps the executor and grader as separate agents (no same-agent execute-and-grade
-path), keeps the grader in an empty working directory, and requires semantic
-verdicts about fixture content to receive only the minimum relevant grader-only
+path), keeps the grader in an atomically created empty working directory that is
+not adjacent to the executor repository, and applies provider-specific CLI
+controls to grader tools, user configuration, rules, and persistence. Semantic
+verdicts about fixture content receive only the minimum relevant grader-only
 ground truth instead of restoring fixture filesystem access, substituting a
 delivery manifest for semantic facts, sending whole fixtures by default, or
 exposing answers to the executor. It surfaces per-config executor-only execution
@@ -1203,8 +1217,9 @@ only explicit user, DoD, or confirmed-plan evidence.
 keeps the executor and grader as separate subprocesses; see
 [Run Skill Evals](#run-skill-evals) for the command sequence.
 Codex executors receive `workspace-write` only inside their throwaway run
-repository so required file artifacts can be captured; isolated Codex graders
-remain `read-only`.
+repository so required file artifacts can be captured. Graders use fresh,
+non-adjacent empty working directories and the provider-specific CLI controls
+described above.
 
 The `skill-eval` skill (`skills/skill-eval/SKILL.md`) is the authoritative source
 for the eval test operation: eval workspace placement, the CLI contract,
