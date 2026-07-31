@@ -8,6 +8,7 @@
 
 # Local development artifacts
 .local-workspaces/
+docs/reports/
 evals/*/workspace/
 __pycache__/
 skills-lock.json
