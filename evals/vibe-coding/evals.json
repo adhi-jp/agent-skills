@@ -113,6 +113,7 @@
         "For A, routes to `vibe-code-research` and preserves the read-only boundary: findings do not authorize edits, fixes, plans, or commits.",
         "For B, routes to `vibe-debug` because a concrete failed behavior and repair request outrank read-only investigation or plan execution; the plan file is evidence/context, not automatic execution authorization.",
         "For C, routes to `vibe-brainstorm` for creative direction exploration and does not create a requirements spec, implementation plan, code edits, or commits.",
+        "For A, B, and C, identifies each turn's direct `use vibe-coding` instruction as the activation source rather than treating a plain topic mention as activation.",
         "For all turns, selects exactly one primary downstream phase and keeps downstream boundaries intact."
       ]
     },

@@ -3,7 +3,8 @@
   "skill_name": "vibe-plan-review",
   "purpose": "External eval set for vibe-plan-review. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers saved Markdown plan binding, requirements-spec alignment and conflict stops, fallback spec discovery in the default and legacy spec directories, limited-confidence no-spec review, ambiguous item-boundary stops, temporary review-file mismatch safety, localized item-decision output, numeric action shortcuts, final reflection confirmation boundaries, and credential-safe plan review/reflection behavior.",
   "common_assertions": [
-    "Output does not invent missing plan, requirements, acceptance-criteria, test, data-handling, user-experience, or source facts.",
+    "Output does not invent missing plan, requirements, acceptance-criteria, test, data-handling, user-experience, or source facts. Facts that another case-specific assertion explicitly identifies as grader ground truth from a declared fixture count as supplied even though the isolated grader cannot reread that fixture.",
+    "When the prompt identifies a saved plan or continuation state, output visibly names the exact target plan path, the exact requirements spec path or an explicit limited-confidence no-spec status, and the exact derived temporary-review path with its status before presenting an item, resuming a decision, stopping at a blocker, or describing completion. Saying the temporary file was not created or will not be committed does not waive its exact path. If target identity is missing or ambiguous, output asks for the path instead of inventing it.",
     "Output does not modify the original implementation plan during item review, and does not overwrite or delete a preexisting temporary review file when target identity, ownership, parseability, or external edits are unclear.",
     "Output does not start implementation, tests, implementation commits, release work, or adjacent coding workflow steps, and does not name or require neighboring skills as prerequisites or next steps. Only a verified tracked original-plan change made after explicit reflection confirmation may receive the scoped local reflected-plan checkpoint; item-review chat, temporary review files, unreflected or unchanged plans do not commit."
   ],
@@ -20,6 +21,7 @@
       "expectations": [
         "Names or otherwise clearly binds `evals/vibe-plan-review/fixtures/profile-review/profile-settings-implementation-plan.md` as the target plan.",
         "Names or otherwise clearly binds `evals/vibe-plan-review/fixtures/profile-review/profile-settings-requirements-spec.md` as the corresponding requirements spec.",
+        "Grader ground truth from the declared fixtures: the work uses the existing profile-settings form and endpoint; display name and bio support inline validation and save; valid values remain after reload; cancel restores saved values without a network request; and avatar, username, email-setting, account-deletion, and audit-log behavior are out of scope. Treat use of these facts as supplied rather than invented.",
         "Reviews only the first detected implementation task, not all four tasks in one pass.",
         "Uses the exact Japanese per-item output labels `判定:`, `指摘:`, `推奨アクション:`, and `ユーザー選択肢:`.",
         "Includes all four Japanese user decision labels `承認`, `修正`, `保留`, and `削除`.",
@@ -145,6 +147,7 @@
         "Interprets `2` as the second listed decision identifier and maps it to the canonical Japanese label `修正`.",
         "Does not ask the user to re-enter `修正` solely because they used `2` instead of the full label.",
         "Treats the supplied test-addition reason as revise-before-execution context, or asks only for missing concrete revision wording needed before continuing.",
+        "Grader ground truth from the declared fixtures: the existing profile-settings endpoint supports this slice; display name is trimmed and must be 1–60 characters; bio is optional with a 160-character maximum; valid values remain after reload; cancel restores saved values without a network request; and avatar, username, email-setting, account-deletion, and audit-log behavior remain unchanged or out of scope. If the response uses these facts, treat them as supplied rather than invented; the response need not restate all of them.",
         "Stores, summarizes, or says it would record the item decision as `修正`, not as literal `2`.",
         "Accepts an unambiguous numeric identifier for the current item decision, normalizes it to the canonical label for storage, counts, and reflection, and does not ask for clarification unless choices conflict.",
         "Does not write or claim to write a replacement implementation plan artifact for this decision-intake turn.",

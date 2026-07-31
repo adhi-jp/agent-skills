@@ -243,6 +243,12 @@ Shape the findings as:
   investigation, decision, or later phase obviously helps. Phrase as options,
   not as work you are starting.
 
+In `Answer` and `Evidence`, phrase source-derived control flow as static
+structure: for example, a caller "statically calls" a callee or "would select"
+a branch under the supplied configuration. Do not use unqualified runtime verbs
+such as "routes", "emits", or "returns" for a traced path unless supplied
+execution evidence proves that runtime behavior.
+
 Match the user's conversational language for prose. Preserve file paths,
 identifiers, commands, API names, non-sensitive error text, and non-sensitive
 quoted source verbatim. If error text or quoted source contains or may contain a

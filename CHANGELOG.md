@@ -36,6 +36,58 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skill-eval` now starts Codex executors with `workspace-write` only inside the
+  per-run throwaway repository while keeping isolated Codex graders
+  `read-only`, allowing independently required artifact deliverables to reach
+  the designated capture path without exposing the source checkout. Provider
+  tests cover both role-specific sandbox modes. Validation:
+  `python3 -m unittest tests.test_eval_runner`. The closing `gpt-5.6-luna`
+  Codex eval scored all 4 cells with zero infrastructure or sanity anomalies,
+  at `with_skill` 100.0% versus `without_skill` 52.8% (+47.2 points).
+- `vibe-requirements-spec` now requires every artifact-mode chat reply to name
+  the same repository-relative logical spec path recorded in artifact metadata.
+  Its eval distinguishes the one user-facing chat question from the same
+  pending decision stored in the captured spec. Together with the role-specific
+  runner sandbox, this restores inspectable artifact capture without enabling
+  writes in chat-only or response-only cases. The closing `gpt-5.6-luna` Codex
+  eval scored all 28 cells with zero infrastructure or sanity anomalies, at
+  98.9% versus 79.4% (+19.5 points).
+- `vibe-code-research` now makes source-derived control and data paths visibly
+  static or expected unless supplied execution evidence proves runtime
+  behavior. The closing `gpt-5.6-luna` Codex eval scored all 22 cells with zero
+  infrastructure or fixture-dirty signals, at 97.0% versus 79.0% (+18.0
+  points). Sanity review remains recorded because E05 omitted one
+  resolved-version source detail and scored 91.7% against a 100.0% baseline;
+  the repeated static/runtime failures targeted by this change all passed.
+- `vibe-goal-alignment` now ends an action-blocking unresolved record with one
+  explicit answerable question. For a host-required local-checkpoint decision,
+  it asks before edits for the bounded commit permission itself instead of
+  asking whether a later phase may start or promising to ask again at commit
+  time; empty/no-commit outcomes and non-closure history operations stay
+  excluded. The closing `gpt-5.6-luna` Codex eval scored all 14 cells with zero
+  infrastructure or sanity anomalies, at 92.7% versus 67.8% (+24.9 points).
+- `vibe-plan-review` now begins review, continuation, stop, reflection, and
+  completion responses with exact plan, spec-or-no-spec, and derived temporary
+  review path/status bindings. Its reflection confirmation explicitly records
+  completed review state, all four decision outcomes, executable-content
+  exclusions, and the separate post-reflection temporary-file deletion choice.
+  Fixture-backed grader ground truth now prevents isolated graders from calling
+  supplied profile constraints inventions. The closing `gpt-5.6-luna` Codex
+  eval scored all 22 cells with zero infrastructure or sanity anomalies, at
+  96.7% versus 67.1% (+29.5 points).
+- `vibe-coding`, `vibe-debug`, and `vibe-orchestrate` evals now make activation
+  provenance, response-only action mode, represented evidence, capability
+  availability, and contract-backed reviewer disposition observable without
+  requiring executors to invent missing state or claim unperformed work. Their
+  closing `gpt-5.6-luna` Codex runs scored all 88 cells with zero infrastructure
+  or fixture-dirty signals: `vibe-coding` 95.1% versus 76.3% (+18.8 points),
+  `vibe-debug` 89.8% versus 66.0% (+23.8 points), and `vibe-orchestrate` 89.0%
+  versus 55.2% (+33.9 points). `vibe-coding` had no sanity anomaly; debug review
+  records one E06 candidate-below-baseline omission, while orchestration review
+  records valid baseline 0% outputs for E09/E12 and one E06
+  candidate-below-baseline omission. The repaired E06 routing, E10/E13 debug,
+  and E07 orchestration cases passed their targeted contracts. Generated eval
+  workspaces remain uncommitted.
 - `skill-quality` now binds represented workflow state separately from executor
   action mode, so response-only evals may accept supplied staged, verified, or
   authorized state without inspecting the ambient checkout or falsely claiming

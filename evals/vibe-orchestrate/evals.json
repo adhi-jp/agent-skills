@@ -93,12 +93,12 @@
     {
       "id": "E07",
       "name": "Read-only review findings require coordinator disposition",
-      "prompt": "Use `vibe-orchestrate`. Three read-only reviewers returned findings after a worker patch. Reviewer A says a test is missing, Reviewer B suggests a broader rewrite, and Reviewer C says the patch matches the contract. How should I handle the findings?",
-      "expected_output": "A review adjudication response that keeps reviewer output advisory, classifies each finding, and turns accepted findings into bounded repair work rather than automatic edits.",
+      "prompt": "Use `vibe-orchestrate`. Three read-only reviewers returned findings after a worker patch. The authoritative plan requires regression coverage for the changed behavior and explicitly excludes a broader rewrite. Reviewer A says the required regression test is missing, Reviewer B suggests a broader rewrite, and Reviewer C says the patch otherwise matches the contract. How should I handle the findings?",
+      "expected_output": "A review adjudication response that keeps reviewer output advisory, accepts the plan-backed missing-test finding, rejects or defers the excluded rewrite, and turns only the accepted finding into bounded repair work.",
       "files": [],
       "expectations": [
         "States that reviewer findings are advisory until the coordinator adjudicates them.",
-        "Classifies the missing-test finding as accepted, rejected, deferred, or blocked based on the plan/contract evidence rather than blindly applying it.",
+        "Accepts the missing-test finding because the authoritative plan explicitly requires that regression coverage.",
         "Treats the broader rewrite suggestion as potential scope expansion unless tied to the current contract or verified evidence.",
         "Does not let any reviewer directly trigger edits or ask the user.",
         "Creates a bounded repair contract or next proof step only for accepted material findings."

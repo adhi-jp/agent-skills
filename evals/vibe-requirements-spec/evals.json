@@ -45,7 +45,7 @@
         "Produces a recorded requirements spec artifact at an explicit `docs/specs/` path with `Requirement mode: strict-four-choice`.",
         "Writes the primary spec to the runner-designated capture destination so the recorded output contains the inspectable artifact, while the spec metadata and chat summary keep the repository-relative `docs/specs/` path as the current spec path.",
         "Does not provide code, patches, implementation steps, verification commands, commits, release work, or non-spec file edits.",
-        "Asks exactly one visible requirements decision question after any startup permission question.",
+        "The chat reply asks exactly one visible requirements decision question after any startup permission question. The written spec may record that same pending decision for durability; do not count the artifact record as a second user-facing question.",
         "Identifies CSV/file-format parsing, contact mapping, validation or row-error behavior, duplicate/conflict handling, permissions, persistence, and rollback or recovery as decisions, defaults, out-of-scope items, or open unknowns.",
         "Treats review-before-write or preview behavior as its own write-safety decision, default, out-of-scope item, or open unknown; a post-import summary alone is not enough.",
         "Separates a minimal first useful scope from later enhancements and keeps drafting active until build-changing decisions or required local evidence checks are resolved.",

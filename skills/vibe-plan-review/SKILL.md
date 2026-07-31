@@ -91,6 +91,20 @@ implementation starts. Do not name or require any neighboring workflow as a
 prerequisite or next step. When review is complete, report the reviewed state
 and stop at the user's next decision point.
 
+## Review Binding Output
+
+Begin every review response with a compact binding block before item analysis,
+decisions, blockers, reflection, or completion behavior:
+
+- `Target plan`: the exact saved plan path.
+- `Requirements spec`: the exact spec path, or an explicit limited-confidence
+  no-spec status.
+- `Temporary review`: the exact derived temporary-review path and its current
+  status, including `not created`, `kept`, `blocked`, or `deleted`.
+
+This block is required on first-item, continuation, stop, reflection, and
+completion responses. A status without its path is not a resumable identity.
+
 ## Start Of Review
 
 Before reviewing items:
@@ -221,6 +235,16 @@ review file while that question is unresolved.
 After all detected items have been reviewed, ask for explicit confirmation
 before modifying the original implementation plan. The confirmation must state
 how decisions will be reflected according to `references/localized-labels.md`.
+
+Before asking for that confirmation, make the reflection record explicit:
+
+- State that item review is complete and reflection has not happened yet.
+- Explain all four localized decision outcomes, including that a `削除` item is
+  removed only after this reflection confirmation.
+- State that review-history annotations, per-item judgment logs, and chat
+  discussion notes stay out of executable plan content.
+- State that deleting the temporary review file is a separate decision asked
+  only after successful reflection.
 
 Do not reflect review results into the original plan without this explicit
 confirmation. A general request to review the plan is not reflection consent.

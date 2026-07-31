@@ -108,6 +108,23 @@ record already has one safe interpretation and only non-blocking details are
 missing, name them as assumptions or later checks instead of stopping with a
 large questionnaire.
 
+When an `Unresolved` item stops action, end the response with one explicit,
+user-answerable correction or confirmation question. A blocker list, a note
+that confirmation will be needed later, or a proposed next step does not collect
+the agreement required to proceed.
+
+When the blocker is a host-required local-checkpoint decision for a later
+state-changing family workflow, ask whether that later workflow may create one
+scoped local commit after verified tracked changes. Do not substitute a question
+about whether the later phase may start. Record that no commit is created for an
+empty or no-commit result, scope permission to workflow-owned tracked paths, and
+exclude push, release or version work, history rewriting, and unrelated paths.
+The answer collected now is the host-required permission decision itself: a
+promise to ask again immediately before committing, or a question asking
+whether that later confirmation pattern is acceptable, leaves the startup
+blocker unresolved. Record `yes` as advance permission for that bounded closure
+commit and `no` as a no-commit outcome for the later workflow.
+
 ## Correction Loop
 
 When the user corrects the record:

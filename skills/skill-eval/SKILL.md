@@ -160,9 +160,12 @@ grading collapsed into one agent and the run scored its own output.
   `with_skill` skill path to the sandbox copy, sets provider `cwd`/`PWD` to the
   sandbox, and records sandbox details in `run.json`, including copy strategy,
   contamination status, and a bounded untracked/ignored exclusion sample.
-  Executor or grader edits, installs, and commits must stay inside that sandbox;
-  sandbox git initialization failure is recorded, never worked around by running
-  in the real repository. Sandbox isolation prevents new writes from
+  Codex executors use `workspace-write` inside that isolated repository so an
+  independently required file deliverable can reach the designated capture
+  path. Codex graders remain `read-only` in their separate empty working
+  directory. Executor edits, installs, and commits must stay inside the run
+  sandbox; sandbox git initialization failure is recorded, never worked around
+  by running in the real repository. Sandbox isolation prevents new writes from
   contaminating the source checkout, but it does not prove the source fixtures
   were clean before copy; the runner records declared fixture-root dirtiness
   before and after execution as a sanity-check anomaly.
@@ -228,8 +231,10 @@ grading collapsed into one agent and the run scored its own output.
 - Codex prompts are sent through stdin with a terminal `-`, never as a
   positional command-line prompt. Codex-owned `--output-last-message` and
   `--output-schema` paths are absolute, and the adapter explicitly permits the
-  isolated non-Git grader cwd with `--skip-git-repo-check`. Claude retains its
-  existing `claude -p <prompt> --output-format json` invocation contract.
+  isolated non-Git grader cwd with `--skip-git-repo-check`. The adapter gives
+  only the executor `workspace-write` in its throwaway repository and keeps the
+  grader `read-only`. Claude retains its existing
+  `claude -p <prompt> --output-format json` invocation contract.
 - Failed or timed-out executor/grader invocations persist bounded
   `outputs/executor_stderr.txt` or `outputs/grader_stderr.txt` diagnostics and a
   structured `failure` object in `run.json`. Truncation is explicit, and raw

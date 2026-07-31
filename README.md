@@ -20,14 +20,14 @@ quickstart when changing a skill or its eval suite.
 | Build, debug, port, or inspect Minecraft Java Edition mods for Fabric, NeoForge, or Architectury | `minecraft-modding-workbench` | Produces implementation guidance or code while labeling MCP, workspace, source-jar, runtime, and unverified facts | `skills/minecraft-modding-workbench/` | `evals/minecraft-modding-workbench/` |
 | Route an explicit multi-turn vibe-coding workflow | `vibe-coding` | Selects one primary visible `vibe-*` specialist for the next phase; does not relax downstream gates; carries default scoped local-checkpoint permission to state-changing phases; backtracks to the artifact-owning phase when a spec or plan is defective; leaves review for debug or artifact backtracking when runtime symptoms, core regressions, repeated findings, or architecture expansion make review the wrong owner | `skills/vibe-coding/` | `evals/vibe-coding/` |
 | Coordinate subagents for bounded research, edits, repairs, or review while preserving coordinator-owned scope, verification, and consent boundaries | `vibe-orchestrate` | Produces work-graph and delegation contracts, deliberate multi-subagent fan-out, recovery/monitoring guidance, verification/review discipline, direct-intervention rules, and parallel-writer accident cleanup; reference-only first version with no scripts or runner adapters | `skills/vibe-orchestrate/` | `evals/vibe-orchestrate/` |
-| Align the agent's understanding with the user's intent before action, especially after misinterpretation or before risky release/version/commit/destructive work | `vibe-goal-alignment` | Produces an explicit understanding record with goal, success criteria, non-goals, assumptions, blockers, and next step; stops before downstream state changes until the user confirms or corrects the record | `skills/vibe-goal-alignment/` | `evals/vibe-goal-alignment/` |
+| Align the agent's understanding with the user's intent before action, especially after misinterpretation or before risky release/version/commit/destructive work | `vibe-goal-alignment` | Produces an explicit understanding record with goal, success criteria, non-goals, assumptions, blockers, and next step; when a blocker stops action, ends with one answerable correction question and waits for confirmation | `skills/vibe-goal-alignment/` | `evals/vibe-goal-alignment/` |
 | Draft, revise, save, finish, or explore requirements before planning | `vibe-requirements-spec` | Creates or updates the requirements spec artifact by default, defaults to strict-four-choice without explicit mode selection, stops before non-spec work, reopens the same spec for downstream requirements defects, and locally checkpoints a verified tracked spec unless commits are denied or blocked | `skills/vibe-requirements-spec/` | `evals/vibe-requirements-spec/` |
 | Create or revise an implementation plan from approval-evidenced or concrete inputs | `vibe-planning` | Writes a plan artifact and concise summary; pairs positive and negative proof for material gates; includes an implementation-progress ledger for multi-item plans; ends before implementation and locally checkpoints a reviewed tracked plan unless commits are denied or blocked | `skills/vibe-planning/` | `evals/vibe-planning/` |
-| Review, confirm, walk through, or pre-check a saved implementation plan before execution | `vibe-plan-review` | Reviews one plan item at a time, records localized decisions, redacts credential-like literals, stops before implementation, and checkpoints the tracked original plan only after confirmed safe reflection changes it | `skills/vibe-plan-review/` | `evals/vibe-plan-review/` |
+| Review, confirm, walk through, or pre-check a saved implementation plan before execution | `vibe-plan-review` | Visibly binds the exact plan/spec review target, reviews one item at a time, records localized decisions, redacts credential-like literals, stops before implementation, and checkpoints the tracked original plan only after confirmed safe reflection changes it | `skills/vibe-plan-review/` | `evals/vibe-plan-review/` |
 | Implement an existing concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Edits only after binding the plan and checking proceed conditions; runs core acceptance sentinels before hardening; updates progress from evidence; returns plan-changing defects to the owning artifact; locally checkpoints verified reviewed slices even when the plan omitted checkpoint prose | `skills/vibe-plan-execution/` | `evals/vibe-plan-execution/` |
 | Brainstorm creative implementation ideas, alternatives, expected behavior, or convention checks | `vibe-brainstorm` | Returns chat-first directions or checklists and stops before implementation until the user confirms the direction or trusted orchestration records a proxy selection for later requirements/planning only | `skills/vibe-brainstorm/` | `evals/vibe-brainstorm/` |
 | Debug or repair existing behavior from rough bug reports, regressions, failed fixes, or runtime artifacts | `vibe-debug` | Produces evidence-backed repairs or retest contracts; keeps a concrete runtime regression as the exclusive primary symptom until it is closed, deferred, accepted, or blocked; self-reviews implemented repairs and defaults to scoped local closure commits unless disabled or blocked | `skills/vibe-debug/` | `evals/vibe-debug/` |
-| Understand, locate, trace, or assess existing code without changing it | `vibe-code-research` | Read-only; returns anchored evidence-backed findings, redacts suspected secret-like values at output boundaries, and stops before fixes, plans, edits, or commits | `skills/vibe-code-research/` | `evals/vibe-code-research/` |
+| Understand, locate, trace, or assess existing code without changing it | `vibe-code-research` | Read-only; returns anchored evidence-backed findings, qualifies static traces separately from proved runtime behavior, redacts suspected secret-like values, and stops before fixes, plans, edits, or commits | `skills/vibe-code-research/` | `evals/vibe-code-research/` |
 | Write or revise development text, docs, changelog entries, PR text, UI copy, summaries, or commit messages | `vibe-writing` | Controls wording and can locally checkpoint verified tracked text edits when primary; chat replies and message drafts remain no-commit artifacts, and release or broader history authority stays outside the skill | `skills/vibe-writing/` | `evals/vibe-writing/` |
 | Commit or stage changes from a vague request — pick the right files, exclude junk, re-verify staging, or fix message transport, history, or trailers | `vibe-commit` | Executes the commit and git safety with self-contained message-content rules; does not push or rewrite shared history without explicit consent | `skills/vibe-commit/` | `evals/vibe-commit/` |
 | Decide what to change in a skill or eval from benchmark results, grader feedback, reviews, or regressions | `skill-quality` | Produces evidence-bound quality decisions; release/version changes still require explicit release instruction | `skills/skill-quality/` | `evals/skill-quality/` |
@@ -283,7 +283,9 @@ instructions could lead to different files, commands, or side effects. It
 returns a concise understanding record: understood goal, success criteria,
 non-goals, assumptions, unresolved blockers, and the next step after agreement.
 Goal-affecting facts are separated as user-stated, local evidence, assumption,
-or unresolved.
+or unresolved. When an unresolved item stops action, the response ends with one
+explicit question the user can answer to correct or confirm the record; a
+blocker list alone is not treated as agreement.
 
 The skill is deliberately pre-action. It does not edit files, run commands,
 stage, commit, tag, push, bump versions, prepare releases, deploy, delete data,
@@ -295,7 +297,11 @@ the complete change set, changelog state, package metadata, and project release
 policy must be reviewed by the downstream workflow before version or history
 action. For an aligned state-changing `vibe-*` next action, it also records the
 default scoped local-checkpoint policy or the one host-required startup
-confirmation, without executing the commit itself.
+confirmation, without executing the commit itself. That confirmation asks about
+the bounded post-verification local commit—not merely whether the next phase may
+start—and excludes push, release/version work, history rewriting, and unrelated
+paths. It resolves the permission decision before edits rather than promising to
+ask the same question again at commit time.
 
 ### `vibe-requirements-spec`
 
@@ -313,7 +319,9 @@ paths are treated as write transport, not as the selected spec path, unless the
 user explicitly chose that path. In artifact mode, the complete primary spec is
 written to the designated capture destination first for recorded review while
 `Current spec path`, evidence paths, and the chat summary keep the selected
-repository-relative identity and do not expose sandbox absolute links.
+repository-relative identity and do not expose sandbox absolute links. Every
+artifact-mode chat reply names that exact logical spec path rather than only
+saying that a capture artifact was saved.
 Response-only classification and explicitly no-artifact closure-description
 prompts remain non-writing even when they mention spec paths or the host exposes
 a capture destination.
@@ -605,10 +613,17 @@ and before implementation begins. It reads the target plan, reads a
 corresponding requirements spec when one exists, and stops on requirements-plan
 conflicts or missing plan information needed for review. It reviews one plan
 item at a time with the localized output, AI-judgment, and user-decision labels
-defined in `references/localized-labels.md`. Users can answer with the
-localized decision label or a numeric identifier from `1` to `4`; the skill
+defined in `references/localized-labels.md`. Before an item, resumed decision,
+blocker, reflection, or completion response, it starts with the exact plan path,
+the requirements spec path or limited-confidence no-spec status, and the exact
+derived temporary-review path plus status. A no-temporary-file status still
+includes the path so the review identity stays resumable. Users can answer with
+the localized decision label or a numeric identifier from `1` to `4`; the skill
 records the canonical decision label. The user's item decisions remain the
-source of truth.
+source of truth. Final reflection confirmation states that review is complete,
+maps all four decision outcomes, excludes review history, judgment logs, and
+chat notes from executable content, and leaves temporary-file deletion as a
+separate post-reflection decision.
 
 The skill checks requirement alignment, implementation order, missing work,
 ambiguity, risks, and verifiability while keeping source inspection minimal by
@@ -796,7 +811,9 @@ direct answer first. Broad, user-visible, or architecture-impact questions name
 and cover the material investigation surfaces instead of stopping at the first
 cheap file hit, or they state the intentional boundary and residual risk. Claims
 carry `Local investigation`, `Primary source`, or `Unproven` labels and
-file/line anchors. The investigation first binds its evidence universe:
+file/line anchors. Source-derived call and data paths are phrased as static
+structure or expected behavior unless supplied execution evidence proves the
+runtime claim. The investigation first binds its evidence universe:
 user-provided or upstream material, a verified target workspace, and
 host/runner scaffolding stay distinct, so eval definitions, copied sandboxes,
 or missing represented paths in an unrelated checkout are not reused as
@@ -1159,6 +1176,9 @@ only explicit user, DoD, or confirmed-plan evidence.
 `validate`, `run`, and `report`. The runner drives the bounded matrix itself and
 keeps the executor and grader as separate subprocesses; see
 [Run Skill Evals](#run-skill-evals) for the command sequence.
+Codex executors receive `workspace-write` only inside their throwaway run
+repository so required file artifacts can be captured; isolated Codex graders
+remain `read-only`.
 
 The `skill-eval` skill (`skills/skill-eval/SKILL.md`) is the authoritative source
 for the eval test operation: eval workspace placement, the CLI contract,

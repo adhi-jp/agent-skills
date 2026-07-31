@@ -41,6 +41,12 @@ spec path or a Markdown link. This transport does not authorize a write for
 chat-only, no-file, lifecycle-summary, response-only classification, or an
 explicitly no-artifact closure description.
 
+Every artifact-mode chat reply must name the exact selected repository-relative
+current spec path, even when the complete file is recorded only through capture
+transport. Do not replace that path with phrases such as "saved in the
+artifact" or "written to the capture destination"; the artifact metadata and
+chat summary must expose the same logical identity.
+
 Artifact mode does not weaken contradiction or false-premise stops. When an
 existing spec or supplied evidence contradicts the requested requirement, do
 not rewrite the contradicted behavior as confirmed, proposed-default,
