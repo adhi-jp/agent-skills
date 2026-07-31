@@ -59,6 +59,16 @@ can contaminate subjects, bodies, or trailer parsing.
 - Bad: a fenced block around `fix(http): preserve retry headers`.
 - Good: no wrapper; start directly with `fix(http): preserve retry headers`.
 
+For stored-message repair tasks that also require an explanation, keep the
+diagnosis outside the corrected payload. Explain the defect and the required
+history-authority action first, then emit the corrected subject/body as
+unfenced raw message text. Replace private tool-session records, ignored local
+reports, and local-only run labels with durable proof or an explicit absence
+status; do not preserve them merely because they appeared in the stored bytes.
+A short `Corrected message:` label before the payload is outside the message and
+is permitted when the user asked for both diagnosis and correction; do not put
+commentary or fences between the subject and the payload's final line.
+
 ## Body Value
 
 Use a body only when it adds durable value beyond the subject and diff summary.

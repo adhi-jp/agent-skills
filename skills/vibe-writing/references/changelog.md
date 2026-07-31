@@ -44,6 +44,14 @@ having read the skill/reference. Keep the changelog artifact language from the
 explicit instruction, existing entry, file locale, or repository convention
 unless the user asks for translation.
 
+Preserve every heading that the requested slice names. If the user asks for an
+entry under `## [Unreleased]` and `### Changed`, return those headings plus the
+entry unless the user explicitly asks for the bullet only. "Return only the
+entry" removes explanatory wrapper prose; it does not silently drop required
+repository-format headings. Preserve the changed skill, package, or API name
+exactly, and lead a supplied breaking removal with the repository's breaking
+marker rather than relying on `Removed` alone to imply compatibility impact.
+
 When the repository defines no format, propose the fallback structure below as a
 starting point and let the user decide whether to adopt it. Do not silently
 impose it.

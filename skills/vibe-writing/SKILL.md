@@ -73,6 +73,26 @@ Treat supplied capabilities as capabilities. Do not rewrite `supports X` or a
 feature name into a cause, purpose, effect, proof, or user benefit unless the
 source states that relationship.
 
+Treat represented workflow state in the current prompt as supplied evidence.
+When a response-only task says changes are staged, an edit is complete, a check
+passed, or another workflow fact is already established, write from that
+represented state. Do not replace it with the eval sandbox's, runner's, or
+ambient checkout's current state unless the prompt explicitly binds that
+checkout as the target to inspect. If the task asks only for the message,
+command sequence, or closure record that would apply, do not perform the
+represented mutation merely because tools are available. Still describe the
+full required outcome from the represented state: response-only delivery does
+not turn an authorized commit closure into an uncommitted checkpoint or remove
+its staging, inspection, commit, and post-commit gates.
+
+For a represented standalone tracked-text closure, make those gates observable
+in the response: refresh dirty state, stage only owned tracked writing paths,
+inspect the staged diff, use a Conventional Commit message, then inspect the
+stored message and committed file set. Name unrelated-path exclusion and the
+no-push/no-release/no-history-rewrite boundary. Do not defer the authorized
+checkpoint to a later explicit commit request merely because the current
+delivery is response-only.
+
 Preserve meaning when editing or summarizing. Keep:
 
 - Facts, scope, audience, terminology, and order that matters.
@@ -162,6 +182,18 @@ templates, release formats, and other machine-readable shapes must keep their
 required structure with no extra prose, headings, Markdown fences, or invented
 fields.
 
+Removing an unsupported proposition means removing its semantic claim, not
+only shortening its adjectives. In a fixed JSON or template shape, preserve the
+required key, value type, and array/object shape while using a supported neutral
+value or an empty value that the requested schema permits. Deleting only
+promotional adjectives while retaining the underlying promise, or shortening a
+future-benefit sentence into a future-benefit fragment, does not remove the
+unsupported proposition. When a required string consists entirely of an
+unsupported benefit, reduce it to a neutral topic label grounded in the
+described object or action. When an optional array item consists entirely of an
+unsupported claim, remove the item and preserve the array as empty rather than
+keeping a shortened claim.
+
 ## Artifact Notes
 
 ### Source-code comments and docstrings
@@ -207,6 +239,19 @@ conform, never silently restructure it) from the content layer (write each entry
 as a contract and evidence log for the next agent resuming with zero context)
 and treats git-unmanaged generated reports, local-only run IDs, and private
 tool-session records as non-durable changelog evidence.
+
+If the requested changelog slice explicitly names `## [Unreleased]` and a
+category such as `### Changed`, include those headings in the artifact. "Return
+only the entry" excludes explanatory wrapper prose; it does not reduce a
+requested section-shaped artifact to a bare bullet. Preserve the changed
+package or skill name exactly, current verification facts that the source
+supplies, and any unresolved accepted risk while removing superseded
+run-by-run commentary.
+
+When source material says an API, field, schema, command, or behavior was
+removed incompatibly, mark the entry explicitly as breaking and preserve the
+migration direction. Deprecation history or a `Changed` category does not by
+itself communicate that callers must migrate.
 
 ### PR descriptions
 
@@ -285,6 +330,16 @@ IDs, or private tool-session records as proof sources. Pure message-drafting
 tasks do not need this Git inspection because no stored commit artifact was
 created.
 
+When asked to diagnose a stored-message violation and show the correction,
+state the defects and required history-authority follow-up, then present the
+corrected commit-message payload without Markdown fences. The explanatory
+diagnosis is not part of that payload. Remove fence bytes and replace any
+git-unmanaged report, local run label, or private tool-session proof with a
+durable reference or an explicit absence status such as `verification not
+durably recorded`. The workflow holding history authority must apply the
+corrected payload under its consent rules and rerun
+`git show -s --format=%B HEAD` before reporting completion.
+
 For commit-message bodies, default to a medium-density shape: enough durable
 context for a future AI to recover the commit's intent, changed contract
 surfaces, constraints, non-goals, and proof, but not a feature walkthrough or
@@ -292,6 +347,24 @@ file-by-file transcript. Use one to three short paragraphs or a few labeled
 bullets before `Verification:` for ordinary commits. If a draft needs many
 bullets or multiple long behavior sections, summarize by durable surfaces or
 split the commit instead of stuffing implementation details into the message.
+
+When the requested response combines a commit message, its transport, and
+post-commit checks, keep those three surfaces distinct. Emit the commit-message
+payload itself unfenced; a separate shell-command block may be fenced without
+making those fence bytes part of the message. Use one complete message payload,
+then include `git show -s --format=%B HEAD` and a committed-file-set inspection.
+State that malformed stored bytes must be corrected by the workflow holding
+history authority before completion is reported. The transport must be
+executable rather than contain an unresolved placeholder path. In the message,
+group changes by durable contract surface instead of file inventory, and make
+each retained verification bullet state what the command proves when the scope
+is not already obvious.
+
+Before returning a combined commit record, audit each `Verification:` bullet:
+if the command or suite name does not make the changed coverage self-evident,
+append a compact outcome-and-scope phrase. Also state the stored-message failure
+behavior explicitly: if `git show -s --format=%B HEAD` reveals malformed bytes,
+the history-authority workflow must correct them before completion is reported.
 
 When the requested deliverable is the commit message itself, return raw commit
 message text: no Markdown fence, example label, or explanatory prose unless the

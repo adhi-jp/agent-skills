@@ -36,6 +36,30 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-writing` now treats represented workflow state in response-only writing
+  tasks as supplied evidence instead of substituting eval-runner or ambient
+  checkout state. Exact structured rewrites remove unsupported propositions
+  without retaining shortened benefit claims, and stored commit-message repairs
+  separate diagnosis from an unfenced corrected payload while replacing
+  private or local-only verification provenance with durable proof or an
+  explicit absence status. The eval suite binds commit and tracked-edit cases
+  to represented response-only authority, reduces common assertions to four
+  universally applicable boundaries while leaving scenario-specific pressure
+  in per-eval expectations, and clarifies that supplied source context and
+  unchanged-test status are admissible evidence. Changelog slice guidance
+  preserves explicitly requested `Unreleased` and category headings, and
+  response-only checkpoint descriptions retain the represented commit gates
+  without mutating the ambient checkout. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`.
+  The final `gpt-5.4-mini` Codex run scored all 30 cells with zero
+  infrastructure failures or fixture-dirty signals, at `with_skill` 90.1%
+  versus `without_skill` 85.2% (+4.9 points). The run remains `REVIEW REQUIRED`
+  because E06, E12, and E13 trailed their single-run baselines; artifact review
+  found real misses in those outputs, but the same unchanged mechanisms passed
+  in earlier iterations and moved between runs, so further wording-only
+  tightening is stopped as run variance. Behavioral improvement remains
+  unproven beyond the contract-specific closures. Generated eval workspaces
+  remain uncommitted.
 - `skill-quality` now separates structured eval input, internally retained
   state, and public serialization contracts so delivered adapter records do not
   implicitly authorize public reproduction. Mechanical artifact adjudication

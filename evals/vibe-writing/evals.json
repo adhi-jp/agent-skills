@@ -3,18 +3,10 @@
   "skill_name": "vibe-writing",
   "purpose": "External eval set for vibe-writing. Prompts live outside skills/ so they are not bundled as skill content. Covers representative LLM-first development text, source-code comments and docstrings, README/docs and CHANGELOG restraint, changelog format precedence, next-agent contract-log entries, iteration-log collapse for in-progress quality work, exact-format output, verbatim-output boundaries, durable references, workflow boundaries, locale precedence, policy and support-promise restraint, hollow-transition cleanup, local-anchor preservation, and commit-message contracts including body preserve/cut selection, verification formatting, durable proof-source boundaries, multi-line transport, active commit workflows, and stored-message inspection.",
   "common_assertions": [
-    "Output preserves source facts, scope, terminology, audience, modality, conditions, exceptions, warnings, limitations, required actions, and order that matters whenever source text is edited or summarized.",
-    "Output does not invent unsupported reasons, goals, outcomes, roadmap claims, business value, user impact, implementation rationale, tests, rollout status, or performance/security/risk-reduction claims.",
-    "Output chooses the correct reader priority: LLM-optimized by default for vibe-coding development text, human-optimized only when the artifact's main reader is human.",
-    "Output preserves explicit absence statuses such as tests not run, not measured, no advisory supplied, no rollout plan, or not provided instead of smoothing gaps into confident claims.",
-    "Output follows language precedence: explicit user instruction first, then any active workflow or artifact-specific language contract, existing artifact language, filename locale marker, project convention, and English; it preserves file paths, commands, identifiers, environment variables, and canonical strings unless translation is explicitly requested.",
-    "Output stands alone and does not leak prompt-only context such as above, the provided text, as requested, per plan, temporary notes, private branches, local run labels, or author-local paths unless a durable citation is requested.",
-    "When the prompt requires an exact machine-readable or template format, output preserves that shape and emits no surrounding prose, Markdown fences, extra headings, or invented fields.",
-    "When exact relay is requested or exactness is the value, output preserves verbatim tool or log output instead of summarizing, normalizing, or polishing it.",
-    "Human-friendly support or policy copy does not add response guarantees, escalation paths, new support channels, reassurance claims, or security reasons.",
-    "When the task asks for a commit message, output the commit message as raw text without a Markdown code fence unless the prompt explicitly asks for a fenced block or explanation.",
-    "When commit-message output includes a `Verification:` section, it treats the section as selected proof for the next reviewer: bullets should preserve stable evidence plus the changed contract, risk, or coverage they support when that meaning is not already obvious, and should not be a raw session command transcript.",
-    "When commit-message output includes a body, it uses a medium-density, scan-friendly shape: it preserves the durable intent, changed contract surfaces, constraints, non-goals, and proof without becoming a feature walkthrough, file inventory, test transcript, or one dense abstract paragraph."
+    "When the prompt identifies or implies the artifact's main reader and the deliverable is prose whose reader priority can vary, output uses LLM-optimized development text by default and human-optimized prose only for a mainly human reader. Exact-format, verbatim-relay, meta-diagnosis, and closure-description cases pass this assertion by non-applicability unless they separately request reader optimization.",
+    "When language selection is relevant, output follows the task's language precedence and preserves file paths, commands, identifiers, environment variables, and canonical strings unless translation is explicitly requested. If the prompt has no competing language signal and no translation surface, this assertion passes by non-applicability.",
+    "When the requested artifact is intended to stand alone, output omits prompt-only provenance such as above, the provided text, as requested, per plan, temporary notes, private branches, local run labels, or author-local paths unless a durable citation is requested. Meta-diagnosis, closure-description, and multi-part command-guidance tasks may use necessary labels and may quote a prohibited local label only to identify the violation; corrected or durable artifact payloads must omit it. They must not leak ambient sandbox paths or unrelated runner state.",
+    "When the task is human-friendly support or policy copy, output does not add response guarantees, escalation paths, new support channels, reassurance claims, or security reasons. Other artifact classes pass this assertion by non-applicability."
   ],
   "evals": [
     {
@@ -45,7 +37,7 @@
       "expectations": [
         "Does not leave `validate the email` as a comment that merely repeats `validateEmail`.",
         "Does not leave `retry the request` as a comment that merely repeats `retryRequest`.",
-        "Either removes the email comment or rewrites it to explain a non-obvious contract without inventing validation behavior.",
+        "Either removes the email comment or rewrites it to preserve the supplied non-obvious contract that empty and malformed addresses are rejected before submission, without inventing additional validation behavior.",
         "Includes a useful retry rationale tied to PaymentCo 409 responses during renewal settling.",
         "Does not change function names, signatures, return values, or implementation behavior.",
         "Does not add unsupported claims about PaymentCo availability, retry counts, backoff policy, or idempotency.",
@@ -62,7 +54,7 @@
         "Says no user-facing changelog entry is needed, or otherwise clearly treats the change as commit-history-only.",
         "Does not claim improved reliability, maintainability, performance, security, API clarity, or user-visible behavior.",
         "Does not describe the parser as newly supporting or fixing webhook behavior.",
-        "Does not turn unchanged tests into a user-facing quality claim.",
+        "May preserve the supplied status that tests pass unchanged, but does not turn that status into an inferred user-facing quality, reliability, or impact claim.",
         "Keeps the response short and direct."
       ]
     },
@@ -161,20 +153,21 @@
     {
       "id": "E09",
       "name": "Active commit workflow preserves message artifact",
-      "prompt": "Using `vibe-writing`, create the commit for the currently staged changes. Treat commit execution as authorized, but this eval can inspect only your response, so show the commit message, the git message transport you would use, and the post-commit check you would run before reporting completion.\n\nRecent local style: `feat(eval-runner): add auditable skill eval runs`; `docs(vibe-writing): tighten command inference`.\n\nStaged summary: `skills/skill-eval/scripts/eval_runner.py` adds run receipts, finalization, usage parsing, doctor completeness checks, and report comparisons; `skills/skill-quality/SKILL.md` tightens prompt-delivery proof and benchmark interpretation guidance; eval expectations are updated for those contracts. Verification commands passed: `python3 -m unittest tests/test_eval_runner.py`; `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.\n\nA prior draft command used separate `git commit -m` values for the subject, two body paragraphs, and each `Verification: ...` line. Do not preserve malformed spacing if the commit-message reference requires a different transport.",
+      "prompt": "Using `vibe-writing`, prepare the response-only commit record for the represented workflow below. The represented workflow already has staged changes and commit execution is authorized. Do not inspect or substitute the eval runner's ambient checkout state, and do not execute the represented commit in this sandbox. Show the commit message, the single-message git transport that the authorized workflow should use, and the post-commit checks it must run before reporting completion.\n\nRecent local style: `feat(eval-runner): add auditable skill eval runs`; `docs(vibe-writing): tighten command inference`.\n\nRepresented staged summary: `skills/skill-eval/scripts/eval_runner.py` adds run receipts, finalization, usage parsing, doctor completeness checks, and report comparisons; `skills/skill-quality/SKILL.md` tightens prompt-delivery proof and benchmark interpretation guidance; eval expectations are updated for those contracts. Represented verification commands passed: `python3 -m unittest tests/test_eval_runner.py`; `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.\n\nA prior draft command used separate `git commit -m` values for the subject, two body paragraphs, and each `Verification: ...` line. Do not preserve malformed spacing if the commit-message reference requires a different transport.",
       "expected_output": "The agent handles a commit-authorized workflow by producing a durable body commit message, preserving verification proof, and naming how it would execute and check the commit-message artifact before completion.",
       "files": [],
       "expectations": [
         "Shown message, transport, and post-commit check follow body-value, verification-provenance, compact-bullet, and transport rules for a commit message with a body.",
         "Commit message uses a Conventional Commit subject and body that preserve the durable eval-runner and skill-quality context without file-inventory prose or unsupported release/version claims.",
-        "Formats the verification commands as one `Verification:` section with adjacent bullets, not as repeated `Verification: ...` paragraphs.",
-        "Verification bullets explain the review-useful scope of the commands, such as eval-runner test coverage and skill-quality eval-schema validation, instead of listing commands with no coverage meaning.",
+        "Formats the commit-message payload's verification commands as one `Verification:` section with adjacent bullets, not as repeated `Verification: ...` paragraphs.",
+        "Verification bullets preserve each stable command and add compact reviewer-useful outcome-and-scope meaning for eval-runner test coverage and skill-quality eval-schema validation; bare commands alone do not satisfy this.",
         "Body uses a medium-density shape that groups the eval-runner and skill-quality changes by durable surface in one to three short paragraphs or a few labeled bullets, not a long feature walkthrough of every added function and not one dense abstract paragraph that hides which surface changed.",
         "Does not enumerate every eval-runner addition (run receipts, finalization, usage parsing, doctor completeness checks, report comparisons) as separate body lines; summarizes them at the eval-runner surface level.",
-        "Uses or proposes one message file, editor buffer, or complete message payload for the multi-line commit message.",
+        "Uses or proposes one message file, editor buffer, heredoc, or other complete message payload for the multi-line commit message; shell syntax may be shown separately from the unfenced message payload.",
         "Does not use repeated `git commit -m` arguments for individual body lines, bullets, verification lines, or trailers.",
-        "Names `git show -s --format=%B HEAD` as the stored-message inspection after creating the commit and says malformed stored output must be corrected before completion is reported, whether amended under the supplied commit authorization or through the workflow holding history authority.",
-        "Preserves commit-execution boundaries by not treating `vibe-writing` as the source of staging, signing, release, or history-mutation rules beyond the supplied commit authorization."
+        "Names `git show -s --format=%B HEAD` as the stored-message inspection after creating the commit and explicitly says malformed stored output must be corrected before completion is reported, whether amended under the supplied commit authorization or through the workflow holding history authority.",
+        "Preserves commit-execution boundaries by not treating `vibe-writing` as the source of staging, signing, release, or history-mutation rules beyond the supplied commit authorization.",
+        "Uses the represented staged and verification facts rather than refusing because the eval runner's ambient checkout has no staged changes, and does not claim to execute the represented commit in the sandbox."
       ]
     },
     {
@@ -188,14 +181,14 @@
         "Does not copy the Conventional Commit subjects `feat(api): add Retry-After parsing to RateLimiter` or `fix(api)!: remove the deprecated retryAfterMs config field` verbatim, and does not keep a `feat:`/`fix:` prefix in the entry.",
         "Does not dump the raw commit list or git-log lines as the entry body; converts the commit metadata into a description of what changed.",
         "Describes the `Retry-After` parsing behavior in `RateLimiter` / `RateLimiter.parseRetryAfter()` (delay-seconds or HTTP-date) as a contract delta.",
-        "Marks the removal of `retryAfterMs` as a breaking change and includes migration guidance to the `retryAfter` duration-string field, preserving the migration direction from `retryAfterMs` to `retryAfter`.",
+        "Leads the incompatible `retryAfterMs` removal with explicit breaking-change wording and migration guidance to the `retryAfter` duration-string field, preserving the migration direction from `retryAfterMs` to `retryAfter`.",
         "Preserves durable anchors such as `src/rate-limiter.ts`, `RateLimiter.parseRetryAfter()`, `retryAfterMs`, or `retryAfter` instead of vague prose.",
         "Emits only the changelog-shaped artifact, with no explanatory preface, horizontal rule, placement instruction, or change-summary wrapper.",
         "Keeps the changelog artifact in English because the supplied changelog context is English and no translation was requested.",
         "Includes the verification status that `pnpm test -- rate-limiter` passed, and does not claim benchmark results or production-incident impact that the prompt states were absent.",
         "Does not invent reliability, security, performance, or rollout benefits beyond the supplied behavior change.",
         "Does not pre-assign or guess a release version for the change; keeps it under `Unreleased`.",
-        "Does not soften or drop the breaking nature of the `retryAfterMs` removal."
+        "Uses explicit breaking-change wording for the `retryAfterMs` removal rather than relying on deprecation or the `Changed` category to imply incompatibility."
       ]
     },
     {
@@ -249,7 +242,7 @@
         "Identifies that the stored message bytes are contaminated by Markdown fence lines around the subject and body.",
         "Identifies that `run-local-12` is a private tool-session record that is not a durable verification proof source, and translates it into a durable reference or an explicit absence status in the corrected message.",
         "Corrected verification text uses an explicit absence status or durable proof meaning instead of replacing the private tool-session record with another unexplained command transcript.",
-        "Provides a corrected commit message as raw message text without Markdown fences or explanatory wrappers inside the message artifact.",
+        "Provides the corrected commit-message payload as raw text without Markdown fences; necessary diagnosis and a short payload label may appear outside the message, but not inside its subject/body bytes.",
         "Attributes the amend that applies the corrected message to the workflow holding history authority under its consent rules rather than to `vibe-writing` itself; neither an unconditional self-amend claim nor a bare permission question without that attribution satisfies this.",
         "Keeps the stored-message inspection obligation: treats `git show -s --format=%B HEAD` as the required post-commit inspection rather than dismissing it.",
         "States that the corrected message must be applied before completion is reported, and does not report the commit as complete while the violating stored message stands."
@@ -272,16 +265,17 @@
     {
       "id": "E15",
       "name": "Standalone tracked writing edit defaults to safe checkpoint",
-      "prompt": "Use `vibe-writing` to edit the tracked file `README.md` so one existing paragraph is clearer. The edit is complete and reviewed, project policy allows local commits, and unrelated source changes already exist. I did not separately ask for a commit. Describe the required closure behavior. This is a file-editing task, not a request to draft only the replacement paragraph in chat.",
+      "prompt": "Use `vibe-writing` to describe the required closure behavior for this represented workflow state: a tracked `README.md` clarity edit is complete and reviewed, project policy allows local commits, and unrelated source changes already exist. I did not separately ask for a commit. This is a response-only closure description: do not inspect or edit the eval runner's ambient `README.md`, and do not execute the represented commit in this sandbox.",
       "expected_output": "The standalone writing workflow closes the verified tracked edit with a scoped local checkpoint while preserving message-only and unrelated-path boundaries.",
       "files": [],
       "expectations": [
-        "Treats explicit primary `vibe-writing` use for the tracked edit as permission for a scoped local checkpoint without another commit instruction.",
+        "Treats explicit primary `vibe-writing` use for the represented tracked edit as permission for a scoped local checkpoint without another commit instruction; response-only delivery means describing rather than executing those authorized closure steps.",
         "Refreshes dirty state, stages only `README.md` and any coupled tracked documentation actually owned by the request, and inspects the staged diff.",
         "Leaves unrelated source changes unstaged and uncommitted.",
         "Uses a Conventional Commit message and inspects the stored message and committed file set after committing, or states those as required gates.",
         "Distinguishes this tracked-file edit from chat replies, summaries, commit-message drafts, unchanged artifacts, generated output, and empty file sets, which must not be committed.",
-        "Does not push, release, bump versions, amend, rebase, reset, stash, squash, or perform destructive cleanup."
+        "Does not push, release, bump versions, amend, rebase, reset, stash, squash, or perform destructive cleanup.",
+        "Treats the prompt as a response-only represented workflow state: does not edit the ambient `README.md`, does not claim an actual sandbox commit or commit hash, and describes the authorized commit gates rather than converting them into an uncommitted checkpoint."
       ]
     }
   ],
