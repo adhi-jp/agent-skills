@@ -32,6 +32,27 @@ unless the user explicitly asks for chat-only or no-file operation. If file
 writing is unavailable or unsafe, use the no-write fallback and state that no
 file changed; do not present that fallback as ordinary chat-only mode.
 
+If the host, harness, or runner designates an artifact-capture destination,
+artifact mode must write the complete primary spec there before any repository
+mirror. The capture destination is transport, not the spec identity: keep
+`Current spec path`, evidence paths, and the chat summary repository-relative,
+and do not expose a sandbox absolute path or the capture path as the selected
+spec path or a Markdown link. This transport does not authorize a write for
+chat-only, no-file, lifecycle-summary, response-only classification, or an
+explicitly no-artifact closure description.
+
+Artifact mode does not weaken contradiction or false-premise stops. When an
+existing spec or supplied evidence contradicts the requested requirement, do
+not rewrite the contradicted behavior as confirmed, proposed-default,
+out-of-scope, or acceptance-criteria text merely because it is the user's
+requested direction. Preserve the current spec path and the last
+evidence-supported behavior. Record the requested change as an unresolved
+decision or option, record the contradiction and its practical scope or
+readiness impact under evidence and risks, propose close alternatives, and wait
+for an informed user decision. A contradiction stop remains artifact mode by
+default: write the normal spec shape to any designated capture destination even
+when the saved current spec itself must stay unchanged.
+
 When the user explicitly invokes this skill for a request that writes a tracked
 requirements artifact, that invocation permits one scoped local checkpoint
 commit after the final audit passes, unless the user says not to commit, project
@@ -260,9 +281,12 @@ recordable and tied to the current artifact, selected exact-content decisions
 must be embedded or durably referenced inside an authority-safe payload boundary
 before dependent handoff, visible three/four-choice options must be viable
 requirement paths rather than decoys, and downstream defects reopen or block the
-affected requirements contract. A tracked spec that passes the final audit is
-committed as a scoped local checkpoint by default under explicit invocation,
-unless denied or blocked by project or dirty-state safety.
+affected requirements contract. Artifact-mode capture must contain the complete
+spec while preserving the repository-relative spec identity, and contradictory
+evidence must block confirmation rather than being overwritten. A tracked spec
+that passes the final audit is committed as a scoped local checkpoint by default
+under explicit invocation, unless denied or blocked by project or dirty-state
+safety.
 
 ## Final Audit Reference
 

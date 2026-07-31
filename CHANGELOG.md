@@ -36,6 +36,32 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-requirements-spec` now treats a host or eval-runner artifact-capture
+  destination as mandatory recording transport whenever artifact mode creates
+  or updates a spec. The complete primary spec is written there before any
+  repository mirror so inspection does not depend on an unrecorded sandbox
+  file; `Current spec path`, evidence paths, and the chat summary retain the
+  selected repository-relative artifact identity and omit sandbox absolute
+  links. Chat-only, no-file, lifecycle-summary, response-only classification,
+  and explicitly no-artifact closure-description modes remain non-writing. The
+  eval suite moves the finished-checkpoint contract out of universal common
+  assertions, makes universal assertions explicitly conditional on their
+  delivery mode or source surface, and adds artifact-mode capture pressure to
+  the cases that require inspectable specs. The top-level contract now keeps
+  capture transport and repository-relative artifact identity visible without
+  relying only on a referenced workflow, and makes clear that artifact mode
+  cannot turn evidence contradicted by the current spec into confirmed,
+  proposed-default, out-of-scope, or acceptance-criteria behavior while calling
+  the same direction unresolved. Contradiction stops preserve the last
+  evidence-supported behavior and remain artifact mode by default. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`.
+  Closing `gpt-5.4-mini` Codex evaluation with one run per config: 28/28 cells
+  scored, zero infrastructure failures, `with_skill` 86.4%,
+  `without_skill` 80.9%, delta +5.6 points. Sanity review remains required for
+  E02 and E10, where the single-run candidate trailed baseline; across the six
+  iterations their with-skill scores moved between 60.0–85.0% and 64.7–100.0%
+  respectively rather than exposing one stable shared contract gap. Generated
+  workspace artifacts remain uncommitted.
 - `skill-quality` now distinguishes runner or host capability from user and
   workflow authority during eval diagnosis. Conditional artifact destinations,
   available tools, fallbacks, and transport hooks are inspected in the exact

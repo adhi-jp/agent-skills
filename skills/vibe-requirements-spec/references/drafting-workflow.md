@@ -210,6 +210,16 @@ Read this reference when creating, revising, reopening, finishing, or handing of
      proposed default, assumption, or decision needing user acceptance.
 
 7. **Write or update the spec artifact**
+   - When artifact mode has a host-, harness-, or runner-designated capture
+     destination, write the complete primary spec there first on every response
+     that creates or updates the spec, then mirror it to the selected repository
+     path only when the host contract requires or permits that write. Keep the
+     selected repository-relative path in `Current spec path` and the chat
+     summary; do not substitute or link to the capture path or another sandbox
+     absolute path. The capture destination is recording transport, not a second
+     spec identity or permission to write in chat-only, no-file,
+     lifecycle-summary, response-only classification, or explicitly no-artifact
+     closure-description mode.
    - Update artifacts at meaningful points, not mechanically after every answer:
      after important decisions, when context compaction appears near and the
      agent can tell, or after a reasonable batch of lower-impact decisions

@@ -146,9 +146,25 @@ Choose and preserve the spec path in this order:
 
 If a host, harness, or runner provides an output-capture path for recording the
 artifact, treat that path as write transport only unless the user explicitly
-selected it as the spec path. Write to the required capture path when necessary,
-but keep `Current spec path` and the chat summary path selected by the rules
-above.
+selected it as the spec path. In artifact mode, write the complete primary spec
+to that capture destination before writing or mirroring it anywhere else so the
+recorded output contains the artifact being reviewed; do not leave the only
+inspectable copy at another sandbox path. Keep
+`Current spec path`, local-evidence paths, and the chat summary path selected by
+the rules above as repository-relative paths. Do not expose the capture path or
+an ambient sandbox absolute path as the current spec path, a Markdown link
+target, or requirement evidence. A host may mirror the captured artifact to the
+selected repository path; the capture destination does not change artifact
+identity or authorize an artifact in chat-only, no-file, or lifecycle-summary
+mode.
+
+When the user prompt is a response-only classification, an explicitly
+no-artifact closure description, or another no-artifact request, do not create
+or fully render a spec merely because the cases mention spec paths or because a
+capture destination is available. Preserve the named current paths in the
+classification and answer the requested lifecycle or boundary question. When a
+prompt groups independent cases, do not write one case's artifact as though it
+represented the others.
 
 This change is forward-looking. Existing files under `specs/` remain in place
 as historical artifacts and must not be migrated only because this skill now

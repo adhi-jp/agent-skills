@@ -310,7 +310,13 @@ default spec paths use `docs/specs/YYYY-MM-DD-<goal-slug>-spec.md` when no user
 path or current path applies; historical `specs/` files are reused when they
 are the current spec and are not migrated. Host or eval-runner artifact capture
 paths are treated as write transport, not as the selected spec path, unless the
-user explicitly chose that path.
+user explicitly chose that path. In artifact mode, the complete primary spec is
+written to the designated capture destination first for recorded review while
+`Current spec path`, evidence paths, and the chat summary keep the selected
+repository-relative identity and do not expose sandbox absolute links.
+Response-only classification and explicitly no-artifact closure-description
+prompts remain non-writing even when they mention spec paths or the host exposes
+a capture destination.
 If a current spec path is supplied but cannot be read in the active workspace,
 the skill preserves that path as current context and reports that the saved file
 could not be inspected or changed instead of replacing it.

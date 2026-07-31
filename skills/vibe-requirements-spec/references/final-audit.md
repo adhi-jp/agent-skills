@@ -14,6 +14,12 @@ Read this reference before finalizing a requirements-spec response or artifact. 
   mode instead of saying no file changed.
 - Treating "what do we need to decide?", "help me clarify", or similar
   clarification wording as a reason to avoid the default spec artifact.
+- In artifact mode, writing the only complete spec to a sandbox repository path
+  while leaving a designated artifact-capture destination empty, or exposing
+  either absolute transport path as the current spec path or chat link.
+- Treating response-only classification or explicitly no-artifact
+  closure-description prompts as artifact requests merely because they mention
+  spec paths or expose a capture destination.
 - Downgrading from default `strict-four-choice` because the request seems quick,
   small, formed, or low-risk instead of requiring explicit current-user mode
   selection or confirmation.
@@ -27,6 +33,9 @@ Read this reference before finalizing a requirements-spec response or artifact. 
   recording AI-recommended defaults.
 - In `freestyle`, adopting a false, infeasible, destructive, or
   specification-breaking requirement without confirmation.
+- Calling a contradicted requested direction an open conflict while also placing
+  that same direction in confirmed requirements, proposed defaults, out-of-scope
+  rules, or acceptance criteria.
 - In artifact mode, replacing a false-claim, contradiction, feasibility-risk, or
   destructive-risk stop with a diagnostic-only artifact that omits the normal
   requirements spec sections or `Evidence and constraints`.
@@ -137,6 +146,13 @@ Before responding, check:
 - Is `Requirement mode` recorded in `Spec metadata` when artifact mode applies?
 - In artifact mode, did you create or update only the requirements spec
   artifact?
+- When artifact mode had a designated capture destination, did you write the
+  complete primary spec there first while keeping `Current spec path`, evidence
+  paths, and the chat summary repository-relative and free of sandbox absolute
+  links?
+- If the user asked only for classification or closure behavior, did you answer
+  in response-only form without creating a spec or treating one independent
+  case as the artifact for the others?
 - In artifact mode, does the spec use the selected document language while
   preserving useful user-authored original wording, identifiers, paths,
   commands, and quoted text?
