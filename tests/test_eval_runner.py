@@ -259,6 +259,32 @@ class FailFastTests(BaseRunnerTest):
         self.assertEqual(result.returncode, 2)
         self.assert_no_subprocess(log)
 
+    def test_unknown_eval_id_exits_without_launch_or_iteration(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        log = self.root / "launch.log"
+        result = self.run_cli(
+            "run", path, "--agent", "stub", "--eval-id", "E99",
+            env=self.stub_env(spec, log=log),
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("unknown eval id", result.stderr)
+        self.assert_no_subprocess(log)
+        self.assertFalse(self.iteration_dir().exists())
+
+    def test_empty_eval_id_exits_without_launch_or_iteration(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        log = self.root / "launch.log"
+        result = self.run_cli(
+            "run", path, "--agent", "stub", "--eval-id", ",",
+            env=self.stub_env(spec, log=log),
+        )
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("at least one non-empty eval id", result.stderr)
+        self.assert_no_subprocess(log)
+        self.assertFalse(self.iteration_dir().exists())
+
     def test_unavailable_provider_exits_without_launch(self):
         path = self.write_suite()
         log = self.root / "launch.log"
@@ -1169,6 +1195,52 @@ class CorePipelineTests(BaseRunnerTest):
             (self.iteration_dir() / "eval-first-eval" / "without_skill" / "run-1" / "grading.json").read_text()
         )
         self.assertEqual(baseline["passed"], 0)
+
+    def test_eval_id_runs_diagnostic_subset_and_records_non_closing_coverage(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec(
+            {"executor_output": "answer", "grading": {"with_skill": {"pass": True}, "without_skill": {"pass": True}}}
+        )
+        result = self.run_cli(
+            "run", path, "--agent", "stub", "--eval-id", "E02", "--runs", "1",
+            env=self.stub_env(spec), check=True,
+        )
+
+        iteration = self.iteration_dir()
+        benchmark = json.loads((iteration / "benchmark.json").read_text())
+        manifest = json.loads((iteration / "iteration_manifest.json").read_text())
+        coverage = benchmark["suite_coverage"]
+
+        self.assertEqual(benchmark["run_count"], 2)
+        self.assertEqual([entry["eval_id"] for entry in benchmark["evals"]], ["E02"])
+        self.assertEqual(coverage["selected_eval_ids"], ["E02"])
+        self.assertEqual(coverage["selected_eval_count"], 1)
+        self.assertEqual(coverage["suite_eval_count"], 2)
+        self.assertTrue(coverage["partial"])
+        self.assertFalse(coverage["closing_eligible"])
+        self.assertEqual(manifest["suite_coverage"], coverage)
+        self.assertFalse(benchmark["sanity_checks"]["ok"])
+        self.assertEqual(len(benchmark["sanity_checks"]["partial_suite_selection"]), 1)
+        self.assertFalse((iteration / "eval-first-eval").exists())
+        self.assertTrue((iteration / "eval-second-eval").is_dir())
+        self.assertIn("partial-suite selection", result.stdout)
+        self.assertIn("diagnostic subset, not full-suite closing evidence", (iteration / "benchmark.md").read_text())
+
+    def test_eval_id_accepts_repeated_and_comma_separated_full_selection(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec(
+            {"executor_output": "answer", "grading": {"with_skill": {"pass": True}, "without_skill": {"pass": True}}}
+        )
+        self.run_cli(
+            "run", path, "--agent", "stub", "--eval-id", "E02,E01", "--eval-id", "E02",
+            env=self.stub_env(spec), check=True,
+        )
+        benchmark = json.loads((self.iteration_dir() / "benchmark.json").read_text())
+        coverage = benchmark["suite_coverage"]
+        self.assertEqual(coverage["selected_eval_ids"], ["E01", "E02"])
+        self.assertFalse(coverage["partial"])
+        self.assertTrue(coverage["closing_eligible"])
+        self.assertTrue(benchmark["sanity_checks"]["ok"])
 
     def test_clean_run_reports_sanity_ok(self):
         path = self.write_suite()

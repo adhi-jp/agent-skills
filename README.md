@@ -78,6 +78,7 @@ unproven. The commands below are the entry point after that authorization:
 
 ```sh
 python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json
+python3 skills/skill-eval/scripts/eval_runner.py run evals/vibe-planning/evals.json --agent codex --eval-id E03 --config with_skill,without_skill --runs 1
 python3 skills/skill-eval/scripts/eval_runner.py run evals/vibe-planning/evals.json --agent codex --config with_skill,without_skill --runs 1
 python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/workspace/codex/iteration-1
 ```
@@ -87,8 +88,12 @@ time and token usage (the executor/skill-run subprocess only, grader scoring
 cost excluded); uncaptured or partial provider metrics appear as absent with a
 reason, never a placeholder number.
 Use the documented runner syntax literally when drafting automation: pass the
-suite JSON positionally and use `--agent`, `--config`, and `--runs`; do not
-invent aliases such as `--eval-id`, `--configuration`, or `--mode`.
+suite JSON positionally and use `--agent`, `--config`, and `--runs`.
+`--eval-id E01,E03` selects an authorized diagnostic subset on `run`; the
+manifest and benchmark record its partial coverage and mark it non-closing.
+Omit the filter for a full-suite closing run, and do not copy it onto `validate`
+or `report` or replace closure with an all-id filtered run. Do not invent aliases
+such as `--evals`, `--iteration-dir`, `--configuration`, or `--mode`.
 Codex runs send prompts through stdin, use absolute provider output/schema
 paths, and run a two-role readiness preflight before creating a non-empty
 iteration. The preflight uses a disposable Git-backed executor cwd and an empty
@@ -960,8 +965,10 @@ precedence over the skill's defaults.
 
 Evidence-driven skill and eval quality decision workflow for benchmark results,
 grader feedback, review findings, session-history patterns, trigger failures,
-or quality regressions. It starts from evidence, writes a small
-failure-to-contract delta, labels the current proposal's evidence,
+or quality regressions. For tracked skill or eval proposals it records a compact
+evidence map, failure-to-contract delta, owning surfaces, and proof status;
+no-change decisions may remain concise when an existing rule or eval already
+owns the mechanism. It
 classifies surprising or repeated eval failures by skill-contract, assertion,
 recording, prompt, grader-boundary, and variance surfaces before changing skill
 text, maps security diagnostics to source-boundary-sink predicates and
@@ -976,9 +983,17 @@ the same leakage check to its own self-authored assertions, keeps token/time
 claims evidence-bound, requires a closing rerun on a clean, complete run before
 any improvement claim, ties each closing run to the exact post-edit skill,
 assertion, prompt, fixture, and proof-surface state it measured, checks that
+non-exact semantic assertions accept materially different compliant paraphrases
+instead of rewarding a magic phrase, and uses explicitly non-closing
+`--eval-id` diagnostics while a case contract is changing before freezing the
+suite state for one full closing run. It checks that
 declared fixtures reach the executor under the runner's copy contract, and
-requires assertions to be satisfiable from the case's response-only,
-artifact-writing, closure, blocked, or state-changing delivery mode. For
+separately checks that fixture-semantic assertions give the isolated grader the
+minimum grader-only facts needed to distinguish supplied content from
+invention without leaking them to the executor or requiring needless
+restatement. It requires assertions to be satisfiable from the case's
+response-only, artifact-writing, closure, blocked, or state-changing delivery
+mode. For
 no-change and blocked cases, it distinguishes naming an existing sufficient
 artifact from proposing an edit and does not require a new mutation solely as
 proof. It binds represented source material, delivered fixtures, and the
@@ -1038,11 +1053,20 @@ workspace placement, executor and grader separation, model passthrough, or
 metric capture for a run. It is the authoritative source for the eval CLI
 contract, requires explicit user instruction before launching eval execution,
 keeps the executor and grader as separate agents (no same-agent execute-and-grade
-path), surfaces per-config executor-only execution time and token usage with
-uncaptured metrics shown as absent rather than zero, and requires verifying
-sanity-check status and excluded runs before any pass-rate delta is reported. It
-does not edit the eval suite schema or assertion model and leaves general skill
-creation and quality decisions to `skill-creator` and `skill-quality`.
+path), keeps the grader in an empty working directory, and requires semantic
+verdicts about fixture content to receive only the minimum relevant grader-only
+ground truth instead of restoring fixture filesystem access, substituting a
+delivery manifest for semantic facts, sending whole fixtures by default, or
+exposing answers to the executor. It surfaces per-config executor-only execution
+time and token usage with uncaptured metrics shown as absent rather than zero,
+supports `--eval-id` for authorized diagnostic subsets, records selected versus
+full-suite coverage, and marks partial runs `REVIEW REQUIRED` and non-closing so
+their delta cannot masquerade as a complete suite result. It requires verifying
+sanity-check status and excluded runs before any pass-rate delta is reported and
+treats failures caused only by an unstated preferred phrase as lexical grader
+false negatives rather than target-skill defects. It does not edit the eval
+suite schema or assertion model and leaves general skill creation and quality
+decisions to `skill-creator` and `skill-quality`.
 
 ### `vibe-review`
 

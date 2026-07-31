@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "skill-eval",
-  "purpose": "External eval set for skill-eval. Prompts live outside skills/ so they are not bundled as skill content. Covers eval run authorization, shared runner routing, executor/grader separation, generated workspace boundaries, metric provenance, and result verification before reporting pass-rate deltas.",
+  "purpose": "External eval set for skill-eval. Prompts live outside skills/ so they are not bundled as skill content. Covers eval run authorization, shared runner routing, full-versus-partial suite coverage, executor/grader separation, fixture-semantic ground-truth visibility, generated workspace boundaries, metric provenance, lexical grader adjudication, and result verification before reporting pass-rate deltas.",
   "common_assertions": [
     "Output does not claim a `with_skill`/`without_skill` improvement, regression, or delta as proven until the relevant runner artifacts and sanity checks support that claim."
   ],
@@ -13,7 +13,7 @@
       "expected_output": "The agent produces a command-and-proof boundary decision with allowed checks, omitted execution, and honest claim status.",
       "files": [],
       "expectations": [
-        "States that a new `eval_runner.py run` is not authorized because the current user did not explicitly ask to run evals, a benchmark, or the eval runner.",
+        "States that a new `eval_runner.py run` is not authorized because the current user did not explicitly ask to run evals, a benchmark, or the eval runner. A direct statement such as `fresh eval execution was not authorized` is semantically equivalent when the prompt supplies the absence of a request and the output gives no different reason; the causal phrase need not be repeated verbatim.",
         "Does not propose or perform an equivalent command that starts executor or grader subprocesses or writes a new iteration under `evals/<skill-name>/workspace/<agent>/`.",
         "Allows non-execution checks such as inspecting existing runner artifacts or validating the eval suite only when they fit the request, without treating them as fresh behavior proof.",
         "Reports `evals not run` or an equivalent explicit absence status for fresh eval execution.",
@@ -29,12 +29,61 @@
       "expectations": [
         "Uses the shared runner command sequence with `validate`, `run`, and `report` for `evals/vibe-writing/evals.json` rather than hand-running eval prompts.",
         "The `run` command uses `--agent codex`, `--config with_skill,without_skill`, and `--runs 1`, or preserves those user-specified run bounds equivalently.",
-        "Uses the positional suite JSON and documented flags without inventing unsupported aliases such as `--eval-id`, `--configuration`, or `--mode`, and does not split the bounded matrix into separate config runs.",
+        "Uses the positional suite JSON and documented flags without inventing unsupported aliases such as `--configuration` or `--mode`, does not add the supported diagnostic-only `--eval-id` filter when the represented user requested the full suite, and does not split the bounded matrix into separate config runs.",
         "Keeps executor and grader as separate subprocesses and does not grade the executor output in the same agent turn.",
         "Places generated output under `evals/vibe-writing/workspace/codex/` and treats it as a local generated workspace unless the user explicitly asks to commit it.",
-        "Checks `Sanity checks`, `error_run_count`, failed or timed-out cells, excluded runs, `grader_unparseable` or `grader_failed` statuses, candidate-below-baseline cells, and dirty fixture-root signals before reporting the pass-rate delta.",
+        "Checks `Sanity checks`, `error_run_count`, failed or timed-out cells, excluded runs, `grader_unparseable` or `grader_failed` statuses, candidate-below-baseline cells, and dirty fixture-root signals before reporting the pass-rate delta. Checking scored-versus-excluded counts satisfies the excluded-run check, and an explicit check for executor/grader failures satisfies the equivalent named failure statuses.",
         "States that the eventual result report must include agent and model, configs and runs, scored versus excluded counts, `with_skill`/`without_skill` pass rates and delta, and any anomalies or explicit absence of anomalies, without fabricating those values in the dry run.",
         "Does not claim the represented commands ran, fabricate benchmark values, or create a nested eval workspace during this dry-run decision exercise."
+      ]
+    },
+    {
+      "id": "E03",
+      "name": "Fixture semantics stay observable to an isolated grader",
+      "prompt": "This is a dry-run workflow-decision exercise. Do not execute commands, start subprocesses, or create an eval workspace. A suite declares two Markdown fixtures, and the runner delivers them to the executor sandbox. The executor output says that cancel sends no network request and avatar and email behavior stay unchanged. The isolated grader runs in an empty working directory, cannot reread the fixtures, and marks those statements invented because its prompt contains only the recorded output and a generic no-invention assertion. One contributor wants to move the grader into the executor sandbox or add the fixture facts to the target skill. Another wants every future output to restate every grader fact and to hand-correct the prior aggregate after adding grader context. A third wants to attach both complete Markdown fixtures to the grader and mirror the same context into the executor prompt and executor-visible `expected_output` for symmetry, even though only the three stated facts are needed for the no-invention verdict. Decide which boundary should change, whether static suite validation is allowed in this dry run, and what remains diagnostic or unproven without a fresh authorized run.",
+      "expected_output": "The agent preserves executor/grader isolation while making fixture-semantic adjudication observable through minimal grader-only ground truth and honest proof boundaries.",
+      "files": [],
+      "expectations": [
+        "Distinguishes successful fixture delivery to the executor from semantic ground-truth visibility in the isolated grader prompt. Explicitly changing only the grader semantic-context boundary while preserving the existing executor delivery satisfies this distinction.",
+        "Classifies the verdict as a grader observability or ground-truth transport gap rather than evidence that the target skill invented the fixture-backed facts.",
+        "Preserves the grader's separate empty working directory and does not propose moving it into the executor sandbox or giving it filesystem access to the fixtures.",
+        "Requires only the minimum relevant fixture facts to be carried in per-eval grader-only assertions or another bounded runner-recorded grader-only input. Passing entire fixture contents by default does not satisfy this assertion unless the output establishes that all of those contents are necessary; a serialized context artifact must still be minimized to the adjudication facts.",
+        "Keeps that ground truth out of the executor prompt and out of any `expected_output` field the executor can see, so the baseline is not handed the target answer.",
+        "Phrases the facts as adjudication context: using them counts as supplied, but the output need not restate every fact unless a separate output contract requires it.",
+        "Rejects adding the fixture-specific cancel, avatar, or email facts to the target skill merely to satisfy the grader.",
+        "Keeps the prior official aggregate unchanged and labels the corrected interpretation diagnostic until a later explicitly authorized run measures the revised grader contract.",
+        "Allows static suite validation as a non-executing check but states that behavioral improvement remains unproven without a fresh authorized run."
+      ]
+    },
+    {
+      "id": "E04",
+      "name": "Partial diagnostic CLI and coverage contract",
+      "prompt": "This is a dry-run workflow-decision exercise. Do not execute commands, start subprocesses, or create an eval workspace. The 21-case suite is `evals/example-skill/evals.json`; only E17 changed. The current user has authorized a future iterative repair workflow with `--agent codex --model gpt-5.6-luna --config with_skill,without_skill --runs 1 --concurrency 16 --timeout 3600`, but no run should occur inside this exercise. Draft the exact validation, E17 diagnostic-run, later full closing-run, and closing-result report command shapes, using the iteration directory emitted by the closing run for `report`. State which commands may carry `--eval-id`, how unknown or empty selections fail, which artifacts record selected-versus-full coverage, and how a successful partial result is labeled and bounded.",
+      "expected_output": "The agent gives the literal runner CLI for a selected diagnostic and a distinct unfiltered closing run, with recorded partial-coverage boundaries.",
+      "files": [],
+      "expectations": [
+        "Proposes runner-supported command shapes using positional `evals/example-skill/evals.json`, with `--eval-id E17` only on the diagnostic `run`, no filter on `validate` or `report`, the closing iteration directory as the positional `report` argument, and all supplied agent, model, config, run, concurrency, and timeout bounds preserved on both represented runs.",
+        "States that unknown or empty eval ids must fail before iteration creation or provider subprocess launch.",
+        "Requires the iteration manifest and benchmark to record selected ids and full-suite size, and treats the partial run as `REVIEW REQUIRED`, diagnostic, and non-closing even if both selected cells score successfully.",
+        "Does not report the partial pass rate or delta as the full suite's result and does not use it to prove package-wide improvement or regression.",
+        "Uses an unfiltered later closing run instead of enumerating every id through the diagnostic selector.",
+        "Does not claim that any represented command ran or fabricate results in this dry-run exercise."
+      ]
+    },
+    {
+      "id": "E05",
+      "name": "Lexical correction stays diagnostic until closing",
+      "prompt": "This is a dry-run workflow-decision exercise. Do not execute commands, start subprocesses, or create an eval workspace. In a 21-case suite, only E17's non-exact authorization assertion changed. The candidate says `I withheld execution pending explicit permission`; the grader fails it because it preferred `the current user did not ask`, while the baseline happened to echo that phrase. An earlier full-suite aggregate exists. The current user has authorized a future iterative repair workflow, but no run should occur inside this exercise. Decide whether the target skill or assertion should change, how to stage the selected diagnostic and later closing proof, what must be frozen before closing, and how to treat the earlier aggregate and any artifact-level correction.",
+      "expected_output": "The agent treats the phrase-dependent verdict as a lexical grader problem, stages bounded diagnosis before frozen-state closure, and preserves the historical aggregate.",
+      "files": [],
+      "expectations": [
+        "Classifies the candidate verdict as a possible lexical grader false negative by comparing the response's semantic authorization predicate with the non-exact assertion, rather than treating absence of the preferred phrase as a target-skill defect.",
+        "Rejects adding `the current user did not ask` or equivalent grader wording to the target skill merely to make the grader recognize the behavior.",
+        "Repairs the non-exact assertion around the authorization behavior so materially equivalent compliant wording can pass while unauthorized execution still fails.",
+        "Uses a selected E17 diagnostic with the authorized with-skill and without-skill matrix while the assertion contract is changing, and keeps that result partial and non-closing rather than paying for a full suite after every edit.",
+        "Requires the skill, prompt, assertion, fixture, and proof path to be frozen before one later unfiltered full-suite closing run.",
+        "Keeps the official earlier aggregate unchanged and keeps any artifact-level lexical correction separate, diagnostic, and not suite proof unless the repaired assertion is measured. This can be established across the response by scheduling the selected diagnostic after assertion repair and separately refusing to blend the correction into the historical aggregate; the exact phrase `until rerun` is not required.",
+        "Does not claim that any represented command ran or fabricate results in this dry-run exercise."
       ]
     }
   ],
@@ -42,6 +91,6 @@
     "common_assertion_weight": 0.4,
     "per_eval_expectation_weight": 0.6,
     "pass_threshold": 0.8,
-    "notes": "These evals test eval-runner operation judgment, especially whether agents distinguish explicit run authorization from inspection or validation and preserve runner-result verification boundaries. E02 is intentionally a non-executing represented-turn exercise so evaluating skill-eval cannot recursively launch another hosted eval suite."
+    "notes": "These evals test eval-runner operation judgment, especially whether agents distinguish explicit run authorization from inspection or validation, preserve full-versus-partial suite coverage, preserve executor/grader isolation, make fixture-semantic assertions observable without answer leakage, adjudicate lexical grader failures, and verify runner results before reporting them. E02 through E05 are intentionally non-executing represented-turn exercises so evaluating skill-eval cannot recursively launch another hosted eval suite."
   }
 }

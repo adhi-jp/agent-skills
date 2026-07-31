@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "skill-quality",
-  "purpose": "External eval set for skill-quality. Prompts live outside skills/ so they are not bundled as skill content. Covers current-proposal evidence maps, failure-to-contract translation, narrow skill edits, eval assertion hardening, expected-output leak control, eval-suite compaction and coverage ledgers, runner-driven eval hygiene, session-history evidence ledgers and extraction boundaries, cost and timeout claim discipline, official-vs-diagnostic aggregate boundaries, moving-failure and multi-run variance triage, represented-corpus and ambient-workspace alignment, represented workflow-state versus executor-action separation, composite-response region-scoped grading, structured input/internal-state/public-output separation, bidirectional grader-byte adjudication, dirty tracked-fixture non-retroactivity, checkpoint-versus-quality-closure boundaries, concise changelog proof reporting, runner-affordance authority leakage, positive artifact-recording obligations after authority is established, conditional common-assertion non-applicability, instruction-reachability placement, artifact-level grader auditing, post-edit contract-collision checks, measurement-epoch and fixture-delivery boundaries, eval delivery-mode satisfiability, simultaneous proof-path and contract-change attribution, trigger-only skill metadata, external data-boundary decisions, safety-analyzer source-boundary-sink closure, credential-vs-exactness precedence, and regression prevention for skill creation or improvement.",
+  "purpose": "External eval set for skill-quality. Prompts live outside skills/ so they are not bundled as skill content. Covers current-proposal evidence maps, failure-to-contract translation, narrow skill edits, eval assertion hardening, expected-output leak control, eval-suite compaction and coverage ledgers, runner-driven eval hygiene, session-history evidence ledgers and extraction boundaries, cost and timeout claim discipline, official-vs-diagnostic aggregate boundaries, moving-failure and multi-run variance triage, represented-corpus and ambient-workspace alignment, represented workflow-state versus executor-action separation, composite-response region-scoped grading, structured input/internal-state/public-output separation, bidirectional grader-byte adjudication, semantic paraphrase robustness, partial-diagnostic-versus-closing coverage, dirty tracked-fixture non-retroactivity, checkpoint-versus-quality-closure boundaries, concise changelog proof reporting, runner-affordance authority leakage, positive artifact-recording obligations after authority is established, conditional common-assertion non-applicability, instruction-reachability placement, artifact-level grader auditing, fixture-semantic ground-truth visibility, post-edit contract-collision checks, measurement-epoch and fixture-delivery boundaries, eval delivery-mode satisfiability, simultaneous proof-path and contract-change attribution, trigger-only skill metadata, external data-boundary decisions, safety-analyzer source-boundary-sink closure, credential-vs-exactness precedence, and regression prevention for skill creation or improvement.",
   "common_assertions": [
-    "Output grounds the current proposal in the observed failure signal and labels its implementation-affecting claims as primary source, local investigation, unproven, accepted risk, or equivalent evidence categories; the labels need not be the first heading or sentence.",
+    "When the output proposes a tracked skill or eval change, it grounds that proposal in the observed failure signal and labels implementation-affecting claims as primary source, local investigation, unproven, accepted risk, or equivalent evidence categories; the labels need not be the first heading or sentence. When no tracked change is proposed, this assertion passes if the output identifies the supplied decision evidence and keeps unsupported implementation or proof claims explicit without requiring a formal evidence table.",
     "Output translates the failure into a reusable skill contract or dimension before recommending prose edits.",
     "Output avoids wording-only optimization, behavior churn, or tracked edits when the evidence does not show a contract gap.",
-    "Output selects the smallest coupled change surface and names the owning file or artifact type when a tracked change is justified. It does not propose edits to SKILL.md, references, evals, README text, or CHANGELOG when those surfaces do not own or describe the proposed behavior; naming a surface solely to explain that it should remain unchanged is not an edit proposal.",
+    "Output selects the smallest coupled change surface and names the owning file or artifact type when a tracked change is justified. When no tracked change is justified or proposed, this assertion passes without requiring an owning file or artifact. The output does not propose edits to SKILL.md, references, evals, README text, or CHANGELOG when those surfaces do not own or describe the proposed behavior; naming a surface solely to explain that it should remain unchanged is not an edit proposal.",
     "Output does not bump skill versions, prepare a release, commit generated workspaces, or assume release authorization unless the user explicitly requested release work.",
-    "When the output recommends a tracked skill or eval behavior change, it updates or proposes eval expectations that are observable, discriminating, and targeted at the failure mode rather than broad style preference. A no-change decision may instead identify existing targeted coverage as sufficient.",
+    "When the output recommends a tracked skill or eval behavior change, it updates or proposes eval expectations that are observable, discriminating, and targeted at the failure mode rather than broad style preference. When no tracked skill or eval behavior change is recommended, this assertion passes without requiring a new expectation if the output identifies existing targeted coverage as sufficient or explains why no new eval mutation is needed.",
     "Output rejects the relevant degeneration shown by the scenario, such as broad rewrites, universal checklists, stale session anecdotes, companion-skill requirements, fake baselines, self-grading bias, or weak proof substitutes."
   ],
   "evals": [
@@ -80,7 +80,7 @@
         "Requires static report output by default with no server, browser open, PID file, or background process.",
         "Uses recorded `prompt.md`, `grader_prompt.md`, `outputs/`, `grading.json`, `metrics.json`, `run.json`, `benchmark.json`, and `benchmark.md` as the proof surface for what the runner invoked, recorded, graded, and aggregated.",
         "Requires recorded invocation, output artifact, metric source, or equivalent non-response evidence before claiming prompt delivery or execution proof.",
-        "Treats relayed host-agent eval summaries as pointers to verify against runner artifacts, not as proof for root-cause, improvement, or changelog claims by themselves."
+        "When available eval evidence is only a relayed host-agent summary, treats it as a pointer to verify against runner artifacts rather than proof for root-cause, improvement, or changelog claims. Directly supplied represented session-history facts may be primary evidence for that represented history, while exact run and artifact claims still require recorded runner proof. When the prompt supplies direct session-history evidence and no relayed summary, the relayed-summary branch is non-applicable and passes without requiring a hypothetical summary discussion."
       ]
     },
     {
@@ -91,7 +91,7 @@
       "files": [],
       "expectations": [
         "Refuses to confirm the skill `improved` or `optimized` without a closing rerun on a clean, complete run with per-eval isolation, complete metrics, and both configs.",
-        "Flags the batched executor pass and the collapsed per-eval `mean_tokens` as a run-integrity contamination that triggers stop-and-verify rather than a pass.",
+        "Flags lost per-eval isolation as run-integrity contamination that triggers stop-and-verify rather than a pass. Explicitly naming the batched executor pass, or identifying collapsed per-eval `mean_tokens` as proof that isolation was lost, satisfies this assertion.",
         "Treats the runner-absent `not executed` evals as incomplete proof instead of counting them toward the optimized claim.",
         "Treats the excluded `with_skill` executor timeouts as unmeasured or runtime-cost risk until a complete rerun or separate scored artifact clears them.",
         "Does not call the aggregate delta clean or harmless merely because timed-out cells were omitted from the pass-rate denominator.",
@@ -109,7 +109,7 @@
       "expectations": [
         "Applies the expected-output leakage discipline to the self-authored assertion and the `SKILL.md` rule, not only to delegated eval work.",
         "Identifies the verbatim reuse of grader wording and the literal prompt phrase as lexical echo that overfits and fails to generalize rather than a valid contract.",
-        "Rewrites the rule and the assertion to name the abstract dimension and keeps the concrete phrase only as a labeled example.",
+        "Requires both the rule and assertion to be rewritten around the abstract dimension. Because the prompt does not provide the copied literal, an exact replacement sentence is not required; if the concrete phrase is retained when available, it remains only a labeled example rather than the contract.",
         "Does not keep the assertion solely because it passes the new eval.",
         "Couples the eval change with the skill change rather than editing one in isolation."
       ]
@@ -174,14 +174,14 @@
         "Uses the `--runs 3` evidence to classify the language-gate surface as low-frequency run variance, prompt or runner language leakage, or measurement-boundary noise rather than a reason for another `SKILL.md` sentence.",
         "Stops further per-cell wording patches for the language gate and warns that more prose would overfit the eval noise.",
         "Reports the official multi-run aggregate and per-run spread before making quality claims: with_skill about 98.7% ±0.8pt, without_skill about 82.0% ±1.8pt, and delta about +16.7pt.",
-        "Treats the +16.7pt multi-run delta as more reliable than the earlier single-run deltas, while still tying the claim to the measured eval set and not to unmeasured reliability or safety.",
+        "Uses the reported multi-run mean and spread as stronger evidence than the earlier moving single-run deltas, while tying the conclusion to the measured eval set and not claiming unmeasured product reliability or safety.",
         "Does not claim each prior language wording edit individually caused the improvement, because runner/prompt behavior and run variance were not isolated in those single-run iterations.",
-        "Requires a rerun before claiming improvement if the proof path, runner recording, assertion boundary, or skill text changes.",
+        "If the output proposes changing the proof path, runner recording, assertion boundary, or skill text, it requires a fresh run before claiming improvement; describing a later clean rerun as the way to close that changed proof path satisfies this boundary.",
         "Preserves truthful skill behavior and does not force agents to deny real actions solely to satisfy a text-only harness.",
         "If suggesting future work on language stability, routes it to runner or prompt language isolation rather than skill prose unless new stable evidence shows a skill-contract gap.",
-        "Separates any non-language residual, such as a rare route-selection miss, from the language-noise conclusion and treats it as accepted risk or a candidate for future targeted evidence rather than immediate broad rewrite.",
+        "Separates the stable execution-proof residual or any other non-language residual from the moving language-noise conclusion and treats each under its own evidence and proof boundary rather than using either to justify an immediate broad rewrite.",
         "Does not loosen or delete the language assertion merely because it is noisy; keeps or proposes measurement changes that preserve the contract's coverage.",
-        "Adds or proposes generic eval coverage for repeated wording-only tightening or moving failures without adding local domain-specific sections, fixture-derived checklists, or named language-gate subsections."
+        "If a new tracked eval change is recommended, adds generic pressure for repeated wording-only tightening or moving failures without local domain-specific sections or fixture-derived checklists. If no new eval mutation is recommended, this assertion passes when existing generic coverage is treated as sufficient."
       ]
     },
     {
@@ -231,7 +231,7 @@
         "Does not treat whole-JSONL co-occurrence as enough evidence to count a session-history candidate.",
         "Keeps current audit search output, quoted skill bodies, session metadata, reference-only reads, and eval-runner executor or grader sandbox sessions excluded unless tied to a substantive same-turn quality decision.",
         "Requires bounded delegated extraction or equivalent range/question partitioning with temporary per-session notes outside tracked skill packages before using session history to synthesize a new or updated skill, when available.",
-        "If a history-backed skill or eval change is justified, requires synthesized patterns, external eval prompts, README and CHANGELOG coupling under Unreleased when those artifacts describe the behavior, and no version bumps or generated workspace commits."
+        "If a history-backed skill or eval change is justified, requires synthesized patterns, external eval prompts or expectations, README and CHANGELOG coupling under Unreleased when those artifacts describe the behavior, and no version bumps or generated workspace commits. When no history-backed change is justified, this assertion passes without requiring new prompts or package edits."
       ]
     },
     {
@@ -265,12 +265,12 @@
         "Prefers a by-construction boundary for delegated results, such as keeping original responses outside coordinator context, accepting only closed structural records, independently verifying local target evidence, and treating the delegated capability as unavailable when isolation cannot be enforced.",
         "Identifies exact command or identifier preservation as subordinate to credential, privacy, or trust-boundary controls rather than preserving a suspected secret literally.",
         "Audits all applicable credential sinks, including chat, temporary or saved review state, reflected files, commit messages, quoted snippets, and tool arguments, instead of fixing only final response text.",
-        "Requires a fail-closed reflection or persistence path until the sensitive literal is removed and replaced by a confirmed non-secret environment-variable or secret-store reference.",
-        "Runs or proposes a contract-closure search across the owning skill, references, README, changelog, eval prompts, fixtures, and assertions so current-contract text does not continue authorizing the old unsafe path; historical release notes remain historical evidence.",
+        "Requires a fail-closed reflection or persistence path until the sensitive literal is removed and replaced by a confirmed safe non-secret reference, such as an environment-variable or secret-store reference.",
+        "Runs or proposes a contract-closure search across the owning current-contract surfaces so stale text does not continue authorizing the unsafe path. A no-change decision may instead identify existing skill rules and targeted eval pressure as sufficient while keeping host/runtime enforcement unproven; historical release notes remain historical evidence.",
         "Labels the scanner report as primary evidence of what the scanner alleges, not proof that its root-cause account is correct; requires current repository inspection to verify the source-to-sink path, and keeps an unverified root cause explicitly unproven.",
         "States that only a rerun of the reporting scanner proves that its warning cleared; another authoritative check may prove an underlying safety property but not the named scanner outcome, and host runtime isolation remains unproven without host evidence.",
         "Treats static eval validation and synthetic fixtures as structural or regression-contract proof only, not proof that the external scanner cleared, a credential was revoked, or the host enforced isolation.",
-        "Selects the smallest coupled skill, reference, eval, README, and Unreleased changelog changes that own the behavior, without version bumps, snapshot edits, generated workspace commits, or unrelated security rewrites."
+        "Selects the smallest coupled surfaces that actually own the behavior. When current skill and eval contracts already close the owned path, explicitly declining further tracked edits satisfies this boundary; otherwise couples the owning skill, reference, eval, README, and Unreleased changelog changes without version bumps, snapshot edits, generated workspace commits, or unrelated security rewrites."
       ]
     },
     {
@@ -346,7 +346,7 @@
       "expected_output": "The agent separates artifact authority, logical identity, positive proof transport, conditional assertion applicability, and instruction reachability; it selects minimal coupled changes and preserves honest iteration attribution.",
       "files": [],
       "expectations": [
-        "Builds a short evidence map that treats delivered prompts, capture instructions, change manifests, written-artifact records, executor summaries, grader inputs or verdicts, repeated-run movement, and current skill/reference text as distinct evidence surfaces.",
+        "Builds a short labeled evidence map that separates supplied scenario facts, local current-contract inspection, and unproven run-level claims; the later analysis distinguishes prompt, capture, manifest, recorded-artifact, grader, repeated-run, and skill/reference surfaces where they affect the decision.",
         "Names the reusable dimensions as artifact authority versus proof transport, logical identity versus capture destination, conditional assertion applicability, and instruction reachability or equivalent abstractions.",
         "Keeps the capture path non-authorizing for chat-only and response-only cases; path availability alone does not permit artifact creation.",
         "After artifact mode independently authorizes the deliverable, treats the designated capture destination as required recording transport for the complete artifact rather than an optional second path.",
@@ -384,7 +384,7 @@
         "Stops further full-suite wording-only iteration when failures move without a stable shared mechanism, while preserving targeted contract-specific closures.",
         "Keeps detailed iteration scores, failed hypotheses, and local run paths in temporary or generated evidence rather than copying the full diary into `CHANGELOG.md`.",
         "Limits changelog prose to the final durable behavior, validation, strongest honest measured result, and proof caveat.",
-        "Selects the smallest coupled `skill-quality` skill, reference, eval, README, and Unreleased changelog surfaces, does not bump versions or edit managed snapshots, and leaves generated eval workspaces uncommitted.",
+        "Selects the smallest surfaces that own the projection, grading, or proof-boundary fix. It changes `skill-quality`, references, README, or Unreleased changelog only if those artifacts have a demonstrated gap or describe the changed behavior, and does not bump versions, edit managed snapshots, or commit generated eval workspaces.",
         "Labels behavioral improvement unproven unless a clean, complete post-edit run on the final state exists and was explicitly authorized."
       ]
     },
@@ -408,8 +408,48 @@
         "Prefers structured fields, explicit delimiters, or deterministic region-specific checks when mechanical payload properties matter.",
         "Moves requirements to per-eval expectations or changes the output contract when a common assertion cannot identify its applicability and target region from recorded evidence.",
         "Stops adding target-skill sentences or loosening whole-response assertions after the same shared mechanism moves between cells.",
-        "Keeps the official aggregate unchanged and requires a fresh affected-suite run after the final prompt, assertion, or output-contract edit before claiming closure or improvement.",
-        "Selects the smallest coupled `skill-quality` skill, eval, and Unreleased changelog surfaces without version bumps, managed-snapshot edits, or generated workspace commits."
+        "If the output reports an artifact-level corrected score or reading, it keeps the recorded official aggregate unchanged and labels the correction diagnostic. In all cases it requires a fresh affected-suite run after the final prompt, assertion, or output-contract edit before claiming closure or improvement.",
+        "Selects the smallest prompt, assertion, structured-output, runner-recording, or skill surfaces that actually own the failure. It changes `skill-quality` or Unreleased changelog only when their current contracts have a demonstrated gap or describe the change, without version bumps, managed-snapshot edits, or generated workspace commits."
+      ]
+    },
+    {
+      "id": "E21",
+      "name": "Fixture ground truth for an isolated grader",
+      "prompt": "Two artifact-review evals declare tracked plan and requirements fixtures. The runner delivers those files to the executor, whose response uses fixture facts about an existing endpoint, reload persistence, cancel making no network request, and avatar and email behavior staying unchanged. The grader runs in a separate empty working directory and receives the output plus assertions, but not the fixture bytes. It repeatedly calls the supplied facts inventions. In a later iteration, a contributor adds a case-specific assertion summarizing the relevant fixture facts and the same claims receive passes. A second contributor argues that every future response must now restate every summarized fact even when only one fact is relevant to the item under review. One contributor wants to add those product facts to the target skill; another wants the grader to run inside the executor sandbox. The current user asks only for generic skill-quality and skill-eval improvements and has not authorized a fresh eval run. Decide what was learned, which surfaces own the change, what must stay unchanged, and what can be claimed.",
+      "expected_output": "The agent treats fixture delivery and grader semantic visibility as distinct proof surfaces, chooses minimal grader-only ground truth, and preserves isolation, discrimination, and honest rerun boundaries.",
+      "files": [],
+      "expectations": [
+        "Builds a short evidence map that treats the supplied declared-and-delivered fixture facts and verdict change as primary evidence, current skill or eval inspection as local investigation, and any absent run artifacts or causal claims as unproven; its analysis keeps executor output, grader inputs, verdicts, and the later assertion distinct where they affect the decision.",
+        "Names the reusable dimension as executor fixture delivery versus isolated-grader ground-truth visibility, grader observability, or an equivalent abstraction.",
+        "Classifies the repeated invention verdicts as a grader-boundary or semantic ground-truth transport gap rather than a demonstrated target-skill defect.",
+        "Requires the minimum relevant fixture facts in per-eval grader-only expectations or another recorded grader-only input when an assertion judges invention, omission, or fixture fidelity.",
+        "Keeps the grader in a separate empty working directory and rejects restoring ambient fixture, suite, or skill-source filesystem access.",
+        "Keeps grader ground truth out of executor-facing prompts and any executor-visible `expected_output`, so neither config receives the answer as task guidance.",
+        "States that use of the supplied facts should pass the no-invention boundary while omission or failure to restate every fact is not itself a failure unless another output contract requires it.",
+        "Rejects adding endpoint, reload, cancel, avatar, or email fixture facts to the general target skill merely to repair the verdict.",
+        "Keeps prior official aggregates unchanged, treats the assertion repair as a proof-boundary change, and avoids an apples-to-apples skill-improvement claim across the changed grader contract.",
+        "Selects the smallest coupled changes across the owning quality and eval-operation skills, focused eval cases, README, and Unreleased changelog when those current artifacts have a demonstrated gap or describe the changed behavior. If current contracts already contain the generic rule and focused pressure, an evidence-bound no-change decision passes without requiring duplicate edits; no version bumps or managed-snapshot edits are allowed.",
+        "Uses static validation only for the current request and labels behavioral improvement unproven because no fresh eval run was authorized."
+      ]
+    },
+    {
+      "id": "E22",
+      "name": "Semantic grader robustness and staged rerun coverage",
+      "prompt": "A 21-case skill repair loop has repeatedly rerun both configs after small assertion edits. In the latest run, the target behavior is correct: the candidate says `I withheld execution pending explicit permission`, but a non-exact natural-language assertion fails it because the grader expected the phrase `the current user did not ask`; the baseline happens to repeat that phrase and scores higher. The runner now supports `--eval-id`, records selected ids and full-suite size, and marks partial selections diagnostic and non-closing. One contributor wants to paste the grader phrase into the target skill and launch another full suite immediately. Another wants to hand-correct the official aggregate and declare the package clean after rerunning only that case. The current user asks for generic quality and eval-operation improvements but has not authorized a fresh eval run in this turn. Decide what was learned, which contracts and tests should change, and how a future authorized repair loop should stage diagnostic and closing runs.",
+      "expected_output": "The agent repairs semantic assertion robustness, uses explicit partial diagnostics without overstating coverage, and reserves one frozen-state full-suite run for closure.",
+      "files": [],
+      "expectations": [
+        "Builds a short evidence map separating the recorded candidate wording, assertion and grader verdict, baseline echo, runner subset capability, current contracts, and absent fresh run authorization.",
+        "Names the reusable dimensions as semantic predicate versus lexical realization and partial diagnostic versus full-suite closing coverage, or equivalent abstractions.",
+        "Classifies the candidate failure as a lexical grader false negative or assertion-boundary defect when explicit permission withholding satisfies the non-exact authorization predicate.",
+        "Rejects copying the grader's preferred phrase into the target skill or making that literal the contract when exact wording is not independently required.",
+        "Requires a paraphrase preflight for non-exact assertions using at least two materially different compliant phrasings and one non-compliant phrasing, while treating illustrative examples as alternatives unless every item is independently required.",
+        "Keeps the official aggregate unchanged and labels any semantic artifact-level correction diagnostic until the assertion or grader boundary is repaired and rerun.",
+        "For a future authorized loop, uses `--eval-id` with both requested configs to diagnose the changed case while the contract is still moving, and requires the manifest or benchmark to expose selected ids and full-suite size.",
+        "Treats a partial run as `REVIEW REQUIRED`, diagnostic, and non-closing even if the selected case passes; it does not report the subset delta as the suite result.",
+        "Freezes the skill, prompt, assertions, fixtures, and proof path before one later authorized full-suite closing run without `--eval-id`, rather than paying for a full suite after every edit.",
+        "Selects the smallest coupled quality-skill, eval-operation skill or runner, focused eval, README, and Unreleased changelog changes that own the behavior, without version bumps, managed-snapshot edits, or generated-workspace commits.",
+        "Runs only static validation and local runner tests for the current request, and labels hosted behavioral evaluation not run because this turn did not authorize it."
       ]
     }
   ],
@@ -417,6 +457,6 @@
     "common_assertion_weight": 0.45,
     "per_eval_expectation_weight": 0.55,
     "pass_threshold": 0.8,
-    "notes": "These evals test skill-improvement judgment, not subjective prose quality. Baselines are expected to over-edit skills, under-harden assertions, over-trust benchmarks, miss repository eval-runner constraints, conflate capture authority with positive recording obligations, leave conditional common assertions without explicit non-applicability, misplace load-bearing invariants between SKILL.md and references, compact suites by numeric quota without coverage accounting, overpromote sampled evidence, push workflow process into metadata, or make unsupported improvement claims."
+    "notes": "These evals test skill-improvement judgment, not subjective prose quality. Baselines are expected to over-edit skills, under-harden assertions, over-trust benchmarks, require lexical echoes for semantic contracts, overstate partial diagnostics as full-suite closure, miss repository eval-runner constraints, conflate capture authority with positive recording obligations, leave conditional common assertions without explicit non-applicability, misplace load-bearing invariants between SKILL.md and references, compact suites by numeric quota without coverage accounting, overpromote sampled evidence, push workflow process into metadata, or make unsupported improvement claims."
   }
 }

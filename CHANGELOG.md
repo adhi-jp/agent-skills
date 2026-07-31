@@ -36,6 +36,48 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skill-quality` and `skill-eval` now distinguish executor fixture delivery
+  from isolated-grader semantic ground-truth visibility. Assertions that judge
+  invention, omission, or fixture fidelity must carry the minimum relevant
+  grader-only facts, describe their use as supplied without requiring needless
+  restatement, reject delivery manifests as substitutes for semantic facts,
+  avoid whole-fixture grader transport unless complete contents are necessary,
+  and keep those facts out of executor-facing material; otherwise
+  the assertion remains unobservable rather than justifying target-skill prose
+  or restored grader filesystem access. `skill-quality` tracked-change proposals
+  now expose a compact evidence map, reusable contract delta, owning surfaces,
+  and proof status, while no-change decisions remain concise. Its common and
+  focused eval assertions now state non-applicability explicitly and avoid
+  requiring unowned package edits or literal rewrites whose source text was not
+  supplied. Focused eval cases cover these boundaries. A follow-up adds a
+  semantic paraphrase preflight for non-exact assertions and a runner-supported
+  `--eval-id` diagnostic subset. Partial runs preserve the requested config
+  matrix, record selected ids against full-suite size, and remain explicitly
+  `REVIEW REQUIRED` and non-closing until a frozen-state full-suite run occurs.
+  Unknown selections fail before iteration creation or provider launch. The
+  documented command boundary now keeps `--eval-id` on diagnostic `run`
+  invocations only, excluding it from `validate`, `report`, and full-suite
+  closing commands so an all-id filtered diagnostic cannot masquerade as
+  closure. The operation eval suite separates the exact CLI/coverage contract
+  from lexical-adjudication and freeze/aggregate pressure, avoiding one
+  overpacked case, and accepts semantically equivalent authorization wording
+  without weakening the no-implicit-run boundary.
+  Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`
+  and `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-eval/evals.json`;
+  `python3 -m unittest tests.test_eval_runner` passed 116 tests and
+  `python3 -m unittest discover -s tests -p 'test*.py'` passed 172 tests.
+  The closing `gpt-5.6-luna` Codex `skill-quality` run scored all 44 cells at
+  `with_skill` 94.7% versus `without_skill` 78.1% (+16.6 points). Its sole
+  sanity signal was E06 candidate-below-baseline; artifact review found a
+  lexical grader false negative because the candidate rejected copied grader
+  and fixture wording through semantically equivalent language, so the
+  official aggregate remains unchanged and the anomaly is explained rather
+  than attributed to the skill. The final `skill-eval` run scored all 10 cells
+  with Sanity OK at `with_skill` 100.0% versus `without_skill` 76.0% (+24.0
+  points), with every candidate assertion passing. No cells were excluded from
+  either closing result. Because prompts, assertions, and skill text changed
+  during repair, each closing run measures its final frozen contract but does
+  not isolate causal score movement to skill prose alone.
 - `skill-eval` now starts Codex executors with `workspace-write` only inside the
   per-run throwaway repository while keeping isolated Codex graders
   `read-only`, allowing independently required artifact deliverables to reach
@@ -361,8 +403,10 @@ use `[Repository] - YYYY-MM-DD`.
   authorization-only cases are not graded on execution-only workspace or
   subprocess details. The runner-operation contract and E02 pressure also
   preserve the documented positional suite path plus `--agent`, `--config`, and
-  `--runs`, rejecting invented `--eval-id`, `--configuration`, or `--mode`
-  aliases and separate config runs. Validation:
+  `--runs`; full-suite requests do not add a case filter, while the supported
+  `--eval-id` form is reserved for explicitly partial diagnostics. The runner
+  continues to reject invented `--configuration` or `--mode` aliases and
+  separate config runs. Validation:
   `python3 -m unittest tests.test_eval_runner -v`,
   `python3 -m unittest discover -s tests -p 'test*.py'`, and
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-eval/evals.json`.

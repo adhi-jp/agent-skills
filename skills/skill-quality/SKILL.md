@@ -36,13 +36,28 @@ memory, a plausible fix, a single passing run, or a reviewer preference as proof
 If the evidence shows no contract gap, do not polish by default. Report that no
 tracked change is needed and name the evidence that supports that decision.
 
-For any proposal that creates or changes a skill or eval, include a short
-evidence map before the contract delta. Label the claims that justify the
-current proposal, not only instructions for future subagents or graders. Typical
-entries are: user request or supplied eval result as `Primary source`; local
-transcript, file, or benchmark inspection as `Local investigation`; inferred
-patterns or expected failure modes as `Unproven`; and known but accepted gaps as
-`Accepted risk`.
+For any proposal that creates or changes a skill or eval, make the decision
+record explicit before recommending prose edits:
+
+- A short evidence map labels the claims that justify the current proposal as
+  `Primary source`, `Local investigation`, `Unproven`, or `Accepted risk`.
+- A one-sentence reusable contract delta names the behavior and degeneration.
+- Owning surfaces name both the smallest coupled edits and important surfaces
+  that must remain unchanged.
+- Proof status states what current evidence establishes and what requires a
+  later authorized run or external check.
+- For grader-only ground-truth repairs, distinguish adjudication context from
+  output obligation: state which supplied facts the grader may recognize and
+  which facts, if any, an independent output contract requires the executor to
+  restate.
+- When correcting a grader or artifact-level interpretation, keep the recorded
+  official aggregate unchanged and label the corrected reading diagnostic until
+  the grader, deterministic check, or proof boundary is fixed and rerun.
+
+A no-change decision may stay concise, but identify the existing rule, eval, or
+artifact that already owns the reported mechanism and keep unsupported proof
+claims explicit. Do not require a formal evidence table or a new mutation merely
+to make a no-change decision look complete.
 
 When an eval result arrives as a relayed Claude Code, Codex, or other host-agent
 summary, treat that prose as a pointer to verify, not as execution proof. Locate
@@ -205,6 +220,14 @@ not as a floating verdict on the current working tree.
 - When suite assertions or case coverage changed between iterations, raw
   pass-rate movement is not an apples-to-apples trend. Compare retained
   contracts or mapped assertions, and report the coverage change separately.
+- During a repair loop, use a runner-supported eval-id subset for a
+  pre-registered case-specific diagnostic when that execution is authorized.
+  Keep the requested config comparison together. A partial run can show whether
+  the targeted mechanism is observable in that case, but it is not a full-suite
+  closing run and must not supply a package-wide pass rate, regression claim, or
+  clean-suite status. After the contract is frozen, run the complete affected
+  suite once for closing evidence when the user's authorization includes that
+  run; otherwise report the closing run as not performed.
 - After changing a skill rule, prompt, assertion, evidence taxonomy, or output
   contract, run a contract-collision audit before the next closing run. Check
   activation and non-applicability rules, workflow steps, output contracts,
@@ -223,7 +246,10 @@ Maintain a compact iteration ledger during repair loops:
 Stop launching more full-suite runs when the next run has no pre-registered
 question or when failures move without a stable shared mechanism. More samples
 can measure variance; they are not a substitute for deciding what the next run
-is intended to prove.
+is intended to prove. Do not make every assertion edit pay for a full-suite run:
+use a partial diagnostic while the target contract is still changing, then
+freeze the prompt, assertions, fixtures, and proof path before the single
+closing full-suite run.
 
 If the benchmark says `REVIEW REQUIRED`, finish anomaly adjudication before a
 final commit or closure handoff. Classify every candidate-below-baseline cell,
@@ -380,6 +406,17 @@ discriminating, observable, and hard to pass with the old failure mode.
   created but untracked fixture is excluded even when it exists in the source
   checkout. Treat a missing or excluded fixture as a fixture-delivery or
   measurement gap, not a skill failure.
+- Keep grader adjudication context separate from output obligations, and audit
+  grader-visible ground truth separately from executor fixture delivery.
+  The isolated grader cannot re-read fixtures, so an assertion about invention,
+  omission, or fidelity to fixture-derived facts is unobservable unless its
+  prompt carries the minimum relevant facts. Put that adjudication context in a
+  per-eval grader-only expectation or another runner-recorded grader-only input;
+  do not add it to the executor prompt or to any `expected_output` field the
+  executor can see. State that using those facts counts as supplied and that the
+  output need not restate every fact unless a separate output contract requires
+  it. If the suite cannot provide the context without leaking the target answer,
+  rewrite or remove the assertion instead of changing the target skill.
 - Before interpreting a missing-file or wrong-artifact response, compare the
   declared fixture set, source fixture dirtiness, sandbox copy strategy,
   excluded-path sample, and change manifest. If the intended target was absent
@@ -395,6 +432,15 @@ discriminating, observable, and hard to pass with the old failure mode.
   negate the scaffold.
 - Write expectations against visible output, files, commands, records, or
   decisions, not against style taste.
+- For a natural-language assertion whose contract is semantic rather than
+  exact-format, define the required predicate and prohibited outcome instead of
+  a magic phrase. Before an expensive run, perform a paraphrase preflight: check
+  at least two materially different, minimally compliant phrasings and one
+  non-compliant phrasing against the assertion. Examples introduced with
+  `such as`, `including`, or `or equivalent` are alternatives unless the
+  contract independently requires every item. If a compliant paraphrase fails
+  only because it omitted assertion wording, repair the assertion or grader
+  boundary rather than copying that wording into the target skill.
 - For mechanically inspectable output properties, audit the recorded artifact
   directly and make the grader boundary equally explicit. Examples include
   forbidden absolute sandbox links, runner or eval-file citations, exact
@@ -496,9 +542,14 @@ For this repository, use the shared runner:
 
 ```sh
 python3 skills/skill-eval/scripts/eval_runner.py validate evals/<skill-name>/evals.json
+python3 skills/skill-eval/scripts/eval_runner.py run evals/<skill-name>/evals.json --agent codex --eval-id E01 --config with_skill,without_skill --runs 1
 python3 skills/skill-eval/scripts/eval_runner.py run evals/<skill-name>/evals.json --agent codex --config with_skill,without_skill --runs 1
 python3 skills/skill-eval/scripts/eval_runner.py report evals/<skill-name>/workspace/codex/iteration-N
 ```
+
+The `--eval-id` form is a partial diagnostic while the case contract is still
+changing. Its benchmark must remain visibly non-closing. Omit `--eval-id` for
+the final full-suite run.
 
 Keep eval workflows provider-neutral and file-contract based. Do not make the
 shared runner depend on local-only skill snapshots, one host's UI, or
@@ -582,6 +633,13 @@ the grader to infer field scope from the whole output. Official runner results
 remain unchanged; any corrected reading is diagnostic until the grader or
 deterministic check is fixed and rerun.
 
+For a non-exact natural-language assertion, also inspect whether the recorded
+answer satisfies the semantic predicate through equivalent wording. A verdict
+that depends on repeating one unstated phrase is a lexical grader false negative,
+not evidence for another skill sentence. Keep the official aggregate unchanged;
+either repair the assertion around the predicate and rerun the affected case, or
+record the isolated anomaly and stop when there is no stable contract gap.
+
 Before comparing two iterations, confirm whether their skill source, prompts,
 fixtures, assertion set, and recorded proof surface are equivalent. If not,
 state which contract changed and avoid presenting the aggregate delta as a
@@ -614,6 +672,8 @@ Compare behavior before declaring improvement:
   aggregate as partial and identify which behavior is unmeasured before
   accepting a headline delta.
 - Did a grader failure expose unclear assertions instead of a skill defect?
+- For a semantic assertion, would two different compliant paraphrases pass, or
+  is the grader rewarding one phrase rather than the contract predicate?
 - Did a conditional common assertion explicitly tell the grader what happens
   when its triggering surface is absent, or did absence get misgraded as
   failure?
@@ -711,6 +771,11 @@ Before finalizing, reject these common regressions:
   targeted failure unchanged.
 - Continuing per-cell wording patches when a failure moves across evals and
   repeated runs have not shown a stable skill-contract gap.
+- Re-running the entire suite after every local assertion edit when an
+  authorized partial diagnostic can answer the pre-registered question, or
+  presenting that partial diagnostic as full-suite closing proof.
+- Tightening a target skill or assertion around the exact wording of one grader
+  false negative when the response satisfied the non-exact semantic predicate.
 - Treating a failure that moves across evals after a targeted fix as a new local
   wording problem instead of a shared mechanism.
 - Treating a data-flow or credential-propagation warning as a wording-only
@@ -803,10 +868,16 @@ Before reporting completion:
 - Are baseline, grader, token, timing, and report claims honest?
 - Did the cited closing run occur after the last relevant edit, and does the
   iteration ledger identify what that run was intended to prove?
+- Were case-specific repair checks run as visibly partial diagnostics, with the
+  prompt, assertions, fixtures, and proof path frozen before the final full-suite
+  closing run?
 - If iterations changed prompts, assertions, fixtures, or proof surfaces, were
   coverage changes separated from raw score movement?
 - Are declared fixtures present in the executor sandbox under the runner's copy
   contract, not merely present or untracked in the source checkout?
+- For fixture-semantic assertions, does the isolated grader receive the minimum
+  grader-only ground truth needed to distinguish supplied facts from inventions,
+  without requiring the output to restate facts or leaking them to the executor?
 - Can every assertion be satisfied from the eval's delivery mode and recorded
   proof surface?
 - Is the represented evidence universe explicitly aligned with the executor's
@@ -833,6 +904,8 @@ Before reporting completion:
   not only grader verdicts or the runner sanity summary, and were contradictory
   verdicts classified as false positives or false negatives without rewriting
   the official aggregate?
+- Did each non-exact semantic assertion survive a paraphrase preflight instead
+  of requiring a magic phrase or every illustrative example?
 - For a composite response, does each mechanical assertion identify its target
   region instead of grading diagnostic prose, artifact payload, transport, and
   post-action checks as one undifferentiated byte stream?

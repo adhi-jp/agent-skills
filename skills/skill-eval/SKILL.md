@@ -20,6 +20,33 @@ metrics. These rules are enforced in the runner's code; this skill is the
 always-on instruction to route eval work through that runner so the enforcement
 actually applies.
 
+## Critical CLI and Partial-Run Contract
+
+For any command-drafting response, reproduce these shapes before adding
+explanation. Treat them as exact; do not move options between subcommands:
+
+| Purpose | Command shape | `--eval-id` |
+| --- | --- | --- |
+| Static validation | `validate <suite-json>` | Forbidden |
+| Partial diagnostic | `run <suite-json> ... --eval-id E17` | Allowed |
+| Full closing run | `run <suite-json> ...` | Omitted; do not enumerate all ids |
+| Existing-result report | `report <iteration-dir>` | Forbidden |
+
+There is no `--evals` or `--iteration-dir` alias. `validate ... --eval-id` and
+filtered full-suite substitutes are invalid. When a response proposes a partial
+diagnostic, it must also state all of these proof boundaries:
+
+- unknown or empty ids fail before iteration creation or provider launch;
+- `iteration_manifest.json` and `benchmark.json` record selected ids and the
+  full-suite size;
+- `benchmark.md` says `REVIEW REQUIRED`, diagnostic, and non-closing even when
+  all selected cells succeed;
+- the skill, prompt, assertions, fixtures, and proof path are frozen before the
+  later unfiltered closing run;
+- the earlier official aggregate remains unchanged, and an artifact-level
+  correction stays separate and non-closing until the repaired assertion is
+  measured.
+
 ## When to Use
 
 - Running, grading, aggregating, or reporting a skill eval suite under `evals/`.
@@ -87,10 +114,11 @@ grading collapsed into one agent and the run scored its own output.
   three commands: `validate`, `run`, and `report`.
 - When drafting or executing this command sequence, preserve the runner's
   documented CLI literally: the suite JSON is positional, provider selection
-  uses `--agent`, configs use `--config`, and repetition uses `--runs`. Do not
-  invent convenience flags such as `--eval-id`, `--configuration`, `--mode`, or
-  translate one bounded matrix into separate role/config runs unless the actual
-  parser exposes that form.
+  uses `--agent`, configs use `--config`, repetition uses `--runs`, and
+  `--eval-id E01,E03` selects a diagnostic case subset. Do not invent aliases
+  such as `--evals`, `--iteration-dir`, `--configuration`, or `--mode`, and do
+  not translate one bounded matrix into separate role/config runs unless the
+  actual parser exposes that form.
 - Run `eval_runner.py run` only after the current user has explicitly authorized
   eval execution. `validate` and `report` may support inspection or existing
   artifact work, but they are not substitutes for a user-authorized run when a
@@ -115,9 +143,11 @@ grading collapsed into one agent and the run scored its own output.
   recorded as `executor_model`/`grader_model` alongside `model` in the iteration
   manifest and benchmark. Absence means the provider's default model for that
   role, never an injected or guessed model id.
-- All input validation runs before any subprocess launches: suite shape, the
-  authoritative `with_skill` skill source, provider availability, and run
-  bounds. Invalid input exits non-zero with zero subprocess launches. An empty
+- All input validation runs before any subprocess launches: suite shape,
+  requested eval ids, the authoritative `with_skill` skill source, provider
+  availability, and run bounds. An unknown or empty `--eval-id` selection exits
+  non-zero without creating an iteration or launching subprocesses. Other
+  invalid input also exits non-zero with zero subprocess launches. An empty
   suite is not an error: it exits 0 with an explicit empty result and zero
   subprocess launches.
 - For a non-empty Codex run, the runner performs a Codex-only readiness
@@ -136,6 +166,20 @@ grading collapsed into one agent and the run scored its own output.
   provider subprocesses (1..16, default 4). A timed-out or failed executor is
   recorded as a failed run, not a pass, and the grader is skipped for it; there
   are no retries.
+- `--eval-id` is for authorized, pre-registered diagnostics while a case's
+  prompt, assertion, fixture, or proof path is still changing. It preserves the
+  requested config matrix but executes only the named eval ids. The runner
+  records selected ids and full-suite size in `iteration_manifest.json` and
+  `benchmark.json`, marks a partial selection `REVIEW REQUIRED`, and labels it
+  diagnostic and non-closing in `benchmark.md`. A partial run must not be
+  reported as the suite's overall result or substitute for a later full-suite
+  closing run after the contract is frozen. Omit `--eval-id` for that closing
+  run. Keep the subcommand boundary literal: only `run` accepts `--eval-id`;
+  `validate` takes the positional suite JSON, and `report` takes the iteration
+  directory. Never copy the filter onto `validate` or `report`, and never spell
+  a closing run as an all-id filtered diagnostic. Freeze the skill, prompt,
+  assertions, fixtures, and proof path, then run the same authorized matrix
+  without `--eval-id` exactly once for closing evidence.
 - Metrics are never hand-typed or estimated. No flag injects a token or duration
   value. Claude usage comes from its JSON envelope. Codex usage comes from the
   `turn.completed` JSONL event, while Codex executor duration is measured by the
@@ -179,6 +223,24 @@ grading collapsed into one agent and the run scored its own output.
   pass/fail from its prompt alone: the recorded output, the assertions, and the
   runner-provided `Sandbox File Changes` and `Executor Tool/Delegation Evidence`
   sections.
+- Executor fixture delivery and grader ground-truth visibility are separate
+  proof surfaces. If a verdict depends on fixture semantics, such as whether the
+  executor invented or faithfully used a source fact, the suite must carry the
+  minimum relevant facts in per-eval grader-only assertions or another recorded
+  grader-only input. Preserve the empty grader working directory and keep those
+  facts out of executor-facing material, including any `expected_output` field
+  the executor can see. Phrase them as adjudication context: use of the facts is
+  supplied, while restating every fact is not required unless an independent
+  output contract says otherwise. Without that context, treat the semantic
+  assertion as unobservable rather than restoring grader filesystem access or
+  attributing the verdict to the target skill.
+- Minimize semantic grader context by construction. Do not inject complete
+  fixture files merely because the executor received them, and do not treat a
+  fixture manifest as semantic ground truth: a manifest proves identity or
+  delivery, not what the fixture says. Serialize only the bounded facts the
+  assertion needs. Include a whole fixture only when the assertion genuinely
+  evaluates its complete contents and the suite records why that scope is
+  necessary.
 - Executor and grader stay separate. The executor prompt carries the task only
   and no assertions; the grader prompt carries the recorded output plus the
   assertions and must return a structured verdict. The runner derives pass/fail
@@ -243,9 +305,15 @@ grading collapsed into one agent and the run scored its own output.
 
 ```sh
 python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json
+python3 skills/skill-eval/scripts/eval_runner.py run evals/vibe-planning/evals.json --agent codex --eval-id E03 --config with_skill,without_skill --runs 1
 python3 skills/skill-eval/scripts/eval_runner.py run evals/vibe-planning/evals.json --agent codex --config with_skill,without_skill --runs 1
 python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/workspace/codex/iteration-1
 ```
+
+The first `run` form is a case diagnostic; the second is the full-suite form.
+The diagnostic filter belongs only to `run`; `validate` and `report` do not
+accept it. Do not turn the full-suite form into a filtered enumeration of every
+case.
 
 - `run` writes `iteration_manifest.json` and, for each run, `prompt.md`,
   `grader_prompt.md`, `outputs/`, `grading.json`, `metrics.json`, and `run.json`
@@ -255,7 +323,9 @@ python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/work
   overall raw pass rate, the `with_skill`/`without_skill` comparison, the
   execution-metrics summary, and a `sanity_checks` section flagging
   infrastructure failures, scored-`0%` cells, candidate-below-baseline cells, and
-  dirty declared fixture roots for review.
+  dirty declared fixture roots for review. The manifest and benchmark also
+  record suite coverage, and a partial `--eval-id` selection is a sanity signal
+  even when every selected cell scored successfully.
 - `report <iteration-dir>` re-renders `benchmark.md` from `benchmark.json`. It
   does not start a server, open a browser, bind a port, write a PID file, or
   leave a background process.
@@ -299,21 +369,33 @@ token usage for at least the claude provider.
   `error_run_count > 0`, any
   `grader_unparseable`/`grader_failed`/`executor_failed`/timeout status, any
   scored-`0%` cell, any candidate-below-baseline cell, or any dirty
-  source-fixture signal before or after execution.
+  source-fixture signal before or after execution. A partial suite selection is
+  also `REVIEW REQUIRED` by construction because it is diagnostic rather than
+  full-suite closing evidence.
 - For each flagged cell, open the recorded `outputs/output.txt` and
   `outputs/grader_output.txt` and determine whether the cause is the executor
   output, the grader verdict, or the runner before attributing it to the skill.
   A grader-side or runner-side failure must not be reported as a skill score. Fix
   the cause and re-run, or report the cell as an excluded infrastructure failure
   with the reason; never silently fold it into the headline number.
+- For a non-exact natural-language assertion, compare the output with the
+  assertion's semantic predicate rather than one preferred phrase. If the
+  response satisfies the behavior through equivalent wording but the grader
+  fails it for omitting an unstated literal, record a lexical grader false
+  negative. Keep the official aggregate unchanged and route any assertion edit
+  to the quality owner; do not add the phrase to the target skill merely to make
+  the grader recognize it.
 - Always report a summary, not just the headline delta. The summary states: agent
-  and model, configs and runs, scored versus excluded run counts, overall
-  `with_skill`/`without_skill` pass rate and delta, and the sanity-check status
-  with any flagged cells (or an explicit "no anomalies"). If any cell was
-  excluded or re-graded, say so and give the corrected reading.
+  and model, full or selected suite coverage, configs and runs, scored versus
+  excluded run counts, overall `with_skill`/`without_skill` pass rate and delta,
+  and the sanity-check status with any flagged cells (or an explicit "no
+  anomalies"). If any cell was excluded or re-graded, say so and give the
+  corrected reading.
 - Do not claim an improvement, regression, or delta as proven from a run that has
   flagged anomalies or excluded cells until they are explained or the run is
-  repeated cleanly.
+  repeated cleanly. Explaining a partial-selection signal does not promote that
+  subset to full-suite proof; it remains non-closing even when every selected
+  result is valid.
 
 ## Local Snapshots and Release
 

@@ -315,6 +315,58 @@ def parse_csv_values(values: list[str] | None, default: tuple[str, ...]) -> list
     return result or list(default)
 
 
+def select_eval_cases(
+    suite: EvalSuite, values: list[str] | None
+) -> tuple[EvalSuite, dict[str, Any]]:
+    """Return the requested eval subset plus an explicit coverage record.
+
+    A subset is a diagnostic measurement, not full-suite closing evidence.  The
+    coverage record is persisted in the manifest and benchmark so a cheap
+    targeted rerun cannot later be mistaken for a complete suite result.
+    """
+    suite_ids = [case.eval_id for case in suite.evals]
+    if values is None:
+        selected_ids = list(suite_ids)
+    else:
+        selected_ids = parse_csv_values(values, ())
+        if not selected_ids:
+            raise CommandError("--eval-id: provide at least one non-empty eval id")
+        unknown = [eval_id for eval_id in selected_ids if eval_id not in suite_ids]
+        if unknown:
+            raise CommandError(
+                "--eval-id: unknown eval id(s): "
+                + ", ".join(unknown)
+                + "; available ids: "
+                + (", ".join(suite_ids) if suite_ids else "none")
+            )
+
+    selected_set = set(selected_ids)
+    selected_cases = [case for case in suite.evals if case.eval_id in selected_set]
+    selected_ids = [case.eval_id for case in selected_cases]
+    partial = len(selected_cases) < len(suite.evals)
+    coverage = {
+        "mode": "selected" if partial else "full",
+        "suite_eval_count": len(suite.evals),
+        "selected_eval_count": len(selected_cases),
+        "selected_eval_ids": selected_ids,
+        "partial": partial,
+        "closing_eligible": not partial,
+    }
+    if not partial:
+        return suite, coverage
+    return (
+        EvalSuite(
+            path=suite.path,
+            skill_name=suite.skill_name,
+            common_assertions=suite.common_assertions,
+            evals=selected_cases,
+            scoring=suite.scoring,
+            raw=suite.raw,
+        ),
+        coverage,
+    )
+
+
 def validate_agent_label(value: str | None) -> str:
     label = (value or DEFAULT_AGENT).strip()
     if not AGENT_LABEL_RE.match(label):
@@ -2313,6 +2365,7 @@ def aggregate_runs(
     executor_model: str | None = None,
     grader_model: str | None = None,
     source_fixtures: dict[str, Any] | None = None,
+    suite_coverage: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     rates_by_eval_config: dict[tuple[str, str], list[float]] = {}
     runs_by_eval_config: dict[tuple[str, str], list[dict[str, Any]]] = {}
@@ -2369,7 +2422,21 @@ def aggregate_runs(
         status = str(run.get("status", "unknown"))
         status_counts[status] = status_counts.get(status, 0) + 1
     error_run_count = sum(count for status, count in status_counts.items() if status != "ok")
-    sanity_checks = compute_sanity_checks(configs, runs, per_eval, source_fixtures=source_fixtures)
+    coverage = suite_coverage or {
+        "mode": "full",
+        "suite_eval_count": len(suite.evals),
+        "selected_eval_count": len(suite.evals),
+        "selected_eval_ids": [case.eval_id for case in suite.evals],
+        "partial": False,
+        "closing_eligible": True,
+    }
+    sanity_checks = compute_sanity_checks(
+        configs,
+        runs,
+        per_eval,
+        source_fixtures=source_fixtures,
+        suite_coverage=coverage,
+    )
     return {
         "skill_name": suite.skill_name,
         "agent": agent,
@@ -2378,6 +2445,7 @@ def aggregate_runs(
         "grader_model": grader_model,
         "skill_path": skill_path,
         "source_fixtures": source_fixtures,
+        "suite_coverage": coverage,
         "generated_at": utc_now(),
         "configs": list(configs),
         "run_count": len(runs),
@@ -2399,6 +2467,7 @@ def compute_sanity_checks(
     per_eval: list[dict[str, Any]],
     *,
     source_fixtures: dict[str, Any] | None = None,
+    suite_coverage: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Surface anomalies a supervising reviewer must inspect before reporting a
     run as a clean result. These are deterministic signals derived from the run
@@ -2444,12 +2513,17 @@ def compute_sanity_checks(
             }
         )
 
+    partial_selection: list[dict[str, Any]] = []
+    if isinstance(suite_coverage, dict) and suite_coverage.get("partial"):
+        partial_selection.append(dict(suite_coverage))
+
     return {
-        "ok": not (infra or zero_cells or inversions or source_dirty),
+        "ok": not (infra or zero_cells or inversions or source_dirty or partial_selection),
         "infrastructure_failures": infra,
         "zero_scored_cells": zero_cells,
         "candidate_below_baseline": inversions,
         "source_fixture_dirty": source_dirty,
+        "partial_suite_selection": partial_selection,
     }
 
 
@@ -2466,7 +2540,8 @@ def render_sanity_checks_markdown(sanity: Any) -> list[str]:
     zero = sanity.get("zero_scored_cells") or []
     inversions = sanity.get("candidate_below_baseline") or []
     source_dirty = sanity.get("source_fixture_dirty") or []
-    total = len(infra) + len(zero) + len(inversions) + len(source_dirty)
+    partial_selection = sanity.get("partial_suite_selection") or []
+    total = len(infra) + len(zero) + len(inversions) + len(source_dirty) + len(partial_selection)
     lines = ["", "## Sanity checks", ""]
     if total == 0 and sanity.get("ok"):
         lines.append("- Status: OK — no anomalies detected")
@@ -2498,6 +2573,14 @@ def render_sanity_checks_markdown(sanity: Any) -> list[str]:
         lines.append(
             "- Source fixture dirtiness (source fixtures were dirty before or after execution; "
             f"do not treat as clean-source proof): {' | '.join(details)}"
+        )
+    if partial_selection:
+        coverage = partial_selection[0]
+        selected = ", ".join(coverage.get("selected_eval_ids") or []) or "none"
+        lines.append(
+            "- Partial suite selection: "
+            f"{coverage.get('selected_eval_count', 0)}/{coverage.get('suite_eval_count', 0)} evals "
+            f"({selected}); diagnostic only, not full-suite closing evidence"
         )
     return lines
 
@@ -2683,6 +2766,20 @@ def render_benchmark_markdown(benchmark: dict[str, Any]) -> str:
         f"{error_run_count} infrastructure failures excluded from pass rate)",
         f"- Metrics captured: {'yes' if benchmark.get('metrics_captured') else 'no'}",
     ]
+    coverage = benchmark.get("suite_coverage")
+    if isinstance(coverage, dict):
+        selected = coverage.get("selected_eval_ids") or []
+        if coverage.get("partial"):
+            lines.append(
+                f"- Suite coverage: {coverage.get('selected_eval_count', 0)}/"
+                f"{coverage.get('suite_eval_count', 0)} evals selected "
+                f"({', '.join(selected)}); diagnostic subset, not full-suite closing evidence"
+            )
+        else:
+            lines.append(
+                f"- Suite coverage: {coverage.get('selected_eval_count', 0)}/"
+                f"{coverage.get('suite_eval_count', 0)} evals (full suite)"
+            )
     if error_run_count:
         status_counts = benchmark.get("status_counts", {})
         breakdown = ", ".join(
@@ -2894,6 +2991,7 @@ def command_run(args: argparse.Namespace) -> int:
         return 2
 
     suite = load_eval_suite(evals_path)
+    suite, suite_coverage = select_eval_cases(suite, args.eval_id)
     skill_path = resolve_skill_source_path(suite, args.skill_path, configs)
     repo_root = find_repo_root(evals_path)
     source_fixtures_before = source_fixture_status(suite, repo_root)
@@ -2925,6 +3023,7 @@ def command_run(args: argparse.Namespace) -> int:
             executor_model=executor_model,
             grader_model=grader_model,
             source_fixtures=source_fixtures,
+            suite_coverage=suite_coverage,
         )
         write_json(iteration_dir / "benchmark.json", benchmark)
         write_text(iteration_dir / "benchmark.md", render_benchmark_markdown(benchmark))
@@ -2956,6 +3055,7 @@ def command_run(args: argparse.Namespace) -> int:
             "skill_path": skill_path,
             "source_fixtures": source_fixtures_before,
             "source_fixtures_before": source_fixtures_before,
+            "suite_coverage": suite_coverage,
             "expected_executor_passes": len(tasks),
             "created_at": utc_now(),
         },
@@ -3011,6 +3111,7 @@ def command_run(args: argparse.Namespace) -> int:
         executor_model=executor_model,
         grader_model=grader_model,
         source_fixtures=source_fixtures,
+        suite_coverage=suite_coverage,
     )
     write_json(iteration_dir / "benchmark.json", benchmark)
     write_text(iteration_dir / "benchmark.md", render_benchmark_markdown(benchmark))
@@ -3031,11 +3132,12 @@ def command_run(args: argparse.Namespace) -> int:
             len(sanity.get("zero_scored_cells") or []),
             len(sanity.get("candidate_below_baseline") or []),
             len(sanity.get("source_fixture_dirty") or []),
+            len(sanity.get("partial_suite_selection") or []),
         )
         print(
             f"Sanity checks: REVIEW REQUIRED — {counts[0]} infra failure(s), "
             f"{counts[1]} zero-scored cell(s), {counts[2]} candidate-below-baseline cell(s), "
-            f"{counts[3]} source-fixture dirty signal(s); "
+            f"{counts[3]} source-fixture dirty signal(s), {counts[4]} partial-suite selection(s); "
             f"see Sanity checks in {iteration_dir / 'benchmark.md'}"
         )
     for line in render_metrics_stdout(sorted(configs, key=config_sort_key), runs_records):
@@ -3096,6 +3198,11 @@ def build_parser() -> argparse.ArgumentParser:
         "--config",
         action="append",
         help="Comma-separated configs to run (default: with_skill,without_skill).",
+    )
+    run.add_argument(
+        "--eval-id",
+        action="append",
+        help="Comma-separated eval ids for a diagnostic subset. Partial runs are recorded as non-closing.",
     )
     run.add_argument("--runs", type=int, default=DEFAULT_RUNS, help=f"Runs per eval/config (1..{MAX_RUNS}).")
     run.add_argument("--skill-path", default=None, help="Authoritative skills/<name>/SKILL.md source for with_skill.")
