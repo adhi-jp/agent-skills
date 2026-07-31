@@ -1065,6 +1065,10 @@ an `acceptance_proof` matrix, core criteria need positive proof,
 visibility/permission/unlock/state gates need paired positive and negative
 proof, and compound stop signals move the run to a checkpoint-blocked state
 rather than another mutable-target broad review.
+Public review records omit internal host-source references and source
+fingerprints, while structured startup, isolation, terminal, and acceptance
+records preserve the applicable control fields rather than collapsing them into
+generic summaries.
 Dirty-path isolation must be verified before hidden paths are trusted, stale
 plan evidence fails closed on digest mismatch, and project-context filters use
 only explicit user, DoD, or confirmed-plan evidence.

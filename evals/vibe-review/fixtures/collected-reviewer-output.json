@@ -71,7 +71,9 @@
   "pipeline_context": {
     "user_has_not_selected_findings_yet": true,
     "ledger_before_run": [],
-    "trust_boundary_note": "Only host-validated delegated_result_record objects are available to the coordinator."
+    "trust_boundary_note": "Only host-validated delegated_result_record objects are available to the coordinator.",
+    "represented_evidence_contract": "This fixture is the complete represented target and adapter evidence for a response-only public record. The ambient checkout is not the represented application and must not be used to validate or reject these locations.",
+    "public_projection_contract": "Summarize accepted records and closed rejection codes without copying accepted_records, rejected_source_results, host_source_ref, or source_fingerprint into the public output."
   },
   "isolation_requirements": {
     "must_not_request_original_response": true,

@@ -173,6 +173,8 @@ include:
 - `review_focus`: target kind, user-stated focus, and excluded surfaces.
 - `local_commit_policy`: default scoped closure permission, explicit denial, or
   host-confirmation status; `not-applicable` for read-only review.
+- `reviewer_model_selection`: when the host exposes model choice, the
+  capability/context-fit tier or selection reason for each reviewer angle.
 
 When rendering a structured startup contract, wrapper keys are allowed only if
 the contract fields remain unambiguous. Record effective/defaulted contract
@@ -221,3 +223,72 @@ response-only closure record must retain the represented non-empty staged set,
 cumulative fix-diff scope, cycle ownership, isolation-restore and
 conflict-safety statuses, and required post-commit stored-message and
 committed-file-set checks.
+
+Structured decision records are lossless projections of the applicable control
+state, not generic summaries. Preserve load-bearing reference fields when their
+surface is present:
+
+- A frozen target includes its cycle id and applicable identity digests.
+- A pending or accepted dirty-isolation proposal spells out the transport that
+  will be used after approval: `--include-untracked`,
+  `--pathspec-from-file=<file>`, `--pathspec-file-nul`, literal NUL-separated
+  pathspecs, unstaged terminal restoration, and exclusion from final history
+  staging.
+- A rejected DoD proposal enumerates every material weak source present,
+  including short or vague commit subjects and missing content excerpts; it
+  records the fallback to an interview or another confirmed source and explains
+  a weak out-of-scope item by the missing sibling-framed rejection set.
+- A normalization record states that original backend responses are unavailable
+  and carries one explicit `pipeline_order` through validity,
+  specification-gap handling, DoD triage, selection, cascade, ledger, and
+  terminal audit; do not replace that record with only the stages reached so
+  far.
+- A blocked cascade record includes planned validation or explicit manual checks
+  for both the reported case and one likely sibling case.
+- A terminal failure names each direct blocker, including the applied finding
+  whose post-edit note is absent; a `null` note is not enough unless that
+  absence also appears in the blocking reasons.
+- Acceptance reporting keeps executed `suite_status`, `acceptance_coverage`,
+  and the per-criterion `acceptance_proof` matrix separate.
+- An unsupported artifact-only target stops before review and offers one
+  boundary-preserving next action.
+
+Public records omit `host_source_ref` and internal source-fingerprint fields or
+values. They may state that host provenance or an internal fingerprint is
+retained, and may expose a separately derived non-secret `dedupe_token`, but
+must not serialize the internal references themselves. This omission applies to
+accepted findings, rejected-source receipts, ledgers, children, and summaries.
+Validation inputs stay internal too: a public validation record reports accepted
+and rejected counts, bounded public fields, and closed rejection codes instead
+of reserializing the accepted or rejected adapter records. Do not emit
+`accepted_records` or `rejected_source_results` copies in a public record.
+Accepted-record summaries may retain backend id, angle, source id, issue class,
+location, severity, confidence, validation status, and redaction state, but
+never the internal host reference. Before local inspection, coordinator-authored
+premise fields such as root cause, required fix, title, recommendation, and
+evidence remain explicit as missing or pending; an input issue-class enum is not
+itself a verified premise. Each public normalized finding still carries a
+`ledger_fields` object, but that object contains only public values such as an
+independently derived `dedupe_token` and optional internal-retention booleans.
+
+Rendered secret-bearing evidence preserves the canonical placeholder for each
+matched span. A recognized API key renders `[REDACTED:apikey]`, an environment
+assignment renders `[REDACTED:env-secret]`, and JWT child provenance renders
+`[REDACTED:jwt]`; do not replace those specific markers with a generic
+`secret-context` marker. A rendered merged-ledger computation receipt lists the
+contributing nested structural child ids and their explicit contributor count.
+When a parent record already contains child provenance, use those child ids for
+the ledger-key receipt rather than substituting the parent id.
+
+A scripted reviewer fan-out is review-only transport. Its run-boundary record
+keeps merge, triage, selection, cascade decisions, fixes, commits, squash, and
+all other history operations in the coordinator's post-collection state; a
+user's desired eventual fix or squash does not schedule those actions inside
+the scripted run.
+
+For response-only closure decisions, the invocation-level local-commit policy is
+still decisive: when every represented closure gate has passed, record the
+scoped closure commit as authorized and awaiting execution, treat the absent
+second commit instruction as non-blocking, preserve the represented non-empty
+staged set, and mark stored-message and committed-file-set inspection as
+required post-execution checks rather than completed checks.

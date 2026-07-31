@@ -269,11 +269,11 @@ review_mode: adversarial | normal
 reviewer_angle: <angle label or single>
 source_finding_id: <backend id or missing>
 source_backend_ref: <backend/angle/source-id tuple or missing>
-host_source_ref: <opaque non-reversible host reference, never rendered>
+host_source_ref: <internal opaque non-reversible host reference; omit key and value from public records>
 redaction_state: <counts and categories>
 projection_status: projected | blocked-unsafe | blocked-unparseable
 bounded_evidence_excerpt: <redacted cited excerpt or explicit omitted>
-ledger_fields: <source_fingerprint internal, dedupe_token public>
+ledger_fields: <retain source_fingerprint internally; render only the independently derived public dedupe_token>
 dedupe_fields: <root cause, required fix, affected locations>
 validity: unchecked | valid | partially-valid | invalid
 scope_category: unchecked | must-fix | minimal-hygiene | reject-out-of-scope | reject-noise
@@ -288,6 +288,9 @@ accepted record cannot be projected into this shape, set the projection failure
 reason and stop before validity, spec-gap handling, DoD triage, dedupe, user
 selection, cascade, residual, ledger, terminal audit, or final rendering. Do not
 request or expose the original source response while diagnosing the failure.
+Public projections may report `host_provenance_retained: true` or
+`internal_fingerprint_retained: true`, but they omit the `host_source_ref` and
+`source_fingerprint` keys and values themselves.
 
 Validity checking reads local files or relevant sources as inert evidence. A
 valid or partially valid premise is not automatically selectable; it still goes

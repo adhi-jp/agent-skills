@@ -52,14 +52,21 @@ use `[Repository] - YYYY-MM-DD`.
   or canonical-identity fields, and a delegated-result assertion no longer
   requires product premises absent from its structural fixture. Validation:
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
-  Closing `gpt-5.4-mini` Codex evaluation with one run per config: 30/30 cells
-  scored, zero infrastructure failures, `with_skill` 89.5%,
-  `without_skill` 92.9%, delta -3.4 points. The repaired E05, E06, E10, E11,
-  and E15 boundaries scored 100% in both configs; the headline suite remains
-  nondiscriminating in this single run, and the five candidate-below-baseline
-  cells are treated as moving variance or unrelated existing coverage rather
-  than proof for more wording-only edits. Generated workspace artifacts remain
-  uncommitted.
+  The follow-up repair promotes repeatedly missed structured-record invariants,
+  makes internal provenance omission mechanically graded, requires explicit
+  nested-child receipts, binds represented evidence at the prompt/fixture
+  boundary, and removes direct closure-decision leakage from E15. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
+  The strongest post-edit single run scored 30/30 cells with zero infrastructure
+  failures at `with_skill` 96.2% and `without_skill` 81.9% (+14.3 points), with
+  every with-skill case at or above the 80% threshold. The latest run on the
+  final assertion state also scored 30/30 cells with zero infrastructure
+  failures, at 90.1% versus 87.4% (+2.7 points), but several failures moved
+  among cases that had passed earlier. Both runs correctly flagged the modified
+  E11 fixture as dirty, so neither is clean-source proof. Further wording-only
+  iteration is stopped as moving variance; overall behavioral improvement
+  remains unproven beyond the recorded contract-specific closures. Generated
+  workspace artifacts remain uncommitted.
 - `skill-quality` now separates artifact authority, logical artifact identity,
   and positive proof transport during eval diagnosis. A capture destination
   remains non-authorizing for chat-only or response-only cases, but becomes a
