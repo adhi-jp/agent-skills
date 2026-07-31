@@ -115,6 +115,17 @@ workspace. Conversely, do not accept ambient repository, sandbox, eval, or
 runner state as evidence about represented code unless the prompt or artifact
 provenance establishes that relationship.
 
+Also bind the eval's authority universe. Runner or host scaffolding can expose
+an output path, tool, capability, fallback, or optional transport without
+authorizing the executor to use it. Inspect the exact delivered prompt before
+attributing a file write, tool call, scope expansion, or persistence choice to
+the skill. If conditional scaffolding repeatedly induces behavior that the
+represented user did not request, classify it as prompt or invocation authority
+leakage and fix the owning transport contract. Make the affordance explicitly
+non-authorizing and test that boundary symmetrically across configs instead of
+adding stronger downstream skill prose to counter the runner-delivered
+instruction.
+
 ## Evaluation Iteration Boundaries
 
 Treat each benchmark as a measurement of one exact skill/eval/fixture state,
@@ -292,6 +303,13 @@ discriminating, observable, and hard to pass with the old failure mode.
   and the executor substituted a nearby unrelated fixture, fix the prompt or
   fixture boundary rather than teaching the skill about the substituted
   example.
+- Audit runner-provided affordances against the case's authority and delivery
+  mode. A designated artifact destination, available tool, optional fallback,
+  or conditional transport instruction must not become a request to create a
+  file, invoke a capability, broaden scope, or persist state. When the harness
+  intends capture or availability only, say so in the executor contract and
+  add runner-level regression coverage; do not rely only on the target skill to
+  negate the scaffold.
 - Write expectations against visible output, files, commands, records, or
   decisions, not against style taste.
 - For mechanically inspectable output properties, audit the recorded artifact
@@ -604,6 +622,9 @@ Before finalizing, reject these common regressions:
   blocker.
 - Treating an ambiguous represented project as the ambient runner checkout, or
   repairing that prompt-boundary defect with more skill prose.
+- Treating a runner path, tool, fallback, or transport affordance as user
+  authority, or trying to cancel that authority leakage only with downstream
+  skill wording.
 - Calling a run contract-clean because the grader and sanity summary passed
   while recorded output bytes violate a mechanically inspectable assertion.
 - Adding a new rule or evidence taxonomy without checking for collisions with
@@ -650,6 +671,8 @@ Before reporting completion:
 - Is the represented evidence universe explicitly aligned with the executor's
   actual workspace and delivered fixtures, without accidental ambient-checkout
   substitution?
+- Are runner and host affordances explicitly non-authorizing unless the
+  represented user or owning workflow independently permits their use?
 - Did targeted mechanical assertions get checked against recorded output bytes,
   not only grader verdicts or the runner sanity summary?
 - After the latest edit, did a contract-collision audit remove stale or

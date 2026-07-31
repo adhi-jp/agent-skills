@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "skill-quality",
-  "purpose": "External eval set for skill-quality. Prompts live outside skills/ so they are not bundled as skill content. Covers current-proposal evidence maps, failure-to-contract translation, narrow skill edits, eval assertion hardening, expected-output leak control, eval-suite compaction and coverage ledgers, runner-driven eval hygiene, session-history evidence ledgers and extraction boundaries, cost and timeout claim discipline, official-vs-diagnostic aggregate boundaries, moving-failure and multi-run variance triage, represented-corpus and ambient-workspace alignment, artifact-level grader auditing, post-edit contract-collision checks, measurement-epoch and fixture-delivery boundaries, eval delivery-mode satisfiability, simultaneous proof-path and contract-change attribution, trigger-only skill metadata, external data-boundary decisions, safety-analyzer source-boundary-sink closure, credential-vs-exactness precedence, and regression prevention for skill creation or improvement.",
+  "purpose": "External eval set for skill-quality. Prompts live outside skills/ so they are not bundled as skill content. Covers current-proposal evidence maps, failure-to-contract translation, narrow skill edits, eval assertion hardening, expected-output leak control, eval-suite compaction and coverage ledgers, runner-driven eval hygiene, session-history evidence ledgers and extraction boundaries, cost and timeout claim discipline, official-vs-diagnostic aggregate boundaries, moving-failure and multi-run variance triage, represented-corpus and ambient-workspace alignment, runner-affordance authority leakage, artifact-level grader auditing, post-edit contract-collision checks, measurement-epoch and fixture-delivery boundaries, eval delivery-mode satisfiability, simultaneous proof-path and contract-change attribution, trigger-only skill metadata, external data-boundary decisions, safety-analyzer source-boundary-sink closure, credential-vs-exactness precedence, and regression prevention for skill creation or improvement.",
   "common_assertions": [
     "Output grounds the current proposal in the observed failure signal and labels its implementation-affecting claims as primary source, local investigation, unproven, accepted risk, or equivalent evidence categories; the labels need not be the first heading or sentence.",
     "Output translates the failure into a reusable skill contract or dimension before recommending prose edits.",
@@ -315,6 +315,28 @@
         "Requires a fresh affected-suite closing run after the final prompt, assertion, skill, or proof-boundary edit before claiming measured improvement or closure.",
         "States that static validation can prove schema and contract consistency only; behavior improvement remains unproven because the current request does not authorize a new eval run.",
         "Does not respond with another fixture-specific checklist or more per-cell wording patches after the shared boundary is identified."
+      ]
+    },
+    {
+      "id": "E17",
+      "name": "Conditional runner affordance leaks authority",
+      "prompt": "A chat-first skill suite says not to create files unless the represented user asks for an artifact. The runner appends a config-symmetric response contract: `If your workflow writes a plan, specification, or other primary Markdown artifact, write it to this exact path: .eval-runner/outputs/plan.md.` The represented users did not request files, but successive `with_skill` runs write `plan.md` in different cases. Adding stronger `SKILL.md` reminders makes one case pass while the same artifact-write mechanism appears in another. Recorded prompts, `written_artifact`, change manifests, and executor outputs confirm the path instruction preceded the writes. A contributor proposes another stricter skill rule. Another contributor proposes changing the runner wording to say that the path is a capture destination, not a request, and is used only when the represented user or the workflow's independent deliverable contract already requires a file; both configs would receive the same wording and runner regression tests. Decide what owns the failure, what should change, and what a later rerun could prove.",
+      "expected_output": "The agent separates transport availability from user or workflow authority, repairs the owning runner prompt instead of continuing downstream skill wording patches, and preserves honest attribution and closing-run boundaries.",
+      "files": [],
+      "expectations": [
+        "Builds a short evidence map that treats the represented prompts, delivered runner response contract, recorded executor outputs, written-artifact records or change manifests, and cross-run movement as distinct evidence surfaces.",
+        "Classifies the repeated file creation as prompt or invocation authority leakage, delivery-mode mismatch, or an equivalent runner-owned boundary rather than only a target-skill contract gap.",
+        "Names the reusable contract dimension as capability-versus-authority, transport affordance versus permission, non-authorizing capture, or an equivalent abstraction.",
+        "Stops adding stricter downstream skill prose after the same artifact-write mechanism moves between eval cases.",
+        "Selects the runner's executor response contract as the primary owning artifact and makes the conditional path explicitly capture-only and non-authorizing.",
+        "Requires file creation to be independently authorized by the represented user prompt or the workflow's normal deliverable contract, not merely by path availability.",
+        "Preserves config symmetry so `with_skill` and `without_skill` receive the same non-authorizing capture wording.",
+        "Adds or proposes runner-level regression coverage that checks the non-authorizing wording while preserving legitimate written-artifact capture.",
+        "Keeps chat-first and response-only eval expectations satisfiable without requiring a file artifact.",
+        "Uses the affected skill suite plus runner tests as the closing verification surfaces after the final prompt or runner edit, rather than rerunning unrelated suites.",
+        "Does not compare pre-change and post-change headline rates as an apples-to-apples skill-only improvement when the runner prompt and assertion boundary changed.",
+        "States that a clean post-edit rerun can prove the final combined contract was measured and that unrequested writes stopped in those cells, but cannot isolate how much score movement came from skill text, runner wording, grader behavior, or variance unless those effects are separately measured.",
+        "Updates or proposes the owning runner documentation, focused eval pressure, and Unreleased changelog when tracked behavior changes, without version bumps, snapshot edits, or generated workspace commits."
       ]
     }
   ],

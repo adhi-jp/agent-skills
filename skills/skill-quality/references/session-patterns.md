@@ -136,6 +136,13 @@ into skill outputs.
   workspace-local evidence after the taxonomy changed to supplied-source
   evidence. A post-edit collision audit was more reliable than another local
   wording patch.
+- Conditional runner scaffolding caused authority leakage when a designated
+  Markdown capture path was interpreted as a request to create a file in
+  chat-first cases. Repeated skill-text reminders moved the artifact-write
+  failure between evals; changing the owning executor contract to state that
+  the path was capture-only, not authorization, removed the writes in the
+  affected closing run. The reusable boundary is to distinguish capability or
+  transport availability from user or workflow authority.
 
 ## Changes That Risked Degrading Skills
 
@@ -242,14 +249,17 @@ For every skill change, preserve this sequence:
 9. Bind represented source material, delivered fixtures, and the actual
    executor workspace so the prompt does not substitute ambient harness state
    for the intended evidence universe.
-10. Audit mechanically inspectable contracts against recorded output bytes, not
+10. Bind authority separately from capability: inspect runner paths, tools,
+    fallbacks, and transports for accidental permission or deliverable changes,
+    and fix non-authorizing semantics at the owning prompt boundary.
+11. Audit mechanically inspectable contracts against recorded output bytes, not
     only grader verdicts or the runner sanity summary.
-11. Run a contract-collision audit across applicability rules, workflow steps,
+12. Run a contract-collision audit across applicability rules, workflow steps,
     output contracts, prompts, assertions, README text, and current changelog
     guidance.
-12. Record the measurement epoch and the question the next affected-suite run is
-   intended to answer.
-13. Run a closure search for stale current-contract text, then use the shared
+13. Record the measurement epoch and the question the next affected-suite run is
+    intended to answer.
+14. Run a closure search for stale current-contract text, then use the shared
     eval workflow honestly or label unrun proof as absent.
-14. Report proof, gaps, changed coverage, and generated artifacts without
+15. Report proof, gaps, changed coverage, and generated artifacts without
     inflating claims.

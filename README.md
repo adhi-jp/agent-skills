@@ -960,7 +960,10 @@ no-change and blocked cases, it distinguishes naming an existing sufficient
 artifact from proposing an edit and does not require a new mutation solely as
 proof. It binds represented source material, delivered fixtures, and the
 executor workspace before treating ambient checkout state as evidence, audits
-mechanically inspectable output contracts against recorded bytes even when the
+runner paths, tools, fallbacks, and transports for authority leakage so
+availability does not become unrequested file creation, tool use, scope
+expansion, or persistence, and audits mechanically inspectable output contracts
+against recorded bytes even when the
 grader and runner sanity summary pass, and checks new rules, evidence
 taxonomies, prompts, and assertions for collisions with existing applicability
 and output contracts before a closing rerun. It requires recorded host, runner,

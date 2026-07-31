@@ -36,6 +36,21 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skill-quality` now distinguishes runner or host capability from user and
+  workflow authority during eval diagnosis. Conditional artifact destinations,
+  available tools, fallbacks, and transport hooks are inspected in the exact
+  delivered executor prompt; when scaffolding induces unrequested file writes,
+  tool use, scope expansion, or persistence, the failure is classified as
+  prompt or invocation authority leakage and fixed at the owning transport
+  contract instead of adding more downstream skill prose. Non-authorizing
+  affordances remain config-symmetric and receive runner-level regression
+  coverage while legitimate artifact capture stays available. A focused eval
+  covers a capture path whose file-write failure moves between chat-first cases
+  until the runner contract separates transport availability from permission.
+  Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
+  Behavioral improvement is not measured because no fresh eval run was
+  requested.
 - `skill-quality` now separates represented-source corpora from the executor's
   ambient workspace before diagnosing eval failures. Inline or fictional source
   material, runner-delivered fixtures, verified target workspaces, and harness
