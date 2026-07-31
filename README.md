@@ -117,20 +117,22 @@ and are local artifacts unless explicitly requested for commit.
 
 | Skill | Version |
 | --- | --- |
-| `minecraft-modding-workbench` | `2.0.0` |
-| `skill-eval` | `1.1.0` |
-| `vibe-coding` | `1.5.0` |
-| `vibe-requirements-spec` | `3.3.0` |
-| `vibe-planning` | `4.6.0` |
-| `vibe-plan-review` | `1.0.0` |
-| `vibe-plan-execution` | `3.3.0` |
-| `vibe-brainstorm` | `1.3.0` |
-| `vibe-debug` | `3.1.0` |
-| `vibe-code-research` | `1.1.0` |
-| `vibe-writing` | `1.1.3` |
-| `vibe-commit` | `1.0.3` |
-| `skill-quality` | `2.2.2` |
-| `vibe-review` | `1.3.0` |
+| `minecraft-modding-workbench` | `2.1.0` |
+| `skill-eval` | `1.2.0` |
+| `vibe-coding` | `2.0.0` |
+| `vibe-goal-alignment` | `1.0.0` |
+| `vibe-orchestrate` | `1.0.0` |
+| `vibe-requirements-spec` | `4.0.0` |
+| `vibe-planning` | `5.0.0` |
+| `vibe-plan-review` | `2.0.0` |
+| `vibe-plan-execution` | `4.0.0` |
+| `vibe-brainstorm` | `1.4.0` |
+| `vibe-debug` | `4.0.0` |
+| `vibe-code-research` | `1.2.0` |
+| `vibe-writing` | `2.0.0` |
+| `vibe-commit` | `1.1.0` |
+| `skill-quality` | `2.3.0` |
+| `vibe-review` | `2.0.0` |
 
 
 ## Included Skills
