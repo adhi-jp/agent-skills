@@ -129,6 +129,30 @@ into skill outputs.
   `Sanity checks: OK` did not flag that suite-contract violation. Direct
   inspection of recorded output kept the run non-closing until the assertion
   named the prohibited target and the artifact stopped containing it.
+- Structured-output graders failed in both directions during a review-skill
+  repair loop: internal-only keys passed despite being rendered, while raw JSON
+  and allowed enum arrays were sometimes marked failing despite compliant
+  recorded bytes. Artifact-level adjudication needed both `false positive` and
+  `false negative` classifications, with JSON-path-scoped predicates instead of
+  whole-output word searches.
+- Public projection failures persisted when a fixture delivered internal
+  accepted and rejected records and skill prose alone said not to repeat them.
+  Separating delivered input, internally retained state, and public output
+  schemas in the owning prompt and fixture contract was more effective than
+  another downstream reminder.
+- Runs over intentionally edited tracked fixtures were useful working-tree
+  measurements but correctly carried source-fixture dirty warnings. Committing
+  the fixture later did not retroactively make those manifests clean; a clean
+  proof claim would require a separately authorized post-checkpoint rerun.
+- A reversible commit made before all `REVIEW REQUIRED` anomalies were audited
+  did not close the quality loop and required a follow-up repair commit. The
+  useful boundary was to finish anomaly adjudication before final commit
+  handoff, or preserve the unresolved state across an explicitly non-closing
+  checkpoint; commits remained checkpoints, not proof.
+- Changelog entries became less useful when they accumulated the full iteration
+  diary. The durable form summarized the final contract, validation, strongest
+  measured result, and proof caveat, while temporary notes and generated run
+  artifacts retained the detailed ledger.
 - New rules caused regressions when they collided with existing contracts. A
   `path or symbol` shorthand weakened a path-required narrow-answer contract,
   a trivial-lookup non-applicability rule conflicted with an already-active
@@ -252,14 +276,21 @@ For every skill change, preserve this sequence:
 10. Bind authority separately from capability: inspect runner paths, tools,
     fallbacks, and transports for accidental permission or deliverable changes,
     and fix non-authorizing semantics at the owning prompt boundary.
-11. Audit mechanically inspectable contracts against recorded output bytes, not
-    only grader verdicts or the runner sanity summary.
-12. Run a contract-collision audit across applicability rules, workflow steps,
+11. For structured public outputs, bind delivered input, internally retained
+    state, and public serialization separately.
+12. Audit mechanically inspectable contracts against recorded output bytes in
+    both directions, classifying grader false positives and false negatives
+    without changing the official aggregate.
+13. Run a contract-collision audit across applicability rules, workflow steps,
     output contracts, prompts, assertions, README text, and current changelog
     guidance.
-13. Record the measurement epoch and the question the next affected-suite run is
+14. Record the measurement epoch and the question the next affected-suite run is
     intended to answer.
-14. Run a closure search for stale current-contract text, then use the shared
+15. Treat dirty tracked fixtures as non-clean proof and finish `REVIEW REQUIRED`
+    anomaly adjudication before final commit or closure handoff, or preserve it
+    explicitly across a non-closing checkpoint.
+16. Run a closure search for stale current-contract text, then use the shared
     eval workflow honestly or label unrun proof as absent.
-15. Report proof, gaps, changed coverage, and generated artifacts without
-    inflating claims.
+17. Keep the detailed iteration ledger in temporary or generated evidence and
+    report only durable behavior, proof, and gaps in the changelog and final
+    summary.

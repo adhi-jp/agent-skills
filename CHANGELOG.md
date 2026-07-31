@@ -36,6 +36,23 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skill-quality` now separates structured eval input, internally retained
+  state, and public serialization contracts so delivered adapter records do not
+  implicitly authorize public reproduction. Mechanical artifact adjudication
+  now handles grader false negatives as well as false positives, keeps official
+  aggregates unchanged, and scopes deterministic predicates to the relevant
+  structured field. Tracked fixture dirtiness remains a working-tree
+  measurement rather than clean-source proof, and a later commit does not
+  retroactively change the run manifest. `REVIEW REQUIRED` anomalies must be
+  adjudicated before final closure handoff or explicitly preserved across a
+  non-closing checkpoint, while changelog entries retain the final durable
+  contract and proof status instead of the full iteration diary. A focused eval
+  covers public projection leakage, contradictory grader verdicts,
+  dirty-fixture non-retroactivity, premature checkpoint closure, and changelog
+  compression. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
+  Behavioral improvement is unproven because no fresh skill-quality eval run was
+  requested.
 - `vibe-review` now keeps unconfirmed checklist-shaped DoD candidates outside
   usable proposal mode until anchored or replaced by an interview, resolves
   overlapping secret matches to canonical specific redaction classes, and

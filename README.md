@@ -979,7 +979,14 @@ load-bearing rule to `SKILL.md`, while one noisy miss does not. It also audits
 mechanically inspectable output contracts against recorded bytes even when the
 grader and runner sanity summary pass, and checks new rules, evidence
 taxonomies, prompts, and assertions for collisions with existing applicability
-and output contracts before a closing rerun. It requires recorded host, runner,
+and output contracts before a closing rerun. Structured public-record evals
+separate delivered input, internally retained state, and serialized output;
+byte-level adjudication records grader false positives and false negatives
+without rewriting official aggregates. Dirty tracked fixtures remain
+working-tree measurements rather than clean-source proof, `REVIEW REQUIRED`
+anomalies are adjudicated before final handoff or preserved across an explicitly
+non-closing checkpoint, and detailed iteration diaries stay out of changelog
+prose. It requires recorded host, runner,
 or equivalent artifact evidence for execution-proof assertions, requires
 turn-level pairing before counting
 session-history audit evidence, treats excluded, timed-out, stub, or placeholder eval cells

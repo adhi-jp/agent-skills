@@ -115,6 +115,22 @@ workspace. Conversely, do not accept ambient repository, sandbox, eval, or
 runner state as evidence about represented code unless the prompt or artifact
 provenance establishes that relationship.
 
+When an eval consumes structured internal inputs but asks for a public record,
+bind three schemas separately:
+
+1. The delivered input schema: what the executor may inspect.
+2. The internal retained-state schema: what may exist for correlation or audit
+   without becoming public.
+3. The public output schema: what keys and values may be serialized.
+
+Input availability does not authorize output reproduction. A prompt that asks
+for a public projection must say whether accepted or rejected input arrays are
+summary-only, whether internal provenance is retained, and which fields are
+forbidden from public output. If repeated projection leakage survives skill
+wording changes, fix the owning prompt, fixture, adapter, or structured-output
+contract instead of adding another downstream reminder. Prefer deterministic
+key and value checks for forbidden public fields when supported.
+
 Also bind the eval's authority universe. Runner or host scaffolding can expose
 an output path, tool, capability, fallback, or optional transport without
 authorizing the executor to use it. Inspect the exact delivered prompt before
@@ -163,6 +179,12 @@ not as a floating verdict on the current working tree.
 - Before reporting or committing a measured improvement, verify that the
   cited closing run occurred after the last relevant tracked edit and that its
   manifest points to the intended model, configs, run count, and skill source.
+- Treat `source_fixtures.dirty` or equivalent tracked-fixture dirtiness as a
+  measurement-boundary warning. The run may measure the recorded working-tree
+  fixture bytes, but it is not clean-source proof. Committing those fixture
+  edits afterward does not retroactively clean the manifest; clean-source proof
+  requires a later post-checkpoint run, when separately authorized, or an
+  explicit absence status.
 - When suite assertions or case coverage changed between iterations, raw
   pass-rate movement is not an apples-to-apples trend. Compare retained
   contracts or mapped assertions, and report the coverage change separately.
@@ -185,6 +207,13 @@ Stop launching more full-suite runs when the next run has no pre-registered
 question or when failures move without a stable shared mechanism. More samples
 can measure variance; they are not a substitute for deciding what the next run
 is intended to prove.
+
+If the benchmark says `REVIEW REQUIRED`, finish anomaly adjudication before a
+final commit or closure handoff. Classify every candidate-below-baseline cell,
+fixture-dirty signal, infrastructure anomaly, timeout, and mechanical
+grader/output contradiction. An owning workflow may still create an explicitly
+non-closing reversible checkpoint, but it must preserve the unresolved anomaly
+state and continue the repair loop rather than describe the run as clean.
 
 ## Failure To Contract
 
@@ -359,6 +388,13 @@ discriminating, observable, and hard to pass with the old failure mode.
   property, add a deterministic check when supported or sharpen the assertion
   with the concrete prohibited predicate without leaking the target answer to
   the executor.
+- Apply byte-level adjudication in both directions. When recorded bytes satisfy
+  a mechanical assertion that the grader marked failed, record a grader false
+  negative instead of tightening unrelated skill prose. Scope deterministic
+  predicates to the relevant JSON path, field, array element, or output region
+  so inert copies of the same word elsewhere do not create false failures.
+  Keep the official aggregate unchanged and report the artifact-level corrected
+  reading as diagnostic only.
 - If the eval runner shows `expected_output` or an expected-output summary to
   the executor, keep that summary high-level: describe the evidence shape and
   output category, not the target decision or named contract. Put
@@ -508,6 +544,14 @@ mechanism even if the official aggregate and sanity summary are clean. Keep the
 official aggregate unchanged; artifact-level contract audit determines whether
 the run can support the narrower closure claim.
 
+The converse also applies: when recorded bytes satisfy a mechanically
+inspectable assertion that the grader marked failed, record a grader false
+negative and do not treat that verdict as evidence for a skill edit. If the
+property is structural, parse and inspect the relevant field rather than asking
+the grader to infer field scope from the whole output. Official runner results
+remain unchanged; any corrected reading is diagnostic until the grader or
+deterministic check is fixed and rerun.
+
 Before comparing two iterations, confirm whether their skill source, prompts,
 fixtures, assertion set, and recorded proof surface are equivalent. If not,
 state which contract changed and avoid presenting the aggregate delta as a
@@ -606,6 +650,13 @@ complete run — same eval set, per-eval isolation, complete metrics, both
 configs; without it, label the effect `Unproven` or `Accepted risk` rather than
 a pass.
 
+Keep the iteration ledger out of user-facing changelog prose. `CHANGELOG.md`
+should summarize the final durable contract change, validation command, and
+honest final proof or absence status. Intermediate scores, failed hypotheses,
+per-iteration narration, and local run directories belong in generated
+artifacts or temporary quality notes unless one is itself a durable warning
+maintainers must preserve.
+
 ## Degeneration Checks
 
 Before finalizing, reject these common regressions:
@@ -676,6 +727,17 @@ Before finalizing, reject these common regressions:
   evaluating instruction reachability.
 - Calling a run contract-clean because the grader and sanity summary passed
   while recorded output bytes violate a mechanically inspectable assertion.
+- Treating a grader false negative over mechanically compliant bytes as proof
+  that another skill sentence is needed, or writing a whole-output predicate
+  when the contract applies to one structured field.
+- Treating a dirty tracked-fixture run as clean-source proof, or assuming a
+  later fixture commit retroactively changes the run manifest.
+- Treating a checkpoint made before `REVIEW REQUIRED` anomalies are adjudicated
+  as final closure, or losing the unresolved anomaly state after that
+  checkpoint.
+- Copying the iteration ledger, intermediate scores, or failed repair
+  hypotheses into `CHANGELOG.md` instead of recording the final durable
+  behavior and proof status.
 - Adding a new rule or evidence taxonomy without checking for collisions with
   existing applicability rules, output contracts, examples, and eval
   assertions.
@@ -720,6 +782,9 @@ Before reporting completion:
 - Is the represented evidence universe explicitly aligned with the executor's
   actual workspace and delivered fixtures, without accidental ambient-checkout
   substitution?
+- For a public structured record, are delivered input, internally retained
+  state, and permitted serialization separate, with internal arrays, keys, and
+  values omitted from public output?
 - Are runner and host affordances explicitly non-authorizing unless the
   represented user or owning workflow independently permits their use?
 - After artifact authority was established, did the proof path separately bind
@@ -732,7 +797,14 @@ Before reporting completion:
   placement supported by repeated reachability evidence rather than one noisy
   cell?
 - Did targeted mechanical assertions get checked against recorded output bytes,
-  not only grader verdicts or the runner sanity summary?
+  not only grader verdicts or the runner sanity summary, and were contradictory
+  verdicts classified as false positives or false negatives without rewriting
+  the official aggregate?
+- If tracked fixtures were dirty, is the run reported as a working-tree
+  measurement rather than clean-source proof, without assuming a later commit
+  retroactively changes its manifest?
+- Were all `REVIEW REQUIRED` anomalies adjudicated before final commit or
+  closure handoff, or explicitly preserved across a non-closing checkpoint?
 - After the latest edit, did a contract-collision audit remove stale or
   contradictory rules, examples, evidence labels, prompts, and assertions?
 - For a no-change or blocked case, did the grader distinguish naming an existing
@@ -740,6 +812,8 @@ Before reporting completion:
   mutation solely as proof?
 - If any adjusted aggregate excludes anomalous cells, is it labeled diagnostic
   and kept separate from the official runner result?
+- Does the changelog summarize final durable behavior and proof status rather
+  than reproducing the iteration ledger or local run diary?
 - Are generated workspaces left uncommitted?
 - Did you avoid version bumps unless this is release preparation?
 
