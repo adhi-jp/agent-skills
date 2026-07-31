@@ -36,6 +36,19 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skill-quality` now binds represented workflow state separately from executor
+  action mode, so response-only evals may accept supplied staged, verified, or
+  authorized state without inspecting the ambient checkout or falsely claiming
+  an unperformed mutation. Composite responses now separate diagnostic prose,
+  primary artifact payloads, command transports, and post-action checks before
+  grading; mechanical assertions must target the owning region instead of
+  treating every fence, label, or quoted prohibited value anywhere in the
+  response as a payload violation. A focused eval covers represented commit
+  state, non-execution, payload-versus-transport fencing, diagnosis-only
+  provenance, and region-scoped assertions. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
+  Behavioral improvement is unproven because this request did not authorize a
+  fresh skill-quality eval run.
 - `vibe-writing` now treats represented workflow state in response-only writing
   tasks as supplied evidence instead of substituting eval-runner or ambient
   checkout state. Exact structured rewrites remove unsupported propositions

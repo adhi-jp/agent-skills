@@ -115,6 +115,23 @@ workspace. Conversely, do not accept ambient repository, sandbox, eval, or
 runner state as evidence about represented code unless the prompt or artifact
 provenance establishes that relationship.
 
+Bind represented workflow state separately from executor action mode. A
+response-only decision, command record, or closure description may legitimately
+receive facts such as `edit complete`, `changes staged`, `verification passed`,
+or `commit authorized` while also forbidding the executor from inspecting or
+mutating the ambient sandbox. The prompt must make both axes explicit:
+
+1. Which represented facts the answer should treat as established.
+2. Which actions the executor may perform in this delivery mode.
+
+Do not replace supplied workflow state with an empty or contradictory ambient
+checkout merely because tools are available. Conversely, do not treat a
+represented completed action as proof that the executor performed it. A
+response-only restriction changes execution authority and proof, not the
+represented workflow's required closure outcome; it does not silently turn an
+authorized commit into an optional future suggestion or an uncommitted
+checkpoint.
+
 When an eval consumes structured internal inputs but asks for a public record,
 bind three schemas separately:
 
@@ -388,6 +405,19 @@ discriminating, observable, and hard to pass with the old failure mode.
   property, add a deterministic check when supported or sharpen the assertion
   with the concrete prohibited predicate without leaking the target answer to
   the executor.
+- For a composite response, partition the proof surface before grading:
+  explanatory or diagnostic prose, the primary artifact payload, command or
+  transport examples, and post-action checks are separate regions. An
+  assertion about raw payload bytes, Markdown fences, standalone shape,
+  forbidden provenance, or exact prefixes must name the region it governs
+  unless it intentionally governs the whole response. Necessary labels or a
+  fenced shell transport outside an unfenced message payload do not violate a
+  payload-only contract; a prohibited local identifier may be quoted to
+  diagnose the bad input but must remain absent from the corrected or public
+  payload. Prefer structured fields or explicit delimiters when region
+  boundaries matter. If the grader cannot observe the target region
+  deterministically, move the requirement to a scoped per-eval expectation or
+  change the output contract instead of applying a whole-response predicate.
 - Apply byte-level adjudication in both directions. When recorded bytes satisfy
   a mechanical assertion that the grader marked failed, record a grader false
   negative instead of tightening unrelated skill prose. Scope deterministic
@@ -782,6 +812,9 @@ Before reporting completion:
 - Is the represented evidence universe explicitly aligned with the executor's
   actual workspace and delivered fixtures, without accidental ambient-checkout
   substitution?
+- Are represented workflow facts and executor action mode bound separately, so
+  response-only delivery neither overwrites supplied state with ambient state
+  nor claims an unperformed mutation?
 - For a public structured record, are delivered input, internally retained
   state, and permitted serialization separate, with internal arrays, keys, and
   values omitted from public output?
@@ -800,6 +833,9 @@ Before reporting completion:
   not only grader verdicts or the runner sanity summary, and were contradictory
   verdicts classified as false positives or false negatives without rewriting
   the official aggregate?
+- For a composite response, does each mechanical assertion identify its target
+  region instead of grading diagnostic prose, artifact payload, transport, and
+  post-action checks as one undifferentiated byte stream?
 - If tracked fixtures were dirty, is the run reported as a working-tree
   measurement rather than clean-source proof, without assuming a later commit
   retroactively changes its manifest?
