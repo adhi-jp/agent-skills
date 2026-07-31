@@ -36,6 +36,44 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-code-research` now binds each investigation to an explicit evidence
+  universe before searching. User-provided excerpts and authoritative source
+  material stay distinct from a verified target workspace and from host,
+  runner, eval, copied-sandbox, or harness scaffolding; absence of represented
+  application paths in an unrelated checkout is no longer admissible evidence
+  about the represented code. Inline supplied material that is not explicitly
+  bound to the current workspace now triggers a pre-tool stop gate: broad or
+  exhaustive wording and the mandatory disconfirming check do not authorize
+  searching the ambient checkout; unavailable counter-evidence stays a coverage
+  limit. A closed-corpus output invariant removes references to searching or
+  failing to find the represented application in an ambient repository,
+  workspace, checkout, or sandbox. The eval suite adds universal pressure
+  against citing scaffolding artifacts as application evidence and makes those
+  prohibited output forms explicit for consistent grading. Follow-up
+  three-run analysis also distinguishes supplied-source evidence from local
+  investigation, qualifies static configuration as an expected branch rather
+  than runtime-effective proof, requires broad closed-corpus reports to name
+  material unsupplied surfaces, and makes permissive cleanup language inside an
+  investigation an explicit read-only decline requiring a separate edit
+  instruction. Closed-corpus evidence may use one section-level supplied-source
+  label; represented source paths are not converted into ambient-filesystem or
+  sandbox links; and narrow literal lookups must retain the supplied path while
+  avoiding unasked runtime-flow narration. An already-active trivial lookup now
+  scales to one anchored line rather than bypassing the evidence contract. The
+  final output gate requires configuration-backed conclusions to remain
+  expected branches under the supplied config and to preserve runtime override,
+  merge, and deploy-time replacement limits under `Not verified`. The
+  broad-flow eval distinguishes optional later steps from actually starting or
+  applying a wording fix, plan, tests, or commit. The token-refresh eval now
+  classifies user-provided excerpts as supplied-source evidence rather than
+  workspace-local investigation. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-code-research/evals.json`.
+  Closing `gpt-5.4-mini` Codex evaluation with three runs per config: 66/66
+  cells scored, zero infrastructure failures, `Sanity checks: OK`,
+  `with_skill` 96.6%, `without_skill` 81.7%, delta +14.9 points. The recorded
+  with-skill outputs had zero corpus-boundary failures and no ambient
+  repository, checkout, sandbox, runner, eval, or skill-source evidence
+  leakage. Generated workspace artifacts remain uncommitted.
 - `vibe-brainstorm` now treats generic host/runner artifact destinations as
   transport affordances rather than user requests, so chat-first runs do not
   create a file merely because a conditional output path is available; a

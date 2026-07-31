@@ -40,12 +40,49 @@ Use this skill when the user asks to:
   work, not research.
 - The requested deliverable is a requirements spec, implementation plan, code
   edit, commit, or review of a diff.
-- A single trivial lookup the user could resolve with one search and no
-  interpretation.
+- An uninvoked single trivial lookup needs no full research workflow. If this
+  skill is already active, answer it directly in one concise anchored line
+  rather than dropping the skill's evidence contract or expanding it into a
+  report.
 
 When research uncovers a defect, scope gap, or risky surprise, report it as a
 finding with evidence and stop. Fixing, planning, and reviewing belong to later
 phases that the user must request.
+
+## Evidence Universe Gate
+
+Apply this gate before any investigation tool or evidence claim:
+
+1. Identify the authoritative corpus for the question: a verified target
+   workspace, user-provided material, an upstream primary source, or a stated
+   combination.
+2. If the user supplies excerpts, file lists, logs, or other source material
+   without binding it to the current workspace, enter **closed-corpus mode**.
+   Do not inspect the ambient workspace to supplement or corroborate that
+   material. Broad words such as "investigate", "everything", or "trace" do not
+   bind an unrelated checkout to the represented application.
+3. In closed-corpus mode, map only paths, symbols, and relationships present in
+   the supplied artifacts. Treat omitted surfaces as `not supplied` or
+   `Unproven`; do not reinterpret them as absent because a path is missing from
+   the ambient checkout. Label load-bearing facts from user-provided artifacts
+   as `Primary source` or supplied-source evidence, not `Local investigation`.
+4. Before responding, project the answer back onto the authoritative corpus.
+   Remove claims or citations derived from runner prompts, eval definitions,
+   harness files, copied sandboxes, checkout contents, repository searches, or
+   these skill instructions. The final evidence and coverage limits must be
+   traceable to the bound corpus only.
+
+If the user wants full-repository research but the actual target repository is
+not bound or available, state that limitation and ask for the target rather than
+searching whatever checkout happens to be current.
+
+**Closed-corpus output invariant:** the final response must not mention
+searching, checking, or failing to find the represented application in the
+current repository, workspace, checkout, or sandbox, and must not cite runner,
+eval, harness, or skill files as evidence. Describe those gaps only as material
+that was not supplied or remains unverified. Preserve represented source paths
+as plain paths; do not turn them into links targeting an ambient filesystem or
+sandbox location.
 
 ## Core Rules
 
@@ -54,7 +91,10 @@ phases that the user must request.
   similar commands that change nothing. Commands that write files, install
   dependencies, migrate data, start long-lived services, or touch external
   systems are out of bounds unless the user explicitly requests them as part of
-  the investigation and the effect is understood.
+  the investigation and the effect is understood. When an investigation prompt
+  also gives permissive cleanup or edit language, keep the investigation
+  read-only, explicitly say no edit was performed because editing needs a
+  separate instruction, and report the cleanup only as a finding or option.
 - **Evidence labels.** Label load-bearing claims as `Local investigation`
   (read in this workspace), `Primary source` (official docs, upstream source,
   authoritative spec, user-provided source material), or `Unproven` (memory,
@@ -74,6 +114,9 @@ phases that the user must request.
   intent; claims about what actually happens at runtime — performance, timing,
   concrete values, environment-dependent behavior — need execution evidence,
   logs, or a primary source, or they stay qualified as expected behavior.
+  Configuration selection proves the expected branch under the supplied config,
+  not the runtime-effective config; environment overrides, config merging, and
+  deploy-time replacement remain unverified unless evidence covers them.
 - **Answer the question asked.** Investigate to the depth the question needs,
   not the depth the codebase allows. Resist inventorying everything touched
   along the way; depth beyond the question is noise unless it changes the
@@ -84,11 +127,18 @@ phases that the user must request.
   question, state the boundary and the risk it leaves.
 - **Coverage honesty.** Say what was inspected and what was not. A search that
   found nothing is reported as "not found where I looked", with where you
-  looked, never as "does not exist".
+  looked, never as "does not exist". For broad closed-corpus questions, name
+  the material unsupplied surfaces that could change the conclusion — such as
+  other callers or UI surfaces, locales, runtime rendering, screenshots,
+  configuration layers, or tests — rather than using one generic limitation.
 - **Check the strongest counter-evidence.** Before presenting a main
   conclusion, run at least one check that could disprove it: a caller that
   bypasses the traced path, a config that swaps the implementation, a test that
   encodes different behavior, or history that shows the code recently changed.
+  Keep this check inside the bound evidence universe. In closed-corpus mode,
+  inspect the supplied artifacts for the strongest available contradiction; if
+  none was supplied, record that counter-evidence was unavailable rather than
+  widening into the ambient workspace.
 
 ## Workflow
 
@@ -96,9 +146,11 @@ phases that the user must request.
    - Restate the request as one or more concretely answerable questions.
    - Ask a clarifying question only when ambiguity changes where to look or
      what counts as an answer; otherwise state the interpretation and proceed.
+   - Apply the Evidence Universe Gate before mapping entry points.
 2. **Map entry points**
    - Find the relevant modules with targeted search: identifiers, error
-     strings, routes, schema names, user-visible text.
+     strings, routes, schema names, user-visible text. This search applies only
+     when the evidence universe includes the verified target workspace.
    - Prefer following real references — imports, call sites, registrations,
      configuration wiring — over guessing from file names or directory layout.
    - For broad, user-visible, or architecture-impact questions, name the
@@ -115,10 +167,16 @@ phases that the user must request.
    - Use `git log` and `git blame` when the question is "why is it like this"
      or "when did this change", and treat commit messages as claims, not proof.
 4. **Pressure-test the conclusion**
-   - Run the disconfirming check from the core rules.
+   - Run the disconfirming check from the core rules within the bound evidence
+     universe.
    - Downgrade anything that failed verification to `Unproven` with the reason,
      rather than dropping or silently keeping it.
 5. **Report the findings**
+   - Apply the final projection in the Evidence Universe Gate.
+   - When a conclusion depends on configuration selection, phrase it as the
+     expected branch under the supplied configuration and include a
+     `Not verified` limit for runtime overrides, configuration merging, or
+     deploy-time replacement unless those layers were supplied.
    - Lead with the direct answer, then evidence, then limits. Use the output
      contract below.
 
@@ -190,8 +248,13 @@ identifiers, commands, API names, non-sensitive error text, and non-sensitive
 quoted source verbatim. If error text or quoted source contains or may contain a
 credential or secret-like literal, prefer line or symbol anchors plus a redacted
 quote or structural description instead of the raw value.
-Scale the format to the question: a one-line answer with one anchor is correct
-for a narrow question; sections are for genuinely multi-part findings.
+In closed-corpus mode, label the evidence section once as `Primary source —
+user-provided material` or an equivalent supplied-source label; individual
+bullets do not need to repeat it. Scale the format to the question: a one-line
+literal lookup answers with the value plus its supplied path and, when useful,
+the symbol or line. Do not add runtime-flow narration the user did not ask for.
+Sections are for genuinely multi-part findings. Concision never removes the
+source path that makes the answer verifiable.
 
 ## Handoff Boundary
 
@@ -207,6 +270,9 @@ commit anything.
   the read-only boundary has no small exceptions.
 - Answering from framework or library memory without checking the local
   version, configuration, or overrides actually in the workspace.
+- Searching an ambient checkout for paths represented only in supplied excerpts,
+  then citing their absence, an eval definition, or a runner file as evidence
+  about the represented application.
 - Presenting traced structure as runtime fact: "this runs twice", "this is
   slow", "this value is always set" without execution evidence.
 - Claims without anchors, or anchors to code that was skimmed rather than read.
@@ -232,6 +298,8 @@ Before responding, check:
   "not determined" with what would determine it?
 - Does every load-bearing claim have an anchor or a primary source, and is
   inference labeled?
+- Is every claim grounded in the bound evidence universe rather than unrelated
+  workspace, runner, eval, or harness state?
 - Were runtime-behavior claims either backed by execution evidence or
   qualified?
 - Did at least one disconfirming check run against the main conclusion?

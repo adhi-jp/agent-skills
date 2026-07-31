@@ -790,7 +790,35 @@ direct answer first. Broad, user-visible, or architecture-impact questions name
 and cover the material investigation surfaces instead of stopping at the first
 cheap file hit, or they state the intentional boundary and residual risk. Claims
 carry `Local investigation`, `Primary source`, or `Unproven` labels and
-file/line anchors; static reading is never presented as runtime proof, and
+file/line anchors. The investigation first binds its evidence universe:
+user-provided or upstream material, a verified target workspace, and
+host/runner scaffolding stay distinct, so eval definitions, copied sandboxes,
+or missing represented paths in an unrelated checkout are not reused as
+application evidence. Inline supplied material that is not explicitly bound to
+the current workspace forms a closed corpus: before any investigation tool, the
+investigator limits entry-point mapping to the supplied artifacts, and before
+responding removes any draft claim derived from ambient checkout, runner, eval,
+harness, or skill state. Gaps stay `not supplied` or `Unproven` rather than
+becoming absence claims about an unrelated checkout. The mandatory
+disconfirming check stays inside that bound corpus; when no contradictory
+artifact was supplied, the limitation is reported instead of widening the
+search. Closed-corpus output never mentions searching or failing to find the
+represented application in the current repository, workspace, checkout, or
+sandbox, and represented paths are not converted into links targeting ambient
+filesystem or sandbox locations. User-provided artifacts are labeled as `Primary source` or
+supplied-source evidence. Static configuration establishes an expected branch,
+not runtime-effective configuration when environment or deploy-time overrides
+remain unverified; configuration-backed findings carry that distinction into
+the final answer and name override, merge, or deploy-time layers under
+`Not verified`. Broad closed-corpus limits name the relevant unsupplied
+surfaces rather than one generic caveat, and permissive cleanup language inside
+an investigation is explicitly declined as requiring a separate edit
+instruction. Closed-corpus evidence may carry one section-level supplied-source
+label rather than repeating it on every fact. Narrow literal lookups stay
+concise but retain the supplied path and avoid unasked runtime-flow narration;
+when the skill is already active, triviality scales the response down instead
+of dropping the evidence contract.
+Static reading is never presented as runtime proof, and
 failed searches are reported as coverage limits, not nonexistence. Findings
 preserve non-sensitive paths, line anchors, symbols, API
 names, commands, and identifiers, but suspected credentials or secret-like
