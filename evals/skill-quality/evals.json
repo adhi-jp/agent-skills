@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "skill-quality",
-  "purpose": "External eval set for skill-quality. Prompts live outside skills/ so they are not bundled as skill content. Covers current-proposal evidence maps, failure-to-contract translation, narrow skill edits, eval assertion hardening, expected-output leak control, eval-suite compaction and coverage ledgers, runner-driven eval hygiene, session-history evidence ledgers and extraction boundaries, cost and timeout claim discipline, official-vs-diagnostic aggregate boundaries, moving-failure and multi-run variance triage, represented-corpus and ambient-workspace alignment, runner-affordance authority leakage, artifact-level grader auditing, post-edit contract-collision checks, measurement-epoch and fixture-delivery boundaries, eval delivery-mode satisfiability, simultaneous proof-path and contract-change attribution, trigger-only skill metadata, external data-boundary decisions, safety-analyzer source-boundary-sink closure, credential-vs-exactness precedence, and regression prevention for skill creation or improvement.",
+  "purpose": "External eval set for skill-quality. Prompts live outside skills/ so they are not bundled as skill content. Covers current-proposal evidence maps, failure-to-contract translation, narrow skill edits, eval assertion hardening, expected-output leak control, eval-suite compaction and coverage ledgers, runner-driven eval hygiene, session-history evidence ledgers and extraction boundaries, cost and timeout claim discipline, official-vs-diagnostic aggregate boundaries, moving-failure and multi-run variance triage, represented-corpus and ambient-workspace alignment, runner-affordance authority leakage, positive artifact-recording obligations after authority is established, conditional common-assertion non-applicability, instruction-reachability placement, artifact-level grader auditing, post-edit contract-collision checks, measurement-epoch and fixture-delivery boundaries, eval delivery-mode satisfiability, simultaneous proof-path and contract-change attribution, trigger-only skill metadata, external data-boundary decisions, safety-analyzer source-boundary-sink closure, credential-vs-exactness precedence, and regression prevention for skill creation or improvement.",
   "common_assertions": [
     "Output grounds the current proposal in the observed failure signal and labels its implementation-affecting claims as primary source, local investigation, unproven, accepted risk, or equivalent evidence categories; the labels need not be the first heading or sentence.",
     "Output translates the failure into a reusable skill contract or dimension before recommending prose edits.",
@@ -338,12 +338,37 @@
         "States that a clean post-edit rerun can prove the final combined contract was measured and that unrequested writes stopped in those cells, but cannot isolate how much score movement came from skill text, runner wording, grader behavior, or variance unless those effects are separately measured.",
         "Updates or proposes the owning runner documentation, focused eval pressure, and Unreleased changelog when tracked behavior changes, without version bumps, snapshot edits, or generated workspace commits."
       ]
+    },
+    {
+      "id": "E18",
+      "name": "Capture proof, assertion applicability, and instruction reachability",
+      "prompt": "A requirements-spec suite receives the same runner capture destination in both configs. Chat-only and response-only cases must not write files. Artifact-mode cases independently require a full Markdown spec with a repository-relative current path. Across several runs, some artifact-mode executors write a complete spec only to a sandbox `docs/specs/...` path, link the chat summary to that absolute sandbox path, and leave the designated capture destination empty. The change manifest proves the file existed, but the grader receives no spec body and fails section-separation assertions. At the same time, common assertions require exact-content payload proof when an ordinary semantic choice list appears, require artifact-language evidence in response-only classifications, and require full spec sections in no-write cases; graders repeatedly treat the absent surface as a failure because the assertions never state non-applicability. The detailed skill reference already calls capture transport distinct from artifact identity, but repeated artifact cases miss that rule; one contributor wants to paste the whole reference checklist into SKILL.md, while another wants to leave every rule reference-only. Decide which surfaces own the failures, what should change, and what a later closing run could prove.",
+      "expected_output": "The agent separates artifact authority, logical identity, positive proof transport, conditional assertion applicability, and instruction reachability; it selects minimal coupled changes and preserves honest iteration attribution.",
+      "files": [],
+      "expectations": [
+        "Builds a short evidence map that treats delivered prompts, capture instructions, change manifests, written-artifact records, executor summaries, grader inputs or verdicts, repeated-run movement, and current skill/reference text as distinct evidence surfaces.",
+        "Names the reusable dimensions as artifact authority versus proof transport, logical identity versus capture destination, conditional assertion applicability, and instruction reachability or equivalent abstractions.",
+        "Keeps the capture path non-authorizing for chat-only and response-only cases; path availability alone does not permit artifact creation.",
+        "After artifact mode independently authorizes the deliverable, treats the designated capture destination as required recording transport for the complete artifact rather than an optional second path.",
+        "Separates the repository-relative current spec path or stable artifact handle from temporary sandbox and capture paths, and rejects absolute sandbox links as artifact identity.",
+        "Treats a sandbox-only artifact plus `written_artifact.captured=false` as a measurement or recording gap even when the change manifest proves that a file existed.",
+        "Requires pressure for both sides of the transport contract: no unrequested writes in non-artifact cases and complete grader-visible capture in artifact-producing cases.",
+        "Requires each conditional common assertion to state an observable positive applicability predicate and what passes by non-applicability when the triggering surface is absent.",
+        "Moves a conditional assertion to per-eval expectations when its applicability cannot be determined from the delivered prompt and recorded proof surface.",
+        "Does not apply exact-content payload requirements to ordinary semantic alternatives whose full requirement meaning is already present, and does not require artifact-language or full-spec proof from response-only or no-write cases.",
+        "Classifies repeated misses of a correctly routed reference-owned invariant as a possible instruction-reachability or effective-contract-surface gap rather than automatically adding another fixture-specific sentence.",
+        "Promotes only a concise load-bearing invariant to SKILL.md when repeated shared-mechanism evidence supports promotion, while leaving detailed mechanics in the reference; it rejects both pasting the full checklist and promoting after one noisy miss.",
+        "Runs or proposes a contract-collision audit across SKILL.md, references, common and per-eval assertions, README, and current changelog text after changing placement or applicability.",
+        "Requires a fresh affected-suite run after the final skill, reference, assertion, or proof-path edit and avoids apples-to-apples claims across changed assertion denominators.",
+        "States that a closing rerun can prove the final combined authority, recording, and applicability contract was measured, but cannot isolate score movement among skill visibility, assertion changes, grader behavior, and variance unless separately measured.",
+        "Does not bump versions, edit managed snapshots, commit generated workspaces, or turn the scenario into a requirements-spec-specific checklist."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.45,
     "per_eval_expectation_weight": 0.55,
     "pass_threshold": 0.8,
-    "notes": "These evals test skill-improvement judgment, not subjective prose quality. Baselines are expected to over-edit skills, under-harden assertions, over-trust benchmarks, miss repository eval-runner constraints, compact suites by numeric quota without coverage accounting, overpromote sampled evidence, push workflow process into metadata, or make unsupported improvement claims."
+    "notes": "These evals test skill-improvement judgment, not subjective prose quality. Baselines are expected to over-edit skills, under-harden assertions, over-trust benchmarks, miss repository eval-runner constraints, conflate capture authority with positive recording obligations, leave conditional common assertions without explicit non-applicability, misplace load-bearing invariants between SKILL.md and references, compact suites by numeric quota without coverage accounting, overpromote sampled evidence, push workflow process into metadata, or make unsupported improvement claims."
   }
 }

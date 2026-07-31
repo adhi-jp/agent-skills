@@ -968,8 +968,15 @@ proof. It binds represented source material, delivered fixtures, and the
 executor workspace before treating ambient checkout state as evidence, audits
 runner paths, tools, fallbacks, and transports for authority leakage so
 availability does not become unrequested file creation, tool use, scope
-expansion, or persistence, and audits mechanically inspectable output contracts
-against recorded bytes even when the
+expansion, or persistence. After artifact authority is independently
+established, it separately binds the logical artifact identity and the
+grader-visible capture destination, so non-authorizing transport can still be a
+required proof path for an artifact-producing case. Conditional common
+assertions expose their positive applicability and non-applicable result rather
+than treating an absent surface as failure. Repeated misses of a correctly
+routed reference-owned invariant can justify promoting only the concise
+load-bearing rule to `SKILL.md`, while one noisy miss does not. It also audits
+mechanically inspectable output contracts against recorded bytes even when the
 grader and runner sanity summary pass, and checks new rules, evidence
 taxonomies, prompts, and assertions for collisions with existing applicability
 and output contracts before a closing rerun. It requires recorded host, runner,

@@ -126,6 +126,25 @@ non-authorizing and test that boundary symmetrically across configs instead of
 adding stronger downstream skill prose to counter the runner-delivered
 instruction.
 
+After authority, bind the proof-transport universe separately. A capture
+destination can be non-authorizing when the represented user or workflow does
+not require an artifact, yet become required recording transport after an
+artifact deliverable is independently authorized. Ask three separate questions:
+
+1. May the artifact exist in this delivery mode?
+2. What repository-relative path or stable handle is the artifact's logical
+   identity?
+3. Where must the complete artifact bytes be recorded so the grader can inspect
+   them?
+
+Do not collapse those answers. Writing in a chat-only or response-only case is
+an authority or delivery-mode failure even when a capture path exists. In an
+artifact-writing case, leaving the capture destination empty while writing only
+to an unrecorded sandbox path is a measurement or recording gap, even when the
+change manifest proves a file existed. Keep the logical artifact identity out of
+temporary capture or sandbox paths, and test both the negative authority
+boundary and the positive recording obligation.
+
 ## Evaluation Iteration Boundaries
 
 Treat each benchmark as a measurement of one exact skill/eval/fixture state,
@@ -259,6 +278,17 @@ put heavier reusable guidance in `references/` with explicit applicability;
 keep narrow pressure cases in evals or local notes; and touch README or
 changelog only when they own or describe the behavior.
 
+Treat instruction reachability as part of artifact placement. If a concise,
+load-bearing invariant already exists only in a reference but repeated
+artifact-level evidence shows agents miss the same mechanism after the
+reference route should have applied, consider promoting the invariant—not its
+full checklist—to `SKILL.md` while leaving detailed mechanics in the reference.
+Require a repeated shared mechanism or other independent evidence before this
+promotion; one miss, a moving single-run failure, or grader variance does not
+prove that a reference is too hidden. After promotion, audit the body,
+reference, README, changelog, and evals for duplicated or contradictory
+authority.
+
 When editing skill text, preserve modality, exceptions, exact paths, commands,
 field names, local anchors, and absence statuses. Shorten only when the shorter
 text keeps the same applicability, obligation, proof path, and failure behavior.
@@ -280,6 +310,13 @@ discriminating, observable, and hard to pass with the old failure mode.
   it will govern, including activation-only, exact-format, localized, verbatim,
   narrow-boundary, and no-change cases. Move scenario-specific stop gates or
   narrow behavior into per-eval expectations.
+- For every conditional common assertion, state both its positive applicability
+  predicate and its non-applicable result in grader-readable terms. Do not rely
+  on the grader to infer that absent artifact sections, option payloads, source
+  handling, language rules, or lifecycle proof should pass when the triggering
+  surface is absent. The applicability predicate must be observable from the
+  delivered prompt and recorded proof surface; otherwise move the assertion to
+  the owning per-eval expectations.
 - Classify each eval's delivery mode before writing expectations: executing
   changes, response-only decision or command plan, artifact creation/revision,
   closure-only, or blocked/no-change. Every expectation must be satisfiable and
@@ -503,6 +540,9 @@ Compare behavior before declaring improvement:
   aggregate as partial and identify which behavior is unmeasured before
   accepting a headline delta.
 - Did a grader failure expose unclear assertions instead of a skill defect?
+- Did a conditional common assertion explicitly tell the grader what happens
+  when its triggering surface is absent, or did absence get misgraded as
+  failure?
 - Did the recorded output set contain the proof the assertion requires, or did
   the proof live only in host UI, private transcript, or unrecorded tool state?
 - Did the skill overfit to a fixture, phrase, project class, or old session?
@@ -625,6 +665,15 @@ Before finalizing, reject these common regressions:
 - Treating a runner path, tool, fallback, or transport affordance as user
   authority, or trying to cancel that authority leakage only with downstream
   skill wording.
+- Treating non-authorizing capture transport as optional after the represented
+  workflow independently requires an artifact, leaving the grader without the
+  complete deliverable while a sandbox-only copy exists.
+- Encoding conditional common assertions without an explicit observable
+  applicability predicate and non-applicable result, so graders fail cases
+  solely because an irrelevant surface is absent.
+- Promoting an entire reference checklist into `SKILL.md` after one miss, or
+  keeping a repeatedly missed load-bearing invariant reference-only without
+  evaluating instruction reachability.
 - Calling a run contract-clean because the grader and sanity summary passed
   while recorded output bytes violate a mechanically inspectable assertion.
 - Adding a new rule or evidence taxonomy without checking for collisions with
@@ -673,6 +722,15 @@ Before reporting completion:
   substitution?
 - Are runner and host affordances explicitly non-authorizing unless the
   represented user or owning workflow independently permits their use?
+- After artifact authority was established, did the proof path separately bind
+  the logical artifact identity and the destination that must contain complete
+  grader-visible bytes?
+- Do conditional common assertions state an observable applicability predicate
+  and what passes by non-applicability instead of requiring the grader to infer
+  it?
+- If a reference-owned invariant was promoted or kept reference-only, is that
+  placement supported by repeated reachability evidence rather than one noisy
+  cell?
 - Did targeted mechanical assertions get checked against recorded output bytes,
   not only grader verdicts or the runner sanity summary?
 - After the latest edit, did a contract-collision audit remove stale or

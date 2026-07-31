@@ -36,6 +36,24 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skill-quality` now separates artifact authority, logical artifact identity,
+  and positive proof transport during eval diagnosis. A capture destination
+  remains non-authorizing for chat-only or response-only cases, but becomes a
+  required grader-visible recording path once the represented workflow
+  independently requires an artifact; a sandbox-only copy plus an empty capture
+  record is classified as a measurement or recording gap. Conditional common
+  assertions must state an observable applicability predicate and explicit
+  non-applicable result instead of failing cases merely because artifact,
+  language, exact-content, source, or lifecycle surfaces are absent.
+  Instruction placement now includes a reachability gate: repeated misses of a
+  correctly routed load-bearing reference rule may promote only its concise
+  invariant to `SKILL.md`, while detailed mechanics stay in the reference and
+  one noisy cell does not justify promotion. A focused eval covers the combined
+  authority/recording boundary, logical-path separation, common-assertion
+  applicability, and reference-to-body promotion decision. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
+  Behavioral improvement is not measured because no fresh eval run was
+  requested.
 - `vibe-requirements-spec` now treats a host or eval-runner artifact-capture
   destination as mandatory recording transport whenever artifact mode creates
   or updates a spec. The complete primary spec is written there before any
