@@ -206,3 +206,18 @@ handling, backends, execution, finding normalization, validity checks,
 deduplication, scope triage, secret hygiene, rejected-ledger handling, user
 selection, cascade containment, terminal audit, failure conditions, and
 completion summary rules.
+
+Treat the reference's evidence and output boundaries as hard gates. An
+unconfirmed DoD candidate does not become usable merely because it was supplied
+as a checklist, overlapping secret detectors use the canonical most-specific
+redaction class, and a rendered merged-ledger receipt proves contributor
+coverage only through non-secret structural references. When the user requests
+a response-only decision record for a represented completed review state, bind
+the decision to those supplied facts rather than substituting the ambient host
+or runner checkout as the reviewed worktree. Response-only delivery prevents
+executing the commit; it does not downgrade invocation-level closure permission
+to "allowed but not requested" or create a second-commit-instruction gate. A
+response-only closure record must retain the represented non-empty staged set,
+cumulative fix-diff scope, cycle ownership, isolation-restore and
+conflict-safety statuses, and required post-commit stored-message and
+committed-file-set checks.

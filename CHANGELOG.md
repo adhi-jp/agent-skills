@@ -36,6 +36,30 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-review` now keeps unconfirmed checklist-shaped DoD candidates outside
+  usable proposal mode until anchored or replaced by an interview, resolves
+  overlapping secret matches to canonical specific redaction classes, and
+  renders non-secret structural contributor receipts for merged rejected-ledger
+  keys. Response-only terminal decisions bind to the represented completed
+  review state instead of substituting the eval runner's ambient checkout, so
+  explicit invocation authorizes the scoped closure commit without falsely
+  claiming that a decision-only response executed it. The eval suite clarifies
+  candidate-finding non-authority, capability-versus-command backend evidence,
+  canonical missing normalized fields, safe merged-key proof, and the
+  response-only closure-commit boundary, including preservation of supplied
+  closure-gate statuses and post-commit checks in a decision-only record.
+  Internal raw fingerprint values also may not be recycled into public dedupe
+  or canonical-identity fields, and a delegated-result assertion no longer
+  requires product premises absent from its structural fixture. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
+  Closing `gpt-5.4-mini` Codex evaluation with one run per config: 30/30 cells
+  scored, zero infrastructure failures, `with_skill` 89.5%,
+  `without_skill` 92.9%, delta -3.4 points. The repaired E05, E06, E10, E11,
+  and E15 boundaries scored 100% in both configs; the headline suite remains
+  nondiscriminating in this single run, and the five candidate-below-baseline
+  cells are treated as moving variance or unrelated existing coverage rather
+  than proof for more wording-only edits. Generated workspace artifacts remain
+  uncommitted.
 - `skill-quality` now separates artifact authority, logical artifact identity,
   and positive proof transport during eval diagnosis. A capture destination
   remains non-authorizing for chat-only or response-only cases, but becomes a

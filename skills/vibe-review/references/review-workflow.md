@@ -229,7 +229,7 @@ delegated_result_record:
   validation_status: accepted
   redaction_state:
     count: <non-negative integer>
-    categories: [known-prefix | jwt | pem-key | url-auth | secret-context | env-secret]
+    categories: [apikey | jwt | private-key | url-auth | secret-context | env-secret]
 ```
 
 All keys are required except fields explicitly allowing `missing`. This schema
@@ -353,9 +353,12 @@ Never reject ambiguity as noise by merge alone.
 
 Rejected merged groups compute internal ledger keys from every contributing raw
 finding identity or title, not only from the synthesized merged title. Render
-only redacted provenance. Accepted residuals on merged groups must list the
-child findings, review angles, and surfaces covered; unmatched contributor
-evidence remains unresolved.
+only redacted provenance. The rendered computation receipt must prove that every
+contributor participated using non-secret structural references such as source
+finding ids, child dedupe tokens, and a contributor count; it must not reveal
+raw titles, raw identity bytes, or `raw_fingerprint`. Accepted residuals on
+merged groups must list the child findings, review angles, and surfaces covered;
+unmatched contributor evidence remains unresolved.
 
 ## Lightweight Specification Gaps
 
@@ -393,6 +396,13 @@ When rejecting proposal mode, record every material rejected evidence source
 that is present, including short or vague commit subjects and missing content
 excerpts; do not stop at the first blocking source when other weak sources would
 otherwise look accepted.
+
+An unconfirmed user-supplied DoD candidate remains candidate evidence, not a
+confirmed or usable drafted DoD. If its material items lack independent anchors,
+reject proposal mode for those items and fall back to a DoD interview or another
+valid confirmed source before scope triage. A candidate finding may be retained
+as the object awaiting triage, but its wording, severity, or requested fix must
+not supply the missing DoD requirement.
 
 Before using confirmed plan or conversation evidence, recompute its digest from
 the current local or pasted content. A digest mismatch is a trust-binding
@@ -465,12 +475,17 @@ Detection classes:
 
 Replace matches with `[REDACTED:<type>]`. Preserve non-secret wording. Count
 redactions and render a compact audit/footer when redactions occurred.
+When one span matches multiple classes, use the most specific structural class:
+`env-secret` for a secret-named environment assignment and `apikey` for a
+recognized API-key prefix take precedence over generic `secret-context`.
 
 `raw_fingerprint` is internal only and computed from pre-redaction raw identity
 bytes. It is never rendered or forwarded. `dedupe_token` is caller-facing and
-non-secret by construction from structural fields. Only `reject-out-of-scope`
-and `reject-noise` entries enter the rejected ledger; `must-fix` and
-`minimal-hygiene` never do.
+non-secret by construction from structural fields. Never copy, truncate,
+relabel, or otherwise reuse a source `raw_fingerprint` value as a public
+`dedupe_token`, canonical identity, child reference, or computation receipt.
+Only `reject-out-of-scope` and `reject-noise` entries enter the rejected ledger;
+`must-fix` and `minimal-hygiene` never do.
 
 ## Rejected Ledger
 
@@ -644,6 +659,17 @@ commit, run the dirty-state and cycle-owned ownership audit, show or internally
 verify the staged file set and cumulative fix diff, confirm isolation-restore
 status, and satisfy conflict-safety preconditions. Inspect the stored message
 and committed file set afterward.
+
+When the requested deliverable is a response-only terminal decision record and
+the prompt supplies a represented review state whose selected fixes and closure
+gates have passed, record the scoped closure commit as the authorized next
+terminal action under those represented facts; no second commit instruction is
+required. Record the passed staged-file-set, cumulative-fix-diff, ownership,
+isolation-restore, and conflict-safety gates plus the required post-commit
+stored-message and committed-file-set checks. Do not replace that state with
+the ambient host or eval-runner checkout merely because the current sandbox has
+no corresponding diff, and do not claim that the commit was executed when the
+delivery mode records only a decision.
 
 Squash, reset, amend, rebase, push, release preparation, version changes, and
 other history-changing operations outside that closure commit require explicit
