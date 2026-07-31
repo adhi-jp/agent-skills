@@ -118,6 +118,24 @@ into skill outputs.
   A higher or lower pass rate after moving common assertions or changing case
   modes measured a different denominator, so retained-contract behavior was
   more informative than the headline delta alone.
+- Inline represented-code evals produced false skill diagnoses when phrases
+  such as `in this project` or `while you're in there` implicitly bound the
+  runner's skill repository to fictional supplied excerpts. Repeated prose
+  tightening did not close the leak; explicitly binding the supplied material
+  as the authoritative corpus removed ambient checkout, eval-file, and sandbox
+  evidence from recorded outputs.
+- Grader and runner summaries were insufficient for mechanical output
+  boundaries. A grader accepted links into `/tmp/eval-runner-sandboxes/` and
+  `Sanity checks: OK` did not flag that suite-contract violation. Direct
+  inspection of recorded output kept the run non-closing until the assertion
+  named the prohibited target and the artifact stopped containing it.
+- New rules caused regressions when they collided with existing contracts. A
+  `path or symbol` shorthand weakened a path-required narrow-answer contract,
+  a trivial-lookup non-applicability rule conflicted with an already-active
+  skill eval, and a stale assertion called user-provided excerpts
+  workspace-local evidence after the taxonomy changed to supplied-source
+  evidence. A post-edit collision audit was more reliable than another local
+  wording patch.
 
 ## Changes That Risked Degrading Skills
 
@@ -221,9 +239,17 @@ For every skill change, preserve this sequence:
    reconcile every old case to retained coverage or an accepted risk first.
 8. Check the eval delivery mode and runner fixture-copy boundary so every
    expectation is observable from the executor's actual inputs and outputs.
-9. Record the measurement epoch and the question the next affected-suite run is
+9. Bind represented source material, delivered fixtures, and the actual
+   executor workspace so the prompt does not substitute ambient harness state
+   for the intended evidence universe.
+10. Audit mechanically inspectable contracts against recorded output bytes, not
+    only grader verdicts or the runner sanity summary.
+11. Run a contract-collision audit across applicability rules, workflow steps,
+    output contracts, prompts, assertions, README text, and current changelog
+    guidance.
+12. Record the measurement epoch and the question the next affected-suite run is
    intended to answer.
-10. Run a closure search for stale current-contract text, then use the shared
+13. Run a closure search for stale current-contract text, then use the shared
     eval workflow honestly or label unrun proof as absent.
-11. Report proof, gaps, changed coverage, and generated artifacts without
+14. Report proof, gaps, changed coverage, and generated artifacts without
     inflating claims.

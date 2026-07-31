@@ -958,8 +958,14 @@ requires assertions to be satisfiable from the case's response-only,
 artifact-writing, closure, blocked, or state-changing delivery mode. For
 no-change and blocked cases, it distinguishes naming an existing sufficient
 artifact from proposing an edit and does not require a new mutation solely as
-proof. It requires recorded host, runner, or equivalent artifact evidence for
-execution-proof assertions, requires turn-level pairing before counting
+proof. It binds represented source material, delivered fixtures, and the
+executor workspace before treating ambient checkout state as evidence, audits
+mechanically inspectable output contracts against recorded bytes even when the
+grader and runner sanity summary pass, and checks new rules, evidence
+taxonomies, prompts, and assertions for collisions with existing applicability
+and output contracts before a closing rerun. It requires recorded host, runner,
+or equivalent artifact evidence for execution-proof assertions, requires
+turn-level pairing before counting
 session-history audit evidence, treats excluded, timed-out, stub, or placeholder eval cells
 as partial unmeasured proof until their surface is classified, keeps any
 diagnostic adjusted aggregate separate from the official runner result, treats

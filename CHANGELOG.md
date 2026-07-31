@@ -36,6 +36,24 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skill-quality` now separates represented-source corpora from the executor's
+  ambient workspace before diagnosing eval failures. Inline or fictional source
+  material, runner-delivered fixtures, verified target workspaces, and harness
+  scaffolding must have explicit provenance; ambiguous prompts are repaired at
+  the prompt or fixture boundary instead of teaching a skill to ignore a
+  legitimately bound repository. Mechanical output contracts are audited
+  against recorded bytes even when the grader and runner sanity summary pass,
+  with deterministic checks or concrete prohibited predicates preferred for
+  ambient absolute links, runner/eval citations, exact prefixes, and similar
+  properties. Post-edit contract-collision audits now reconcile applicability
+  rules, workflow steps, output contracts, evidence taxonomies, prompts,
+  assertions, README text, and current changelog guidance before a closing
+  rerun. A focused eval covers ambiguous represented-project binding, repeated
+  evidence-universe leakage, a grader false positive over a sandbox link, and
+  stale path/evidence-label obligations. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
+  Behavioral improvement is not measured because no fresh eval run was
+  requested.
 - `vibe-code-research` now binds each investigation to an explicit evidence
   universe before searching. User-provided excerpts and authoritative source
   material stay distinct from a verified target workspace and from host,

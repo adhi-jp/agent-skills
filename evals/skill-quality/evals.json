@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "skill-quality",
-  "purpose": "External eval set for skill-quality. Prompts live outside skills/ so they are not bundled as skill content. Covers current-proposal evidence maps, failure-to-contract translation, narrow skill edits, eval assertion hardening, expected-output leak control, eval-suite compaction and coverage ledgers, runner-driven eval hygiene, session-history evidence ledgers and extraction boundaries, cost and timeout claim discipline, official-vs-diagnostic aggregate boundaries, moving-failure and multi-run variance triage, measurement-epoch and fixture-delivery boundaries, eval delivery-mode satisfiability, simultaneous proof-path and contract-change attribution, trigger-only skill metadata, external data-boundary decisions, safety-analyzer source-boundary-sink closure, credential-vs-exactness precedence, and regression prevention for skill creation or improvement.",
+  "purpose": "External eval set for skill-quality. Prompts live outside skills/ so they are not bundled as skill content. Covers current-proposal evidence maps, failure-to-contract translation, narrow skill edits, eval assertion hardening, expected-output leak control, eval-suite compaction and coverage ledgers, runner-driven eval hygiene, session-history evidence ledgers and extraction boundaries, cost and timeout claim discipline, official-vs-diagnostic aggregate boundaries, moving-failure and multi-run variance triage, represented-corpus and ambient-workspace alignment, artifact-level grader auditing, post-edit contract-collision checks, measurement-epoch and fixture-delivery boundaries, eval delivery-mode satisfiability, simultaneous proof-path and contract-change attribution, trigger-only skill metadata, external data-boundary decisions, safety-analyzer source-boundary-sink closure, credential-vs-exactness precedence, and regression prevention for skill creation or improvement.",
   "common_assertions": [
     "Output grounds the current proposal in the observed failure signal and labels its implementation-affecting claims as primary source, local investigation, unproven, accepted risk, or equivalent evidence categories; the labels need not be the first heading or sentence.",
     "Output translates the failure into a reusable skill contract or dimension before recommending prose edits.",
@@ -292,6 +292,29 @@
         "Separates retained-contract comparison from raw aggregate score movement because moving common assertions and changing case modes changed the assertion set and denominator.",
         "Declines to call the skill improved or add an improvement claim to CHANGELOG until the corrected affected suite has a post-edit closing run; records the effect as unproven in the meantime.",
         "Does not bump versions, edit managed snapshots, commit generated eval workspaces, or turn this scenario into a domain-specific checklist."
+      ]
+    },
+    {
+      "id": "E16",
+      "name": "Represented corpus, grader bytes, and contract collision",
+      "prompt": "An external response-only eval provides inline excerpts from a fictional application, but the represented user request says `in this project` and `while you're in there`. The executor runs inside the repository that contains the skill and eval suite, searches that ambient checkout, and cites a nearby fixture plus the absence of the fictional application paths as evidence. A contributor repeatedly adds stronger skill wording, but across single runs the same evidence-mixing failure moves between cases. A three-run matrix shows the failure is recurring. They then edit the prompts to state that only the supplied excerpts are authoritative and not bound to the current checkout. The next benchmark says `Sanity checks: OK`, and the grader passes the target assertion, but one recorded output contains a Markdown link whose target is an absolute runner-sandbox path. During the same repair loop, a new `path or symbol` rule conflicts with an older per-eval requirement for a supplied file path, and an old assertion still calls user-provided excerpts `Local investigation` after the skill changed them to supplied-source evidence. Decide which surfaces own these failures, what should change, what must be checked before closure, and what can be claimed without a fresh authorized eval run.",
+      "expected_output": "The agent produces evidence-bound eval repair triage that separates input binding, artifact-level grading, contract consistency, and closing-run proof.",
+      "files": [],
+      "expectations": [
+        "Builds a short evidence map that treats the prompt, recorded output, grader verdict, benchmark sanity summary, multi-run spread, and current skill/eval text as separate evidence surfaces.",
+        "Classifies the initial evidence mixing as a prompt or invocation mismatch involving the represented corpus and ambient executor workspace, not only as a skill wording gap.",
+        "Requires the prompt or fixture contract to state whether supplied material, a verified target workspace, or a combination is authoritative, without handing the executor the target answer.",
+        "Rejects teaching the skill to ignore a legitimately bound workspace; ambient checkout state becomes inadmissible only when provenance does not bind it to the represented application.",
+        "Uses the three-run recurrence to justify investigating a stable shared mechanism, while refusing to attribute each prior wording edit as the cause of later improvement.",
+        "Treats the absolute runner-sandbox link in recorded output as a mechanical contract violation even though the grader passed and `Sanity checks: OK`.",
+        "Keeps the official aggregate unchanged but refuses to call the target mechanism closed until recorded output bytes satisfy the contract.",
+        "Recommends a deterministic check when supported, or an assertion that states the concrete prohibited predicate, for mechanically inspectable properties such as ambient absolute links or runner/eval citations.",
+        "Runs or proposes a contract-collision audit across applicability rules, workflow steps, output contracts, prompts, common and per-eval assertions, README text, and current changelog guidance.",
+        "Identifies `path or symbol` versus path-required evidence and `Local investigation` versus supplied-source evidence as contradictory contracts that must be reconciled before rerunning.",
+        "Selects the smallest coupled changes across the owning skill, eval prompt/assertions, README, and Unreleased changelog, without version bumps, managed-snapshot edits, or generated workspace commits.",
+        "Requires a fresh affected-suite closing run after the final prompt, assertion, skill, or proof-boundary edit before claiming measured improvement or closure.",
+        "States that static validation can prove schema and contract consistency only; behavior improvement remains unproven because the current request does not authorize a new eval run.",
+        "Does not respond with another fixture-specific checklist or more per-cell wording patches after the shared boundary is identified."
       ]
     }
   ],

@@ -103,6 +103,18 @@ prompt or invocation mismatch, grader-boundary issue, or run variance/noise. If
 the classification points outside the skill contract, fix or record that
 boundary instead of tightening skill prose.
 
+Before interpreting executor behavior, bind the eval's evidence universe.
+Distinguish a verified target workspace, runner-delivered fixtures,
+user-provided or represented source material, and runner or harness
+scaffolding. If the suite expects a closed supplied corpus but the prompt
+ambiguously says `this project`, invites work "while you're in there", or
+otherwise suggests that the ambient checkout is the represented application,
+classify that as a prompt or invocation mismatch. Make the prompt or fixture
+binding explicit instead of teaching the skill to ignore a legitimately bound
+workspace. Conversely, do not accept ambient repository, sandbox, eval, or
+runner state as evidence about represented code unless the prompt or artifact
+provenance establishes that relationship.
+
 ## Evaluation Iteration Boundaries
 
 Treat each benchmark as a measurement of one exact skill/eval/fixture state,
@@ -124,6 +136,14 @@ not as a floating verdict on the current working tree.
 - When suite assertions or case coverage changed between iterations, raw
   pass-rate movement is not an apples-to-apples trend. Compare retained
   contracts or mapped assertions, and report the coverage change separately.
+- After changing a skill rule, prompt, assertion, evidence taxonomy, or output
+  contract, run a contract-collision audit before the next closing run. Check
+  activation and non-applicability rules, workflow steps, output contracts,
+  examples, common and per-eval assertions, README text, and current changelog
+  guidance for contradictory or stale obligations. A new rule that says a
+  narrow answer may use a symbol anchor does not silently supersede an existing
+  path-required assertion; a new supplied-source taxonomy does not leave old
+  assertions calling the same material workspace-local evidence.
 
 Maintain a compact iteration ledger during repair loops:
 
@@ -274,6 +294,16 @@ discriminating, observable, and hard to pass with the old failure mode.
   example.
 - Write expectations against visible output, files, commands, records, or
   decisions, not against style taste.
+- For mechanically inspectable output properties, audit the recorded artifact
+  directly and make the grader boundary equally explicit. Examples include
+  forbidden absolute sandbox links, runner or eval-file citations, exact
+  prefixes, missing required paths, file-change sets, and secret-like literal
+  reproduction. A grader pass does not override contradictory output bytes,
+  and runner `Sanity checks: OK` proves only the anomaly classes the runner
+  computes, not every suite contract. If repeated graders miss a mechanical
+  property, add a deterministic check when supported or sharpen the assertion
+  with the concrete prohibited predicate without leaking the target answer to
+  the executor.
 - If the eval runner shows `expected_output` or an expected-output summary to
   the executor, keep that summary high-level: describe the evidence shape and
   output category, not the target decision or named contract. Put
@@ -415,6 +445,13 @@ Pure graders stay bound to the suite assertions recorded for the run. The
 change owner treats surprising, repeated, missing, ambiguous, or
 both-config-passing grades as evidence to interpret before editing skill or
 eval behavior.
+
+Read the recorded executor output as well as the grade for the targeted
+mechanism. When the bytes violate a mechanical assertion that the grader marked
+passed, record a grader false positive and keep the run non-closing for that
+mechanism even if the official aggregate and sanity summary are clean. Keep the
+official aggregate unchanged; artifact-level contract audit determines whether
+the run can support the narrower closure claim.
 
 Before comparing two iterations, confirm whether their skill source, prompts,
 fixtures, assertion set, and recorded proof surface are equivalent. If not,
@@ -565,6 +602,13 @@ Before finalizing, reject these common regressions:
 - Requiring execution proof, full artifact content, or implementation completion
   from an eval mode that can only record a response-only decision, closure, or
   blocker.
+- Treating an ambiguous represented project as the ambient runner checkout, or
+  repairing that prompt-boundary defect with more skill prose.
+- Calling a run contract-clean because the grader and sanity summary passed
+  while recorded output bytes violate a mechanically inspectable assertion.
+- Adding a new rule or evidence taxonomy without checking for collisions with
+  existing applicability rules, output contracts, examples, and eval
+  assertions.
 
 ## Self-Check
 
@@ -603,6 +647,13 @@ Before reporting completion:
   contract, not merely present or untracked in the source checkout?
 - Can every assertion be satisfied from the eval's delivery mode and recorded
   proof surface?
+- Is the represented evidence universe explicitly aligned with the executor's
+  actual workspace and delivered fixtures, without accidental ambient-checkout
+  substitution?
+- Did targeted mechanical assertions get checked against recorded output bytes,
+  not only grader verdicts or the runner sanity summary?
+- After the latest edit, did a contract-collision audit remove stale or
+  contradictory rules, examples, evidence labels, prompts, and assertions?
 - For a no-change or blocked case, did the grader distinguish naming an existing
   sufficient artifact from proposing an edit, and avoid requiring a new
   mutation solely as proof?
