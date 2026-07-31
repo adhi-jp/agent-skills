@@ -1620,8 +1620,9 @@ class CodexProvider(Provider):
         cwd: Path | None = None,
     ) -> Invocation:
         last_message = (run_dir / f"{role}_codex_last.txt").resolve()
+        sandbox_mode = "workspace-write" if role == "executor" else "read-only"
         argv = [
-            "codex", "exec", "-s", "read-only", "-o", str(last_message),
+            "codex", "exec", "-s", sandbox_mode, "-o", str(last_message),
             "--json", "--skip-git-repo-check",
         ]
         if model:

@@ -858,6 +858,7 @@ class ModelSelectionTests(BaseRunnerTest):
         self.assertEqual(without.stdin, "the prompt")
         self.assertNotIn("the prompt", without.argv)
         self.assertIn("--skip-git-repo-check", without.argv)
+        self.assertEqual(without.argv[without.argv.index("-s") + 1], "workspace-write")
         self.assertTrue(Path(without.argv[without.argv.index("-o") + 1]).is_absolute())
         with_model = provider.build_invocation(
             "the prompt", run_dir=self.root, role="executor", model="gpt-5.3-codex-spark"
@@ -874,6 +875,7 @@ class ModelSelectionTests(BaseRunnerTest):
             "the prompt", run_dir=run_dir, role="grader", schema=eval_runner.grader_schema()
         )
         self.assertIn("--output-schema", inv.argv)
+        self.assertEqual(inv.argv[inv.argv.index("-s") + 1], "read-only")
         schema_path = run_dir / "grader_schema.json"
         self.assertTrue(schema_path.is_file())
         self.assertTrue(Path(inv.argv[inv.argv.index("--output-schema") + 1]).is_absolute())
@@ -881,6 +883,7 @@ class ModelSelectionTests(BaseRunnerTest):
         # The executor invocation carries no schema.
         ex = provider.build_invocation("p", run_dir=run_dir, role="executor")
         self.assertNotIn("--output-schema", ex.argv)
+        self.assertEqual(ex.argv[ex.argv.index("-s") + 1], "workspace-write")
 
     def test_codex_fake_accepts_large_stdin_and_isolated_grader(self):
         provider = eval_runner.CodexProvider()
