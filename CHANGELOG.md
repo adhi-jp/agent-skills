@@ -37,6 +37,9 @@ use `[Repository] - YYYY-MM-DD`.
 - `skill-eval` now opens manifest files and sandbox-copy sources non-blocking so
   FIFO swaps fail safely, and derives manifest file types and hashes from one
   inspection pass so a race cannot record `regular` with a missing hash.
+- `skill-eval` E05 now rewards routing assertion repair to the quality owner
+  through the eval-quality workflow instead of agent-side assertion editing,
+  matching the skill's ownership contract.
 
 ## [vibe-goal-alignment 1.0.0] - 2026-08-01
 
