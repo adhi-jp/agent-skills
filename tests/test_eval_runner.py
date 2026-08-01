@@ -98,7 +98,9 @@ class BaseRunnerTest(unittest.TestCase):
             self.fail(f"command failed: {result.args}\nstdout:\n{result.stdout}\nstderr:\n{result.stderr}")
         return result
 
-    def fake_codex_env(self, *, fail=False, log=None, pretty_json=False):
+    def fake_codex_env(
+        self, *, fail=False, log=None, pretty_json=False, preflight_executor_output=None
+    ):
         bin_dir = self.root / "fake-bin"
         bin_dir.mkdir(exist_ok=True)
         fake = bin_dir / "codex"
@@ -135,7 +137,9 @@ if "--output-schema" in args:
     ]}, indent=2 if os.environ.get("FAKE_CODEX_PRETTY_JSON") == "1" else None)
 else:
     if "CODEX_PREFLIGHT_EXECUTOR" in prompt:
-        message = "CODEX_PREFLIGHT_EXECUTOR"
+        message = os.environ.get(
+            "FAKE_CODEX_PREFLIGHT_EXECUTOR_OUTPUT", "CODEX_PREFLIGHT_EXECUTOR"
+        )
     else:
         message = prompt
 if os.environ.get("FAKE_CODEX_FAIL") == "1":
@@ -160,6 +164,8 @@ print(json.dumps({"type": "turn.completed", "usage": {
             env["FAKE_CODEX_LOG"] = str(log)
         if pretty_json:
             env["FAKE_CODEX_PRETTY_JSON"] = "1"
+        if preflight_executor_output is not None:
+            env["FAKE_CODEX_PREFLIGHT_EXECUTOR_OUTPUT"] = preflight_executor_output
         return env
 
     def init_git_baseline(self):
@@ -329,6 +335,8 @@ class FailFastTests(BaseRunnerTest):
         self.assertEqual(preflight["probes"][0]["role"], "executor")
         self.assertLessEqual(len(preflight["probes"][0]["stderr"]["text"].encode()), 64 * 1024)
         self.assertTrue(preflight["probes"][0]["stderr"]["truncated"])
+        self.assertIsNone(preflight["probes"][0]["output_file"])
+        self.assertFalse(preflight["probes"][0]["output_file_present"])
         launches = [json.loads(line) for line in log.read_text().splitlines()]
         self.assertEqual([(item["kind"], item["role"]) for item in launches], [("preflight", "executor")])
 
@@ -341,6 +349,14 @@ class FailFastTests(BaseRunnerTest):
             }
         )
         log = self.root / "codex-launches.jsonl"
+        workspace_root = self.root / "evals" / "demo" / "workspace" / "codex"
+        workspace_root.mkdir(parents=True)
+        durable_outputs = {
+            "executor": workspace_root / "preflight-executor-output.txt",
+            "grader": workspace_root / "preflight-grader-output.txt",
+        }
+        for durable_output in durable_outputs.values():
+            durable_output.write_text("stale preflight output", encoding="utf-8")
         result = self.run_cli(
             "run",
             path,
@@ -352,11 +368,20 @@ class FailFastTests(BaseRunnerTest):
             check=True,
         )
         self.assertIn("Ran 1 runs", result.stdout)
-        preflight = json.loads(
-            (self.root / "evals" / "demo" / "workspace" / "codex" / "preflight.json").read_text()
-        )
+        preflight = json.loads((workspace_root / "preflight.json").read_text())
         self.assertTrue(preflight["ok"])
         self.assertEqual([probe["role"] for probe in preflight["probes"]], ["executor", "grader"])
+        expected_outputs = {
+            "executor": "CODEX_PREFLIGHT_EXECUTOR",
+            "grader": '{"verdicts": []}',
+        }
+        for probe in preflight["probes"]:
+            durable_output = durable_outputs[probe["role"]]
+            self.assertEqual(probe["output_file"], str(durable_output.resolve()))
+            self.assertTrue(probe["output_file_present"])
+            self.assertTrue(durable_output.is_file())
+            self.assertEqual(durable_output.read_text(), expected_outputs[probe["role"]])
+            self.assertEqual(durable_output.read_text(), probe["parsed_output"]["text"])
         run_dir = self.iteration_dir("codex") / "eval-e01" / "with_skill" / "run-1"
         record = json.loads((run_dir / "run.json").read_text())
         self.assertEqual(record["status"], "ok")
@@ -383,6 +408,40 @@ class FailFastTests(BaseRunnerTest):
         )
         self.assertFalse(preflight_grader_cwd.exists())
         self.assertFalse(Path(record["grader_invocation"]["cwd"]).exists())
+
+    def test_codex_failed_preflight_records_durable_output_file(self):
+        workspace_root = self.root / "evals" / "demo" / "workspace" / "codex"
+        workspace_root.mkdir(parents=True)
+        durable_output = workspace_root / "preflight-executor-output.txt"
+        durable_output.write_text("stale preflight output", encoding="utf-8")
+        unexpected_output = "UNEXPECTED_PREFLIGHT_OUTPUT"
+
+        with mock.patch.dict(
+            os.environ,
+            self.fake_codex_env(preflight_executor_output=unexpected_output),
+            clear=False,
+        ):
+            completed = eval_runner.run_codex_preflight(
+                eval_runner.CodexProvider(),
+                workspace_root,
+                self.root,
+                executor_model=None,
+                grader_model=None,
+                timeout=30,
+            )
+
+        self.assertFalse(completed)
+        preflight = json.loads((workspace_root / "preflight.json").read_text())
+        self.assertFalse(preflight["ok"])
+        self.assertEqual(len(preflight["probes"]), 1)
+        probe = preflight["probes"][0]
+        self.assertEqual(probe["role"], "executor")
+        self.assertEqual(probe["status"], "failed")
+        self.assertFalse(probe["parsed_expected_output"])
+        self.assertEqual(probe["output_file"], str(durable_output.resolve()))
+        self.assertTrue(probe["output_file_present"])
+        self.assertEqual(durable_output.read_text(), unexpected_output)
+        self.assertEqual(durable_output.read_text(), probe["parsed_output"]["text"])
 
     def test_codex_preflight_accepts_semantically_equal_pretty_grader_json(self):
         path = self.write_suite(
@@ -451,6 +510,60 @@ class NoFabricationTests(BaseRunnerTest):
         # No numeric token/duration value is fabricated when absent.
         self.assertNotIn("total_tokens", metrics)
         self.assertNotIn("duration_ms", metrics)
+
+
+class RunnerErrorPersistenceTests(BaseRunnerTest):
+    def test_persist_runner_error_record_writes_absent_run_dir(self):
+        run_dir = self.root / "nested" / "run"
+        record = {"status": "runner_error", "run_dir": str(run_dir)}
+
+        eval_runner.persist_runner_error_record(run_dir, record)
+
+        self.assertEqual(json.loads((run_dir / "run.json").read_text()), record)
+
+    def test_persist_runner_error_record_does_not_overwrite_existing_record(self):
+        run_dir = self.root / "run"
+        run_dir.mkdir()
+        run_json = run_dir / "run.json"
+        sentinel = '{"status": "sentinel"}\n'
+        run_json.write_text(sentinel, encoding="utf-8")
+
+        eval_runner.persist_runner_error_record(run_dir, {"status": "runner_error"})
+
+        self.assertEqual(run_json.read_text(), sentinel)
+
+    def test_persist_runner_error_record_swallows_write_failure(self):
+        run_dir = self.root / "run"
+
+        for error in (OSError("denied"), TypeError("invalid record")):
+            with self.subTest(exception=type(error).__name__):
+                with mock.patch.object(eval_runner, "write_json", side_effect=error):
+                    eval_runner.persist_runner_error_record(run_dir, {"status": "runner_error"})
+
+    def test_command_run_persists_runner_error_record(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        workspace = self.root / "evals" / "demo" / "workspace" / "stub"
+        args = eval_runner.build_parser().parse_args(
+            [
+                "run",
+                str(path),
+                "--agent",
+                "stub",
+                "--config",
+                "with_skill",
+                "--workspace",
+                str(workspace),
+            ]
+        )
+
+        with mock.patch.dict(os.environ, self.stub_env(spec), clear=False):
+            with mock.patch.object(eval_runner, "execute_run", side_effect=RuntimeError("boom")):
+                self.assertEqual(eval_runner.command_run(args), 0)
+
+        run_json = workspace / "iteration-1" / "eval-first-eval" / "with_skill" / "run-1" / "run.json"
+        record = json.loads(run_json.read_text())
+        self.assertEqual(record["status"], "runner_error")
 
 
 # --------------------------------------------------------------------------- #

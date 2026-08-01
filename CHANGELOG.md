@@ -31,6 +31,9 @@ use `[Repository] - YYYY-MM-DD`.
 - `skill-eval` creates grader temp directories under a runner-owned parent with
   containment asserted against the source checkout and executor sandbox, and
   records cleanup failures instead of aborting the run.
+- `skill-eval` now leaves a minimal `run.json` in a run directory when a task
+  crashes before normal recording, and Codex preflight probes record durable
+  output paths instead of deleted temporary paths.
 
 ## [vibe-goal-alignment 1.0.0] - 2026-08-01
 

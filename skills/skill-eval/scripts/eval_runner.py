@@ -173,6 +173,17 @@ def write_json(path: Path, data: Any) -> None:
         handle.write("\n")
 
 
+def persist_runner_error_record(run_dir: Path, record: dict[str, Any]) -> None:
+    try:
+        run_dir.mkdir(parents=True, exist_ok=True)
+        run_json = run_dir / "run.json"
+        if run_json.exists():
+            return
+        write_json(run_json, record)
+    except Exception:
+        pass
+
+
 def write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
@@ -3283,6 +3294,13 @@ def run_codex_preflight(
                 parse_ok = parsed.strip() == expected
             parse_ok = parse_ok and output_path.is_file()
             ok = exit_code == 0 and not timed_out and parse_ok
+            durable_output_path: Path | None = None
+            if output_path.is_file():
+                durable_candidate = workspace_root / f"preflight-{role}-output.txt"
+                workspace_root.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(output_path, durable_candidate)
+                if durable_candidate.is_file():
+                    durable_output_path = durable_candidate.resolve()
             stderr_text, stderr_meta = bounded_utf8_text(stderr)
             output_text, output_meta = bounded_utf8_text(parsed, 4096)
             probe = {
@@ -3292,8 +3310,8 @@ def run_codex_preflight(
                 "status": "ok" if ok else ("timeout" if timed_out else "failed"),
                 "exit_code": exit_code,
                 "timed_out": timed_out,
-                "output_file": str(output_path.resolve()),
-                "output_file_present": output_path.is_file(),
+                "output_file": str(durable_output_path) if durable_output_path else None,
+                "output_file_present": durable_output_path.is_file() if durable_output_path else False,
                 "parsed_expected_output": parse_ok,
                 "reason": None if ok else "provider readiness probe did not produce the expected output",
                 "stderr": {**stderr_meta, "text": stderr_text},
@@ -3444,6 +3462,7 @@ def command_run(args: argparse.Namespace) -> int:
                     "grader_error": f"runner error: {exc}",
                     "run_dir": str(task.run_dir),
                 }
+                persist_runner_error_record(task.run_dir, results[index])
 
     runs_records = [record for record in results if record is not None]
     source_fixtures_after = source_fixture_status(suite, repo_root)
