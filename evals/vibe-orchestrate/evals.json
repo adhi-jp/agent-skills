@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-orchestrate",
-  "purpose": "External eval set for vibe-orchestrate. Prompts live outside skills/ so they are not bundled as skill content. Covers coordinator-owned delegation contracts, stop-as-blocker behavior, fact inlining, progress journals, reference-only monitoring, coordinator verification, review adjudication, direct intervention disclosure, parallel-writer accident cleanup, frontier-model loop engineering with token-efficient delegates, deliberate multi-subagent decomposition for substantial work, startup local-commit confirmation with coordinator-owned closure, and evidence-authority/premise-contradiction handling for protected external proof.",
-  "coverage_notes": "Coverage matrix: bounded delegation contracts -> E01; blocker-stop behavior -> E02; fact inlining -> E03; journal recovery -> E04; reference-only monitoring -> E05; coordinator verification -> E06; review adjudication -> E07; direct-intervention disclosure -> E08; parallel-writer cleanup -> E09; frontier/subagent loop engineering -> E10; multi-subagent work-graph selection -> E11; startup commit confirmation and coordinator-owned closure -> E12; evidence authority, premise contradiction, protected parity evidence, round-boundary attribution, named-test non-deletion, and command effect scope -> E13. All cases have distinct contract coverage, so E01-E13 are retained in sequence. Scenario-specific behavior is graded only by each case's expectations rather than duplicated through common assertions. Eval-runner validation proves schema/format only; behavioral coverage is reviewed through these mapped cases and measurable expectations.",
+  "purpose": "External eval set for vibe-orchestrate. Prompts live outside skills/ so they are not bundled as skill content. Covers coordinator-owned delegation contracts, stop-as-blocker behavior, fact inlining, progress journals, reference-only monitoring, coordinator verification, review adjudication, direct intervention disclosure, parallel-writer accident cleanup, frontier-model loop engineering with token-efficient delegates, deliberate multi-subagent decomposition for substantial work, startup local-commit confirmation with coordinator-owned closure, evidence-authority/premise-contradiction handling for protected external proof, handle-returning delegation transports, and per-gate verification-receipt integrity.",
+  "coverage_notes": "Coverage matrix: bounded delegation contracts -> E01; blocker-stop behavior -> E02; fact inlining -> E03; journal recovery -> E04; reference-only monitoring -> E05; coordinator verification -> E06; review adjudication -> E07; direct-intervention disclosure -> E08; parallel-writer cleanup -> E09; frontier/subagent loop engineering -> E10; multi-subagent work-graph selection -> E11; startup commit confirmation and coordinator-owned closure -> E12; evidence authority, premise contradiction, protected parity evidence, round-boundary attribution, named-test non-deletion, and command effect scope -> E13; handle-returning transport completion and writer-slot ownership -> E14; filtered verification pipeline and per-gate exit-status integrity -> E15. All cases have distinct contract coverage, so E01-E15 are retained in sequence. Scenario-specific behavior is graded only by each case's expectations rather than duplicated through common assertions. Eval-runner validation proves schema/format only; behavioral coverage is reviewed through these mapped cases and measurable expectations.",
   "common_assertions": [],
   "evals": [
     {
@@ -63,11 +63,11 @@
     {
       "id": "E05",
       "name": "Reference-only watchdog guidance without scripts",
-      "prompt": "Use `vibe-orchestrate`. I want monitoring guidance before fanning out five reviewers through a background command form we have not used in this session. Please give me the watchdog approach, but do not write scripts. A prior worker stayed `running` while its startup log stopped changing.",
-      "expected_output": "Reference-only monitoring guidance covering a pre-fan-out transport canary, appearance timeout, liveness, progress staleness, safe cancellation, and no script creation.",
+      "prompt": "Use `vibe-orchestrate`. I want monitoring guidance before fanning out five reviewers through a background command form we have not used in this session. Please give me the watchdog approach, but do not write scripts. A prior worker stayed `running` while its startup log stopped changing. A teammate proposes automatically resetting the entire agent environment whenever a reviewer stalls.",
+      "expected_output": "Reference-only monitoring guidance covering a pre-fan-out transport canary, appearance timeout, liveness, progress staleness, safe cancellation, no script creation, and user-owned execution of any environment-terminating recovery.",
       "files": [],
       "expectations": [
-        "States that this is reference-only guidance and does not provide or require a runnable script.",
+        "Provides only a prose monitoring contract and does not provide or require a runnable script.",
         "Runs or requires one minimal round-trip canary before the five-reviewer fan-out because the transport/background mode is unverified in the current session.",
         "Covers appearance timeout after launch, worker liveness, and progress staleness as separate checks.",
         "Treats unchanged progress or log receipts beyond the staleness budget as a stall even when the task status still says `running`.",
@@ -191,12 +191,40 @@
         "Adds a language-neutral command-effect rule that repository-wide formatters, auto-fixers, codemods, generators, or dependency updates cannot exceed the editable whitelist merely because the worker invoked them.",
         "Requires coordinator-run authoritative verification after restoring or reworking the evidence boundary and does not repair the alleged serializer defect merely from the compatibility-library citation."
       ]
+    },
+    {
+      "id": "E14",
+      "name": "Handle-returning transport keeps the runner task active",
+      "prompt": "Use `vibe-orchestrate`. A helper subagent launched a write-capable task through a background runner, then the host marked the helper completed after 40 seconds. Its entire receipt says `Task started as task-482; use status task-482 for progress and result task-482 for the final report`. This work normally takes 20 minutes, the runner status still says `running`, and all writers share one working tree. May I inspect the tree as final or launch the next writer? Also state what to do if `task-482` later becomes unavailable through the named status interface. Give the monitoring and recovery decision without inventing runner-specific commands beyond the named interfaces.",
+      "expected_output": "A transport-aware coordinator decision that treats the helper receipt as a successful handoff, keeps the runner task and writer slot active until runner-native terminal status, retrieves the final report through the result interface, avoids duplicate launches, and uses only available named recovery controls if the handle becomes unavailable.",
+      "files": [],
+      "expectations": [
+        "Classifies the helper's host-level completion as handoff completion rather than work completion because the receipt contains only a runner task handle and status/result interfaces instead of the contracted final report.",
+        "Adopts `task-482` as the liveness and recovery anchor, checks terminal state through the runner's named status interface, and fetches the contract report through the named result interface.",
+        "Keeps the shared-tree write-capable slot occupied while the runner says `running`; it does not inspect the tree as final, start authoritative final verification, or launch the next writer yet.",
+        "Treats a retry or relaunch before the original runner task is proven terminal, absent, or dead as a duplicate-writer risk rather than a harmless retry.",
+        "If the handle becomes unavailable, prefers a named resume, attach, status, or cancellation control when available and does not infer terminal state from elapsed time, helper completion, or tree quietness alone."
+      ]
+    },
+    {
+      "id": "E15",
+      "name": "Filtered verification output cannot mask gate failure",
+      "prompt": "Use `vibe-orchestrate`. Before accepting delegated work, the coordinator wants a compact verification receipt and currently runs `gate-a | tail -n 2 && gate-b | grep PASS` in a shell without pipeline-failure propagation. `gate-a` exits 1, `tail` exits 0, and the overall chain exits 0 after `gate-b` prints PASS. Can this receipt be treated as green? Give a safe, provider-neutral proof contract, but do not write a runnable script.",
+      "expected_output": "Reference-only verification guidance that rejects the false-green aggregate and requires recorded per-gate status from the authoritative environment while treating filtered output as presentation rather than proof.",
+      "files": [],
+      "expectations": [
+        "Rejects the current overall exit code as success evidence because the shell reports the output filter's pipeline status when pipeline-failure propagation is not enabled, allowing `gate-a`'s failure to be masked.",
+        "Requires each gate's status to remain independently inspectable, such as through separate invocations, explicit pipeline-status capture, or unambiguous per-gate status records, before the receipt can be green.",
+        "Keeps output truncation or matching separate from the gate verdict; a rendered `PASS` line or the absence of failure text cannot replace the underlying gate status.",
+        "Requires coordinator-owned verification in the authoritative environment and records failed, missing, skipped, timed-out, or otherwise unknown gate outcomes as non-green rather than trusting delegated output.",
+        "Stays provider-neutral and reference-only: it does not invent a runner adapter or provide a copy-paste monitoring or verification script."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.0,
     "per_eval_expectation_weight": 1.0,
     "pass_threshold": 0.8,
-    "notes": "These evals are mapped to the required behavior coverage matrix in coverage_notes. Every assertion is scenario-specific; no common assertion is applied to unrelated exact-scope, monitoring, recovery, verification, review, model-tier, or fan-out cases. Baseline agents are expected to overtrust worker self-report, omit stop-as-blocker terms, create broad worker prompts, treat review output as execution authority, prescribe runner-specific cleanup, collapse substantial independent work into one monolithic delegate, maximize fan-out without a dependency reason, overuse cheap delegates for risky decisions, claim token savings without proof, defer host-required commit confirmation until after delegated edits, transfer commit authority to workers, accept reference-source citations as format authority, let workers resolve premise contradictions, trust aggregate test growth, or miss whitelist-escaping tool effects. With-skill runs should stay coordinator-owned, bounded, host-neutral, evidence-authority-aware, and reference-only."
+    "notes": "These evals are mapped to the required behavior coverage matrix in coverage_notes. Every assertion is scenario-specific; no common assertion is applied to unrelated exact-scope, monitoring, recovery, verification, review, model-tier, fan-out, handle-transport, or receipt-integrity cases. Baseline agents are expected to overtrust worker self-report, omit stop-as-blocker terms, create broad worker prompts, treat review output as execution authority, prescribe runner-specific cleanup, collapse substantial independent work into one monolithic delegate, maximize fan-out without a dependency reason, overuse cheap delegates for risky decisions, claim token savings without proof, defer host-required commit confirmation until after delegated edits, transfer commit authority to workers, accept reference-source citations as format authority, let workers resolve premise contradictions, trust aggregate test growth, miss whitelist-escaping tool effects, retire a writer when only its forwarding helper completed, or trust a filtered aggregate exit that hides an earlier gate failure. With-skill runs should stay coordinator-owned, bounded, host-neutral, evidence-authority-aware, and reference-only."
   }
 }

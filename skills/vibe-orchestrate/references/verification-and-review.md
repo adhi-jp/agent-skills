@@ -18,6 +18,13 @@ cannot reconstruct:
 
 Run verification in the authoritative environment for the slice:
 
+- Preserve every input-named touched path, source target, test target, and
+  generated surface in the receipt. A generic "relevant files/gates" summary
+  is insufficient when the contract named concrete surfaces.
+- Match gate granularity to those concrete surfaces. Name both server and client
+  compile/type-check targets when both changed, and request quantitative test
+  inclusion evidence when a named new or changed test is expected and the
+  harness can report it.
 - Compile/type-check every relevant source set, module, platform target, client
   target, generated source path, or package surface.
 - Run the relevant full test suite when the change requires suite-level proof.
@@ -26,6 +33,15 @@ Run verification in the authoritative environment for the slice:
 - Build artifacts only when the plan or package contract requires artifact proof.
 - Record skipped commands with reason and impact.
 - Name known flakes and symptoms; use rerun evidence rather than ignoring them.
+
+Verification receipts must preserve each gate's own exit status. In shells that
+do not propagate pipeline failures, piping a gate through an output filter such
+as `tail`, `head`, or `grep` can make the pipeline report the filter's status
+instead of the failing gate's status, allowing an `&&` chain to continue and
+produce a false-green aggregate. Keep every gate independently inspectable by
+using separate invocations, explicit pipeline-status capture, or unambiguous
+per-gate status records. Output filtering is presentation: neither a rendered
+`PASS` line nor the absence of failure text can replace the gate verdict.
 
 A worker's `COMPILE: PASS`, local test summary, or statement that a suite ran is
 not final proof. It becomes evidence only after the coordinator verifies the

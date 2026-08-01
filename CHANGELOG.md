@@ -19,6 +19,23 @@ use `[Repository] - YYYY-MM-DD`.
   disabled shell, multi-agent, and web-search capabilities, while the runner
   supplies no image inputs. The unsupported image-tool override is no longer
   presented as an enforced capability boundary.
+- `vibe-orchestrate` now distinguishes a forwarding subagent's handle-only
+  completion from runner-task completion, retains the shared-tree writer slot
+  until runner-native terminal status and result retrieval, and requires
+  coordinator verification receipts to preserve each gate's exit status across
+  output filtering without collapsing input-named verification surfaces into a
+  generic summary. New pressure cases cover both false-completion and
+  false-green receipt failures, while existing monitoring assertions now bind
+  environment-terminating recovery only when the prompt makes it relevant and
+  filtered-receipt assertions grade preserved status rather than incidental log
+  wording.
+  Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`;
+  the closing 15-case, 30-cell Codex run scored all cells with zero
+  infrastructure failures, fixture-dirty signals, or candidate-below-baseline
+  cells at `with_skill` 93.8% versus `without_skill` 63.9% (+29.9 points). The
+  two zero-scored cells were reviewed baseline failures in E09 and E12, not
+  infrastructure or candidate failures.
 
 ## [skill-eval 1.2.1] - 2026-08-01
 

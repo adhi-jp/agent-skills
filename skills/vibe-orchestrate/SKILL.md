@@ -290,6 +290,9 @@ write-capable worker. The coordinator should be able to answer:
 - If it died, which work items are completed, partial, or untouched?
 - Is resume safe, or should the coordinator start a self-contained new thread?
 - Are unexpected write-capable workers still running?
+- If the transport returned a task handle instead of the contracted report, is
+  the runner task terminal by its own status, and was the report retrieved
+  through its result interface?
 
 Use host-provided task handles, cancellation APIs, or named runner controls when
 available. Do not teach or normalize force-killing arbitrary raw PID lists. If a
@@ -303,6 +306,14 @@ The coordinator verifies the bytes that will be kept:
 
 - Compare the post-worker tree with a recorded round-boundary baseline, including
   untracked and non-text artifacts relevant to the whitelist.
+- Carry every input-named touched path and verification target into the
+  acceptance receipt. Do not collapse named server, client, test, or generated
+  surfaces into generic phrases such as "relevant files" or "relevant gates."
+- State gates at the same granularity as those named surfaces: if both server
+  and client targets changed, name both compile/type-check targets; if a new or
+  changed test file is named, require quantitative inclusion evidence when the
+  harness supports it. "Run compile and relevant tests" is not an auditable
+  receipt for explicit surfaces.
 - Enumerate relevant source sets, modules, generated sources, client/server
   targets, or package surfaces.
 - Run the planned compile/test/build gates in the authoritative environment.
@@ -402,6 +413,13 @@ requires full coverage, or a review count without material finding dispositions.
 - Using a passing-test total to infer that no named test or external parity
   property disappeared.
 - Retrying a timed-out launch in a way that creates two write-capable workers.
+- Treating a forwarder's handle-only completion as work completion and freeing
+  the shared-tree writer slot while the runner task is still active.
+- Trusting a coordinator receipt chain whose output filters can replace a
+  failing gate's status with a successful filter or aggregate status.
+- Collapsing input-named touched paths, source targets, compile gates, or
+  expected new-test evidence into an uncheckable "run compile and relevant
+  tests" summary.
 - Resuming an unhealthy or empty thread because it has a familiar name.
 - Omitting a progress journal for work likely to outlive a worker crash.
 - Accepting review findings as edits without coordinator disposition.
@@ -432,9 +450,15 @@ Before launching or accepting delegated work, confirm:
   broad exploration?
 - Is there a journal or other progress receipt for crash-prone write work?
 - Are liveness, staleness, and appearance monitored by host-safe means?
+- For a handle-returning transport, did runner-native terminal status and result
+  retrieval precede final tree inspection, verification, or the next writer?
 - Is there at most one write-capable worker in each shared tree, with any
   concurrent writers confined to isolated, disjoint workspaces?
 - Did the coordinator verify the kept bytes with the required gates?
+- Does the acceptance receipt explicitly cover every path and target named in
+  the input, including quantitative inclusion evidence for expected new tests?
+- Does the verification receipt preserve each gate's exit status independently
+  of output truncation, filtering, or aggregate shell status?
 - Did coordinator verification compare the round-boundary change set with the
   worker's `FILES:` report and inspect non-text or untracked outputs?
 - Could each load-bearing proof assertion actually fail under the old or wrong

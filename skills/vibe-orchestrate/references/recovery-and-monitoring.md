@@ -62,6 +62,31 @@ of a live process or task status and start the recovery classification. A fixed
 startup log whose size does not change is a staleness signal, not evidence that
 the worker is working.
 
+### Handle-Returning Transports
+
+Some delegation transports are forwarders: the visible subagent starts work on
+a separate runner and returns only a task handle, status interface, or resume
+identifier. That completion proves the handoff returned, not that the delegated
+work finished. The receipt shape is the deciding evidence; short elapsed time or
+tree quietness alone proves neither completion nor failure.
+
+When the receipt contains a handle instead of the contracted report:
+
+- adopt the runner-native task handle and any session or resume identifier as
+  coordinator state immediately;
+- keep the unit and its write-capable slot active until the runner's own status
+  interface records a terminal state;
+- do not treat the tree as final, start authoritative final verification, or
+  launch another shared-tree writer while the runner is non-terminal;
+- fetch the contracted report through the runner's named result interface after
+  terminal status instead of treating the forwarder's receipt as the result;
+- use named resume, attach, status, or cancellation controls when a handle is
+  lost or stale, and relaunch only after the original task is proven absent or
+  dead.
+
+A retry while the runner task remains active is a duplicate-writer risk, even
+when the forwarding subagent has already disappeared from the host task list.
+
 Before fanning out over a delegation transport, command form, background mode,
 or flag combination not yet used in the current session, run one minimal
 round-trip canary and verify a known short receipt. Shared transport mistakes

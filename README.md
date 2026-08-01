@@ -19,7 +19,7 @@ quickstart when changing a skill or its eval suite.
 | --- | --- | --- | --- | --- |
 | Build, debug, port, or inspect Minecraft Java Edition mods for Fabric, NeoForge, or Architectury | `minecraft-modding-workbench` | Produces implementation guidance or code while labeling MCP, workspace, source-jar, runtime, and unverified facts | `skills/minecraft-modding-workbench/` | `evals/minecraft-modding-workbench/` |
 | Route an explicit multi-turn vibe-coding workflow | `vibe-coding` | Selects one primary visible `vibe-*` specialist for the next phase; does not relax downstream gates; carries default scoped local-checkpoint permission to state-changing phases; backtracks to the artifact-owning phase when a spec or plan is defective; leaves review for debug or artifact backtracking when runtime symptoms, core regressions, repeated findings, or architecture expansion make review the wrong owner | `skills/vibe-coding/` | `evals/vibe-coding/` |
-| Coordinate subagents for bounded research, edits, repairs, or review while preserving coordinator-owned scope, verification, and consent boundaries | `vibe-orchestrate` | Produces work-graph and delegation contracts, deliberate multi-subagent fan-out, recovery/monitoring guidance, verification/review discipline, direct-intervention rules, and parallel-writer accident cleanup; reference-only first version with no scripts or runner adapters | `skills/vibe-orchestrate/` | `evals/vibe-orchestrate/` |
+| Coordinate subagents for bounded research, edits, repairs, or review while preserving coordinator-owned scope, verification, and consent boundaries | `vibe-orchestrate` | Produces work-graph and delegation contracts, deliberate multi-subagent fan-out, handle-aware recovery/monitoring guidance, named-surface and per-gate verification receipts, direct-intervention rules, and parallel-writer accident cleanup; reference-only with no scripts or runner adapters | `skills/vibe-orchestrate/` | `evals/vibe-orchestrate/` |
 | Align the agent's understanding with the user's intent before action, especially after misinterpretation or before risky release/version/commit/destructive work | `vibe-goal-alignment` | Produces an explicit understanding record with goal, success criteria, non-goals, assumptions, blockers, and next step; when a blocker stops action, ends with one answerable correction question and waits for confirmation | `skills/vibe-goal-alignment/` | `evals/vibe-goal-alignment/` |
 | Draft, revise, save, finish, or explore requirements before planning | `vibe-requirements-spec` | Creates or updates the requirements spec artifact by default, defaults to strict-four-choice without explicit mode selection, stops before non-spec work, reopens the same spec for downstream requirements defects, and locally checkpoints a verified tracked spec unless commits are denied or blocked | `skills/vibe-requirements-spec/` | `evals/vibe-requirements-spec/` |
 | Create or revise an implementation plan from approval-evidenced or concrete inputs | `vibe-planning` | Writes a plan artifact and concise summary; pairs positive and negative proof for material gates; includes an implementation-progress ledger for multi-item plans; ends before implementation and locally checkpoints a reviewed tracked plan unless commits are denied or blocked | `skills/vibe-planning/` | `evals/vibe-planning/` |
@@ -279,9 +279,10 @@ work-graph mapping, deliberate multi-subagent decomposition, verified-fact
 inlining, evidence-authority ranking, derived-value assumptions, protected
 external parity evidence, model/context budgets, editable-path and command-effect
 whitelists, premise-contradiction stops, progress journals, frontier-coordinator
-loops with token-efficient delegates, worker-death recovery,
-appearance/liveness/staleness monitoring, pre-fan-out transport canaries,
-coordinator-run falsifiability and named-test-set verification gates, read-only
+loops with token-efficient delegates, worker-death recovery, handle-returning
+transport ownership, appearance/liveness/staleness monitoring, pre-fan-out
+transport canaries, coordinator-run falsifiability, per-gate status receipts,
+input-named surface coverage, and named-test-set verification gates, read-only
 review perspectives, direct-intervention disclosure, and abort-on-detect
 parallel-writer cleanup. It
 actively fans out material independent units while retaining one context owner
@@ -1151,7 +1152,8 @@ only explicit user, DoD, or confirmed-plan evidence.
   bounded delegation contracts, blocker stops, fact inlining, journal recovery,
   reference-only monitoring, deliberate multi-subagent work-graph selection,
   coordinator verification, review adjudication, direct-intervention disclosure,
-  and parallel-writer cleanup
+  parallel-writer cleanup, handle-returning transports, and filtered verification
+  receipt integrity
 - `evals/vibe-goal-alignment/`: external goal-alignment prompts for
   understanding records, correction loops, risky release/version/commit
   ambiguity, destructive side-effect stops, source-instruction boundaries, and
@@ -1184,8 +1186,8 @@ only explicit user, DoD, or confirmed-plan evidence.
 - `skills/minecraft-modding-workbench/`: Minecraft modding skill package
 - `skills/vibe-coding/`: explicit top-level vibe-coding orchestration skill package
 - `skills/vibe-orchestrate/`: coordinator-owned subagent orchestration skill
-  package with reference-only delegation, recovery, monitoring, verification,
-  review, and accident-cleanup guidance
+  package with reference-only delegation, recovery, handle-aware monitoring,
+  named-surface and per-gate verification, review, and accident-cleanup guidance
 - `skills/vibe-goal-alignment/`: pre-action user-agent understanding alignment
   skill package
 - `skills/vibe-requirements-spec/`: Markdown requirements-spec drafting skill package
@@ -1260,7 +1262,8 @@ specific to the skill.
   is reference-only in its first version: no watchdog script, runner adapter, or
   command wrapper is included. The coordinator remains responsible for scope,
   work-graph and fan-out decisions, verified facts, progress journals,
-  monitoring decisions, verification gates, review dispositions,
+  monitoring decisions, runner-handle ownership, per-gate verification receipts,
+  review dispositions,
   direct-intervention disclosure, and parallel-writer accident cleanup.
 - `vibe-planning` is the primary user-facing implementation-planning workflow
   when the user asks for a plan, acceptance criteria, test plan, or rough
