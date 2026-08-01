@@ -34,6 +34,9 @@ use `[Repository] - YYYY-MM-DD`.
 - `skill-eval` now leaves a minimal `run.json` in a run directory when a task
   crashes before normal recording, and Codex preflight probes record durable
   output paths instead of deleted temporary paths.
+- `skill-eval` now opens manifest files and sandbox-copy sources non-blocking so
+  FIFO swaps fail safely, and derives manifest file types and hashes from one
+  inspection pass so a race cannot record `regular` with a missing hash.
 
 ## [vibe-goal-alignment 1.0.0] - 2026-08-01
 

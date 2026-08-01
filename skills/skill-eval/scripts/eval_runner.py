@@ -34,6 +34,7 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import datetime as _dt
+import errno
 import hashlib
 import json
 import os
@@ -922,7 +923,7 @@ def copy_regular_file_no_follow(
     changes between enumeration and the open. This is a narrow containment
     check, not a claim of hostile concurrent-tree atomicity.
     """
-    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
     try:
         source_fd = os.open(source, flags)
     except OSError as exc:
@@ -1184,6 +1185,7 @@ def collect_written_artifact(artifact_file: Path) -> tuple[str | None, dict[str,
 # baseline commit, so the grader can verify such claims. The runtime scaffold is
 # excluded because the runner itself owns those paths.
 SANDBOX_MANIFEST_EXCLUDED_PREFIX = ".eval-runner/"
+MANIFEST_CHANGED_DURING_SCAN = "changed-during-scan"
 
 
 def inspect_manifest_path(path: Path, trusted_root: Path) -> tuple[str, Path | None]:
@@ -1235,15 +1237,18 @@ def inspect_manifest_path(path: Path, trusted_root: Path) -> tuple[str, Path | N
     return "other", None
 
 
-def sha256_path(path: Path, trusted_root: Path) -> str | None:
-    """Hash a stable in-root regular file without following symlinks."""
+def classify_and_hash_manifest_path(path: Path, trusted_root: Path) -> tuple[str, str | None]:
+    """Classify and hash one stable in-root regular file without following symlinks."""
     file_fd: int | None = None
+    file_type: str | None = None
     try:
-        before_type, before_resolved = inspect_manifest_path(path, trusted_root)
-        if before_type != "regular" or before_resolved is None:
-            return None
+        file_type, before_resolved = inspect_manifest_path(path, trusted_root)
+        if file_type != "regular":
+            return file_type, None
+        if before_resolved is None:
+            return MANIFEST_CHANGED_DURING_SCAN, None
         before = path.lstat()
-        flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+        flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
         file_fd = os.open(path, flags)
         opened = os.fstat(file_fd)
         after_type, after_resolved = inspect_manifest_path(path, trusted_root)
@@ -1253,18 +1258,26 @@ def sha256_path(path: Path, trusted_root: Path) -> str | None:
             or after_type != "regular"
             or after_resolved != before_resolved
         ):
-            return None
+            return MANIFEST_CHANGED_DURING_SCAN, None
         digest = hashlib.sha256()
         with os.fdopen(file_fd, "rb") as handle:
             file_fd = None
             for chunk in iter(lambda: handle.read(65536), b""):
                 digest.update(chunk)
-        return digest.hexdigest()
-    except OSError:
-        return None
+        return "regular", digest.hexdigest()
+    except OSError as exc:
+        if file_type == "regular" and exc.errno in (errno.ELOOP, errno.ENOENT):
+            return MANIFEST_CHANGED_DURING_SCAN, None
+        return "unsafe-unreadable", None
     finally:
         if file_fd is not None:
             os.close(file_fd)
+
+
+def sha256_path(path: Path, trusted_root: Path) -> str | None:
+    """Hash a stable in-root regular file without following symlinks."""
+    _file_type, digest = classify_and_hash_manifest_path(path, trusted_root)
+    return digest
 
 
 def manifest_entry(
@@ -1273,12 +1286,12 @@ def manifest_entry(
     status_value: str,
 ) -> dict[str, Any]:
     target = sandbox_root / rel
-    file_type, _resolved = inspect_manifest_path(target, sandbox_root)
+    file_type, digest = classify_and_hash_manifest_path(target, sandbox_root)
     return {
         "path": rel,
         "status": status_value,
         "file_type": file_type,
-        "sha256": sha256_path(target, sandbox_root) if file_type == "regular" else None,
+        "sha256": digest,
     }
 
 

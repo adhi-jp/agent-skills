@@ -7,8 +7,10 @@ dispatched by the same matrix the ``claude``/``codex`` adapters use, plus direct
 unit checks of the provider parsers and the grading/aggregation helpers.
 """
 
+import errno
 import json
 import os
+import signal
 import subprocess
 import sys
 import tempfile
@@ -746,6 +748,49 @@ class SeparationTests(BaseRunnerTest):
         self.assertFalse((destination / "linked" / "payload.txt").exists())
         self.assertEqual((external / "payload.txt").read_text(), "EXTERNAL CANARY\n")
 
+    @unittest.skipUnless(os.name == "posix" and hasattr(os, "mkfifo"), "requires POSIX FIFO semantics")
+    def test_copy_regular_file_no_follow_rejects_fifo_without_blocking(self):
+        source = self.sandbox_root / "fifo-copy-source"
+        destination = self.sandbox_root / "fifo-copy-destination"
+        worker = """
+import os
+import sys
+from pathlib import Path
+
+sys.path.insert(0, sys.argv[3])
+import eval_runner
+
+source = Path(sys.argv[1])
+destination = Path(sys.argv[2])
+source.write_text("regular before replacement\\n", encoding="utf-8")
+expected_lstat = source.lstat()
+expected_resolved = source.resolve()
+source.unlink()
+os.mkfifo(source)
+try:
+    eval_runner.copy_regular_file_no_follow(
+        source,
+        destination,
+        source_repo_root=Path(sys.argv[4]),
+        expected_lstat=expected_lstat,
+        expected_resolved=expected_resolved,
+    )
+except eval_runner.CommandError:
+    raise SystemExit(0)
+raise SystemExit(1)
+"""
+        try:
+            result = subprocess.run(
+                [sys.executable, "-c", worker, str(source), str(destination), str(SCRIPT.parent), str(self.sandbox_root)],
+                text=True,
+                capture_output=True,
+                check=False,
+                timeout=2,
+            )
+        except subprocess.TimeoutExpired:
+            self.fail("copy_regular_file_no_follow blocked while opening a FIFO")
+        self.assertEqual(result.returncode, 0, result.stderr)
+
     def test_sandbox_filters_tracked_paths_under_excluded_dirs(self):
         path = self.write_suite()
         extra = self.root / ".agents" / "tracked.txt"
@@ -979,6 +1024,121 @@ class SeparationTests(BaseRunnerTest):
         )
         self.assertIsNone(by_path["tracked/payload.txt"]["sha256"])
         self.assertEqual(canary.read_text(), "DO NOT HASH EXTERNAL BYTES\n")
+
+    @unittest.skipUnless(os.name == "posix" and hasattr(os, "mkfifo"), "requires POSIX FIFO semantics")
+    def test_classify_and_hash_fifo_race_never_returns_regular_without_hash(self):
+        sandbox_root = self.sandbox_root / "manifest-fifo-race"
+        sandbox_root.mkdir()
+        target = sandbox_root / "payload.txt"
+        os.mkfifo(target)
+        worker = """
+import sys
+from pathlib import Path
+from unittest import mock
+
+sys.path.insert(0, sys.argv[2])
+import eval_runner
+
+sandbox_root = Path(sys.argv[1])
+target = sandbox_root / "payload.txt"
+real_inspect = eval_runner.inspect_manifest_path
+calls = 0
+
+def inspect(path, trusted_root):
+    global calls
+    calls += 1
+    if calls == 1:
+        return "regular", target.resolve()
+    return real_inspect(path, trusted_root)
+
+with mock.patch.object(eval_runner, "inspect_manifest_path", side_effect=inspect):
+    result = eval_runner.classify_and_hash_manifest_path(target, sandbox_root)
+if result != ("changed-during-scan", None):
+    raise SystemExit(f"unexpected result: {result!r}")
+"""
+        try:
+            result = subprocess.run(
+                [sys.executable, "-c", worker, str(sandbox_root), str(SCRIPT.parent)],
+                text=True,
+                capture_output=True,
+                check=False,
+                timeout=2,
+            )
+        except subprocess.TimeoutExpired:
+            self.fail("classify_and_hash_manifest_path blocked while opening a FIFO")
+        self.assertEqual(result.returncode, 0, result.stderr)
+
+    def test_classify_and_hash_permission_error_after_regular_classification_is_unreadable(self):
+        sandbox_root = self.sandbox_root / "manifest-permission-error"
+        sandbox_root.mkdir()
+        target = sandbox_root / "payload.txt"
+        target.write_text("classified before open\n", encoding="utf-8")
+
+        error = PermissionError(errno.EACCES, os.strerror(errno.EACCES), target)
+        with mock.patch.object(eval_runner.os, "open", side_effect=error):
+            result = eval_runner.classify_and_hash_manifest_path(target, sandbox_root)
+
+        self.assertEqual(result, ("unsafe-unreadable", None))
+        self.assertNotEqual(result, ("regular", None))
+
+    def test_classify_and_hash_missing_after_regular_classification_is_changed(self):
+        sandbox_root = self.sandbox_root / "manifest-missing-after-classification"
+        sandbox_root.mkdir()
+        target = sandbox_root / "payload.txt"
+        target.write_text("classified before open\n", encoding="utf-8")
+
+        error = FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), target)
+        with mock.patch.object(eval_runner.os, "open", side_effect=error):
+            result = eval_runner.classify_and_hash_manifest_path(target, sandbox_root)
+
+        self.assertEqual(result, (eval_runner.MANIFEST_CHANGED_DURING_SCAN, None))
+        self.assertNotEqual(result, ("regular", None))
+
+    @unittest.skipUnless(os.name == "posix" and hasattr(os, "mkfifo"), "requires POSIX FIFO semantics")
+    def test_manifest_entry_records_changed_race_instead_of_regular_without_hash(self):
+        sandbox_root = self.sandbox_root / "manifest-swap"
+        sandbox_root.mkdir()
+        target = sandbox_root / "payload.txt"
+        target.write_text("before replacement\n", encoding="utf-8")
+        real_open = eval_runner.os.open
+        swapped = False
+
+        def open_with_swap(path, flags, *args):
+            nonlocal swapped
+            if Path(path) == target and not swapped:
+                swapped = True
+                target.unlink()
+                os.mkfifo(target)
+            return real_open(path, flags, *args)
+
+        def fail_if_blocked(_signum, _frame):
+            self.fail("manifest_entry blocked while opening a FIFO")
+
+        previous_handler = signal.signal(signal.SIGALRM, fail_if_blocked)
+        signal.alarm(2)
+        try:
+            with mock.patch.object(eval_runner.os, "open", side_effect=open_with_swap):
+                entry = eval_runner.manifest_entry(sandbox_root, "payload.txt", "added")
+        finally:
+            signal.alarm(0)
+            signal.signal(signal.SIGALRM, previous_handler)
+
+        self.assertEqual(entry["file_type"], "changed-during-scan")
+        self.assertIsNone(entry["sha256"])
+
+    def test_manifest_entry_regular_file_has_type_and_hash(self):
+        sandbox_root = self.sandbox_root / "manifest-regular"
+        sandbox_root.mkdir()
+        target = sandbox_root / "payload.txt"
+        contents = b"stable manifest content\n"
+        target.write_bytes(contents)
+
+        entry = eval_runner.manifest_entry(sandbox_root, "payload.txt", "added")
+
+        import hashlib
+
+        self.assertEqual(entry["file_type"], "regular")
+        self.assertEqual(entry["sha256"], hashlib.sha256(contents).hexdigest())
 
     def test_change_manifest_records_modifications_and_deletions(self):
         # C1 edges: a modified tracked file is "modified"; a deleted tracked file
