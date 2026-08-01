@@ -26,6 +26,8 @@ use `[Repository] - YYYY-MM-DD`.
   record `unsafe-symlink-ancestor` without following it, and emit inert JSON.
   Claude sub-agent evidence is session-bound, while Codex preflight sanitizes
   ambient `GIT_*`. Regression coverage exercises each boundary.
+- `skill-eval` eval runner rejects symlinked executor artifact paths instead of
+  reading through them, while persisting the already-read artifact bytes.
 
 ## [vibe-goal-alignment 1.0.0] - 2026-08-01
 

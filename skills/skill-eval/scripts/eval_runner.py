@@ -1059,17 +1059,66 @@ def cleanup_grader_working_dir(grader_dir: Path) -> None:
         pass
 
 
-def collect_written_artifact(artifact_file: Path) -> tuple[str | None, dict[str, Any]]:
-    """Read a file the executor wrote to the designated artifact path, if any.
+def capture_written_artifact(
+    artifact_file: Path, sandbox_repo_root: Path
+) -> tuple[str | None, dict[str, Any], bytes | None]:
+    """Safely read the executor's designated artifact once, without following links.
 
-    Returns ``(artifact_text, info)``. ``artifact_text`` is ``None`` when no file
-    was written (the common case for skills whose deliverable is the chat reply),
-    so the grader prompt is unchanged for those runs. ``info`` records presence,
-    byte/char counts, and whether the text was truncated for the grader.
+    The returned bytes are the exact bytes read from the checked file descriptor;
+    the caller can persist those bytes without opening the executor-controlled
+    capture path again. ``artifact_text`` is ``None`` for absent or rejected
+    artifacts, and rejected artifacts carry a machine-readable ``reason``.
     """
-    if not artifact_file.is_file():
-        return None, {"captured": False}
-    raw = artifact_file.read_text(encoding="utf-8", errors="replace")
+    file_type, before_resolved = inspect_manifest_path(artifact_file, sandbox_repo_root)
+    if file_type == "missing":
+        return None, {"captured": False}, None
+    if file_type != "regular" or before_resolved is None:
+        return None, {"captured": False, "reason": file_type}, None
+
+    try:
+        before_lstat = artifact_file.lstat()
+    except (FileNotFoundError, NotADirectoryError):
+        return None, {"captured": False}, None
+    except OSError:
+        return None, {"captured": False, "reason": "unsafe-unreadable"}, None
+
+    flags = (
+        os.O_RDONLY
+        | getattr(os, "O_NOFOLLOW", 0)
+        | getattr(os, "O_NONBLOCK", 0)
+    )
+    try:
+        artifact_fd = os.open(artifact_file, flags)
+    except FileNotFoundError:
+        return None, {"captured": False}, None
+    except OSError:
+        return None, {"captured": False, "reason": "unsafe-open"}, None
+
+    try:
+        opened_stat = os.fstat(artifact_fd)
+        after_type, after_resolved = inspect_manifest_path(artifact_file, sandbox_repo_root)
+        opened_identity = (opened_stat.st_dev, opened_stat.st_ino)
+        before_identity = (before_lstat.st_dev, before_lstat.st_ino)
+        if (
+            not stat.S_ISREG(opened_stat.st_mode)
+            or before_identity != opened_identity
+            or after_type != "regular"
+            or after_resolved != before_resolved
+        ):
+            return None, {"captured": False, "reason": "unsafe-identity-change"}, None
+        with os.fdopen(artifact_fd, "rb") as handle:
+            artifact_fd = -1
+            raw_bytes = handle.read()
+    except OSError:
+        return None, {"captured": False, "reason": "unsafe-read"}, None
+    finally:
+        if artifact_fd != -1:
+            os.close(artifact_fd)
+
+    # Match the universal-newline translation the previous read_text() path
+    # applied, so grader text, char counts, and truncation boundaries are
+    # unchanged for CRLF/CR artifacts. The persisted copy keeps the raw bytes.
+    raw = raw_bytes.decode("utf-8", errors="replace").replace("\r\n", "\n").replace("\r", "\n")
     info: dict[str, Any] = {
         "captured": True,
         "path": str(artifact_file),
@@ -1079,7 +1128,15 @@ def collect_written_artifact(artifact_file: Path) -> tuple[str | None, dict[str,
     if len(raw) > ARTIFACT_MAX_CHARS:
         raw = raw[:ARTIFACT_MAX_CHARS] + "\n[...artifact truncated for grading...]\n"
         info["truncated"] = True
-    return raw, info
+    return raw, info, raw_bytes
+
+
+def collect_written_artifact(artifact_file: Path) -> tuple[str | None, dict[str, Any]]:
+    """Read a designated artifact while preserving the legacy two-value API."""
+    artifact_text, artifact_info, _raw_bytes = capture_written_artifact(
+        artifact_file, artifact_file.parent
+    )
+    return artifact_text, artifact_info
 
 
 # The grader otherwise sees only the executor's chat reply plus one designated
@@ -2424,10 +2481,12 @@ def execute_run(
         )
         metrics["duration_ms"] = executor_duration_ms
     write_text(outputs_dir / "output.txt", executor_output)
-    artifact_text, artifact_info = collect_written_artifact(artifact_capture_file)
-    if artifact_text is not None:
+    artifact_text, artifact_info, artifact_bytes = capture_written_artifact(
+        artifact_capture_file, sandbox.repo_root
+    )
+    if artifact_text is not None and artifact_bytes is not None:
         output_artifact_file = outputs_dir / "plan.md"
-        shutil.copyfile(artifact_capture_file, output_artifact_file)
+        output_artifact_file.write_bytes(artifact_bytes)
         artifact_info["capture_path"] = artifact_info.get("path")
         artifact_info["path"] = str(output_artifact_file.resolve())
     change_manifest = collect_sandbox_change_manifest(sandbox)

@@ -1999,6 +1999,131 @@ class ProviderParserTests(unittest.TestCase):
             self.assertTrue(info["truncated"])
             self.assertIn("artifact truncated", text)
 
+    @unittest.skipUnless(os.name == "posix", "requires POSIX symlink semantics")
+    def test_capture_written_artifact_rejects_leaf_symlink_outside_sandbox(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            sandbox_root = root / "artifact-leaf"
+            capture_dir = sandbox_root / ".eval-runner" / "outputs"
+            capture_dir.mkdir(parents=True)
+            outside = root / "outside-artifact.md"
+            outside.write_text("DO NOT CAPTURE\n", encoding="utf-8")
+            artifact_file = capture_dir / "plan.md"
+            artifact_file.symlink_to(outside)
+
+            text, info, raw_bytes = eval_runner.capture_written_artifact(
+                artifact_file, sandbox_root
+            )
+
+            self.assertIsNone(text)
+            self.assertIsNone(raw_bytes)
+            self.assertEqual(
+                info,
+                {"captured": False, "reason": "unsafe-outside-root"},
+            )
+            self.assertFalse((root / "outputs" / "plan.md").exists())
+            self.assertEqual(outside.read_text(encoding="utf-8"), "DO NOT CAPTURE\n")
+
+    @unittest.skipUnless(os.name == "posix", "requires POSIX symlink semantics")
+    def test_capture_written_artifact_rejects_symlinked_ancestor(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            sandbox_root = root / "artifact-ancestor"
+            capture_parent = sandbox_root / ".eval-runner"
+            capture_parent.mkdir(parents=True)
+            outside_dir = root / "outside-artifacts"
+            outside_dir.mkdir()
+            (outside_dir / "plan.md").write_text("DO NOT CAPTURE\n", encoding="utf-8")
+            (capture_parent / "outputs").symlink_to(outside_dir, target_is_directory=True)
+            artifact_file = capture_parent / "outputs" / "plan.md"
+
+            text, info, raw_bytes = eval_runner.capture_written_artifact(
+                artifact_file, sandbox_root
+            )
+
+            self.assertIsNone(text)
+            self.assertIsNone(raw_bytes)
+            self.assertEqual(
+                info,
+                {"captured": False, "reason": "unsafe-symlink-ancestor"},
+            )
+            self.assertFalse((root / "outputs" / "plan.md").exists())
+            self.assertEqual(
+                (outside_dir / "plan.md").read_text(encoding="utf-8"), "DO NOT CAPTURE\n"
+            )
+
+    def test_capture_written_artifact_regular_file_keeps_info_fields(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            sandbox_root = Path(tmp)
+            artifact_file = sandbox_root / ".eval-runner" / "outputs" / "plan.md"
+            artifact_file.parent.mkdir(parents=True)
+            raw_bytes_expected = b"# Plan\nbody\n"
+            artifact_file.write_bytes(raw_bytes_expected)
+
+            text, info, raw_bytes = eval_runner.capture_written_artifact(
+                artifact_file, sandbox_root
+            )
+
+            self.assertEqual(text, "# Plan\nbody\n")
+            self.assertEqual(raw_bytes, raw_bytes_expected)
+            self.assertEqual(
+                info,
+                {
+                    "captured": True,
+                    "path": str(artifact_file),
+                    "chars": len("# Plan\nbody\n"),
+                    "truncated": False,
+                },
+            )
+
+    def test_capture_written_artifact_absent_keeps_legacy_info(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            sandbox_root = Path(tmp)
+            artifact_file = sandbox_root / ".eval-runner" / "outputs" / "plan.md"
+
+            text, info, raw_bytes = eval_runner.capture_written_artifact(
+                artifact_file, sandbox_root
+            )
+
+            self.assertIsNone(text)
+            self.assertIsNone(raw_bytes)
+            self.assertEqual(info, {"captured": False})
+
+    @unittest.skipUnless(os.name == "posix", "requires POSIX symlink semantics")
+    def test_capture_written_artifact_rejects_in_root_leaf_symlink(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            sandbox_root = Path(tmp)
+            capture_dir = sandbox_root / ".eval-runner" / "outputs"
+            capture_dir.mkdir(parents=True)
+            in_root_target = sandbox_root / "real-plan.md"
+            in_root_target.write_text("DO NOT CAPTURE\n", encoding="utf-8")
+            artifact_file = capture_dir / "plan.md"
+            artifact_file.symlink_to(in_root_target)
+
+            text, info, raw_bytes = eval_runner.capture_written_artifact(
+                artifact_file, sandbox_root
+            )
+
+            self.assertIsNone(text)
+            self.assertIsNone(raw_bytes)
+            self.assertEqual(info, {"captured": False, "reason": "symlink"})
+
+    def test_capture_written_artifact_normalizes_newlines_like_read_text(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            sandbox_root = Path(tmp)
+            artifact_file = sandbox_root / ".eval-runner" / "outputs" / "plan.md"
+            artifact_file.parent.mkdir(parents=True)
+            crlf_bytes = b"# Plan\r\nline one\rline two\n"
+            artifact_file.write_bytes(crlf_bytes)
+
+            text, info, raw_bytes = eval_runner.capture_written_artifact(
+                artifact_file, sandbox_root
+            )
+
+            self.assertEqual(text, "# Plan\nline one\nline two\n")
+            self.assertEqual(info["chars"], len("# Plan\nline one\nline two\n"))
+            self.assertEqual(raw_bytes, crlf_bytes)
+
     def test_claude_parse_captures_session_id(self):
         sample = json.dumps(
             {
