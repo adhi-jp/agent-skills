@@ -11,6 +11,15 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- `skill-eval` restores Codex grader readiness on CLIs that reject the
+  documented `tools.view_image` override under `--strict-config`. Graders retain
+  strict user-config/rules isolation, an empty read-only working directory, and
+  disabled shell, multi-agent, and web-search capabilities, while the runner
+  supplies no image inputs. The unsupported image-tool override is no longer
+  presented as an enforced capability boundary.
+
 ## [skill-eval 1.2.1] - 2026-08-01
 
 ### Fixed

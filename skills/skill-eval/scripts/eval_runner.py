@@ -2006,8 +2006,10 @@ class CodexProvider(Provider):
         ]
         if role == "grader":
             # Command-line strict overrides make the no-tool grader independent
-            # of user configuration and command rules. The isolated empty cwd
-            # separately prevents repository instructions from being loaded.
+            # of user configuration and command rules. Do not pass image inputs;
+            # current Codex CLIs reject the documented `tools.view_image`
+            # override under `--strict-config`. The isolated empty cwd separately
+            # prevents repository instructions from being loaded.
             argv += [
                 "--strict-config",
                 "--ephemeral",
@@ -2017,7 +2019,6 @@ class CodexProvider(Provider):
                 "-c", "features.multi_agent=false",
                 "-c", "agents.enabled=false",
                 "-c", 'web_search="disabled"',
-                "-c", "tools.view_image=false",
             ]
         if model:
             argv += ["--model", model]

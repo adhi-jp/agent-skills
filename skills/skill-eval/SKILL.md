@@ -224,9 +224,10 @@ grading collapsed into one agent and the run scored its own output.
   the executor repository and is registered for runner cleanup. Claude graders
   disable tools and session persistence and enable safe mode. Codex graders
   ignore user configuration and rules, use ephemeral strict configuration, and
-  disable shell, multi-agent, web-search, and image-viewing capabilities. These
-  are CLI-level controls, not an OS sandbox. The grader decides from its prompt:
-  recorded output, assertions, sandbox changes, and captured executor evidence.
+  disable shell, multi-agent, and web-search capabilities; the runner supplies
+  no image inputs. These are CLI-level controls, not an OS sandbox. The grader
+  decides from its prompt: recorded output, assertions, sandbox changes, and
+  captured executor evidence.
 - Executor fixture delivery and grader ground-truth visibility are separate
   proof surfaces. If a verdict depends on fixture semantics, such as whether the
   executor invented or faithfully used a source fact, the suite must carry the
@@ -303,8 +304,8 @@ grading collapsed into one agent and the run scored its own output.
   isolated non-Git grader cwd with `--skip-git-repo-check`. The adapter gives
   only the executor `workspace-write` in its throwaway repository and keeps the
   grader `read-only`; grader-only strict ephemeral overrides ignore user
-  configuration and rules and disable shell, multi-agent, web-search, and
-  image-viewing capabilities. Claude retains its existing
+  configuration and rules, disable shell, multi-agent, and web-search
+  capabilities, and receive no image inputs. Claude retains its existing
   `claude -p <prompt> --output-format json` invocation contract.
 - Failed or timed-out executor/grader invocations persist bounded
   `outputs/executor_stderr.txt` or `outputs/grader_stderr.txt` diagnostics and a

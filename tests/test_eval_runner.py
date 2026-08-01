@@ -1544,9 +1544,9 @@ class ModelSelectionTests(BaseRunnerTest):
                 "features.multi_agent=false",
                 "agents.enabled=false",
                 'web_search="disabled"',
-                "tools.view_image=false",
             ],
         )
+        self.assertNotIn("-i", inv.argv)
         # The executor invocation carries no schema.
         ex = provider.build_invocation("p", run_dir=run_dir, role="executor")
         self.assertNotIn("--output-schema", ex.argv)
