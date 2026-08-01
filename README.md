@@ -130,7 +130,7 @@ and are local artifacts unless explicitly requested for commit.
 | Skill | Version |
 | --- | --- |
 | `minecraft-modding-workbench` | `2.1.0` |
-| `skill-eval` | `1.2.0` |
+| `skill-eval` | `1.2.1` |
 | `vibe-coding` | `2.0.0` |
 | `vibe-goal-alignment` | `1.0.0` |
 | `vibe-orchestrate` | `1.0.0` |

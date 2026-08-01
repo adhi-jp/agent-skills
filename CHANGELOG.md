@@ -11,11 +11,7 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
-### Changed
-
-- `.gitignore` now treats `docs/reports/` as local development output, keeping
-  repository-local reports outside normal Git staging unless they are explicitly
-  included under repository policy.
+## [skill-eval 1.2.1] - 2026-08-01
 
 ### Fixed
 
@@ -2194,6 +2190,9 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `.gitignore` now treats `docs/reports/` as local development output, keeping
+  repository-local reports outside normal Git staging unless they are explicitly
+  included under repository policy.
 - README now documents the vibe family's autonomous-operation contract:
   sequential coordinator continuation requires recordable boundary evidence,
   proxy decisions stay AI-selected and never count as human approval,
