@@ -13,6 +13,13 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- Repository documentation now keeps `README.md` as a concise navigation layer:
+  it provides host invocation examples, a grouped task-to-skill chooser,
+  phase and commit boundaries, the eval quickstart, and explicit source-of-truth
+  guidance for users and AI agents. Per-skill implementation contracts and the
+  duplicated version registry were removed from the README in favor of durable
+  links to authoritative `skills/<skill-name>/SKILL.md` files and
+  `CHANGELOG.md`. Evals not run; this is a documentation-only change.
 - `skill-eval` restores Codex grader readiness on CLIs that reject the
   documented `tools.view_image` override under `--strict-config`. Graders retain
   strict user-config/rules isolation, an empty read-only working directory, and
