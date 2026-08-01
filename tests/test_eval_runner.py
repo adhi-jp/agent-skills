@@ -1021,6 +1021,163 @@ class SeparationTests(BaseRunnerTest):
 
 
 # --------------------------------------------------------------------------- #
+# Grader working-directory containment and cleanup.
+# --------------------------------------------------------------------------- #
+class GraderWorkingDirectoryTests(BaseRunnerTest):
+    def test_tempdir_inside_source_checkout_is_rejected_or_safe(self):
+        source_root = self.root / "source-checkout"
+        source_root.mkdir()
+        redirected_tempdir = source_root / "tmp"
+        redirected_tempdir.mkdir()
+
+        with mock.patch.object(tempfile, "tempdir", str(redirected_tempdir)):
+            try:
+                grader_dir = eval_runner.grader_working_dir(
+                    self.root / "run",
+                    forbidden_roots=(source_root, self.sandbox_root),
+                )
+            except eval_runner.CommandError:
+                self.assertEqual(
+                    list(redirected_tempdir.rglob("eval-runner-grader-*")),
+                    [],
+                )
+                return
+
+        try:
+            self.assertFalse(eval_runner.path_is_relative_to(grader_dir, source_root))
+            self.assertFalse(eval_runner.path_is_relative_to(grader_dir, self.sandbox_root))
+        finally:
+            eval_runner.cleanup_grader_working_dir(grader_dir)
+
+    def test_tempdir_inside_sandbox_root_is_rejected_or_safe(self):
+        sandbox_root = self.sandbox_root / "executor-sandbox"
+        sandbox_root.mkdir()
+        redirected_tempdir = sandbox_root / "tmp"
+        redirected_tempdir.mkdir()
+
+        with mock.patch.object(tempfile, "tempdir", str(redirected_tempdir)):
+            try:
+                grader_dir = eval_runner.grader_working_dir(
+                    self.root / "run",
+                    forbidden_roots=(self.root, sandbox_root),
+                )
+            except eval_runner.CommandError:
+                self.assertEqual(
+                    list(redirected_tempdir.rglob("eval-runner-grader-*")),
+                    [],
+                )
+                return
+
+        try:
+            self.assertFalse(eval_runner.path_is_relative_to(grader_dir, self.root))
+            self.assertFalse(eval_runner.path_is_relative_to(grader_dir, sandbox_root))
+        finally:
+            eval_runner.cleanup_grader_working_dir(grader_dir)
+
+    def test_default_grader_working_dir_is_empty_and_outside_forbidden_roots(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source_root = root / "source-checkout"
+            sandbox_root = root / "executor-sandbox"
+            source_root.mkdir()
+            sandbox_root.mkdir()
+            grader_dir = eval_runner.grader_working_dir(
+                root / "run",
+                forbidden_roots=(source_root, sandbox_root),
+            )
+            try:
+                self.assertTrue(grader_dir.is_dir())
+                self.assertEqual(list(grader_dir.iterdir()), [])
+                self.assertEqual(
+                    grader_dir.parent,
+                    (Path(tempfile.gettempdir()) / "eval-runner-graders").resolve(),
+                )
+                self.assertFalse(eval_runner.path_is_relative_to(grader_dir, source_root))
+                self.assertFalse(eval_runner.path_is_relative_to(grader_dir, sandbox_root))
+            finally:
+                eval_runner.cleanup_grader_working_dir(grader_dir)
+
+    def test_codex_preflight_cleanup_failure_is_recorded_and_non_fatal(self):
+        workspace_root = self.root / "evals" / "demo" / "workspace" / "codex"
+        log = self.root / "codex-launches.jsonl"
+        cleanup_failures = []
+
+        def fail_cleanup(grader_dir):
+            self.addCleanup(eval_runner.shutil.rmtree, grader_dir, ignore_errors=True)
+            failure = {
+                "path": str(grader_dir),
+                "error": "PermissionError: denied",
+            }
+            cleanup_failures.append(failure)
+            return failure
+
+        with mock.patch.dict(os.environ, self.fake_codex_env(log=log), clear=False):
+            with mock.patch.object(
+                eval_runner,
+                "cleanup_grader_working_dir",
+                side_effect=fail_cleanup,
+            ):
+                completed = eval_runner.run_codex_preflight(
+                    eval_runner.CodexProvider(),
+                    workspace_root,
+                    self.root,
+                    executor_model=None,
+                    grader_model=None,
+                    timeout=30,
+                )
+
+        self.assertTrue(completed)
+        preflight = json.loads((workspace_root / "preflight.json").read_text())
+        self.assertTrue(preflight["ok"])
+        self.assertEqual([probe["role"] for probe in preflight["probes"]], ["executor", "grader"])
+        self.assertEqual(len(cleanup_failures), 1)
+        self.assertEqual(preflight["probes"][1]["grader_cleanup"], cleanup_failures[0])
+
+    def test_cleanup_permission_error_is_returned_and_recorded(self):
+        grader_dir = self.root / "grader"
+        grader_dir.mkdir()
+        with mock.patch.object(
+            eval_runner.shutil, "rmtree", side_effect=PermissionError("denied")
+        ):
+            cleanup_failure = eval_runner.cleanup_grader_working_dir(grader_dir)
+        self.assertEqual(cleanup_failure["path"], str(grader_dir))
+        self.assertIn("PermissionError", cleanup_failure["error"])
+        self.assertTrue(grader_dir.exists())
+
+        suite_path = self.write_suite(
+            {
+                "skill_name": "demo",
+                "evals": [{"id": "E01", "prompt": "x", "expectations": ["a"]}],
+            }
+        )
+        spec_path = self.write_stub_spec(
+            {"executor_output": "answer", "grading": {"with_skill": {"pass": True}}}
+        )
+        suite = eval_runner.load_eval_suite(suite_path)
+        run_dir = self.root / "run-record"
+        task = eval_runner.RunTask(
+            case=suite.evals[0], config="with_skill", run_number=1, run_dir=run_dir
+        )
+        with mock.patch.dict(os.environ, self.stub_env(spec_path), clear=False):
+            with mock.patch.object(
+                eval_runner.shutil, "rmtree", side_effect=PermissionError("denied")
+            ):
+                record = eval_runner.execute_run(
+                    suite, eval_runner.StubProvider(), task, None, timeout=30
+                )
+        self.assertEqual(record["grader_cleanup"]["path"], record["grader_invocation"]["cwd"])
+        self.assertIn("PermissionError", record["grader_cleanup"]["error"])
+        self.assertTrue(Path(record["grader_cleanup"]["path"]).exists())
+        eval_runner.shutil.rmtree(Path(record["grader_cleanup"]["path"]))
+
+    def test_cleanup_file_not_found_is_silent_success(self):
+        with mock.patch.object(
+            eval_runner.shutil, "rmtree", side_effect=FileNotFoundError("gone")
+        ):
+            self.assertIsNone(eval_runner.cleanup_grader_working_dir(self.root / "missing"))
+
+
+# --------------------------------------------------------------------------- #
 # Model selection: --model is passed through to the provider CLI verbatim and
 # recorded in the manifest/benchmark; an absent model uses the provider default.
 # --------------------------------------------------------------------------- #

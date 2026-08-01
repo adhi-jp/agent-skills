@@ -28,6 +28,9 @@ use `[Repository] - YYYY-MM-DD`.
   ambient `GIT_*`. Regression coverage exercises each boundary.
 - `skill-eval` eval runner rejects symlinked executor artifact paths instead of
   reading through them, while persisting the already-read artifact bytes.
+- `skill-eval` creates grader temp directories under a runner-owned parent with
+  containment asserted against the source checkout and executor sandbox, and
+  records cleanup failures instead of aborting the run.
 
 ## [vibe-goal-alignment 1.0.0] - 2026-08-01
 

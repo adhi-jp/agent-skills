@@ -47,7 +47,7 @@ import tempfile
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any, Callable, Sequence
 
 
 ALLOWED_TOP_LEVEL_FIELDS = {
@@ -1031,7 +1031,7 @@ def external_sandbox_repo_root(run_dir: Path) -> Path:
     return (sandbox_base_dir() / f"{slug}-{digest}" / "repo").resolve()
 
 
-def grader_working_dir(run_dir: Path) -> Path:
+def grader_working_dir(run_dir: Path, *, forbidden_roots: Sequence[Path]) -> Path:
     """Return an empty, isolated working directory for the grader subprocess.
 
     The grader must decide pass/fail from its prompt alone (recorded output,
@@ -1046,17 +1046,44 @@ def grader_working_dir(run_dir: Path) -> Path:
     """
     resolved_run_dir = run_dir.resolve()
     digest = hashlib.sha256(str(resolved_run_dir).encode("utf-8")).hexdigest()[:12]
-    # mkdtemp atomically creates a fresh non-adjacent directory. Avoiding a
-    # predictable path plus rmtree prevents a pre-positioned symlink from
-    # redirecting cleanup or the grader cwd.
-    return Path(tempfile.mkdtemp(prefix=f"eval-runner-grader-{digest}-")).resolve()
+    # mkdtemp atomically creates a fresh directory under a runner-owned parent.
+    # Avoiding a predictable path plus rmtree prevents a pre-positioned symlink
+    # from redirecting cleanup or the grader cwd.
+    grader_parent = Path(tempfile.gettempdir()) / "eval-runner-graders"
+    grader_parent.mkdir(parents=True, exist_ok=True)
+    grader_dir = Path(
+        tempfile.mkdtemp(
+            prefix=f"eval-runner-grader-{digest}-",
+            dir=str(grader_parent),
+        )
+    )
+    resolved_grader_dir = grader_dir.resolve()
+    for forbidden_root in forbidden_roots:
+        if path_is_relative_to(resolved_grader_dir, Path(forbidden_root).resolve()):
+            cleanup_failure = cleanup_grader_working_dir(grader_dir)
+            cleanup_detail = (
+                f"; cleanup failed: {cleanup_failure['error']}"
+                if cleanup_failure
+                else ""
+            )
+            raise CommandError(
+                "grader working directory must be outside forbidden root "
+                f"{Path(forbidden_root).resolve()}: {resolved_grader_dir}{cleanup_detail}"
+            )
+    return resolved_grader_dir
 
 
-def cleanup_grader_working_dir(grader_dir: Path) -> None:
+def cleanup_grader_working_dir(grader_dir: Path) -> dict[str, str] | None:
     try:
         shutil.rmtree(grader_dir)
     except FileNotFoundError:
-        pass
+        return None
+    except OSError as exc:
+        return {
+            "path": str(grader_dir),
+            "error": f"{type(exc).__name__}: {exc}",
+        }
+    return None
 
 
 def capture_written_artifact(
@@ -2494,6 +2521,7 @@ def execute_run(
 
     status = "ok"
     grader_inv: Invocation | None = None
+    grader_cleanup: dict[str, str] | None = None
     grading: dict[str, Any] | None = None
     grader_error: str | None = None
     failure: dict[str, Any] | None = None
@@ -2526,7 +2554,10 @@ def execute_run(
             suite, case, config, executor_output, artifact_text, change_manifest, executor_evidence
         )
         write_text(run_dir / "grader_prompt.md", grader_prompt)
-        grader_cwd = grader_working_dir(run_dir)
+        grader_cwd = grader_working_dir(
+            run_dir,
+            forbidden_roots=(source_repo_root, sandbox.repo_root),
+        )
         try:
             grader_inv = provider.build_invocation(
                 grader_prompt,
@@ -2538,7 +2569,7 @@ def execute_run(
             )
             g_stdout, g_stderr, g_exit, g_timeout = run_invocation(grader_inv, timeout)
         finally:
-            cleanup_grader_working_dir(grader_cwd)
+            grader_cleanup = cleanup_grader_working_dir(grader_cwd)
         grader_output, grader_metrics = provider.parse(
             run_dir=run_dir, stdout=g_stdout, stderr=g_stderr, exit_code=g_exit, role="grader"
         )
@@ -2632,6 +2663,7 @@ def execute_run(
             else None
         ),
         "grader_error": grader_error,
+        "grader_cleanup": grader_cleanup,
         "failure": failure,
         "run_dir": str(run_dir),
     }
@@ -3146,6 +3178,7 @@ def codex_cli_version() -> str | None:
 def run_codex_preflight(
     provider: CodexProvider,
     workspace_root: Path,
+    source_repo_root: Path,
     executor_model: str | None,
     grader_model: str | None,
     timeout: float,
@@ -3215,9 +3248,17 @@ def run_codex_preflight(
         for role, cwd, cwd_shape, model, schema, prompt, expected in probe_specs:
             run_dir = root / f"{role}-artifacts"
             run_dir.mkdir()
-            grader_cwd = grader_working_dir(workspace_root / "preflight-grader") if role == "grader" else None
+            grader_cwd = (
+                grader_working_dir(
+                    workspace_root / "preflight-grader",
+                    forbidden_roots=(source_repo_root, executor_cwd),
+                )
+                if role == "grader"
+                else None
+            )
             if grader_cwd is not None:
                 cwd = grader_cwd
+            grader_cleanup: dict[str, str] | None = None
             try:
                 invocation = provider.build_invocation(
                     prompt, run_dir=run_dir, role=role, model=model, schema=schema, cwd=cwd
@@ -3225,7 +3266,7 @@ def run_codex_preflight(
                 stdout, stderr, exit_code, timed_out = run_invocation(invocation, min(timeout, 60.0))
             finally:
                 if grader_cwd is not None:
-                    cleanup_grader_working_dir(grader_cwd)
+                    grader_cleanup = cleanup_grader_working_dir(grader_cwd)
             parsed, _metrics = provider.parse(
                 run_dir=run_dir, stdout=stdout, stderr=stderr, exit_code=exit_code, role=role
             )
@@ -3258,6 +3299,8 @@ def run_codex_preflight(
                 "stderr": {**stderr_meta, "text": stderr_text},
                 "parsed_output": {**output_meta, "text": output_text},
             }
+            if grader_cwd is not None:
+                probe["grader_cleanup"] = grader_cleanup
             report["probes"].append(probe)
             if not ok:
                 write_json(workspace_root / "preflight.json", report)
@@ -3335,7 +3378,7 @@ def command_run(args: argparse.Namespace) -> int:
         return 0
 
     if isinstance(provider, CodexProvider) and not run_codex_preflight(
-        provider, workspace_root, executor_model, grader_model, args.timeout
+        provider, workspace_root, repo_root, executor_model, grader_model, args.timeout
     ):
         print(
             f"--agent codex: readiness preflight failed; see {workspace_root / 'preflight.json'}",
