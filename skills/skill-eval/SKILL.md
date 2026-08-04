@@ -16,7 +16,8 @@ agent execute and grade the same answer, or estimate metrics.
 
 ## Critical CLI Contract
 
-Preserve these exact subcommand shapes:
+For any command-drafting response, reproduce these exact shapes before adding
+explanation:
 
 | Purpose | Command shape | `--eval-id` |
 | --- | --- | --- |
@@ -90,6 +91,12 @@ Read `references/runner-and-result-contract.md` before:
 
 That reference is mandatory when its conditions apply and retains the complete
 runner, artifact, provider, metric, and result-verification contract.
+
+When drafting a full-suite run sequence, the response must preserve the
+reference's literal positional suite path and flags, keep the requested configs
+in one runner invocation, and include the result-verification and reporting
+fields from that reference. Do not reconstruct the CLI or closure checklist from
+memory.
 
 ## Result Closure
 

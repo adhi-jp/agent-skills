@@ -23,7 +23,7 @@
     {
       "id": "E02",
       "name": "Explicit run request uses runner and verifies results",
-      "prompt": "This is a dry-run workflow-decision exercise. Do not execute commands, start subprocesses, or create an eval workspace. Draft the response and command sequence an agent should use for this represented user request: `Run the vibe-writing skill evals once with codex for both with_skill and without_skill, then report the result.` Include what must be checked before reporting the pass-rate delta.",
+      "prompt": "This is a dry-run workflow-decision exercise. Do not execute commands, start subprocesses, or create an eval workspace. Draft the exact response and command sequence an agent should use for this represented user request: `Run the vibe-writing skill evals once with codex for both with_skill and without_skill, then report the result.` Include the generated-workspace boundary and the complete result-verification and final-report checklist required before reporting the pass-rate delta.",
       "expected_output": "The agent drafts an authorized runner workflow and result-verification checklist without claiming that the represented run occurred.",
       "files": [],
       "expectations": [
@@ -73,7 +73,7 @@
     {
       "id": "E05",
       "name": "Lexical correction stays diagnostic until closing",
-      "prompt": "This is a dry-run workflow-decision exercise. Do not execute commands, start subprocesses, or create an eval workspace. In a 21-case suite, only E17's non-exact authorization assertion changed. The candidate says `I withheld execution pending explicit permission`; the grader fails it because it preferred `the current user did not ask`, while the baseline happened to echo that phrase. An earlier full-suite aggregate exists. The current user has authorized a future iterative repair workflow, but no run should occur inside this exercise. Decide whether the target skill or assertion should change, how to stage the selected diagnostic and later closing proof, what must be frozen before closing, and how to treat the earlier aggregate and any artifact-level correction.",
+      "prompt": "This is a dry-run workflow-decision exercise. Do not execute commands, start subprocesses, or create an eval workspace. In a 21-case suite, only E17's non-exact authorization assertion changed. The candidate says `I withheld execution pending explicit permission`; the grader fails it because it preferred `the current user did not ask`, while the baseline happened to echo that phrase. An earlier full-suite aggregate exists. The current user has authorized a future iterative repair workflow with the same `with_skill,without_skill` matrix, but no run should occur inside this exercise. Decide which workflow owns the assertion repair, whether the target skill or assertion should change, which non-compliant behavior the repaired assertion must still reject, how to stage the selected diagnostic and later closing proof, what must be frozen before closing, and how to treat the earlier aggregate and any artifact-level correction.",
       "expected_output": "The agent treats the phrase-dependent verdict as a lexical grader problem, stages bounded diagnosis before frozen-state closure, and preserves the historical aggregate.",
       "files": [],
       "expectations": [

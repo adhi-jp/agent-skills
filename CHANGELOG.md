@@ -23,6 +23,17 @@ use `[Repository] - YYYY-MM-DD`.
   quality, runner, artifact, coordinator, MCP, and verification guidance
   without changing skill versions. Evals not run; static validation is recorded
   for the affected suites.
+- `skill-eval` now keeps exact full-suite command drafting and closure-checklist
+  retrieval answer-time salient after routing detailed runner rules to a
+  reference. Its eval prompts now explicitly request the complete command,
+  workspace, verification, reporting, and quality-owner handoff surfaces instead
+  of relying on agents to infer that breadth from a short represented request.
+  Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-eval/evals.json`;
+  the closing 5-case, 10-cell Codex run with `gpt-5.6-luna` scored all candidate
+  assertions with zero infrastructure, sanity, fixture-dirty, or
+  candidate-below-baseline anomalies, at `with_skill` 100.0% versus
+  `without_skill` 77.6% (+22.4 points).
 - `vibe-planning` now limits planning-time commands to pre-registered minimal
   investigations whose outcomes can change the plan and to independently
   required plan-artifact integrity, review, status, diff, and closure
