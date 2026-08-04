@@ -361,6 +361,15 @@ prove that a reference is too hidden. After promotion, audit the body,
 reference, README, changelog, and evals for duplicated or contradictory
 authority.
 
+Before editing, distinguish missing contract, reference reachability,
+within-body answer-time salience, prompt/invocation mismatch,
+grader/assertion defect, measurement/recording gap, and run variance. Promote
+only one load-bearing invariant after repeated stable evidence. Audit eval case
+cohesion across primary decision surface, artifact owner, proof carrier, natural
+prompt, split conditions, and assertion coverage. Semantic assertions may use
+distributed contextual entailment; exact mechanical and region-scoped
+predicates remain exact.
+
 When editing skill text, preserve modality, exceptions, exact paths, commands,
 field names, local anchors, and absence statuses. Shorten only when the shorter
 text keeps the same applicability, obligation, proof path, and failure behavior.

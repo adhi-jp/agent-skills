@@ -39,3 +39,9 @@ Examples:
 
 Examples are pressure cases, not required branches. Always map them back to the
 abstract contract before acting.
+
+After a verified fix, rerun the prior layer's discriminator. If it regressed,
+reopen that layer. If it stays green, preserve it and open a new cause layer.
+Recordings are strong evidence for visible location, sequence, and periodicity;
+inferred internal delay, magnitude, or quantity remains hypothesis-grade until
+instrumented.

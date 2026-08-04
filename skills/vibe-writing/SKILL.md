@@ -216,6 +216,17 @@ clarity, stable anchors, and exact commands over editorial polish.
 Do not add setup steps, support channels, availability promises, safety
 rationales, or business value unless the source provides them.
 
+For a saved audit, report, or postmortem, establish the subject, triggering
+task/event, deviation, current status, and purpose using supplied facts and
+durable anchors. Run a context-stripped-reader check; do not impose a universal
+template or invent organizational context.
+
+When correcting an unsupported claim, first freeze the strongest permitted
+replacement claim from authoritative evidence. Include adjacent limitations
+needed to prevent inference of the old broader promise. If none exists, state
+the permitted boundary for review instead of replacing one overclaim with
+another.
+
 For support or policy copy, create warmth by clarifying supplied facts. Do not
 add response guarantees, escalation paths, new channels, reassurance claims, or
 security reasons.

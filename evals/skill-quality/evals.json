@@ -451,6 +451,45 @@
         "Selects the smallest coupled quality-skill, eval-operation skill or runner, focused eval, README, and Unreleased changelog changes that own the behavior, without version bumps, managed-snapshot edits, or generated-workspace commits.",
         "Runs only static validation and local runner tests for the current request, and labels hosted behavioral evaluation not run because this turn did not authorize it."
       ]
+    },
+    {
+      "id": "E23",
+      "name": "Failure surface classification before prose",
+      "prompt": "Failure surface classification before prose. Produce the bounded decision or artifact.",
+      "expected_output": "The response applies the named contract without broadening authority.",
+      "files": [],
+      "expectations": [
+        "Applies the named positive contract.",
+        "Includes the relevant negative or blocked path.",
+        "Does not invent evidence, approval, or scope.",
+        "Preserves the owning workflow boundary."
+      ]
+    },
+    {
+      "id": "E24",
+      "name": "Eval case cohesion audit",
+      "prompt": "Eval case cohesion audit. Produce the bounded decision or artifact.",
+      "expected_output": "The response applies the named contract without broadening authority.",
+      "files": [],
+      "expectations": [
+        "Applies the named positive contract.",
+        "Includes the relevant negative or blocked path.",
+        "Does not invent evidence, approval, or scope.",
+        "Preserves the owning workflow boundary."
+      ]
+    },
+    {
+      "id": "E25",
+      "name": "Semantic contextual entailment preserves mechanics",
+      "prompt": "Semantic contextual entailment preserves mechanics. Produce the bounded decision or artifact.",
+      "expected_output": "The response applies the named contract without broadening authority.",
+      "files": [],
+      "expectations": [
+        "Applies the named positive contract.",
+        "Includes the relevant negative or blocked path.",
+        "Does not invent evidence, approval, or scope.",
+        "Preserves the owning workflow boundary."
+      ]
     }
   ],
   "scoring": {

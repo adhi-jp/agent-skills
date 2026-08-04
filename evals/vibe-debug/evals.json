@@ -284,6 +284,32 @@
         "Selects a representative local reproduction, class/identity contrast, focused runtime probe, or user retest as the next proof category to distinguish the remaining hypotheses; if it actually hands a probe or retest to the user, that handoff carries the exact operational fields required by the workflow.",
         "Does not claim that numerical coincidence, a measured mechanism in the anchored fixture, or the later 9/5 movement proves the user's runtime cause."
       ]
+    },
+    {
+      "id": "E18",
+      "name": "Retained field probe is disabled bounded and countable",
+      "prompt": "Retained field probe is disabled bounded and countable. Produce the bounded decision or artifact.",
+      "expected_output": "The response applies the named contract without broadening authority.",
+      "files": [],
+      "expectations": [
+        "Applies the named positive contract.",
+        "Includes the relevant negative or blocked path.",
+        "Does not invent evidence, approval, or scope.",
+        "Preserves the owning workflow boundary."
+      ]
+    },
+    {
+      "id": "E19",
+      "name": "Recurrence opens a new cause layer",
+      "prompt": "Recurrence opens a new cause layer. Produce the bounded decision or artifact.",
+      "expected_output": "The response applies the named contract without broadening authority.",
+      "files": [],
+      "expectations": [
+        "Applies the named positive contract.",
+        "Includes the relevant negative or blocked path.",
+        "Does not invent evidence, approval, or scope.",
+        "Preserves the owning workflow boundary."
+      ]
     }
   ],
   "scoring": {

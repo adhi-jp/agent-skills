@@ -60,6 +60,15 @@ use `[Repository] - YYYY-MM-DD`.
   `vibe-plan-execution` validates full/mutable plan identity, completes only
   reserved decisions, transparently rebinds uniquely forwarded items, and
   returns infeasible human-selected mechanisms to their decision owner.
+- Requirements proxy deferral is now limited to authoritative inherited,
+  low-priority, current-slice-independent, non-human-risk unknowns.
+- Debugging now supports disabled retained field probes with countable
+  discriminators, layered recurrence causes, recording evidence grades, and
+  explicit ledger durability limits.
+- `skill-quality` now separates contract, salience, invocation, assertion,
+  recording, and variance failure surfaces and audits eval case cohesion.
+- `vibe-writing` now requires context-independent saved reports and freezes the
+  strongest supported replacement claim before correcting overclaims.
 - Repository documentation now keeps `README.md` as a concise navigation layer:
   it provides host invocation examples, a grouped task-to-skill chooser,
   phase and commit boundaries, the eval quickstart, and explicit source-of-truth

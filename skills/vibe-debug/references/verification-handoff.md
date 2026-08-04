@@ -76,3 +76,8 @@ the ledger item or matrix row they would close.
 Avoid "please retest", "try it again", and promises to provide steps later. The
 user should know exactly what to do and what result would prove or reopen the
 fix.
+
+For a retained probe, include opt-in/default-off state, stable field allowlist,
+comparable regime, count/filter method, expected bad-signature count,
+privacy/cardinality/cost receipts, and the single mechanism it can close. A zero
+count closes only that mechanism.

@@ -16,6 +16,14 @@ Read this reference before drafting, updating, reopening, finishing, or handing 
   evidence checks must be resolved before finish or handoff; lower-priority
   unknowns may remain only when they are explicitly listed and the user accepts
   deferring them.
+- A trusted proxy may defer an unknown only when it is inherited from an
+  authoritative source, lower priority, not needed by the current slice, and
+  outside every human-risk category. Record evidence, current-slice
+  non-dependence, impact, revisit trigger, and `AI-selected deferral`. It is not
+  approval, accepted risk, finish evidence, or handoff authority.
+- Drafting-discovered and security, credential, auth/session, permission,
+  destructive, data-safety, billing/cost, production, legal/compliance,
+  migration, release, or history unknowns cannot be proxy-deferred.
 - Resolving all blockers does not finish drafting by itself. The current spec
   still needs explicit requirements-finished wording or a clear current-spec
   next-phase handoff before this skill treats requirements as finished, unless

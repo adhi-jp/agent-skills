@@ -17,6 +17,8 @@ fields explicit so a later resume cannot silently lose the issue.
 | Verification path | Automated test, manual observation, source trace, artifact-freshness proof, or user retest contract. |
 | Acceptance discriminator | Record the before/current result for any metric used as a fix gate and the after result required. A metric that already passes on the known-bad baseline is not a discriminator. |
 | Closure status | `fixed`, `not-reproduced`, `deferred`, `accepted-residual`, or `blocked`. |
+| Cause layer | Preserve prior closed discriminator layers and name the new recurrence layer. |
+| Storage lifetime | Match storage to workflow duration; record scratch durability limits and reconstruction source. |
 
 ## Status Meanings
 

@@ -64,6 +64,13 @@ Before the probe runs, state:
 - How the probe will be removed, converted into a regression test, or retained
   intentionally after it answers the question.
 
+For recurrent symptoms observable only in a user's runtime, a retained field
+probe needs explicit opt-in, disabled-by-default state, bounded/off-path cost,
+stable structured fields, documented purpose, and no secrets or user data.
+Design a countable bad signature and comparable before/after regime. Retention
+requires receipts for default-off state, opt-in, field allowlist, privacy
+review, bounded emission/cardinality, and off-path cost.
+
 If the user must run the real environment, use the same concrete retest style as
 `verification-handoff.md`: setup, actions, expected output or absence, failure
 evidence, and the ledger item closed.
