@@ -90,6 +90,11 @@ diff. The record covers **near miss** failure modes, not distant ones.
 - Planning question: Is concurrent read/write serialized correctly? Are cross-thread visibility guarantees explicit? Do multiple consumers see consistent ordering, or is consumer order an accidental property of registration time?
 - Evidence needed to clear: `Primary source` for the runtime's memory model and the bus/queue's delivery semantics, **or** `Local investigation` exercising the multi-consumer path locally.
 
+When test assertions observe shared/global state under a concurrently executed
+harness, require isolation or attribution that prevents unrelated mutation from
+making correct behavior fail or wrong behavior pass. This is selective A.3
+pressure, not a universal parallel-test checklist.
+
 ### A.4. Persisted config and migrations
 
 **Apply when**: the change adds a config field, changes a default, adds an opt-out, or changes the on-disk schema.

@@ -53,6 +53,13 @@ use `[Repository] - YYYY-MM-DD`.
   diagnosis-complete direct intervention, and requires exact-surface
   perturbation failure for proof-only assertion repairs. `vibe-planning`
   consumes the perturbation requirement through its test no-escape gate.
+- `vibe-planning` now adds selective parallel shared-state attribution,
+  evidence-based proportionality, criterion/mechanism coherence, component
+  lifetime investigation, authoritative enumerations, finding-driven repair
+  identity, revision-specific review, and operator-step feasibility.
+  `vibe-plan-execution` validates full/mutable plan identity, completes only
+  reserved decisions, transparently rebinds uniquely forwarded items, and
+  returns infeasible human-selected mechanisms to their decision owner.
 - Repository documentation now keeps `README.md` as a concise navigation layer:
   it provides host invocation examples, a grouped task-to-skill chooser,
   phase and commit boundaries, the eval quickstart, and explicit source-of-truth

@@ -244,6 +244,25 @@ implementation.
 
 ## Plan Depth and Unproven Triage
 
+Before freezing universal bounds or exhaustive claims, require extreme-state
+and boundary evidence; otherwise preserve the abstract property and keep the
+enumeration `Unproven`. Scale effort from current-slice risk, proof, consent,
+and recovery obligations. Repository size or “personal project” signals may
+compress rendering but never remove mandatory high-risk controls.
+
+Run a criterion-coherence and mechanism-feasibility pass against requirements,
+the target toolchain, earlier/later slice interfaces, and the real actor for
+every operation. Contradictory proof requirements, neighboring-layer
+vocabulary, unavailable proof routes, impossible operations, or insufficient
+earlier interfaces require plan correction, not test-only weakening.
+
+When composing existing components and lifecycle facts can change the plan,
+investigate acquisition/release lifetime, exclusivity, visibility/freshness,
+snapshots, second-holder behavior, and material user cost. For
+property-plus-enumeration decisions, derive membership from named authority or
+mark it `Unproven`. Operator instructions must name the shipped interface for
+each step or explicitly identify an internal harness and product-surface gap.
+
 Choose plan depth after initial investigation. Escalate when new evidence
 reveals a `strict` trigger. Do not choose `light` because it is faster when the
 missing investigation could change scope, acceptance criteria, UX behavior,

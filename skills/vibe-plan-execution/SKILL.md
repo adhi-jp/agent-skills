@@ -93,6 +93,27 @@ gates that controlled the kept changes. A final reply that only lists edited
 files and behavior is not proof that the referenced artifact was read or that
 summary-only scope additions were rejected.
 
+When a plan declares identity mode, validate it before choosing an item.
+`full-only` binds exact bytes. `mutable-contract` binds the full digest plus a
+digest over explicitly named contract sections, excluding only declared
+progress and reserved-decision fields. Progress-only mutation may reconcile;
+requirements, criteria, tests, risks, steps, undeclared fields, or digest
+coverage drift blocks and returns to plan revision.
+
+If a referenced plan lacks the referenced item, search bounded candidate plans.
+Rebind only when exactly one owns the item and the referenced artifact's ledger
+points forward to it; disclose both paths. Otherwise stop for authority.
+
+Complete only a plan-authored reserved decision field. Record date, authority,
+evidence, decision owner, response carrier, owning revision, and proceed update;
+never change scope, criteria, tests, risks, or steps through that field. Batch
+only simultaneously knowable startup decisions.
+
+If faithful execution proves a recorded human-selected mechanism unavailable,
+unsafe, or contradictory, return to that decision owner with evidence and
+bounded alternatives. Do not silently substitute or erase it; record a dated
+superseding decision through the owning artifact revision.
+
 ## Concrete Plan Requirements
 
 A plan is concrete enough to execute only when the current slice has:

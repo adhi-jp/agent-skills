@@ -75,6 +75,11 @@ analyzer warnings, treat each finding as a bounded input:
 
 If a reviewer later asks for one of the deferred adjacent items, run it through the Success Criteria Freeze again. "A reviewer found a related concern" is not enough by itself.
 
+For finding-driven plans, maintain one authoritative `Review findings and
+dispositions` table. Accepted rows are the repair queue; rejected, deferred, and
+blocked rows retain closing evidence. Do not create a second drifting repair or
+checkpoint list.
+
 ## Completion Gate
 
 Plan iteration stops, and the report is delivered, when **all of the following are true for the current slice**:

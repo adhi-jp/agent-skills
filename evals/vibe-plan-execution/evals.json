@@ -268,6 +268,58 @@
         "Does not create the checkpoint commit until the discriminating proof path and inverse-regression review pass.",
         "Separates suite status from acceptance coverage and material review disposition in the execution summary."
       ]
+    },
+    {
+      "id": "E15",
+      "name": "Unique referenced-item rebind",
+      "prompt": "Unique referenced-item rebind. Produce the execution binding or stop decision.",
+      "expected_output": "Execution preserves plan identity and decision ownership.",
+      "files": [],
+      "expectations": [
+        "Names the authoritative plan/item and evidence.",
+        "Does not silently guess, substitute, or mutate contract fields.",
+        "Stops for authority or revision when the governing condition is not met.",
+        "Keeps scope, criteria, tests, risks, and steps unchanged unless a reviewed revision is rebound."
+      ]
+    },
+    {
+      "id": "E16",
+      "name": "Infeasible human mechanism returns to owner",
+      "prompt": "Infeasible human mechanism returns to owner. Produce the execution binding or stop decision.",
+      "expected_output": "Execution preserves plan identity and decision ownership.",
+      "files": [],
+      "expectations": [
+        "Names the authoritative plan/item and evidence.",
+        "Does not silently guess, substitute, or mutate contract fields.",
+        "Stops for authority or revision when the governing condition is not met.",
+        "Keeps scope, criteria, tests, risks, and steps unchanged unless a reviewed revision is rebound."
+      ]
+    },
+    {
+      "id": "E17",
+      "name": "Mutable contract digest validation",
+      "prompt": "Mutable contract digest validation. Produce the execution binding or stop decision.",
+      "expected_output": "Execution preserves plan identity and decision ownership.",
+      "files": [],
+      "expectations": [
+        "Names the authoritative plan/item and evidence.",
+        "Does not silently guess, substitute, or mutate contract fields.",
+        "Stops for authority or revision when the governing condition is not met.",
+        "Keeps scope, criteria, tests, risks, and steps unchanged unless a reviewed revision is rebound."
+      ]
+    },
+    {
+      "id": "E18",
+      "name": "Reserved startup decisions only",
+      "prompt": "Reserved startup decisions only. Produce the execution binding or stop decision.",
+      "expected_output": "Execution preserves plan identity and decision ownership.",
+      "files": [],
+      "expectations": [
+        "Names the authoritative plan/item and evidence.",
+        "Does not silently guess, substitute, or mutate contract fields.",
+        "Stops for authority or revision when the governing condition is not met.",
+        "Keeps scope, criteria, tests, risks, and steps unchanged unless a reviewed revision is rebound."
+      ]
     }
   ],
   "scoring": {

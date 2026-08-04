@@ -149,6 +149,10 @@ report the verified uncommitted state and checkpoint message, and stop before
 the next planned checkpoint unless the user explicitly chooses another
 non-commit checkpoint strategy.
 
+Batch startup questions only when every answer is simultaneously knowable and
+the plan reserved the corresponding field. Do not pre-approve later
+evidence-dependent or human-risk decisions merely to reduce prompts.
+
 ## Delegated Execution Support
 
 When the host exposes a delegation or sub-agent capability — ad-hoc sub-agent

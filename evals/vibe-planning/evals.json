@@ -321,6 +321,136 @@
         "Does not substitute historical failure, prose review, or a neighboring assertion.",
         "Keeps proof Unproven or blocked when the exact safe failure cannot be observed."
       ]
+    },
+    {
+      "id": "E20",
+      "name": "Parallel shared-state proof attribution",
+      "prompt": "Parallel shared-state proof attribution. Create or revise the implementation plan and show the governing decision.",
+      "expected_output": "A plan that applies the named integrity mechanism without universalizing it.",
+      "files": [],
+      "expectations": [
+        "States the named mechanism as an observable plan rule.",
+        "Includes a negative or non-applicable boundary.",
+        "Keeps unsupported details Unproven or blocks implementation.",
+        "Remains plan-only."
+      ]
+    },
+    {
+      "id": "E21",
+      "name": "Universal bounds need extreme evidence",
+      "prompt": "Universal bounds need extreme evidence. Create or revise the implementation plan and show the governing decision.",
+      "expected_output": "A plan that applies the named integrity mechanism without universalizing it.",
+      "files": [],
+      "expectations": [
+        "States the named mechanism as an observable plan rule.",
+        "Includes a negative or non-applicable boundary.",
+        "Keeps unsupported details Unproven or blocks implementation.",
+        "Remains plan-only."
+      ]
+    },
+    {
+      "id": "E22",
+      "name": "Risk-based proportionality preserves controls",
+      "prompt": "Risk-based proportionality preserves controls. Create or revise the implementation plan and show the governing decision.",
+      "expected_output": "A plan that applies the named integrity mechanism without universalizing it.",
+      "files": [],
+      "expectations": [
+        "States the named mechanism as an observable plan rule.",
+        "Includes a negative or non-applicable boundary.",
+        "Keeps unsupported details Unproven or blocks implementation.",
+        "Remains plan-only."
+      ]
+    },
+    {
+      "id": "E23",
+      "name": "Mutable contract identity declaration",
+      "prompt": "Mutable contract identity declaration. Create or revise the implementation plan and show the governing decision.",
+      "expected_output": "A plan that applies the named integrity mechanism without universalizing it.",
+      "files": [],
+      "expectations": [
+        "States the named mechanism as an observable plan rule.",
+        "Includes a negative or non-applicable boundary.",
+        "Keeps unsupported details Unproven or blocks implementation.",
+        "Remains plan-only."
+      ]
+    },
+    {
+      "id": "E25",
+      "name": "Criterion mechanism coherence",
+      "prompt": "Criterion mechanism coherence. Create or revise the implementation plan and show the governing decision.",
+      "expected_output": "A plan that applies the named integrity mechanism without universalizing it.",
+      "files": [],
+      "expectations": [
+        "States the named mechanism as an observable plan rule.",
+        "Includes a negative or non-applicable boundary.",
+        "Keeps unsupported details Unproven or blocks implementation.",
+        "Remains plan-only."
+      ]
+    },
+    {
+      "id": "E26",
+      "name": "Existing component lifetime semantics",
+      "prompt": "Existing component lifetime semantics. Create or revise the implementation plan and show the governing decision.",
+      "expected_output": "A plan that applies the named integrity mechanism without universalizing it.",
+      "files": [],
+      "expectations": [
+        "States the named mechanism as an observable plan rule.",
+        "Includes a negative or non-applicable boundary.",
+        "Keeps unsupported details Unproven or blocks implementation.",
+        "Remains plan-only."
+      ]
+    },
+    {
+      "id": "E27",
+      "name": "Enumerated domain authority",
+      "prompt": "Enumerated domain authority. Create or revise the implementation plan and show the governing decision.",
+      "expected_output": "A plan that applies the named integrity mechanism without universalizing it.",
+      "files": [],
+      "expectations": [
+        "States the named mechanism as an observable plan rule.",
+        "Includes a negative or non-applicable boundary.",
+        "Keeps unsupported details Unproven or blocks implementation.",
+        "Remains plan-only."
+      ]
+    },
+    {
+      "id": "E28",
+      "name": "Finding table owns checkpoint scope",
+      "prompt": "Finding table owns checkpoint scope. Create or revise the implementation plan and show the governing decision.",
+      "expected_output": "A plan that applies the named integrity mechanism without universalizing it.",
+      "files": [],
+      "expectations": [
+        "States the named mechanism as an observable plan rule.",
+        "Includes a negative or non-applicable boundary.",
+        "Keeps unsupported details Unproven or blocks implementation.",
+        "Remains plan-only."
+      ]
+    },
+    {
+      "id": "E29",
+      "name": "Material revision reruns full review",
+      "prompt": "Material revision reruns full review. Create or revise the implementation plan and show the governing decision.",
+      "expected_output": "A plan that applies the named integrity mechanism without universalizing it.",
+      "files": [],
+      "expectations": [
+        "States the named mechanism as an observable plan rule.",
+        "Includes a negative or non-applicable boundary.",
+        "Keeps unsupported details Unproven or blocks implementation.",
+        "Remains plan-only."
+      ]
+    },
+    {
+      "id": "E30",
+      "name": "Operator step names shipped surface",
+      "prompt": "Operator step names shipped surface. Create or revise the implementation plan and show the governing decision.",
+      "expected_output": "A plan that applies the named integrity mechanism without universalizing it.",
+      "files": [],
+      "expectations": [
+        "States the named mechanism as an observable plan rule.",
+        "Includes a negative or non-applicable boundary.",
+        "Keeps unsupported details Unproven or blocks implementation.",
+        "Remains plan-only."
+      ]
     }
   ],
   "scoring": {

@@ -76,3 +76,8 @@ the artifact itself. Valid dispositions are:
 A reviewer suggestion alone is not an admissible basis for adding success
 criteria, implementation steps, or tests. Additions must cite a user
 requirement, newly verified evidence, or a must-preserve equivalence dimension.
+
+Every material plan revision reruns this complete gate against the final revised
+artifact identity. Review superseded wording, stale review/self-review records,
+progress and proceed state, broken references, old finding lists, and old
+identity receipts. Prior-byte review cannot authorize a new revision.
