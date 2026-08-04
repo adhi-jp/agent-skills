@@ -82,6 +82,18 @@ of a live process or task status and start the recovery classification. A fixed
 startup log whose size does not change is a staleness signal, not evidence that
 the worker is working.
 
+Re-arm a monitor before the host's command or callback lifetime expires and
+keep an independent fallback wake. Monitor failure is not worker failure.
+After the runner-native handle/result is captured, stop stale forwarder polling
+but retain runner-task ownership until terminal status and result retrieval.
+Align journal cadence with the declared staleness budget; record order-sensitive
+before-edit/after-verification milestones only when proof depends on them.
+
+User progress updates occur at unit start, a changed actionable blocker, or a
+changed verified unit boundary. Include baseline/allowed paths, proof and review
+state, preserved safe state, and exact recovery action. Suppress unchanged
+polling unless the user requested a cadence.
+
 ### Handle-Returning Transports
 
 Some delegation transports are forwarders: the visible subagent starts work on

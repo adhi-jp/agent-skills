@@ -324,6 +324,115 @@
         "Does not treat requested values as receipts.",
         "Blocks when a missing or mismatched field is contract-critical."
       ]
+    },
+    {
+      "id": "E24",
+      "name": "Monitor lifecycle is distinct from worker lifecycle",
+      "prompt": "Monitor lifecycle is distinct from worker lifecycle. Produce the coordinator decision and proof receipt.",
+      "expected_output": "A bounded orchestration decision preserving independent proof and authority.",
+      "files": [],
+      "expectations": [
+        "Re-arms monitoring before host lifetime limits and keeps an independent fallback wake.",
+        "Does not classify monitor death as worker death.",
+        "Stops stale forwarder polling after handle capture while retaining runner task ownership."
+      ]
+    },
+    {
+      "id": "E25",
+      "name": "Progress updates require changed actionable state",
+      "prompt": "Progress updates require changed actionable state. Produce the coordinator decision and proof receipt.",
+      "expected_output": "A bounded orchestration decision preserving independent proof and authority.",
+      "files": [],
+      "expectations": [
+        "Sends updates at unit start, changed actionable blocker, or changed verified unit boundary.",
+        "Suppresses unchanged polling unless a cadence was requested.",
+        "Includes proof/review state, preserved safe state, and recovery action."
+      ]
+    },
+    {
+      "id": "E26",
+      "name": "Behavior repair attacks original defect",
+      "prompt": "Behavior repair attacks original defect. Produce the coordinator decision and proof receipt.",
+      "expected_output": "A bounded orchestration decision preserving independent proof and authority.",
+      "files": [],
+      "expectations": [
+        "Requires an independent attack on the original defect with concrete input/path evidence.",
+        "Does not accept previously green aggregate gates as repair proof.",
+        "Uses unambiguous verdict vocabulary."
+      ]
+    },
+    {
+      "id": "E27",
+      "name": "Broad suite failure isolates execution mode",
+      "prompt": "Broad suite failure isolates execution mode. Produce the coordinator decision and proof receipt.",
+      "expected_output": "A bounded orchestration decision preserving independent proof and authority.",
+      "files": [],
+      "expectations": [
+        "Compares relevant default and serial or isolated execution modes before product edits.",
+        "Records the execution mode in the receipt.",
+        "Does not universalize serial execution."
+      ]
+    },
+    {
+      "id": "E28",
+      "name": "Oracle deletion and presence review",
+      "prompt": "Oracle deletion and presence review. Produce the coordinator decision and proof receipt.",
+      "expected_output": "A bounded orchestration decision preserving independent proof and authority.",
+      "files": [],
+      "expectations": [
+        "Asks which protected behavior could be deleted while the test still passed.",
+        "Pairs absence checks with same-channel presence proof.",
+        "Bounds non-termination regression modes."
+      ]
+    },
+    {
+      "id": "E29",
+      "name": "Asymmetric flake evidence stays residual",
+      "prompt": "Asymmetric flake evidence stays residual. Produce the coordinator decision and proof receipt.",
+      "expected_output": "A bounded orchestration decision preserving independent proof and authority.",
+      "files": [],
+      "expectations": [
+        "Uses risk-based repeatability rather than a fixed count.",
+        "Records per-run spread and exact recurrence.",
+        "Does not identify or close an unexplained flake from repeated green; recurrence stops for diagnosis."
+      ]
+    },
+    {
+      "id": "E30",
+      "name": "Diagnosis-complete direct intervention",
+      "prompt": "Diagnosis-complete direct intervention. Produce the coordinator decision and proof receipt.",
+      "expected_output": "A bounded orchestration decision preserving independent proof and authority.",
+      "files": [],
+      "expectations": [
+        "Allows a fully specified diagnosis-complete bounded repair or coordinator-only verification capability.",
+        "Rejects new design, human-risk choices, and unverified root causes.",
+        "Requires focused rereview and inverse or symmetric attack for deep invariants."
+      ]
+    },
+    {
+      "id": "E31",
+      "name": "Coordinator-only verification remains coordinator-owned",
+      "prompt": "Coordinator-only verification remains coordinator-owned. Produce the coordinator decision and proof receipt.",
+      "expected_output": "A bounded orchestration decision preserving independent proof and authority.",
+      "files": [],
+      "expectations": [
+        "Keeps executable verification gates with the coordinator.",
+        "Does not let reviewer self-report close the gate.",
+        "Discloses direct intervention scope and verification."
+      ]
+    },
+    {
+      "id": "E32",
+      "name": "Proof-only assertion needs observed perturbation failure",
+      "prompt": "Proof-only assertion needs observed perturbation failure. Produce the coordinator decision and proof receipt.",
+      "expected_output": "A bounded orchestration decision preserving independent proof and authority.",
+      "files": [],
+      "expectations": [
+        "Perturbs the exact asserted surface and observes the new assertion fail.",
+        "Records assertion identity, command/test, status and failure text.",
+        "Reverts and proves no perturbation bytes remain before final real check.",
+        "Keeps the item blocked or Unproven if safe exact failure cannot be observed."
+      ]
     }
   ],
   "scoring": {

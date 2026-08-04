@@ -308,6 +308,19 @@
         "Keeps command non-execution Unproven when the host does not expose command identity and arguments.",
         "Remains plan-only and does not claim implementation verification passed."
       ]
+    },
+    {
+      "id": "E24",
+      "name": "Proof-only repair plans an exact assertion perturbation",
+      "prompt": "Create a plan for strengthening an assertion while product behavior is already correct. No known-bad product baseline exists.",
+      "expected_output": "The plan requires the exact new assertion to fail under a safe reversible perturbation or remains blocked.",
+      "files": [],
+      "expectations": [
+        "Requires a controlled perturbation of the exact asserted surface.",
+        "Requires recorded assertion failure identity/status/text, cleanup proof, and final real check.",
+        "Does not substitute historical failure, prose review, or a neighboring assertion.",
+        "Keeps proof Unproven or blocked when the exact safe failure cannot be observed."
+      ]
     }
   ],
   "scoring": {

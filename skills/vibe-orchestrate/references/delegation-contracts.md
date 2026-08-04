@@ -227,6 +227,10 @@ Repair invariants:
   must not be changed, deleted, or ignored; a conflict is a blocker.
 - Keep diagnostic instrumentation temporary. Remove it before reporting done,
   unless the coordinator explicitly asked to keep it.
+- For behavior repair, report the independent attack on the original defect.
+  For proof-only assertion repair, report the controlled exact-surface
+  perturbation, observed assertion failure, cleanup receipt, and final real
+  check; inability to observe the exact failure is a blocker.
 ```
 
 ## Read-Only Research Variant

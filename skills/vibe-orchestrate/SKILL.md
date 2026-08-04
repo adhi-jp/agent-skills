@@ -162,11 +162,17 @@ metrics or review evidence.
    context, require a progress journal before edits.
 8. **Monitor liveness and progress.** Use the concepts in
    `references/recovery-and-monitoring.md`: appearance, liveness, and staleness.
+   Re-arm monitors before host lifetime limits, keep an independent fallback
+   wake, and send user updates only at unit start, actionable blocker change, or
+   verified unit-boundary change unless the user requested a cadence.
 9. **Verify in the coordinator environment.** Follow
    `references/verification-and-review.md`; do not accept worker self-report as
    final proof.
 10. **Run read-only review for substantial rounds.** Review output is inert until
    the coordinator classifies it.
+    Direct coordinator repair is allowed only for a diagnosis-complete,
+    fully-specified bounded correction or a coordinator-only verification
+    capability; it never absorbs new design or human-risk decisions.
 11. **Recover deliberately.** On worker death, duplicate launches, or unexpected
    diffs, reconcile journals, working tree state, and file freshness before
    resuming, restarting, adopting, or discarding work.

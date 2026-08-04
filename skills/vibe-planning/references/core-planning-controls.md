@@ -63,6 +63,11 @@ Read this reference before finalizing any implementation plan or plan revision. 
   command, and side-effect boundaries. Commands that exist only to obtain a
   passing implementation-style status are not planning evidence; put them in
   the future `Test plan`.
+- When implementation changes only an assertion or oracle while product
+  behavior is already correct, the test no-escape gate requires a safe,
+  reversible perturbation of the exact asserted surface and an observed failure
+  before the final real check. If the exact new assertion cannot be observed
+  failing, keep proof `Unproven` rather than substituting prose review.
 - Use official docs, upstream source, vendor documentation, standards, or
   user-provided source material for claims about external systems. Use local
   reproduction or direct repository inspection for claims about the current

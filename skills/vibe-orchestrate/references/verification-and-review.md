@@ -104,6 +104,29 @@ golden, or build output. External/vendor evidence changes block acceptance;
 self-generated goldens require the named generator and semantic decode or
 inspection; uninspectable changes remain unverified.
 
+For correctness, security, resource, or lifecycle repairs, run an independent
+attack on the original defect with an unambiguous verdict and concrete
+path/input evidence. Previously green aggregate gates are not repair proof.
+When a broad new suite fails first, compare relevant default and
+serial/isolated modes before attributing the failure to product code; record
+the execution mode without universalizing serial runs.
+
+For new concurrency/process/timing/isolation suites, choose repeatability from
+risk rather than a fixed run count and record per-run spread and exact
+recurrence. A clean repeated series bounds residual risk but does not identify
+an unexplained flake; the first recurrence stops verification for diagnosis.
+Freeze characterization assertion identity before repair. Ask which protected
+behavior could be deleted while the test still passed, pair absence checks with
+same-channel presence evidence, and bound non-termination regressions.
+
+For proof-only repair, when product behavior is already correct and the
+assertion/oracle is strengthened, deliberately perturb the exact asserted
+surface so the new assertion is observed failing. Record assertion identity,
+command/test, failure status/text, revert the perturbation, prove no bytes
+remain, then rerun the real check. If that safe reversible failure cannot be
+observed, keep the proof item blocked/`Unproven`; prose review and historical
+failures are not substitutes.
+
 ## Post-Gate Mutation Check
 
 After suspicious worker death, duplicate launch, delayed callback, or any shared
@@ -190,6 +213,13 @@ Direct intervention remains subject to the same verification and review gates.
 It is not a shortcut for a new design choice. If the edit changes behavior and
 is not the direct application of one already-proven correction, use a bounded
 contract or record the design evidence before editing.
+
+Permitted reasons also include a diagnosis-complete fully specified bounded
+repair and an authoritative verification capability available only to the
+coordinator. New design, human-risk decisions, and unverified root causes remain
+outside direct intervention. After changing a deep shared invariant, run a
+focused rereview and attack the inverse or symmetric failure mode; reviewer
+self-report never closes executable gates.
 
 ## Adopting Unexpected Diffs
 

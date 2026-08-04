@@ -47,6 +47,12 @@ use `[Repository] - YYYY-MM-DD`.
   binds resumed sessions to observed roles, compares requested and executed
   metadata, derives quiescence from legitimate quiet work, and treats transport
   lifetime as a sizing constraint rather than proof of independence.
+- `vibe-orchestrate` now bounds monitor lifecycle and progress updates,
+  independently attacks repaired defects, isolates broad failures by execution
+  mode, records risk-based repeatability and flake residuals, expands only
+  diagnosis-complete direct intervention, and requires exact-surface
+  perturbation failure for proof-only assertion repairs. `vibe-planning`
+  consumes the perturbation requirement through its test no-escape gate.
 - Repository documentation now keeps `README.md` as a concise navigation layer:
   it provides host invocation examples, a grouped task-to-skill chooser,
   phase and commit boundaries, the eval quickstart, and explicit source-of-truth
