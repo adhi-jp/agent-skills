@@ -219,6 +219,32 @@
         "Requires coordinator-owned verification in the authoritative environment and records failed, missing, skipped, timed-out, or otherwise unknown gate outcomes as non-green rather than trusting delegated output.",
         "Stays provider-neutral and reference-only: it does not invent a runner adapter or provide a copy-paste monitoring or verification script."
       ]
+    },
+    {
+      "id": "E16",
+      "name": "Finding disposition separates evidence from repair authority",
+      "prompt": "Return a concise coordinator decision record. Three reviewers agree that a high-severity finding should be fixed, but their cited artifact may not support the premise. The coordinator also noticed a contract deviation not mentioned by reviewers.",
+      "expected_output": "The coordinator verifies citations, dispositions both findings, and does not let agreement or severity authorize repair.",
+      "files": [],
+      "expectations": [
+        "Separates verified proposition, authority, remaining inference, severity, scope basis, introduced assumption, disposition, and repair authorization.",
+        "Records a citation-inspection receipt with finding id, anchor, inspected artifact identity/revision, observed support/contradiction/absence, evidence label, inference, and disposition.",
+        "Treats reviewer convergence as a reason to inspect evidence rather than proof.",
+        "Treats the coordinator-noticed deviation as a material finding with rationale and falsification or revisit trigger."
+      ]
+    },
+    {
+      "id": "E17",
+      "name": "Recurrent refutation writeback stays load-bearing",
+      "prompt": "A reviewer finding was rejected from verified local evidence and is likely to recur. The bound implementation plan owns future review context. Describe the writeback decision.",
+      "expected_output": "Write back only the durable verified refutation and anchor when it is load-bearing.",
+      "files": [],
+      "expectations": [
+        "Writes back the verified refuting fact and durable anchor because the bound artifact owns future review context and recurrence is likely.",
+        "Does not copy reviewer prose, vote counts, routine narration, or every rejected finding into the artifact.",
+        "Keeps the rejected disposition and remaining inference explicit.",
+        "Does not authorize unrelated repair work."
+      ]
     }
   ],
   "scoring": {

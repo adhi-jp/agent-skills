@@ -141,6 +141,22 @@ Classify each material finding:
 For every accepted material finding, preserve the `verified` proposition,
 authority source, and any remaining `inferred` proposition in the disposition.
 
+For every material finding, record these fields separately: verified
+proposition, authority, remaining inference, severity, current-scope basis,
+introduced assumption, disposition, and repair authorization. Validity,
+severity, confidence, or reviewer agreement cannot authorize repair by itself.
+
+Coordinator-noticed contract deviations are findings too. Give each an explicit
+disposition, rationale, and falsification or revisit trigger instead of silently
+waiving it. Reviewer convergence is a reason to inspect cited evidence, not a
+vote: record a citation-inspection receipt with finding id, cited anchor,
+artifact identity/revision inspected, observed support/contradiction/absence,
+evidence label, remaining inference, and coordinator disposition.
+
+When a rejected finding is likely to recur and the bound artifact owns future
+review context, write back only the load-bearing verified refutation and anchor.
+Do not turn routine review narration into artifact history.
+
 Do not add success criteria, tests, or implementation work merely because a
 reviewer suggested them. Tie every accepted addition to the plan, a verified
 source, or a protected invariant.

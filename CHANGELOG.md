@@ -31,6 +31,11 @@ use `[Repository] - YYYY-MM-DD`.
   proposed repair, target path, package, or subsystem but does not exclude the
   review workflow itself. The excluded surface remains non-editable and cannot
   become a selectable fix.
+- `vibe-orchestrate` now makes finding authority and repair authorization
+  explicit, treats coordinator-noticed deviations as findings, verifies
+  convergent reviewer claims through citation-inspection receipts rather than
+  vote count, and writes back only recurrent load-bearing refutations to
+  artifacts that own future review context.
 - Repository documentation now keeps `README.md` as a concise navigation layer:
   it provides host invocation examples, a grouped task-to-skill chooser,
   phase and commit boundaries, the eval quickstart, and explicit source-of-truth
