@@ -25,6 +25,45 @@ sys.path.insert(0, str(SCRIPT.parent))
 import eval_runner  # noqa: E402
 
 
+class PathAndProviderEnvironmentTests(unittest.TestCase):
+    @unittest.skipUnless(os.name == "posix", "byte-only filenames require POSIX")
+    def test_path_serialization_is_reversible_and_nonconflating(self):
+        raw = b"tracked/non-utf8-\xff.txt"
+        encoded = eval_runner.serialized_path(os.fsdecode(raw))
+        self.assertEqual(encoded, eval_runner.PATH_BYTES_PREFIX + raw.hex())
+        literal = eval_runner.PATH_BYTES_PREFIX + raw.hex()
+        self.assertEqual(
+            eval_runner.serialized_path(literal),
+            eval_runner.PATH_TEXT_PREFIX + literal,
+        )
+        self.assertEqual(eval_runner.serialized_path("ordinary/日本語.txt"), "ordinary/日本語.txt")
+
+    def test_provider_env_removes_git_redirection_and_preserves_runtime(self):
+        env = {
+            "PATH": "/bin", "LANG": "C.UTF-8", "HOME": "/home/test",
+            "GIT_DIR": "/tmp/redirect.git", "GIT_CONFIG_COUNT": "1",
+            "GIT_CONFIG_KEY_0": "core.sshCommand",
+            "GIT_CONFIG_VALUE_0": "evil", "GIT_SSH_COMMAND": "evil",
+            "GIT_TRACE2_EVENT": "/tmp/trace", "GIT_ASKPASS": "/usr/bin/askpass",
+            "GIT_TERMINAL_PROMPT": "0", "GIT_EXEC_PATH": "/usr/lib/git-core",
+            "PROVIDER_TOKEN": "secret", "CLAUDECODE": "nested",
+        }
+        with mock.patch.dict(os.environ, env, clear=True):
+            got = eval_runner.invocation_env(Path("/tmp"))
+        for key in (
+            "GIT_DIR", "GIT_CONFIG_COUNT", "GIT_CONFIG_KEY_0",
+            "GIT_CONFIG_VALUE_0", "GIT_SSH_COMMAND", "GIT_TRACE2_EVENT",
+            "CLAUDECODE",
+        ):
+            self.assertNotIn(key, got)
+        for key in (
+            "PATH", "LANG", "HOME", "GIT_ASKPASS", "GIT_TERMINAL_PROMPT",
+            "GIT_EXEC_PATH", "PROVIDER_TOKEN",
+        ):
+            self.assertEqual(got[key], env[key])
+        self.assertEqual(got["PWD"], "/tmp")
+
+
 class BaseRunnerTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()

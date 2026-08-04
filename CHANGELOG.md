@@ -69,6 +69,10 @@ use `[Repository] - YYYY-MM-DD`.
   recording, and variance failure surfaces and audits eval case cohesion.
 - `vibe-writing` now requires context-independent saved reports and freezes the
   strongest supported replacement claim before correcting overclaims.
+- `skill-eval` now preserves arbitrary Git path bytes through a reversible
+  non-conflating JSON representation and sanitizes provider invocations against
+  repository/config/object/SSH-exec/trace redirection while preserving provider
+  authentication, runtime, locale, prompt, and executable-discovery state.
 - Repository documentation now keeps `README.md` as a concise navigation layer:
   it provides host invocation examples, a grouped task-to-skill chooser,
   phase and commit boundaries, the eval quickstart, and explicit source-of-truth

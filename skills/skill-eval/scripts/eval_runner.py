@@ -728,6 +728,8 @@ def run_git(repo_root: Path, args: list[str]) -> subprocess.CompletedProcess[str
         [git, "-C", str(repo_root), *args],
         cwd=repo_root,
         text=True,
+        encoding="utf-8",
+        errors="surrogateescape",
         capture_output=True,
         env=sanitized_git_env(),
         check=False,
@@ -736,6 +738,22 @@ def run_git(repo_root: Path, args: list[str]) -> subprocess.CompletedProcess[str
 
 def split_nul_paths(output: str) -> list[str]:
     return [entry for entry in output.split("\0") if entry]
+
+
+PATH_BYTES_PREFIX = "@path-bytes:"
+PATH_TEXT_PREFIX = "@path-text:"
+
+
+def serialized_path(path: str) -> str:
+    """Serialize a filesystem path reversibly without conflating byte names."""
+    raw = os.fsencode(path)
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError:
+        return PATH_BYTES_PREFIX + raw.hex()
+    if text.startswith((PATH_BYTES_PREFIX, PATH_TEXT_PREFIX)):
+        return PATH_TEXT_PREFIX + text
+    return text
 
 
 def sandbox_relative_path_is_excluded(path: Path) -> bool:
@@ -847,7 +865,7 @@ def collect_excluded_untracked_paths(source_repo_root: Path) -> list[str]:
         ["ls-files", "-z", "--others", "--ignored", "--exclude-standard", "--full-name"],
     ):
         paths.update(listed_source_paths(source_repo_root, args))
-    return sorted(paths)
+    return sorted(paths, key=os.fsencode)
 
 
 def copy_tracked_working_tree(source_repo_root: Path, sandbox_repo_root: Path) -> tuple[int, list[str]]:
@@ -1025,7 +1043,9 @@ def create_run_sandbox(source_repo_root: Path, run_dir: Path, skill_path: str | 
         contamination_status=contamination_status,
         contamination_reason=contamination_reason,
         excluded_untracked_count=excluded_untracked_count,
-        excluded_untracked_sample=excluded_untracked_sample,
+        excluded_untracked_sample=[
+            serialized_path(path) for path in excluded_untracked_sample
+        ],
     )
 
 
@@ -1288,7 +1308,7 @@ def manifest_entry(
     target = sandbox_root / rel
     file_type, digest = classify_and_hash_manifest_path(target, sandbox_root)
     return {
-        "path": rel,
+        "path": serialized_path(rel),
         "status": status_value,
         "file_type": file_type,
         "sha256": digest,
@@ -1840,8 +1860,29 @@ def base_env() -> dict[str, str]:
     return {key: value for key, value in os.environ.items() if key != "CLAUDECODE"}
 
 
+PROVIDER_GIT_ENV_EXACT_REMOVE = {
+    "GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR",
+    "GIT_OBJECT_DIRECTORY", "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+    "GIT_CONFIG", "GIT_CONFIG_SYSTEM", "GIT_CONFIG_GLOBAL",
+    "GIT_CONFIG_NOSYSTEM", "GIT_CONFIG_COUNT", "GIT_SSH",
+    "GIT_SSH_COMMAND", "GIT_PROXY_COMMAND",
+}
+PROVIDER_GIT_ENV_PREFIX_REMOVE = (
+    "GIT_CONFIG_KEY_", "GIT_CONFIG_VALUE_", "GIT_TRACE",
+)
+
+
+def provider_env() -> dict[str, str]:
+    return {
+        key: value
+        for key, value in base_env().items()
+        if key not in PROVIDER_GIT_ENV_EXACT_REMOVE
+        and not key.startswith(PROVIDER_GIT_ENV_PREFIX_REMOVE)
+    }
+
+
 def invocation_env(cwd: Path | None = None) -> dict[str, str]:
-    env = base_env()
+    env = provider_env()
     if cwd is not None:
         env["PWD"] = str(cwd.resolve())
     return env
