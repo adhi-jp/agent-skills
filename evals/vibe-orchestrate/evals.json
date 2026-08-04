@@ -134,7 +134,7 @@
     {
       "id": "E10",
       "name": "Frontier coordinator loop uses token-efficient delegates safely",
-      "prompt": "Use `vibe-orchestrate`. I am running a frontier coordinator model with access to cheaper previous-generation subagents. I want to save tokens while implementing a risky auth/session cleanup. Several facts are already known: `src/auth/session.ts` owns token refresh, `tests/auth/session.test.ts` has the regression fixture, and a prior cheap worker contradicted itself about whether refresh errors preserve the old token. Draft the loop and worker contracts. Use cheap subagents wherever possible, but keep quality high. Do not name vendor model IDs.",
+      "prompt": "Use `vibe-orchestrate`. I am running a frontier coordinator model with access to cheaper previous-generation subagents. I want to reduce token use while implementing a risky auth/session cleanup, but no measured token or quality comparison exists. Several facts are already known: `src/auth/session.ts` owns token refresh, `tests/auth/session.test.ts` has the regression fixture, and a prior cheap worker contradicted itself about whether refresh errors preserve the old token. Draft the loop and worker contracts. Use cheap subagents wherever quality-neutral, but keep quality high and distinguish the intended economy from any measured improvement claim. Do not name vendor model IDs.",
       "expected_output": "A provider-neutral orchestration loop that uses a frontier/strong coordinator or strongest suitable tier for decomposition, contradiction resolution, risk and final decisions, while assigning token-efficient delegates only bounded quality-neutral lookup/check tasks with compact context digests, receipts, and escalation triggers.",
       "files": [],
       "expectations": [
@@ -263,7 +263,7 @@
     {
       "id": "E19",
       "name": "Registration and count delta prove inclusion",
-      "prompt": "A worker adds one new test module. The suite is green, but the harness reports the same total test count as the frozen baseline. Produce the coordinator acceptance decision.",
+      "prompt": "A worker adds one new test module. The suite is green, but the harness reports the same total test count as the frozen baseline. Produce the coordinator acceptance decision, including who must own the discovery or registration surface needed to prove inclusion.",
       "expected_output": "The coordinator rejects inclusion proof until registration and expected count delta reconcile.",
       "files": [],
       "expectations": [
@@ -388,7 +388,7 @@
     {
       "id": "E29",
       "name": "Asymmetric flake evidence stays residual",
-      "prompt": "A concurrency test passed 50 consecutive runs after a fix, but one earlier failure was never explained. Decide how to treat the residual risk.",
+      "prompt": "A concurrency test passed 50 consecutive runs after a fix, but one earlier failure was never explained and only the aggregate streak—not per-run spread—is currently recorded. Decide how to treat the residual risk, what repeatability standard applies, and what evidence record is still required.",
       "expected_output": "A bounded orchestration decision preserving independent proof and authority.",
       "files": [],
       "expectations": [
@@ -424,13 +424,13 @@
     {
       "id": "E32",
       "name": "Proof-only assertion needs observed perturbation failure",
-      "prompt": "Product behavior is already correct; a worker only strengthened an assertion. Decide what proves the strengthened assertion actually holds.",
+      "prompt": "This is a response-only proof decision; do not execute tests or mutate files. Product behavior is already correct and a worker only strengthened an assertion. Decide what observed evidence would prove the strengthened assertion is load-bearing, what cleanup receipt is required, and what status applies until that evidence exists.",
       "expected_output": "A bounded orchestration decision preserving independent proof and authority.",
       "files": [],
       "expectations": [
-        "Perturbs the exact asserted surface and observes the new assertion fail.",
-        "Records assertion identity, command/test, status and failure text.",
-        "Reverts and proves no perturbation bytes remain before final real check.",
+        "In this response-only case, states that proof requires a future exact-surface perturbation with an observed assertion failure, without claiming that the observation already occurred.",
+        "In this response-only case, specifies that the future evidence record must include assertion identity, command/test, status, and failure text; it need not provide those not-yet-observed values.",
+        "In this response-only case, specifies that the future cleanup receipt must prove the perturbation was reverted and no perturbation bytes remain before the final real check; it need not provide a completed receipt.",
         "Keeps the item blocked or Unproven if safe exact failure cannot be observed."
       ]
     }

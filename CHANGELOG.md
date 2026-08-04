@@ -47,6 +47,16 @@ use `[Repository] - YYYY-MM-DD`.
   the closing 26-case, 52-cell Codex run with `gpt-5.6-luna` had zero
   infrastructure, sanity, fixture-dirty, or candidate-below-baseline anomalies,
   at `with_skill` 95.3% versus `without_skill` 75.9% (+19.4 points).
+- `vibe-orchestrate` eval prompts now expose the model-tier claim boundary,
+  registration ownership, missing per-run flake evidence, and response-only
+  perturbation-proof mode that their expectations assess. Proof-only assertion
+  cases require an observed future failure record without falsely requiring the
+  decision response itself to execute mutations. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`;
+  the closing 32-case, 64-cell Codex run with `gpt-5.6-luna` scored
+  `with_skill` 87.6% versus `without_skill` 60.5% (+27.1 points), with zero
+  infrastructure, fixture-dirty, or candidate-below-baseline anomalies. The two
+  zero-scored cells were reviewed baseline failures in E09 and E12.
 - `vibe-planning` now limits planning-time commands to pre-registered minimal
   investigations whose outcomes can change the plan and to independently
   required plan-artifact integrity, review, status, diff, and closure
