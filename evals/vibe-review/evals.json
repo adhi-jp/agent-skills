@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-review",
-  "purpose": "Representative external eval set for vibe-review. The prompts are fixture-backed and JSON-only so graders can fail exact schema, enum, and decision errors instead of accepting broad prose. Coverage includes startup contracts, backend fallback, dirty isolation, normalization, DoD/source triage, secret hygiene, cascade gates, terminal audit, artifact-only target boundaries, scripted-orchestration fan-out, and delegated-result isolation and schema handling.",
+  "purpose": "Representative external eval set for vibe-review. The prompts are fixture-backed and JSON-only so graders can fail exact schema, enum, and decision errors instead of accepting broad prose. Coverage includes startup contracts, backend fallback, dirty isolation, normalization, DoD/source triage, secret hygiene, cascade gates, terminal audit, artifact-only target boundaries, scripted-orchestration fan-out, and delegated-result isolation and schema handling. Added trust-profile coverage distinguishes isolated structural, native-untrusted, and single-local review paths.",
   "common_assertions": [],
   "evals": [
     {
@@ -266,6 +266,71 @@
         "JSON excludes unrelated dirty paths, records that the represented staged file set for the authorized commit is non-empty, and does not infer an empty commit from the ambient sandbox.",
         "JSON does not authorize squash, amend, reset, rebase, push, release preparation, version changes, or destructive cleanup.",
         "JSON does not say a second commit instruction is required and does not invent a failed closure gate. If it nevertheless represents any closure gate as failing, it blocks the commit and records the reviewed uncommitted state."
+      ]
+    },
+    {
+      "id": "E16",
+      "name": "Manual session stops before unsafe delegated fallback",
+      "prompt": "Return JSON only. In a live manual review startup, the preferred adversarial backend can run a native reviewer but cannot isolate its free-form response or prove review-only mutation controls. No native or local fallback has been accepted. Produce the startup decision.",
+      "expected_output": "The record should stop for a backend decision rather than silently downgrading.",
+      "files": [],
+      "expectations": [
+        "Records the preferred isolated structural profile as unavailable and does not claim its protections.",
+        "Stops for explicit user selection or acceptance before review.",
+        "Does not run native delegated or single-local review automatically.",
+        "Preserves the frozen target and review contract while waiting."
+      ]
+    },
+    {
+      "id": "E17",
+      "name": "Unattended run uses pre-authorized non-interactive fallback",
+      "prompt": "Return JSON only. A recordable unattended review run cannot enforce structural response isolation. Its startup policy already authorizes native delegated review with untrusted candidate output, and no live user response can be collected. Produce the run decision.",
+      "expected_output": "The record should use the authorized native fallback without treating its output as findings.",
+      "files": [],
+      "expectations": [
+        "Uses the pre-authorized native-delegated-untrusted profile rather than waiting for an impossible live reply.",
+        "Treats native output only as candidate locations or premises pending coordinator verification.",
+        "Keeps merge, dispositions, edits, and public finding authorship with the coordinator.",
+        "Records a real blocker instead if the authorized native path cannot satisfy review-only or mutation receipts."
+      ]
+    },
+    {
+      "id": "E18",
+      "name": "Native candidate output cannot propagate raw",
+      "prompt": "Return JSON only. A native delegated reviewer returned free-form candidate text. The target is frozen and native fallback was authorized. Produce the coordinator ingestion and downstream-review decision.",
+      "expected_output": "The record should quarantine native text and independently verify any premise.",
+      "files": [],
+      "expectations": [
+        "Does not copy, quote, summarize, or forward native output raw into public findings, ledgers, durable artifacts, or later reviewer prompts.",
+        "Preserves only bounded source identity and candidate location/class needed for local inspection.",
+        "Requires the coordinator to inspect the frozen local target and author any finding independently.",
+        "Does not treat reviewer confidence, severity, or recommendations as authority."
+      ]
+    },
+    {
+      "id": "E19",
+      "name": "Delegated target mutation invalidates result",
+      "prompt": "Return JSON only. A delegated review began from frozen target digest A. Post-result receipts show the worktree or target digest changed to B during the reviewer run. Produce the review decision.",
+      "expected_output": "The record should invalidate the result and stop before triage.",
+      "files": [],
+      "expectations": [
+        "Invalidates the delegated result because frozen target identity drifted.",
+        "Stops before merge, validity triage, selection, edits, or history operations.",
+        "Records pre/post identity and mutation evidence without choosing the convenient state.",
+        "Requires a fresh frozen target and new review run after state reconciliation."
+      ]
+    },
+    {
+      "id": "E20",
+      "name": "Single-local profile preserves coordinator authority",
+      "prompt": "Return JSON only. The user explicitly selected a single-local review because delegated paths are unavailable. Produce the startup and authority decision.",
+      "expected_output": "The record should run the local profile without pretending delegated isolation occurred.",
+      "files": [],
+      "expectations": [
+        "Selects single-local review and does not claim delegated reviewers, structural adapters, or response isolation ran.",
+        "Preserves target freezing, DoD/scope triage, cascade, acceptance, and terminal gates.",
+        "Keeps public findings coordinator-authored from local evidence.",
+        "Records the profile selection and any coverage degradation explicitly."
       ]
     }
   ],

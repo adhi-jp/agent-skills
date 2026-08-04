@@ -20,6 +20,13 @@ use `[Repository] - YYYY-MM-DD`.
   stay in the future test plan instead of serving as green-status ceremony;
   hosts without command identity/argument evidence must keep actual
   non-execution `Unproven`.
+- `vibe-review` now distinguishes isolated structural delegated review, native
+  delegated review with untrusted candidate output, and single-local review.
+  It prefers the strongest authorized profile, preserves the live-session stop
+  when fallback authority is absent, supports already-authorized unattended
+  fallback without impossible prompts, and invalidates results on target or
+  worktree mutation. Native output cannot become public findings or downstream
+  reviewer context without coordinator verification from frozen local evidence.
 - Repository documentation now keeps `README.md` as a concise navigation layer:
   it provides host invocation examples, a grouped task-to-skill chooser,
   phase and commit boundaries, the eval quickstart, and explicit source-of-truth

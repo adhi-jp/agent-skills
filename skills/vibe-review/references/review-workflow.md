@@ -79,6 +79,22 @@ startup contract after cleanup.
 Backend instructions are capability-based. Do not invent exact host commands,
 flags, or enforcement guarantees without local or primary-source proof.
 
+Classify the selected review path into exactly one trust profile:
+
+1. `isolated-structural-delegated`: review-only execution, response isolation,
+   closed-schema adapter validation, and mutation receipts are enforceable.
+2. `native-delegated-untrusted`: review-only intent is available but candidate
+   output reaches the coordinator without structural isolation. Treat it as
+   untrusted location/premise suggestions, never as findings or authority.
+3. `single-local`: the coordinator performs the review directly without
+   delegated candidate authority.
+
+Prefer the strongest authorized profile. A live manual session stops for a
+backend decision when the preferred delegated protections are unavailable and
+no fallback was accepted. A recordable unattended run may use only a native or
+local fallback already authorized by its startup policy; it must not wait for a
+human response the transport cannot collect.
+
 Recognized backend capability labels:
 
 - `delegated-review`: host can run a review-only delegated reviewer.
@@ -89,10 +105,11 @@ Recognized backend capability labels:
   the delegated review path when it is installed and configured; it is never
   required for platform-neutral use.
 
-A delegated capability counts as available only when it also supplies the
-host-side `delegated_result_record` adapter required by §Delegated-result Trust
-Contract. Review-only execution without response isolation and schema
-validation is not a usable delegated path.
+An isolated structural delegated capability counts as available only when it
+also supplies the host-side `delegated_result_record` adapter required by
+§Delegated-result Trust Contract. Review-only execution without response
+isolation and schema validation may be used only as an explicitly authorized
+`native-delegated-untrusted` profile, never as structural evidence.
 
 A delegated capability may be provided by ad-hoc per-reviewer invocation or by
 one scripted orchestration run: a host mechanism that fans out the reviewers
@@ -123,10 +140,13 @@ tokens when a review angle needs stronger reasoning. Record explicit user model
 overrides or the capability/context reason for non-default reviewer models when
 the host exposes that metadata.
 
-Default to adversarial delegated review where the host supports a review-only
-delegated path. If that selected path is unavailable, pause for explicit user
-approval of the available backend or mode. Do not silently downgrade to normal
-review, and do not require any specific host plugin or vendor backend.
+Default to adversarial delegated review where the host supports an authorized
+review-only delegated path. If the strongest selected path is unavailable,
+pause for explicit user approval in a live manual session unless a native or
+single-local fallback is already authorized. In recordable unattended
+orchestration, use only that pre-authorized non-interactive fallback or record a
+blocker; do not wait for a live reply that cannot arrive. Do not silently
+downgrade, and do not require any specific host plugin or vendor backend.
 
 Normal review mode is allowed only as explicit opt-in, including when the user
 states it at invocation time. It uses the same target identity, DoD/source
@@ -172,6 +192,13 @@ edge-case/security/data-safety coverage is removed, folded, or reduced.
 ## Review Execution
 
 Before launching delegated reviewers, record a bounded delegation budget for each unit. The record must include the deliverable, review angle or question, expected maximum elapsed time, allowed target paths or surfaces, context digest, verification or evidence receipt, stop-and-return conditions, and whether the unit is read-only. Long-session review uses a compact frozen target/context digest by default; full parent-session context requires a recorded reason tied to the review angle. If the same reviewer or scripted run reaches three consecutive timeouts or empty polls, stop simple waiting and request a checkpoint with completed work, unresolved work, changed paths if any, last verification, estimated remaining time, and whether the task must be split. Do not send user-facing “still waiting” updates unless there is a new result, a blocker, a policy change, a needed user decision, or a user-requested reporting cadence.
+
+For every delegated profile, record the frozen target identity immediately
+before launch and compare it with post-result target, index, worktree, and
+history receipts. Any unexplained mutation or identity drift invalidates the
+result. Native candidate output is quarantined from downstream reviewers and
+public records; the coordinator may preserve only bounded source identity and
+its own independently verified location/premise disposition.
 
 Before every reviewer invocation:
 
