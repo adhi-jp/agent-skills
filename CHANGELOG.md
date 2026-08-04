@@ -13,6 +13,16 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skill-quality` now treats accumulated `SKILL.md` size and instruction
+  reachability as quality surfaces: always-applicable activation, scope, stop,
+  and load-bearing rules stay in the skill body, while conditional procedures,
+  long checklists, domain variants, tool detail, and historical rationale move
+  to explicitly routed references when they obscure the core contract.
+  `skill-quality`, `skill-eval`, `vibe-writing`, `vibe-orchestrate`, and
+  `minecraft-modding-workbench` now use focused references for detailed
+  quality, runner, artifact, coordinator, MCP, and verification guidance
+  without changing skill versions. Evals not run; static validation is recorded
+  for the affected suites.
 - `vibe-planning` now limits planning-time commands to pre-registered minimal
   investigations whose outcomes can change the plan and to independently
   required plan-artifact integrity, review, status, diff, and closure
