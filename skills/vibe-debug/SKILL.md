@@ -16,6 +16,12 @@ This skill is self-contained. Use useful project rules, docs, tools, and
 available skills when they clearly apply, but do not require any other skill to
 debug, fix, verify, or hand off the issue.
 
+For recurrent symptoms observable only in the user's runtime, retained probes
+are exceptional: explicit opt-in, disabled by default, bounded and privacy-safe,
+with a countable comparable discriminator. After a verified fix, preserve a
+still-green prior discriminator and open a new cause layer instead of rewriting
+the closed cause.
+
 ## When to Use
 
 Use this for existing-feature repair when the user reports any of these:

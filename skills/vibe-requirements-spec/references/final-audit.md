@@ -278,6 +278,10 @@ Before responding, check:
 - If build-changing local evidence checks remain open, does the summary name
   them under a clear `Local evidence still needed`-style label alongside user
   decisions instead of presenting user replies as the only remaining gate?
+- Does every proxy-deferred unknown have authoritative inherited evidence,
+  current-slice non-dependence, impact, revisit trigger, and
+  `AI-selected deferral`, with no human-risk, approval, accepted-risk, finish,
+  or handoff implication?
 - In explicit chat-only mode, does the response state that no spec file was
   written and name the exact next user action for artifact drafting or lifecycle
   handoff?

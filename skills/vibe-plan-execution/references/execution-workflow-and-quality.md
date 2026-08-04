@@ -108,6 +108,10 @@ and does not authorize the next step or any commit.
      changes behavior, scope, tests, risks, or the proceed condition.
    - If the concrete plan requirements are missing and the gap affects
      implementation, stop and ask for a planning update instead of filling it in.
+   - Validate any declared `full-only` or `mutable-contract` identity and digest
+     coverage before selecting an item. If the named item is absent, rebind only
+     through one unique owning candidate plus the referenced artifact's forward
+     pointer; otherwise stop for authority.
 2. **Run startup consent preflight when needed**
    - Apply the Startup Consent Preflight before editing when the bound plan or
      current instruction contains consent-bound items.

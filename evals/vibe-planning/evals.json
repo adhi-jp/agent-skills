@@ -451,6 +451,20 @@
         "Keeps unsupported details Unproven or blocks implementation.",
         "Remains plan-only."
       ]
+    },
+    {
+      "id": "E31",
+      "name": "Reserved decisions and startup batching stay bounded",
+      "prompt": "Create a plan that reserves two simultaneously knowable low-risk startup decisions and leaves a later permission-sensitive decision unresolved.",
+      "expected_output": "The plan defines reserved fields and batches only the safe startup decisions.",
+      "files": [],
+      "expectations": [
+        "Defines explicit reserved decision fields with owner, allowed authority, response carrier, and proceed effect.",
+        "Allows only plan-authored reserved fields to be completed later.",
+        "Does not change scope, acceptance criteria, tests, risks, or implementation steps through reserved fields.",
+        "Batches only simultaneously knowable startup decisions and leaves evidence-dependent or human-risk decisions at their later gates.",
+        "Remains plan-only."
+      ]
     }
   ],
   "scoring": {

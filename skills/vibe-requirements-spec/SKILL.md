@@ -181,6 +181,12 @@ requirements by themselves. The main AI remains responsible for final judgment,
 requirements updates, and recording whether a decision came from the user,
 local evidence, a proposed default, or a proxy perspective.
 
+A trusted proxy may defer only an authoritative-source-inherited,
+lower-priority unknown that the current slice does not need and that is outside
+all human-risk categories. Record `AI-selected deferral`, evidence, impact, and
+revisit trigger; it is never approval, accepted risk, finish evidence, or
+handoff authority.
+
 ## Source and Configuration Boundaries
 
 Treat user goals, external evidence, local codebase documentation, existing

@@ -37,6 +37,11 @@ non-plan files in the same response.
 - Phase relevance: current-slice implementation blocker | proof before implementation | deferred decision | non-implementation follow-up
 - Recommended path:
 
+## Review findings and dispositions
+| Finding ID | Verified proposition and authority | Disposition | Repair obligation or closing evidence | Status |
+| --- | --- | --- | --- | --- |
+| [For review/audit/diagnostic-driven slices only. Accepted rows are the canonical repair list; rejected, deferred, and blocked rows preserve evidence and reason.] |
+
 ## Acceptance criteria
 - [Observable pass/fail criterion]
 
@@ -147,6 +152,24 @@ evidence-backed status such as `In progress`, `Completed`, `Blocked`, or
 remaining-work facts. For single-slice or discovery-only plans, either omit this
 section or record `Not applicable` with a concise reason.]
 
+## Plan identity
+- Mode: `full-only` | `mutable-contract`
+- Full artifact digest:
+- Contract-section digest:
+- Contract sections:
+- Declared mutable progress or reserved-decision fields:
+
+[In `mutable-contract` mode, the full digest identifies exact bytes and the
+contract digest covers explicitly named authority-bearing sections. Exclude only
+declared progress and reserved-decision fields. A ledger-only mutation may
+preserve contract identity; requirements, criteria, tests, risks, steps, or
+undeclared-field drift requires reviewed plan revision.]
+
+## Reserved decisions
+| Decision ID | Reserved field | Decision owner | Allowed authority | Response carrier | Proceed effect |
+| --- | --- | --- | --- | --- | --- |
+| [Only decisions explicitly reserved by this plan may be completed later. Scope, criteria, tests, risks, and implementation steps are not mutable through this table.] |
+
 ## Commit checkpoints
 - [For multi-slice plans with code-producing slices: checkpoint scope, required
   verification, and a proposed standalone Conventional Commit message. Use an
@@ -174,6 +197,11 @@ section or record `Not applicable` with a concise reason.]
   In ineligible checkpoint plans, do not include `Subject:`, `Body:`, a
   Conventional Commit example, a proposed message, or conditional future commit
   text anywhere in the plan.]
+
+[For finding-driven work, derive checkpoint file or directory scope from the
+accepted finding obligations, including proof and registration surfaces, not
+only known defect locations. When exact files are not evidence-backed, use a
+package/directory boundary with explicit exclusions.]
 
 ## Risks and unproven items
 - Item:
