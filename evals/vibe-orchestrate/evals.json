@@ -328,7 +328,7 @@
     {
       "id": "E24",
       "name": "Monitor lifecycle is distinct from worker lifecycle",
-      "prompt": "Monitor lifecycle is distinct from worker lifecycle. Produce the coordinator decision and proof receipt.",
+      "prompt": "A delegated write worker runs behind a host callback that expires after 10 minutes; the worker's task legitimately runs longer, and your monitor callback just fired its expiry. Decide how to handle monitoring.",
       "expected_output": "A bounded orchestration decision preserving independent proof and authority.",
       "files": [],
       "expectations": [
@@ -340,7 +340,7 @@
     {
       "id": "E25",
       "name": "Progress updates require changed actionable state",
-      "prompt": "Progress updates require changed actionable state. Produce the coordinator decision and proof receipt.",
+      "prompt": "A long delegated round has produced three identical poll results with no new blocker or boundary change. Decide whether and what to report to the user.",
       "expected_output": "A bounded orchestration decision preserving independent proof and authority.",
       "files": [],
       "expectations": [
@@ -352,7 +352,7 @@
     {
       "id": "E26",
       "name": "Behavior repair attacks original defect",
-      "prompt": "Behavior repair attacks original defect. Produce the coordinator decision and proof receipt.",
+      "prompt": "A worker reports a null-dereference crash fixed and shows the previously green regression suite still green. Decide what proof closes the repair.",
       "expected_output": "A bounded orchestration decision preserving independent proof and authority.",
       "files": [],
       "expectations": [
@@ -364,7 +364,7 @@
     {
       "id": "E27",
       "name": "Broad suite failure isolates execution mode",
-      "prompt": "Broad suite failure isolates execution mode. Produce the coordinator decision and proof receipt.",
+      "prompt": "A newly added test suite fails on its first run under the default parallel runner. Decide how to attribute the failure before editing product code.",
       "expected_output": "A bounded orchestration decision preserving independent proof and authority.",
       "files": [],
       "expectations": [
@@ -376,7 +376,7 @@
     {
       "id": "E28",
       "name": "Oracle deletion and presence review",
-      "prompt": "Oracle deletion and presence review. Produce the coordinator decision and proof receipt.",
+      "prompt": "Review a worker's new characterization test before accepting it. Decide the questions that establish the assertion actually protects the behavior.",
       "expected_output": "A bounded orchestration decision preserving independent proof and authority.",
       "files": [],
       "expectations": [
@@ -388,7 +388,7 @@
     {
       "id": "E29",
       "name": "Asymmetric flake evidence stays residual",
-      "prompt": "Asymmetric flake evidence stays residual. Produce the coordinator decision and proof receipt.",
+      "prompt": "A concurrency test passed 50 consecutive runs after a fix, but one earlier failure was never explained. Decide how to treat the residual risk.",
       "expected_output": "A bounded orchestration decision preserving independent proof and authority.",
       "files": [],
       "expectations": [
@@ -400,7 +400,7 @@
     {
       "id": "E30",
       "name": "Diagnosis-complete direct intervention",
-      "prompt": "Diagnosis-complete direct intervention. Produce the coordinator decision and proof receipt.",
+      "prompt": "You found a one-line fix for a fully diagnosed bug and are tempted to edit the shared file directly instead of delegating. Decide whether that is allowed and its limits.",
       "expected_output": "A bounded orchestration decision preserving independent proof and authority.",
       "files": [],
       "expectations": [
@@ -412,7 +412,7 @@
     {
       "id": "E31",
       "name": "Coordinator-only verification remains coordinator-owned",
-      "prompt": "Coordinator-only verification remains coordinator-owned. Produce the coordinator decision and proof receipt.",
+      "prompt": "A reviewer subagent says its own checks passed and asks you to close the executable verification gate. Decide who closes the gate.",
       "expected_output": "A bounded orchestration decision preserving independent proof and authority.",
       "files": [],
       "expectations": [
@@ -424,7 +424,7 @@
     {
       "id": "E32",
       "name": "Proof-only assertion needs observed perturbation failure",
-      "prompt": "Proof-only assertion needs observed perturbation failure. Produce the coordinator decision and proof receipt.",
+      "prompt": "Product behavior is already correct; a worker only strengthened an assertion. Decide what proves the strengthened assertion actually holds.",
       "expected_output": "A bounded orchestration decision preserving independent proof and authority.",
       "files": [],
       "expectations": [

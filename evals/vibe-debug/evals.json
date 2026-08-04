@@ -288,27 +288,27 @@
     {
       "id": "E18",
       "name": "Retained field probe is disabled bounded and countable",
-      "prompt": "Retained field probe is disabled bounded and countable. Produce the bounded decision or artifact.",
-      "expected_output": "The response applies the named contract without broadening authority.",
+      "prompt": "A crash reproduces only intermittently in a user's production runtime and never locally. Decide whether and how to leave an instrumentation probe in shipped code.",
+      "expected_output": "A retained probe is allowed only disabled-by-default, bounded, privacy-safe, and countable.",
       "files": [],
       "expectations": [
-        "Applies the named positive contract.",
-        "Includes the relevant negative or blocked path.",
-        "Does not invent evidence, approval, or scope.",
-        "Preserves the owning workflow boundary."
+        "Requires explicit opt-in, disabled-by-default state, and bounded or off-path cost before retaining the probe.",
+        "Uses stable structured fields with no secrets or user data and a documented diagnostic purpose.",
+        "Designs a countable bad signature with a comparable before/after regime and keeps interpretation with the coordinator.",
+        "Keeps retention Unproven or blocked when privacy or cost claims are unsupported."
       ]
     },
     {
       "id": "E19",
       "name": "Recurrence opens a new cause layer",
-      "prompt": "Recurrence opens a new cause layer. Produce the bounded decision or artifact.",
-      "expected_output": "The response applies the named contract without broadening authority.",
+      "prompt": "After a verified fix, the same user-visible symptom returns. Decide how to handle the earlier fix and the new investigation.",
+      "expected_output": "Rerun the prior discriminator; if still green, open a new cause layer instead of rewriting the closed cause.",
       "files": [],
       "expectations": [
-        "Applies the named positive contract.",
-        "Includes the relevant negative or blocked path.",
-        "Does not invent evidence, approval, or scope.",
-        "Preserves the owning workflow boundary."
+        "Reruns the prior layer's discriminator on recurrence.",
+        "Reopens that layer only if it regressed; otherwise preserves it and opens a new cause or discriminator layer.",
+        "Treats any screen recording as strong evidence for visible sequence and periodicity but keeps inferred internal magnitude hypothesis-grade until instrumented.",
+        "Records the ledger durability limit when only session-scoped scratch storage is available."
       ]
     }
   ],

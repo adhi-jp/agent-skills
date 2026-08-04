@@ -455,40 +455,40 @@
     {
       "id": "E23",
       "name": "Failure surface classification before prose",
-      "prompt": "Failure surface classification before prose. Produce the bounded decision or artifact.",
-      "expected_output": "The response applies the named contract without broadening authority.",
+      "prompt": "An eval case fails once. Before editing any skill prose, decide how you classify the cause.",
+      "expected_output": "The cause is classified across the distinct failure surfaces before any prose edit.",
       "files": [],
       "expectations": [
-        "Applies the named positive contract.",
-        "Includes the relevant negative or blocked path.",
-        "Does not invent evidence, approval, or scope.",
-        "Preserves the owning workflow boundary."
+        "Distinguishes missing contract, reference reachability, within-body salience, prompt/invocation mismatch, grader/assertion defect, measurement/recording gap, and run variance.",
+        "Does not promote or rewrite skill prose from a single miss or run variance.",
+        "Requires repeated stable evidence before promoting one load-bearing invariant.",
+        "Avoids creating duplicate authority across body, reference, README, and changelog."
       ]
     },
     {
       "id": "E24",
       "name": "Eval case cohesion audit",
-      "prompt": "Eval case cohesion audit. Produce the bounded decision or artifact.",
-      "expected_output": "The response applies the named contract without broadening authority.",
+      "prompt": "You are reviewing a newly written eval case. Decide the cohesion checks it must pass before it is trusted as pressure.",
+      "expected_output": "The case is audited for cohesion and rejected if it leaks the answer or does not discriminate.",
       "files": [],
       "expectations": [
-        "Applies the named positive contract.",
-        "Includes the relevant negative or blocked path.",
-        "Does not invent evidence, approval, or scope.",
-        "Preserves the owning workflow boundary."
+        "Audits alignment of the primary decision surface, artifact owner, proof carrier, natural prompt, split conditions, and assertion coverage.",
+        "Flags a prompt that leaks the expected answer or an expectation set that does not separate compliant from non-compliant output.",
+        "Splits an overloaded matrix prompt into separate natural cases where behaviors differ.",
+        "Preserves exact mechanical or region-scoped predicates rather than weakening them to keyword checks."
       ]
     },
     {
       "id": "E25",
       "name": "Semantic contextual entailment preserves mechanics",
-      "prompt": "Semantic contextual entailment preserves mechanics. Produce the bounded decision or artifact.",
-      "expected_output": "The response applies the named contract without broadening authority.",
+      "prompt": "One assertion checks a semantic property that a compliant answer can satisfy through distributed phrasing; another checks an exact field value. Decide how each is graded.",
+      "expected_output": "The semantic assertion allows distributed entailment while the mechanical one stays exact.",
       "files": [],
       "expectations": [
-        "Applies the named positive contract.",
-        "Includes the relevant negative or blocked path.",
-        "Does not invent evidence, approval, or scope.",
-        "Preserves the owning workflow boundary."
+        "Accepts distributed contextual entailment for the semantic assertion instead of requiring one keyword.",
+        "Keeps the exact field or region-scoped assertion mechanical and non-weakened.",
+        "Does not convert the mechanical predicate into a loose semantic match.",
+        "Checks for collisions with existing reachability and paraphrase rules."
       ]
     }
   ],

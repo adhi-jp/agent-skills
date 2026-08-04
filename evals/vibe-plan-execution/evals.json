@@ -272,53 +272,53 @@
     {
       "id": "E15",
       "name": "Unique referenced-item rebind",
-      "prompt": "Unique referenced-item rebind. Produce the execution binding or stop decision.",
-      "expected_output": "Execution preserves plan identity and decision ownership.",
+      "prompt": "Execute item 'C3' from `docs/plans/foo-plan.md`. That plan has no item 'C3', but its ledger's next-dependency points forward to `docs/plans/foo-part2-plan.md`, which contains 'C3' and no other candidate plan does. Decide how to bind.",
+      "expected_output": "Execution rebinds to the unique owning plan and discloses both paths, or stops.",
       "files": [],
       "expectations": [
-        "Names the authoritative plan/item and evidence.",
-        "Does not silently guess, substitute, or mutate contract fields.",
-        "Stops for authority or revision when the governing condition is not met.",
-        "Keeps scope, criteria, tests, risks, and steps unchanged unless a reviewed revision is rebound."
+        "Searches bounded candidate plans and rebinds only because exactly one plan owns item 'C3'.",
+        "Confirms the referenced plan's own ledger points forward to that plan before rebinding.",
+        "Discloses both the referenced path and the corrected path with the correction.",
+        "Does not silently execute the nearest-looking item or invent the binding when ownership is ambiguous."
       ]
     },
     {
       "id": "E16",
       "name": "Infeasible human mechanism returns to owner",
-      "prompt": "Infeasible human mechanism returns to owner. Produce the execution binding or stop decision.",
-      "expected_output": "Execution preserves plan identity and decision ownership.",
+      "prompt": "The bound plan records a human-selected decision to store tokens in a named OS keyring. During execution that keyring service is unavailable on the target platform. Decide how to proceed.",
+      "expected_output": "Execution stops and returns the infeasible mechanism to its decision owner.",
       "files": [],
       "expectations": [
-        "Names the authoritative plan/item and evidence.",
-        "Does not silently guess, substitute, or mutate contract fields.",
-        "Stops for authority or revision when the governing condition is not met.",
-        "Keeps scope, criteria, tests, risks, and steps unchanged unless a reviewed revision is rebound."
+        "Stops the affected slice instead of silently substituting an alternative token store.",
+        "Returns to the recorded decision owner with the evidence and bounded alternatives.",
+        "Records any replacement as a dated superseding decision through the owning artifact revision.",
+        "Does not erase or overwrite the original recorded decision inside execution."
       ]
     },
     {
       "id": "E17",
       "name": "Mutable contract digest validation",
-      "prompt": "Mutable contract digest validation. Produce the execution binding or stop decision.",
-      "expected_output": "Execution preserves plan identity and decision ownership.",
+      "prompt": "Bind a plan that declares mutable-contract identity. Its acceptance-criteria section digest no longer matches the recorded contract digest, though the progress ledger also changed. Decide whether to execute.",
+      "expected_output": "Execution blocks because a contract section changed, not just the ledger.",
       "files": [],
       "expectations": [
-        "Names the authoritative plan/item and evidence.",
-        "Does not silently guess, substitute, or mutate contract fields.",
-        "Stops for authority or revision when the governing condition is not met.",
-        "Keeps scope, criteria, tests, risks, and steps unchanged unless a reviewed revision is rebound."
+        "Validates the declared identity mode and both digests before selecting an item.",
+        "Recognizes that a ledger-only change would be reconcilable but an acceptance-criteria digest mismatch is not.",
+        "Blocks execution and returns to plan revision for the contract drift.",
+        "Does not proceed by treating the criteria drift as a benign progress update."
       ]
     },
     {
       "id": "E18",
       "name": "Reserved startup decisions only",
-      "prompt": "Reserved startup decisions only. Produce the execution binding or stop decision.",
-      "expected_output": "Execution preserves plan identity and decision ownership.",
+      "prompt": "The bound plan reserves two low-risk startup decisions and leaves a permission-sensitive decision unresolved. You have batched authorization. Decide what you may complete before editing.",
+      "expected_output": "Execution completes only the plan-authored reserved low-risk fields and stops for the permission decision.",
       "files": [],
       "expectations": [
-        "Names the authoritative plan/item and evidence.",
-        "Does not silently guess, substitute, or mutate contract fields.",
-        "Stops for authority or revision when the governing condition is not met.",
-        "Keeps scope, criteria, tests, risks, and steps unchanged unless a reviewed revision is rebound."
+        "Completes only the two plan-authored reserved decision fields, recording authority, evidence, owner, carrier, and proceed update.",
+        "Leaves the permission-sensitive decision at its later gate rather than batching it.",
+        "Does not change scope, criteria, tests, risks, or steps through a reserved field.",
+        "Batches only simultaneously knowable startup decisions."
       ]
     }
   ],

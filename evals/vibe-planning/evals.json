@@ -325,130 +325,130 @@
     {
       "id": "E20",
       "name": "Parallel shared-state proof attribution",
-      "prompt": "Parallel shared-state proof attribution. Create or revise the implementation plan and show the governing decision.",
-      "expected_output": "A plan that applies the named integrity mechanism without universalizing it.",
+      "prompt": "Plan a test suite for a rate limiter whose cases read and write one shared in-memory counter, run concurrently in the same process. Give the acceptance criteria and test plan.",
+      "expected_output": "The plan requires isolation or attribution so concurrent cases cannot corrupt each other's assertions.",
       "files": [],
       "expectations": [
-        "States the named mechanism as an observable plan rule.",
-        "Includes a negative or non-applicable boundary.",
-        "Keeps unsupported details Unproven or blocks implementation.",
-        "Remains plan-only."
+        "Flags that concurrently executed cases sharing the in-memory counter can make a correct limiter fail or a broken one pass.",
+        "Requires per-case isolation or attribution (separate state, unique keys, or serialized access) before the assertions are trusted.",
+        "Does not impose that isolation rule on unrelated single-threaded or independent-state tests.",
+        "Keeps acceptance criteria and the test plan before implementation and remains plan-only."
       ]
     },
     {
       "id": "E21",
       "name": "Universal bounds need extreme evidence",
-      "prompt": "Universal bounds need extreme evidence. Create or revise the implementation plan and show the governing decision.",
-      "expected_output": "A plan that applies the named integrity mechanism without universalizing it.",
+      "prompt": "Plan work that will document a parser as accepting 'up to 64 nested levels' and freeze 64 in a test. Only depth 8 has been exercised. Give the acceptance criteria.",
+      "expected_output": "The plan keeps the 64 bound Unproven until boundary/extreme-state evidence exists.",
       "files": [],
       "expectations": [
-        "States the named mechanism as an observable plan rule.",
-        "Includes a negative or non-applicable boundary.",
-        "Keeps unsupported details Unproven or blocks implementation.",
+        "Refuses to freeze 64 as a tested invariant without evidence at, near, and beyond the boundary.",
+        "Marks the depth limit Unproven or requires boundary measurement before implementation.",
+        "Keeps the general 'bounded nesting' property as the contract instead of the unverified exact number.",
         "Remains plan-only."
       ]
     },
     {
       "id": "E22",
       "name": "Risk-based proportionality preserves controls",
-      "prompt": "Risk-based proportionality preserves controls. Create or revise the implementation plan and show the governing decision.",
-      "expected_output": "A plan that applies the named integrity mechanism without universalizing it.",
+      "prompt": "Plan a change to a personal side project that rotates a production API credential and deletes old secrets. The user says 'it's just my small repo, keep it lightweight.' Give the plan depth and controls.",
+      "expected_output": "The plan compresses rendering effort but keeps credential and destructive controls.",
       "files": [],
       "expectations": [
-        "States the named mechanism as an observable plan rule.",
-        "Includes a negative or non-applicable boundary.",
-        "Keeps unsupported details Unproven or blocks implementation.",
+        "Scales narrative and rendering effort down for the small project where evidence permits.",
+        "Keeps the mandatory high-risk controls for credential rotation and secret deletion despite the 'small repo' signal.",
+        "Treats 'personal project' or repo size as weak evidence that never removes consent, data-safety, or proof obligations.",
         "Remains plan-only."
       ]
     },
     {
       "id": "E23",
       "name": "Mutable contract identity declaration",
-      "prompt": "Mutable contract identity declaration. Create or revise the implementation plan and show the governing decision.",
-      "expected_output": "A plan that applies the named integrity mechanism without universalizing it.",
+      "prompt": "Plan a multi-slice feature whose implementation-progress ledger will change during execution while its requirements and acceptance criteria must stay frozen. Show how the plan declares its identity.",
+      "expected_output": "The plan declares an identity mode separating frozen contract sections from mutable ledger fields.",
       "files": [],
       "expectations": [
-        "States the named mechanism as an observable plan rule.",
-        "Includes a negative or non-applicable boundary.",
-        "Keeps unsupported details Unproven or blocks implementation.",
+        "Declares an explicit identity mode (full-only or mutable-contract) rather than leaving revision identity implicit.",
+        "In mutable mode, records both a full-artifact digest and a contract-section digest that excludes only declared progress and reserved fields.",
+        "States that a ledger-only update preserves contract identity while criteria, test, risk, or step drift requires a reviewed revision.",
         "Remains plan-only."
       ]
     },
     {
       "id": "E25",
       "name": "Criterion mechanism coherence",
-      "prompt": "Criterion mechanism coherence. Create or revise the implementation plan and show the governing decision.",
-      "expected_output": "A plan that applies the named integrity mechanism without universalizing it.",
+      "prompt": "Plan a feature whose acceptance criterion says a browser-side JavaScript function must 'set an HTTP-only cookie and read the client's raw TCP source port.' Give acceptance criteria and flag any problem.",
+      "expected_output": "The plan flags the impossible or mislayered operation and corrects the criterion before implementation.",
       "files": [],
       "expectations": [
-        "States the named mechanism as an observable plan rule.",
-        "Includes a negative or non-applicable boundary.",
-        "Keeps unsupported details Unproven or blocks implementation.",
+        "Reads the criterion against the real actor and flags that browser JavaScript cannot read a raw TCP source port.",
+        "Identifies the borrowed transport/network-layer vocabulary as incoherent for the client-side mechanism.",
+        "Corrects the plan criterion before implementation rather than only weakening the test to pass.",
         "Remains plan-only."
       ]
     },
     {
       "id": "E26",
       "name": "Existing component lifetime semantics",
-      "prompt": "Existing component lifetime semantics. Create or revise the implementation plan and show the governing decision.",
-      "expected_output": "A plan that applies the named integrity mechanism without universalizing it.",
+      "prompt": "Plan a feature that composes an existing file-lock helper with a cached config reader while two requests may run at once. Give the investigation and acceptance criteria.",
+      "expected_output": "The plan investigates lock and cache lifetime facts before freezing the design.",
       "files": [],
       "expectations": [
-        "States the named mechanism as an observable plan rule.",
-        "Includes a negative or non-applicable boundary.",
-        "Keeps unsupported details Unproven or blocks implementation.",
+        "Records lifetime facts for the composed components: lock acquisition/release, exclusivity, and second-holder behavior.",
+        "Records cache visibility, freshness, and snapshot behavior that could change correctness under concurrent requests.",
+        "Applies this because the composition semantics can change design or criteria, not as a blanket checklist for every API call.",
         "Remains plan-only."
       ]
     },
     {
       "id": "E27",
       "name": "Enumerated domain authority",
-      "prompt": "Enumerated domain authority. Create or revise the implementation plan and show the governing decision.",
-      "expected_output": "A plan that applies the named integrity mechanism without universalizing it.",
+      "prompt": "Plan validation that rejects a fixed list of 'dangerous' shell environment variable names and a fixed set of permission bits. The list was written from memory. Give acceptance criteria.",
+      "expected_output": "The plan derives the enumeration from an authoritative source or marks it Unproven.",
       "files": [],
       "expectations": [
-        "States the named mechanism as an observable plan rule.",
-        "Includes a negative or non-applicable boundary.",
-        "Keeps unsupported details Unproven or blocks implementation.",
+        "Requires the denied-variable and permission-bit membership to come from a named authoritative source.",
+        "Marks the from-memory enumeration Unproven and keeps the abstract 'reject dangerous variables' property as the contract.",
+        "Records residual coverage and the proof path for completing the enumeration.",
         "Remains plan-only."
       ]
     },
     {
       "id": "E28",
       "name": "Finding table owns checkpoint scope",
-      "prompt": "Finding table owns checkpoint scope. Create or revise the implementation plan and show the governing decision.",
-      "expected_output": "A plan that applies the named integrity mechanism without universalizing it.",
+      "prompt": "Plan repair work driven by a code review that produced accepted, rejected, and deferred findings across two packages. Show how the plan tracks items and derives checkpoint scope.",
+      "expected_output": "One authoritative findings table drives the repair queue and checkpoint scope.",
       "files": [],
       "expectations": [
-        "States the named mechanism as an observable plan rule.",
-        "Includes a negative or non-applicable boundary.",
-        "Keeps unsupported details Unproven or blocks implementation.",
+        "Uses one findings-and-dispositions table where accepted rows are the canonical repair queue and rejected/deferred rows keep evidence.",
+        "Derives checkpoint file or package scope from accepted item obligations, not only from known defect locations, using directory boundaries with exclusions when files are unknown.",
+        "Does not create a second requirements or checkpoint list that can drift from the findings table.",
         "Remains plan-only."
       ]
     },
     {
       "id": "E29",
       "name": "Material revision reruns full review",
-      "prompt": "Material revision reruns full review. Create or revise the implementation plan and show the governing decision.",
-      "expected_output": "A plan that applies the named integrity mechanism without universalizing it.",
+      "prompt": "You are revising an already-reviewed plan to change one acceptance criterion and add a slice. Show how review is handled for this revision.",
+      "expected_output": "The full multi-perspective review reruns against the revised artifact identity.",
       "files": [],
       "expectations": [
-        "States the named mechanism as an observable plan rule.",
-        "Includes a negative or non-applicable boundary.",
-        "Keeps unsupported details Unproven or blocks implementation.",
+        "Reruns the complete multi-perspective review gate for the material revision rather than reusing the prior review.",
+        "Targets superseded wording, stale review/self-review records, progress/proceed state, broken references, and old identity.",
+        "States that the prior review bound to earlier bytes cannot authorize the new revision.",
         "Remains plan-only."
       ]
     },
     {
       "id": "E30",
       "name": "Operator step names shipped surface",
-      "prompt": "Operator step names shipped surface. Create or revise the implementation plan and show the governing decision.",
-      "expected_output": "A plan that applies the named integrity mechanism without universalizing it.",
+      "prompt": "Plan a runbook whose acceptance criterion is that an on-call operator can rotate a key using documented steps. Only an internal test harness currently performs the rotation. Give acceptance criteria.",
+      "expected_output": "The plan names a shipped operator surface per step or records the product-surface gap.",
       "files": [],
       "expectations": [
-        "States the named mechanism as an observable plan rule.",
-        "Includes a negative or non-applicable boundary.",
-        "Keeps unsupported details Unproven or blocks implementation.",
+        "Requires each operator step to name a shipped command, subcommand, or interface that performs it.",
+        "Flags that only an internal or disposable harness can perform the rotation and records the product-surface gap explicitly.",
+        "Does not present the internal harness or a neighboring operation as equivalent operator proof.",
         "Remains plan-only."
       ]
     },

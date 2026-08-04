@@ -281,27 +281,27 @@
     {
       "id": "E16",
       "name": "Saved audit stands without chat context",
-      "prompt": "Saved audit stands without chat context. Produce the bounded decision or artifact.",
-      "expected_output": "The response applies the named contract without broadening authority.",
+      "prompt": "Draft a saved postmortem file, in Japanese, about a failed deploy for a reader who never saw this chat. Use only these supplied facts: service `checkout`, the failed task was a schema migration, status is now rolled back.",
+      "expected_output": "The report establishes subject, trigger, deviation, and status from supplied facts and reads without chat context.",
       "files": [],
       "expectations": [
-        "Applies the named positive contract.",
-        "Includes the relevant negative or blocked path.",
-        "Does not invent evidence, approval, or scope.",
-        "Preserves the owning workflow boundary."
+        "Establishes the subject, triggering task or event, deviation, and current status using only supplied facts and durable anchors.",
+        "Passes a context-stripped-reader check: no reliance on 'this chat', 'the above', or prompt-local shorthand.",
+        "Writes the report in Japanese as requested while preserving identifiers such as `checkout` verbatim.",
+        "Does not invent enterprise context or impose a universal report template."
       ]
     },
     {
       "id": "E17",
       "name": "Overclaim correction freezes permitted claim",
-      "prompt": "Overclaim correction freezes permitted claim. Produce the bounded decision or artifact.",
-      "expected_output": "The response applies the named contract without broadening authority.",
+      "prompt": "A draft says 'this cache fix eliminates all latency spikes.' The only authoritative source states the fix reduces spikes caused by cold starts. Rewrite the claim.",
+      "expected_output": "The correction states the strongest permitted claim and adds the limitation.",
       "files": [],
       "expectations": [
-        "Applies the named positive contract.",
-        "Includes the relevant negative or blocked path.",
-        "Does not invent evidence, approval, or scope.",
-        "Preserves the owning workflow boundary."
+        "Replaces the overclaim with the strongest claim the authoritative source supports (cold-start spikes reduced), not another unsupported promise.",
+        "Adds the adjacent limitation so a reader cannot infer the old 'all latency spikes' promise.",
+        "Does not delete only adjectives while keeping the broad promise, and does not invent a new benefit.",
+        "Would state the permitted boundary for review if no authoritative replacement existed rather than guessing one."
       ]
     }
   ],
