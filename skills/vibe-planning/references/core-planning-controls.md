@@ -57,6 +57,12 @@ Read this reference before finalizing any implementation plan or plan revision. 
   slice's behavior depends on adjacent surfaces such as callers, registration,
   stored data, permissions, UI state, layout, rendering, accessibility, or
   external contracts.
+- A planning investigation command needs a decision-bearing question and a
+  pre-registered result-to-plan mapping. Record why existing evidence is
+  insufficient, possible outcomes, affected plan fields, the narrowest safe
+  command, and side-effect boundaries. Commands that exist only to obtain a
+  passing implementation-style status are not planning evidence; put them in
+  the future `Test plan`.
 - Use official docs, upstream source, vendor documentation, standards, or
   user-provided source material for claims about external systems. Use local
   reproduction or direct repository inspection for claims about the current

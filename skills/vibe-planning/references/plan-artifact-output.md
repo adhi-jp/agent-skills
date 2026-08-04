@@ -293,6 +293,14 @@ Before finalizing the plan, check that:
   were provided, no commits were made, no implementation completion was claimed,
   and no active implementation tasks, phases, or follow-up execution items were
   added while using `vibe-planning`.
+- Planning-time commands were limited to pre-registered plan-changing
+  investigations and current plan-artifact integrity, review, status, diff, or
+  closure operations. Each investigation records its unresolved question,
+  evidence gap, possible outcomes, affected plan fields, narrowest safe command,
+  side-effect boundary, and actual planning impact. Tests, evals, builds, lint,
+  type checks, and similar later-implementation proof were left in the future
+  `Test plan`; command non-execution is not claimed when the host did not expose
+  command identity and arguments.
 - `Commit checkpoints` matches the `Proceed condition`: ineligible plans do not
   include proposed commit messages, Conventional Commit examples, conditional
   future commit text, or `Subject:`/`Body:` bytes anywhere in the artifact, and

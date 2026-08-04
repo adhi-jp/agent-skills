@@ -22,6 +22,14 @@ uncertainty visible.
 artifact. Do not implement, edit application code, tests, skill packages, evals,
 non-plan docs, configs, changelogs, or any other non-plan artifact.
 
+Planning-time commands are limited to a pre-registered minimal investigation
+whose result can change the current plan, plus the plan-artifact integrity,
+review, status, diff, and closure operations independently required by this
+workflow. Tests, eval runs, builds, lint, type checks, and similar commands whose
+purpose is to prove a later implementation belong in the plan's future test
+work; calling such a command “investigation” or “verification” does not authorize
+green-status ceremony during planning.
+
 Apply the same boundary to the active task list, checklist, or tool-managed
 plan. Active tasks may cover only plan artifact work. Do not add current-turn
 implementation phases, execution slices, or non-plan edit tasks, or

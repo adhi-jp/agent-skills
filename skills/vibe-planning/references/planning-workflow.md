@@ -20,6 +20,23 @@ Read this reference when drafting or revising the implementation-plan body. It o
      the current outcome.
 2. **Investigate before asking**
    - Inspect the workspace and primary sources relevant to the current slice.
+   - Before running a planning-time investigation command, pre-register the
+     unresolved question, why the evidence already available cannot answer it,
+     the possible outcomes, the exact plan fields each outcome could change,
+     the narrowest safe command, and its read/write or external side-effect
+     boundary. Run the command only when at least one result can materially
+     change scope, acceptance criteria, proof strategy, feasibility, risk,
+     implementation order, or the proceed condition.
+   - Keep later implementation proof in the future `Test plan`. Do not run a
+     test suite, eval, build, lint, type check, smoke test, or similar
+     green-status command merely to decorate the plan with a passing result.
+     A command described as “investigate” or “verify” is still disallowed when
+     every possible result leaves the plan unchanged.
+   - Preserve planning operations that have their own current-artifact purpose:
+     reading source and plan files, inspecting plan structure and identity,
+     checking status or diffs, gathering review and self-review evidence, and
+     performing an authorized scoped planning-artifact checkpoint. These
+     operations do not prove the later implementation.
    - Before deep implementation design, name the material investigation surfaces
      the slice depends on: direct implementation, callers, registration or
      configuration, data/schema boundaries, tests or fixtures, user-visible
@@ -303,6 +320,13 @@ Read this reference when drafting or revising the implementation-plan body. It o
      corrections made, and any remaining material issues. If remaining material
      issues exist, the `Proceed condition` must block or clearly state the
      required decision/proof.
+   - Audit planning-time command use: every investigation command has the
+     pre-registered question, evidence gap, possible outcomes, affected fields,
+     and safe boundary; every executed result informed the plan or is recorded
+     as a non-changing observation; and no later-implementation verification
+     command was run for green-status ceremony. When the host does not expose
+     command identity and arguments, keep actual command non-execution
+     `Unproven` rather than inferring it from the final prose.
 14. **Create the planning-artifact checkpoint**
    - When explicit invocation supplied local checkpoint permission and the
      tracked plan changed, run a dirty worktree and index preflight after both

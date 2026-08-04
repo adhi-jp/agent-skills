@@ -13,6 +13,13 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-planning` now limits planning-time commands to pre-registered minimal
+  investigations whose outcomes can change the plan and to independently
+  required plan-artifact integrity, review, status, diff, and closure
+  operations. Later implementation tests, evals, builds, lint, and type checks
+  stay in the future test plan instead of serving as green-status ceremony;
+  hosts without command identity/argument evidence must keep actual
+  non-execution `Unproven`.
 - Repository documentation now keeps `README.md` as a concise navigation layer:
   it provides host invocation examples, a grouped task-to-skill chooser,
   phase and commit boundaries, the eval quickstart, and explicit source-of-truth
