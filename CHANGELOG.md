@@ -34,6 +34,19 @@ use `[Repository] - YYYY-MM-DD`.
   assertions with zero infrastructure, sanity, fixture-dirty, or
   candidate-below-baseline anomalies, at `with_skill` 100.0% versus
   `without_skill` 77.6% (+22.4 points).
+- `skill-quality` eval applicability now treats reusable contract translation
+  as conditional on proposing a prose edit; a no-change decision may instead
+  name the provisional failure surface while the contract gap remains
+  unproven. The single-failure classification case now explicitly requests the
+  surface inventory and promotion threshold that its expectations grade.
+  No-change cases no longer need to invent an eval mutation or coverage
+  inventory, and narrow data-boundary and semantic/mechanical grading prompts
+  now state the decision boundaries their expectations actually assess.
+  Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`;
+  the closing 26-case, 52-cell Codex run with `gpt-5.6-luna` had zero
+  infrastructure, sanity, fixture-dirty, or candidate-below-baseline anomalies,
+  at `with_skill` 95.3% versus `without_skill` 75.9% (+19.4 points).
 - `vibe-planning` now limits planning-time commands to pre-registered minimal
   investigations whose outcomes can change the plan and to independently
   required plan-artifact integrity, review, status, diff, and closure
