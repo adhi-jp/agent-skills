@@ -47,6 +47,18 @@ use `[Repository] - YYYY-MM-DD`.
   the closing 26-case, 52-cell Codex run with `gpt-5.6-luna` had zero
   infrastructure, sanity, fixture-dirty, or candidate-below-baseline anomalies,
   at `with_skill` 95.3% versus `without_skill` 75.9% (+19.4 points).
+- `skill-quality` now treats auxiliary eval workflow mechanics as a case-cohesion
+  surface. Commands, subagents, review transport, artifact rewriting, and
+  optional host capabilities must be bounded or split out when they are not the
+  contract under test, especially when retries or expansion dominate runtime,
+  output size, or proof transport. No-change classification answers may apply
+  supplied facts directly without producing an evidence-map narration, and
+  cohesion assertions now grade answer leakage and scoped mechanical predicates
+  semantically rather than by one phrase. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`;
+  the closing 26-case, 52-cell Codex run with `gpt-5.6-luna` had zero
+  infrastructure, sanity, fixture-dirty, or candidate-below-baseline anomalies,
+  at `with_skill` 95.4% versus `without_skill` 77.1% (+18.3 points).
 - `vibe-orchestrate` eval prompts now expose the model-tier claim boundary,
   registration ownership, missing per-run flake evidence, and response-only
   perturbation-proof mode that their expectations assess. Proof-only assertion

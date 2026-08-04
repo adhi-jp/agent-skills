@@ -109,6 +109,13 @@ into skill outputs.
   commands or a full implementation artifact from a decision-only prompt
   produced systematic false negatives even when the decision itself was
   correct.
+- Eval cases also became misleading when optional workflow mechanics became an
+  unplanned second target. A proportionality case intended to test concise
+  high-risk planning expanded into repeated artifact rewrites and delegated
+  review until the executor timed out. Binding commands and subagents to a
+  coordinator fallback preserved the credential and destructive-safety
+  contract while preventing review transport from dominating runtime and output
+  size.
 - No-change cases produced another false-negative class when graders treated
   "`SKILL.md`: no edit" as a proposed skill mutation or required a fresh eval
   edit after the output identified existing targeted coverage as sufficient.
@@ -252,6 +259,9 @@ into skill outputs.
 - Common assertions degraded decision-only and closure cases when they required
   full artifact sections, performed mutations, or proof that could not exist in
   the recorded output mode.
+- Optional commands, subagents, review loops, and artifact rewrites degraded
+  case cohesion when they materially changed runtime or output but were neither
+  named nor measured as part of the target contract.
 
 ## Practical Synthesis
 

@@ -93,6 +93,15 @@ discriminating, observable, and hard to pass with the old failure mode.
   response-only case unless the prompt explicitly requests the exact command
   sequence; do not require a complete plan body from a closure-only decision;
   and do not grade a blocked case as completed implementation.
+- Separate the contract under test from auxiliary workflow mechanics. Commands,
+  subagents, review transport, artifact rewriting, optional host capabilities,
+  and iterative self-correction can materially change runtime, output size, and
+  proof surfaces even when the case is meant to test only a decision rule. When
+  an auxiliary mechanism is not itself under test, bind it to a deterministic
+  non-executing or bounded fallback mode, or split it into a separate case. When
+  it is under test, make that second contract and its evidence explicit. Do not
+  let an optional capability become a hidden target that dominates the measured
+  behavior.
 - In a no-change or blocked case, allow the output to prove scope by naming an
   existing rule, eval, or artifact as sufficient and explicitly declining to
   edit it. Do not treat that no-change explanation as a proposed mutation, and
@@ -127,6 +136,13 @@ discriminating, observable, and hard to pass with the old failure mode.
   intends capture or availability only, say so in the executor contract and
   add runner-level regression coverage; do not rely only on the target skill to
   negate the scaffold.
+- When a timeout or extreme token/output increase includes repeated tool
+  retries, artifact churn, delegated review loops, or optional-capability
+  expansion, inspect whether the case accidentally measures that auxiliary
+  workflow instead of its stated contract. Treat this as a case-cohesion,
+  invocation, or runtime-cost confound before attributing it to the target skill.
+  Narrow the auxiliary mode without weakening the behavior, safety, consent, or
+  proof requirement the case was designed to test.
 - Write expectations against visible output, files, commands, records, or
   decisions, not against style taste.
 - For a natural-language assertion whose contract is semantic rather than
