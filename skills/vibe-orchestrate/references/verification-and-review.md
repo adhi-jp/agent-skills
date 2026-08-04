@@ -114,6 +114,12 @@ root accident:
 - Confirm no unexpected writer touched verified files after the gate.
 - If mutation happened, repeat review and verification for the final bytes.
 
+When a round is failed, timed out, resumed, receipt-less, or metadata-ambiguous,
+accept it only after runner, report, journal, named task or process, and tree
+evidence, executed role, and host-exposed launch metadata reconcile. Requested
+model, effort, write access, cwd, role, or flags are not proof of observed
+execution.
+
 ## Read-Only Review Perspectives
 
 For substantial write rounds, use read-only review before repair:

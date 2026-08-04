@@ -40,6 +40,26 @@ When a worker dies, times out, or returns partial output:
    items as the only editable work.
 7. Verify any kept bytes through coordinator gates.
 
+An outer launch failure or missing receipt does not prove that no work landed.
+Before relaunch, inspect the round baseline-to-tree diff and any report or
+journal, salvage coordinator-verified analysis and premise contradictions, and
+classify every contract item as completed, partial, untouched, or blocked.
+
+Use this receipt decision:
+
+| Receipt state | Relaunch / writer-slot decision | Evidence treatment |
+| --- | --- | --- |
+| Available and consistent | Release only after terminal/process absence and final tree audit | May become coordinator-verified evidence |
+| Absent but independently observable from named task/process/tree carriers and non-critical | Hold until those carriers prove terminal and allowed-path quiescence | Record degraded evidence and the missing field |
+| Absent and not independently observable for a contract-critical fact | Hold the slot and block relaunch/acceptance | `Unproven` blocker; use named cancellation or user recovery |
+| Contradictory | Hold and reconcile; never choose the convenient channel | All channels remain untrusted |
+| Outer failure with tree/report residue | Audit diff and report before relaunch | Adopt only after ordinary review and verification |
+
+Derive the quiescence budget from the contract's longest legitimate quiet
+command and observable descendant/task state; do not hard-code a quiet period.
+If descendants or the legitimate quiet phase cannot be observed, quiescence is
+not proven.
+
 ## Watchdog Concepts
 
 Completion-only notification is not enough. Monitor these conditions using the
@@ -86,6 +106,15 @@ When the receipt contains a handle instead of the contracted report:
 
 A retry while the runner task remains active is a duplicate-writer risk, even
 when the forwarding subagent has already disappeared from the host task list.
+
+Resume or attach binds to a specific session role and sandbox contract, not
+merely a thread id. Prefer a fresh self-contained write round after read-only
+work unless the exact session and role are named and actual role receipts match.
+Read back host-exposed model/effort/write/cwd/task metadata after launch and
+compare it with the contract; requested settings are not execution receipts.
+Transport lifetime is a unit-sizing constraint: split repeated over-window
+units, keep coupled splits serial, and record the transport-driven reason
+without claiming work-graph independence.
 
 Before fanning out over a delegation transport, command form, background mode,
 or flag combination not yet used in the current session, run one minimal

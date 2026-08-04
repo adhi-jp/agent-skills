@@ -41,6 +41,12 @@ use `[Repository] - YYYY-MM-DD`.
   ownership, protected baselines, and discovery/registration ownership. When a
   harness exposes stable counts, verification reconciles the expected artifact
   delta instead of accepting a green suite with unchanged inclusion.
+- `vibe-orchestrate` recovery now holds writer slots across receipt-less,
+  contradictory, failed, resumed, or metadata-ambiguous rounds until named
+  task/process and tree evidence reconcile. It audits residue before relaunch,
+  binds resumed sessions to observed roles, compares requested and executed
+  metadata, derives quiescence from legitimate quiet work, and treats transport
+  lifetime as a sizing constraint rather than proof of independence.
 - Repository documentation now keeps `README.md` as a concise navigation layer:
   it provides host invocation examples, a grouped task-to-skill chooser,
   phase and commit boundaries, the eval quickstart, and explicit source-of-truth

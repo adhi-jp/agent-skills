@@ -272,6 +272,58 @@
         "Rejects a green suite with unchanged total as proof that the new test ran.",
         "Does not impose a universal count rule when the harness cannot expose stable counts."
       ]
+    },
+    {
+      "id": "E20",
+      "name": "Receipt-less round blocks duplicate relaunch",
+      "prompt": "A write round lost its report receipt. Named process descendants and the longest legitimate quiet command cannot be observed. Decide whether to relaunch.",
+      "expected_output": "A coordinator recovery decision that preserves task identity and observed execution evidence.",
+      "files": [],
+      "expectations": [
+        "Keeps the writer slot and blocks relaunch because quiescence is not proven.",
+        "Audits runner, report, journal, task/process, and tree carriers.",
+        "Does not use a fixed quiet interval or tree quietness alone.",
+        "Uses named cancellation or user recovery for the unresolved contract-critical task."
+      ]
+    },
+    {
+      "id": "E21",
+      "name": "Resume role mismatch requires fresh write round",
+      "prompt": "A read-only investigation session is available to resume for a write repair, but the requested write role has no observed role/sandbox receipt.",
+      "expected_output": "A coordinator recovery decision that preserves task identity and observed execution evidence.",
+      "files": [],
+      "expectations": [
+        "Does not treat requested write flags as executed-role proof.",
+        "Prefers a fresh self-contained write round unless exact session and role receipts match.",
+        "Keeps the old analysis as untrusted until coordinator verification.",
+        "Does not silently mutate through the read-only session."
+      ]
+    },
+    {
+      "id": "E22",
+      "name": "Failed launch salvages residue before relaunch",
+      "prompt": "The outer launcher failed, but a report and tree diff contain partial edits and a premise contradiction.",
+      "expected_output": "A coordinator recovery decision that preserves task identity and observed execution evidence.",
+      "files": [],
+      "expectations": [
+        "Inspects baseline-to-tree diff and report before any relaunch.",
+        "Classifies contract items completed, partial, untouched, or blocked.",
+        "Salvages only coordinator-verified analysis or contradictions.",
+        "Adopts edits only after ordinary review and verification."
+      ]
+    },
+    {
+      "id": "E23",
+      "name": "Requested launch metadata is not observed metadata",
+      "prompt": "The contract requested a model tier, effort, write access, cwd, and task role, but the host exposes different executed metadata.",
+      "expected_output": "A coordinator recovery decision that preserves task identity and observed execution evidence.",
+      "files": [],
+      "expectations": [
+        "Compares host-exposed executed metadata with the contract.",
+        "Reports discrepancies and reclassifies evidence.",
+        "Does not treat requested values as receipts.",
+        "Blocks when a missing or mismatched field is contract-critical."
+      ]
     }
   ],
   "scoring": {
