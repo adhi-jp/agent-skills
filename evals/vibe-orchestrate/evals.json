@@ -245,6 +245,33 @@
         "Keeps the rejected disposition and remaining inference explicit.",
         "Does not authorize unrelated repair work."
       ]
+    },
+    {
+      "id": "E18",
+      "name": "Delegation source binding and budget contract",
+      "prompt": "Draft a bounded delegation contract from a long normative source and an interleaved shared-file checkpoint. The worker may edit generated output but must not control the characterization baseline.",
+      "expected_output": "The contract uses stable item/source/budget/ownership markers without making worker paraphrase authoritative.",
+      "files": [],
+      "expectations": [
+        "Uses stable machine-checkable item markers when practical.",
+        "Binds the long normative source by path, section, digest, binding force, and read/ignore boundaries.",
+        "Defines included/excluded changed-line budget classes and a reproducible breakdown.",
+        "Assigns file ownership and reserves narrow shared-file staging to the coordinator.",
+        "Keeps protected baselines and characterization oracles outside worker-writable paths."
+      ]
+    },
+    {
+      "id": "E19",
+      "name": "Registration and count delta prove inclusion",
+      "prompt": "A worker adds one new test module. The suite is green, but the harness reports the same total test count as the frozen baseline. Produce the coordinator acceptance decision.",
+      "expected_output": "The coordinator rejects inclusion proof until registration and expected count delta reconcile.",
+      "files": [],
+      "expectations": [
+        "Requires the new module discovery or registration surface to be in scope or coordinator-reserved.",
+        "Freezes an expected delta when the harness exposes stable counts.",
+        "Rejects a green suite with unchanged total as proof that the new test ran.",
+        "Does not impose a universal count rule when the harness cannot expose stable counts."
+      ]
     }
   ],
   "scoring": {

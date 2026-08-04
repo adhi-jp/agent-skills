@@ -30,6 +30,11 @@ Run verification in the authoritative environment for the slice:
 - Run the relevant full test suite when the change requires suite-level proof.
 - When new tests are expected, record total test counts or count deltas when the
   harness supports it.
+- Reconcile new artifact discovery or registration. When stable counts are
+  exposed, compare the observed total with the frozen baseline plus expected
+  delta; an unchanged total cannot prove that the new artifact ran merely
+  because the suite is green. Do not require count arithmetic from harnesses
+  that cannot expose a stable count.
 - Build artifacts only when the plan or package contract requires artifact proof.
 - Record skipped commands with reason and impact.
 - Name known flakes and symptoms; use rerun evidence rather than ignoring them.

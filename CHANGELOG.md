@@ -36,6 +36,11 @@ use `[Repository] - YYYY-MM-DD`.
   convergent reviewer claims through citation-inspection receipts rather than
   vote count, and writes back only recurrent load-bearing refutations to
   artifacts that own future review context.
+- `vibe-orchestrate` delegation contracts now bind stable item markers,
+  normative source identity, reproducible changed-line budgets, checkpoint file
+  ownership, protected baselines, and discovery/registration ownership. When a
+  harness exposes stable counts, verification reconciles the expected artifact
+  delta instead of accepting a green suite with unchanged inclusion.
 - Repository documentation now keeps `README.md` as a concise navigation layer:
   it provides host invocation examples, a grouped task-to-skill chooser,
   phase and commit boundaries, the eval quickstart, and explicit source-of-truth

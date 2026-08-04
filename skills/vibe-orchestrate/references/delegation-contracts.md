@@ -56,6 +56,25 @@ depends on a worker receipt.
 
 ## Contract Template
 
+Before the template is sent, bind contract items so the coordinator can audit
+coverage after an interrupted round:
+
+- Give each item a stable machine-checkable marker when practical.
+- Quote short normative clauses exactly. Bind longer sources by path, section,
+  digest, binding force, and explicit read/ignore boundaries; a worker-authored
+  paraphrase is not the normative source.
+- Define changed-line budgets with included and excluded generated/vendor
+  classes and a reproducible per-path breakdown.
+- For interleaved checkpoints, assign file ownership and name the narrow
+  shared-file hunks the coordinator alone may stage.
+- Keep protected baselines and characterization oracles outside worker-writable
+  paths.
+- When an item adds a test, module, entry point, migration, or generated source,
+  include its discovery/registration surface in editable scope or reserve that
+  exact action to the coordinator. If the harness exposes stable counts, freeze
+  the expected delta and reconcile `observed = baseline + expected_delta`; a
+  green run with an unchanged count refutes inclusion.
+
 ```markdown
 Mission: [one sentence naming the slice, expected outcome, and starting state]
 
