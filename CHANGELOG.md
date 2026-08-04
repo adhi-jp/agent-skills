@@ -57,6 +57,15 @@ use `[Repository] - YYYY-MM-DD`.
   `with_skill` 87.6% versus `without_skill` 60.5% (+27.1 points), with zero
   infrastructure, fixture-dirty, or candidate-below-baseline anomalies. The two
   zero-scored cells were reviewed baseline failures in E09 and E12.
+- `vibe-planning` proportionality coverage now isolates plan-depth judgment from
+  optional review transport: its small-repository credential-rotation case
+  explicitly uses a compact coordinator-fallback review without commands or
+  subagents, while still requiring the production credential and destructive
+  deletion controls. Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`;
+  the closing 31-case, 62-cell Codex run with `gpt-5.6-luna` scored
+  `with_skill` 96.3% versus `without_skill` 43.2% (+53.1 points), with zero
+  infrastructure, sanity, fixture-dirty, or candidate-below-baseline anomalies.
 - `vibe-planning` now limits planning-time commands to pre-registered minimal
   investigations whose outcomes can change the plan and to independently
   required plan-artifact integrity, review, status, diff, and closure
