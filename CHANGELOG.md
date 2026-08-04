@@ -27,6 +27,10 @@ use `[Repository] - YYYY-MM-DD`.
   fallback without impossible prompts, and invalidates results on target or
   worktree mutation. Native output cannot become public findings or downstream
   reviewer context without coordinator verification from frozen local evidence.
+- `vibe-coding` now keeps review triage active when a user excludes a finding,
+  proposed repair, target path, package, or subsystem but does not exclude the
+  review workflow itself. The excluded surface remains non-editable and cannot
+  become a selectable fix.
 - Repository documentation now keeps `README.md` as a concise navigation layer:
   it provides host invocation examples, a grouped task-to-skill chooser,
   phase and commit boundaries, the eval quickstart, and explicit source-of-truth

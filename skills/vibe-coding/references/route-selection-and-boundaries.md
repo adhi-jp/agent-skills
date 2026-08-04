@@ -154,6 +154,12 @@ requests to review a diff, working tree, branch, base ref, git-backed
 implementation plan or document change, findings, scope, Definition of Done
 alignment, or gated fixes.
 
+Excluding a finding, proposed repair, target path, package, or subsystem does
+not exclude the review workflow itself unless the user explicitly excludes that
+workflow. Keep the excluded surface non-editable and outside selectable fixes
+while review triage continues under the specialist's ordinary availability,
+consent, stop, and write boundaries.
+
 Do not keep a workflow in the review phase when review evidence now requires a
 different owner. A new user-reported runtime symptom, or a review fix that
 regresses a core user journey, routes next to debug-and-repair. A repeated

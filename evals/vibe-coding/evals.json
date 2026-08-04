@@ -236,6 +236,20 @@
         "For C, routes to debug and repair but asks once for the host-required local-commit confirmation in the first turn before edits, not after the fix is complete.",
         "For C, records or carries that decision for later checkpoints instead of re-asking at closure."
       ]
+    },
+    {
+      "id": "E15",
+      "name": "Excluded finding does not disable review workflow",
+      "prompt": "Explicit `$vibe-coding` invocation. Active state has a frozen working-tree review target. The user says: `このレビューは続けて。ただし payments パッケージの指摘と修正は今回の対象から外して。` Visible metadata includes a review specialist. Describe the route decision and boundary.",
+      "expected_output": "Continue the review route while keeping the excluded package non-editable and non-selectable.",
+      "files": [],
+      "expectations": [
+        "Routes to the visible review specialist because the user continues the review workflow.",
+        "Does not interpret exclusion of the payments finding/repair/package as exclusion of the review workflow.",
+        "Keeps the payments package outside review-selected fixes and non-editable for this run.",
+        "Preserves the review specialist availability, consent, stop, frozen-target, and write boundaries.",
+        "Does not route to ordinary behavior or silently apply the excluded repair."
+      ]
     }
   ],
   "scoring": {
