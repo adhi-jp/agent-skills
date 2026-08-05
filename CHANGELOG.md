@@ -11,170 +11,194 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [minecraft-modding-workbench 2.1.1] - 2026-08-05
+
 ### Changed
 
-- Repository release preparation now requires a complete affected-skill
-  inventory, per-skill SemVer and documentation disposition, outcome-focused
-  release notes, and a staged completeness audit before a release commit. The
-  2026-08-01 release sections now retain durable contract changes, breaking
-  guidance, and final verification anchors without duplicated cross-skill or
-  run-by-run work logs. README exposes the same completeness boundary to
-  contributors.
-- `skill-quality` now treats accumulated `SKILL.md` size and instruction
-  reachability as quality surfaces: always-applicable activation, scope, stop,
-  and load-bearing rules stay in the skill body, while conditional procedures,
-  long checklists, domain variants, tool detail, and historical rationale move
-  to explicitly routed references when they obscure the core contract.
-  `skill-quality`, `skill-eval`, `vibe-writing`, `vibe-orchestrate`, and
-  `minecraft-modding-workbench` now use focused references for detailed
-  quality, runner, artifact, coordinator, MCP, and verification guidance
-  without changing skill versions. Evals not run; static validation is recorded
-  for the affected suites.
-- `skill-eval` now keeps exact full-suite command drafting and closure-checklist
-  retrieval answer-time salient after routing detailed runner rules to a
-  reference. Its eval prompts now explicitly request the complete command,
-  workspace, verification, reporting, and quality-owner handoff surfaces instead
-  of relying on agents to infer that breadth from a short represented request.
+- Detailed MCP 6.3 call-shaping guardrails and implementation verification and
+  debugging procedures now live in explicitly routed references, while
+  `SKILL.md` retains the load-bearing MCP and verification routes. No behavior
+  change is intended. Static eval-suite validation passed; evals were not run.
+
+## [skill-eval 1.2.2] - 2026-08-05
+
+### Fixed
+
+- Eval-runner path evidence now preserves arbitrary Git path bytes through a
+  reversible, non-conflating representation, and provider invocations remove
+  repository/config/object/SSH-exec/trace redirection variables while
+  preserving authentication, runtime, locale, prompt, and executable-discovery
+  state.
+- Codex grader preflight no longer sends the unsupported
+  `tools.view_image=false` strict override. Graders retain accepted strict
+  user-config, rules, shell, multi-agent, and web-search controls and receive no
+  image inputs.
+
+### Changed
+
+- Detailed runner and result procedures now live in a routed reference while
+  `SKILL.md` keeps exact full-suite command shapes, partial-run closure
+  boundaries, and the result-verification checklist answer-time salient.
+  Validation: `python3 -m pytest tests/` passed 206 tests,
+  `eval_runner.py validate evals/skill-eval/evals.json` passed, and the closing
+  5-case, 10-cell Codex run with `gpt-5.6-luna` had no anomalies at
+  `with_skill` 100.0% versus `without_skill` 77.6%.
+
+## [skill-quality 2.4.0] - 2026-08-05
+
+### Changed
+
+- Quality triage now distinguishes missing contract, reference reachability,
+  answer-time salience, invocation, assertion, recording, and variance failure
+  surfaces before promoting a load-bearing invariant.
+- Eval-case cohesion now covers primary decision ownership, proof carriers,
+  natural prompts, split conditions, assertion coverage, and auxiliary commands,
+  subagents, review transport, artifact churn, and optional capabilities that
+  could dominate the behavior under test.
+- Accumulated `SKILL.md` size and instruction reachability are quality
+  surfaces: always-applicable rules stay in the skill body, while conditional
+  procedures and detailed checklists move to explicitly routed references.
+  No-change decisions may apply supplied facts without inventing a mutation or
+  coverage inventory. Validation:
+  `eval_runner.py validate evals/skill-quality/evals.json` passed, and the
+  closing 26-case, 52-cell Codex run with `gpt-5.6-luna` had no anomalies at
+  `with_skill` 95.4% versus `without_skill` 77.1%.
+
+## [vibe-coding 2.0.1] - 2026-08-05
+
+### Fixed
+
+- Review triage remains active when a user excludes a finding, repair, target
+  path, package, or subsystem without excluding the review workflow itself. The
+  excluded surface remains non-editable and outside selectable fixes.
+  Validation: `eval_runner.py validate evals/vibe-coding/evals.json` passed.
+
+## [vibe-debug 4.1.0] - 2026-08-05
+
+### Added
+
+- Recurrent user-runtime symptoms may use explicitly opted-in, default-disabled,
+  bounded and privacy-safe retained probes with countable before/after
+  discriminators. A still-green prior discriminator preserves its closed cause
+  layer while recurrence opens a new layer; recordings retain evidence-grade
+  limits and the ledger records storage lifetime and reconstruction boundaries.
+  Validation: `eval_runner.py validate evals/vibe-debug/evals.json` passed.
+
+## [vibe-orchestrate 1.1.0] - 2026-08-05
+
+### Changed
+
+- Finding validity and repair authorization are now separate. Coordinator-found
+  deviations receive explicit dispositions, reviewer convergence requires
+  citation inspection rather than vote counting, and only recurrent
+  load-bearing refutations are written back to the artifact that owns future
+  review context.
+- Delegation items now bind stable markers, normative source identity,
+  reproducible changed-line budgets, checkpoint ownership, protected baselines,
+  and discovery or registration surfaces. Stable harness counts must reconcile
+  expected artifact deltas before inclusion is accepted.
+- Receipt-less, failed, resumed, contradictory, or metadata-ambiguous rounds
+  retain writer slots until task/process, report, journal, role, launch metadata,
+  and tree evidence reconcile. Handle-returning transports remain active until
+  runner-native terminal status and result retrieval.
+- Verification preserves every input-named surface and each gate's independent
+  exit status, independently attacks repaired defects, records risk-based
+  repeatability, and requires an observed exact-surface perturbation failure for
+  proof-only assertion repair. Coordinator practice details now load from a
+  routed reference. Validation:
+  `eval_runner.py validate evals/vibe-orchestrate/evals.json` passed, and the
+  closing 32-case, 64-cell Codex run with `gpt-5.6-luna` had no infrastructure,
+  fixture-dirty, or candidate-below-baseline anomalies at `with_skill` 87.6%
+  versus `without_skill` 60.5%; reviewed zero-score cells E09 and E12 were
+  baseline failures.
+
+## [vibe-plan-execution 4.1.0] - 2026-08-05
+
+### Added
+
+- Execution now validates declared `full-only` or `mutable-contract` plan
+  identity before selecting work, permits only declared progress and reserved
+  decision mutation, and blocks on contract-section or digest-coverage drift.
+- A missing item may rebind only to one uniquely owning candidate with a forward
+  ledger pointer. Reserved decisions preserve owner, evidence, carrier,
+  revision, and proceed effects, while infeasible recorded human-selected
+  mechanisms return to their decision owner instead of being silently replaced.
   Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-eval/evals.json`;
-  the closing 5-case, 10-cell Codex run with `gpt-5.6-luna` scored all candidate
-  assertions with zero infrastructure, sanity, fixture-dirty, or
-  candidate-below-baseline anomalies, at `with_skill` 100.0% versus
-  `without_skill` 77.6% (+22.4 points).
-- `skill-quality` eval applicability now treats reusable contract translation
-  as conditional on proposing a prose edit; a no-change decision may instead
-  name the provisional failure surface while the contract gap remains
-  unproven. The single-failure classification case now explicitly requests the
-  surface inventory and promotion threshold that its expectations grade.
-  No-change cases no longer need to invent an eval mutation or coverage
-  inventory, and narrow data-boundary and semantic/mechanical grading prompts
-  now state the decision boundaries their expectations actually assess.
-  Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`;
-  the closing 26-case, 52-cell Codex run with `gpt-5.6-luna` had zero
-  infrastructure, sanity, fixture-dirty, or candidate-below-baseline anomalies,
-  at `with_skill` 95.3% versus `without_skill` 75.9% (+19.4 points).
-- `skill-quality` now treats auxiliary eval workflow mechanics as a case-cohesion
-  surface. Commands, subagents, review transport, artifact rewriting, and
-  optional host capabilities must be bounded or split out when they are not the
-  contract under test, especially when retries or expansion dominate runtime,
-  output size, or proof transport. No-change classification answers may apply
-  supplied facts directly without producing an evidence-map narration, and
-  cohesion assertions now grade answer leakage and scoped mechanical predicates
-  semantically rather than by one phrase. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`;
-  the closing 26-case, 52-cell Codex run with `gpt-5.6-luna` had zero
-  infrastructure, sanity, fixture-dirty, or candidate-below-baseline anomalies,
-  at `with_skill` 95.4% versus `without_skill` 77.1% (+18.3 points).
-- `vibe-orchestrate` eval prompts now expose the model-tier claim boundary,
-  registration ownership, missing per-run flake evidence, and response-only
-  perturbation-proof mode that their expectations assess. Proof-only assertion
-  cases require an observed future failure record without falsely requiring the
-  decision response itself to execute mutations. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`;
-  the closing 32-case, 64-cell Codex run with `gpt-5.6-luna` scored
-  `with_skill` 87.6% versus `without_skill` 60.5% (+27.1 points), with zero
-  infrastructure, fixture-dirty, or candidate-below-baseline anomalies. The two
-  zero-scored cells were reviewed baseline failures in E09 and E12.
-- `vibe-planning` proportionality coverage now isolates plan-depth judgment from
-  optional review transport: its small-repository credential-rotation case
-  explicitly uses a compact coordinator-fallback review without commands or
-  subagents, while still requiring the production credential and destructive
-  deletion controls. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`;
-  the closing 31-case, 62-cell Codex run with `gpt-5.6-luna` scored
-  `with_skill` 96.3% versus `without_skill` 43.2% (+53.1 points), with zero
-  infrastructure, sanity, fixture-dirty, or candidate-below-baseline anomalies.
-- `vibe-planning` now limits planning-time commands to pre-registered minimal
-  investigations whose outcomes can change the plan and to independently
-  required plan-artifact integrity, review, status, diff, and closure
-  operations. Later implementation tests, evals, builds, lint, and type checks
-  stay in the future test plan instead of serving as green-status ceremony;
-  hosts without command identity/argument evidence must keep actual
-  non-execution `Unproven`.
-- `vibe-review` now distinguishes isolated structural delegated review, native
-  delegated review with untrusted candidate output, and single-local review.
-  It prefers the strongest authorized profile, preserves the live-session stop
-  when fallback authority is absent, supports already-authorized unattended
-  fallback without impossible prompts, and invalidates results on target or
-  worktree mutation. Native output cannot become public findings or downstream
-  reviewer context without coordinator verification from frozen local evidence.
-- `vibe-coding` now keeps review triage active when a user excludes a finding,
-  proposed repair, target path, package, or subsystem but does not exclude the
-  review workflow itself. The excluded surface remains non-editable and cannot
-  become a selectable fix.
-- `vibe-orchestrate` now makes finding authority and repair authorization
-  explicit, treats coordinator-noticed deviations as findings, verifies
-  convergent reviewer claims through citation-inspection receipts rather than
-  vote count, and writes back only recurrent load-bearing refutations to
-  artifacts that own future review context.
-- `vibe-orchestrate` delegation contracts now bind stable item markers,
-  normative source identity, reproducible changed-line budgets, checkpoint file
-  ownership, protected baselines, and discovery/registration ownership. When a
-  harness exposes stable counts, verification reconciles the expected artifact
-  delta instead of accepting a green suite with unchanged inclusion.
-- `vibe-orchestrate` recovery now holds writer slots across receipt-less,
-  contradictory, failed, resumed, or metadata-ambiguous rounds until named
-  task/process and tree evidence reconcile. It audits residue before relaunch,
-  binds resumed sessions to observed roles, compares requested and executed
-  metadata, derives quiescence from legitimate quiet work, and treats transport
-  lifetime as a sizing constraint rather than proof of independence.
-- `vibe-orchestrate` now bounds monitor lifecycle and progress updates,
-  independently attacks repaired defects, isolates broad failures by execution
-  mode, records risk-based repeatability and flake residuals, expands only
-  diagnosis-complete direct intervention, and requires exact-surface
-  perturbation failure for proof-only assertion repairs. `vibe-planning`
-  consumes the perturbation requirement through its test no-escape gate.
-- `vibe-planning` now adds selective parallel shared-state attribution,
-  evidence-based proportionality, criterion/mechanism coherence, component
-  lifetime investigation, authoritative enumerations, finding-driven repair
-  identity, revision-specific review, and operator-step feasibility.
-  `vibe-plan-execution` validates full/mutable plan identity, completes only
-  reserved decisions, transparently rebinds uniquely forwarded items, and
-  returns infeasible human-selected mechanisms to their decision owner.
-- Requirements proxy deferral is now limited to authoritative inherited,
-  low-priority, current-slice-independent, non-human-risk unknowns.
-- Debugging now supports disabled retained field probes with countable
-  discriminators, layered recurrence causes, recording evidence grades, and
-  explicit ledger durability limits.
-- `skill-quality` now separates contract, salience, invocation, assertion,
-  recording, and variance failure surfaces and audits eval case cohesion.
-- `vibe-writing` now requires context-independent saved reports and freezes the
-  strongest supported replacement claim before correcting overclaims.
-- `skill-eval` now preserves arbitrary Git path bytes through a reversible
-  non-conflating JSON representation and sanitizes provider invocations against
-  repository/config/object/SSH-exec/trace redirection while preserving provider
-  authentication, runtime, locale, prompt, and executable-discovery state.
-- Repository documentation now keeps `README.md` as a concise navigation layer:
-  it provides host invocation examples, a grouped task-to-skill chooser,
-  phase and commit boundaries, the eval quickstart, and explicit source-of-truth
-  guidance for users and AI agents. Per-skill implementation contracts and the
-  duplicated version registry were removed from the README in favor of durable
-  links to authoritative `skills/<skill-name>/SKILL.md` files and
-  `CHANGELOG.md`. Evals not run; this is a documentation-only change.
-- `skill-eval` restores Codex grader readiness on CLIs that reject the
-  documented `tools.view_image` override under `--strict-config`. Graders retain
-  strict user-config/rules isolation, an empty read-only working directory, and
-  disabled shell, multi-agent, and web-search capabilities, while the runner
-  supplies no image inputs. The unsupported image-tool override is no longer
-  presented as an enforced capability boundary.
-- `vibe-orchestrate` now distinguishes a forwarding subagent's handle-only
-  completion from runner-task completion, retains the shared-tree writer slot
-  until runner-native terminal status and result retrieval, and requires
-  coordinator verification receipts to preserve each gate's exit status across
-  output filtering without collapsing input-named verification surfaces into a
-  generic summary. New pressure cases cover both false-completion and
-  false-green receipt failures, while existing monitoring assertions now bind
-  environment-terminating recovery only when the prompt makes it relevant and
-  filtered-receipt assertions grade preserved status rather than incidental log
-  wording.
-  Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`;
-  the closing 15-case, 30-cell Codex run scored all cells with zero
-  infrastructure failures, fixture-dirty signals, or candidate-below-baseline
-  cells at `with_skill` 93.8% versus `without_skill` 63.9% (+29.9 points). The
-  two zero-scored cells were reviewed baseline failures in E09 and E12, not
-  infrastructure or candidate failures.
+  `eval_runner.py validate evals/vibe-plan-execution/evals.json` passed.
+
+## [vibe-planning 5.1.0] - 2026-08-05
+
+### Added
+
+- Plans now carry authoritative finding dispositions, full and mutable contract
+  identity, reserved decisions, finding-derived checkpoint scope, and
+  revision-specific rereview. Planning also checks shared-state attribution,
+  criterion/mechanism coherence, component lifetime, authoritative
+  enumerations, operator-step feasibility, and proportional high-risk controls.
+
+### Changed
+
+- Planning-time commands are limited to pre-registered minimal investigations
+  whose outcomes can change the plan and to independently required
+  plan-artifact integrity, review, status, diff, and closure operations.
+  Implementation tests, evals, builds, lint, and type checks stay in the future
+  test plan, and proof-only assertion repairs require exact-surface no-escape
+  failure evidence. Validation:
+  `eval_runner.py validate evals/vibe-planning/evals.json` passed, and the
+  closing 31-case, 62-cell Codex run with `gpt-5.6-luna` had no anomalies at
+  `with_skill` 96.3% versus `without_skill` 43.2%.
+
+## [vibe-requirements-spec 4.0.1] - 2026-08-05
+
+### Changed
+
+- A trusted proxy may defer only an authoritative-source-inherited,
+  lower-priority unknown that the current slice does not need and that is
+  outside all human-risk categories. The spec records the evidence, impact,
+  revisit trigger, and `AI-selected deferral` without treating it as approval,
+  accepted risk, finish evidence, or handoff authority. Validation:
+  `eval_runner.py validate evals/vibe-requirements-spec/evals.json` passed.
+
+## [vibe-review 2.1.0] - 2026-08-05
+
+### Added
+
+- Review now distinguishes isolated structural delegation, native delegated
+  review with untrusted candidate output, and single-local coordination. It
+  prefers the strongest authorized profile, supports pre-authorized unattended
+  fallback, requires frozen-target verification for native candidates, and
+  invalidates results on target, worktree, index, or history drift. Validation:
+  `eval_runner.py validate evals/vibe-review/evals.json` passed.
+
+## [vibe-writing 2.0.1] - 2026-08-05
+
+### Changed
+
+- Saved audits, reports, and postmortems now establish their subject, triggering
+  event, deviation, status, and purpose from durable evidence so they remain
+  understandable without prompt context. Overclaim corrections first freeze the
+  strongest supported replacement claim and preserve adjacent limitations.
+- Artifact-specific procedures now live in an explicitly routed reference while
+  `SKILL.md` retains the writing, evidence, language, and format invariants.
+  Static eval-suite validation passed; evals were not run.
+
+## [Repository] - 2026-08-05
+
+### Changed
+
+- Release preparation now inventories every changed skill package across the
+  complete accumulated change set, records per-skill SemVer and documentation
+  disposition, consolidates outcome-focused release notes, and audits the full
+  staged release before committing. The 2026-08-01 release history now retains
+  durable per-skill contract deltas, breaking guidance, and final verification
+  anchors instead of duplicated iteration logs.
+- `README.md` is now a concise navigation layer with host invocation examples,
+  a grouped task-to-skill chooser, shared phase and commit boundaries, the eval
+  quickstart, and source-of-truth guidance. It no longer duplicates skill
+  versions or full implementation contracts.
+- Validation: `python3 -m pytest tests/` passed 206 tests; the release inventory
+  audit matched all 11 version changes to one dated changelog section each, and
+  README package links plus affected `SKILL.md` reference links resolved.
 
 ## [skill-eval 1.2.1] - 2026-08-01
 

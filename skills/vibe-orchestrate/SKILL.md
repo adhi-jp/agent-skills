@@ -1,5 +1,5 @@
 ---
-version: 1.0.0
+version: 1.1.0
 name: vibe-orchestrate
 description: Use when coordinating subagents for coding, research, repair, or review work where delegated workers may drift, stall, crash, duplicate, or edit a shared workspace and the coordinator must preserve scope, verification, and user-consent boundaries.
 ---
