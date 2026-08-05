@@ -15,6 +15,8 @@
 ## Release Procedure
 
 - When the user instructs a release, review all accumulated `## [Unreleased]` entries and the corresponding implementation/doc changes before choosing versions.
+- Establish the release scope from the complete accumulated change set since each affected skill's last release, not from the latest commit, one changed package, or the current version field alone. Unless the user explicitly requests a partial release, include every skill with releasable accumulated changes.
+- Before editing release artifacts, build an affected-skill inventory that records, for every changed `skills/<skill-name>/` package: its previous version, accumulated reader-visible contract changes, SemVer decision, changelog entries, and any README or supporting-reference updates required by those changes. Include repository-wide maintenance as a separate inventory item. Do not create the release commit until every inventory item is either included or explicitly deferred by the user.
 - Determine the next version for each affected skill from the actual accumulated changes:
   - Major: incompatible workflow or contract changes.
   - Minor: new user-visible capability, workflow branch, or supported use case.
@@ -22,6 +24,15 @@
 - Bump the `version` field in each affected skill's `SKILL.md` only during release preparation.
 - Move the released changelog entries from `## [Unreleased]` to a section headed `## [<skill-name> <version>] - <YYYY-MM-DD>`, where the date is when that skill's `SKILL.md` version changed.
 - Move repository-wide maintenance entries that are not attributable to one skill to `## [Repository] - <YYYY-MM-DD>`. Do not use repository sections for skill behavior changes.
+- Write release entries as durable reader-visible contract deltas, not as a chronological work log. Consolidate related and superseded entries; do not copy commit subjects, file-edit narration, agent activity, investigation steps, repeated eval iterations, or run-by-run score commentary into a release section. Retain only the final behavior, breaking or migration guidance when applicable, the strongest durable verification status, and unresolved accepted risk.
+- Before creating the release commit, inspect the complete staged diff and verify all of the following:
+  - Every released skill in the inventory has exactly one intended `SKILL.md` version change and a matching changelog section with the same version and date.
+  - Every released `Unreleased` item has moved to the correct skill or repository section, explicitly deferred items remain under `Unreleased`, and no released behavior remains stranded there.
+  - README text and supporting references describe the released contracts and do not retain stale versions, names, capabilities, or workflow boundaries.
+  - Changelog release sections contain outcome-focused entries rather than duplicated cross-skill text or release-preparation logs.
+  - Relevant validation has passed for every affected skill, and one skill's passing checks are not presented as proof for unverified siblings.
+  - The staged file set contains all required release artifacts and no unrelated, generated, ignored, or local snapshot paths.
+- Do not create a release commit that updates only a convenient subset of affected skills, versions, changelog sections, or README/supporting documentation unless the user explicitly narrowed the release scope and the deferred work remains accurately recorded under `Unreleased`.
 
 ## Change Coupling Rules
 

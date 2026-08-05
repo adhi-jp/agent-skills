@@ -142,7 +142,11 @@ that package's `SKILL.md` instead of loading every supporting file by default.
   an entry under `CHANGELOG.md` → `Unreleased` when those artifacts describe the
   changed behavior.
 - Do not bump a skill version until the user explicitly asks to prepare or cut
-  a release. Release preparation moves accumulated entries out of `Unreleased`.
+  a release. Before a release commit, inventory every affected skill across the
+  complete accumulated change set, choose versions from the actual contract
+  deltas, promote outcome-focused changelog entries, and verify all coupled
+  README and reference updates. Do not release only one convenient package while
+  other affected skills remain undispositioned.
 - Use Conventional Commits and keep commits logically scoped.
 
 See [`AGENTS.md`](AGENTS.md) for the complete repository policy.

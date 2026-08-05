@@ -13,6 +13,13 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- Repository release preparation now requires a complete affected-skill
+  inventory, per-skill SemVer and documentation disposition, outcome-focused
+  release notes, and a staged completeness audit before a release commit. The
+  2026-08-01 release sections now retain durable contract changes, breaking
+  guidance, and final verification anchors without duplicated cross-skill or
+  run-by-run work logs. README exposes the same completeness boundary to
+  contributors.
 - `skill-quality` now treats accumulated `SKILL.md` size and instruction
   reachability as quality surfaces: always-applicable activation, scope, stop,
   and load-bearing rules stay in the skill body, while conditional procedures,
@@ -173,2190 +180,309 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Fixed
 
-- `skill-eval` fixes runner isolation and evidence capture: graders use fresh
-  non-adjacent empty directories with provider CLI controls and cleanup; tracked
-  copies reject symlink ancestors and verify containment and identity; manifests
-  include ignored additions, exclude `.eval-runner/`, hash only regular files,
-  record `unsafe-symlink-ancestor` without following it, and emit inert JSON.
-  Claude sub-agent evidence is session-bound, while Codex preflight sanitizes
-  ambient `GIT_*`. Regression coverage exercises each boundary.
-- `skill-eval` eval runner rejects symlinked executor artifact paths instead of
-  reading through them, while persisting the already-read artifact bytes.
-- `skill-eval` creates grader temp directories under a runner-owned parent with
-  containment asserted against the source checkout and executor sandbox, and
-  records cleanup failures instead of aborting the run.
-- `skill-eval` now leaves a minimal `run.json` in a run directory when a task
-  crashes before normal recording, and Codex preflight probes record durable
-  output paths instead of deleted temporary paths.
-- `skill-eval` now opens manifest files and sandbox-copy sources non-blocking so
-  FIFO swaps fail safely, and derives manifest file types and hashes from one
-  inspection pass so a race cannot record `regular` with a missing hash.
-- `skill-eval` E05 now rewards routing assertion repair to the quality owner
-  through the eval-quality workflow instead of agent-side assertion editing,
-  matching the skill's ownership contract.
+- Eval isolation and evidence capture now fail closed across symlink ancestors,
+  FIFO swaps, manifest races, and grader-directory placement. Graders run from
+  runner-owned non-adjacent directories, cleanup failures remain recorded, and
+  early runner errors and Codex preflight output persist as durable run
+  evidence. Validation: `python3 -m pytest tests/` passed 204 tests, and all 16
+  eval suite definitions passed `eval_runner.py validate`.
+- The `skill-eval` E05 contract now keeps assertion repair with the quality
+  owner while preserving the official aggregate, dry-run boundary, and frozen
+  full-suite closure requirements.
 
 ## [vibe-goal-alignment 1.0.0] - 2026-08-01
 
 ### Added
 
-- New `vibe-goal-alignment` skill records the understood goal, success criteria,
-  non-goals, assumptions, unresolved blockers, and next step before risky or
-  ambiguous work. It keeps release, version, commit, destructive, and other
-  state-changing authority with the downstream workflow, ends blocking records
-  with one answerable question, and can carry a host-required local-checkpoint
-  decision without executing it. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-goal-alignment/evals.json`.
-- New `vibe-goal-alignment` skill creates a pre-action understanding record so
-  users can correct the agent before risky or ambiguous work proceeds. It
-  records understood goal, success criteria, non-goals, assumptions, unresolved
-  blockers, and next step after agreement; stops before edits, commands,
-  commits, releases, version bumps, destructive operations, or downstream
-  workflow authorization; and adds eval coverage for release/version/commit
-  misinterpretation, destructive production cleanup, correction loops,
-  source-instruction boundaries, low-risk concise alignment, and no-execution
-  stops. README now includes the source and eval packages without assigning a
-  release version. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-goal-alignment/evals.json`.
-
-### Changed
-
-- `vibe-goal-alignment` now ends an action-blocking unresolved record with one
-  explicit answerable question. For a host-required local-checkpoint decision,
-  it asks before edits for the bounded commit permission itself instead of
-  asking whether a later phase may start or promising to ask again at commit
-  time; empty/no-commit outcomes and non-closure history operations stay
-  excluded. The closing `gpt-5.6-luna` Codex eval scored all 14 cells with zero
-  infrastructure or sanity anomalies, at 92.7% versus 67.8% (+24.9 points).
-- Explicit use of a state-changing `vibe-*` workflow now grants scoped
-  local-checkpoint permission for verified workflow-owned changes unless the
-  user opts out, project policy forbids commits, or dirty-state, verification,
-  review, or file-ownership gates block the operation. Hosts that require an
-  additional human confirmation must ask once at workflow startup before likely
-  edits instead of waiting until completion; read-only, chat-only, no-file,
-  unchanged, message-drafting, generated-output, and empty-file-set cases do not
-  ask or commit. Requirements, planning, confirmed plan reflection, plan
-  execution, debug repair, review-selected fixes, and standalone tracked writing
-  edits now define their own safe checkpoint timing, while orchestration keeps
-  staging and commits with the coordinator and the commit-execution workflow
-  accepts recorded owning-workflow handoffs. Push, release preparation, version
-  changes, tags, amend, rebase, reset, stash, squash, destructive cleanup, and
-  unrelated or ambiguous paths still require separate authority. README and
-  focused eval cases cover invocation permission, startup confirmation,
-  no-change exclusions, natural plan slice boundaries, coordinator ownership,
-  and safe commit handoff. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-goal-alignment/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`.
-- `vibe-*` delegation and review model-selection contracts now stay
-  capability-based for newer high-performance models: low-ambiguity delegates
-  may use cheaper/faster or previous-generation tiers only when quality-neutral
-  or user-prioritized, while maximum-performance, judgment-heavy, synthesis,
-  contradiction, final-disposition, risk, and contract-compliance work biases to
-  the strongest suitable reasoning/context tier available without hard-coded
-  model IDs. `vibe-orchestrate` now adds frontier-coordinator loop guidance for
-  token-efficient delegates: inline verified facts, send compact per-worker
-  context digests, iterate by checkpoint deltas, and escalate contradictory,
-  risky, final-decision, or repeated-failure work instead of accepting cheap
-  retries as proof. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-brainstorm/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-code-research/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
+- New `vibe-goal-alignment` skill creates an explicit understanding record for
+  ambiguous or risky work, separating the goal, success criteria, non-goals,
+  assumptions, evidence, blockers, and next action. It stops before commands,
+  edits, releases, version changes, commits, destructive operations, or other
+  downstream authority until the user confirms or corrects the record.
+- Blocking records end with one answerable correction question. For a later
+  state-changing workflow, the record may capture the bounded local-checkpoint
+  decision before edits without granting push, release, history-rewrite, or
+  unrelated-path authority. Validation: the `vibe-goal-alignment` eval suite
+  passed schema and fixture validation.
 
 ## [vibe-orchestrate 1.0.0] - 2026-08-01
 
 ### Added
 
-- New `vibe-orchestrate` skill defines coordinator-owned multi-agent work graphs,
-  bounded delegation contracts, compact context digests, progress journals,
-  worker recovery, direct-intervention disclosure, verification receipts,
-  review adjudication, and parallel-writer cleanup while preserving phase,
-  consent, and commit boundaries. The initial release is reference-only and
-  ships no watchdog script, runner adapter, or command wrapper. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`.
-- New `vibe-orchestrate` skill defines coordinator-owned subagent orchestration
-  for bounded delegated research, edits, repairs, and review. It provides
-  reference-only guidance for delegation contracts, verified-fact inlining,
-  progress journals, worker-death recovery, watchdog concepts, coordinator-run
-  verification gates, read-only review adjudication, direct-intervention
-  disclosure, and parallel-writer accident cleanup; the first version ships no
-  watchdog script, runner adapter, or command wrapper. README now includes the
-  source and eval packages without assigning a release version. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`.
-
-### Changed
-
-- `vibe-coding`, `vibe-debug`, and `vibe-orchestrate` evals now make activation
-  provenance, response-only action mode, represented evidence, capability
-  availability, and contract-backed reviewer disposition observable without
-  requiring executors to invent missing state or claim unperformed work. Their
-  closing `gpt-5.6-luna` Codex runs scored all 88 cells with zero infrastructure
-  or fixture-dirty signals: `vibe-coding` 95.1% versus 76.3% (+18.8 points),
-  `vibe-debug` 89.8% versus 66.0% (+23.8 points), and `vibe-orchestrate` 89.0%
-  versus 55.2% (+33.9 points). `vibe-coding` had no sanity anomaly; debug review
-  records one E06 candidate-below-baseline omission, while orchestration review
-  records valid baseline 0% outputs for E09/E12 and one E06
-  candidate-below-baseline omission. The repaired E06 routing, E10/E13 debug,
-  and E07 orchestration cases passed their targeted contracts. Generated eval
-  workspaces remain uncommitted.
-- Repeated Codex `gpt-5.4-mini` benchmark triage narrows the changed-skill
-  follow-up to stable contract gaps while treating moving single-run failures as
-  variance rather than adding per-cell prose. `vibe-debug` keeps common pressure
-  conditional on unresolved repair, constrained verification, or exhausted
-  source-only triage and makes recorded closure commits prove staged state,
-  message transport, trailers, and stored messages. `vibe-orchestrate` records
-  startup commit decisions and coordinator-owned closure gates, and consolidates
-  protected-parity contradiction handling into one acceptance checklist.
-  `vibe-plan-execution` moves scenario-specific behavior out of universal common
-  assertions, makes artifact binding and checkpoint proof visible, and records
-  blocked-source and Plan Validity handoffs without rewriting the plan.
-  `vibe-planning` compacts the plan-body contract into load-bearing sections,
-  treats runner artifact paths as transport, and makes response-only plan
-  closure show the exact scoped commit gates. Repeated sequential Codex runs
-  scored every cell with zero infrastructure exclusions. The closing
-  `gpt-5.4-mini` readings were: `vibe-commit` 74.0% vs 43.2% (+30.9 points,
-  Sanity OK); `vibe-debug` 76.1% vs 59.0% (+17.0 points, two
-  candidate-below-baseline cells); `vibe-orchestrate` 82.9% vs 72.8% (+10.1
-  points, two zero-scored/candidate-below-baseline cells);
-  `vibe-plan-execution` 77.8% vs 55.5% (+22.3 points, two
-  candidate-below-baseline cells); and `vibe-planning` 83.3% vs 37.3% (+46.0
-  points, Sanity OK). Flagged cells were inspected against executor and grader
-  outputs; none were runner or grader infrastructure failures. Debug and
-  plan-execution flags moved across repeated single-run cells, while stable
-  orchestration permission/parity and execution checkpoint boundaries were
-  tightened at their owning contracts. Runs remain one sample per cell, so
-  assertion-level reliability beyond the measured runs is not claimed.
-  Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  and `python3 -m unittest discover -s tests -p 'test*.py'`.
-- `vibe-orchestrate`, `vibe-debug`, `vibe-planning`, and `vibe-plan-execution`
-  now harden recurring evidence and proof failures in delegated implementation
-  and repair workflows.
-  Delegation captures a round-zero baseline, ranks evidence authority by claim
-  class, separates observed propositions from inference, stops on contract
-  premise contradictions, protects external parity artifacts, constrains
-  repository-wide tool effects, treats delegated failures as environment-bound
-  self-report until reproduced, compares named-test sets rather than relying on
-  pass-count growth, inspects non-text artifacts, aborts unintended overlapping
-  writers, and canaries unverified fan-out transports. Debugging records the
-  observation regime and representativeness of cause evidence, validates repair
-  metrics against the known-bad baseline, and stops a third same-model patch
-  after two attempts fail to move the discriminator. Planning distinguishes
-  derived values from measurements, requires assumptions and empirical proof
-  before freezing derived limits, adds falsifiability pressure to acceptance
-  gates, and maps public outcomes across terminal paths to internal observers and
-  carriers. Plan execution rejects non-discriminating metrics and re-reviews
-  lifecycle, ordering, concurrency, timeout, fallback, and first-winner repairs
-  for inverse regressions before completion or checkpoint commits. Focused eval
-  cases cover protected artifact conflicts, sandbox failure attribution,
-  transport staleness, unrepresentative fixtures, derived protocol limits,
-  missing internal carriers, and inverse lifecycle races. No change was made to
-  `vibe-writing`: its existing separation of suite status, acceptance coverage,
-  unresolved scope, and unverified edits already owns the relevant summary
-  wording contract. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  and `python3 -m unittest tests.test_eval_runner tests.test_sync_dev_agent_skills`.
-  Behavioral improvement is not measured because no fresh eval run was
-  requested.
-- Explicit use of a state-changing `vibe-*` workflow now grants scoped
-  local-checkpoint permission for verified workflow-owned changes unless the
-  user opts out, project policy forbids commits, or dirty-state, verification,
-  review, or file-ownership gates block the operation. Hosts that require an
-  additional human confirmation must ask once at workflow startup before likely
-  edits instead of waiting until completion; read-only, chat-only, no-file,
-  unchanged, message-drafting, generated-output, and empty-file-set cases do not
-  ask or commit. Requirements, planning, confirmed plan reflection, plan
-  execution, debug repair, review-selected fixes, and standalone tracked writing
-  edits now define their own safe checkpoint timing, while orchestration keeps
-  staging and commits with the coordinator and the commit-execution workflow
-  accepts recorded owning-workflow handoffs. Push, release preparation, version
-  changes, tags, amend, rebase, reset, stash, squash, destructive cleanup, and
-  unrelated or ambiguous paths still require separate authority. README and
-  focused eval cases cover invocation permission, startup confirmation,
-  no-change exclusions, natural plan slice boundaries, coordinator ownership,
-  and safe commit handoff. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-goal-alignment/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`.
-- The `vibe-orchestrate` eval review retains all 12 distinct contract cases as
-  `E01` through `E12`, removes scenario-specific common assertions that
-  over-constrained unrelated cases, and consolidates redundant stop,
-  rediscovery, self-report, and unexpected-diff expectations within their
-  owning cases. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`.
-- `vibe-orchestrate` now maps the critical path, independent work units,
-  coupling, execution shape, and coordinator join gate before substantial
-  delegation. It actively uses multiple subagents when material units are
-  independent, bounded, separately verifiable, and safe to isolate, while
-  retaining one context owner for tightly coupled work and rejecting fan-out
-  based only on task size or spare host capacity. Concurrent writers now require
-  separate isolated workspaces, disjoint source and generated paths, explicit
-  merge order, and integrated coordinator verification; one shared tree still
-  permits only one writer at a time. README,
-  delegation/recovery references, and a new large-refactor eval case cover the
-  contract. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`.
-- `vibe-*` delegation and review model-selection contracts now stay
-  capability-based for newer high-performance models: low-ambiguity delegates
-  may use cheaper/faster or previous-generation tiers only when quality-neutral
-  or user-prioritized, while maximum-performance, judgment-heavy, synthesis,
-  contradiction, final-disposition, risk, and contract-compliance work biases to
-  the strongest suitable reasoning/context tier available without hard-coded
-  model IDs. `vibe-orchestrate` now adds frontier-coordinator loop guidance for
-  token-efficient delegates: inline verified facts, send compact per-worker
-  context digests, iterate by checkpoint deltas, and escalate contradictory,
-  risky, final-decision, or repeated-failure work instead of accepting cheap
-  retries as proof. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-brainstorm/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-code-research/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
+- New reference-only `vibe-orchestrate` skill defines coordinator-owned work
+  graphs, bounded delegation contracts, evidence authority, progress journals,
+  worker recovery, monitoring, verification receipts, review adjudication, and
+  direct-intervention disclosure. It ships no watchdog script, runner adapter,
+  or command wrapper.
+- Concurrent writers require isolated disjoint workspaces and a
+  coordinator-verified join; a shared tree permits one writer at a time. The
+  coordinator retains consent, commit, and final-verification ownership while
+  delegated workers return scoped receipts and stop on contradictions or
+  unreconciled state. Validation: the `vibe-orchestrate` eval suite passed
+  schema and fixture validation.
 
 ## [minecraft-modding-workbench 2.1.0] - 2026-08-01
 
 ### Changed
 
-- `minecraft-modding-workbench` now tracks the `minecraft-modding` MCP 6.3.0
-  contract, including structured workspace targets and retry examples, batch
-  lookups, nested Jar-in-Jar search, mixin-target verification, bytecode member
-  reads, exact asset/data read-through, mapping context, workspace version
-  inference, and validator queue/timeout handling. Bundled recipes, fallback
-  guidance, README coverage, and evals use the same tool shapes. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/minecraft-modding-workbench/evals.json`.
-- `minecraft-modding-workbench` now tracks the `minecraft-modding` MCP
-  6.3.0 surface: structured workspace `subject.focus` payloads and retryable
-  `exampleCalls`, direct workspace and dependency targets, flat artifact-tool
-  `target` addressing, `find-class` top-level `projectPath` support for
-  workspace and dependency targets, nested Jar-in-Jar class search, batch
-  lookup tools, `verify-mixin-target`, mod-JAR bytecode member reads,
-  annotation/default metadata, class-not-found `didYouMean` hints, exact
-  `assets/**` / `data/**` jar read-through, unobfuscated-version
-  `mappingContext` flags, `analyze-symbol` workspace version inference, and
-  `validate-project` timeout/queue handling. The bundled MCP recipes,
-  dependency lookup, validator fallback notes, README, and eval coverage now
-  use the MCP 6.3.0 contracts. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/minecraft-modding-workbench/evals.json`.
+- `minecraft-modding-workbench` now follows the `minecraft-modding` MCP 6.3.0
+  contract, including structured workspace focus payloads, direct workspace and
+  dependency targets, `find_class` project paths, nested Jar-in-Jar searches,
+  batch lookups, mixin-target verification, assets/data JAR read-through, and
+  validator timeout handling. Validation: the
+  `minecraft-modding-workbench` eval suite passed schema and fixture validation.
 
 ## [skill-eval 1.2.0] - 2026-08-01
 
 ### Added
 
-- `skill-eval` adds independent `--executor-model` and `--grader-model`
-  selection, diagnostic `run --eval-id` subsets with explicitly non-closing
-  coverage records, sandbox change manifests, bounded failure diagnostics, and
-  role-specific Codex readiness checks. Codex executors may write only inside
-  throwaway repositories while graders remain isolated and read-only.
+- `eval_runner.py run` now supports independent `--executor-model` and
+  `--grader-model` selection and records role-specific models, executor duration,
+  token usage, captured Markdown artifacts, and redacted tool/delegation
+  evidence in durable run records.
+- Authorized diagnostic runs may select cases with `--eval-id`. Selected-case
+  coverage is recorded and remains non-closing until a frozen, unfiltered
+  full-suite run completes.
 
 ### Changed
 
-- Git-backed eval sandboxes now copy tracked working-tree state while excluding
-  untracked and ignored contamination, keep executor and grader evidence
-  separate, preserve fixture ground truth only through minimal grader-only
-  facts, and record executor-created commits relative to the runner baseline.
-  Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-eval/evals.json`
-  and `python3 -m unittest discover -s tests -p 'test*.py'`.
-- `skill-quality` and `skill-eval` now distinguish executor fixture delivery
-  from isolated-grader semantic ground-truth visibility. Assertions that judge
-  invention, omission, or fixture fidelity must carry the minimum relevant
-  grader-only facts, describe their use as supplied without requiring needless
-  restatement, reject delivery manifests as substitutes for semantic facts,
-  avoid whole-fixture grader transport unless complete contents are necessary,
-  and keep those facts out of executor-facing material; otherwise
-  the assertion remains unobservable rather than justifying target-skill prose
-  or restored grader filesystem access. `skill-quality` tracked-change proposals
-  now expose a compact evidence map, reusable contract delta, owning surfaces,
-  and proof status, while no-change decisions remain concise. Its common and
-  focused eval assertions now state non-applicability explicitly and avoid
-  requiring unowned package edits or literal rewrites whose source text was not
-  supplied. Focused eval cases cover these boundaries. A follow-up adds a
-  semantic paraphrase preflight for non-exact assertions and a runner-supported
-  `--eval-id` diagnostic subset. Partial runs preserve the requested config
-  matrix, record selected ids against full-suite size, and remain explicitly
-  `REVIEW REQUIRED` and non-closing until a frozen-state full-suite run occurs.
-  Unknown selections fail before iteration creation or provider launch. The
-  documented command boundary now keeps `--eval-id` on diagnostic `run`
-  invocations only, excluding it from `validate`, `report`, and full-suite
-  closing commands so an all-id filtered diagnostic cannot masquerade as
-  closure. The operation eval suite separates the exact CLI/coverage contract
-  from lexical-adjudication and freeze/aggregate pressure, avoiding one
-  overpacked case, and accepts semantically equivalent authorization wording
-  without weakening the no-implicit-run boundary.
-  Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`
-  and `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-eval/evals.json`;
-  `python3 -m unittest tests.test_eval_runner` passed 116 tests and
-  `python3 -m unittest discover -s tests -p 'test*.py'` passed 172 tests.
-  The closing `gpt-5.6-luna` Codex `skill-quality` run scored all 44 cells at
-  `with_skill` 94.7% versus `without_skill` 78.1% (+16.6 points). Its sole
-  sanity signal was E06 candidate-below-baseline; artifact review found a
-  lexical grader false negative because the candidate rejected copied grader
-  and fixture wording through semantically equivalent language, so the
-  official aggregate remains unchanged and the anomaly is explained rather
-  than attributed to the skill. The final `skill-eval` run scored all 10 cells
-  with Sanity OK at `with_skill` 100.0% versus `without_skill` 76.0% (+24.0
-  points), with every candidate assertion passing. No cells were excluded from
-  either closing result. Because prompts, assertions, and skill text changed
-  during repair, each closing run measures its final frozen contract but does
-  not isolate causal score movement to skill prose alone.
-- `skill-eval` now starts Codex executors with `workspace-write` only inside the
-  per-run throwaway repository while keeping isolated Codex graders
-  `read-only`, allowing independently required artifact deliverables to reach
-  the designated capture path without exposing the source checkout. Provider
-  tests cover both role-specific sandbox modes. Validation:
-  `python3 -m unittest tests.test_eval_runner`. The closing `gpt-5.6-luna`
-  Codex eval scored all 4 cells with zero infrastructure or sanity anomalies,
-  at `with_skill` 100.0% versus `without_skill` 52.8% (+47.2 points).
-- The shared skill eval runner now labels its designated Markdown artifact path
-  as a capture destination rather than a file-creation request. Executors use
-  it only when the represented user prompt or the workflow's independent
-  deliverable contract requires a file; response-only and chat-first cases
-  leave it unused. The contract remains config-symmetric and the runner still
-  folds any legitimately written artifact into the grader prompt. Regression
-  coverage checks that both configs receive the non-authorizing capture-path
-  wording. Validation: `python3 -m unittest tests.test_eval_runner -v` (112
-  tests).
-- The shared skill eval runner hardens Codex execution without changing Claude
-  Code's invocation contract. Codex executor and grader prompts now travel over
-  stdin with a terminal `-`; provider-owned last-message and schema paths are
-  absolute; isolated non-Git grader directories use the adapter-local
-  `--skip-git-repo-check`; and `turn.completed` JSONL usage plus runner-measured
-  executor duration feed executor-only metrics. Non-empty Codex runs perform a
-  two-role readiness preflight before iteration creation and write bounded
-  evidence to `evals/<skill-name>/workspace/codex/preflight.json`; a failed
-  preflight launches zero suite cells. Grader readiness accepts semantically
-  equal schema-valid JSON regardless of whitespace serialization, and failed
-  probes retain bounded parsed output plus stderr. Failed or timed-out provider
-  roles write bounded executor/grader stderr artifacts and a structured
-  `failure` record instead of requiring command replay or embedding unbounded stderr. Hermetic
-  fake-Codex coverage exercises prompts larger than typical argv limits,
-  absolute paths, the empty grader cwd, JSONL usage, readiness failure and
-  success, and role-specific diagnostics, while Claude `-p`, clean environment,
-  structured output, session metrics, transcript evidence, and stub launch
-  counts remain covered. The `skill-eval` operation suite now keeps only the
-  universally applicable no-premature-delta assertion as common pressure and
-  makes its explicit-run case a non-executing represented-turn exercise, so a
-  runner self-eval cannot recursively launch a different hosted suite and
-  authorization-only cases are not graded on execution-only workspace or
-  subprocess details. The runner-operation contract and E02 pressure also
-  preserve the documented positional suite path plus `--agent`, `--config`, and
-  `--runs`; full-suite requests do not add a case filter, while the supported
-  `--eval-id` form is reserved for explicitly partial diagnostics. The runner
-  continues to reject invented `--configuration` or `--mode` aliases and
-  separate config runs. Validation:
-  `python3 -m unittest tests.test_eval_runner -v`,
-  `python3 -m unittest discover -s tests -p 'test*.py'`, and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-eval/evals.json`.
-  Closing `gpt-5.4-mini` Codex evaluation:
-  4/4 scored cells, zero infrastructure failures, `Sanity checks: OK`,
-  `with_skill` 94.4%, `without_skill` 61.1%, delta +33.3 points. E01 remained a
-  both-config authorization regression guard at 100%/100%; E02 discriminated
-  the documented CLI and verification contract at 88.9%/22.2%. Generated
-  workspace artifacts remain uncommitted.
-- `skills/skill-eval/scripts/eval_runner.py` now runs the grader subprocess in
-  an isolated empty per-run working directory instead of the executor's sandbox
-  repo copy. The grader could previously read fixtures, suite files, and the
-  skill source directly, and when two evals shared a plan title (an inline plan
-  and a same-titled file-backed fixture plan) it bound to the wrong file and
-  failed accurate executors for "inventing" text that only lived in the other
-  file. The grader now grades from its prompt alone (recorded output,
-  assertions, and the runner-provided file-change and tool-evidence sections).
-  The former `test_executor_and_grader_run_in_sandbox_repo` test, which pinned
-  the grader to the sandbox repo, is renamed to
-  `test_executor_runs_in_sandbox_and_grader_is_isolated` and now asserts an
-  isolated empty grader working directory. Validation:
-  `python3 -m unittest tests.test_eval_runner -v`.
-- `skills/skill-eval/scripts/eval_runner.py` now records sandbox file changes against the runner-created baseline commit even when an executor creates its own commit, so commit-producing evals still expose modified, added, and deleted files to graders instead of appearing clean after `HEAD` moves. Validation: `python3 -m unittest tests.test_eval_runner.SeparationTests.test_change_manifest_survives_executor_commit -v` and `python3 -m unittest tests.test_eval_runner.SeparationTests.test_change_manifest_records_modifications_and_deletions -v`.
-- `skills/skill-eval/scripts/eval_runner.py` now folds a redacted, host-recorded
-  executor tool/delegation trace into the grader prompt and `run.json` as
-  `executor_evidence`. The Claude provider parser records the CLI
-  `session_id`; the runner reads the host transcript at
-  `<CLAUDE_CONFIG_DIR or ~/.claude>/projects/<encoded-cwd>/<session_id>.jsonl`
-  and emits only tool names, host-issued tool-use ids, and host-created
-  sub-agent record ids (prompt text, reasoning, and tool results are redacted).
-  The trace is flagged `source: host` because it reads host state, not sandbox
-  state, and the grader boundary now states that ids in that section are
-  host-issued and must not be judged fabricated. Providers without an exposed
-  session locator (for example codex) stay `captured=false` with a reason,
-  matching the additive Claude-only precision contract. This closes the gap
-  where a grader could wrongly rule a genuine host-issued `agentId` a fabricated
-  string. Validation: `python3 -m unittest tests.test_eval_runner -v`.
-- `skills/skill-eval/scripts/eval_runner.py run` now accepts `--executor-model`
-  and `--grader-model`, so the executor and grader subprocesses can run on
-  different models. `--model` stays the shared default that either role flag
-  overrides; a blank or omitted role flag falls back to it. All three values
-  are validated before any subprocess launches, with the offending flag named
-  on error. The resolved per-role models are recorded as additive
-  `executor_model`/`grader_model` fields in `iteration_manifest.json` and
-  `benchmark.json`; `benchmark.md` renders separate executor/grader model lines
-  only when the resolved roles differ, and `benchmark.json` files without the
-  new fields keep their existing single-line model rendering. The hermetic stub
-  provider now records a provided model in its recorded argv so role-level
-  wiring is auditable in `run.json`. Validation:
-  `python3 -m unittest tests.test_eval_runner -v`.
-- `skills/skill-eval/scripts/eval_runner.py run` now builds git-backed eval
-  sandboxes from tracked repository paths with current working-tree contents,
-  so untracked or ignored leftovers do not become executor-visible baseline
-  files. The sandbox still filters host-local/generated directories, preserves
-  uncommitted edits to tracked files, honors tracked-file working-tree
-  deletions, records a bounded excluded-path sample and contamination status in
-  `run.json`, uses an unverified copytree fallback only for non-git source
-  roots, and fails instead of falling back when git metadata exists but cannot
-  be inspected. Validation:
-  `python3 -m unittest tests.test_eval_runner.SeparationTests.test_sandbox_excludes_untracked_working_tree_files tests.test_eval_runner.SeparationTests.test_sandbox_preserves_tracked_fixture_working_tree_content tests.test_eval_runner.SeparationTests.test_sandbox_preserves_tracked_skill_working_tree_content tests.test_eval_runner.SeparationTests.test_sandbox_skips_tracked_files_deleted_from_working_tree tests.test_eval_runner.SeparationTests.test_sandbox_filters_tracked_paths_under_excluded_dirs tests.test_eval_runner.SeparationTests.test_non_git_source_falls_back_to_unverified_copytree tests.test_eval_runner.SeparationTests.test_git_metadata_without_git_executable_fails_loudly -v`.
-- `skills/skill-eval/scripts/eval_runner.py run` now records the executor's real
-  sandbox file changes as a `change_manifest` (created/modified/deleted paths
-  with content hashes, diffed against the sandbox baseline commit and excluding
-  the runtime `.eval-runner/` scaffold) and folds it into the grader prompt under
-  a `Sandbox File Changes` section, computed identically for `with_skill` and
-  `without_skill`, so a grader can verify self-narrated create/reuse/update
-  claims instead of trusting the executor's narration. When the sandbox git
-  baseline is unavailable the manifest records `captured = false` with a reason
-  and the section is omitted. Validation:
-  `python3 -m unittest tests.test_eval_runner.SeparationTests.test_change_manifest_exact_set_equality tests.test_eval_runner.SeparationTests.test_change_manifest_records_modifications_and_deletions tests.test_eval_runner.SeparationTests.test_change_manifest_folds_into_grader_prompt -v`.
+- Executors run with write access only inside throwaway Git repositories while
+  graders run as separate read-only subprocesses outside the source and executor
+  trees. Sandboxes copy tracked working-tree state, compare changes against a
+  runner-created baseline even when the executor commits, and preserve bounded
+  provider failure evidence.
+- Codex prompts use stdin and cwd-independent artifact paths with role-shaped
+  readiness probes and sanitized ambient Git state. Claude invocation and
+  transcript behavior remain compatible. Validation:
+  `python3 -m unittest discover -s tests -p 'test*.py'` passed 172 tests, and all
+  released eval suite definitions passed validation.
 
 ## [skill-quality 2.3.0] - 2026-08-01
 
 ### Added
 
-- `skill-quality` adds evidence-bound workflows for moving-failure variance,
-  safe eval-suite compaction, by-construction safety closure, diagnostic subset
-  repair, and assertion-placement decisions that promote only repeatedly missed
-  load-bearing invariants.
+- `skill-quality` adds evidence-bound workflows for moving single-run failures,
+  safe eval-suite compaction, analyzer findings, and selected-case diagnostic
+  repair. Repeated variance is separated from stable contract gaps, compaction
+  keeps case-to-contract coverage and accepted risks visible, and safety fixes
+  prefer enforcement at verified source-boundary-sink owners.
 
 ### Changed
 
-- Quality decisions now separate executor authority, fixture delivery, grader
-  ground truth, artifact identity, proof transport, runner capability, public
-  serialization, official aggregates, and closure state. Tracked-change
-  proposals carry a compact evidence map and proof status, while no-change
-  decisions remain concise and non-applicable assertions stay explicit.
-  Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
-- `skill-quality` and `skill-eval` now distinguish executor fixture delivery
-  from isolated-grader semantic ground-truth visibility. Assertions that judge
-  invention, omission, or fixture fidelity must carry the minimum relevant
-  grader-only facts, describe their use as supplied without requiring needless
-  restatement, reject delivery manifests as substitutes for semantic facts,
-  avoid whole-fixture grader transport unless complete contents are necessary,
-  and keep those facts out of executor-facing material; otherwise
-  the assertion remains unobservable rather than justifying target-skill prose
-  or restored grader filesystem access. `skill-quality` tracked-change proposals
-  now expose a compact evidence map, reusable contract delta, owning surfaces,
-  and proof status, while no-change decisions remain concise. Its common and
-  focused eval assertions now state non-applicability explicitly and avoid
-  requiring unowned package edits or literal rewrites whose source text was not
-  supplied. Focused eval cases cover these boundaries. A follow-up adds a
-  semantic paraphrase preflight for non-exact assertions and a runner-supported
-  `--eval-id` diagnostic subset. Partial runs preserve the requested config
-  matrix, record selected ids against full-suite size, and remain explicitly
-  `REVIEW REQUIRED` and non-closing until a frozen-state full-suite run occurs.
-  Unknown selections fail before iteration creation or provider launch. The
-  documented command boundary now keeps `--eval-id` on diagnostic `run`
-  invocations only, excluding it from `validate`, `report`, and full-suite
-  closing commands so an all-id filtered diagnostic cannot masquerade as
-  closure. The operation eval suite separates the exact CLI/coverage contract
-  from lexical-adjudication and freeze/aggregate pressure, avoiding one
-  overpacked case, and accepts semantically equivalent authorization wording
-  without weakening the no-implicit-run boundary.
-  Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`
-  and `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-eval/evals.json`;
-  `python3 -m unittest tests.test_eval_runner` passed 116 tests and
-  `python3 -m unittest discover -s tests -p 'test*.py'` passed 172 tests.
-  The closing `gpt-5.6-luna` Codex `skill-quality` run scored all 44 cells at
-  `with_skill` 94.7% versus `without_skill` 78.1% (+16.6 points). Its sole
-  sanity signal was E06 candidate-below-baseline; artifact review found a
-  lexical grader false negative because the candidate rejected copied grader
-  and fixture wording through semantically equivalent language, so the
-  official aggregate remains unchanged and the anomaly is explained rather
-  than attributed to the skill. The final `skill-eval` run scored all 10 cells
-  with Sanity OK at `with_skill` 100.0% versus `without_skill` 76.0% (+24.0
-  points), with every candidate assertion passing. No cells were excluded from
-  either closing result. Because prompts, assertions, and skill text changed
-  during repair, each closing run measures its final frozen contract but does
-  not isolate causal score movement to skill prose alone.
-- `skill-quality` now binds represented workflow state separately from executor
-  action mode, so response-only evals may accept supplied staged, verified, or
-  authorized state without inspecting the ambient checkout or falsely claiming
-  an unperformed mutation. Composite responses now separate diagnostic prose,
-  primary artifact payloads, command transports, and post-action checks before
-  grading; mechanical assertions must target the owning region instead of
-  treating every fence, label, or quoted prohibited value anywhere in the
-  response as a payload violation. A focused eval covers represented commit
-  state, non-execution, payload-versus-transport fencing, diagnosis-only
-  provenance, and region-scoped assertions. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
-  Behavioral improvement is unproven because this request did not authorize a
-  fresh skill-quality eval run.
-- `skill-quality` now separates structured eval input, internally retained
-  state, and public serialization contracts so delivered adapter records do not
-  implicitly authorize public reproduction. Mechanical artifact adjudication
-  now handles grader false negatives as well as false positives, keeps official
-  aggregates unchanged, and scopes deterministic predicates to the relevant
-  structured field. Tracked fixture dirtiness remains a working-tree
-  measurement rather than clean-source proof, and a later commit does not
-  retroactively change the run manifest. `REVIEW REQUIRED` anomalies must be
-  adjudicated before final closure handoff or explicitly preserved across a
-  non-closing checkpoint, while changelog entries retain the final durable
-  contract and proof status instead of the full iteration diary. A focused eval
-  covers public projection leakage, contradictory grader verdicts,
-  dirty-fixture non-retroactivity, premature checkpoint closure, and changelog
-  compression. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
-  Behavioral improvement is unproven because no fresh skill-quality eval run was
-  requested.
-- `skill-quality` now separates artifact authority, logical artifact identity,
-  and positive proof transport during eval diagnosis. A capture destination
-  remains non-authorizing for chat-only or response-only cases, but becomes a
-  required grader-visible recording path once the represented workflow
-  independently requires an artifact; a sandbox-only copy plus an empty capture
-  record is classified as a measurement or recording gap. Conditional common
-  assertions must state an observable applicability predicate and explicit
-  non-applicable result instead of failing cases merely because artifact,
-  language, exact-content, source, or lifecycle surfaces are absent.
-  Instruction placement now includes a reachability gate: repeated misses of a
-  correctly routed load-bearing reference rule may promote only its concise
-  invariant to `SKILL.md`, while detailed mechanics stay in the reference and
-  one noisy cell does not justify promotion. A focused eval covers the combined
-  authority/recording boundary, logical-path separation, common-assertion
-  applicability, and reference-to-body promotion decision. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
-  Behavioral improvement is not measured because no fresh eval run was
-  requested.
-- `skill-quality` now distinguishes runner or host capability from user and
-  workflow authority during eval diagnosis. Conditional artifact destinations,
-  available tools, fallbacks, and transport hooks are inspected in the exact
-  delivered executor prompt; when scaffolding induces unrequested file writes,
-  tool use, scope expansion, or persistence, the failure is classified as
-  prompt or invocation authority leakage and fixed at the owning transport
-  contract instead of adding more downstream skill prose. Non-authorizing
-  affordances remain config-symmetric and receive runner-level regression
-  coverage while legitimate artifact capture stays available. A focused eval
-  covers a capture path whose file-write failure moves between chat-first cases
-  until the runner contract separates transport availability from permission.
-  Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
-  Behavioral improvement is not measured because no fresh eval run was
-  requested.
-- `skill-quality` now separates represented-source corpora from the executor's
-  ambient workspace before diagnosing eval failures. Inline or fictional source
-  material, runner-delivered fixtures, verified target workspaces, and harness
-  scaffolding must have explicit provenance; ambiguous prompts are repaired at
-  the prompt or fixture boundary instead of teaching a skill to ignore a
-  legitimately bound repository. Mechanical output contracts are audited
-  against recorded bytes even when the grader and runner sanity summary pass,
-  with deterministic checks or concrete prohibited predicates preferred for
-  ambient absolute links, runner/eval citations, exact prefixes, and similar
-  properties. Post-edit contract-collision audits now reconcile applicability
-  rules, workflow steps, output contracts, evidence taxonomies, prompts,
-  assertions, README text, and current changelog guidance before a closing
-  rerun. A focused eval covers ambiguous represented-project binding, repeated
-  evidence-universe leakage, a grader false positive over a sandbox link, and
-  stale path/evidence-label obligations. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
-  Behavioral improvement is not measured because no fresh eval run was
-  requested.
-- `skill-quality` now treats iterative eval repair as a sequence of explicit
-  measurement epochs. A run is closing evidence only for the exact skill,
-  assertion, prompt, fixture, and proof-surface state it measured; later edits
-  require a new affected-suite run before improvement claims. Eval design now
-  verifies that declared fixtures reach git-tracked executor sandboxes, checks
-  missing or substituted artifacts against fixture dirtiness, copy strategy,
-  excluded-path evidence, and change manifests, and requires expectations to be
-  satisfiable from the case's actual delivery mode. Response-only, closure-only,
-  blocked, artifact-writing, and state-changing cases no longer borrow proof
-  obligations from one another. No-change and blocked cases may identify an
-  existing sufficient rule, eval, or artifact without that explanation being
-  treated as a proposed edit, and do not need a gratuitous new mutation to prove
-  existing coverage. Cross-iteration score comparisons must separate
-  retained-contract behavior from changed assertion sets or denominators, and
-  repeated full-suite runs need a pre-registered measurement question instead
-  of substituting volume for attribution. A focused eval covers a stale closing
-  run, an untracked fixture excluded by the runner copy contract, a
-  response-only case graded on impossible mutations, and the required
-  affected-suite rerun. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`
-  and `python3 -m unittest discover -s tests -p 'test*.py'`.
-- `skill-quality` now separates wording mitigations from by-construction closure
-  for security analyzer, trust-boundary, and credential-propagation findings.
-  It maps the reported source, boundary, sinks, unsafe behavior, and enforcement
-  owner; prefers omission, closed structural records, capability-unavailable
-  fallbacks, or blocked persistence over prompt reminders; gives credential and
-  privacy controls explicit precedence over exact-content preservation; and
-  audits coupled current-contract artifacts for stale paths that still authorize
-  the warning. Static validation, synthetic fixtures, and skill prose no longer
-  count as proof of host isolation, credential revocation, or external scanner
-  clearance; analyzer prose proves what was reported but current source evidence
-  must verify the alleged path, and only a rerun of the reporting analyzer
-  proves that its warning cleared. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
-- `skill-quality` now treats eval-suite compaction as an evidence-bound quality
-  change. Before deleting or merging cases, agents inventory the suite and map
-  each old case's contract dimensions to retained coverage, lost
-  discrimination, and an explicit keep, merge, delete, or accepted-risk
-  decision. Compaction uses suite-specific safe floors, keeps natural
-  representative prompts and distinct exact-format, locale, no-change, and
-  proof boundaries, and stops before unsafe common-assertion broadening or
-  synthetic meta-prompts. Static validation proves structure only; preserved
-  effectiveness remains unmeasured until an authorized clean comparative
-  rerun. Session-derived reference notes and a focused eval case cover the
-  contract. Validation:
-  `python3 -m json.tool evals/skill-quality/evals.json` and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
-- `skill-quality` common artifact-surface assertion now accepts no-change or eval-only decisions that avoid naming unrelated `SKILL.md`, reference, README, or changelog surfaces. The assertion still requires the owning file or artifact type when a tracked change is justified, but no longer penalizes concise reports for omitting surfaces that do not own the behavior. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
-- `skill-quality` E01 now accepts an evidence-bound no-change decision when existing negative-pressure coverage already fails plans that hard-code unsupported product constants or block on adjacent optional policy. The eval still requires agents to reject invented empty-name or max-length facts, but no longer requires proposing duplicate eval checks when the current suite already owns that pressure. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
-- `skill-quality` now treats repeated single-run failures that move across eval cells after targeted wording fixes as a moving-failure pattern. Agents should compare per-run and cross-run evidence, use repeated runs when single-run baselines or failure locations are volatile, stop per-cell prose tightening when multi-run evidence shows low-frequency scatter, and route persistent language/prompt leakage to runner or prompt isolation rather than skill prose. The repeated wording/proof-boundary eval case now covers moving-failure and multi-run variance triage without adding a separate case. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
-- `skill-quality` now keeps official runner aggregates separate from
-  diagnostic adjusted aggregates that exclude scored anomalous cells such as
-  host-continuation stubs or tool-use placeholders. It requires the adjusted
-  reading to be labeled diagnostic, the excluded cell ids/configs and criteria
-  to be listed, and proof-path or runner-recording changes that land alongside
-  skill-contract changes to be reported as functioning proof-path evidence
-  without attributing the whole pass-rate delta to skill text unless a separate
-  run isolates that cause. A new eval case covers the official-vs-diagnostic
-  aggregate boundary and simultaneous proof-path/contract-change attribution.
-  Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`.
+- Quality decisions now distinguish executor authority, fixture delivery,
+  grader-only facts, represented workflow state, artifact identity, capture
+  transport, and public output. No-change decisions no longer invent edits;
+  official aggregates remain unchanged when grader defects or non-closing
+  anomalies require separate adjudication.
+- Closing evidence must match the measured skill, assertions, fixtures, and
+  proof surfaces. Response-only and blocked cases no longer inherit impossible
+  mutation proof, and superseded eval iterations are collapsed into the final
+  contract and durable verification status. Validation: the `skill-quality`
+  eval suite and the shared runner tests passed their release checks.
 
 ## [vibe-coding 2.0.0] - 2026-08-01
 
 ### Changed
 
-- **Breaking:** an explicit `vibe-coding` invocation now grants selected
-  state-changing phases default permission for verified, scoped local checkpoint
-  commits. To retain the previous no-commit behavior, explicitly say not to
-  commit or enforce a project-level prohibition; push, release/version work,
-  history rewrites, destructive cleanup, and unrelated paths remain excluded.
-- Routing adds an interactive plan pre-check walkthrough phase, preserves
-  long-session review/delegation state, exits review for runtime regressions or
-  artifact backtracking, resolves represented-turn language from the represented
-  user request, and assigns plan-owned acceptance/proof defects to planning
-  rather than requirements by default. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`.
-- `vibe-coding`, `vibe-debug`, and `vibe-orchestrate` evals now make activation
-  provenance, response-only action mode, represented evidence, capability
-  availability, and contract-backed reviewer disposition observable without
-  requiring executors to invent missing state or claim unperformed work. Their
-  closing `gpt-5.6-luna` Codex runs scored all 88 cells with zero infrastructure
-  or fixture-dirty signals: `vibe-coding` 95.1% versus 76.3% (+18.8 points),
-  `vibe-debug` 89.8% versus 66.0% (+23.8 points), and `vibe-orchestrate` 89.0%
-  versus 55.2% (+33.9 points). `vibe-coding` had no sanity anomaly; debug review
-  records one E06 candidate-below-baseline omission, while orchestration review
-  records valid baseline 0% outputs for E09/E12 and one E06
-  candidate-below-baseline omission. The repaired E06 routing, E10/E13 debug,
-  and E07 orchestration cases passed their targeted contracts. Generated eval
-  workspaces remain uncommitted.
-- Explicit use of a state-changing `vibe-*` workflow now grants scoped
-  local-checkpoint permission for verified workflow-owned changes unless the
-  user opts out, project policy forbids commits, or dirty-state, verification,
-  review, or file-ownership gates block the operation. Hosts that require an
-  additional human confirmation must ask once at workflow startup before likely
-  edits instead of waiting until completion; read-only, chat-only, no-file,
-  unchanged, message-drafting, generated-output, and empty-file-set cases do not
-  ask or commit. Requirements, planning, confirmed plan reflection, plan
-  execution, debug repair, review-selected fixes, and standalone tracked writing
-  edits now define their own safe checkpoint timing, while orchestration keeps
-  staging and commits with the coordinator and the commit-execution workflow
-  accepts recorded owning-workflow handoffs. Push, release preparation, version
-  changes, tags, amend, rebase, reset, stash, squash, destructive cleanup, and
-  unrelated or ambiguous paths still require separate authority. README and
-  focused eval cases cover invocation permission, startup confirmation,
-  no-change exclusions, natural plan slice boundaries, coordinator ownership,
-  and safe commit handoff. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-goal-alignment/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`.
-- `vibe-coding` now preserves long-session review/delegation state and leaves the review route when a concrete runtime symptom, core user-journey regression, repeated finding class, architecture expansion, or insufficient artifact depth means debug-and-repair or artifact backtracking owns the next step. Routing state now records frozen review target, primary user journey, acceptance sentinels, cycle count, active stop signals, wait/update policy, delegation budget, last verified checkpoint, and unverified shared edits. A new eval covers review-to-debug routing for a runtime regression during a review loop. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`.
-- `vibe-*` delegated-review and delegated-execution guidance now requires bounded delegated units with deliverable, question or hypothesis, elapsed-time and path/change budgets, compact context digest, verification receipt, and stop-and-return conditions. Repeated empty waits require checkpoint or split decisions instead of no-change polling updates, and delegated shared-root edits need changed-path and verification status before they count as progress. Validation is covered by the affected `vibe-review`, `vibe-coding`, `vibe-debug`, `vibe-planning`, and `vibe-plan-execution` eval validations listed above.
-- `vibe-coding` orchestration now states that quality is not a
-  token-minimization objective: routed phases must not narrow investigation
-  scope, skip user/domain perspectives, or choose poorer UX solely because it is
-  faster when the selected phase marks those surfaces material. If budget,
-  capability, or time cannot support the needed depth, orchestration reports a
-  degraded route, blocked surface, or accepted-risk decision instead of silently
-  completing the cheaper path. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`.
-- `vibe-coding` now clarifies two routing-output boundaries: represented-turn
-  language selection comes from each represented user's natural-language request
-  text rather than wrapper prompts, metadata, assertions, source quotes, phase
-  labels, or hidden/repository/session/global chat-language defaults, with mixed
-  represented-language classification sets using each turn's own language for
-  its route block; literal route status tokens such as `matched-but-unavailable`
-  stay in the user-facing route summary; and implementation-plan backtracking
-  routes plan-owned acceptance-criteria, schema, test, proof, edit-order, and
-  risk defects to implementation planning instead of assuming every
-  acceptance-criteria phrase belongs to requirements specification. The eval
-  suite now checks those boundaries directly, and its backtracking common
-  assertion is scoped to prompts with a defective-artifact report rather than
-  failing unrelated route scenarios as unmeasurable. The cross-phase
-  fast/cheap-orchestration eval now distinguishes prohibited confirmed-scope
-  shortcuts from allowed specialist-owned proposed defaults, assumptions,
-  blockers, or accepted-risk decisions. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`.
-- `vibe-*` delegation and review model-selection contracts now stay
-  capability-based for newer high-performance models: low-ambiguity delegates
-  may use cheaper/faster or previous-generation tiers only when quality-neutral
-  or user-prioritized, while maximum-performance, judgment-heavy, synthesis,
-  contradiction, final-disposition, risk, and contract-compliance work biases to
-  the strongest suitable reasoning/context tier available without hard-coded
-  model IDs. `vibe-orchestrate` now adds frontier-coordinator loop guidance for
-  token-efficient delegates: inline verified facts, send compact per-worker
-  context digests, iterate by checkpoint deltas, and escalate contradictory,
-  risky, final-decision, or repeated-failure work instead of accepting cheap
-  retries as proof. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-brainstorm/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-code-research/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
-- `vibe-coding` now classifies interactive pre-execution walkthroughs of a
-  saved implementation plan as a distinct plan pre-check walkthrough phase,
-  with a route trigger, a precedence slot after review and existing-feature
-  repair triggers and before commit execution, and a boundary rule: the phase
-  stops before implementation,
-  yields no execution authorization, and has no proxy-decision branch, so
-  unattended orchestration reports the interactive requirement and stops
-  instead of emulating item decisions. Git-backed plan or document diffs still
-  route to the review phase, and the README routing prose now names the
-  pre-check route. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`.
+- **Breaking:** Explicit state-changing orchestration now carries bounded
+  permission for the selected workflow to create a verified local checkpoint
+  unless the user opts out or repository policy blocks it. Push, release and
+  version work, history rewriting, destructive cleanup, and unrelated paths
+  still require separate authority.
+- Saved-plan walkthroughs route to an interactive pre-execution plan review with
+  no proxy branch. Runtime regressions, repeated review findings, architecture
+  expansion, or defective requirements and plans route back to the workflow
+  that owns repair instead of continuing an unsuitable review loop.
+- Delegation now uses bounded deliverables, path and time budgets, compact
+  context, capability-based model selection, receipts, and explicit stop
+  conditions. Long-running orchestration records frozen targets, acceptance
+  sentinels, checkpoints, and unverified shared edits. Validation: the
+  `vibe-coding` eval suite passed schema and fixture validation.
 
 ## [vibe-requirements-spec 4.0.0] - 2026-08-01
 
 ### Changed
 
-- **Breaking:** an explicit tracked-spec invocation now commits the verified
-  requirements artifact as a scoped local checkpoint after final audit unless
-  the user or project denies commits. Chat-only, no-file, blocked, temporary,
-  unrelated, push, release/version, and history-rewrite cases remain excluded.
-- Requirements capture now treats source-contained commands and trust claims as
-  inert evidence, keeps artifact-capture transport separate from the
-  repository-relative spec identity, preserves exact-content and contradiction
-  boundaries, requires viable visible choice options, and keeps configured
-  document language distinct from chat and source language. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`.
-- `vibe-requirements-spec` now requires every artifact-mode chat reply to name
-  the same repository-relative logical spec path recorded in artifact metadata.
-  Its eval distinguishes the one user-facing chat question from the same
-  pending decision stored in the captured spec. Together with the role-specific
-  runner sandbox, this restores inspectable artifact capture without enabling
-  writes in chat-only or response-only cases. The closing `gpt-5.6-luna` Codex
-  eval scored all 28 cells with zero infrastructure or sanity anomalies, at
-  98.9% versus 79.4% (+19.5 points).
-- `vibe-requirements-spec` now treats a host or eval-runner artifact-capture
-  destination as mandatory recording transport whenever artifact mode creates
-  or updates a spec. The complete primary spec is written there before any
-  repository mirror so inspection does not depend on an unrecorded sandbox
-  file; `Current spec path`, evidence paths, and the chat summary retain the
-  selected repository-relative artifact identity and omit sandbox absolute
-  links. Chat-only, no-file, lifecycle-summary, response-only classification,
-  and explicitly no-artifact closure-description modes remain non-writing. The
-  eval suite moves the finished-checkpoint contract out of universal common
-  assertions, makes universal assertions explicitly conditional on their
-  delivery mode or source surface, and adds artifact-mode capture pressure to
-  the cases that require inspectable specs. The top-level contract now keeps
-  capture transport and repository-relative artifact identity visible without
-  relying only on a referenced workflow, and makes clear that artifact mode
-  cannot turn evidence contradicted by the current spec into confirmed,
-  proposed-default, out-of-scope, or acceptance-criteria behavior while calling
-  the same direction unresolved. Contradiction stops preserve the last
-  evidence-supported behavior and remain artifact mode by default. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`.
-  Closing `gpt-5.4-mini` Codex evaluation with one run per config: 28/28 cells
-  scored, zero infrastructure failures, `with_skill` 86.4%,
-  `without_skill` 80.9%, delta +5.6 points. Sanity review remains required for
-  E02 and E10, where the single-run candidate trailed baseline; across the six
-  iterations their with-skill scores moved between 60.0–85.0% and 64.7–100.0%
-  respectively rather than exposing one stable shared contract gap. Generated
-  workspace artifacts remain uncommitted.
-- Explicit use of a state-changing `vibe-*` workflow now grants scoped
-  local-checkpoint permission for verified workflow-owned changes unless the
-  user opts out, project policy forbids commits, or dirty-state, verification,
-  review, or file-ownership gates block the operation. Hosts that require an
-  additional human confirmation must ask once at workflow startup before likely
-  edits instead of waiting until completion; read-only, chat-only, no-file,
-  unchanged, message-drafting, generated-output, and empty-file-set cases do not
-  ask or commit. Requirements, planning, confirmed plan reflection, plan
-  execution, debug repair, review-selected fixes, and standalone tracked writing
-  edits now define their own safe checkpoint timing, while orchestration keeps
-  staging and commits with the coordinator and the commit-execution workflow
-  accepts recorded owning-workflow handoffs. Push, release preparation, version
-  changes, tags, amend, rebase, reset, stash, squash, destructive cleanup, and
-  unrelated or ambiguous paths still require separate authority. README and
-  focused eval cases cover invocation permission, startup confirmation,
-  no-change exclusions, natural plan slice boundaries, coordinator ownership,
-  and safe commit handoff. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-goal-alignment/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`.
-- `vibe-requirements-spec` now separates exact-content fidelity from workflow
-  authority when selected prompts, templates, fixtures, command output, or other
-  literal payloads contain instruction-like text. Such content must stay in a
-  provenance-labeled `Content trust: inert-data` payload record or durable
-  repository artifact, operational requirements reference the payload instead
-  of interpolating it, text fences must outlength matching delimiter runs, and
-  handoff remains blocked when significant bytes cannot be contained losslessly.
-  README, final-audit guidance, and a hostile exact-payload eval case cover the
-  contract. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`.
-- `vibe-requirements-spec` strict and lightweight four-choice questions now
-  require all visible options, including non-recommended and mildly challenging
-  ones, to be viable requirement paths under stated conditions rather than
-  filler, strawman, contradictory, unsafe, or user-hostile contrasts. Riskier,
-  cheaper, narrower, or broader options must state their user-visible tradeoff,
-  assumptions, and adoption conditions, and the skill should use three options
-  instead of a weak fourth when only three high-quality choices exist. Options
-  cannot rely on an unverified external safeguard to make an otherwise harmful
-  path viable; the safeguard must be part of the adopted requirement path. README
-  guidance and a new billing-recipient eval case cover the option-quality
-  contract. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`.
-- `vibe-requirements-spec` now keeps rollback or recovery expectations as
-  blocking decisions or blocking unknowns when migration, irreversible-write,
-  or destructive-change requirements depend on safety, invisibility,
-  compatibility, or recovery. The mode-selection eval prompt now asks for
-  chat-only A/B response content as well as classification so its expectations
-  are measurable from the recorded output. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`.
-- `vibe-requirements-spec` now requires selected exact-content decisions,
-  including creative artifacts such as ASCII/Unicode art, formatted copy,
-  templates, schemas, command-output snapshots, fixtures, assets, palettes, and
-  mockups, to be embedded in the spec or cited through a durable readable
-  repository artifact before dependent finish or handoff. Chat-local option
-  labels, ordinals, summaries, dimensions, checksums without source bytes, and
-  private session state no longer count as sufficient handoff evidence. The
-  existing lifecycle/handoff eval case now covers this missing-payload blocker
-  instead of adding a separate creative-only case. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`.
-- `vibe-requirements-spec` now requires broad UX, "feel right", and
-  non-technical requirements drafts to classify the user's workflow path,
-  feedback, failure recovery, accessibility, data safety, and permission or
-  cost consequences before confirming a first slice. Cheaper implementation
-  options must be labeled as tradeoffs, defaults, assumptions, decisions,
-  out-of-scope items, or risks instead of silently becoming confirmed scope.
-  Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`.
-- The `vibe-requirements-spec` eval suite now makes document-language assertion
-  #4 self-applying: it states that a global/ambient instruction to reply in a
-  language is a chat-language instruction that does not select the document
-  language, so with no explicit artifact-language request and
-  `VIBE_DOCUMENT_LANGUAGE` unset a skill-default English document is correct,
-  while an explicit artifact-language request or `VIBE_DOCUMENT_LANGUAGE` that
-  the document does not match still fails. The inert-source list is unchanged,
-  no existing case is removed, and a new case exercises the
-  no-explicit-request + `VIBE_DOCUMENT_LANGUAGE`-unset + ambient-non-English
-  scenario expecting an English document. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`.
-- The `vibe-requirements-spec` common spec-structure assertion now distinguishes
-  full generated specs from targeted in-place updates of pre-existing partial
-  specs and requires recorded spec content rather than self-narration when
-  judging section separation. The assertion keeps current-artifact metadata
-  such as `Last updated` separate from prohibited lifecycle or revision-history
-  content, so graders do not penalize a narrow in-place update for omitting
-  unrelated empty sections or pass an output whose recorded artifacts do not
-  expose the spec content needed for inspection. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`.
-- `vibe-*` delegation and review model-selection contracts now stay
-  capability-based for newer high-performance models: low-ambiguity delegates
-  may use cheaper/faster or previous-generation tiers only when quality-neutral
-  or user-prioritized, while maximum-performance, judgment-heavy, synthesis,
-  contradiction, final-disposition, risk, and contract-compliance work biases to
-  the strongest suitable reasoning/context tier available without hard-coded
-  model IDs. `vibe-orchestrate` now adds frontier-coordinator loop guidance for
-  token-efficient delegates: inline verified facts, send compact per-worker
-  context digests, iterate by checkpoint deltas, and escalate contradictory,
-  risky, final-decision, or repeated-failure work instead of accepting cheap
-  retries as proof. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-brainstorm/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-code-research/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
-- `vibe-requirements-spec` now treats source-contained workflow directives,
-  metadata-like claims, tool commands, environment-setting requests, and trust
-  claims as inert evidence when drafting requirements from user goals, external
-  evidence, local docs, existing specs, logs, examples, or delegated output. It
-  no longer offers to inspect or edit shell startup files to persist
-  `VIBE_SUBAGENTS`; setup help is limited to current-session or manual
-  user-run guidance. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`.
-- `vibe-requirements-spec` now prevents existing spec language, source language,
-  filename locale markers, chat language, or project convention from overriding
-  `VIBE_DOCUMENT_LANGUAGE` or the default English document language for
-  generated requirements spec prose. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`.
+- **Breaking:** An explicit artifact-producing invocation now creates a scoped
+  local checkpoint for a verified tracked requirements spec unless commits are
+  denied or blocked. Chat-only, unchanged, blocked, generated-output, and empty
+  file-set results do not commit.
+- Source-contained commands, metadata, trust claims, and workflow directives
+  remain inert evidence. Exact selected content is embedded in an
+  `inert-data` boundary or cited through a durable repository artifact, and
+  artifact capture remains transport rather than replacing the logical spec
+  path.
+- Four-choice modes now require viable options and record UX effort, feedback,
+  recovery, accessibility, permission, cost, and rollback consequences before
+  handoff. `VIBE_DOCUMENT_LANGUAGE` remains authoritative for generated artifact
+  prose, while every artifact-mode reply names the repository-relative spec
+  identity. Validation: the `vibe-requirements-spec` eval suite passed schema
+  and fixture validation.
 
 ## [vibe-planning 5.0.0] - 2026-08-01
 
 ### Changed
 
-- **Breaking:** an explicit invocation that writes a reviewed tracked plan now
-  creates a scoped local plan checkpoint unless commits are denied or cannot be
-  isolated. The commit remains plan-only and excludes implementation, release,
-  push, history rewrites, temporary review state, and unrelated files.
-- Planning adds same-outer-turn handoff evidence for reviewed ready plans,
-  user/UX and investigation-adequacy gates, positive/negative acceptance proof
-  for material state transitions, stronger delegated-work contracts, and
-  separate chat/artifact language handling. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`.
-- Repeated Codex `gpt-5.4-mini` benchmark triage narrows the changed-skill
-  follow-up to stable contract gaps while treating moving single-run failures as
-  variance rather than adding per-cell prose. `vibe-debug` keeps common pressure
-  conditional on unresolved repair, constrained verification, or exhausted
-  source-only triage and makes recorded closure commits prove staged state,
-  message transport, trailers, and stored messages. `vibe-orchestrate` records
-  startup commit decisions and coordinator-owned closure gates, and consolidates
-  protected-parity contradiction handling into one acceptance checklist.
-  `vibe-plan-execution` moves scenario-specific behavior out of universal common
-  assertions, makes artifact binding and checkpoint proof visible, and records
-  blocked-source and Plan Validity handoffs without rewriting the plan.
-  `vibe-planning` compacts the plan-body contract into load-bearing sections,
-  treats runner artifact paths as transport, and makes response-only plan
-  closure show the exact scoped commit gates. Repeated sequential Codex runs
-  scored every cell with zero infrastructure exclusions. The closing
-  `gpt-5.4-mini` readings were: `vibe-commit` 74.0% vs 43.2% (+30.9 points,
-  Sanity OK); `vibe-debug` 76.1% vs 59.0% (+17.0 points, two
-  candidate-below-baseline cells); `vibe-orchestrate` 82.9% vs 72.8% (+10.1
-  points, two zero-scored/candidate-below-baseline cells);
-  `vibe-plan-execution` 77.8% vs 55.5% (+22.3 points, two
-  candidate-below-baseline cells); and `vibe-planning` 83.3% vs 37.3% (+46.0
-  points, Sanity OK). Flagged cells were inspected against executor and grader
-  outputs; none were runner or grader infrastructure failures. Debug and
-  plan-execution flags moved across repeated single-run cells, while stable
-  orchestration permission/parity and execution checkpoint boundaries were
-  tightened at their owning contracts. Runs remain one sample per cell, so
-  assertion-level reliability beyond the measured runs is not claimed.
-  Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  and `python3 -m unittest discover -s tests -p 'test*.py'`.
-- `vibe-orchestrate`, `vibe-debug`, `vibe-planning`, and `vibe-plan-execution`
-  now harden recurring evidence and proof failures in delegated implementation
-  and repair workflows.
-  Delegation captures a round-zero baseline, ranks evidence authority by claim
-  class, separates observed propositions from inference, stops on contract
-  premise contradictions, protects external parity artifacts, constrains
-  repository-wide tool effects, treats delegated failures as environment-bound
-  self-report until reproduced, compares named-test sets rather than relying on
-  pass-count growth, inspects non-text artifacts, aborts unintended overlapping
-  writers, and canaries unverified fan-out transports. Debugging records the
-  observation regime and representativeness of cause evidence, validates repair
-  metrics against the known-bad baseline, and stops a third same-model patch
-  after two attempts fail to move the discriminator. Planning distinguishes
-  derived values from measurements, requires assumptions and empirical proof
-  before freezing derived limits, adds falsifiability pressure to acceptance
-  gates, and maps public outcomes across terminal paths to internal observers and
-  carriers. Plan execution rejects non-discriminating metrics and re-reviews
-  lifecycle, ordering, concurrency, timeout, fallback, and first-winner repairs
-  for inverse regressions before completion or checkpoint commits. Focused eval
-  cases cover protected artifact conflicts, sandbox failure attribution,
-  transport staleness, unrepresentative fixtures, derived protocol limits,
-  missing internal carriers, and inverse lifecycle races. No change was made to
-  `vibe-writing`: its existing separation of suite status, acceptance coverage,
-  unresolved scope, and unverified edits already owns the relevant summary
-  wording contract. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  and `python3 -m unittest tests.test_eval_runner tests.test_sync_dev_agent_skills`.
-  Behavioral improvement is not measured because no fresh eval run was
-  requested.
-- Follow-up analysis of the clean `claude-sonnet-5` comparative run narrows the
-  remaining quality work to eval discrimination and one planning-contract gap.
-  `vibe-planning` now requires representation coverage to split terminal paths
-  whose observers, carriers, cleanup state, precedence, or field availability
-  can differ, instead of collapsing them into one generic failure row.
-  `vibe-planning` common assertions now apply full plan-body requirements only
-  to creation or revision cases, so closure-only checkpoint prompts are graded
-  on closure behavior rather than being required to recreate an already-reviewed
-  plan. `vibe-debug` moves exact user-retest/probe handoff fields out of the
-  common assertions and into the scenarios that actually hand work to the user.
-  The new orchestration and execution pressure prompts no longer disclose the
-  target contract names or conclusions in `expected_output`; they require the
-  model to infer evidence authority, protected-proof handling, metric
-  discrimination, and symmetric race review. The prior clean run remains the
-  official result for the pre-follow-up suite; the effect of these follow-up
-  changes is not measured until a fresh authorized rerun.
-- Explicit use of a state-changing `vibe-*` workflow now grants scoped
-  local-checkpoint permission for verified workflow-owned changes unless the
-  user opts out, project policy forbids commits, or dirty-state, verification,
-  review, or file-ownership gates block the operation. Hosts that require an
-  additional human confirmation must ask once at workflow startup before likely
-  edits instead of waiting until completion; read-only, chat-only, no-file,
-  unchanged, message-drafting, generated-output, and empty-file-set cases do not
-  ask or commit. Requirements, planning, confirmed plan reflection, plan
-  execution, debug repair, review-selected fixes, and standalone tracked writing
-  edits now define their own safe checkpoint timing, while orchestration keeps
-  staging and commits with the coordinator and the commit-execution workflow
-  accepts recorded owning-workflow handoffs. Push, release preparation, version
-  changes, tags, amend, rebase, reset, stash, squash, destructive cleanup, and
-  unrelated or ambiguous paths still require separate authority. README and
-  focused eval cases cover invocation permission, startup confirmation,
-  no-change exclusions, natural plan slice boundaries, coordinator ownership,
-  and safe commit handoff. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-goal-alignment/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`.
-- `vibe-planning` and `vibe-plan-execution` now pair positive and negative proof for material visibility, permission, unlock, feature-flag, and state-transition gates. Plans can include an acceptance proof matrix, and execution runs core acceptance sentinels before hardening and refuses to mark a progress item complete when a core sentinel is missing, stale, failed, or unmapped even if the broader suite is green. New eval cases cover paired planning proof and execution blocking on a missing positive sentinel. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json` and `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`.
-- `vibe-*` delegated-review and delegated-execution guidance now requires bounded delegated units with deliverable, question or hypothesis, elapsed-time and path/change budgets, compact context digest, verification receipt, and stop-and-return conditions. Repeated empty waits require checkpoint or split decisions instead of no-change polling updates, and delegated shared-root edits need changed-path and verification status before they count as progress. Validation is covered by the affected `vibe-review`, `vibe-coding`, `vibe-debug`, `vibe-planning`, and `vibe-plan-execution` eval validations listed above.
-- `vibe-planning` now adds an investigation-adequacy gate and a user/UX
-  expectation review perspective so implementation plans cannot proceed on the
-  cheapest plausible path when unchecked caller, configuration, data, test,
-  user-visible, external-contract, feedback, recovery, accessibility, or
-  physical/visual surfaces could change scope, acceptance criteria, tests, UX
-  behavior, feasibility, or the proceed condition. Plan depth, self-review,
-  README documentation, and eval coverage now record this anti-undersearch and
-  UX-tradeoff contract. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`.
-- `vibe-*` delegation and review model-selection contracts now stay
-  capability-based for newer high-performance models: low-ambiguity delegates
-  may use cheaper/faster or previous-generation tiers only when quality-neutral
-  or user-prioritized, while maximum-performance, judgment-heavy, synthesis,
-  contradiction, final-disposition, risk, and contract-compliance work biases to
-  the strongest suitable reasoning/context tier available without hard-coded
-  model IDs. `vibe-orchestrate` now adds frontier-coordinator loop guidance for
-  token-efficient delegates: inline verified facts, send compact per-worker
-  context digests, iterate by checkpoint deltas, and escalate contradictory,
-  risky, final-decision, or repeated-failure work instead of accepting cheap
-  retries as proof. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-brainstorm/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-code-research/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
-- `vibe-planning` now accepts `VIBE_CHAT_LANGUAGE` as a user-facing
-  summary-language fallback after `VIBE_PLANNING_OUTPUT_LANG`, with the
-  family's natural-language-name/BCP47 and unreadable-empty-invalid-is-unset
-  semantics. `VIBE_PLANNING_OUTPUT_LANG` keeps priority when both variables
-  are set, so existing configurations behave unchanged, and plan artifacts
-  keep their fixed English structure; unlike the phases where
-  `VIBE_CHAT_LANGUAGE` is the leading environment variable, planning keeps
-  its own output variable first for backward compatibility. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`.
-- `vibe-planning` now distinguishes its plan-only response boundary from the
-  outer user-turn boundary: trusted top-level orchestration may start a separate
-  plan-execution route in the same outer turn after receiving recordable review
-  and ready-proceed evidence when the current user instruction already requests
-  implementation. Its eval coverage now rejects treating every planning stop as
-  a mandatory wait for another user turn. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`.
+- **Breaking:** An explicit invocation that writes a reviewed tracked plan now
+  creates a scoped local plan checkpoint unless commits are denied or blocked.
+  Planning remains plan-only; implementation, push, release/version work, and
+  broader history mutation remain outside its authority.
+- Plans now pair positive and negative proof for material visibility,
+  permission, unlock, feature-flag, and state-transition gates. Investigation
+  adequacy, user/UX impact, internal carriers, representative terminal paths,
+  and core acceptance sentinels must be addressed before a plan is ready.
+- A reviewed ready plan may emit recordable handoff evidence for a separate
+  execution phase in the same outer orchestration turn. User-facing summaries
+  accept `VIBE_CHAT_LANGUAGE` after `VIBE_PLANNING_OUTPUT_LANG`, and delegated
+  work uses bounded scopes and receipts. Validation: the `vibe-planning` eval
+  suite passed schema and fixture validation.
 
 ## [vibe-plan-review 2.0.0] - 2026-08-01
 
 ### Changed
 
-- **Breaking:** after the user confirms reflection into a tracked plan, the
-  verified changed plan now receives a scoped local checkpoint by default unless
-  commits are denied or blocked. Item-review chat, temporary review files,
-  unreflected or unchanged plans, implementation, release/version work, and
-  broader history mutation remain excluded.
-- Plan review now binds exact plan/spec/review-state paths in every lifecycle
-  response, discovers requirements under `docs/specs/`, redacts credential-like
-  plan content, and records completed reflection decisions separately from
-  temporary-file deletion consent. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`.
-- `vibe-plan-review` now begins review, continuation, stop, reflection, and
-  completion responses with exact plan, spec-or-no-spec, and derived temporary
-  review path/status bindings. Its reflection confirmation explicitly records
-  completed review state, all four decision outcomes, executable-content
-  exclusions, and the separate post-reflection temporary-file deletion choice.
-  Fixture-backed grader ground truth now prevents isolated graders from calling
-  supplied profile constraints inventions. The closing `gpt-5.6-luna` Codex
-  eval scored all 22 cells with zero infrastructure or sanity anomalies, at
-  96.7% versus 67.1% (+29.5 points).
-- `vibe-plan-review` now makes credential-like literals an explicit exception
-  to command and identifier preservation. Suspected credentials, tokens,
-  passwords, private keys, URL authentication, session secrets, and env-style
-  secret assignments must be redacted from chat, temporary review state,
-  reflected plans, summaries, commit messages, quoted snippets, and tool
-  arguments; affected items block or remain held until the user confirms a safe
-  environment-variable or secret-store reference. A focused eval covers a
-  credential-bearing deployment command without reproducing its value.
-  Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`.
-- `vibe-plan-review` now searches `docs/specs/` in addition to legacy `specs/`
-  and the plan's directory when a saved plan references no requirements spec,
-  so a same-goal spec saved at the current default location is bound as
-  requirement evidence instead of the review continuing with limited
-  requirement-alignment confidence. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`.
+- **Breaking:** After the user confirms reflection into a changed tracked plan,
+  the workflow now creates a scoped local checkpoint unless commits are denied
+  or blocked. Item-review chat, temporary review state, unreflected or unchanged
+  plans, and empty file sets do not commit.
+- Every lifecycle response binds the exact plan, requirements spec or no-spec
+  status, and derived review-state path. Spec discovery includes `docs/specs/`
+  as well as legacy `specs/`, and final reflection records all item decisions
+  while keeping review history out of executable plan content.
+- Credential-like literals are redacted from chat and artifacts and block
+  persistence or reflection until replaced with a confirmed safe reference.
+  Validation: the `vibe-plan-review` eval suite passed schema and fixture
+  validation.
 
 ## [vibe-plan-execution 4.0.0] - 2026-08-01
 
 ### Changed
 
-- **Breaking:** executing a bound plan now permits scoped local commits at
-  natural independently verified slice boundaries even when the plan omits
-  checkpoint prose. To retain the previous no-implicit-checkpoint behavior,
-  deny commits explicitly; work-in-progress, failing, scope-changing, release,
-  push, rewrite, destructive, and unrelated changes remain excluded.
-- Execution now pairs positive and negative acceptance sentinels, stops before
-  claiming completion when core proof is missing or stale, distinguishes
-  plan-owned contract defects from unrelated existing-feature repair, gates
-  workarounds through plan validity, and carries bounded delegation,
-  self-review, message-transport, and stored-commit verification contracts.
-  Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`.
-- Repeated Codex `gpt-5.4-mini` benchmark triage narrows the changed-skill
-  follow-up to stable contract gaps while treating moving single-run failures as
-  variance rather than adding per-cell prose. `vibe-debug` keeps common pressure
-  conditional on unresolved repair, constrained verification, or exhausted
-  source-only triage and makes recorded closure commits prove staged state,
-  message transport, trailers, and stored messages. `vibe-orchestrate` records
-  startup commit decisions and coordinator-owned closure gates, and consolidates
-  protected-parity contradiction handling into one acceptance checklist.
-  `vibe-plan-execution` moves scenario-specific behavior out of universal common
-  assertions, makes artifact binding and checkpoint proof visible, and records
-  blocked-source and Plan Validity handoffs without rewriting the plan.
-  `vibe-planning` compacts the plan-body contract into load-bearing sections,
-  treats runner artifact paths as transport, and makes response-only plan
-  closure show the exact scoped commit gates. Repeated sequential Codex runs
-  scored every cell with zero infrastructure exclusions. The closing
-  `gpt-5.4-mini` readings were: `vibe-commit` 74.0% vs 43.2% (+30.9 points,
-  Sanity OK); `vibe-debug` 76.1% vs 59.0% (+17.0 points, two
-  candidate-below-baseline cells); `vibe-orchestrate` 82.9% vs 72.8% (+10.1
-  points, two zero-scored/candidate-below-baseline cells);
-  `vibe-plan-execution` 77.8% vs 55.5% (+22.3 points, two
-  candidate-below-baseline cells); and `vibe-planning` 83.3% vs 37.3% (+46.0
-  points, Sanity OK). Flagged cells were inspected against executor and grader
-  outputs; none were runner or grader infrastructure failures. Debug and
-  plan-execution flags moved across repeated single-run cells, while stable
-  orchestration permission/parity and execution checkpoint boundaries were
-  tightened at their owning contracts. Runs remain one sample per cell, so
-  assertion-level reliability beyond the measured runs is not claimed.
-  Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  and `python3 -m unittest discover -s tests -p 'test*.py'`.
-- `vibe-orchestrate`, `vibe-debug`, `vibe-planning`, and `vibe-plan-execution`
-  now harden recurring evidence and proof failures in delegated implementation
-  and repair workflows.
-  Delegation captures a round-zero baseline, ranks evidence authority by claim
-  class, separates observed propositions from inference, stops on contract
-  premise contradictions, protects external parity artifacts, constrains
-  repository-wide tool effects, treats delegated failures as environment-bound
-  self-report until reproduced, compares named-test sets rather than relying on
-  pass-count growth, inspects non-text artifacts, aborts unintended overlapping
-  writers, and canaries unverified fan-out transports. Debugging records the
-  observation regime and representativeness of cause evidence, validates repair
-  metrics against the known-bad baseline, and stops a third same-model patch
-  after two attempts fail to move the discriminator. Planning distinguishes
-  derived values from measurements, requires assumptions and empirical proof
-  before freezing derived limits, adds falsifiability pressure to acceptance
-  gates, and maps public outcomes across terminal paths to internal observers and
-  carriers. Plan execution rejects non-discriminating metrics and re-reviews
-  lifecycle, ordering, concurrency, timeout, fallback, and first-winner repairs
-  for inverse regressions before completion or checkpoint commits. Focused eval
-  cases cover protected artifact conflicts, sandbox failure attribution,
-  transport staleness, unrepresentative fixtures, derived protocol limits,
-  missing internal carriers, and inverse lifecycle races. No change was made to
-  `vibe-writing`: its existing separation of suite status, acceptance coverage,
-  unresolved scope, and unverified edits already owns the relevant summary
-  wording contract. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  and `python3 -m unittest tests.test_eval_runner tests.test_sync_dev_agent_skills`.
-  Behavioral improvement is not measured because no fresh eval run was
-  requested.
-- Explicit use of a state-changing `vibe-*` workflow now grants scoped
-  local-checkpoint permission for verified workflow-owned changes unless the
-  user opts out, project policy forbids commits, or dirty-state, verification,
-  review, or file-ownership gates block the operation. Hosts that require an
-  additional human confirmation must ask once at workflow startup before likely
-  edits instead of waiting until completion; read-only, chat-only, no-file,
-  unchanged, message-drafting, generated-output, and empty-file-set cases do not
-  ask or commit. Requirements, planning, confirmed plan reflection, plan
-  execution, debug repair, review-selected fixes, and standalone tracked writing
-  edits now define their own safe checkpoint timing, while orchestration keeps
-  staging and commits with the coordinator and the commit-execution workflow
-  accepts recorded owning-workflow handoffs. Push, release preparation, version
-  changes, tags, amend, rebase, reset, stash, squash, destructive cleanup, and
-  unrelated or ambiguous paths still require separate authority. README and
-  focused eval cases cover invocation permission, startup confirmation,
-  no-change exclusions, natural plan slice boundaries, coordinator ownership,
-  and safe commit handoff. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-goal-alignment/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`.
-- `vibe-planning` and `vibe-plan-execution` now pair positive and negative proof for material visibility, permission, unlock, feature-flag, and state-transition gates. Plans can include an acceptance proof matrix, and execution runs core acceptance sentinels before hardening and refuses to mark a progress item complete when a core sentinel is missing, stale, failed, or unmapped even if the broader suite is green. New eval cases cover paired planning proof and execution blocking on a missing positive sentinel. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json` and `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`.
-- `vibe-*` delegated-review and delegated-execution guidance now requires bounded delegated units with deliverable, question or hypothesis, elapsed-time and path/change budgets, compact context digest, verification receipt, and stop-and-return conditions. Repeated empty waits require checkpoint or split decisions instead of no-change polling updates, and delegated shared-root edits need changed-path and verification status before they count as progress. Validation is covered by the affected `vibe-review`, `vibe-coding`, `vibe-debug`, `vibe-planning`, and `vibe-plan-execution` eval validations listed above.
-- `vibe-*` delegation and review model-selection contracts now stay
-  capability-based for newer high-performance models: low-ambiguity delegates
-  may use cheaper/faster or previous-generation tiers only when quality-neutral
-  or user-prioritized, while maximum-performance, judgment-heavy, synthesis,
-  contradiction, final-disposition, risk, and contract-compliance work biases to
-  the strongest suitable reasoning/context tier available without hard-coded
-  model IDs. `vibe-orchestrate` now adds frontier-coordinator loop guidance for
-  token-efficient delegates: inline verified facts, send compact per-worker
-  context digests, iterate by checkpoint deltas, and escalate contradictory,
-  risky, final-decision, or repeated-failure work instead of accepting cheap
-  retries as proof. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-brainstorm/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-code-research/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
-- `vibe-plan-execution` checkpoint commits now carry explicit transport-safety
-  rules: multi-line messages travel as one complete payload via a
-  single-quoted heredoc or `-F` message file (no repeated `-m` arguments for
-  body lines, bullets, verification lines, or trailers, and no raw newline
-  inside one `-m`), trailers are added with
-  `git commit --trailer`, the stored message is verified with
-  `git show -s --format=%B HEAD` after each checkpoint commit, and complex
-  history repair defers to a commit-execution workflow when one is visible.
-  Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`.
-- `vibe-plan-execution` now separates runtime defects in existing behavior
-  from plan-contract defects with an explicit discriminator: behavior material
-  to the bound plan's scope, contract, or acceptance criteria — including
-  preserved status-quo and workaround triggers — keeps routing through the
-  Plan Validity Gate to a plan-preserving correction or to the owning
-  requirements or planning artifact, while a
-  defect in behavior the plan does not own stops the affected slice as
-  blocked and is reported as existing-feature repair work for a separate
-  request instead of open-ended debugging or silent workarounds inside
-  execution. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`.
-- `vibe-plan-execution` now resolves user-facing chat language for progress
-  updates, blocker notices, consent questions, and final execution summaries
-  separately from source plan language, with `VIBE_CHAT_LANGUAGE` support, so
-  English plan files or path-only invocations do not make chat responses switch
-  away from the user's configured or conversational language. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`.
-- `vibe-plan-execution` now treats implementation-time workarounds and
-  status-quo preservation as Plan Validity Gate triggers when current local
-  evidence makes the underlying behavior material to the slice, so execution
-  stops for the owning artifact instead of completing a workaround solely
-  because the plan scoped that behavior out. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`.
+- **Breaking:** Executing a bound plan now permits scoped local commits at
+  natural verified slice boundaries unless the user opts out or repository
+  policy blocks them. Failed, skipped, partial, or ambiguous slices do not
+  commit, and push, release/version work, and history rewriting remain excluded.
+- Execution binds the plan and its mutable identity, runs core positive and
+  negative acceptance sentinels before hardening, and refuses completion when a
+  required sentinel is missing, stale, failed, or unmapped despite a green
+  broader suite.
+- Workarounds that change the plan return through plan-validity review, while
+  defects in existing runtime behavior return to repair ownership. Checkpoint
+  messages use safe multi-line transport, parsed trailers, and stored-message
+  verification; progress summaries resolve chat language independently from
+  artifact language. Validation: the `vibe-plan-execution` eval suite passed
+  schema and fixture validation.
 
 ## [vibe-brainstorm 1.4.0] - 2026-08-01
 
 ### Changed
 
-- `vibe-brainstorm` now covers user effort, recovery, accessibility, trust, and
-  convention perspectives; records delegation as evidence-backed or explicitly
-  unavailable; keeps host artifact destinations non-authorizing for chat-first
-  work; and uses capability-based model selection without lowering judgment
-  quality for cost alone. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-brainstorm/evals.json`.
-- `vibe-brainstorm` now treats generic host/runner artifact destinations as
-  transport affordances rather than user requests, so chat-first runs do not
-  create a file merely because a conditional output path is available; a
-  pre-write persistence gate keeps brainstorms, checklists, and orchestration
-  schedules in chat unless the user explicitly requests a saved artifact.
-  Supplied reference excerpts now retain visible source provenance in
-  convention checklists, and user-declared scripted orchestration capability
-  produces a bounded stage/model/evidence/confirmation schedule when the
-  current host cannot invoke or record the run instead of silently collapsing
-  into a coordinator-only brainstorm. The eval suite moves mode and candidate
-  obligations out of common assertions that did not apply to the mechanical
-  no-trigger case, clarifies that an explicit no-delegation statement needs no
-  separate evidence label, and makes supplied-reference provenance directly
-  observable. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-brainstorm/evals.json`.
-  Closing `gpt-5.4-mini` Codex evaluation: 20/20 cells scored, zero
-  infrastructure failures, `Sanity checks: OK`, `with_skill` 95.0%,
-  `without_skill` 79.9%, delta +15.1 points. Generated workspace artifacts
-  remain uncommitted.
-- Explicit use of a state-changing `vibe-*` workflow now grants scoped
-  local-checkpoint permission for verified workflow-owned changes unless the
-  user opts out, project policy forbids commits, or dirty-state, verification,
-  review, or file-ownership gates block the operation. Hosts that require an
-  additional human confirmation must ask once at workflow startup before likely
-  edits instead of waiting until completion; read-only, chat-only, no-file,
-  unchanged, message-drafting, generated-output, and empty-file-set cases do not
-  ask or commit. Requirements, planning, confirmed plan reflection, plan
-  execution, debug repair, review-selected fixes, and standalone tracked writing
-  edits now define their own safe checkpoint timing, while orchestration keeps
-  staging and commits with the coordinator and the commit-execution workflow
-  accepts recorded owning-workflow handoffs. Push, release preparation, version
-  changes, tags, amend, rebase, reset, stash, squash, destructive cleanup, and
-  unrelated or ambiguous paths still require separate authority. README and
-  focused eval cases cover invocation permission, startup confirmation,
-  no-change exclusions, natural plan slice boundaries, coordinator ownership,
-  and safe commit handoff. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-goal-alignment/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`.
-- `vibe-brainstorm` now surfaces user-effort, recovery, accessibility,
-  data-safety, and workflow-friction tradeoffs when selecting expected-behavior
-  checklists or directions, and does not default to the lowest-effort
-  implementation path when a better user experience is implied by the goal.
-  Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-brainstorm/evals.json`.
-- `vibe-brainstorm` now treats delegation as an evidence-status claim:
-  agents report `confirmed` only when they can cite concrete host-provided
-  evidence such as task IDs, run IDs, transcript or journal locations, tool
-  metadata, or equivalent records, and use `unproven` when no such record is
-  citable. Scripted orchestration runs must not return only an unresolved
-  background-wait stub when the current output set cannot capture the run
-  result. The delegated-proof and scripted-orchestration eval expectations now
-  cover those proof and continuation boundaries. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-brainstorm/evals.json`.
-- `vibe-*` delegation and review model-selection contracts now stay
-  capability-based for newer high-performance models: low-ambiguity delegates
-  may use cheaper/faster or previous-generation tiers only when quality-neutral
-  or user-prioritized, while maximum-performance, judgment-heavy, synthesis,
-  contradiction, final-disposition, risk, and contract-compliance work biases to
-  the strongest suitable reasoning/context tier available without hard-coded
-  model IDs. `vibe-orchestrate` now adds frontier-coordinator loop guidance for
-  token-efficient delegates: inline verified facts, send compact per-worker
-  context digests, iterate by checkpoint deltas, and escalate contradictory,
-  risky, final-decision, or repeated-failure work instead of accepting cheap
-  retries as proof. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-brainstorm/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-code-research/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
+- Brainstorming and convention checks now cover user effort, feedback,
+  recovery, accessibility, trust, and permission/cost consequences instead of
+  treating the cheapest technical path as the default expected behavior.
+- Outputs remain chat-first unless the user or owning workflow independently
+  requires an artifact. Host capture destinations do not authorize writes, and
+  delegation claims distinguish planned work from observed subagent evidence.
+  Validation: the `vibe-brainstorm` eval suite passed schema and fixture
+  validation.
 
 ## [vibe-debug 4.0.0] - 2026-08-01
 
 ### Changed
 
-- **Breaking:** an explicitly invoked repair now creates a verified scoped local
-  closure commit by default unless the user or project denies commits. Opt out
-  explicitly to retain the previous consent-at-closure behavior; push, amend,
-  rebase, release/version work, destructive cleanup, and unrelated changes
-  remain excluded.
-- Debugging now keeps a concrete runtime regression as the exclusive primary
-  symptom until disposition, requires repair self-review and acceptance
-  sentinels, separates direct implementation from delegated receipts, preserves
-  last-verified checkpoints, and verifies multi-line commit transport and stored
-  message bytes. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`.
-- `vibe-coding`, `vibe-debug`, and `vibe-orchestrate` evals now make activation
-  provenance, response-only action mode, represented evidence, capability
-  availability, and contract-backed reviewer disposition observable without
-  requiring executors to invent missing state or claim unperformed work. Their
-  closing `gpt-5.6-luna` Codex runs scored all 88 cells with zero infrastructure
-  or fixture-dirty signals: `vibe-coding` 95.1% versus 76.3% (+18.8 points),
-  `vibe-debug` 89.8% versus 66.0% (+23.8 points), and `vibe-orchestrate` 89.0%
-  versus 55.2% (+33.9 points). `vibe-coding` had no sanity anomaly; debug review
-  records one E06 candidate-below-baseline omission, while orchestration review
-  records valid baseline 0% outputs for E09/E12 and one E06
-  candidate-below-baseline omission. The repaired E06 routing, E10/E13 debug,
-  and E07 orchestration cases passed their targeted contracts. Generated eval
-  workspaces remain uncommitted.
-- Repeated Codex `gpt-5.4-mini` benchmark triage narrows the changed-skill
-  follow-up to stable contract gaps while treating moving single-run failures as
-  variance rather than adding per-cell prose. `vibe-debug` keeps common pressure
-  conditional on unresolved repair, constrained verification, or exhausted
-  source-only triage and makes recorded closure commits prove staged state,
-  message transport, trailers, and stored messages. `vibe-orchestrate` records
-  startup commit decisions and coordinator-owned closure gates, and consolidates
-  protected-parity contradiction handling into one acceptance checklist.
-  `vibe-plan-execution` moves scenario-specific behavior out of universal common
-  assertions, makes artifact binding and checkpoint proof visible, and records
-  blocked-source and Plan Validity handoffs without rewriting the plan.
-  `vibe-planning` compacts the plan-body contract into load-bearing sections,
-  treats runner artifact paths as transport, and makes response-only plan
-  closure show the exact scoped commit gates. Repeated sequential Codex runs
-  scored every cell with zero infrastructure exclusions. The closing
-  `gpt-5.4-mini` readings were: `vibe-commit` 74.0% vs 43.2% (+30.9 points,
-  Sanity OK); `vibe-debug` 76.1% vs 59.0% (+17.0 points, two
-  candidate-below-baseline cells); `vibe-orchestrate` 82.9% vs 72.8% (+10.1
-  points, two zero-scored/candidate-below-baseline cells);
-  `vibe-plan-execution` 77.8% vs 55.5% (+22.3 points, two
-  candidate-below-baseline cells); and `vibe-planning` 83.3% vs 37.3% (+46.0
-  points, Sanity OK). Flagged cells were inspected against executor and grader
-  outputs; none were runner or grader infrastructure failures. Debug and
-  plan-execution flags moved across repeated single-run cells, while stable
-  orchestration permission/parity and execution checkpoint boundaries were
-  tightened at their owning contracts. Runs remain one sample per cell, so
-  assertion-level reliability beyond the measured runs is not claimed.
-  Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  and `python3 -m unittest discover -s tests -p 'test*.py'`.
-- `vibe-orchestrate`, `vibe-debug`, `vibe-planning`, and `vibe-plan-execution`
-  now harden recurring evidence and proof failures in delegated implementation
-  and repair workflows.
-  Delegation captures a round-zero baseline, ranks evidence authority by claim
-  class, separates observed propositions from inference, stops on contract
-  premise contradictions, protects external parity artifacts, constrains
-  repository-wide tool effects, treats delegated failures as environment-bound
-  self-report until reproduced, compares named-test sets rather than relying on
-  pass-count growth, inspects non-text artifacts, aborts unintended overlapping
-  writers, and canaries unverified fan-out transports. Debugging records the
-  observation regime and representativeness of cause evidence, validates repair
-  metrics against the known-bad baseline, and stops a third same-model patch
-  after two attempts fail to move the discriminator. Planning distinguishes
-  derived values from measurements, requires assumptions and empirical proof
-  before freezing derived limits, adds falsifiability pressure to acceptance
-  gates, and maps public outcomes across terminal paths to internal observers and
-  carriers. Plan execution rejects non-discriminating metrics and re-reviews
-  lifecycle, ordering, concurrency, timeout, fallback, and first-winner repairs
-  for inverse regressions before completion or checkpoint commits. Focused eval
-  cases cover protected artifact conflicts, sandbox failure attribution,
-  transport staleness, unrepresentative fixtures, derived protocol limits,
-  missing internal carriers, and inverse lifecycle races. No change was made to
-  `vibe-writing`: its existing separation of suite status, acceptance coverage,
-  unresolved scope, and unverified edits already owns the relevant summary
-  wording contract. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  and `python3 -m unittest tests.test_eval_runner tests.test_sync_dev_agent_skills`.
-  Behavioral improvement is not measured because no fresh eval run was
-  requested.
-- Follow-up analysis of the clean `claude-sonnet-5` comparative run narrows the
-  remaining quality work to eval discrimination and one planning-contract gap.
-  `vibe-planning` now requires representation coverage to split terminal paths
-  whose observers, carriers, cleanup state, precedence, or field availability
-  can differ, instead of collapsing them into one generic failure row.
-  `vibe-planning` common assertions now apply full plan-body requirements only
-  to creation or revision cases, so closure-only checkpoint prompts are graded
-  on closure behavior rather than being required to recreate an already-reviewed
-  plan. `vibe-debug` moves exact user-retest/probe handoff fields out of the
-  common assertions and into the scenarios that actually hand work to the user.
-  The new orchestration and execution pressure prompts no longer disclose the
-  target contract names or conclusions in `expected_output`; they require the
-  model to infer evidence authority, protected-proof handling, metric
-  discrimination, and symmetric race review. The prior clean run remains the
-  official result for the pre-follow-up suite; the effect of these follow-up
-  changes is not measured until a fresh authorized rerun.
-- The `vibe-*` eval audit compacts two overlapping cases without forcing a
-  family-wide numeric target. `vibe-commit` folds its separate Japanese
-  simple-dirty-tree case into the stronger secret/generated/scratch mixed-tree
-  case, retaining localized chat and technical-token preservation; its
-  remaining cases are renumbered `E01` through `E11`. `vibe-debug` folds the
-  standalone default closure-commit case into the fixture-backed
-  repository-history case, retaining self-review, default scoped commit
-  eligibility, dirty-state isolation, blocker reporting, and refusal of vague
-  unrelated cleanup; its remaining cases are renumbered `E01` through `E16`.
-  The other `vibe-*` suites retain their current cases because the apparent
-  overlaps protect distinct state, language-precedence, exact-format,
-  discovery-path, or proof-boundary contracts. Static validation confirms
-  schema and fixture integrity only; preserved discrimination and runtime cost
-  changes are not measured because no comparative eval run was requested.
-  Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`.
-- Explicit use of a state-changing `vibe-*` workflow now grants scoped
-  local-checkpoint permission for verified workflow-owned changes unless the
-  user opts out, project policy forbids commits, or dirty-state, verification,
-  review, or file-ownership gates block the operation. Hosts that require an
-  additional human confirmation must ask once at workflow startup before likely
-  edits instead of waiting until completion; read-only, chat-only, no-file,
-  unchanged, message-drafting, generated-output, and empty-file-set cases do not
-  ask or commit. Requirements, planning, confirmed plan reflection, plan
-  execution, debug repair, review-selected fixes, and standalone tracked writing
-  edits now define their own safe checkpoint timing, while orchestration keeps
-  staging and commits with the coordinator and the commit-execution workflow
-  accepts recorded owning-workflow handoffs. Push, release preparation, version
-  changes, tags, amend, rebase, reset, stash, squash, destructive cleanup, and
-  unrelated or ambiguous paths still require separate authority. README and
-  focused eval cases cover invocation permission, startup confirmation,
-  no-change exclusions, natural plan slice boundaries, coordinator ownership,
-  and safe commit handoff. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-goal-alignment/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`.
-- `vibe-debug` now requires implemented repairs to pass a self-review before
-  final repair claims and treats a scoped local closure commit as the default
-  after verified repair-owned file changes unless the user disables commits,
-  project policy forbids them, or a safety gate blocks the operation. The
-  closure path uses visible applicable review, commit-execution, and
-  message-writing capabilities without naming them as hard dependencies, keeps
-  push/amend/rebase/stash/reset/release/version/destructive cleanup behind exact
-  consent, and adds eval coverage for default review-and-commit closure.
-  Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`.
-- `vibe-debug` now treats a concrete user-reported runtime regression during another workflow as the exclusive primary symptom until it is fixed, not reproduced, deferred, accepted as residual, or blocked. The debug record captures reproduction or first failing proof, root-cause hypothesis, minimal patch envelope, positive and negative sentinels, and last verified checkpoint, while adjacent findings stay ledger-only unless the same root cause and verification path are proven. A new eval covers primary-symptom isolation. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`.
-- `vibe-*` delegated-review and delegated-execution guidance now requires bounded delegated units with deliverable, question or hypothesis, elapsed-time and path/change budgets, compact context digest, verification receipt, and stop-and-return conditions. Repeated empty waits require checkpoint or split decisions instead of no-change polling updates, and delegated shared-root edits need changed-path and verification status before they count as progress. Validation is covered by the affected `vibe-review`, `vibe-coding`, `vibe-debug`, `vibe-planning`, and `vibe-plan-execution` eval validations listed above.
-- `vibe-*` delegation and review model-selection contracts now stay
-  capability-based for newer high-performance models: low-ambiguity delegates
-  may use cheaper/faster or previous-generation tiers only when quality-neutral
-  or user-prioritized, while maximum-performance, judgment-heavy, synthesis,
-  contradiction, final-disposition, risk, and contract-compliance work biases to
-  the strongest suitable reasoning/context tier available without hard-coded
-  model IDs. `vibe-orchestrate` now adds frontier-coordinator loop guidance for
-  token-efficient delegates: inline verified facts, send compact per-worker
-  context digests, iterate by checkpoint deltas, and escalate contradictory,
-  risky, final-decision, or repeated-failure work instead of accepting cheap
-  retries as proof. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-brainstorm/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-code-research/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
-- `vibe-debug` consented closure commits now carry the same self-contained
-  transport-safety rules: single-payload multi-line messages via a
-  single-quoted heredoc or `-F` message file, trailers via
-  `git commit --trailer`, and stored-message verification with
-  `git show -s --format=%B HEAD` before reporting closure, deferring complex
-  history repair to a commit-execution workflow when one is visible.
-  Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`.
+- **Breaking:** An explicitly invoked repair now creates a verified scoped local
+  closure commit unless the user opts out or repository policy blocks it.
+  Diagnosis-only, unreproduced, unchanged, failed-verification, and empty
+  outcomes do not commit.
+- A concrete reported runtime regression remains the exclusive primary symptom
+  until fixed, disproven, deferred, accepted, or blocked. The debug record keeps
+  reproduction evidence, layered root-cause hypotheses, a minimal repair
+  envelope, observation limits, acceptance sentinels, and adjacent findings
+  without allowing scope drift.
+- Implemented repairs require self-review, representative retesting, recurrence
+  analysis, and safe commit-message transport. Delegated work remains bounded by
+  evidence authority, scope, receipts, and stop conditions. Validation: the
+  `vibe-debug` eval suite passed schema and fixture validation.
 
 ## [vibe-code-research 1.2.0] - 2026-08-01
 
 ### Changed
 
-- `vibe-code-research` now separates supplied evidence corpora from the ambient
-  checkout, labels source-derived control/data paths as static or expected
-  without runtime proof, expands broad investigations through explicit
-  coverage/stop decisions, and redacts credential-like values while preserving
-  useful anchors. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-code-research/evals.json`.
-- `vibe-code-research` now makes source-derived control and data paths visibly
-  static or expected unless supplied execution evidence proves runtime
-  behavior. The closing `gpt-5.6-luna` Codex eval scored all 22 cells with zero
-  infrastructure or fixture-dirty signals, at 97.0% versus 79.0% (+18.0
-  points). Sanity review remains recorded because E05 omitted one
-  resolved-version source detail and scored 91.7% against a 100.0% baseline;
-  the repeated static/runtime failures targeted by this change all passed.
-- `vibe-code-research` now binds each investigation to an explicit evidence
-  universe before searching. User-provided excerpts and authoritative source
-  material stay distinct from a verified target workspace and from host,
-  runner, eval, copied-sandbox, or harness scaffolding; absence of represented
-  application paths in an unrelated checkout is no longer admissible evidence
-  about the represented code. Inline supplied material that is not explicitly
-  bound to the current workspace now triggers a pre-tool stop gate: broad or
-  exhaustive wording and the mandatory disconfirming check do not authorize
-  searching the ambient checkout; unavailable counter-evidence stays a coverage
-  limit. A closed-corpus output invariant removes references to searching or
-  failing to find the represented application in an ambient repository,
-  workspace, checkout, or sandbox. The eval suite adds universal pressure
-  against citing scaffolding artifacts as application evidence and makes those
-  prohibited output forms explicit for consistent grading. Follow-up
-  three-run analysis also distinguishes supplied-source evidence from local
-  investigation, qualifies static configuration as an expected branch rather
-  than runtime-effective proof, requires broad closed-corpus reports to name
-  material unsupplied surfaces, and makes permissive cleanup language inside an
-  investigation an explicit read-only decline requiring a separate edit
-  instruction. Closed-corpus evidence may use one section-level supplied-source
-  label; represented source paths are not converted into ambient-filesystem or
-  sandbox links; and narrow literal lookups must retain the supplied path while
-  avoiding unasked runtime-flow narration. An already-active trivial lookup now
-  scales to one anchored line rather than bypassing the evidence contract. The
-  final output gate requires configuration-backed conclusions to remain
-  expected branches under the supplied config and to preserve runtime override,
-  merge, and deploy-time replacement limits under `Not verified`. The
-  broad-flow eval distinguishes optional later steps from actually starting or
-  applying a wording fix, plan, tests, or commit. The token-refresh eval now
-  classifies user-provided excerpts as supplied-source evidence rather than
-  workspace-local investigation. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-code-research/evals.json`.
-  Closing `gpt-5.4-mini` Codex evaluation with three runs per config: 66/66
-  cells scored, zero infrastructure failures, `Sanity checks: OK`,
-  `with_skill` 96.6%, `without_skill` 81.7%, delta +14.9 points. The recorded
-  with-skill outputs had zero corpus-boundary failures and no ambient
-  repository, checkout, sandbox, runner, eval, or skill-source evidence
-  leakage. Generated workspace artifacts remain uncommitted.
-- Explicit use of a state-changing `vibe-*` workflow now grants scoped
-  local-checkpoint permission for verified workflow-owned changes unless the
-  user opts out, project policy forbids commits, or dirty-state, verification,
-  review, or file-ownership gates block the operation. Hosts that require an
-  additional human confirmation must ask once at workflow startup before likely
-  edits instead of waiting until completion; read-only, chat-only, no-file,
-  unchanged, message-drafting, generated-output, and empty-file-set cases do not
-  ask or commit. Requirements, planning, confirmed plan reflection, plan
-  execution, debug repair, review-selected fixes, and standalone tracked writing
-  edits now define their own safe checkpoint timing, while orchestration keeps
-  staging and commits with the coordinator and the commit-execution workflow
-  accepts recorded owning-workflow handoffs. Push, release preparation, version
-  changes, tags, amend, rebase, reset, stash, squash, destructive cleanup, and
-  unrelated or ambiguous paths still require separate authority. README and
-  focused eval cases cover invocation permission, startup confirmation,
-  no-change exclusions, natural plan slice boundaries, coordinator ownership,
-  and safe commit handoff. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-goal-alignment/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`.
-- `vibe-code-research` now treats broad, user-visible, and architecture-impact
-  investigations as multi-surface questions rather than first-hit lookups:
-  investigators name and cover material surfaces such as implementation,
-  callers, configuration, tests, data/schema boundaries, user-visible text, and
-  docs, or state the intentional boundary and residual risk. A new eval case
-  checks that inconsistent report-rename wording is investigated across
-  component, menu, i18n, and test excerpts instead of stopping at one file.
-  Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-code-research/evals.json`.
-- `vibe-*` delegation and review model-selection contracts now stay
-  capability-based for newer high-performance models: low-ambiguity delegates
-  may use cheaper/faster or previous-generation tiers only when quality-neutral
-  or user-prioritized, while maximum-performance, judgment-heavy, synthesis,
-  contradiction, final-disposition, risk, and contract-compliance work biases to
-  the strongest suitable reasoning/context tier available without hard-coded
-  model IDs. `vibe-orchestrate` now adds frontier-coordinator loop guidance for
-  token-efficient delegates: inline verified facts, send compact per-worker
-  context digests, iterate by checkpoint deltas, and escalate contradictory,
-  risky, final-decision, or repeated-failure work instead of accepting cheap
-  retries as proof. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-brainstorm/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-code-research/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
+- Inline or supplied source material now forms an explicit closed evidence
+  corpus; ambient runner, checkout, and sandbox state cannot silently become
+  application evidence. Findings label static source facts, expected runtime
+  paths, configuration limits, and unverified behavior separately.
+- Broad user-visible or architecture-impact questions require anchored control
+  and data-flow coverage, disconfirming checks, and bounded delegation while the
+  workflow remains read-only. Validation: the `vibe-code-research` eval suite
+  passed schema and fixture validation.
 
 ## [vibe-writing 2.0.0] - 2026-08-01
 
 ### Changed
 
-- **Breaking:** an explicit tracked-text edit now creates a verified scoped local
-  checkpoint commit by default unless the user or project denies commits.
-  Chat replies, summaries, message drafts, unchanged artifacts, generated
-  output, release work, history rewrites, and unrelated changes remain
-  no-commit.
-- Writing now resolves chat language separately from artifact language,
-  preserves represented workflow evidence in response-only tasks, distinguishes
-  suite status from acceptance coverage and unverified shared edits, returns
-  exact changelog slices without wrapper prose, and produces medium-density
-  commit bodies with durable, coverage-bearing verification evidence.
-  Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`.
-- `vibe-writing` now treats represented workflow state in response-only writing
-  tasks as supplied evidence instead of substituting eval-runner or ambient
-  checkout state. Exact structured rewrites remove unsupported propositions
-  without retaining shortened benefit claims, and stored commit-message repairs
-  separate diagnosis from an unfenced corrected payload while replacing
-  private or local-only verification provenance with durable proof or an
-  explicit absence status. The eval suite binds commit and tracked-edit cases
-  to represented response-only authority, reduces common assertions to four
-  universally applicable boundaries while leaving scenario-specific pressure
-  in per-eval expectations, and clarifies that supplied source context and
-  unchanged-test status are admissible evidence. Changelog slice guidance
-  preserves explicitly requested `Unreleased` and category headings, and
-  response-only checkpoint descriptions retain the represented commit gates
-  without mutating the ambient checkout. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`.
-  The final `gpt-5.4-mini` Codex run scored all 30 cells with zero
-  infrastructure failures or fixture-dirty signals, at `with_skill` 90.1%
-  versus `without_skill` 85.2% (+4.9 points). The run remains `REVIEW REQUIRED`
-  because E06, E12, and E13 trailed their single-run baselines; artifact review
-  found real misses in those outputs, but the same unchanged mechanisms passed
-  in earlier iterations and moved between runs, so further wording-only
-  tightening is stopped as run variance. Behavioral improvement remains
-  unproven beyond the contract-specific closures. Generated eval workspaces
-  remain uncommitted.
-- `vibe-orchestrate`, `vibe-debug`, `vibe-planning`, and `vibe-plan-execution`
-  now harden recurring evidence and proof failures in delegated implementation
-  and repair workflows.
-  Delegation captures a round-zero baseline, ranks evidence authority by claim
-  class, separates observed propositions from inference, stops on contract
-  premise contradictions, protects external parity artifacts, constrains
-  repository-wide tool effects, treats delegated failures as environment-bound
-  self-report until reproduced, compares named-test sets rather than relying on
-  pass-count growth, inspects non-text artifacts, aborts unintended overlapping
-  writers, and canaries unverified fan-out transports. Debugging records the
-  observation regime and representativeness of cause evidence, validates repair
-  metrics against the known-bad baseline, and stops a third same-model patch
-  after two attempts fail to move the discriminator. Planning distinguishes
-  derived values from measurements, requires assumptions and empirical proof
-  before freezing derived limits, adds falsifiability pressure to acceptance
-  gates, and maps public outcomes across terminal paths to internal observers and
-  carriers. Plan execution rejects non-discriminating metrics and re-reviews
-  lifecycle, ordering, concurrency, timeout, fallback, and first-winner repairs
-  for inverse regressions before completion or checkpoint commits. Focused eval
-  cases cover protected artifact conflicts, sandbox failure attribution,
-  transport staleness, unrepresentative fixtures, derived protocol limits,
-  missing internal carriers, and inverse lifecycle races. No change was made to
-  `vibe-writing`: its existing separation of suite status, acceptance coverage,
-  unresolved scope, and unverified edits already owns the relevant summary
-  wording contract. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  and `python3 -m unittest tests.test_eval_runner tests.test_sync_dev_agent_skills`.
-  Behavioral improvement is not measured because no fresh eval run was
-  requested.
-- Explicit use of a state-changing `vibe-*` workflow now grants scoped
-  local-checkpoint permission for verified workflow-owned changes unless the
-  user opts out, project policy forbids commits, or dirty-state, verification,
-  review, or file-ownership gates block the operation. Hosts that require an
-  additional human confirmation must ask once at workflow startup before likely
-  edits instead of waiting until completion; read-only, chat-only, no-file,
-  unchanged, message-drafting, generated-output, and empty-file-set cases do not
-  ask or commit. Requirements, planning, confirmed plan reflection, plan
-  execution, debug repair, review-selected fixes, and standalone tracked writing
-  edits now define their own safe checkpoint timing, while orchestration keeps
-  staging and commits with the coordinator and the commit-execution workflow
-  accepts recorded owning-workflow handoffs. Push, release preparation, version
-  changes, tags, amend, rebase, reset, stash, squash, destructive cleanup, and
-  unrelated or ambiguous paths still require separate authority. README and
-  focused eval cases cover invocation permission, startup confirmation,
-  no-change exclusions, natural plan slice boundaries, coordinator ownership,
-  and safe commit handoff. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-goal-alignment/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`.
-- `vibe-writing` now keeps implementation/debug/review status summaries evidence-accurate by separating `suite_status`, `acceptance_coverage`, `unresolved_scope`, and `unverified_shared_edits`, and by suppressing state-change-free waiting updates unless the user requested a cadence. A new eval covers green-suite summaries with missing acceptance coverage and unverified delegated edits. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`.
-- `vibe-writing` and `vibe-commit` commit-message guidance now standardizes a
-  medium-density body shape for future agents: body text should preserve durable
-  intent, changed contract surfaces, constraints, non-goals, and proof without
-  becoming a feature walkthrough, file inventory, test transcript, or one dense
-  abstract paragraph. `Verification:` sections are also selected proof: bullets
-  should pair durable evidence with the changed contract, risk, or coverage they
-  support, keep explicit absence statuses for thin evidence, and avoid dumping
-  session command transcripts or local-only proof sources. `vibe-commit` also
-  adds a `git commit --dry-run --short -- <paths>` command-shape cross-check
-  when pathspecs or `--only` options could change recorded paths. Both eval
-  suites now check body-density and coverage-bearing verification bullets; the
-  `vibe-writing` suite folds the multi-surface body-density pressure into the
-  existing `E09` active-commit and `E08` drafting cases rather than adding a
-  standalone case, while `vibe-commit` adds `E11` for medium-density surface
-  grouping. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`.
-- `vibe-*` delegation and review model-selection contracts now stay
-  capability-based for newer high-performance models: low-ambiguity delegates
-  may use cheaper/faster or previous-generation tiers only when quality-neutral
-  or user-prioritized, while maximum-performance, judgment-heavy, synthesis,
-  contradiction, final-disposition, risk, and contract-compliance work biases to
-  the strongest suitable reasoning/context tier available without hard-coded
-  model IDs. `vibe-orchestrate` now adds frontier-coordinator loop guidance for
-  token-efficient delegates: inline verified facts, send compact per-worker
-  context digests, iterate by checkpoint deltas, and escalate contradictory,
-  risky, final-decision, or repeated-failure work instead of accepting cheap
-  retries as proof. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-brainstorm/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-code-research/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
-- `vibe-writing` now attributes the post-commit stored-message inspection duty
-  and any resulting amend to the workflow holding history authority under its
-  consent rules, with `vibe-writing` supplying the corrected message artifact;
-  the `git show -s --format=%B HEAD` inspection obligation and the requirement
-  that a violating stored message is corrected before completion is reported
-  are unchanged. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`.
-- `vibe-writing` now resolves chat replies, progress updates, final summaries,
-  and confirmation questions separately from artifact language, with
-  `VIBE_CHAT_LANGUAGE` support, so user-facing wrapper prose can stay in the
-  user's configured or conversational language while artifacts and technical
-  tokens keep their own language contracts. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`.
-- `vibe-writing` now treats an active workflow's resolved artifact language as
-  a language contract that wins over existing artifact language for generated
-  prose. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`.
+- **Breaking:** An explicit standalone tracked-text edit now creates a verified
+  scoped local checkpoint unless the user opts out or repository policy blocks
+  it. Chat replies, summaries, message drafts, generated output, unchanged
+  artifacts, and empty file sets do not commit.
+- Chat language is resolved separately from artifact language, with exact
+  technical tokens and active artifact-language contracts preserved.
+  Response-only workflow facts remain supplied evidence without authorizing
+  ambient mutations, and saved reports and status summaries distinguish suite
+  results, acceptance coverage, unresolved scope, and unverified shared edits.
+- Changelog entries record durable contract deltas rather than iteration
+  diaries. Commit messages use outcome-focused subjects, medium-density context,
+  durable proof, and compact coverage-bearing verification; stored-message
+  correction remains with the workflow that owns history. Validation: the
+  `vibe-writing` eval suite passed schema and fixture validation.
 
 ## [vibe-commit 1.1.0] - 2026-08-01
 
 ### Added
 
-- `vibe-commit` accepts verified scoped checkpoint handoffs from owning
-  workflows, treats named tracked plan/spec artifacts as owned content, and adds
-  dry-run pathspec checks when `--only` or explicit path arguments could change
-  the recorded file set.
+- `vibe-commit` now accepts verified scoped checkpoint handoffs from owning
+  workflows and limits staging and commit execution to the recorded tracked
+  paths. It still excludes push, release/version changes, destructive cleanup,
+  and unrelated history work.
 
 ### Changed
 
-- Commit messages now use medium-density contract-oriented bodies and compact
-  `Verification:` sections that pair durable proof with the risk or surface it
-  covers, while stored-message and trailer transport remain under commit
-  execution authority. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`.
-- Repeated Codex `gpt-5.4-mini` benchmark triage narrows the changed-skill
-  follow-up to stable contract gaps while treating moving single-run failures as
-  variance rather than adding per-cell prose. `vibe-debug` keeps common pressure
-  conditional on unresolved repair, constrained verification, or exhausted
-  source-only triage and makes recorded closure commits prove staged state,
-  message transport, trailers, and stored messages. `vibe-orchestrate` records
-  startup commit decisions and coordinator-owned closure gates, and consolidates
-  protected-parity contradiction handling into one acceptance checklist.
-  `vibe-plan-execution` moves scenario-specific behavior out of universal common
-  assertions, makes artifact binding and checkpoint proof visible, and records
-  blocked-source and Plan Validity handoffs without rewriting the plan.
-  `vibe-planning` compacts the plan-body contract into load-bearing sections,
-  treats runner artifact paths as transport, and makes response-only plan
-  closure show the exact scoped commit gates. Repeated sequential Codex runs
-  scored every cell with zero infrastructure exclusions. The closing
-  `gpt-5.4-mini` readings were: `vibe-commit` 74.0% vs 43.2% (+30.9 points,
-  Sanity OK); `vibe-debug` 76.1% vs 59.0% (+17.0 points, two
-  candidate-below-baseline cells); `vibe-orchestrate` 82.9% vs 72.8% (+10.1
-  points, two zero-scored/candidate-below-baseline cells);
-  `vibe-plan-execution` 77.8% vs 55.5% (+22.3 points, two
-  candidate-below-baseline cells); and `vibe-planning` 83.3% vs 37.3% (+46.0
-  points, Sanity OK). Flagged cells were inspected against executor and grader
-  outputs; none were runner or grader infrastructure failures. Debug and
-  plan-execution flags moved across repeated single-run cells, while stable
-  orchestration permission/parity and execution checkpoint boundaries were
-  tightened at their owning contracts. Runs remain one sample per cell, so
-  assertion-level reliability beyond the measured runs is not claimed.
-  Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  and `python3 -m unittest discover -s tests -p 'test*.py'`.
-- The `vibe-*` eval audit compacts two overlapping cases without forcing a
-  family-wide numeric target. `vibe-commit` folds its separate Japanese
-  simple-dirty-tree case into the stronger secret/generated/scratch mixed-tree
-  case, retaining localized chat and technical-token preservation; its
-  remaining cases are renumbered `E01` through `E11`. `vibe-debug` folds the
-  standalone default closure-commit case into the fixture-backed
-  repository-history case, retaining self-review, default scoped commit
-  eligibility, dirty-state isolation, blocker reporting, and refusal of vague
-  unrelated cleanup; its remaining cases are renumbered `E01` through `E16`.
-  The other `vibe-*` suites retain their current cases because the apparent
-  overlaps protect distinct state, language-precedence, exact-format,
-  discovery-path, or proof-boundary contracts. Static validation confirms
-  schema and fixture integrity only; preserved discrimination and runtime cost
-  changes are not measured because no comparative eval run was requested.
-  Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`.
-- Explicit use of a state-changing `vibe-*` workflow now grants scoped
-  local-checkpoint permission for verified workflow-owned changes unless the
-  user opts out, project policy forbids commits, or dirty-state, verification,
-  review, or file-ownership gates block the operation. Hosts that require an
-  additional human confirmation must ask once at workflow startup before likely
-  edits instead of waiting until completion; read-only, chat-only, no-file,
-  unchanged, message-drafting, generated-output, and empty-file-set cases do not
-  ask or commit. Requirements, planning, confirmed plan reflection, plan
-  execution, debug repair, review-selected fixes, and standalone tracked writing
-  edits now define their own safe checkpoint timing, while orchestration keeps
-  staging and commits with the coordinator and the commit-execution workflow
-  accepts recorded owning-workflow handoffs. Push, release preparation, version
-  changes, tags, amend, rebase, reset, stash, squash, destructive cleanup, and
-  unrelated or ambiguous paths still require separate authority. README and
-  focused eval cases cover invocation permission, startup confirmation,
-  no-change exclusions, natural plan slice boundaries, coordinator ownership,
-  and safe commit handoff. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-goal-alignment/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`.
-- `vibe-writing` and `vibe-commit` commit-message guidance now standardizes a
-  medium-density body shape for future agents: body text should preserve durable
-  intent, changed contract surfaces, constraints, non-goals, and proof without
-  becoming a feature walkthrough, file inventory, test transcript, or one dense
-  abstract paragraph. `Verification:` sections are also selected proof: bullets
-  should pair durable evidence with the changed contract, risk, or coverage they
-  support, keep explicit absence statuses for thin evidence, and avoid dumping
-  session command transcripts or local-only proof sources. `vibe-commit` also
-  adds a `git commit --dry-run --short -- <paths>` command-shape cross-check
-  when pathspecs or `--only` options could change recorded paths. Both eval
-  suites now check body-density and coverage-bearing verification bullets; the
-  `vibe-writing` suite folds the multi-surface body-density pressure into the
-  existing `E09` active-commit and `E08` drafting cases rather than adding a
-  standalone case, while `vibe-commit` adds `E11` for medium-density surface
-  grouping. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`.
-- `vibe-*` delegation and review model-selection contracts now stay
-  capability-based for newer high-performance models: low-ambiguity delegates
-  may use cheaper/faster or previous-generation tiers only when quality-neutral
-  or user-prioritized, while maximum-performance, judgment-heavy, synthesis,
-  contradiction, final-disposition, risk, and contract-compliance work biases to
-  the strongest suitable reasoning/context tier available without hard-coded
-  model IDs. `vibe-orchestrate` now adds frontier-coordinator loop guidance for
-  token-efficient delegates: inline verified facts, send compact per-worker
-  context digests, iterate by checkpoint deltas, and escalate contradictory,
-  risky, final-decision, or repeated-failure work instead of accepting cheap
-  retries as proof. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-brainstorm/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-code-research/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
+- Commit bodies now preserve durable contract context without replaying file or
+  command inventories. Verification sections carry selected stable proof and
+  coverage, while multi-line messages use one payload, authorship trailers use
+  `git commit --trailer`, and the stored message and file set are verified after
+  commit. Validation: the `vibe-commit` eval suite passed schema and fixture
+  validation.
 
 ## [vibe-review 2.0.0] - 2026-08-01
 
 ### Changed
 
-- **Breaking:** an explicit review invocation that applies selected tracked
-  fixes now creates a verified scoped local closure commit by default unless
-  commits are denied. Read-only reviews, empty file sets, squash/reset/amend,
-  push, release/version work, destructive cleanup, and unrelated paths remain
-  outside that permission.
-- Review now adapts reviewer coverage to target risk, isolates delegated result
-  ingestion, normalizes redaction and structured contributor receipts, keeps
-  unconfirmed DoD candidates outside usable scope, pairs material acceptance
-  criteria with positive/negative proof, and checkpoint-blocks repeated
-  findings, architecture expansion, or unproven core journeys. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
-- `vibe-review` now keeps unconfirmed checklist-shaped DoD candidates outside
-  usable proposal mode until anchored or replaced by an interview, resolves
-  overlapping secret matches to canonical specific redaction classes, and
-  renders non-secret structural contributor receipts for merged rejected-ledger
-  keys. Response-only terminal decisions bind to the represented completed
-  review state instead of substituting the eval runner's ambient checkout, so
-  explicit invocation authorizes the scoped closure commit without falsely
-  claiming that a decision-only response executed it. The eval suite clarifies
-  candidate-finding non-authority, capability-versus-command backend evidence,
-  canonical missing normalized fields, safe merged-key proof, and the
-  response-only closure-commit boundary, including preservation of supplied
-  closure-gate statuses and post-commit checks in a decision-only record.
-  Internal raw fingerprint values also may not be recycled into public dedupe
-  or canonical-identity fields, and a delegated-result assertion no longer
-  requires product premises absent from its structural fixture. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
-  The follow-up repair promotes repeatedly missed structured-record invariants,
-  makes internal provenance omission mechanically graded, requires explicit
-  nested-child receipts, binds represented evidence at the prompt/fixture
-  boundary, and removes direct closure-decision leakage from E15. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
-  The strongest post-edit single run scored 30/30 cells with zero infrastructure
-  failures at `with_skill` 96.2% and `without_skill` 81.9% (+14.3 points), with
-  every with-skill case at or above the 80% threshold. The latest run on the
-  final assertion state also scored 30/30 cells with zero infrastructure
-  failures, at 90.1% versus 87.4% (+2.7 points), but several failures moved
-  among cases that had passed earlier. Both runs correctly flagged the modified
-  E11 fixture as dirty, so neither is clean-source proof. Further wording-only
-  iteration is stopped as moving variance; overall behavioral improvement
-  remains unproven beyond the recorded contract-specific closures. Generated
-  workspace artifacts remain uncommitted.
-- `vibe-review` now treats delegated response isolation as a backend capability
-  requirement rather than admitting reviewer or free-form backend transcripts
-  into the coordinator context for prompt-side normalization. A host-side
-  adapter must discard original responses outside that context, reject unknown,
-  over-limit, reviewer-authored free-text, tool-call, and trailing fields, and
-  deliver closed-schema structural `delegated_result_record` objects with
-  opaque provenance and closed validation codes;
-  otherwise the delegated path is unavailable and the workflow pauses for an
-  approved backend or mode. The coordinator independently validates accepted
-  candidates against the frozen target and never requests raw transcripts as a
-  fallback. This reduces the source-level W011 exposure surface, but host
-  enforcement and external scanner closure remain unproven until separately
-  verified. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
-- Explicit use of a state-changing `vibe-*` workflow now grants scoped
-  local-checkpoint permission for verified workflow-owned changes unless the
-  user opts out, project policy forbids commits, or dirty-state, verification,
-  review, or file-ownership gates block the operation. Hosts that require an
-  additional human confirmation must ask once at workflow startup before likely
-  edits instead of waiting until completion; read-only, chat-only, no-file,
-  unchanged, message-drafting, generated-output, and empty-file-set cases do not
-  ask or commit. Requirements, planning, confirmed plan reflection, plan
-  execution, debug repair, review-selected fixes, and standalone tracked writing
-  edits now define their own safe checkpoint timing, while orchestration keeps
-  staging and commits with the coordinator and the commit-execution workflow
-  accepts recorded owning-workflow handoffs. Push, release preparation, version
-  changes, tags, amend, rebase, reset, stash, squash, destructive cleanup, and
-  unrelated or ambiguous paths still require separate authority. README and
-  focused eval cases cover invocation permission, startup confirmation,
-  no-change exclusions, natural plan slice boundaries, coordinator ownership,
-  and safe commit handoff. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-goal-alignment/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`.
-- `vibe-review` now requires review completion to keep material acceptance proof separate from executed suite status: core criteria need positive proof, visibility/permission/unlock/feature-flag/state-transition gates need paired negative and positive proof, and compound stop signals such as repeated finding classes, file/test-harness bloat, review-generated-code findings, architecture expansion, or unproven core acceptance move the run to `checkpoint_blocked` instead of another mutable-target broad review. Finding records also classify origin, reachability, expected frequency, fix weight, and architecture expansion so theoretical architectural fixes do not become must-fix work without reachability proof or a product decision. New eval cases cover missing positive core proof and compound convergence blocking. Validation: `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
-- `vibe-*` delegated-review and delegated-execution guidance now requires bounded delegated units with deliverable, question or hypothesis, elapsed-time and path/change budgets, compact context digest, verification receipt, and stop-and-return conditions. Repeated empty waits require checkpoint or split decisions instead of no-change polling updates, and delegated shared-root edits need changed-path and verification status before they count as progress. Validation is covered by the affected `vibe-review`, `vibe-coding`, `vibe-debug`, `vibe-planning`, and `vibe-plan-execution` eval validations listed above.
-- `vibe-review` now treats three-reviewer coverage as the broad-target baseline
-  rather than a hard ceiling or unconditional shape: startup contracts can add,
-  split, fold, or reduce review angles when target evidence, user focus, DoD,
-  risk, host capacity, or accepted effort limits make a different set more
-  effective, while recording coverage mapping, selection rationale, and
-  residual risk for any folded or omitted baseline surfaces. A new eval fixture
-  covers lightweight docs-only review and higher-risk authentication/session
-  migration review so agents do not always emit exactly three angles.
-  Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
-- `vibe-*` delegation and review model-selection contracts now stay
-  capability-based for newer high-performance models: low-ambiguity delegates
-  may use cheaper/faster or previous-generation tiers only when quality-neutral
-  or user-prioritized, while maximum-performance, judgment-heavy, synthesis,
-  contradiction, final-disposition, risk, and contract-compliance work biases to
-  the strongest suitable reasoning/context tier available without hard-coded
-  model IDs. `vibe-orchestrate` now adds frontier-coordinator loop guidance for
-  token-efficient delegates: inline verified facts, send compact per-worker
-  context digests, iterate by checkpoint deltas, and escalate contradictory,
-  risky, final-decision, or repeated-failure work instead of accepting cheap
-  retries as proof. Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-brainstorm/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-code-research/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`,
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`,
-  and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`.
+- **Breaking:** An explicit review that applies selected tracked fixes now
+  creates a scoped local closure commit unless the user opts out or repository
+  policy blocks it. Read-only reviews, unselected findings, unresolved
+  blockers, and empty file sets do not commit.
+- Delegated reviewer coverage is selected by target risk. Original backend
+  responses remain isolated from coordinator context, structural records use a
+  closed schema, and public findings are rebuilt from frozen local evidence with
+  redaction and provenance receipts; unavailable isolation fails closed.
+- Review completion separates executed suites from acceptance proof, requires
+  paired proof for material gates, and blocks another mutable-target cycle when
+  repeated findings, architecture expansion, harness growth, or missing core
+  sentinels make convergence unproven. Validation: the `vibe-review` eval suite
+  passed schema and fixture validation.
 
 ## [Repository] - 2026-08-01
 
 ### Changed
 
-- `.gitignore` now treats `docs/reports/` as local development output, keeping
-  repository-local reports outside normal Git staging unless they are explicitly
-  included under repository policy.
-- README now documents the vibe family's autonomous-operation contract:
-  sequential coordinator continuation requires recordable boundary evidence,
-  proxy decisions stay AI-selected and never count as human approval,
-  human-risk decisions always stop, and the plan pre-check walkthrough and
-  review fix/history decisions remain inherently interactive with no proxy
-  branch.
+- README documents the autonomous workflow boundary: coordinator continuation
+  requires recordable handoff evidence, AI-selected proxy decisions never count
+  as human approval, human-risk decisions stop, and interactive plan review and
+  review fix/history choices have no unattended proxy branch.
+- `.gitignore` treats `docs/reports/` as local development output so repository
+  reports remain outside ordinary staging unless repository policy explicitly
+  includes them.
 
 ## [skill-eval 1.1.0] - 2026-07-04
 
