@@ -11,24 +11,21 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [vibe-orchestrate 1.2.0] - 2026-08-06
+
 ### Added
 
-- `vibe-orchestrate` now ships optional external delegation helper scripts
-  (`scripts/codex_delegate.py`, `scripts/claude_delegate.py`) with a shared
-  scope-proof module (`scripts/delegate_common.py`) covering preflight and
-  canary receipts, byte-covering execution fingerprints, terminal-event proof,
-  filesystem/Git scope reconciliation, and per-runner failure taxonomies.
-  Hermetic coverage lives in `tests/test_delegate_common.py`,
-  `tests/test_codex_delegate.py`, and `tests/test_claude_delegate.py`.
-- `vibe-orchestrate` gained `references/external-delegation.md`, a focused
-  reference defining bounded runner transport, preflight/canary, receipt,
-  scope-proof, and worker-boundary requirements for both helpers.
-
-### Changed
-
-- The `vibe-orchestrate` contract now documents optional external-runner
-  transport instead of describing the package as reference-only, while
-  preserving coordinator ownership of workflow boundaries.
+- `vibe-orchestrate` now ships optional Codex and Claude external-runner
+  helpers with fingerprint-bound preflight and canary receipts, runner-native
+  terminal-event proof, exact filesystem/Git write-scope reconciliation, and
+  per-runner failure classification. `references/external-delegation.md`
+  defines the transport and worker boundaries: the coordinator retains phase,
+  consent, review-disposition, verification, and commit ownership, and Claude
+  tool profiles detect contract drift without providing an OS sandbox.
+  Validation: `python3 -m pytest -q tests` passed 244 tests and 19 subtests,
+  and `eval_runner.py validate` accepted the 32-case `vibe-orchestrate` suite.
+  Live read-only and workspace-write canaries plus one allowlisted write per
+  runner completed with scope proof on 2026-08-06.
 
 ## [minecraft-modding-workbench 2.1.1] - 2026-08-05
 
