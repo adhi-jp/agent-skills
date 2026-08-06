@@ -19,8 +19,8 @@ planning, execution from a bound plan, code review, commit execution, release
 work, or debugging ownership. Use it inside those phases only when delegation is
 the transport for bounded work.
 
-The first version is reference-only guidance. It does not provide or require a
-watchdog script, runner adapter, command wrapper, or transport fix.
+The package now ships optional external-runner helper scripts while this skill
+remains reference-first guidance.
 
 ## When to Use
 
@@ -100,6 +100,26 @@ interpretation, finding disposition, and user-risk choices with the coordinator
 or strongest suitable reasoning/context tier. Save tokens by reducing repeated
 context, not proof.
 
+## External Runner Transport
+
+Host-native subagent capabilities remain the ordinary delegation transport;
+the optional `scripts/codex_delegate.py` and `scripts/claude_delegate.py`
+helpers add bounded delegation to external runner CLIs inside an
+already-selected workflow phase. They never authorize crossing approval,
+proceed, consent, review-disposition, or commit boundaries, and they are never
+required for host-internal subagent work. Read
+`references/external-delegation.md` before launching an external CLI worker,
+choosing profiles, or accepting external-runner receipts.
+
+When delegating through these external helpers, the outer host owns escalation
+and records authorization once; the inner runner never prompts. For each
+distinct external execution fingerprint, run preflight and a canary before
+fan-out, and re-canary after any fingerprint input changes. Do not silently
+substitute a runner or model after a failed launch. A structured receipt with
+terminal-event proof is required: a handle or `running` state is not
+completion. Use isolated worktrees, exact write allowlists, and coordinator
+scope verification for helper writes. Workers never stage, commit, push,
+release, or mutate history.
 
 ## Delegation Workflow
 
@@ -265,8 +285,8 @@ requires full coverage, or a review count without material finding dispositions.
 - Omitting a progress journal for work likely to outlive a worker crash.
 - Accepting review findings as edits without coordinator disposition.
 - Discarding an unexpected diff before checking whether it contains useful work.
-- Adding runner-specific scripts or adapters when reference-only guidance is the
-  agreed first slice.
+- Using external-runner helpers to bypass phase boundaries or skipping their
+  canary and receipt gates.
 - Naming neighboring workflow packages as dependencies instead of describing the
   required phase or capability.
 
@@ -293,6 +313,11 @@ Before launching or accepting delegated work, confirm:
 - Are liveness, staleness, and appearance monitored by host-safe means?
 - For a handle-returning transport, did runner-native terminal status and result
   retrieval precede final tree inspection, verification, or the next writer?
+- Before fan-out, does each external execution fingerprint have a current
+  preflight-and-canary receipt, with a re-canary after any fingerprint change?
+- For external-runner delegations, did the coordinator verify terminal receipt
+  proof and, for writes, reconcile the exact allowlist and `worker-report-v1`
+  report with observed scope?
 - Is there at most one write-capable worker in each shared tree, with any
   concurrent writers confined to isolated, disjoint workspaces?
 - Did the coordinator verify the kept bytes with the required gates?

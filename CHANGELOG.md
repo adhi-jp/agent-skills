@@ -11,6 +11,25 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Added
+
+- `vibe-orchestrate` now ships optional external delegation helper scripts
+  (`scripts/codex_delegate.py`, `scripts/claude_delegate.py`) with a shared
+  scope-proof module (`scripts/delegate_common.py`) covering preflight and
+  canary receipts, byte-covering execution fingerprints, terminal-event proof,
+  filesystem/Git scope reconciliation, and per-runner failure taxonomies.
+  Hermetic coverage lives in `tests/test_delegate_common.py`,
+  `tests/test_codex_delegate.py`, and `tests/test_claude_delegate.py`.
+- `vibe-orchestrate` gained `references/external-delegation.md`, a focused
+  reference defining bounded runner transport, preflight/canary, receipt,
+  scope-proof, and worker-boundary requirements for both helpers.
+
+### Changed
+
+- The `vibe-orchestrate` contract now documents optional external-runner
+  transport instead of describing the package as reference-only, while
+  preserving coordinator ownership of workflow boundaries.
+
 ## [minecraft-modding-workbench 2.1.1] - 2026-08-05
 
 ### Changed
