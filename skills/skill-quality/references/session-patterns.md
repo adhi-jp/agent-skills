@@ -109,6 +109,11 @@ into skill outputs.
   commands or a full implementation artifact from a decision-only prompt
   produced systematic false negatives even when the decision itself was
   correct.
+- Response-only future-artifact checks became discriminating when they required
+  an observable future owner, authority, source, or interface selection gate
+  without demanding that the current answer invent an unavailable identity.
+  Missing the gate remained a real failure; withholding an unsupported concrete
+  name did not.
 - Eval cases also became misleading when optional workflow mechanics became an
   unplanned second target. A proportionality case intended to test concise
   high-risk planning expanded into repeated artifact rewrites and delegated
@@ -142,6 +147,11 @@ into skill outputs.
   recorded bytes. Artifact-level adjudication needed both `false positive` and
   `false negative` classifications, with JSON-path-scoped predicates instead of
   whole-output word searches.
+- Candidate-below-baseline triage was more reliable when both outputs and both
+  verdicts were compared assertion by assertion under one semantic predicate.
+  An equivalent or stronger candidate that failed only on vocabulary or
+  present-versus-future phrasing exposed paired grader inconsistency rather than
+  a target-skill regression.
 - Public projection failures persisted when a fixture delivered internal
   accepted and rejected records and skill prose alone said not to repeat them.
   Separating delivered input, internally retained state, and public output

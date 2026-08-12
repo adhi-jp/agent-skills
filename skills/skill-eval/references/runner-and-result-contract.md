@@ -62,6 +62,31 @@ Read this reference before executing `run`, diagnosing or reporting an iteration
   provider subprocesses (1..16, default 4). A timed-out or failed executor is
   recorded as a failed run, not a pass, and the grader is skipped for it; there
   are no retries.
+- Before launching a full matrix whose recent relevant diagnostics or prior
+  runs show material time or token cost, record and surface a pre-run execution
+  receipt. It states the cell count (`selected evals x configs x runs`),
+  requested concurrency, per-subprocess timeout, delivery/workload classes
+  such as full-artifact versus response-only, a wall-time range or lower bound
+  derived from recorded runner durations, the worst recent successful cell and
+  the supported count of similarly expensive cells or an explicit `unknown`
+  pending artifact inspection, the infrastructure stop trigger, and the tested
+  cancellation handle. This is an operational forecast, not a benchmark metric:
+  do not hand-enter it into result artifacts or present it as measured eval
+  output. If it materially exceeds the user's apparent time budget or prior
+  expectation, obtain the user's decision before launch.
+- Start a long run only through a host mechanism with a proven control handle,
+  such as an interactive PTY or a job/session identifier whose interrupt
+  behavior is known. Record the handle before waiting. On cancellation, do not
+  start a replacement or retry, send a graceful interrupt through that handle,
+  wait a bounded interval, and, only when still necessary and authorized,
+  target the exact runner and its children with TERM. Verify both the
+  controlling session's terminal state and the absence of matching child
+  processes before reporting cancellation. Writing Ctrl-C bytes to a non-TTY,
+  broadly killing by process name, or observing that a signal command returned
+  does not prove the run stopped. An interrupted iteration is non-closing. The
+  current runner submits its matrix up front; do not claim cell-level
+  cooperative cancellation unless a separately implemented and tested runner
+  feature provides it.
 - `--eval-id` is for authorized, pre-registered diagnostics while a case's
   prompt, assertion, fixture, or proof path is still changing. It preserves the
   requested config matrix but executes only the named eval ids. The runner
@@ -267,6 +292,26 @@ token usage for at least the claude provider.
   it. A run that finished without a crash is not the same as a clean result; do
   not present a `with_skill`/`without_skill` delta as normal completion until the
   verification below passes.
+- A user-authorized run is not authorization for unlimited retries. Classify
+  the failed role call before choosing another invocation. Once explicit
+  capacity or overload recurs at concurrency 1, increasing concurrency is not a
+  remedy, and another full run requires a material state change or a new
+  explicit user decision after the current evidence is summarized. Material
+  changes include a later service window, an authorized model change, or a
+  changed workload contract. A partial diagnostic may continue only when it
+  answers a pre-registered content question; it must not act as a service-health
+  probe or closing substitute.
+- Keep infrastructure claims role- and evidence-bound. Use categories such as:
+  `provider_capacity_explicit` only when the recorded output contains an exact
+  selected-model capacity response; `provider_overloaded_explicit` only for an
+  explicit overload response; `provider_exit_unclassified` for a nonzero
+  provider exit without enough diagnostic text; and
+  `sandbox_or_runtime_initialization` for failure while establishing the
+  provider runtime. Preserve `executor_failed` versus `grader_failed`.
+  Approval, escalation, or outer host-control failure is not a suite-cell
+  result. One category cannot be inferred from another: report explicit
+  capacity in the counted recorded role calls and keep other failures
+  separately classified or unclassified.
 - After every user-authorized `run`, read the `Sanity checks` status (printed to
   stdout and written to `benchmark.md`) and the `error_run_count`. Treat these
   as stop-and-verify conditions, not passes: a `REVIEW REQUIRED` sanity status,
@@ -289,6 +334,14 @@ token usage for at least the claude provider.
   negative. Keep the official aggregate unchanged and route any assertion edit
   to the quality owner; do not add the phrase to the target skill merely to make
   the grader recognize it.
+- For a candidate-below-baseline cell, compare both configurations' recorded
+  outputs and verdict evidence assertion by assertion under the same semantic
+  predicate. If the candidate is equivalent or stronger on that predicate but
+  fails where the baseline passes because of vocabulary, future-tense
+  realization, or another unstated distinction, record a paired grader
+  inconsistency. Keep the official aggregate unchanged, route the assertion or
+  grader repair to the quality owner, and keep unrelated candidate failures
+  separate rather than promoting the whole cell to a pass.
 - Always report a summary, not just the headline delta. The summary states: agent
   and model, full or selected suite coverage, configs and runs, scored versus
   excluded run counts, overall `with_skill`/`without_skill` pass rate and delta,

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "skill-eval",
-  "purpose": "External eval set for skill-eval. Prompts live outside skills/ so they are not bundled as skill content. Covers eval run authorization, shared runner routing, full-versus-partial suite coverage, executor/grader separation, fixture-semantic ground-truth visibility, generated workspace boundaries, metric provenance, lexical grader adjudication, and result verification before reporting pass-rate deltas.",
+  "purpose": "External eval set for skill-eval. Prompts live outside skills/ so they are not bundled as skill content. Covers eval run authorization, shared runner routing, full-versus-partial suite coverage, executor/grader separation, fixture-semantic ground-truth visibility, generated workspace boundaries, metric provenance, long-run workload and cancellation receipts, capacity retry circuit breaking, infrastructure claim boundaries, paired candidate/baseline semantic adjudication, and result verification before reporting pass-rate deltas.",
   "common_assertions": [
     "Output does not claim a `with_skill`/`without_skill` improvement, regression, or delta as proven until the relevant runner artifacts and sanity checks support that claim."
   ],
@@ -78,12 +78,34 @@
       "files": [],
       "expectations": [
         "Classifies the candidate verdict as a possible lexical grader false negative by comparing the response's semantic authorization predicate with the non-exact assertion, rather than treating absence of the preferred phrase as a target-skill defect.",
+        "Applies the same authorization predicate to the supplied candidate refusal and baseline phrase echo, recognizes that the asymmetric verdict is an assertion or paired grader inconsistency when wording is the only distinction, and keeps artifact-dependent details unproven when full recorded outputs or verdict evidence are unavailable; the exact label `paired grader inconsistency` is not required.",
         "Rejects adding `the current user did not ask` or equivalent grader wording to the target skill merely to make the grader recognize the behavior.",
         "Identifies the failure as a lexical grader false negative on the non-exact authorization assertion and routes assertion repair to the quality owner through the eval-quality workflow instead of editing it inside the eval-execution role, while still requiring unauthorized execution to fail.",
         "Uses a selected E17 diagnostic with the authorized with-skill and without-skill matrix while the assertion contract is changing, and keeps that result partial and non-closing rather than paying for a full suite after every edit.",
-        "Requires the skill, prompt, assertion, fixture, and proof path to be frozen before one later unfiltered full-suite closing run.",
+        "Requires all applicable closing inputs and proof surfaces to be frozen before one later unfiltered full-suite closing run, including the skill source, prompt and assertions, any fixture when the case has one, and the proof path; equivalent grouping of the applicable surfaces passes without requiring a nonexistent fixture to be named.",
         "Keeps the official earlier aggregate unchanged and keeps any artifact-level lexical correction separate, diagnostic, and not suite proof unless the repaired assertion is measured. This can be established across the response by scheduling the selected diagnostic after the quality owner performs the assertion repair and separately refusing to blend the correction into the historical aggregate; the exact phrase `until rerun` is not required.",
         "Does not claim that any represented command ran or fabricate results in this dry-run exercise."
+      ]
+    },
+    {
+      "id": "E06",
+      "name": "Long-run forecast, capacity circuit breaker, and cancellation control",
+      "prompt": "This is a dry-run workflow-decision exercise. Do not execute commands, start subprocesses, or create an eval workspace. A future full run would execute 33 evals with `with_skill,without_skill`, one run each, concurrency 1, and a 3600-second per-subprocess timeout. Recent recorded diagnostics include multiple successful full-artifact with-skill cells taking about eight to nine minutes, and an earlier concurrency-1 full attempt recorded explicit selected-model capacity or overload output in several executor and grader calls plus other nonzero exits with insufficient diagnostics. The prior run was launched without a proven interrupt handle; writing Ctrl-C bytes did not stop it, and a separate host approval path was needed before the exact runner could be terminated. The user has not authorized another run in this exercise. Decide what must be recorded and communicated before any later launch, how the failures may be classified, whether concurrency or retries should change, what external-state change or user decision is required before another full run, and what cancellation proof is required.",
+      "expected_output": "The agent drafts an evidence-bound long-run execution receipt, separates failure surfaces, stops capacity-driven retries, and requires a proven cancellation lifecycle without launching an eval.",
+      "files": [],
+      "expectations": [
+        "States that no new run occurs in this dry-run exercise and does not fabricate an iteration, benchmark, forecast measurement, or provider result.",
+        "Requires a pre-run execution receipt with 66 cells, concurrency 1, the 3600-second per-subprocess timeout, full-artifact versus response-only or equivalent workload classes, a recorded-duration-derived wall-time range or lower bound, the worst recent successful cell, the supported count of similarly expensive cells or an explicit unknown pending artifact inspection, an infrastructure stop trigger, and a tested cancellation handle.",
+        "Keeps the wall-time forecast operational and separate from measured benchmark metrics; it does not hand-type forecast values into runner results or present the estimate as eval output.",
+        "Requires a user decision before launch when the forecast materially exceeds the apparent time budget or prior expectation.",
+        "Classifies only calls with exact selected-model capacity text as explicit capacity and only explicit overload output as overload, preserves executor-versus-grader roles, and leaves generic nonzero exits unclassified unless their recorded evidence supports a narrower category.",
+        "Separates outer approval or host-control failures from provider capacity and suite-cell skill scores, and does the same for sandbox or runtime initialization only when recorded evidence supports that category; generic nonzero exits remain unclassified rather than being relabeled as initialization failures.",
+        "Does not increase concurrency to remedy capacity and does not treat the earlier authorization as permission for unlimited retries.",
+        "Requires a material state change or a new explicit user retry decision before another full run after explicit capacity or overload recurs at concurrency 1; a later service window, authorized model change, or changed workload contract are acceptable examples.",
+        "Allows a partial diagnostic only for a pre-registered content question and does not use it as a service-health probe or full-suite closing substitute.",
+        "Requires launch through a proven PTY, job, or session control handle recorded before waiting; cancellation starts no replacement or retry, sends a graceful interrupt, waits a bounded interval, uses exact runner-and-child TERM only if still necessary and authorized, and verifies both terminal session state and process absence.",
+        "Does not claim cell-level cooperative cancellation for the current runner. If the output discusses cell-level scheduling or cooperative cancellation, it states that the current matrix is submitted up front and that finer cancellation would require a separate implemented and tested runner feature; otherwise this branch passes by non-applicability.",
+        "Rejects broad or unscoped termination, such as process-name or arbitrary-PID kills, Ctrl-C bytes to a non-TTY, and a signal command's return as sufficient cancellation proof; requiring TERM to target the exact runner and children satisfies the unscoped-kill boundary. It also labels any interrupted iteration non-closing."
       ]
     }
   ],
@@ -91,6 +113,6 @@
     "common_assertion_weight": 0.4,
     "per_eval_expectation_weight": 0.6,
     "pass_threshold": 0.8,
-    "notes": "These evals test eval-runner operation judgment, especially whether agents distinguish explicit run authorization from inspection or validation, preserve full-versus-partial suite coverage, preserve executor/grader isolation, make fixture-semantic assertions observable without answer leakage, adjudicate lexical grader failures, and verify runner results before reporting them. E02 through E05 are intentionally non-executing represented-turn exercises so evaluating skill-eval cannot recursively launch another hosted eval suite."
+    "notes": "These evals test eval-runner operation judgment, especially whether agents distinguish explicit run authorization from inspection or validation, preserve full-versus-partial suite coverage, preserve executor/grader isolation, make fixture-semantic assertions observable without answer leakage, supervise long runs with workload, retry-stop, failure-classification, and cancellation contracts, adjudicate candidate/baseline semantic inconsistencies, and verify runner results before reporting them. E02 through E06 are intentionally non-executing represented-turn exercises so evaluating skill-eval cannot recursively launch another hosted eval suite."
   }
 }

@@ -93,6 +93,15 @@ discriminating, observable, and hard to pass with the old failure mode.
   response-only case unless the prompt explicitly requests the exact command
   sequence; do not require a complete plan body from a closure-only decision;
   and do not grade a blocked case as completed implementation.
+- Within response-only, closure-only, and blocked modes, separate what the
+  current response must instantiate from what it must require a future artifact
+  or authorized action to instantiate. If a concrete owner, authority, source,
+  interface, or other identity is neither supplied nor discoverable in the
+  permitted mode, do not require the response to invent it. Require an
+  observable future selection or binding gate, its proof or acceptance record,
+  and the stop condition that applies until it exists. A compliant assertion
+  must fail omission of that future gate without failing a response solely for
+  withholding an unsupported current identity.
 - Separate the contract under test from auxiliary workflow mechanics. Commands,
   subagents, review transport, artifact rewriting, optional host capabilities,
   and iterative self-correction can materially change runtime, output size, and
@@ -352,6 +361,16 @@ that depends on repeating one unstated phrase is a lexical grader false negative
 not evidence for another skill sentence. Keep the official aggregate unchanged;
 either repair the assertion around the predicate and rerun the affected case, or
 record the isolated anomaly and stop when there is no stable contract gap.
+
+For a candidate-below-baseline signal, compare the candidate and baseline
+outputs and verdict evidence assertion by assertion under the same semantic
+predicate. If an equivalent or stronger candidate behavior fails while the
+baseline passes because of vocabulary, future-tense realization, or another
+distinction outside that predicate, classify the asymmetric verdict as a paired
+grader inconsistency. Preserve the official aggregate and keep the correction
+diagnostic; do not teach the target skill to echo the baseline or grader. Keep
+unrelated assertion failures separate so one inconsistent verdict does not
+promote the whole cell to a pass.
 
 Before comparing two iterations, confirm whether their skill source, prompts,
 fixtures, assertion set, and recorded proof surface are equivalent. If not,

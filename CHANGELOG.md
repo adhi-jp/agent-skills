@@ -11,6 +11,27 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- `skill-quality` and `skill-eval` now separate unsupported current identity
+  instantiation from observable future-artifact binding gates in response-only
+  evals, and compare candidate-below-baseline anomalies assertion by assertion
+  under one semantic predicate. Equivalent or stronger candidate behavior that
+  alone fails on vocabulary or present-versus-future realization is recorded as
+  paired grader inconsistency without changing the official aggregate or
+  teaching the target skill to echo grader wording. `skill-eval` also requires
+  expensive full matrices to publish a recorded-duration-derived workload and
+  cancellation receipt before launch, separates explicit capacity/overload from
+  unclassified exits and runtime or host-control failures, and stops full-run
+  retries after capacity recurs at concurrency 1 until a material state change
+  or new user decision. The quality evals also grade post-run evidence epochs
+  and tracked-only fixture-delivery explanations by their semantic predicates
+  while retaining manifest and proof-surface verification gates. Static
+  validation passes for both changed eval suites. Post-edit full
+  Codex/`gpt-5.6-luna` candidate/baseline runs scored all 54 `skill-quality`
+  cells and all 12 `skill-eval` cells with no infrastructure exclusions or
+  sanity anomalies; their official raw pass rates were 96.1% versus 76.3% and
+  98.1% versus 71.4%, respectively.
 ## [vibe-orchestrate 1.2.0] - 2026-08-06
 
 ### Added
