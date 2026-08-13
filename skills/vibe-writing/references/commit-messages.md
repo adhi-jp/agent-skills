@@ -24,6 +24,23 @@ If one message bundles multiple changes, name the shared public contract,
 workflow, rollback path, review finding, or verification surface. Do not use
 same-plan or same-session provenance as the cohesion reason.
 
+Build a semantic evidence map from the complete target patch before choosing the
+message:
+
+- derive `type` from the dominant delivered behavior, not a coupled test or docs
+  file kind;
+- derive `scope` from the owning subsystem or the shared workflow/public
+  contract, not the last, most numerous, or most convenient path;
+- ensure the outcome and optional body cover every material reader-visible
+  concern;
+- when one owner changes and the other files only test, document, or record that
+  owner's contract, a constituent owner scope is valid;
+- when peer concerns do not share one honest contract, return a split/stop
+  requirement to the workflow that owns commit execution.
+
+This is semantic judgment, not a path or keyword linter. Equivalent shared-scope
+and outcome wording is valid when it covers the same concerns.
+
 ## Subject Shape
 
 Follow the repository's recent style. For Conventional Commits, prefer:
@@ -31,6 +48,13 @@ Follow the repository's recent style. For Conventional Commits, prefer:
 ```text
 type(scope): outcome
 ```
+
+Before accepting the subject, run a peer-owner gate. If the target patch changes
+two or more peer reader-visible contracts, reject a scope that names only one
+peer, even when the body later mentions the others. Choose a shared
+workflow/subsystem/public-contract scope whose subject outcome covers the peer
+changes, or return a split requirement. A constituent scope is valid only when
+every other changed surface is subordinate support for that owner.
 
 Use documented or recent `type` values. If none are available, common types are
 `feat`, `fix`, `refactor`, `perf`, `docs`, `test`, `build`, `ci`, `chore`,

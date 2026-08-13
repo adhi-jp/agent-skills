@@ -5,6 +5,40 @@ commit and an amend, and keeping authorship trailers correct. Message content
 and transport are both part of the stored commit artifact: choose usable message
 bytes, then verify what git stored.
 
+## Message-to-diff reconciliation
+
+Before executing a freshly composed or reworded message, inspect the complete
+exact target patch and create a compact visible receipt:
+
+- `source target`: base commit plus index tree or exact staged-patch identity;
+  for reword/amend, the source commit, parent, tree, and exact source patch;
+- `material concerns`: every separately reader-visible behavior or contract
+  delta in the patch;
+- `shared contract`: the subsystem, workflow, public contract, rollback path,
+  review finding, or verification surface that makes one commit coherent;
+- `type basis`, `scope basis`, and `outcome basis`;
+- `coverage`: how every material concern appears in the subject or body;
+- `decision`: one commit, split, or stop.
+
+The scope is the owner of the combined contract, not automatically the last
+package processed, the path with the most files, or any convenient constituent.
+A constituent scope remains valid when other changed files are subordinate
+tests, docs, metadata, or changelog support for that owner's one contract. If
+two peer contracts have no honest shared owner or outcome, split or stop before
+the commit command.
+
+Bind the receipt to its source epoch. Any unexpected change to the base,
+parent, index tree, exact patch, concern set, or intended contract invalidates
+the receipt and requires staged-diff and message reconciliation again. The new
+commit identity created by an authorized commit is a separate output epoch, not
+source drift.
+
+After the commit, compare `git show -s --format=%B HEAD` and the exact committed
+patch, such as `git diff HEAD^ HEAD`, with the receipt. `git show --stat HEAD`
+corroborates file scope but cannot prove semantic concern coverage. A mismatch
+is not complete: repair it only when existing authority permits rewriting the
+unpushed local commit; otherwise stop and report it.
+
 ## Amend vs. new commit
 
 Default to a **new** commit. Reach for `--amend` only to fix the immediately
@@ -297,6 +331,10 @@ skill must satisfy these minimums:
 
 - Subject: `type(scope): outcome`, imperative, ≤72 chars, naming the behavior or
   contract that changed — not the editing act.
+- Derive type from the dominant delivered behavior. Derive scope from the
+  owning or shared contract, not file count or processing order. Ensure the
+  outcome and body account for every material concern in the exact target patch;
+  split when one honest shared contract cannot do so.
 - No placeholder commit commands. A `git commit` command is allowed only when
   every subject byte is final. Use supplied semantic intent even when it is
   broad; broad and concrete is better than a template. Paths and status output

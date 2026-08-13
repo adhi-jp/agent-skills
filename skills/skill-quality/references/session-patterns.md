@@ -184,6 +184,12 @@ into skill outputs.
   the path was capture-only, not authorization, removed the writes in the
   affected closing run. The reusable boundary is to distinguish capability or
   transport availability from user or workflow authority.
+- Cross-session overreach was easier to repair when artifact and action states
+  were not collapsed. Creation did not imply tracking, permission did not
+  select a checkpoint, tracked status did not imply release-note relevance,
+  capability did not select provider work, and partial proof did not clear a
+  stop condition. The durable decision was to name the missing transition
+  authority and leave already-correct implicated skills unchanged.
 
 ## Changes That Risked Degrading Skills
 

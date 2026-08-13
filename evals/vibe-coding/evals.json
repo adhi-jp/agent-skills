@@ -250,12 +250,41 @@
         "Preserves the review specialist availability, consent, stop, frozen-target, and write boundaries.",
         "Does not route to ordinary behavior or silently apply the excluded repair."
       ]
+    },
+    {
+      "id": "E16",
+      "name": "Current deliverable outranks optional adjacent work",
+      "prompt": "Explicit `$vibe-coding` invocation. The user says: `Implement docs/plans/cache-retry-implementation-plan.md and do only what that plan and mandatory repository coupling require.` The concrete plan is ready and limits the change to retry classification, its tests, and reader-visible documentation required by `AGENTS.md`. A same-session audit report is also available and suggests creating a postmortem, running an unrelated benchmark, preparing release notes, and opening a pull request. Visible metadata includes a plan-execution specialist. Describe the route and action-selection boundary.",
+      "expected_output": "The response routes the requested plan execution while distinguishing mandatory support work from merely available or relevant adjacent actions.",
+      "files": [],
+      "expectations": [
+        "Routes to exactly one primary downstream phase: the visible plan-execution specialist, bound to `docs/plans/cache-retry-implementation-plan.md`.",
+        "Keeps the plan-selected retry change, tests, and the cited mandatory reader-visible documentation coupling in scope even though the user did not enumerate every coupled file.",
+        "Does not select the optional postmortem, unrelated benchmark, release preparation or notes, or pull-request action merely because the audit report suggests them or the capabilities are available.",
+        "Explains the reusable boundary as current-deliverable or mandatory-support selection versus permission, relevance, availability, or capability; equivalent wording is acceptable.",
+        "Preserves release, external-side-effect, verification, plan-scope, and commit boundaries instead of treating the audit report as a current instruction."
+      ]
+    },
+    {
+      "id": "E17",
+      "name": "Checkpoint permission does not promote an untracked plan",
+      "prompt": "Classify these two independent explicit `vibe-coding` turns. Visible specialists match the requested phases.\n\nA. `use vibe-coding. Create the implementation plan for the notification cleanup. Project policy says newly created local plans under docs/plans remain untracked unless I separately ask to version them. Do not implement.`\nB. `use vibe-coding. Continue the approved export plan.` The selected plan-execution phase has changed already tracked `src/export.ts` and `tests/export.test.ts`; the slice is independently verified and reviewed, project policy permits local commits, and no stop condition remains.\n\nDescribe action and checkpoint handling for A and B.",
+      "expected_output": "The response preserves default checkpoint permission for eligible tracked work without converting requested artifact creation into tracking or commit authority.",
+      "files": [],
+      "expectations": [
+        "For A, routes to implementation planning and allows creation of the requested plan artifact while preserving the explicit project rule that it remains untracked.",
+        "For A, does not treat explicit `vibe-coding` invocation, conventional `docs/plans` placement, creation, relevance, or checkpoint permission as authority to stage or commit the new plan.",
+        "For A, does not create an identity sidecar, implementation change, empty commit, or unrelated tracked artifact.",
+        "For B, routes to plan execution and permits the coordinator-managed local checkpoint for exactly the verified reviewed tracked source and test paths.",
+        "For B, does not require another generic commit instruction and does not expand permission to push, release, version changes, history rewriting, unrelated paths, or a false stop condition.",
+        "Distinguishes artifact creation/edit authority from track, stage, and commit authority while keeping independently eligible checkpoint behavior functional."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.5,
     "per_eval_expectation_weight": 0.5,
     "pass_threshold": 0.8,
-    "notes": "Compact suite: cancellation, auxiliary skill-package override, and duplicate commit/investigation/creative cases were removed or merged. Remaining cases preserve core routing boundaries, visible-metadata selection, checkpoint commits inside plan execution, commit-message auxiliary containment, and cross-phase orchestration refusal while reducing executor/grader volume, plus the rule that orchestration quality is not a token-minimization objective when material investigation depth or UX/safety tradeoffs belong to the selected phase."
+    "notes": "Compact suite: cancellation, auxiliary skill-package override, and duplicate commit/investigation/creative cases were removed or merged. Remaining cases preserve core routing boundaries, visible-metadata selection, checkpoint commits inside plan execution, commit-message auxiliary containment, cross-phase orchestration refusal, current-deliverable selection, and artifact-lifecycle authority while reducing executor/grader volume, plus the rule that orchestration quality is not a token-minimization objective when material investigation depth or UX/safety tradeoffs belong to the selected phase."
   }
 }

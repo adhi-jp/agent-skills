@@ -66,6 +66,16 @@ runner affordances, or artifact capture, read
 That reference owns the detailed evidence-universe, authority, session-ledger,
 and proof-transport rules.
 
+Treat `authority-state collapse` as a subtype of invocation, authority, or
+represented-workspace mismatch when evidence shows that distinct states were
+silently promoted into one another. Separate the selected deliverable, action
+authority, artifact lifecycle state, bound identity, evidence tier, minimum
+proof, and active stop condition. Reading the right skill or having permission,
+capability, relevance, a conventional path, or tracked status does not prove
+that a later action or lifecycle transition was selected. Fix only the missing
+owner boundary; preserve existing rules and evals that already govern other
+transitions.
+
 ## Failure To Contract
 
 Before changing skill text or eval behavior, write a one-sentence contract

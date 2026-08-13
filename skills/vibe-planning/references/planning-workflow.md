@@ -357,10 +357,15 @@ Read this reference when drafting or revising the implementation-plan body. It o
      command identity and arguments, keep actual command non-execution
      `Unproven` rather than inferring it from the final prose.
 14. **Create the planning-artifact checkpoint**
-   - When explicit invocation supplied local checkpoint permission and the
-     tracked plan changed, run a dirty worktree and index preflight after both
-     review gates. Stage only the plan-owned tracked paths and any coupled
-     tracked documentation this phase actually changed.
+   - First establish tracking eligibility independently of checkpoint
+     permission. The plan is eligible when it was already tracked or the
+     current user, project policy, or an applicable owning contract requires or
+     authorizes version control. Creation, conventional path placement,
+     relevance, and generic checkpoint permission are not tracking authority.
+   - When explicit invocation supplied local checkpoint permission and an
+     eligible tracked plan changed, run a dirty worktree and index preflight
+     after both review gates. Stage only the plan-owned tracked paths and any
+     coupled tracked documentation this phase actually changed.
    - Do not commit a chat fallback, an unchanged plan, temporary review state,
      generated output, unrelated dirty paths, or a plan whose material review
      finding remains unresolved.
@@ -369,5 +374,7 @@ Read this reference when drafting or revising the implementation-plan body. It o
      and committed file set afterward.
    - If the user or project denied commits, or safe isolation is impossible,
      preserve the reviewed uncommitted artifact and report the exact blocker.
+     Do the same when the newly created plan lacks independent tracking
+     authority; leaving it untracked is the required outcome, not a blocker.
    - This checkpoint does not authorize implementation, push, release
      preparation, version changes, amend, rebase, reset, stash, or squash.

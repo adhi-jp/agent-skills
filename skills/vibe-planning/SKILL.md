@@ -57,11 +57,16 @@ When skill metadata is visible in the current environment, use it only to plan
 availability-driven skill usage in the generated artifact; do not make an
 unavailable skill a requirement.
 
-An explicit invocation that writes a tracked plan artifact permits a scoped
-local checkpoint commit after the plan multi-perspective review and self-review
-gates pass, unless the user says not to commit, project policy forbids commits,
-or dirty-state safety cannot isolate the plan-owned paths. This is the planning
-artifact's closure commit, not an implementation step or a planned future
+An explicit invocation that writes a plan artifact permits a scoped local
+checkpoint commit only when that artifact was already tracked or the current
+user, project policy, or another applicable owning contract independently
+requires or authorizes it to enter version control. Creating the plan, placing
+it at a conventional repository path, or having checkpoint permission does not
+promote a new untracked plan into tracked content. After the plan
+multi-perspective review and self-review gates pass, an eligible tracked plan
+may receive the planning-artifact closure commit unless the user says not to
+commit, project policy forbids commits, or dirty-state safety cannot isolate the
+plan-owned paths. This is not an implementation step or a planned future
 implementation checkpoint. It must not include unrelated files, temporary
 review state, generated output, unverified plan content, or an empty file set,
 and it never authorizes push, release preparation, version changes, amend,
@@ -124,6 +129,11 @@ ask before replacing it; use a non-destructive sibling only when the user allowe
 that behavior. For generated default names, append a numeric suffix such as `-2`
 on collision. Do not modify `.gitignore` only because a plan artifact was
 created.
+
+Keep plan identity inside the plan artifact or an already-authorized host or
+workflow record. Do not create a checksum sidecar, receipt, manifest, or other
+auxiliary identity file unless the user explicitly requested that separate
+artifact or an established project/owning contract requires it.
 
 The artifact is for later agents and implementers. Use fixed English section
 headings and concise implementation-oriented English prose for structure.

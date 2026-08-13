@@ -13,6 +13,35 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-coding` now selects nontrivial state-changing and external-cost actions
+  only from the current deliverable or a cited mandatory support obligation.
+  Permission, capability, availability, relevance, conventional path placement,
+  and tracked status remain constraints or evidence rather than independent
+  work selection, and artifact creation no longer implies tracking, staging,
+  committing, release-note inclusion, or publishing.
+- `vibe-planning` now requires independent user, project, or owning-contract
+  authority before a newly created plan becomes tracked or receives a planning
+  checkpoint. Plan identity stays inline or in an already-authorized host record;
+  checksum sidecars, manifests, and receipts require separate authority.
+- `vibe-commit` now separates candidate discovery from tracking, staging, and
+  commit eligibility for new artifacts. Before a new or reworded commit, it
+  reconciles every material concern in the exact target patch with the message
+  type, scope, outcome, and body, splits when no shared contract exists, and
+  compares the stored message with the exact committed patch after execution.
+- `vibe-writing` commit-message guidance now rejects a constituent-only scope
+  when one commit changes peer reader-visible contracts, derives scope from the
+  owning or shared contract rather than processing order or file count, and
+  returns a split requirement when no honest shared contract exists.
+- `skill-quality` now classifies authority-state collapse by separating the
+  selected deliverable, action authority, artifact lifecycle, bound identity,
+  evidence tier, proof minimum, and stop condition. Session-history findings
+  produce an owner/no-change inventory so already-correct implicated skills are
+  preserved instead of rewritten.
+- Validation: static validation and post-edit full comparative runs completed
+  for all five changed eval suites. `vibe-coding`, `vibe-commit`, and
+  `skill-quality` closed without runner sanity anomalies. The planning and
+  writing reports retain their official caveats after artifact-level anomaly
+  adjudication. No capacity-limit model fallback was needed.
 - `skill-quality` and `skill-eval` now separate unsupported current identity
   instantiation from observable future-artifact binding gates in response-only
   evals, and compare candidate-below-baseline anomalies assertion by assertion

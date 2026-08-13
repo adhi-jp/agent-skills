@@ -103,6 +103,26 @@ prompt or invocation mismatch, grader-boundary issue, or run variance/noise. If
 the classification points outside the skill contract, fix or record that
 boundary instead of tightening skill prose.
 
+When a session or workflow used the expected skills but still performed work
+that the current deliverable did not select, classify each transition before
+changing prose:
+
+1. `deliverable`: what the current request or mandatory owning contract selected;
+2. `action authority`: which operation, if any, was authorized;
+3. `artifact lifecycle`: create, edit, track, stage, commit, release-note, or
+   publish;
+4. `bound identity`: model, provider, path, format, phase, target, and delivery
+   mode;
+5. `evidence tier`: observation, inference, accepted risk, or proof;
+6. `minimum proof and stop condition`: what had to be true before launch,
+   retry, commit, or closure.
+
+An available capability, permission, relevant artifact, conventional path,
+tracked status, or green subset cannot promote a later state by itself. Name
+the exact missing transition authority. Then inventory implicated owners as
+`edit`, `eval-only`, or `no change`: a skill that already states and tests the
+needed boundary remains unchanged even if it appeared in the incident.
+
 Before interpreting executor behavior, bind the eval's evidence universe.
 Distinguish a verified target workspace, runner-delivered fixtures,
 user-provided or represented source material, and runner or harness

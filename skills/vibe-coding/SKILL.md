@@ -36,6 +36,22 @@ produce tracked changes. Do not wait until after editing or repeat the question
 at every checkpoint. A read-only, chat-only, no-file, or message-drafting route
 does not need this confirmation and must not create an empty commit.
 
+Before any nontrivial state-changing or external-cost action, distinguish
+selection from permission. Select the action only when the current deliverable
+requires it or an applicable higher-priority or owning-workflow contract
+requires it in support of that deliverable. Record the action owner and
+authority source in routing or workflow state when the distinction is material.
+Permission, capability, availability, relevance, conventional path placement,
+or existing tracked status may constrain or support a selected action, but none
+of them independently selects new work or bypasses a bound identity, proof
+minimum, consent gate, or stop condition.
+
+Apply the same separation to artifact lifecycle. Authority to create or edit an
+artifact does not by itself authorize tracking, staging, committing,
+release-note inclusion, or publishing it. A mandatory repository or
+owning-workflow coupling may select one of those transitions, but the workflow
+must cite that obligation rather than infer it from usefulness or visibility.
+
 This skill does not hardcode a specialist roster. Routes are resolved at
 routing time from the skill metadata visible in the current environment, so the
 family can grow or shrink without changing this skill.
@@ -299,6 +315,12 @@ Before acting under `vibe-coding`, confirm:
 - Specialist write, approval, stop, plan-binding, proceed,
   acceptance-criteria, review, changelog-coupling, verification, release, and
   commit boundaries remain intact.
+- Every nontrivial action is selected by the current deliverable or a cited
+  mandatory support obligation; permission, capability, availability,
+  relevance, path placement, and tracked status were not treated as selection.
+- Artifact creation or editing was not promoted into tracking, staging,
+  committing, release-note inclusion, or publishing without independent
+  lifecycle authority.
 - Explicit `vibe-coding` use supplied default scoped local-checkpoint permission
   to state-changing routes unless the user or project denied commits; any
   host-required confirmation was requested at startup rather than after edits.

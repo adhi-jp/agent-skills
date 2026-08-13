@@ -167,7 +167,9 @@
         "Does not use repeated `git commit -m` arguments for individual body lines, bullets, verification lines, or trailers.",
         "Names `git show -s --format=%B HEAD` as the stored-message inspection after creating the commit and explicitly says malformed stored output must be corrected before completion is reported, whether amended under the supplied commit authorization or through the workflow holding history authority.",
         "Preserves commit-execution boundaries by not treating `vibe-writing` as the source of staging, signing, release, or history-mutation rules beyond the supplied commit authorization.",
-        "Uses the represented staged and verification facts rather than refusing because the eval runner's ambient checkout has no staged changes, and does not claim to execute the represented commit in the sandbox."
+        "Uses the represented staged and verification facts rather than refusing because the eval runner's ambient checkout has no staged changes, and does not claim to execute the represented commit in the sandbox.",
+        "Treats the represented `skill-eval` and `skill-quality` changes as peer reader-visible contracts under one shared eval workflow; the subject and body cover both, or the response states that the change set must split.",
+        "Rejects a subject scoped only to `eval-runner`, `skill-eval`, or `skill-quality` when the other peer contract remains in the same commit. Equivalent shared scopes are valid and no magic scope token is required."
       ]
     },
     {

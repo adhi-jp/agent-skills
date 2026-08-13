@@ -53,6 +53,14 @@ of that line unless the user says otherwise.
   recorded permission like a commit request for the named paths only. It does
   not authorize broad staging, empty commits, push, release work, version
   changes, or history rewriting.
+- **Separate discovery from lifecycle authority.** Status, diff, path
+  existence, same-session creation, logical relevance, conventional repository
+  placement, and commit permission make a path a candidate; they do not by
+  themselves authorize tracking, staging, or commit membership. A newly
+  selected untracked artifact needs explicit tracking intent or an applicable
+  mandatory repository/owning-workflow coupling. Already tracked coupled tests,
+  docs, specs, README, and changelog changes may remain part of the selected
+  logical change when their owning contract requires them.
 - **Do not rewrite shared history.** Amending or rebasing an already-pushed
   commit rewrites history other clones depend on. Only amend/rebase commits that
   have not left this machine, and never force-push a shared branch without an
@@ -81,8 +89,9 @@ deeper on the judgment calls.
 3. **Classify and select.** Sort every changed path into (a) the core
    deliverable that forms ONE logical change — implementation plus its tests and
    the docs/CHANGELOG/spec it fulfills — versus (b) out-of-scope edits or
-   generated artifacts. Split unrelated concerns into separate commits. See
-   `references/file-selection.md`.
+   generated artifacts. For every newly selected untracked artifact, verify
+   tracking intent or mandatory coupling before staging it. Split unrelated
+   concerns into separate commits. See `references/file-selection.md`.
 4. **Exclude deliberately.** Leave generated, scratch, unowned plan/spec, build,
    unrelated lock, agent-state (`.agents/`, `.claude/`, `.codex/`), and secret
    paths unstaged. A verified requirements or plan artifact named by an owning
@@ -101,10 +110,20 @@ deeper on the judgment calls.
    files present, out-of-scope/ignored files absent, diff matches intent. This
    2–3 second gate is the single highest-leverage habit; see
    `references/staging-and-recovery.md`.
-7. **Decide amend vs. new.** Create a NEW commit by default. Only `--amend` to
+7. **Reconcile message to the exact target diff (mandatory gate).** Read the
+   complete final staged patch, identify its material reader-visible concerns,
+   and map each concern to the proposed message's type, scope, outcome, and
+   body coverage. The receipt names the owner of every peer concern, states the
+   type and scope bases, and explicitly accepts or rejects any supplied candidate
+   subject. Bind it to the current base and index or exact staged patch, and
+   state that source drift invalidates it and requires reconciliation again. If
+   one shared contract cannot account for all concerns, split or stop; do not
+   choose a constituent scope merely because one package was processed last or
+   has the most files. See `references/history-and-trailers.md`.
+8. **Decide amend vs. new.** Create a NEW commit by default. Only `--amend` to
    fix the immediately preceding, unpushed commit. See
    `references/history-and-trailers.md`.
-8. **Compose the message.** Conventional Commits `type(scope): summary`
+9. **Compose the message.** Conventional Commits `type(scope): summary`
    (imperative, ≤72 chars) naming the outcome, blank line, then a body only when
    it preserves durable context the diff cannot recover. For body-worthy
    commits, use a medium-density shape: one to three short paragraphs or a few
@@ -112,24 +131,27 @@ deeper on the judgment calls.
    or risk. If the message wants a long feature walkthrough, file inventory, or
    manual-test transcript, summarize or split the commit. Detect the repo's
    trailer convention first: `git log -5 --format='%H%n%B'`.
-9. **Transport the message safely.** For any multi-line body, use a heredoc
+10. **Transport the message safely.** For any multi-line body, use a heredoc
    (`git commit -F - <<'EOF' … EOF`, single-quoted delimiter) or `git commit -F
    <file>`. Add or repair authorship trailers with a `git commit ... --trailer
    'Key: value'` command — including `git commit --amend ... --trailer` or `git
    commit -C <ref> --trailer ...` for local rewrites — not by typing them into
    the body or a synthesized message payload. Never embed raw newlines in a
    single `-m`. See `references/history-and-trailers.md`.
-10. **Post-verify the stored commit.** `git show -s --format=%B HEAD` confirms
+11. **Post-verify the stored commit.** `git show -s --format=%B HEAD` confirms
     subject/body/trailer landed byte-correct and the trailer parsed as a footer;
     for newly added or repaired authorship trailers, also confirm the command
     path used `git commit ... --trailer`. For body messages, inspect the stored
     message for low-signal verification dumps, bullets that only list session
     commands without review meaning, and local-only proof-source leakage such as
     git-unmanaged local generated artifacts, ignored result files, local-only
-    run IDs, or private tool-session records. `git show --stat HEAD` confirms
-    the committed file set; `git status --short` confirms only intentionally-left
-    files remain and nothing leaked.
-11. **Recover reversibly if wrong.** Prefer the least-destructive fix:
+    run IDs, or private tool-session records. Compare the stored message with
+    the exact committed patch and the pre-commit reconciliation receipt;
+    `git show --stat HEAD` is only an auxiliary file-set check. A semantic
+    mismatch remains incomplete and is repaired only within existing
+    unpushed-history authority. `git status --short` confirms only
+    intentionally-left files remain and nothing leaked.
+12. **Recover reversibly if wrong.** Prefer the least-destructive fix:
     `git restore --staged <file>` to unstage, `git reset --soft HEAD~1` to undo
     a commit while keeping changes, `git commit --amend --no-edit --trailer …`
     to fix a just-made local commit. See `references/staging-and-recovery.md`.
@@ -138,6 +160,12 @@ deeper on the judgment calls.
 
 Not every invocation is a full "commit please." Jump to the relevant reference:
 
+- a response-only task supplies represented repository state and says not to
+  inspect or mutate the ambient checkout → treat the supplied staged, dirty,
+  verification, permission, and history facts as the target state. Show the
+  complete decision and command gates that would apply without executing them;
+  do not replace represented changes with an empty eval sandbox or claim that
+  represented commands actually ran.
 - "did I stage the right things?", "check what's staged", split a commit, drop a
   stray file → `references/staging-and-recovery.md`
 - "this got committed and shouldn't have", undo/unstage, fix a wrong file set,
@@ -210,11 +238,19 @@ Before reporting the commit done:
 
 - Does the staged set match the user-visible change, with no out-of-scope,
   generated, ignored, or secret files?
+- Did every newly selected untracked artifact have explicit tracking intent or
+  mandatory coupling, rather than only relevance, path placement, or commit
+  permission?
 - Did you read `git diff --cached` (not just the file list) and run `--check`?
+- Does a visible message-to-diff receipt map every material concern in the exact
+  target patch to type, scope, outcome, body coverage, and the one-commit or
+  split decision, name peer owners, disposition any supplied candidate subject,
+  and invalidate on source drift?
 - Is the subject a Conventional Commit naming the outcome, with the body kept to
   context the diff cannot recover?
 - Did you verify the **stored** commit (`git show -s --format=%B HEAD` and
-  `git show --stat HEAD`), not just the command you ran?
+  the exact committed patch, with `git show --stat HEAD` as auxiliary), not just
+  the command you ran?
 - If a trailer was required, did it land as a parsed footer in the exact
   authorship form for the agent that wrote the commit and the repo's existing
   convention?

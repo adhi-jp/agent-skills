@@ -530,12 +530,30 @@
         "Keeps the official aggregate unchanged, labels the artifact-level correction diagnostic, and states that the revised contract's effectiveness is unproven until a later explicitly authorized run.",
         "Selects focused skill-quality or eval-operation references, eval pressure, and Unreleased changelog text as the owning surfaces without requiring README, version, snapshot, release, or generated-workspace changes when those surfaces remain accurate."
       ]
+    },
+    {
+      "id": "E28",
+      "name": "Session history separates authority transitions",
+      "prompt": "A bounded session-history ledger records several confirmed failures. In one session a requested analysis report was created and later committed with a skill edit although no tracking intent or mandatory coupling existed. In another, an explicitly invoked planning workflow created a local plan and a checksum sidecar, then committed both even though project policy said new plans stay untracked and the user requested only the plan. In a third, a tracked report appeared in a period diff and was turned into a release-note item even though it changed no reader-visible contract. In a fourth, the correct skills were invoked and read, but a permitted expensive eval and a local commit proceeded while a named completion predicate was still false. Current source inspection shows existing eval-operation rules already govern workload and cancellation, and existing release policy already requires reader-visible relevance. Decide the reusable failure classification, smallest owning changes, explicit no-change owners, eval pressure, and proof status.",
+      "expected_output": "The response classifies distinct authority and lifecycle transitions, edits only missing owner boundaries, preserves already-covered rules, and keeps effectiveness unproven pending closing evidence.",
+      "files": [],
+      "expectations": [
+        "Builds an evidence map distinguishing supplied history observations, current source inspection, inference, and absent post-change proof.",
+        "Names the reusable dimension as authority-state collapse, transition-authority mismatch, lifecycle promotion, or an equivalent abstraction without requiring the literal taxonomy token.",
+        "Separates at least the selected deliverable, action authority, artifact lifecycle state, bound identity or resource, minimum proof, and active stop condition instead of reducing the incidents to missing skill invocation.",
+        "Treats create/edit, track, stage, commit, release-note, publish, and external/provider execution as separately authorized states; permission, relevance, path placement, tracked status, or capability cannot independently promote the next state.",
+        "Selects the smallest missing owner surfaces, such as top-level action selection, planning tracking/identity transport, commit file provenance, and targeted evals, instead of rewriting every skill named in the ledger.",
+        "Records eval workload/cancellation and release relevance as explicit no-change owners because current source already governs them; it does not mutate those contracts merely because they appeared in incidents.",
+        "Proposes separate realistic negative and positive eval pressure for untracked artifact creation, eligible tracked checkpoint, mandatory coupled documentation, false completion predicate, and semantically coherent commit scope without one overloaded matrix prompt.",
+        "Keeps prevention effectiveness `Unproven` until post-edit authorized complete affected-suite runs and anomaly adjudication; it does not claim that reading the edited prose alone proves recurrence is fixed.",
+        "Keeps detailed session IDs, local ledger paths, release/version guesses, snapshot edits, and generated eval workspaces out of standing skill guidance and changelog prose."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.45,
     "per_eval_expectation_weight": 0.55,
     "pass_threshold": 0.8,
-    "notes": "These evals test skill-improvement judgment, not subjective prose quality. Baselines are expected to over-edit skills, under-harden assertions, over-trust benchmarks, require lexical echoes for semantic contracts, confuse future binding gates with unsupported current identity invention, overstate partial diagnostics as full-suite closure, miss repository eval-runner constraints, conflate capture authority with positive recording obligations, leave conditional common assertions without explicit non-applicability, misplace load-bearing invariants between SKILL.md and references, leave long SKILL bodies append-only or over-compress them to arbitrary quotas, compact suites by numeric quota without coverage accounting, overpromote sampled evidence, push workflow process into metadata, or make unsupported improvement claims."
+    "notes": "These evals test skill-improvement judgment, not subjective prose quality. Baselines are expected to over-edit skills, under-harden assertions, over-trust benchmarks, require lexical echoes for semantic contracts, confuse future binding gates with unsupported current identity invention, collapse distinct action and artifact authority states, overstate partial diagnostics as full-suite closure, miss repository eval-runner constraints, conflate capture authority with positive recording obligations, leave conditional common assertions without explicit non-applicability, misplace load-bearing invariants between SKILL.md and references, leave long SKILL bodies append-only or over-compress them to arbitrary quotas, compact suites by numeric quota without coverage accounting, overpromote sampled evidence, push workflow process into metadata, or make unsupported improvement claims."
   }
 }

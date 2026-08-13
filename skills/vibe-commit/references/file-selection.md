@@ -26,6 +26,31 @@ For anything new or surprising, read it before judging — `git diff -- <file>`
 for tracked edits, and open untracked files directly. You cannot classify a path
 you have not looked at.
 
+## Separate candidate discovery from lifecycle authority
+
+Status and diff inspection enumerate candidates; they do not decide that every
+candidate belongs in version control or this commit. Classify these transitions
+separately:
+
+1. The artifact may be created or edited.
+2. The artifact is eligible to be tracked.
+3. The artifact is eligible to be staged for this logical change.
+4. The artifact is eligible to be committed now.
+
+For a newly selected untracked artifact, require explicit current tracking
+intent or an applicable mandatory repository/owning-workflow coupling. A file
+does not become eligible merely because it was created in this session, appears
+under `docs/`, `plans/`, or `specs/`, is relevant to the discussion, is visible
+to tools, or local commit permission exists. Record deliberately untracked
+artifacts in the summary so a later agent does not promote or delete them by
+guessing.
+
+This gate does not eject required support from an otherwise coherent commit.
+Already tracked tests, fixtures, README, changelog, specs, and documentation
+remain eligible when the selected implementation or repository contract
+requires their coupled update. A verified owning-workflow handoff that names
+specific eligible tracked paths is also sufficient provenance for those paths.
+
 ## Select one logical change
 
 A good commit is one logical, user-visible change that a reviewer can read,
@@ -75,7 +100,9 @@ leave them unstaged:
   lockfile belongs with that same commit. Leave a lockfile out only when it is
   unrelated to the selected change.
 - **Plans and specs in progress:** `plans/`, `specs/`, scratch notes — commit
-  only when the user wants them tracked.
+  only when they are already tracked as owned changes or the user/project
+  independently authorizes or requires tracking. Creation, location, or
+  relevance is not enough.
 - **Agent / tool state:** `.agents/`, `.claude/`, `.codex/`, local snapshot
   copies, editor caches.
 - **Secrets:** `.env`, key files, anything with credentials. These should be

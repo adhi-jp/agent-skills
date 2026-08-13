@@ -164,6 +164,7 @@ section or record `Not applicable` with a concise reason.]
 - Contract-section digest:
 - Contract sections:
 - Declared mutable progress or reserved-decision fields:
+- Identity carrier: inline plan fields | existing authorized host/workflow record
 
 [In `mutable-contract` mode, the full digest identifies exact bytes and the
 contract digest covers explicitly named authority-bearing sections. Exclude only
@@ -174,6 +175,11 @@ undeclared-field drift requires reviewed plan revision.]
 [Every authorized revision that changes identity-covered bytes refreshes the
 applicable digest in the same revision. A stale digest is a plan defect, not a
 normal follow-up task.]
+
+[Do not create a checksum sidecar, receipt, manifest, or other auxiliary
+identity artifact merely because the plan uses a digest. Use inline fields or
+an already-authorized host/workflow record unless the user explicitly requested
+the separate artifact or an established project/owning contract requires it.]
 
 ## Reserved decisions
 | Decision ID | Reserved field | Decision owner | Allowed authority | Response carrier | Proceed effect |
@@ -348,6 +354,13 @@ Before finalizing the plan, check that:
   include proposed commit messages, Conventional Commit examples, conditional
   future commit text, or `Subject:`/`Body:` bytes anywhere in the artifact, and
   single-slice work was not split into artificial checkpoints.
+- A planning-artifact closure commit is eligible only when the plan was already
+  tracked or an independent user, project, or owning-contract rule requires or
+  authorizes version control. Creation, conventional repository placement,
+  logical relevance, and generic checkpoint permission do not make a new
+  untracked plan eligible.
+- Plan identity uses inline fields or an already-authorized host/workflow record;
+  no sidecar, receipt, or manifest is created without separate authority.
 - Multi-item, multi-slice, or checkpointed plans include an `Implementation
   progress` ledger with stable item IDs, planned scope, status, required
   verification or review, commit action, last update, and remaining blocker or
