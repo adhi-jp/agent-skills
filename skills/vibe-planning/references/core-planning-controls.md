@@ -133,6 +133,13 @@ Read this reference before finalizing any implementation plan or plan revision. 
   slice supported by local evidence. Ask only for product wording, business
   rules, or tradeoffs that local investigation cannot settle.
 - Define acceptance criteria and tests before implementation steps. For visibility, permission, unlock, feature-flag, and state-transition gates, pair the negative/before proof with the positive/after proof in the current-slice criteria and test plan; do not let hardening or denial tests stand in for the core user success path.
+- For absence assertions over a captured channel, add a positive control in the
+  same channel that proves capture was live and correctly pathed; explicitly
+  assert forbidden fields rather than treating unasserted omission as proof.
+- When a distinction could be mistaken for a stronger product guarantee,
+  enforce it structurally through schema, namespace, type, validation, or
+  capability boundaries. A label may explain the boundary but must not be its
+  only enforcement.
 - Do not invent numeric limits, thresholds, timing windows, quotas, or product
   constants. Use values only when they come from user requirements, local
   evidence, primary sources, or accepted risk; otherwise label the value
@@ -347,6 +354,11 @@ derived value becomes a public limit, frozen constant, acceptance threshold, or
 test invariant, confirm it empirically before implementation or keep it
 `Unproven` with proof before implementation. Do not let verified inputs
 silently upgrade unchecked arithmetic assumptions.
+When an outside draft supplies only a derived result but not a reproducible
+formula, record the formula as unavailable instead of reconstructing one from
+nearby numbers. Preserve any supplied occupancy or full-fill assumption,
+identify a concrete break condition, and require the missing derivation plus
+empirical proof before freezing the value.
 
 ## Plan Integrity Gates
 
@@ -413,6 +425,13 @@ to prove that no prior plan exists.
      expectations imported from the implementation, best-case input for a
      general claim, final-state traces for forbidden-call claims, or missing
      lifecycle/encoding branches.
+   - For load-bearing invariants, plan a reversible performed mutation in a
+     scratch copy or equivalent controlled surface. A surviving mutation and an
+     assertion that never applied are both proof defects; require observed
+     failure plus cleanup before treating the assertion as protective. The
+     proof record names the controlled change, the assertion or predicate that
+     failed and its observed status or diagnostic, cleanup evidence, and the
+     final unmodified check.
 5. **Representation coverage gate**
    - When the plan freezes both a public contract and an internal protocol,
      state machine, schema, or result representation, map every required public
@@ -425,6 +444,9 @@ to prove that no prior plan exists.
      observe or transport different values. Group paths only when current
      evidence proves the same observer, carrier, and field availability apply,
      and record that grouping basis.
+   - Do not combine materially distinct states into a slash-separated or other
+     composite row while claiming that no grouping occurred. Give each state a
+     separate row until the required equivalence evidence exists.
    - If only one component can observe a value, make the handoff explicit. An
      internal representation that cannot carry a required public value blocks
      freezing the design; do not rely on the receiving component to infer it.

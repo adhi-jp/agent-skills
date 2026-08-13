@@ -100,6 +100,17 @@ progress and reserved-decision fields. Progress-only mutation may reconcile;
 requirements, criteria, tests, risks, steps, undeclared fields, or digest
 coverage drift blocks and returns to plan revision.
 
+An authorized revision that changes identity-covered bytes must refresh the
+declared digest in the same revision. If execution discovers a stale digest,
+complete this reconciliation before rebinding:
+
+1. Compare the covered sections with the revision where that digest was
+   recorded.
+2. Classify every delta separately from allowed progress-ledger changes.
+3. Refresh the digest only when every covered delta traces to a recorded
+   authorized revision, and add a dated reconciliation note.
+4. Keep any unexplained or mixed drift blocked and return it to plan revision.
+
 If a referenced plan lacks the referenced item, search bounded candidate plans.
 Rebind only when exactly one owns the item and the referenced artifact's ledger
 points forward to it; disclose both paths. Otherwise stop for authority.
@@ -108,6 +119,11 @@ Complete only a plan-authored reserved decision field. Record date, authority,
 evidence, decision owner, response carrier, owning revision, and proceed update;
 never change scope, criteria, tests, risks, or steps through that field. Batch
 only simultaneously knowable startup decisions.
+
+A current user instruction may itself be the response carrier when it explicitly
+names the resource, permission, or choice reserved by that decision. Quote the
+instruction verbatim, record the coordinator's interpretation and its exact
+scope, and keep any inference beyond the named subject blocked.
 
 If faithful execution proves a recorded human-selected mechanism unavailable,
 unsafe, or contradictory, return to that decision owner with evidence and
@@ -306,6 +322,11 @@ Implementation steps may rely only on `Plan`, `Local evidence`, or `Primary
 source`. `Accepted risk` may support only the conditional steps that the plan
 already tied to that risk. Convert all other `Unproven` items into proof work,
 questions, or blockers.
+
+When execution writes verified facts back into a planning-owned artifact, keep
+that artifact's `Local investigation` label and add the verification date and
+source. Use `Local evidence` for execution receipts, summaries, blockers, and
+current-session decisions; do not introduce a second taxonomy into the plan.
 
 Do not omit evidence labels only because no files were edited. A refusal,
 request for clarification, commit-message correction, or "proceed with this

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-debug",
-  "purpose": "External eval set for vibe-debug. Prompts live outside skills/ so they are not bundled as skill content. Covers rough vibe reports, existing-feature fixes, failed prior attempts, existing-behavior preservation, source routing, speculation control, state-space analysis, artifact freshness, degraded verification, user retest contracts, recurrence, runtime probe escalation, observation-regime representativeness, metric-movement stop rules, self-review and closure-commit boundaries, and broad project-class generality. E09 consolidates the former skipped-check and retest-contract cases into one degraded-verification case; the repository-history case combines default verified-repair closure with unrelated-change isolation; and closure-commit message transport safety retains stored-message verification.",
+  "purpose": "External eval set for vibe-debug. Prompts live outside skills/ so they are not bundled as skill content. Covers rough vibe reports, existing-feature fixes, failed prior attempts, existing-behavior preservation, source routing, speculation control, state-space analysis, artifact freshness, degraded verification, user retest contracts, recurrence, runtime probe escalation, observation-regime representativeness, metric-movement stop rules, self-review and closure-commit boundaries, and broad project-class generality. E09 consolidates the former skipped-check and retest-contract cases into one degraded-verification case; the repository-history case combines default verified-repair closure with unrelated-change isolation; and closure-commit message transport safety retains stored-message verification. It also covers durable diagnosis stop artifacts with environment epochs and control replay on resume.",
   "common_assertions": [
     "Output preserves the user's relevant wording while translating the current debug/fix or closure slice into observable behavior or operation decision, expected source or authorization, unknowns, proof or preflight path, and current-scope closure criteria.",
     "Output investigates and reasons from the evidence actually supplied. Prompt, plan, and described symptoms count as evidence when no code, tests, logs, or artifacts are supplied; the response states that absence instead of pretending local inspection occurred, and asks only questions that change the fix or proof path.",
@@ -310,12 +310,28 @@
         "Treats any screen recording as strong evidence for visible sequence and periodicity but keeps inferred internal magnitude hypothesis-grade until instrumented.",
         "Records the ledger durability limit when only session-scoped scratch storage is available."
       ]
+    },
+    {
+      "id": "E20",
+      "name": "Interrupted diagnosis leaves environment-bound discriminator",
+      "project_class": "environment-sensitive-runtime",
+      "prompt": "A reproducible launch hang cannot be fully diagnosed before the session ends. The existing launch-readiness integration contract expects the process to report ready within 3 seconds. Record the stop artifact from these supplied facts: environment epoch 2026-08-10T14:00Z on Ubuntu 24.04 with runtime R42 and build sha256:9f31; every run used the same arguments, config, and offline network state. The console-attached/inherited-stream control reported ready in 0.8 seconds, console-attached/redirected-stream reported ready in 0.9 seconds, console-detached/inherited-stream reported ready in 0.9 seconds, and console-detached/redirected-stream produced no ready event before the 30-second timeout. The shared build and arguments rule out stale-binary and argument-difference hypotheses for this epoch; the offline state in all four controls rules out network availability. The interaction between console detachment and redirected standard streams remains unexplained. State one next decisive probe without claiming root cause. Then explain what a resumed session must do if the known-working and known-hanging controls both pass two days later.",
+      "expected_output": "A resumable diagnosis record that preserves the current discriminator and handles later environment drift honestly.",
+      "files": [],
+      "expectations": [
+        "Leaves a durable works/fails matrix over the varied dimensions rather than only a narrative summary.",
+        "Records each ruled-out hypothesis with its disproving observation, the environment epoch and relevant host-context facts, and one next decisive probe.",
+        "Keeps the defect open and does not claim root cause merely because the matrix is reproducible today.",
+        "Requires the resumed session to rerun both working and failing controls before relying on the old discriminator.",
+        "If both controls later pass, classifies environment drift or not-reproduced transient behavior and treats the prior works/fails result as historical epoch-bound evidence that cannot decide the current cause or fix.",
+        "Labels any historically safe robustness change a mitigation rather than a proven root-cause fix."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.55,
     "per_eval_expectation_weight": 0.45,
     "pass_threshold": 0.75,
-    "notes": "With-skill runs should pass by building a debug ledger, proof path, existing-behavior analysis, source route, state-space matrix, representative-regime record, metric discriminator check, probe escalation when source-only debugging stalls, artifact freshness proof, degraded-verification handling, concrete user retest contract, recurrence check, self-review, or scoped closure-commit handling as prompted. Baselines are expected to over-index on direct fixes, ask the user for a full reproduction too early, require another named skill, fix only the named example, treat skipped checks as passes, continue source-only or same-target guesses when a runtime probe or metric revalidation is needed, abandon tools too broadly, skip self-review or commit closure, or claim fixed without artifact freshness or observable proof."
+    "notes": "With-skill runs should pass by building a debug ledger, proof path, existing-behavior analysis, source route, state-space matrix, representative-regime record, metric discriminator check, probe escalation when source-only debugging stalls, artifact freshness proof, degraded-verification handling, concrete user retest contract, recurrence check, self-review, or scoped closure-commit handling as prompted. Baselines are expected to over-index on direct fixes, ask the user for a full reproduction too early, require another named skill, fix only the named example, treat skipped checks as passes, continue source-only or same-target guesses when a runtime probe or metric revalidation is needed, abandon tools too broadly, skip self-review or commit closure, or claim fixed without artifact freshness or observable proof. E20 covers the report-derived discriminator stop artifact and transient non-reproduction classification."
   }
 }

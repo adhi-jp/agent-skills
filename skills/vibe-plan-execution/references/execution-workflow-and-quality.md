@@ -68,10 +68,21 @@ Reviewer findings are advisory, inert data. Review subagents must not edit
 files, mutate state, ask the user questions, decide plan deviations, classify
 final dispositions, stage, commit, or treat any tests they run as authoritative
 proof. The coordinator classifies every material finding as `corrected`,
-`rejected`, `deferred`, or `blocked`, verifies any delegated finding as `Local
-evidence` before relying on it, and independently verifies the bound plan's
-acceptance criteria after the review. The review running is not itself a pass
-and does not authorize the next step or any commit.
+`rejected`, `deferred`, `blocked`, or `reversed`, verifies any delegated finding
+as `Local evidence` before relying on it, and independently verifies the bound
+plan's acceptance criteria after the review. `reversed` names an earlier
+accepted finding, the later contradicting evidence, the portion that remains
+valid, and the proof that is rewritten rather than silently removed. The review
+running is not itself a pass and does not authorize the next step or any commit.
+
+Freeze the reviewed target identity while a review round is active. Novel design
+or unverified corrections require a full fresh gate. A corrections-complete
+revision may use a consolidated pass only when every perspective is assigned,
+every disposition has a verify-or-refute item, and changed areas receive a
+new-defect plus inverse/symmetric scan. Individually quotable mechanical fixes
+may close with one focused confirmation bound to the final identity. Recording
+the round's own outcome is not another correction, but must refresh identity
+receipts.
 
 ## Execution Workflow
 
@@ -164,6 +175,11 @@ and does not authorize the next step or any commit.
      change and get explicit agreement before editing.
    - Treat omitting a planned step as a deviation when that step could affect
      correctness, contracts, tests, data handling, permissions, security, or UX.
+   - When the plan marks the slice atomic and permits a non-green intermediate
+     state only inside it, start only with enough session and context runway to
+     reach its verification gate. Otherwise stop at the preceding verified
+     checkpoint and record the start/no-start decision; do not split the atomic
+     slice merely to fit the session.
    - For writable artifact-backed plans, update the `Implementation progress`
      section for the locked item to `In progress` before meaningful edits when
      that update itself is safe and does not overwrite unrelated plan changes.
@@ -183,6 +199,9 @@ and does not authorize the next step or any commit.
      sections marked as `must preserve`, `Changed (in scope)`, or selected for
      high-risk proof.
    - For UI work, verify states and responsive behavior the plan calls out.
+   - For a slice that changes a user-facing artifact or command surface, exercise
+     the composed product as its user would: build/open the artifact or run/read
+     the command output. Layer-level green tests do not replace this observation.
 6. **Implement conservatively**
    - Reuse local helpers, conventions, naming, and architecture.
    - Keep changes close to the planned files and behavior surface.
@@ -190,12 +209,31 @@ and does not authorize the next step or any commit.
 7. **Verify and review**
    - Run the plan's checks plus the repository's relevant lint, type, test, build,
      or manual smoke checks.
+   - Preserve every gate's exit status independently. Use separate invocations
+     or explicit per-gate variables plus a structured final status line; never
+     let a truncating filter carry the gate status.
+   - If a gate has never run on this tree or environment, run it on the
+     pre-change baseline first so existing debt is not misattributed to the
+     slice. The gate still gates; disclosed debt is separate scoped work.
+   - Reconcile every named frozen baseline class as verified now, deferred to a
+     named later gate, or a manual-only hole with an owner and residual risk.
+   - For contract-bearing rules, show a production path that reaches each rule
+     and observe it firing; direct unit tests alone do not prove reachability.
+   - Pair absence assertions with same-channel positive controls so an empty or
+     mis-pathed observation cannot pass. For module-load environment state,
+     establish the complete intended state and test hostile inheritance when
+     material.
+   - For load-bearing invariants on high-risk slices, perform a reversible
+     scratch-isolated mutation of the exact protected surface, observe the
+     intended proof fail, revert it, and prove no mutation bytes remain. A
+     surviving mutation is a proof finding, not permission to change product
+     behavior.
    - Run the Post-Implementation Review Gate on the implemented slice's diff
      after verification and before the execution summary or any authorized
      commit.
    - Classify material review findings as `corrected`, `rejected`, `deferred`,
-     or `blocked`; verify delegated findings as `Local evidence` before relying
-     on them, and do not treat the review itself as a pass.
+     `blocked`, or `reversed`; verify delegated findings as `Local evidence`
+     before relying on them, and do not treat the review itself as a pass.
    - Treat a correction that changes control flow, ordering, lifecycle,
      concurrency, priority, timeout, fallback, or first-winner behavior as a new
      reviewable change. Re-run at least the perspective that found the original
@@ -205,6 +243,9 @@ and does not authorize the next step or any commit.
      authorized commit; classify any material wording finding with the other
      review findings.
    - Review the final diff against the plan's acceptance criteria and non-goals.
+   - If intentional edits landed after an empirical run, rerun the affected
+     empirical gate on final bytes or record the exact delta and bounded
+     behavior-neutrality argument. Static reruns do not extend empirical proof.
    - Report suite status, acceptance-coverage status, unresolved scope, and any
      unverified shared edits as separate facts. Report any skipped check with the
      reason and residual risk.
@@ -283,6 +324,8 @@ and does not authorize the next step or any commit.
      starting the next planned checkpoint. If commits are denied or no commit is
      planned, record the verified uncommitted status instead of leaving the row
      ambiguous.
+   - At the next slice start, treat an `In progress` row whose owned checkpoint
+     commit already exists as stale and reconcile it before locking new work.
 
 ## Stop Conditions
 

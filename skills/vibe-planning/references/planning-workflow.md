@@ -104,9 +104,21 @@ Read this reference when drafting or revising the implementation-plan body. It o
      runtime state, external behavior, or data shape, put the fastest isolation
      step before implementation steps, even when a local defect is also visible.
    - For refactors, include equivalence checks that prove behavior is preserved.
+   - When the plan captures a pre-change baseline, enumerate its named coverage
+     classes and record which lack an automated replay path. A manual-only class
+     is a visible proof hole with an owner, not an implicitly covered fixture.
+   - When that baseline preserves captured behavior, replay the exact recorded
+     inputs with their original identifiers, session shape, ordering, and
+     normalization. Do not regenerate baseline cases through the replacement
+     stack, because that makes the implementation under test redefine its own
+     preservation contract.
    - When high-risk controls apply, include tests or proof checks for the
      selected equivalence dimensions, recovery comparisons, diagnostic-finding
      correction, and failure-pattern checklist answers.
+   - For a newly authored procedure that the plan will call repeatable, schedule
+     one verbatim end-to-end execution into a fresh evidence location before
+     that claim is accepted. Prose review or parser acceptance is not
+     repeatability proof.
    - For UI, include interaction, state, responsive layout, and accessibility
      checks when relevant.
 7. **Run plan integrity gates**
@@ -195,9 +207,11 @@ Read this reference when drafting or revising the implementation-plan body. It o
      durable context the diff cannot recover, such as the reason, compatibility
      constraint, accepted risk, non-goal, or verification proof. State that
      during later execution these checkpoints are scoped local-commit
-     authorization after the checkpoint is implemented, verified, reviewed, and
-     safely scoped, when the user asks to execute, implement, apply, or continue
-     the bound plan and no current user or project instruction denies commits.
+     authorization after the checkpoint is implemented, verified, receives the
+     required multi-perspective review or recorded fallback, has material
+     findings dispositioned, and is safely scoped, when the user asks to
+     execute, implement, apply, or continue the bound plan and no current user
+     or project instruction denies commits.
      They do not authorize implementation commits during planning, push, release preparation,
      version bumps, amend, reset, stash, squash, destructive operations, external
      side effects, work-in-progress commits, failing or skipped verification
@@ -258,6 +272,12 @@ Read this reference when drafting or revising the implementation-plan body. It o
      allowed artifact sections, context digest, expected finding format, and
      stop-and-return conditions. Three empty waits require a checkpoint or
      coordinator fallback, not repeated no-change user notifications.
+   - Reserve the coordinator slot and batch review units within verified
+     remaining host capacity. When remaining capacity cannot be verified, use
+     one bounded unit at a time or coordinator fallback; compatible perspectives
+     may share one unit. A thread-limit, capacity, timeout, or unavailable-
+     capability launch failure stops further launch attempts and moves all unmet
+     perspectives to the coordinator fallback.
    - Resolve permission with `VIBE_SUBAGENTS=ask|allow|deny` and current-turn
      override rules before launching any review-only subagent. Use subagents
      only when permission, host-neutral review-only capability, content safety,
@@ -288,6 +308,15 @@ Read this reference when drafting or revising the implementation-plan body. It o
    - Correct admitted material issues in the artifact or chat-fallback draft
      before final self-review. Rejected or deferred findings need evidence and
      plan-boundary rationale.
+   - Re-read the stored plan immediately before each correction write. Do not
+     batch dependent text-anchor patches prepared from one earlier read; after
+     a successful write, re-read before constructing the next anchor. Prefer
+     one atomic current-section replacement when several corrections touch the
+     same section. If a non-destructive edit precondition or anchor is stale,
+     re-read and reconcile the intended correction against current bytes, then
+     retry once. If the retry fails, preserve the complete artifact, record the
+     exact blocker, and still return a final planning response rather than
+     ending at a progress update.
 13. **Run the plan self-review gate**
    - Run this gate after the draft artifact exists, or after a chat-fallback
      draft is assembled, and before the concise user-facing summary.

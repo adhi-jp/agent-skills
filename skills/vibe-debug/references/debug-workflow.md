@@ -121,6 +121,16 @@ Read this reference when actively diagnosing, repairing, verifying, or handing o
    - State the probe question: what branch, state transition, payload,
      artifact, timestamp, ordering, identity, cleanup, or runtime boundary the
      probe must observe to separate the hypotheses.
+
+   - When diagnosis must stop for budget, access, environment, or a needed
+     decision, leave a durable discriminator record rather than a narrative:
+     the works/fails matrix over the varied dimension, every ruled-out
+     hypothesis with its disproving observation, the environment epoch and
+     control cases, and the single next decisive probe.
+   - On resume, rerun the works and fails controls before relying on the old
+     discriminator. If the defect no longer reproduces, record
+     `not-reproduced` or transient behavior and label any robustness change a
+     mitigation, not a proven root-cause fix.
    - Prefer low-friction probes that fit the user's real observation path:
      existing logger calls, focused trace labels, counters, debug-only dumps,
      test-harness assertions, artifact/package inspection, or narrow runtime

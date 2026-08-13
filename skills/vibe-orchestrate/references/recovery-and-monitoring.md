@@ -20,6 +20,9 @@ Rules:
 - Never mark an item complete from memory when the journal and working tree do
   not support it.
 - Keep journals untracked unless the user explicitly wants them saved.
+- Give every unit a private, disjoint journal and scratch root. Foreign or
+  unexplained content in that root invalidates it as trusted scratch; stop and
+  reconcile rather than reading, overwriting, or attributing it to the worker.
 - Remove or exclude journals before commit or final handoff.
 
 ## Worker Death Recovery
@@ -39,6 +42,13 @@ When a worker dies, times out, or returns partial output:
 6. In the next contract, list completed items as `do not repeat` and remaining
    items as the only editable work.
 7. Verify any kept bytes through coordinator gates.
+
+A host completion or failure notification is a wake signal, not terminal proof.
+For a write-capable unit, first check named task/process status, then re-check
+for a late report, reconcile journal staleness, and audit the round-boundary
+tree receipt before classification or relaunch. Duplicate notifications may
+occur, and transcript aesthetics or off-task-looking intermediate text do not
+prove derailment while liveness is unresolved.
 
 An outer launch failure or missing receipt does not prove that no work landed.
 Before relaunch, inspect the round baseline-to-tree diff and any report or
@@ -88,6 +98,15 @@ After the runner-native handle/result is captured, stop stale forwarder polling
 but retain runner-task ownership until terminal status and result retrieval.
 Align journal cadence with the declared staleness budget; record order-sensitive
 before-edit/after-verification milestones only when proof depends on them.
+Cancel the unit's staleness monitors and fallback wakes when its receipt is
+accepted or it is cancelled. If a wake cannot be cancelled, record it as a
+known future no-op so it is not mistaken for a live-unit signal.
+
+For coordinator-authored pollers, capture the exact target handle once, impose a
+hard deadline, and avoid process-name predicates that match the poller itself.
+Prefer host task status and named cancellation over process-table pattern
+matching; shell job-control state does not persist across independent tool
+invocations.
 
 User progress updates occur at unit start, a changed actionable blocker, or a
 changed verified unit boundary. Include baseline/allowed paths, proof and review
@@ -118,6 +137,12 @@ When the receipt contains a handle instead of the contracted report:
 
 A retry while the runner task remains active is a duplicate-writer risk, even
 when the forwarding subagent has already disappeared from the host task list.
+
+The status interface is the liveness authority while a task is running; the
+result interface becomes authoritative only after terminal status. A result
+lookup that says `not found` or equivalent while status still shows the task
+alive is not task-loss evidence. Fetch after terminal status, and classify
+contradictory status/result answers under the contradictory-receipt path.
 
 Resume or attach binds to a specific session role and sandbox contract, not
 merely a thread id. Prefer a fresh self-contained write round after read-only
@@ -167,16 +192,21 @@ any chance it belongs to the active agent environment.
 Before launching a write-capable worker:
 
 - Check the host or runner for active write-capable tasks in the same workspace.
-- Permit only one write-capable worker in a shared working tree.
+- Permit only one source-writing worker in a shared working tree.
 - Confirm its editable whitelist and generated-output paths do not overlap with
   another active writer.
 - Require an isolated workspace or equivalent enforceable isolation boundary
-  for concurrent write-capable workers.
+  for concurrent write-capable workers, except for private per-unit
+  untracked/ignored generated-output roots with private read-only inputs, no
+  shared mutable cache, bounded concurrency, per-unit receipts, and
+  batch-boundary tracked-tree cleanliness checks.
 - Record the merge order and the integrated coordinator verification gate.
 - Record the expected worker handle or thread identity.
 - Immediately after launch, re-check active writers. Timeout retries and
   forwarding retries are duplicate-launch risks until the original handle is
   proven absent.
+- Capture an attributable round-boundary tree receipt before each launch, not
+  only before the first material round.
 
 After a worker returns or dies:
 
@@ -205,3 +235,17 @@ If two write-capable workers may have touched the same tree:
 Unexpected work that is useful may still need recalibration. A test or patch from
 a stale worker is not safe until it matches the behavior contract and passes the
 coordinator's proof path.
+
+## Capability Loss And Process-Tree Closure
+
+When a previously working execution boundary starts returning loader, format,
+command-availability, interop, platform, or permission signatures, probe that
+capability before classifying product work as failed. Record affected gates as
+blocked-not-failed, name the restore action and its owner, continue independent
+units, and re-probe after unexplained recovery rather than guessing attribution.
+
+At unit, slice, or phase closure, audit workspace-scoped workers, probe
+harnesses, local servers, capture drivers, and their descendants. A parent exit
+does not prove its children exited. Stop surviving trees only through a named
+task control or identity-proven, workspace/path-scoped mechanism; never
+force-kill arbitrary PID lists.

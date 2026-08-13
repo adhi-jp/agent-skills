@@ -61,6 +61,22 @@ equivalent enforceable isolation boundary. Otherwise keep one shared-root
 writer and parallelize read-only investigation, test design, review, or other
 non-writing units.
 
+A narrowly permitted third shape is disjoint generated-output writers in one
+checkout. Use it only when every worker writes to a private per-unit
+untracked/ignored output root, inputs are private materialized read-only copies,
+no mutable cache or generated path is shared, concurrency is bounded, every unit
+returns its own receipt, and the coordinator proves tracked-tree cleanliness at
+each batch boundary. Record which confinement is host-enforced and which is
+instruction-only. Without every condition, the one-shared-tree-writer rule
+stands.
+
+Include commit visibility in coupling analysis. An isolated worktree starts from
+committed state; a unit that needs another unit's uncommitted output is not
+independent and must run serially or receive a coordinator-materialized input.
+Avoid placing temporary worktrees below the repository root because glob-driven
+tests, linters, formatters, and file counters can traverse the duplicate tree.
+Remove an isolation worktree promptly after extracting and verifying its diff.
+
 Each parallel unit needs its own mission, allowed paths, expected receipt,
 budget, stop conditions, and verification responsibility. The coordinator must
 continue meaningful non-overlapping local work after launch rather than
@@ -87,7 +103,9 @@ Every write-capable delegation contract should include:
 - Editable file whitelist and explicit out-of-scope paths.
 - Optional progress journal path.
 - Fixed report sections: `FILES:`, `COMPILE:`, `DECISIONS:`, `BLOCKERS:`;
-  add `DIAGNOSIS:` for repair or investigation tasks.
+  add `DECISION-IMPACT:`, `DEVIATIONS:`, and `VERIFICATION BOUNDARY:` when
+  decisions, challengeable constraints, or environment-specific proof are
+  material, and `DIAGNOSIS:` for repair or investigation tasks.
 
 If a worker needs a non-whitelisted file, broader command, credential,
 permission, destructive action, or user decision, it must stop and report a
@@ -124,6 +142,13 @@ and instruct the worker to report a mismatch rather than inventing a correction.
 For a value calculated from measured inputs, include the assumptions and a
 condition that would break the derivation; do not present it as a measured fact.
 
+Before sending the contract, demote any coordinator inference, provisional
+design bound, or untested brief clause out of `Verified facts`. Validate a brief
+against the measured product or its own examples before treating delegate
+failures as a capability signal; uniform failure across independent workers is a
+reason to inspect the shared brief first, not proof that every worker lacks the
+capability.
+
 When protected artifact or parity evidence contradicts a contract premise, use
 one coordinator acceptance checklist before another worker starts: rank the
 authority for the claim, separate the observed mismatch from the correctness
@@ -144,6 +169,12 @@ is lost in summary:
   whitelist;
 - `reverification`: coordinator-run authoritative gates before any serializer
   repair is accepted.
+
+After a repair round changes control flow, ordering, lifecycle, or guards, run a
+corrections-complete read-only pass when risk warrants it. Give that pass one
+line per applied correction, require verify-or-refute plus an inverse/symmetric
+failure attack and a new-defect scan, and prefer an identity different from the
+implementer and original finding author when available.
 
 ## Direct Coordinator Intervention
 
@@ -168,12 +199,14 @@ micro-fix.
 
 ## Parallel-Writer Accident Protocol
 
-The default in one shared working tree is one write-capable worker at a time.
-Concurrent writers are an advanced isolated-workspace shape: they require
+The default in one shared working tree is one source-writing worker at a time.
+Concurrent source writers are an advanced isolated-workspace shape: they require
 separate worktrees or sandboxes, disjoint write and generated-output paths,
 explicit merge order, and an integrated verification gate before any result is
-accepted into the coordinator's tree. If a duplicate, stale, or unexpectedly
-overlapping writer may have touched the same tree:
+accepted into the coordinator's tree. The only same-checkout exception is the
+guarded disjoint generated-output shape defined above; it never permits
+concurrent source edits. If a duplicate, stale, or unexpectedly overlapping
+writer may have touched the same tree:
 
 1. Stop launching new write work and cancel every unintended overlapping writer
    with the host's named task control. A warning-only loop is not containment.

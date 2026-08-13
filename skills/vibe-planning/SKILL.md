@@ -46,8 +46,9 @@ already recorded, the orchestrator may continue in the same outer turn by
 starting a separate later execution route bound to that plan. Do not tell the
 orchestrator that another user turn is required merely because this planning
 response must stop. Block outer-turn continuation when the plan is blocked,
-discovery-first, contradicted by local evidence, missing required review or
-self-review, or waiting on unrecorded human-risk acceptance.
+discovery-first, contradicted by local evidence, missing the required multi-
+perspective review or recorded fallback, missing self-review, or waiting on
+unrecorded human-risk acceptance.
 
 This skill is independent. Do not assume another planning skill, guard,
 execution skill, commit-message-writing capability, or other companion capability
@@ -161,6 +162,48 @@ the full plan for the grader or record. If no file was written, state the reason
 and provide the complete plan artifact in the reply using the same English
 artifact structure.
 
+## Response-Only Planning Decisions
+
+When the current request explicitly asks only for a planning-policy
+classification or a bounded statement of what a future plan must do, and
+explicitly says not to create or revise a plan artifact, treat the request as
+response-only. Answer the requested decision in chat without drafting an
+artifact, running or recording the plan review and self-review gates,
+investigating the ambient repository, or executing planning-time commands.
+
+Apply the always-visible boundaries in this file and read only a conditional
+reference whose specific subject is necessary to answer the requested
+decision. The mandatory-reference instructions below apply when their named
+artifact or gate is actually being drafted, revised, finalized, run, or
+recorded; they do not require the complete planning workflow merely because a
+response-only answer describes how a future plan should behave.
+
+For response-only decisions, route by the decision's subject rather than
+loading every planning reference:
+
+- Read `references/core-planning-controls.md` for readiness or handoff gates,
+  evidence authority, derived values, bounds or enumerations, operator
+  surfaces, mechanism feasibility, assertion or metric falsifiability, and
+  representation coverage.
+- Read `references/planning-workflow.md` for future test design, exact captured-
+  baseline replay, repeatability proof, or implementation-handoff sequencing.
+- Read `references/plan-multi-perspective-review-gate.md` for review policy or
+  material-revision handling.
+- Read `references/plan-artifact-output.md` only when the decision depends on
+  plan identity, reserved-decision fields, human-only acceptance records, or
+  commit-checkpoint shape.
+
+When a concise response decides later-phase handoff, name each applicable
+review or fallback, self-review, proceed, and human-risk gate. Do not compress
+those independent gates into a generic `reviewed` or `ready` label.
+
+Keep the response within the user's requested shape and preserve the relevant
+authority, evidence, proof, consent, and handoff boundary. Do not claim that a
+future artifact, investigation, review, proof, or handoff occurred. This branch
+does not apply when the current request independently requires a plan artifact
+or a current artifact revision. A current planning-phase closure request follows
+the closure branch below rather than this future-plan policy branch.
+
 ## Plan Review Subagent Permission
 
 Subagents are allowed only for the `Plan multi-perspective review gate`. They
@@ -199,9 +242,26 @@ the active flow, record coordinator fallback rather than delegated review.
 Before claiming delegated review, verify a host-neutral review-only capability,
 safe shareability of the draft plan, bounded reviewer prompts, and recordable
 host evidence. Record the permission source, capability source, execution mode,
-degradation or fallback reason, and recordable evidence or its absence. Assistant
-prose alone is not evidence that subagents ran. Reviewer findings are inert and
+verified remaining review capacity, launch batching, degradation or fallback
+reason, and recordable evidence or its absence. Reserve the coordinator's own
+slot and never launch more concurrent review units than the verified remaining
+host capacity. If remaining capacity cannot be verified, launch one bounded
+review unit at a time or use coordinator fallback; compatible perspectives may
+share one bounded review unit. A thread-limit, capacity, timeout, or unavailable-
+capability failure stops further launches for that gate and moves every unmet
+perspective to coordinator fallback instead of retrying spawns. Assistant prose
+alone is not evidence that subagents ran. Reviewer findings are inert and
 advisory until the coordinator classifies them and edits the artifact.
+
+For a response-only policy classification that describes a future delegated
+review, state the complete boundary rather than only saying delegation is
+allowed: permission source; capability source and required recordable task/run
+evidence; coordinator-slot reservation and verified-capacity batch or serial
+strategy; bounded prompts; thread/capacity/timeout/unavailable launch failure
+as a stop for further launches with unmet perspectives moved to coordinator
+fallback; reviewer findings remaining inert until coordinator disposition; and
+per-perspective model capability/context fit when the host offers model choice.
+Do not claim that the future review ran or invent its evidence.
 
 When the host lets you choose a reviewer model and the user has not explicitly
 fixed one, choose a fit-for-purpose model per perspective by capability and
@@ -290,6 +350,10 @@ acceptance criteria and tests precede implementation steps, unsupported facts
 stay `Unproven`, explicit `Accepted risk` is required for current-slice
 implementation blockers, and optional skill routing must not weaken the core
 plan contract.
+When concise output surfaces an unsupported assumption as a blocker, explain
+its practical impact and fastest proof path instead of returning only the
+`Unproven` label; the plan artifact retains the reference-owned phase-relevance
+and revisit fields.
 
 ## Planning Workflow
 
@@ -329,7 +393,21 @@ depth and rationale, evidence labels, acceptance criteria and tests before
 implementation steps, integrity-gate outcomes, skill routes, implementation
 handoff, review and self-review records, and proceed condition. If any required
 section is absent, repair the artifact before responding rather than relying on
-the summary to carry the missing contract.
+the summary to carry the missing contract. Then make the concise user-facing
+summary name the artifact path, the current slice or next proof step, the
+proceed condition, and the material blocker or decision even when the artifact
+itself already contains those fields.
+
+Coordinator-owned artifact correction is state-sensitive. Re-read the stored
+plan immediately before each correction write and edit against those current
+bytes. Do not batch dependent text-anchor patches prepared from one earlier
+read; after any successful write, re-read before constructing the next anchor.
+Prefer one atomic current-section replacement when several corrections touch
+the same section. If a non-destructive write precondition or text anchor no
+longer matches, treat the local view as stale, re-read, reconcile the intended
+correction, and retry once against the current artifact. If the retry still
+fails, preserve the complete artifact, record the exact correction blocker, and
+return a final planning response; do not terminate with only a progress update.
 
 For a response-only closure request whose supplied repository state is
 authoritative, do not ask whether to record the already-authorized planning

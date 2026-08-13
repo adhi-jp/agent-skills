@@ -2,8 +2,11 @@
 """Bounded Codex CLI delegation adapter for external workers.
 
 The adapter never elevates itself. It fails before a model call when Codex
-runtime state is not writable, records structured receipts, and uses stdin plus
-absolute artifact paths for every Codex invocation.
+runtime state is not writable and records structured receipts. Tasks arrive
+either as a closed read-only profile over validated target paths, or as a
+coordinator-authored mission wrapped in a hardened envelope; write access
+requires the workspace-write sandbox plus an explicit write allowlist that is
+reconciled against observed filesystem and Git changes after the run.
 """
 from __future__ import annotations
 
@@ -14,32 +17,41 @@ import os
 from pathlib import Path
 import shutil
 import subprocess
-import sys
 import tempfile
 import time
 from typing import Any
 
 from delegate_common import (
+    AdapterPrompt,
     adapter_files_sha256,
     bounded,
+    EXTERNAL_TASK_CONTRACT,
+    MISSION_CONTRACT,
     filesystem_manifest,
     fingerprint_digest,
     git_changed_paths,
     git_head,
     git_metadata_snapshot,
     manifest_changed_paths,
-    normalize_allowed_paths,
+    minimal_child_env,
+    normalize_allowed_write_paths,
+    normalize_manifest_exclusions,
+    preflight_receipt_age_error,
     print_receipt,
     probe_writable_directory,
+    resolve_run_task,
     sha256_file,
     utc_epoch,
+    render_adapter_canary_prompt,
     validate_worker_report,
+    vcs_degraded_scope_ok,
     worker_report_schema,
     write_json,
 )
 
 READY_TEXT = "CODEX_DELEGATE_READY"
-ADAPTER_SCHEMA = 8
+ADAPTER_SCHEMA = 12
+ENV_RUNNER_PREFIXES = ("CODEX_", "OPENAI_")
 DEFAULT_MANIFEST_MAX_TOTAL_BYTES = 536870912
 MINIMAL_FEATURES = (
     "apps",
@@ -169,14 +181,20 @@ def fingerprint(args: argparse.Namespace, version: str) -> dict[str, Any]:
         "model": args.model,
         "reasoning_effort": args.reasoning_effort,
         "sandbox": args.sandbox,
-        "inherit_user_config": args.inherit_user_config,
-        "allow_web": args.allow_web,
-        "runtime_profile": "full" if args.full_runtime else "minimal",
+        "runtime_profile": "minimal",
         "result_schema": args.result_schema,
-        "rules_profile": "project-rules-enabled",
+        "user_config": "disabled",
+        "rules_profile": "disabled",
+        "project_instructions": "disabled",
+        "web_search": "disabled",
+        "workspace_write_network": "disabled",
         "write_allowlist_required": args.sandbox == "workspace-write",
+        "env_passthrough": sorted(set(args.env_passthrough)),
+        "external_task_contract": EXTERNAL_TASK_CONTRACT,
+        "mission_contract": MISSION_CONTRACT,
         "manifest_max_files": args.manifest_max_files,
         "manifest_max_total_bytes": args.manifest_max_total_bytes,
+        "manifest_exclusions": sorted(set(getattr(args, "manifest_exclude", []))),
         "codex_home": str(codex_home()),
     }
 
@@ -187,24 +205,25 @@ def build_argv(
     output_last: Path,
     output_schema: Path | None,
     ephemeral: bool,
-    disable_tools: bool = False,
 ) -> list[str]:
     argv = [args.codex_binary, "-a", "never"]
-    if not args.full_runtime:
-        for feature in MINIMAL_FEATURES:
-            argv += ["--disable", feature]
+    for feature in MINIMAL_FEATURES:
+        argv += ["--disable", feature]
     argv.append("exec")
     argv += ["-s", args.sandbox, "-o", str(output_last.resolve()), "--json", "--skip-git-repo-check"]
     if ephemeral:
         argv.append("--ephemeral")
-    if not args.inherit_user_config:
-        argv += ["--strict-config", "--ignore-user-config"]
+    argv += ["--strict-config", "--ignore-user-config", "--ignore-rules"]
     argv += ["--model", args.model, "-c", f'model_reasoning_effort="{args.reasoning_effort}"']
-    argv += ["-c", "features.multi_agent=false", "-c", "agents.enabled=false"]
-    if not args.allow_web:
-        argv += ["-c", 'web_search="disabled"']
-    if disable_tools:
-        argv += ["-c", "features.shell_tool=false"]
+    argv += [
+        "-c", "features.multi_agent=false",
+        "-c", "agents.enabled=false",
+        "-c", 'web_search="disabled"',
+        "-c", "project_doc_max_bytes=0",
+        "-c", "project_doc_fallback_filenames=[]",
+    ]
+    if args.sandbox == "workspace-write":
+        argv += ["-c", "sandbox_workspace_write.network_access=false"]
     if output_schema is not None:
         argv += ["--output-schema", str(output_schema.resolve())]
     argv.append("-")
@@ -225,16 +244,18 @@ def validate_structured_last(args: argparse.Namespace, last: str) -> tuple[bool,
     return validate_worker_report(value), value
 
 
-def invoke(
+def _invoke_adapter_prompt(
     args: argparse.Namespace,
     *,
-    prompt: str,
+    prompt: AdapterPrompt,
     cwd: Path,
     artifact_dir: Path,
     expected_exact: str | None,
     ephemeral: bool,
-    disable_tools: bool = False,
 ) -> dict[str, Any]:
+    if not isinstance(prompt, AdapterPrompt):
+        raise TypeError("runner input must be a renderer-produced AdapterPrompt")
+    prompt_text = prompt.text
     artifact_dir = artifact_dir.resolve()
     artifact_dir.mkdir(parents=True, exist_ok=True, mode=0o700)
     try:
@@ -253,9 +274,8 @@ def invoke(
         output_last=output_last,
         output_schema=schema_path,
         ephemeral=ephemeral,
-        disable_tools=disable_tools,
     )
-    env = os.environ.copy()
+    env = minimal_child_env(ENV_RUNNER_PREFIXES, args.env_passthrough)
     env["PWD"] = str(cwd.resolve())
     started = time.monotonic()
     timed_out = False
@@ -267,7 +287,7 @@ def invoke(
             argv,
             cwd=cwd,
             env=env,
-            input=prompt,
+            input=prompt_text,
             capture_output=True,
             text=True,
             timeout=args.timeout,
@@ -314,8 +334,12 @@ def invoke(
         "cwd": str(cwd.resolve()),
         "argv": argv,
         "prompt": {
-            "bytes": len(prompt.encode("utf-8")),
-            "sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
+            "origin": (
+                "coordinator-mission" if prompt.contract == MISSION_CONTRACT else "adapter-generated"
+            ),
+            "contract": prompt.contract,
+            "bytes": len(prompt_text.encode("utf-8")),
+            "sha256": hashlib.sha256(prompt_text.encode("utf-8")).hexdigest(),
             "stored": False,
         },
         "expected_exact": expected_exact,
@@ -399,25 +423,10 @@ def command_preflight(args: argparse.Namespace) -> int:
         subprocess.run(["git", "init", "--quiet"], cwd=cwd, check=True)
         marker = cwd / "probe-marker.txt"
         marker.write_text("CODEX_CANARY_MARKER\n", encoding="utf-8")
-        if args.sandbox == "workspace-write":
-            task = (
-                "Use the shell to read probe-marker.txt, create probe-output.txt containing exactly "
-                "CODEX_CANARY_WRITE."
-            )
-        else:
-            task = "Use the shell to read probe-marker.txt. Do not modify files."
-        if args.result_schema == "worker-report-v1":
-            canary_files = '["probe-output.txt"]' if args.sandbox == "workspace-write" else "[]"
-            prompt = task + (
-                f" Return the final response as JSON with files={canary_files}, "
-                'compile={"status":"SKIPPED","detail":"canary"}, '
-                "decisions=[], blockers=[]."
-            )
-            expected = None
-        else:
-            prompt = task + " Then reply with exactly CODEX_DELEGATE_READY and no other text."
-            expected = READY_TEXT
-        invocation = invoke(
+        write_capable = args.sandbox == "workspace-write"
+        prompt = render_adapter_canary_prompt("codex", args.result_schema, write_capable)
+        expected = None if args.result_schema == "worker-report-v1" else READY_TEXT
+        invocation = _invoke_adapter_prompt(
             args,
             prompt=prompt,
             cwd=cwd,
@@ -425,18 +434,21 @@ def command_preflight(args: argparse.Namespace) -> int:
             expected_exact=expected,
             ephemeral=True,
         )
+        output = cwd / "probe-output.txt"
         file_probe_ok = marker.read_text(encoding="utf-8") == "CODEX_CANARY_MARKER\n"
-        if args.sandbox == "workspace-write":
-            output = cwd / "probe-output.txt"
+        if write_capable:
             file_probe_ok = (
                 file_probe_ok
                 and output.is_file()
                 and output.read_text(encoding="utf-8").strip() == "CODEX_CANARY_WRITE"
                 and ((invocation.get("structured_result") or {}).get("files") == ["probe-output.txt"])
             )
-        elif args.result_schema == "worker-report-v1":
-            file_probe_ok = file_probe_ok and not (cwd / "probe-output.txt").exists()
-            file_probe_ok = file_probe_ok and ((invocation.get("structured_result") or {}).get("files") == [])
+        else:
+            file_probe_ok = file_probe_ok and not output.exists()
+            if args.result_schema == "worker-report-v1":
+                file_probe_ok = file_probe_ok and (
+                    (invocation.get("structured_result") or {}).get("files") == []
+                )
         report["canary"] = invocation
         report["file_probe_ok"] = file_probe_ok
         report["ok"] = bool(invocation["ok"] and file_probe_ok)
@@ -463,11 +475,16 @@ def validate_preflight(
     if receipt.get("ok") is not True:
         return False, receipt, "preflight receipt is not successful"
     try:
-        age = utc_epoch() - int(receipt.get("created_at_epoch", 0))
+        created_at_epoch = int(receipt.get("created_at_epoch", 0))
     except (TypeError, ValueError) as exc:
         return False, receipt, f"invalid preflight receipt timestamp: {exc}"
-    if age < 0 or age > args.preflight_max_age:
-        return False, receipt, f"preflight receipt age {age}s exceeds {args.preflight_max_age}s"
+    age_error = preflight_receipt_age_error(
+        current_epoch=utc_epoch(),
+        created_at_epoch=created_at_epoch,
+        max_age_seconds=args.preflight_max_age,
+    )
+    if age_error:
+        return False, receipt, age_error
     expected = fingerprint(args, version)
     if receipt.get("fingerprint_sha256") != fingerprint_digest(expected):
         return False, receipt, "preflight fingerprint does not match this run"
@@ -476,12 +493,6 @@ def validate_preflight(
     if receipt.get("file_probe_ok") is not True:
         return False, receipt, "preflight receipt lacks a successful canary file probe"
     return True, receipt, None
-
-
-def read_prompt(args: argparse.Namespace) -> str:
-    if args.prompt_file:
-        return Path(args.prompt_file).read_text(encoding="utf-8")
-    return sys.stdin.read()
 
 
 def _write_report(args: argparse.Namespace, artifact_dir: Path, report: dict[str, Any]) -> None:
@@ -539,8 +550,25 @@ def command_run(args: argparse.Namespace) -> int:
         })
         _write_report(args, artifact_dir, report)
         return 2
+    manifest_exclusions, exclusion_error = normalize_manifest_exclusions(
+        cwd, getattr(args, "manifest_exclude", [])
+    )
+    if exclusion_error:
+        report.update({"failure_kind": "invalid_manifest_exclusion", "reason": exclusion_error})
+        _write_report(args, artifact_dir, report)
+        return 2
+    if manifest_exclusions and args.sandbox != "workspace-write":
+        report.update({
+            "failure_kind": "invalid_manifest_exclusion",
+            "reason": "--manifest-exclude is allowed only for workspace-write runs",
+        })
+        _write_report(args, artifact_dir, report)
+        return 2
     before_manifest, manifest_error = filesystem_manifest(
-        cwd, args.manifest_max_files, args.manifest_max_total_bytes
+        cwd,
+        args.manifest_max_files,
+        args.manifest_max_total_bytes,
+        manifest_exclusions,
     )
     if before_manifest is None:
         report.update({"failure_kind": "manifest_unavailable", "reason": manifest_error})
@@ -554,7 +582,7 @@ def command_run(args: argparse.Namespace) -> int:
         })
         _write_report(args, artifact_dir, report)
         return 2
-    allowed, allowed_error = normalize_allowed_paths(args.allowed_write)
+    allowed, allowed_error = normalize_allowed_write_paths(cwd, args.allowed_write)
     if allowed_error:
         report.update({"failure_kind": "invalid_write_allowlist", "reason": allowed_error})
         _write_report(args, artifact_dir, report)
@@ -566,12 +594,19 @@ def command_run(args: argparse.Namespace) -> int:
         })
         _write_report(args, artifact_dir, report)
         return 2
-    prompt = read_prompt(args)
-    if not prompt.strip():
-        report["failure_kind"] = "prompt_empty"
+    prompt, task_contract, task_error = resolve_run_task(
+        args,
+        cwd,
+        artifact_dir,
+        write_capable=args.sandbox == "workspace-write",
+        allowed=allowed or [],
+    )
+    if task_error or prompt is None:
+        report.update({"failure_kind": "task_contract_invalid", "reason": task_error})
         _write_report(args, artifact_dir, report)
         return 2
-    invocation = invoke(
+    report["task_contract"] = task_contract
+    invocation = _invoke_adapter_prompt(
         args,
         prompt=prompt,
         cwd=cwd,
@@ -582,9 +617,13 @@ def command_run(args: argparse.Namespace) -> int:
     report["preflight_receipt"] = str(Path(args.preflight_receipt).resolve())
     report["invocation"] = invocation
     after_head = git_head(cwd)
+    after_changed = git_changed_paths(cwd)
     after_git_metadata = git_metadata_snapshot(cwd)
     after_manifest, final_manifest_error = filesystem_manifest(
-        cwd, args.manifest_max_files, args.manifest_max_total_bytes
+        cwd,
+        args.manifest_max_files,
+        args.manifest_max_total_bytes,
+        manifest_exclusions,
     )
     if after_manifest is None:
         actual_changed: list[str] = []
@@ -599,16 +638,38 @@ def command_run(args: argparse.Namespace) -> int:
     )
     head_unchanged = after_head == before_head
     git_metadata_unchanged = after_git_metadata is not None and after_git_metadata == before_git_metadata
-    if args.sandbox == "read-only":
-        scope_ok = manifest_ok and head_unchanged and git_metadata_unchanged and actual_changed == []
+    if args.sandbox == "workspace-write":
+        reported_files_match = sorted(reported_files or []) == actual_changed
+        if manifest_ok:
+            scope_ok = (
+                head_unchanged
+                and git_metadata_unchanged
+                and set(actual_changed).issubset(set(allowed or []))
+                and reported_files_match
+            )
+            reconciliation_mode = "filesystem_manifest"
+        else:
+            scope_ok = vcs_degraded_scope_ok(
+                write_capable=True,
+                head_unchanged=head_unchanged,
+                git_metadata_unchanged=git_metadata_unchanged,
+                changed_paths=after_changed,
+                allowed_write_paths=allowed or [],
+                reported_files=reported_files,
+            )
+            actual_changed = after_changed or []
+            reported_files_match = sorted(reported_files or []) == actual_changed
+            reconciliation_mode = "vcs_degraded" if scope_ok else "unavailable"
     else:
+        reported_files_match = reported_files is None or reported_files == []
         scope_ok = (
             manifest_ok
             and head_unchanged
             and git_metadata_unchanged
-            and set(actual_changed).issubset(set(allowed or []))
-            and sorted(reported_files or []) == actual_changed
+            and actual_changed == []
+            and reported_files_match
         )
+        reconciliation_mode = "filesystem_manifest" if manifest_ok else "unavailable"
     report["change_manifest"] = {
         "baseline_head": before_head,
         "final_head": after_head,
@@ -617,11 +678,16 @@ def command_run(args: argparse.Namespace) -> int:
         "final_git_metadata": after_git_metadata,
         "git_metadata_unchanged": git_metadata_unchanged,
         "allowed_write_paths": allowed,
+        "manifest_exclusions": manifest_exclusions,
         "actual_changed_paths": actual_changed,
+        "out_of_scope_paths": sorted(set(actual_changed) - set(allowed or [])),
         "reported_files": reported_files,
+        "reported_files_match": reported_files_match,
         "scope_ok": scope_ok,
         "manifest_ok": manifest_ok,
         "manifest_error": final_manifest_error,
+        "reconciliation_mode": reconciliation_mode,
+        "degraded_reconciliation": reconciliation_mode == "vcs_degraded",
         "manifest_max_files": args.manifest_max_files,
         "manifest_max_total_bytes": args.manifest_max_total_bytes,
     }
@@ -640,12 +706,11 @@ def add_common(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--timeout", type=float, default=300.0)
     parser.add_argument("--artifact-dir", required=True)
     parser.add_argument("--codex-binary", default="codex")
-    parser.add_argument("--inherit-user-config", action="store_true")
-    parser.add_argument("--allow-web", action="store_true")
-    parser.add_argument("--full-runtime", action="store_true")
     parser.add_argument("--result-schema", choices=("none", "worker-report-v1"), default="none")
     parser.add_argument("--print-full-receipt", action="store_true")
+    parser.add_argument("--env-passthrough", action="append", default=[])
     parser.add_argument("--manifest-max-files", type=int, default=20000)
+    parser.add_argument("--manifest-exclude", action="append", default=[])
     parser.add_argument(
         "--manifest-max-total-bytes", type=int, default=DEFAULT_MANIFEST_MAX_TOTAL_BYTES
     )
@@ -660,8 +725,11 @@ def build_parser() -> argparse.ArgumentParser:
     run = sub.add_parser("run", help="run one bounded Codex delegation")
     add_common(run)
     run.add_argument("--cwd", required=True)
+    run.add_argument("--task-profile")
+    run.add_argument("--target", action="append", default=[])
+    run.add_argument("--mission-file")
+    run.add_argument("--mission-stdin", action="store_true")
     run.add_argument("--allowed-write", action="append", default=[])
-    run.add_argument("--prompt-file")
     run.add_argument("--preflight-receipt")
     run.add_argument("--preflight-max-age", type=int, default=1800)
     run.add_argument("--expected-exact")

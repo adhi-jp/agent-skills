@@ -32,17 +32,18 @@ def args(**overrides):
         sandbox="read-only",
         timeout=30.0,
         artifact_dir="/tmp/x",
-        inherit_user_config=False,
-        allow_web=False,
-        full_runtime=False,
         result_schema="worker-report-v1",
         print_full_receipt=False,
         manifest_max_files=20000,
         manifest_max_total_bytes=536870912,
         preflight_receipt=None,
         preflight_max_age=1800,
+        task_profile="inspect",
+        target=["input.txt"],
+        mission_file=None,
+        mission_stdin=False,
         allowed_write=[],
-        prompt_file=None,
+        env_passthrough=[],
         expected_exact=None,
         cwd="/tmp/work",
     )
@@ -50,11 +51,21 @@ def args(**overrides):
     return argparse.Namespace(**base)
 
 
+FAKE_PASSTHROUGH = [
+    "--env-passthrough", "FAKE_CODEX_PROMPT_CAPTURE",
+    "--env-passthrough", "FAKE_CODEX_EXTRA",
+    "--env-passthrough", "FAKE_CODEX_REPORTED_FILE",
+    "--env-passthrough", "FAKE_CODEX_GIT_MUTATION",
+    "--env-passthrough", "FAKE_CODEX_FAIL",
+    "--env-passthrough", "FAKE_CODEX_BUILD_BLOAT",
+]
+
+
 def write_fake_tools(bin_dir: Path) -> None:
     git = bin_dir / "git"
     git.write_text(
         """#!/usr/bin/env python3
-import pathlib, sys
+import os, pathlib, sys
 a=sys.argv[1:]
 cwd=pathlib.Path.cwd()
 if a[:1] == ['init']:
@@ -76,9 +87,15 @@ if a == ['ls-files','-v','-z']:
     sys.stdout.write('H input.txt\\0'); raise SystemExit(0)
 if a == ['diff','--name-only','-z','HEAD']:
     if (cwd/'.fake-dirty').exists(): sys.stdout.write('input.txt\\0')
+    if (cwd/'result.txt').exists() and os.environ.get('FAKE_CODEX_BUILD_BLOAT') == '1':
+        sys.stdout.write('result.txt\\0')
     raise SystemExit(0)
 if a == ['ls-files','--others','--exclude-standard','-z']:
     raise SystemExit(0)
+if a[:3] == ['ls-files','-z','--']:
+    raise SystemExit(0)
+if a[:2] == ['check-ignore','-q']:
+    raise SystemExit(0 if a[-1] == 'build' else 1)
 raise SystemExit(2)
 """,
         encoding="utf-8",
@@ -96,11 +113,13 @@ if a == ['login','status']:
 def value(flag): return a[a.index(flag)+1]
 out=pathlib.Path(value('-o'))
 prompt=sys.stdin.read()
+capture=os.environ.get('FAKE_CODEX_PROMPT_CAPTURE')
+if capture: pathlib.Path(capture).write_text(prompt)
 cwd=pathlib.Path.cwd()
 read_only=value('-s') == 'read-only'
 if (cwd/'probe-marker.txt').exists():
     files=[]
-    if 'create probe-output.txt' in prompt:
+    if 'create probe-output.txt' in prompt and not read_only:
         (cwd/'probe-output.txt').write_text('CODEX_CANARY_WRITE\\n')
         files=['probe-output.txt']
 else:
@@ -108,9 +127,14 @@ else:
     if not read_only:
         (cwd/'result.txt').write_text('fake-result\\n')
         files=['result.txt']
+        if os.environ.get('FAKE_CODEX_BUILD_BLOAT') == '1':
+            build=cwd/'build'; build.mkdir(exist_ok=True)
+            for i in range(32): (build/f'generated-{i}.txt').write_text('generated\\n')
     if os.environ.get('FAKE_CODEX_EXTRA') == '1':
         (cwd/'extra.log').write_text('scope violation\\n')
         files.append('extra.log')
+    if os.environ.get('FAKE_CODEX_REPORTED_FILE') == '1':
+        files.append('claimed.txt')
     mutation=os.environ.get('FAKE_CODEX_GIT_MUTATION')
     if mutation:
         (cwd/'.git').mkdir(exist_ok=True)
@@ -142,22 +166,66 @@ def fake_env(root: Path) -> tuple[dict[str, str], Path]:
 
 
 class CodexDelegateTests(unittest.TestCase):
+    def test_run_parser_exposes_closed_and_mission_task_inputs(self):
+        actions = M.build_parser()._subparsers._group_actions[0].choices["run"]._actions
+        destinations = {action.dest for action in actions}
+        self.assertIn("task_profile", destinations)
+        self.assertIn("target", destinations)
+        self.assertIn("mission_file", destinations)
+        self.assertIn("mission_stdin", destinations)
+        self.assertIn("allowed_write", destinations)
+        self.assertIn("manifest_exclude", destinations)
+        self.assertNotIn("prompt_file", destinations)
+        self.assertFalse(hasattr(M, "read_prompt"))
+        self.assertFalse(hasattr(M, "invoke"))
+        self.assertNotIn("inherit_user_config", destinations)
+        self.assertNotIn("allow_web", destinations)
+        self.assertNotIn("full_runtime", destinations)
+        sandbox = next(action for action in actions if action.dest == "sandbox")
+        self.assertEqual(sandbox.choices, ("read-only", "workspace-write"))
+
     def test_global_approval_precedes_exec_and_prompt_is_stdin_marker(self):
         argv = M.build_argv(args(), output_last=Path("/tmp/last"), output_schema=Path("/tmp/schema"), ephemeral=True)
         self.assertEqual(argv[:4], ["codex", "-a", "never", "--disable"])
         self.assertLess(argv.index("-a"), argv.index("exec"))
         self.assertEqual(argv[-1], "-")
         self.assertIn("--json", argv)
-        self.assertNotIn("--ignore-rules", argv)
+        self.assertIn("--ignore-rules", argv)
+        self.assertIn("--ignore-user-config", argv)
+        overrides = [argv[index + 1] for index, value in enumerate(argv[:-1]) if value == "-c"]
+        self.assertIn("project_doc_max_bytes=0", overrides)
+        self.assertIn("project_doc_fallback_filenames=[]", overrides)
+        self.assertIn('web_search="disabled"', overrides)
+
+    def test_private_runner_sink_rejects_raw_prompt_text(self):
+        with self.assertRaises(TypeError):
+            M._invoke_adapter_prompt(
+                args(),
+                prompt="OUTSIDER-CONTENT",  # type: ignore[arg-type]
+                cwd=Path("/unused"),
+                artifact_dir=Path("/unused"),
+                expected_exact=None,
+                ephemeral=True,
+            )
+
+    def test_removed_prompt_file_option_fails_during_argument_parsing(self):
+        with self.assertRaises(SystemExit):
+            M.build_parser().parse_args(
+                [
+                    "run",
+                    "--model", "fake-model",
+                    "--artifact-dir", "/tmp/artifacts",
+                    "--cwd", "/tmp/work",
+                    "--task-profile", "inspect",
+                    "--target", "input.txt",
+                    "--prompt-file", "issue.md",
+                ]
+            )
 
     def test_minimal_profile_disables_optional_features(self):
         argv = M.build_argv(args(), output_last=Path("/tmp/last"), output_schema=None, ephemeral=True)
         disabled = [argv[index + 1] for index, value in enumerate(argv[:-1]) if value == "--disable"]
         self.assertEqual(disabled, list(M.MINIMAL_FEATURES))
-
-    def test_full_profile_keeps_optional_features(self):
-        argv = M.build_argv(args(full_runtime=True), output_last=Path("/tmp/last"), output_schema=None, ephemeral=True)
-        self.assertNotIn("--disable", argv)
 
     def test_failure_classification(self):
         cases = [
@@ -172,13 +240,28 @@ class CodexDelegateTests(unittest.TestCase):
 
     def test_fingerprint_covers_transport_contract_and_both_adapter_files(self):
         fp = M.fingerprint(args(), "codex-cli 0.146.0")
-        self.assertEqual(fp["adapter_schema"], 8)
+        self.assertEqual(fp["adapter_schema"], 12)
         self.assertEqual(set(fp["adapter_files"]), {"codex_delegate.py", "delegate_common.py"})
         self.assertEqual(fp["adapter_files"]["codex_delegate.py"], M.sha256_file(Path(M.__file__)))
-        for key in ("model", "reasoning_effort", "sandbox", "runtime_profile", "result_schema", "rules_profile", "allow_web", "codex_home", "manifest_max_total_bytes"):
+        for key in ("model", "reasoning_effort", "sandbox", "runtime_profile", "result_schema", "rules_profile", "project_instructions", "web_search", "workspace_write_network", "write_allowlist_required", "env_passthrough", "codex_home", "manifest_max_total_bytes", "manifest_exclusions", "external_task_contract", "mission_contract"):
             self.assertIn(key, fp)
-        changed = M.fingerprint(args(sandbox="workspace-write"), "codex-cli 0.146.0")
+        self.assertEqual(fp["runtime_profile"], "minimal")
+        self.assertEqual(fp["rules_profile"], "disabled")
+        self.assertEqual(fp["project_instructions"], "disabled")
+        self.assertEqual(fp["web_search"], "disabled")
+        self.assertEqual(fp["workspace_write_network"], "disabled")
+        self.assertFalse(fp["write_allowlist_required"])
+        self.assertTrue(
+            M.fingerprint(args(sandbox="workspace-write"), "codex-cli 0.146.0")[
+                "write_allowlist_required"
+            ]
+        )
+        changed = M.fingerprint(args(model="different-model"), "codex-cli 0.146.0")
         self.assertNotEqual(M.fingerprint_digest(fp), M.fingerprint_digest(changed))
+        passthrough_changed = M.fingerprint(
+            args(env_passthrough=["FAKE_CODEX_EXTRA"]), "codex-cli 0.146.0"
+        )
+        self.assertNotEqual(M.fingerprint_digest(fp), M.fingerprint_digest(passthrough_changed))
 
     def test_git_metadata_snapshot_detects_index_and_ref_mutation(self):
         state = {"index": b"base", "refs": b"main"}
@@ -240,11 +323,6 @@ class CodexDelegateTests(unittest.TestCase):
             self.assertTrue(parsed["turn_completed"])
             self.assertFalse(parsed["turn_failed"])
 
-    def test_write_allowlist_rejects_roots_and_parent_traversal(self):
-        self.assertEqual(M.normalize_allowed_paths(["result.txt", "docs/report.md"]), (["docs/report.md", "result.txt"], None))
-        for value in ("/tmp/result.txt", "../result.txt", "."):
-            self.assertIsNotNone(M.normalize_allowed_paths([value])[1])
-
     def test_preflight_receipt_negatives(self):
         with tempfile.TemporaryDirectory() as td, mock.patch.object(M, "utc_epoch", return_value=1000):
             path = Path(td) / "receipt.json"
@@ -252,7 +330,7 @@ class CodexDelegateTests(unittest.TestCase):
             fp = M.fingerprint(a, "fake-version")
             cases = [
                 ({"ok": True, "created_at_epoch": 899, "fingerprint_sha256": M.fingerprint_digest(fp)}, "age"),
-                ({"ok": True, "created_at_epoch": 1001, "fingerprint_sha256": M.fingerprint_digest(fp)}, "age"),
+                ({"ok": True, "created_at_epoch": 1006, "fingerprint_sha256": M.fingerprint_digest(fp)}, "future"),
                 ({"ok": False, "created_at_epoch": 1000}, "not successful"),
                 ({"ok": True, "created_at_epoch": 1000, "fingerprint_sha256": "bad"}, "fingerprint"),
             ]
@@ -263,6 +341,26 @@ class CodexDelegateTests(unittest.TestCase):
                 self.assertIn(expected, reason)
             path.write_text("{bad", encoding="utf-8")
             self.assertFalse(M.validate_preflight(a, "fake-version")[0])
+
+    def test_preflight_receipt_accepts_bounded_clock_rollback(self):
+        with tempfile.TemporaryDirectory() as td, mock.patch.object(M, "utc_epoch", return_value=1000):
+            path = Path(td) / "receipt.json"
+            a = args(preflight_receipt=str(path), preflight_max_age=100)
+            base = {
+                "ok": True,
+                "kind": "codex_delegate_preflight",
+                "fingerprint_sha256": M.fingerprint_digest(
+                    M.fingerprint(a, "fake-version")
+                ),
+                "file_probe_ok": True,
+            }
+            for created_at in (1000, 1001, 1005):
+                path.write_text(
+                    json.dumps({**base, "created_at_epoch": created_at}),
+                    encoding="utf-8",
+                )
+                ok, _, reason = M.validate_preflight(a, "fake-version")
+                self.assertTrue(ok, reason)
 
     def test_preflight_rejects_run_kind_and_missing_successful_file_probe(self):
         with tempfile.TemporaryDirectory() as td:
@@ -294,7 +392,7 @@ class CodexDelegateTests(unittest.TestCase):
             script = str(Path(M.__file__).resolve())
             common = [
                 sys.executable, "-B", script, "--model", "fake-model", "--sandbox",
-                "workspace-write", "--result-schema", "worker-report-v1",
+                "read-only", "--result-schema", "worker-report-v1",
             ]
             preflight = root / "preflight"
             pre = subprocess.run(
@@ -304,13 +402,14 @@ class CodexDelegateTests(unittest.TestCase):
             self.assertEqual(pre.returncode, 0, pre.stderr)
             receipt = preflight / "receipt.json"
 
-            def run_case(name: str, cwd: Path, prompt: str = "task\n", extra: list[str] | None = None):
+            def run_case(name: str, cwd: Path, extra: list[str] | None = None):
                 artifact = root / f"run-{name}"
                 argv = common[:3] + ["run"] + common[3:] + [
                     "--artifact-dir", str(artifact), "--cwd", str(cwd),
-                    "--preflight-receipt", str(receipt), "--allowed-write", "result.txt",
+                    "--preflight-receipt", str(receipt), "--task-profile", "inspect",
+                    "--target", "input.txt",
                 ] + (extra or [])
-                completed = subprocess.run(argv, env=env, input=prompt, capture_output=True, text=True)
+                completed = subprocess.run(argv, env=env, capture_output=True, text=True)
                 return completed, json.loads((artifact / "receipt.json").read_text())
 
             dirty = root / "dirty"
@@ -332,12 +431,14 @@ class CodexDelegateTests(unittest.TestCase):
             self.assertEqual(completed.returncode, 2)
             self.assertEqual(report["failure_kind"], "cwd_invalid")
 
-            empty = root / "empty-prompt"
-            empty.mkdir()
-            (empty / "input.txt").write_text("input\n", encoding="utf-8")
-            completed, report = run_case("empty-prompt", empty, prompt=" \n")
+            invalid_task = root / "invalid-task"
+            invalid_task.mkdir()
+            (invalid_task / "input.txt").write_text("input\n", encoding="utf-8")
+            completed, report = run_case(
+                "invalid-task", invalid_task, extra=["--task-profile", "repair"]
+            )
             self.assertEqual(completed.returncode, 2)
-            self.assertEqual(report["failure_kind"], "prompt_empty")
+            self.assertEqual(report["failure_kind"], "task_contract_invalid")
 
             limited = common + ["--manifest-max-files", "1"]
             limited_preflight = root / "limited-preflight"
@@ -354,7 +455,7 @@ class CodexDelegateTests(unittest.TestCase):
                 limited[:3] + ["run"] + limited[3:] + [
                     "--artifact-dir", str(over_artifact), "--cwd", str(over),
                     "--preflight-receipt", str(limited_preflight / "receipt.json"),
-                    "--allowed-write", "result.txt",
+                    "--task-profile", "inspect", "--target", "input.txt",
                 ],
                 env=env, input="task\n", capture_output=True, text=True,
             )
@@ -371,7 +472,7 @@ class CodexDelegateTests(unittest.TestCase):
             common = [
                 sys.executable, "-B", script, "--model", "fake-model", "--sandbox",
                 "read-only", "--result-schema", "worker-report-v1",
-            ]
+            ] + FAKE_PASSTHROUGH
             preflight = root / "preflight"
             pre = subprocess.run(
                 common[:3] + ["preflight"] + common[3:] + ["--artifact-dir", str(preflight)],
@@ -393,6 +494,7 @@ class CodexDelegateTests(unittest.TestCase):
                     common[:3] + ["run"] + common[3:] + [
                         "--artifact-dir", str(artifact), "--cwd", str(work),
                         "--preflight-receipt", str(preflight / "receipt.json"),
+                        "--task-profile", "inspect", "--target", "input.txt",
                     ],
                     env=run_env, input="inspect\n", capture_output=True, text=True,
                 )
@@ -419,7 +521,7 @@ class CodexDelegateTests(unittest.TestCase):
             shutil.copyfile(Path(M.__file__), copied / "codex_delegate.py")
             shutil.copyfile(Path(C.__file__), copied / "delegate_common.py")
             preflight = root / "preflight"
-            common = [sys.executable, "-B", str(copied / "codex_delegate.py"), "--model", "fake", "--sandbox", "workspace-write", "--result-schema", "worker-report-v1"]
+            common = [sys.executable, "-B", str(copied / "codex_delegate.py"), "--model", "fake", "--sandbox", "read-only", "--result-schema", "worker-report-v1"]
             pre = subprocess.run(common[:3] + ["preflight"] + common[3:] + ["--artifact-dir", str(preflight)], env=env, capture_output=True, text=True)
             self.assertEqual(pre.returncode, 0, pre.stderr)
             with (copied / "delegate_common.py").open("a", encoding="utf-8") as handle:
@@ -427,11 +529,11 @@ class CodexDelegateTests(unittest.TestCase):
             work = root / "work"
             work.mkdir()
             (work / "input.txt").write_text("input\n", encoding="utf-8")
-            run = subprocess.run(common[:3] + ["run"] + common[3:] + ["--artifact-dir", str(root / "run"), "--cwd", str(work), "--preflight-receipt", str(preflight / "receipt.json"), "--allowed-write", "result.txt"], env=env, input="task\n", capture_output=True, text=True)
+            run = subprocess.run(common[:3] + ["run"] + common[3:] + ["--artifact-dir", str(root / "run"), "--cwd", str(work), "--preflight-receipt", str(preflight / "receipt.json"), "--task-profile", "inspect", "--target", "input.txt"], env=env, input="OUTSIDER-CONTENT\n", capture_output=True, text=True)
             self.assertEqual(run.returncode, 4, run.stderr)
             self.assertEqual(json.loads((root / "run" / "receipt.json").read_text())["failure_kind"], "preflight_required")
 
-    def test_fake_codex_integration_accepts_exact_scope_rejects_extra_and_persists_receipt(self):
+    def test_fake_codex_integration_uses_closed_prompt_and_rejects_scope_changes(self):
         with tempfile.TemporaryDirectory() as td:
             root = Path(td)
             env, _ = fake_env(root)
@@ -439,28 +541,34 @@ class CodexDelegateTests(unittest.TestCase):
             work = root / "work"
             work.mkdir()
             (work / "input.txt").write_text("input\n", encoding="utf-8")
-            common = [sys.executable, "-B", str(Path(M.__file__).resolve()), "--model", "fake-model", "--sandbox", "workspace-write", "--result-schema", "worker-report-v1"]
+            common = [sys.executable, "-B", str(Path(M.__file__).resolve()), "--model", "fake-model", "--sandbox", "read-only", "--result-schema", "worker-report-v1"] + FAKE_PASSTHROUGH
             pre = subprocess.run(common[:3] + ["preflight"] + common[3:] + ["--artifact-dir", str(preflight)], env=env, capture_output=True, text=True)
             self.assertEqual(pre.returncode, 0, pre.stderr)
-            prompt = root / "prompt.txt"
-            prompt.write_text("fake task\n", encoding="utf-8")
+            capture = root / "received-prompt.txt"
+            env["FAKE_CODEX_PROMPT_CAPTURE"] = str(capture)
             accepted = root / "accepted"
-            run_args = common[:3] + ["run"] + common[3:] + ["--artifact-dir", str(accepted), "--cwd", str(work), "--prompt-file", str(prompt), "--preflight-receipt", str(preflight / "receipt.json"), "--allowed-write", "result.txt"]
-            ok = subprocess.run(run_args, env=env, capture_output=True, text=True)
-            self.assertEqual(ok.returncode, 0, ok.stderr)
+            run_args = common[:3] + ["run"] + common[3:] + ["--artifact-dir", str(accepted), "--cwd", str(work), "--task-profile", "review", "--target", "input.txt", "--preflight-receipt", str(preflight / "receipt.json")]
+            ok = subprocess.run(
+                run_args, env=env, input="OUTSIDER-CONTENT\n", capture_output=True, text=True
+            )
             receipt = json.loads((accepted / "receipt.json").read_text())
+            self.assertEqual(ok.returncode, 0, f"{ok.stderr}\n{receipt}")
             self.assertTrue(receipt["ok"])
             self.assertEqual(receipt["fingerprint_sha256"], receipt["preflight_fingerprint_sha256"])
             self.assertEqual(receipt["preflight_receipt_sha256"], M.sha256_file(preflight / "receipt.json"))
             self.assertEqual(set(receipt["fingerprint"]["adapter_files"]), {"codex_delegate.py", "delegate_common.py"})
             invocation = receipt["invocation"]
             self.assertIn("argv", invocation)
-            self.assertEqual(invocation["prompt"]["sha256"], C.sha256_file(prompt))
+            received = capture.read_text(encoding="utf-8")
+            self.assertEqual(received, C.render_external_task_prompt("review", ["input.txt"]).text)
+            self.assertNotIn("OUTSIDER-CONTENT", received)
+            self.assertEqual(invocation["prompt"]["origin"], "adapter-generated")
+            self.assertEqual(invocation["prompt"]["contract"], C.EXTERNAL_TASK_CONTRACT)
+            self.assertEqual(receipt["task_contract"]["targets"], ["input.txt"])
             self.assertEqual(invocation["event_types"], ["thread.started", "turn.completed"])
             self.assertFalse(invocation["stderr"]["truncated"])
             self.assertIn("baseline_git_metadata", receipt["change_manifest"])
             self.assertIn("final_git_metadata", receipt["change_manifest"])
-            (work / "result.txt").unlink()
             bad_env = env.copy()
             bad_env["FAKE_CODEX_EXTRA"] = "1"
             rejected = root / "rejected"
@@ -470,7 +578,232 @@ class CodexDelegateTests(unittest.TestCase):
             self.assertEqual(json.loads(bad.stdout)["scope_ok"], False)
             rejected_receipt = json.loads((rejected / "receipt.json").read_text())
             self.assertEqual(rejected_receipt["failure_kind"], "scope_violation")
-            self.assertEqual(rejected_receipt["change_manifest"]["actual_changed_paths"], ["extra.log", "result.txt"])
+            self.assertEqual(rejected_receipt["change_manifest"]["actual_changed_paths"], ["extra.log"])
+
+            report_env = env.copy()
+            report_env["FAKE_CODEX_REPORTED_FILE"] = "1"
+            report_rejected = root / "report-rejected"
+            report_args = [
+                str(report_rejected) if value == str(accepted) else value for value in run_args
+            ]
+            bad_report = subprocess.run(
+                report_args, env=report_env, capture_output=True, text=True
+            )
+            self.assertEqual(bad_report.returncode, 5)
+            report_receipt = json.loads((report_rejected / "receipt.json").read_text())
+            self.assertFalse(report_receipt["change_manifest"]["reported_files_match"])
+            self.assertEqual(report_receipt["change_manifest"]["actual_changed_paths"], [])
+
+    def test_workspace_write_mission_run_enforces_allowlist_and_envelope(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            env, _ = fake_env(root)
+            script = str(Path(M.__file__).resolve())
+            common = [
+                sys.executable, "-B", script, "--model", "fake-model", "--sandbox",
+                "workspace-write", "--result-schema", "worker-report-v1",
+            ] + FAKE_PASSTHROUGH
+            preflight = root / "preflight"
+            pre = subprocess.run(
+                common[:3] + ["preflight"] + common[3:] + ["--artifact-dir", str(preflight)],
+                env=env, capture_output=True, text=True,
+            )
+            self.assertEqual(pre.returncode, 0, pre.stderr)
+            self.assertTrue(json.loads((preflight / "receipt.json").read_text())["file_probe_ok"])
+
+            work = root / "work"
+            work.mkdir()
+            (work / "input.txt").write_text("input\n", encoding="utf-8")
+            mission = root / "mission.md"
+            mission.write_text("Edit result.txt to record the fake result.\n", encoding="utf-8")
+            capture = root / "received-prompt.txt"
+            env["FAKE_CODEX_PROMPT_CAPTURE"] = str(capture)
+            accepted = root / "accepted"
+            run_args = common[:3] + ["run"] + common[3:] + [
+                "--artifact-dir", str(accepted), "--cwd", str(work),
+                "--mission-file", str(mission), "--allowed-write", "result.txt",
+                "--preflight-receipt", str(preflight / "receipt.json"),
+            ]
+            ok = subprocess.run(run_args, env=env, capture_output=True, text=True)
+            receipt = json.loads((accepted / "receipt.json").read_text())
+            self.assertEqual(ok.returncode, 0, f"{ok.stderr}\n{receipt}")
+            self.assertTrue(receipt["ok"])
+            self.assertEqual(receipt["task_contract"]["contract"], C.MISSION_CONTRACT)
+            self.assertEqual(receipt["task_contract"]["allowed_write_paths"], ["result.txt"])
+            invocation = receipt["invocation"]
+            self.assertEqual(invocation["prompt"]["origin"], "coordinator-mission")
+            self.assertIn("sandbox_workspace_write.network_access=false", invocation["argv"])
+            received = capture.read_text(encoding="utf-8")
+            self.assertIn("Edit result.txt to record the fake result.", received)
+            self.assertIn("<<<mission ", received)
+            self.assertIn('["result.txt"]', received)
+            self.assertIn("untrusted data", received)
+            self.assertEqual(
+                (accepted / "mission.txt").read_text(encoding="utf-8"),
+                mission.read_text(encoding="utf-8"),
+            )
+            manifest = receipt["change_manifest"]
+            self.assertEqual(manifest["actual_changed_paths"], ["result.txt"])
+            self.assertEqual(manifest["out_of_scope_paths"], [])
+            self.assertTrue(manifest["scope_ok"])
+
+            bad_env = env.copy()
+            bad_env["FAKE_CODEX_EXTRA"] = "1"
+            rejected = root / "rejected"
+            bad_args = [str(rejected) if value == str(accepted) else value for value in run_args]
+            bad = subprocess.run(bad_args, env=bad_env, capture_output=True, text=True)
+            self.assertEqual(bad.returncode, 5)
+            bad_receipt = json.loads((rejected / "receipt.json").read_text())
+            self.assertEqual(bad_receipt["failure_kind"], "scope_violation")
+            self.assertEqual(bad_receipt["change_manifest"]["out_of_scope_paths"], ["extra.log"])
+
+            both = root / "both"
+            both_args = [str(both) if value == str(accepted) else value for value in run_args]
+            both_args += ["--task-profile", "inspect", "--target", "input.txt"]
+            mixed = subprocess.run(both_args, env=env, capture_output=True, text=True)
+            self.assertEqual(mixed.returncode, 2)
+            both_receipt = json.loads((both / "receipt.json").read_text())
+            self.assertEqual(both_receipt["failure_kind"], "task_contract_invalid")
+            self.assertIn("exactly one task input", both_receipt["reason"])
+
+            missing = root / "missing-allowlist"
+            missing_args = [
+                value
+                for value in [str(missing) if value == str(accepted) else value for value in run_args]
+                if value not in ("--allowed-write", "result.txt")
+            ]
+            no_allow = subprocess.run(missing_args, env=env, capture_output=True, text=True)
+            self.assertEqual(no_allow.returncode, 2)
+            missing_receipt = json.loads((missing / "receipt.json").read_text())
+            self.assertEqual(missing_receipt["failure_kind"], "write_allowlist_required")
+
+    def test_workspace_write_manifest_exclusion_and_degraded_fallback(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            env, _ = fake_env(root)
+            script = str(Path(M.__file__).resolve())
+            common = [
+                sys.executable, "-B", script, "--model", "fake-model", "--sandbox",
+                "workspace-write", "--result-schema", "worker-report-v1",
+            ] + FAKE_PASSTHROUGH
+            preflight = root / "preflight"
+            pre = subprocess.run(
+                common[:3] + ["preflight"] + common[3:] + ["--artifact-dir", str(preflight)],
+                env=env, capture_output=True, text=True,
+            )
+            self.assertEqual(pre.returncode, 0, pre.stderr)
+            mission = root / "mission.md"
+            mission.write_text("Edit result.txt and generate disposable build output.\n")
+
+            def run_case(name: str, extra: list[str]):
+                work = root / f"work-{name}"
+                work.mkdir()
+                (work / "input.txt").write_text("input\n")
+                artifact = root / f"run-{name}"
+                case_preflight = root / f"preflight-{name}"
+                case_pre = subprocess.run(
+                    common[:3] + ["preflight"] + common[3:] + [
+                        "--artifact-dir", str(case_preflight)
+                    ] + extra,
+                    env=env, capture_output=True, text=True,
+                )
+                self.assertEqual(case_pre.returncode, 0, case_pre.stderr)
+                run_env = env.copy()
+                run_env["FAKE_CODEX_BUILD_BLOAT"] = "1"
+                completed = subprocess.run(
+                    common[:3] + ["run"] + common[3:] + [
+                        "--artifact-dir", str(artifact), "--cwd", str(work),
+                        "--mission-file", str(mission), "--allowed-write", "result.txt",
+                        "--preflight-receipt", str(case_preflight / "receipt.json"),
+                    ] + extra,
+                    env=run_env, capture_output=True, text=True,
+                )
+                return completed, json.loads((artifact / "receipt.json").read_text())
+
+            excluded, receipt = run_case("excluded", ["--manifest-exclude", "build"])
+            self.assertEqual(excluded.returncode, 0, receipt)
+            self.assertEqual(receipt["change_manifest"]["manifest_exclusions"], ["build"])
+            self.assertEqual(receipt["change_manifest"]["reconciliation_mode"], "filesystem_manifest")
+
+            degraded, receipt = run_case("degraded", ["--manifest-max-files", "10"])
+            self.assertEqual(degraded.returncode, 0, receipt)
+            self.assertFalse(receipt["change_manifest"]["manifest_ok"])
+            self.assertTrue(receipt["change_manifest"]["degraded_reconciliation"])
+            self.assertEqual(receipt["change_manifest"]["reconciliation_mode"], "vcs_degraded")
+
+            read_preflight = root / "read-preflight"
+            read_common = [
+                sys.executable, "-B", script, "--model", "fake-model", "--sandbox",
+                "read-only", "--result-schema", "worker-report-v1",
+            ] + FAKE_PASSTHROUGH
+            pre = subprocess.run(
+                read_common[:3] + ["preflight"] + read_common[3:] + [
+                    "--artifact-dir", str(read_preflight), "--manifest-exclude", "build"
+                ], env=env, capture_output=True, text=True,
+            )
+            self.assertEqual(pre.returncode, 0, pre.stderr)
+            work = root / "read-work"; work.mkdir()
+            (work / "input.txt").write_text("input\n")
+            artifact = root / "read-run"
+            denied = subprocess.run(
+                read_common[:3] + ["run"] + read_common[3:] + [
+                    "--artifact-dir", str(artifact), "--cwd", str(work),
+                    "--task-profile", "inspect", "--target", "input.txt",
+                    "--manifest-exclude", "build",
+                    "--preflight-receipt", str(read_preflight / "receipt.json"),
+                ], env=env, capture_output=True, text=True,
+            )
+            self.assertEqual(denied.returncode, 2)
+            self.assertIn(
+                "workspace-write",
+                json.loads((artifact / "receipt.json").read_text())["reason"],
+            )
+
+    def test_env_minimization_blocks_unlisted_variables(self):
+        with tempfile.TemporaryDirectory() as td:
+            root = Path(td)
+            env, _ = fake_env(root)
+            script = str(Path(M.__file__).resolve())
+            common = [
+                sys.executable, "-B", script, "--model", "fake-model", "--sandbox",
+                "workspace-write", "--result-schema", "worker-report-v1",
+            ]
+            preflight = root / "preflight"
+            pre = subprocess.run(
+                common[:3] + ["preflight"] + common[3:] + ["--artifact-dir", str(preflight)],
+                env=env, capture_output=True, text=True,
+            )
+            self.assertEqual(pre.returncode, 0, pre.stderr)
+            work = root / "work"
+            work.mkdir()
+            (work / "input.txt").write_text("input\n", encoding="utf-8")
+            mission = root / "mission.md"
+            mission.write_text("Edit result.txt only.\n", encoding="utf-8")
+            env["FAKE_CODEX_EXTRA"] = "1"
+            artifact = root / "run"
+            run = subprocess.run(
+                common[:3] + ["run"] + common[3:] + [
+                    "--artifact-dir", str(artifact), "--cwd", str(work),
+                    "--mission-file", str(mission), "--allowed-write", "result.txt",
+                    "--preflight-receipt", str(preflight / "receipt.json"),
+                ],
+                env=env, capture_output=True, text=True,
+            )
+            receipt = json.loads((artifact / "receipt.json").read_text())
+            self.assertEqual(run.returncode, 0, f"{run.stderr}\n{receipt}")
+            self.assertEqual(receipt["change_manifest"]["actual_changed_paths"], ["result.txt"])
+
+    def test_workspace_write_requires_worker_report_schema(self):
+        completed = subprocess.run(
+            [
+                sys.executable, "-B", str(Path(M.__file__).resolve()), "run",
+                "--model", "fake-model", "--sandbox", "workspace-write",
+                "--artifact-dir", "/tmp/unused-artifacts", "--cwd", "/tmp/unused-work",
+            ],
+            capture_output=True, text=True,
+        )
+        self.assertEqual(completed.returncode, 1)
+        self.assertIn("worker-report-v1", completed.stderr)
 
 
 if __name__ == "__main__":

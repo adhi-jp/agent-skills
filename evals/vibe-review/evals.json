@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-review",
-  "purpose": "Representative external eval set for vibe-review. The prompts are fixture-backed and JSON-only so graders can fail exact schema, enum, and decision errors instead of accepting broad prose. Coverage includes startup contracts, backend fallback, dirty isolation, normalization, DoD/source triage, secret hygiene, cascade gates, terminal audit, artifact-only target boundaries, scripted-orchestration fan-out, and delegated-result isolation and schema handling. Added trust-profile coverage distinguishes isolated structural, native-untrusted, and single-local review paths.",
+  "purpose": "Representative external eval set for vibe-review. The prompts are fixture-backed and JSON-only so graders can fail exact schema, enum, and decision errors instead of accepting broad prose. Coverage includes startup contracts, backend fallback, dirty isolation, normalization, DoD/source triage, secret hygiene, cascade gates, terminal audit, artifact-only target boundaries, scripted-orchestration fan-out, and delegated-result isolation and schema handling. Added trust-profile coverage distinguishes isolated structural, native-untrusted, and single-local review paths. It also covers explicit reversal of accepted findings and published-measurement defect repair versus post-hoc tuning.",
   "common_assertions": [],
   "evals": [
     {
@@ -332,12 +332,27 @@
         "Keeps public findings coordinator-authored from local evidence.",
         "Records the profile selection and any coverage degradation explicitly."
       ]
+    },
+    {
+      "id": "E21",
+      "name": "Reverse accepted measurement finding without post-hoc tuning",
+      "prompt": "Return JSON only. A prior accepted review finding correctly identified a denominator defect but also incorrectly classified one named input as invalid. Its repair changed tests and published scores. New local evidence proves the named input was valid. A reviewer also proposes raising the scoring threshold because the corrected scores look low. Produce the disposition and evidence-repair decision.",
+      "expected_output": "The JSON should reverse only the disproven portion, repair objective measurement defects transparently, and defer post-outcome tuning.",
+      "files": [],
+      "expectations": [
+        "Response is valid JSON only with no Markdown fence or prose outside the JSON value.",
+        "Records a reversed disposition tied to the original accepted finding and the new local evidence.",
+        "Separates the portion that remains correct from the disproven named-input classification.",
+        "Preserves or rewrites proof rather than silently deleting the tests introduced by the earlier finding.",
+        "Requires before/after disclosure for corrected published scores, including any revoked or restored credit.",
+        "Does not raise the scoring threshold after outcomes are visible and defers that proposal to a later tuning run."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.0,
     "per_eval_expectation_weight": 1.0,
     "pass_threshold": 0.8,
-    "notes": "Pass = per-eval assertions >= 0.8. Assertions intentionally require JSON-only output and exact canonical enum/schema behavior because iteration-5 showed broad prose prompts and generous grading were nondiscriminating."
+    "notes": "Pass = per-eval assertions >= 0.8. Assertions intentionally require JSON-only output and exact canonical enum/schema behavior because iteration-5 showed broad prose prompts and generous grading were nondiscriminating. E21 covers the report-derived reversal and measurement-honesty discriminator."
   }
 }

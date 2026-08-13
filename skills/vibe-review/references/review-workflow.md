@@ -89,6 +89,12 @@ Classify the selected review path into exactly one trust profile:
 3. `single-local`: the coordinator performs the review directly without
    delegated candidate authority.
 
+Trust-profile selection changes evidence collection, not the review gates.
+Every profile, including `single-local`, preserves the frozen target,
+DoD/source and scope triage, validity and specification-gap handling, cascade
+controls, acceptance proof, residual decisions, and terminal audit. Record any
+coverage degradation without dropping those gates.
+
 Prefer the strongest authorized profile. A live manual session stops for a
 backend decision when the preferred delegated protections are unavailable and
 no fallback was accepted. A recordable unattended run may use only a native or
@@ -485,6 +491,12 @@ acceptance_proof:
 
 Core criteria require at least one positive proof path. Visibility, permission, unlock, feature-flag, and state-transition gates require paired proof: the negative hide/deny/before-state path and the positive show/allow/after-state path are evaluated together. A negative proof alone does not satisfy a core gate. If any core criterion is `failed`, `not_run`, `blocked`, or unmapped, terminal output may say the executed suite is green but must state that acceptance coverage is incomplete; the review must not report completion or zero-material-risk closure. Re-run core acceptance sentinels before adding or accepting additional edge/hardening tests.
 
+For load-bearing properties, use controlled scratch-isolated mutations when the
+review mode and environment can do so safely: break the exact invariant,
+threshold, allowlist, refusal, or assertion target and require the proof to
+fail, then restore and verify clean bytes. A surviving mutation or assertion
+that never executes is a proof-sufficiency finding, not a product fix.
+
 ## Secret Hygiene
 
 Apply the overlay before render, persistence, backend forwarding, ledger
@@ -654,6 +666,22 @@ extension cycles with the same focus or a materially different angle only when
 zero-selectable-finding state still runs terminal audit, then terminates without
 asking whether to continue. New scope starts a new run or backtrack; it does not
 increment the same mutable-target cycle indefinitely.
+
+When later verified evidence contradicts an earlier accepted finding, record a
+`reversed` disposition: identify the original finding, separate the valid and
+invalid portions, and preserve or rewrite proof rather than silently deleting
+it. For published measurements, distinguish objective instrument defects from
+post-hoc rule tuning. Repair defects with before/after disclosure, including
+revoked credit; defer proposed scoring-rule, threshold, or band changes after
+outcomes are visible to a later tuning run.
+
+For a self-operated measurement or procedure artifact, triage robustness by the
+declared trust boundary. Honest-operator accident paths are repair candidates.
+Deliberate-forgery hardening may be deferred only while all evidence consumers
+are the artifact's own operators, with a concrete revisit trigger before any
+external claim or audit. After a fully specified repair, mechanical verification
+of each prescribed correction may close the loop; new design or unresolved
+invariants still require review.
 
 When residual selectable findings remain, render a final-cycle assessment before
 the End / Continue / New-angle decision. The assessment must include:

@@ -66,6 +66,11 @@ below before applying this gate's steps. Complete these steps:
      protected artifacts, or acceptance evidence. Stop the affected work,
      record the exact premise and observation, and revise or rebind the owning
      artifact before continuing when the contradiction changes the contract.
+   - Before escalating a verified contradiction as a user decision, run the
+     smallest decisive read-only or scratch-isolated probe that can determine
+     whether a plan-preserving correction exists. Attach the result to any
+     remaining decision; a probe sharpens or dissolves escalation but never
+     substitutes for a required user choice.
 3. Classify the fix:
    - **Plan-preserving correction**: changes the means while preserving the
      existing goal, requirements, acceptance criteria, non-goals, data handling,
