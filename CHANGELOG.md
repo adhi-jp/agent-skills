@@ -11,173 +11,210 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [vibe-coding 2.0.2] - 2026-08-15
+
+### Fixed
+
+- Nontrivial state-changing and external-cost actions are selected only by the
+  current deliverable or a cited mandatory support obligation. Permission,
+  capability, availability, relevance, path placement, and tracked status no
+  longer independently select work, and artifact creation no longer implies a
+  later tracking, staging, commit, release-note, or publishing transition.
+  Static validation and the post-edit comparative suite completed without
+  runner sanity anomalies.
+
+## [vibe-planning 5.2.0] - 2026-08-15
+
+### Added
+
+- Bounded planning-policy questions can now use a response-only branch that
+  answers the requested future-plan decision without drafting an artifact,
+  investigating the ambient repository, running planning commands, or claiming
+  review and self-review occurred.
+
 ### Changed
 
-- `vibe-coding` now selects nontrivial state-changing and external-cost actions
-  only from the current deliverable or a cited mandatory support obligation.
-  Permission, capability, availability, relevance, conventional path placement,
-  and tracked status remain constraints or evidence rather than independent
-  work selection, and artifact creation no longer implies tracking, staging,
-  committing, release-note inclusion, or publishing.
-- `vibe-planning` now requires independent user, project, or owning-contract
-  authority before a newly created plan becomes tracked or receives a planning
-  checkpoint. Plan identity stays inline or in an already-authorized host record;
-  checksum sidecars, manifests, and receipts require separate authority.
-- `vibe-commit` now separates candidate discovery from tracking, staging, and
-  commit eligibility for new artifacts. Before a new or reworded commit, it
-  reconciles every material concern in the exact target patch with the message
-  type, scope, outcome, and body, splits when no shared contract exists, and
-  compares the stored message with the exact committed patch after execution.
-- `vibe-writing` commit-message guidance now rejects a constituent-only scope
-  when one commit changes peer reader-visible contracts, derives scope from the
-  owning or shared contract rather than processing order or file count, and
-  returns a split requirement when no honest shared contract exists.
-- `skill-quality` now classifies authority-state collapse by separating the
+- New plans require independent user, project, or owning-contract authority
+  before tracking or checkpointing. Plan identity remains inline or in an
+  already-authorized host/workflow record; sidecars, manifests, and receipts
+  require separate authority. Review launches reserve the coordinator slot,
+  stop retrying after the first capacity-class failure, and move unmet
+  perspectives to coordinator fallback. Correction writes re-read current
+  artifact bytes, and final summaries expose the artifact, current slice or
+  proof step, proceed condition, and material blocker or decision.
+- Static validation passed and the latest full comparative suite completed.
+  The official report retains its recorded caveats after artifact-level
+  adjudication; no capacity-limit model fallback was used.
+
+## [vibe-commit 1.2.0] - 2026-08-15
+
+### Added
+
+- Commit execution now separates candidate discovery from tracking, staging,
+  and commit eligibility for new artifacts. A mandatory reconciliation gate
+  maps every reader-visible concern in the exact target patch to the message
+  type, scope, outcome, and body; it splits changes without a shared contract
+  and compares the stored message with the exact committed patch afterward.
+  Static validation and the post-edit comparative suite completed without
+  runner sanity anomalies.
+
+## [vibe-writing 2.0.2] - 2026-08-15
+
+### Fixed
+
+- Commit-message guidance rejects a constituent-only scope when one commit
+  changes peer reader-visible contracts, derives scope from the owning or
+  shared contract rather than processing order or file count, and returns a
+  split requirement when no honest shared contract exists. Static validation
+  and the full comparative suite completed; the official report retains its
+  recorded caveats after artifact-level adjudication.
+
+## [skill-quality 2.5.0] - 2026-08-15
+
+### Added
+
+- Quality triage now classifies authority-state collapse by separating the
   selected deliverable, action authority, artifact lifecycle, bound identity,
   evidence tier, proof minimum, and stop condition. Session-history findings
   produce an owner/no-change inventory so already-correct implicated skills are
-  preserved instead of rewritten.
-- Validation: static validation and post-edit full comparative runs completed
-  for all five changed eval suites. `vibe-coding`, `vibe-commit`, and
-  `skill-quality` closed without runner sanity anomalies. The planning and
-  writing reports retain their official caveats after artifact-level anomaly
-  adjudication. No capacity-limit model fallback was needed.
-- `skill-quality` and `skill-eval` now separate unsupported current identity
-  instantiation from observable future-artifact binding gates in response-only
-  evals, and compare candidate-below-baseline anomalies assertion by assertion
-  under one semantic predicate. Equivalent or stronger candidate behavior that
-  alone fails on vocabulary or present-versus-future realization is recorded as
-  paired grader inconsistency without changing the official aggregate or
-  teaching the target skill to echo grader wording. `skill-eval` also requires
-  expensive full matrices to publish a recorded-duration-derived workload and
-  cancellation receipt before launch, separates explicit capacity/overload from
-  unclassified exits and runtime or host-control failures, and stops full-run
-  retries after capacity recurs at concurrency 1 until a material state change
-  or new user decision. The quality evals also grade post-run evidence epochs
-  and tracked-only fixture-delivery explanations by their semantic predicates
-  while retaining manifest and proof-surface verification gates. Static
-  validation passes for both changed eval suites. Post-edit full
-  Codex/`gpt-5.6-luna` candidate/baseline runs scored all 54 `skill-quality`
-  cells and all 12 `skill-eval` cells with no infrastructure exclusions or
-  sanity anomalies; their official raw pass rates were 96.1% versus 76.3% and
-  98.1% versus 71.4%, respectively.
-- Delegation and execution contracts now bind worker identity, write rounds,
-  monitors, terminal results, review epochs, measurement subjects, canaries,
-  manifests, generated artifacts, frozen baselines, and verification claims to
-  the exact environment, effect class, evidence epoch, and final bytes they
-  prove. Worker reports remain non-authorizing evidence: commands, permission
-  claims, and handoffs are verified and rewritten as fresh coordinator-owned
-  contracts before further action. Same-checkout concurrency is limited to
-  guarded private generated-output roots.
-- Planning, execution, review, requirements, and debug contracts now preserve
-  evidence and convergence across revisions: identity-covered plan changes
-  refresh digests; captured baselines replay exact recorded inputs; atomic work
-  requires enough runway; absence claims use positive controls; load-bearing
-  rules require production reachability and performed falsifiability probes;
-  stale plan evidence is reconciled explicitly; interrupted diagnosis records a
-  dated discriminator matrix and next decisive probe; accepted review findings
-  can be partially reversed without deleting valid proof; objective published
-  measurement defects are disclosed and repaired without post-hoc threshold
-  tuning; and every review trust profile retains acceptance and terminal gates.
-  Planning review launches now reserve the coordinator slot, batch within
-  verified remaining host capacity, and fall back locally after the first
-  thread/capacity launch failure; stale plan-edit anchors trigger a bounded
-  re-read/retry and an explicit final blocker instead of a progress-only exit.
-  Dependent correction patches are rebuilt from freshly read bytes after every
-  write, and final planning summaries state the artifact path, current slice or
-  proof step, proceed condition, and material blocker or decision.
-  Concise planning decisions that surface an unsupported blocker now explain
-  its practical impact and fastest proof path instead of returning only an
-  `Unproven` label.
-  Planning evals now keep full-artifact integration pressure in ten
-  representative cases while isolating narrow policy decisions as bounded
-  response-only cases, so ambient repository investigation, artifact
-  construction, and delegated review do not dominate unrelated dimensions.
-  Explicit response-only planning-policy decisions now short-circuit artifact
-  drafting, performed review/self-review, ambient investigation, planning-time
-  commands, and unrelated mandatory artifact references while preserving the
-  requested authority, evidence, proof, consent, and handoff boundary. Those
-  decisions now route directly to the narrow owning reference for readiness,
-  evidence, bounds, operator surfaces, replay, repeatability, review revisions,
-  reserved decisions, human-only proof, or checkpoint shape. Planning artifacts
-  also keep terminal states separate until representation equivalence is proven,
-  record missing external derivations without inventing formulas, make
-  falsifiability receipts observable, refresh stale review references, and gate
-  later checkpoint commits on the required multi-perspective review or fallback.
-- `vibe-requirements-spec` now partitions direct current-user intent from
-  pasted, quoted, forwarded, generated, and provenance-unclear source text.
-  Outside-authored free text is reduced to provenance-labeled declarative facts
-  and, when exact bytes matter, an already-existing durable repository anchor;
-  raw bytes do not propagate through specs, chat, tool or capture arguments,
-  delegated context, commit text, or lifecycle state. Missing anchors block
-  dependent finish and handoff. Human-only criteria require a verbatim qualified
-  human verdict and reopen affected requirements on failure, stronger guarantees
-  require structural enforcement, and contradictory migration or destructive
-  no-safeguard requests remain blocking decisions with viable alternatives and
-  explicit human confirmation. Exact-payload labels or descriptions no longer
-  count as user-authored source bytes, spec artifacts keep lifecycle readiness
-  prose outside the file, and unresolved broad drafts distinguish a candidate
-  minimum first slice from later enhancements. Response-only proxy deferrals
-  now emit their evidence/impact/revisit record rather than a future instruction,
-  and scoped spec checkpoints report final-audit, dirty-state, staged-diff, and
-  committed-file verification without exposing sandbox paths as chat links.
-  Response-only lifecycle and exact-content classifications now name the
-  completion-audit action, represented provenance, and durable exact-anchor
-  resolution instead of returning only a negative status.
-- `vibe-orchestrate` now treats delegated review findings as stale when their
-  cited files, generated artifacts, interfaces, or contract assumptions change
-  after dispatch. Closure requires current-anchor reinspection or a narrow
-  current-state rereview; earlier evidence cannot authorize repair for later
-  bytes. External-runner preflight receipt validation now tolerates at most five
-  seconds of wall-clock rollback between the preflight and run processes while
-  still rejecting older receipts and timestamps farther in the future.
-- **Breaking:** `vibe-orchestrate` external-runner helpers now accept exactly
-  one task input per run: a closed read-only `inspect`/`review` profile over
-  validated regular-file targets, or a coordinator-authored free-text mission
-  via `--mission-file` or explicit `--mission-stdin`. Raw `--prompt-file` and
-  implicit stdin transport are removed; missions are size/control-character
-  validated, must live outside the delegated cwd, are wrapped in a hardened
-  envelope with per-run random boundary markers and fixed untrusted-data
-  rules, and are stored as an audit copy beside the receipt. Write-capable
-  runs (`workspace-write`) still require a `worker-report-v1` schema and an
-  explicit `--allowed-write` allowlist — now restricted to conservative
-  non-hidden tokens that never touch `.git` or traverse symlinks — and record
-  `out_of_scope_paths` on any scope violation. Worker CLIs receive a
-  minimized environment (runner-own prefixes, core process, and proxy
-  variables only; extend only via fingerprinted `--env-passthrough`), Codex
-  fixes a minimal no-web runtime and pins workspace-write network access off
-  instead of exposing caller escape switches, and the internal sink accepts
-  only immutable renderer-produced prompt records with origin and contract
-  identity in receipts and fingerprints, so existing preflight receipts
-  require a new canary. The free-text mission remains an accepted, documented
-  injection surface; `references/external-delegation.md` requires
-  coordinator-authored missions and forbids pasting outside-authored text.
-  Fingerprinted `--manifest-exclude` roots are limited to Git-ignored,
-  untracked directories, and a terminal write run whose post-run filesystem
-  manifest alone becomes unavailable may close only through an explicitly
-  degraded VCS-metadata, allowlist, and worker-file reconciliation; read-only
-  runs remain fail-closed.
-  Hermetic adapter tests cover both task inputs, mission provenance rules,
-  envelope construction, allowlist hardening, environment minimization,
-  write/read canaries, reported-file reconciliation, and scope-violation
-  detection.
-- Validation: all six changed eval suites pass static validation, and the full
-  repository test suite passes 271 tests, including the preflight clock-skew
-  boundary and prior failure-path regressions. Full candidate/baseline runs for
-  `vibe-debug`, `vibe-orchestrate`, `vibe-plan-execution`, and `vibe-review`
+  preserved.
+
+### Changed
+
+- Response-only evals distinguish unsupported current identities from required
+  future-artifact binding gates, and candidate-below-baseline anomalies compare
+  both configurations assertion by assertion under one semantic predicate.
+  Static validation passed; the full Codex/`gpt-5.6-luna` comparison scored all
+  54 cells without infrastructure exclusions or sanity anomalies, at 96.1%
+  with the skill versus 76.3% without it.
+
+## [skill-eval 1.3.0] - 2026-08-15
+
+### Added
+
+- Materially expensive full matrices now require a recorded-duration-derived
+  workload forecast and a tested cancellation handle before launch. Long-run
+  supervision verifies process-tree termination and records interrupted work as
+  non-closing rather than inferring cancellation from a signal attempt.
+
+### Changed
+
+- Provider capacity, overload, unclassified exits, runtime initialization, and
+  outer host-control failures now remain distinct. Full-run retries stop after
+  capacity recurs at concurrency 1 until a material state change or new user
+  decision, and candidate-below-baseline anomalies compare both configurations
+  assertion by assertion without rewriting official aggregates. Static
+  validation passed; the full Codex/`gpt-5.6-luna` comparison scored all 12
+  cells without infrastructure exclusions or sanity anomalies, at 98.1% with
+  the skill versus 71.4% without it.
+
+## [vibe-debug 4.2.0] - 2026-08-15
+
+### Added
+
+- Interrupted diagnosis now leaves a durable discriminator record containing
+  the works/fails matrix, ruled-out hypotheses, environment epoch, controls, and
+  next decisive probe. Resumed work reruns both controls and distinguishes a
+  transient or non-reproduced defect from a proven root-cause repair. Static
+  validation passed, and the full comparative suite completed without
+  infrastructure exclusions; reported grader anomalies were adjudicated
+  against recorded output and focused diagnostics.
+
+## [vibe-plan-execution 4.2.0] - 2026-08-15
+
+### Added
+
+- Execution can reconcile a stale plan digest only when every identity-covered
+  delta traces to an authorized revision, and can bind an explicit current-user
+  instruction as the response carrier for a matching reserved decision.
+
+### Changed
+
+- Atomic slices require enough runway to reach their verification gate.
+  Baseline replay preserves exact captured inputs, review findings can be
+  reversed without deleting still-valid proof, and load-bearing rules require
+  production reachability, same-channel positive controls, falsifiability
+  probes, and empirical reruns or bounded final-byte neutrality evidence after
+  later edits. Static validation passed, and the full comparative suite
   completed without infrastructure exclusions; reported grader anomalies were
-  adjudicated against recorded output and focused diagnostics. The complete
-  `vibe-requirements-spec` candidate/baseline suite also completed without
-  infrastructure exclusions or sanity anomalies. The complete post-edit
-  `vibe-planning` Codex/`gpt-5.6-luna` candidate/baseline suite scored all 66
-  cells with no infrastructure exclusion or dirty fixture; its official raw
-  pass rates were 95.5% and 57.7%. Runner sanity remained `REVIEW REQUIRED`
-  for two zero-scored baseline cells and one candidate-below-baseline cell.
-  Recorded-output adjudication found that the baseline cells still lacked the
-  plan contract despite an over-strict same-turn-task reading, while the
-  candidate-below-baseline signal came from inconsistent semantic grading of a
-  response that correctly blocked an infeasible actor/mechanism criterion; the
-  official aggregate remains unchanged. The Snyk analyzer was not rerun.
+  adjudicated against recorded output and focused diagnostics.
+
+## [vibe-review 2.2.0] - 2026-08-15
+
+### Added
+
+- Review findings now support a `reversed` disposition that preserves the valid
+  portion of an earlier finding and rewrites its proof. Published measurement
+  defects can be corrected only with before/after disclosure and revoked-credit
+  accounting; post-outcome scoring-rule changes remain deferred to a later run.
+
+### Changed
+
+- Every review trust profile retains frozen-target, scope, acceptance, residual,
+  and terminal gates. Load-bearing properties use controlled falsifiability
+  mutations when safe, and self-operated procedure hardening follows the
+  declared evidence-consumer boundary. Static validation passed, and the full
+  comparative suite completed without infrastructure exclusions; reported
+  grader anomalies were adjudicated against recorded output and focused
+  diagnostics.
+
+## [vibe-requirements-spec 5.0.0] - 2026-08-15
+
+### Changed
+
+- **Breaking:** Requirements capture now partitions direct current-user text
+  from pasted, quoted, forwarded, retrieved, generated, attributed, and
+  provenance-unclear sources. Outside-authored or unclear free text is reduced
+  to provenance-labeled declarative facts and never propagated raw through the
+  spec, chat summary, tool/capture arguments, delegated context, commit text, or
+  lifecycle state. Exact bytes from those sources must already exist in a
+  durable repository artifact and be referenced by exact item anchor. Migrate
+  prior inline payload workflows by establishing that source artifact through a
+  separately authorized lifecycle before requirements handoff. Direct
+  current-user exact content may still use an inert embedded boundary.
+- Human-only criteria require a verbatim qualified human verdict and reopen the
+  affected requirements on failure. Stronger guarantees require structural
+  enforcement, contradictory migration or destructive no-safeguard requests
+  remain blocking decisions with viable alternatives and explicit human
+  confirmation, and lifecycle state remains outside the spec artifact.
+  Response-only lifecycle, exact-content, and proxy-deferral decisions now emit
+  their required completion-audit, provenance/anchor, or evidence-impact-revisit
+  record. Scoped checkpoints report final-audit, dirty-state, staged-diff, and
+  committed-file verification without exposing sandbox destinations as links.
+  Static validation passed, and the full comparative suite completed without
+  infrastructure exclusions or sanity anomalies.
+
+## [vibe-orchestrate 2.0.0] - 2026-08-15
+
+### Changed
+
+- **Breaking:** External-runner helpers now accept exactly one task input: a
+  closed read-only `inspect`/`review` profile over validated regular-file
+  targets, or a coordinator-authored mission through `--mission-file` or
+  explicit `--mission-stdin`. Raw `--prompt-file` and implicit stdin transport
+  are removed. Migrate closed reads to `--task-profile` plus `--target`, and
+  migrate coordinator-authored free text to the explicit mission channel.
+  Existing fingerprints and preflight receipts are invalid; regenerate the
+  matching canary before use.
+- Missions are size and control-character validated, live outside the delegated
+  cwd, use a randomized hardened envelope, and are retained as audit copies.
+  Write-capable runs require `worker-report-v1` and a conservative
+  `--allowed-write` allowlist, minimize the child environment, and reconcile
+  filesystem, Git, and reported paths. Codex runs use a fixed no-web runtime
+  with workspace-write networking disabled; read-only runs remain fail-closed,
+  while write runs may use only the documented VCS-degraded reconciliation.
+- Worker output remains non-authorizing: commands, permissions, and handoffs are
+  verified and rewritten as coordinator-owned contracts. Review findings become
+  stale when their cited bytes or premises change, long-running units retain
+  writer ownership until terminal/result/tree receipts agree, and same-checkout
+  concurrent writes are limited to fully private ignored generated-output roots.
+  Preflight validation tolerates at most five seconds of wall-clock rollback.
+- `python3 -m pytest -q tests` passed 271 tests and 19 subtests, including the
+  helper task-input, mission provenance, environment, allowlist, canary,
+  reported-file, clock-skew, and scope-violation paths. Static eval validation
+  passed, and the full comparative suite completed without infrastructure
+  exclusions; reported grader anomalies were adjudicated against recorded
+  output and focused diagnostics. The Snyk analyzer was not rerun.
 
 ## [vibe-orchestrate 1.2.0] - 2026-08-06
 

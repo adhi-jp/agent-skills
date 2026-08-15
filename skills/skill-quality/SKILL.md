@@ -1,5 +1,5 @@
 ---
-version: 2.4.0
+version: 2.5.0
 name: skill-quality
 description: Use when making evidence-driven quality decisions for a skill package or its evals from benchmark results, grader feedback, review comments, session-history patterns, trigger failures, or quality regressions; especially when deciding what to change, what not to change, how to update assertions, or whether to rerun skill evals.
 ---
