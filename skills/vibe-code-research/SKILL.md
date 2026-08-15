@@ -1,5 +1,5 @@
 ---
-version: 1.2.0
+version: 1.2.1
 name: vibe-code-research
 description: Use when the user wants to understand, locate, trace, or assess existing code without changing it — questions like "how does X work", "where is Y implemented", "what would changing Z affect", architecture or data-flow mapping, dependency tracing, convention discovery, or pre-planning and pre-debugging evidence gathering. Do not use when a defect needs repair, a plan or spec artifact is requested, or an edit, commit, or diff review is the deliverable.
 ---

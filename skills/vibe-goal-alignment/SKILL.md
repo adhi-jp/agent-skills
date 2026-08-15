@@ -1,5 +1,5 @@
 ---
-version: 1.0.0
+version: 2.0.0
 name: vibe-goal-alignment
 description: Use when the user asks to align, confirm, or correct the agent's understanding before action; when prior misinterpretation, risky ambiguity, release/version/commit intent, destructive effects, or goal disagreement could cause rework or damage.
 ---

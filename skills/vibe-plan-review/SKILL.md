@@ -1,5 +1,5 @@
 ---
-version: 2.0.0
+version: 3.0.0
 name: vibe-plan-review
 description: Use when the user asks to review, confirm, walk through, or pre-check a saved Markdown implementation plan before implementation; interactively reviews plan items one at a time and manages localized item-level decisions.
 ---

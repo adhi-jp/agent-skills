@@ -11,69 +11,206 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [vibe-coding 3.0.0] - 2026-08-16
+
 ### Changed
 
-- `vibe-planning` and `vibe-plan-execution` now bind plans by path and current
-  reviewed content instead of maintained full/section digests. Capability
-  dependencies, durable progress, and additional review perspectives are
-  recorded only when feasibility, safety, proof strength, resumability, or risk
-  requires them. Execution/deviation decisions still surface the material
-  high-risk sections, affected existing-behavior dimensions, out-of-scope
-  items, and explicitly non-selected checks that constrain a proposed shortcut.
-  Reserved planning decisions remain bounded by owner, allowed authority,
-  response carrier, and proceed effect and cannot mutate undeclared plan
-  contract sections.
-- `vibe-coding` and state-changing specialists now separate edit authority from
-  commit selection. Verified changes remain in the working tree unless the
-  current user explicitly requests a commit or an approved plan item explicitly
-  selects a checkpoint; the commit workflow retains staging and history safety.
-- Requirements clarification, saved-plan review persistence, code-review effort
-  and cycles, debug ledgers, brainstorm delegation, research counter-checks,
-  commit receipts, model-choice records, and Minecraft reference-route output
-  now scale to the decision, risk, and continuation need instead of using fixed
-  ceremony. Complex, multi-package, reword/amend, conflicted-message, and
-  audit-requested commit receipts still expose source binding, concern coverage,
-  type/scope/outcome bases, the one-commit or split decision, and drift
-  invalidation. Persisted saved-plan review state still fails closed on target
-  mismatch by naming the current target, derived state path, conflicting target,
-  and the resume/replace/preserve decision.
-- `vibe-review` keeps target-drift detection, secret omission, finding validity,
-  semantic deduplication, acceptance proof, and high-cascade notes while removing
-  public fingerprint/token obligations and fixed reviewer/cycle counts. Public
-  findings also omit internal backend/source reference fields while retaining
-  stable in-run identity and coordinator-authored local evidence.
-- `vibe-review` now records delegated response isolation, result shape,
-  mutation containment, local premise verification, and observed topology as
-  independent capabilities. Unisolated structured or free-text results remain
-  explicitly authorized, quarantined, locally reverified candidates, while the
-  fully isolated closed-schema adapter retains its stronger ingestion contract.
-- `vibe-planning` review fan-out now keeps verified-capacity batching and may
-  use one evidence-backed optimistic batch of at most two units when numeric
-  capacity is unavailable. The first capacity-class failure stops further
-  launches and moves unmet perspectives to coordinator fallback.
-- `vibe-orchestrate` now selects external write lanes by the effects the unit
-  requires and the available isolation, canary, allowlist, receipt, and
-  verification boundaries. Bounded Claude edit-only work is no longer rejected
-  by a blanket Codex preference, while process-requiring units still need a
-  proven process-capable lane or local fallback. Coordinator-authored free text
-  and target contents remain residual injection surfaces, and accepted writes
-  require worker-report, manifest, and Git reconciliation against the allowlist
-  before functional verification.
-- `vibe-writing` now uses a host-neutral authorship placeholder in the general
-  trailer-formatting example; actual commit attribution remains bound to the
-  authoring agent and repository convention.
-- Skill evals now pressure the simplified observable outcomes and retained safety
-  boundaries. Shared-runner static validation passed for every changed suite,
-  and the repository test suite passed 271 tests and 19 subtests. Requested
-  full-suite Codex comparisons ran on `gpt-5.6-luna` with both configs and one
-  run per cell: all 580 cells were scored with no infrastructure failures, and
-  every changed suite's aggregate `with_skill` rate exceeded its
-  `without_skill` baseline. Eight closing runs were sanity-clean; seven remain
-  `REVIEW REQUIRED` after artifact-level adjudication—two for valid zero-score
-  baseline cells and five for single-run candidate-below-baseline cells whose
-  failure locations moved across reruns. The measured one-run comparisons do not
-  establish reliability or a causal improvement across changed assertion sets.
+- **Breaking:** Explicit `vibe-coding` invocation no longer selects or grants a
+  default local checkpoint commit. Verified changes stay in the working tree
+  unless the current user explicitly requests a commit or a bound approved plan
+  item explicitly selects that checkpoint; migrate automatic checkpoint flows
+  to a separate commit-execution route. Top-level routing state now retains only
+  continuation essentials instead of duplicating specialist ledgers.
 
+## [vibe-planning 6.0.0] - 2026-08-16
+
+### Added
+
+- Risk-triggered additional-perspective review may use one evidence-backed
+  optimistic batch of at most two units when numeric host capacity is unknown.
+  The first capacity-class failure stops further launches and moves unmet
+  perspectives to coordinator fallback.
+
+### Changed
+
+- **Breaking:** Plans are bound by path and current reviewed content instead of
+  maintained full or section digests, and universal skill-route tables,
+  progress ledgers, and additional-perspective review are no longer mandatory.
+  Migrate consumers to exceptional capability dependencies, conditional durable
+  progress, risk-proportional review, and explicit commit requests for reviewed
+  plan artifacts. Reserved decisions remain bounded by owner, authority,
+  carrier, and proceed effect.
+
+## [vibe-plan-execution 5.0.0] - 2026-08-16
+
+### Changed
+
+- **Breaking:** Plan execution now re-reads the bound path and current reviewed
+  contract instead of requiring plan-maintained digests, and it updates durable
+  progress only when an intentional resumability ledger exists. Execution no
+  longer creates natural-slice commits by default; migrate checkpoints to an
+  explicit current commit request or an explicitly selected bound plan item,
+  followed by the commit-execution workflow.
+- Execution and deviation decisions continue to expose material high-risk
+  controls, affected existing-behavior dimensions, out-of-scope items, and
+  non-selected checks when they constrain a proposed shortcut.
+
+## [vibe-plan-review 3.0.0] - 2026-08-16
+
+### Changed
+
+- **Breaking:** Saved-plan review state now stays in conversation unless the
+  user, resumability risk, cross-session use, or project convention selects a
+  persisted file; fixed item and decision thresholds are removed. Reflected
+  plan changes remain uncommitted unless the current user explicitly requests a
+  commit. Persisted state still fails closed on target mismatch with the current
+  target, derived state path, conflicting target, and resume/replace/preserve
+  decision.
+
+## [vibe-requirements-spec 6.0.0] - 2026-08-16
+
+### Changed
+
+- **Breaking:** Adaptive clarification is now the default instead of
+  `strict-four-choice`; strict, lightweight, and freestyle interaction remain
+  explicit user choices. A current user may adopt the normalized safe meaning
+  of outside-authored content, while exact durable anchors remain required when
+  exact bytes, executable or security-sensitive content, or an unavailable
+  payload materially affects implementation or acceptance. Migrate callers that
+  require strict four-choice interaction to request it explicitly.
+- **Breaking:** Final-audited requirements artifacts remain uncommitted unless
+  the current user explicitly requests a commit; invocation and tracked status
+  no longer select a checkpoint.
+
+## [vibe-debug 5.0.0] - 2026-08-16
+
+### Changed
+
+- **Breaking:** Verified repairs remain uncommitted unless the current user
+  explicitly requests a commit. Simple reproduced bugs may close with a concise
+  symptom, cause, fix, and proof record; recurrent, multi-symptom,
+  multi-environment, interrupted, or retest-dependent diagnosis still uses the
+  resumable debug ledger. Migrate closure automation to request commit execution
+  explicitly and require ledgers only for the retained continuity cases.
+
+## [vibe-review 3.0.0] - 2026-08-16
+
+### Changed
+
+- **Breaking:** Review transport is now described by independently evidenced
+  response isolation, result shape, mutation containment, local-premise
+  verification, and observed topology instead of ordered trust profiles, fixed
+  reviewer/cycle counts, or public fingerprint and dedupe-token fields. Migrate
+  consumers to stable in-run finding identity and the capability properties;
+  fully isolated closed-schema ingestion retains its stronger guarantees, while
+  authorized unisolated text remains quarantined and locally reverified.
+- **Breaking:** Review-selected fixes remain uncommitted unless the current user
+  explicitly requests a commit; terminal audit and successful verification do
+  not select history work.
+
+## [vibe-orchestrate 3.0.0] - 2026-08-16
+
+### Changed
+
+- **Breaking:** Orchestration no longer collects startup commit permission or
+  creates coordinator checkpoints from generic workflow invocation. Commit
+  selection must come from the current user or an explicitly selected bound
+  plan checkpoint; workers remain prohibited from history mutation.
+- External write lanes are selected by required effects plus isolation, canary,
+  allowlist, receipt, and verification evidence rather than provider name.
+  Edit-only lanes may leave functional verification to the coordinator, while
+  process-requiring units need a proven process-capable lane or local fallback;
+  accepted writes require worker-report, manifest, and Git reconciliation.
+
+## [vibe-goal-alignment 2.0.0] - 2026-08-16
+
+### Changed
+
+- **Breaking:** Goal alignment no longer predicts, asks for, or records a later
+  workflow's default checkpoint policy. Preserve commit or release intent only
+  when the current user selected that operation; migrate consumers away from the
+  removed `Local checkpoint policy` field.
+
+## [vibe-commit 2.0.0] - 2026-08-16
+
+### Changed
+
+- **Breaking:** Generic owning-workflow invocation or checkpoint convenience no
+  longer counts as a commit handoff. A valid handoff now requires an explicit
+  current user commit request or an explicitly selected bound approved plan
+  checkpoint. Migrate automatic closure handoffs to carry that selection.
+- Exact-diff message reconciliation remains mandatory internally, while the
+  detailed public receipt is emitted for complex or multi-package changes,
+  reword/amend work, supplied-message conflicts, and requested audits. Those
+  receipts retain source binding, peer-concern coverage, type/scope/outcome
+  bases, the one-commit or split decision, and drift invalidation.
+
+## [vibe-writing 3.0.0] - 2026-08-16
+
+### Changed
+
+- **Breaking:** Verified tracked writing edits remain uncommitted unless the
+  current user explicitly requests a commit; writing invocation and artifact
+  completion no longer select history work. Migrate standalone text-edit
+  closures to a separate commit request.
+- General trailer-formatting guidance now uses a host-neutral authorship
+  placeholder. Actual attribution remains bound to the authoring agent and the
+  repository's detected trailer convention.
+
+## [vibe-brainstorm 1.5.0] - 2026-08-16
+
+### Added
+
+- Multiple brainstorming perspectives may now be produced locally when
+  delegation is unavailable or does not add material independence. Delegated
+  roles remain optional, coordinator-derived output is labeled accurately, and
+  a missing independent perspective blocks only when independence is material.
+
+## [skill-quality 2.6.0] - 2026-08-16
+
+### Added
+
+- Quality triage now applies a contract-value test before retaining mandatory
+  fields, ledgers, output shapes, hashes, review counts, or eval assertions. A
+  contract remains mandatory only when it prevents a demonstrated failure,
+  preserves unreconstructable state, feeds a real machine consumer, or makes a
+  material acceptance criterion observable.
+
+## [vibe-code-research 1.2.1] - 2026-08-16
+
+### Fixed
+
+- Direct anchored path, symbol, and literal lookups no longer require a
+  ceremonial counter-evidence check. Negative, architectural, blast-radius,
+  runtime-inference, security, and data-loss conclusions still require a
+  plausible disconfirming check within the bound evidence universe.
+
+## [minecraft-modding-workbench 2.1.2] - 2026-08-16
+
+### Fixed
+
+- Bundled-reference routing stays internal for ordinary answers. It is surfaced
+  only for requested audits or when fallback, missing-source, or provenance
+  limits materially affect the recommendation; MCP/workspace/source/runtime
+  verification labels remain intact.
+
+## [Repository] - 2026-08-16
+
+### Changed
+
+- The skill catalog now describes the simplified workflow boundaries, and
+  `docs/specs/2026-08-14-claude-code-availability-parity-spec.md` records the
+  host-capability requirements behind property-based review, capacity-adaptive
+  planning review, effect-based external write selection, and host-neutral
+  trailer examples.
+- All 15 affected eval suites now pressure the simplified observable outcomes
+  and retained safety boundaries. Shared-runner static validation passed for
+  every suite, and `python3 -m pytest -q tests` passed 271 tests and 19 subtests.
+  The latest requested full Codex comparisons on `gpt-5.6-luna` scored all 580
+  cells with no infrastructure failures and every `with_skill` aggregate above
+  its baseline. Eight closing runs were sanity-clean; seven remain
+  `REVIEW REQUIRED` after artifact-level adjudication, so the one-run results do
+  not establish reliability or causal improvement across changed assertions.
 
 ## [vibe-coding 2.0.2] - 2026-08-15
 

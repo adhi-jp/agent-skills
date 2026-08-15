@@ -1,5 +1,5 @@
 ---
-version: 1.4.0
+version: 1.5.0
 name: vibe-brainstorm
 description: Use when the user explicitly asks for vibe brainstorming, creative implementation ideas, implicit expected behavior, or convention checks, and when an implementation task is creative or convention-dependent. Do not use for obvious mechanical edits.
 ---
