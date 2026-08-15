@@ -93,6 +93,17 @@ Name the abstract dimension behind the example, such as `current-slice blocker`,
 Keep a concrete phrase or fixture only as labeled evidence when useful; do not
 copy grader wording or prompt literals into standing guidance.
 
+## Contract Value Test
+
+Before retaining an existing field, ledger, fixed output shape, hash, mandatory
+review count, or eval assertion, ask whether it prevents a demonstrated failure,
+provides state that cannot be reconstructed at the point of use, feeds a real
+machine consumer, or makes a material acceptance criterion observable. Existing
+prose and a currently passing assertion are not sufficient retention reasons.
+When none applies, remove the contract, make it risk-conditional, or keep it
+internal, then preserve the underlying safety/correctness invariant with a
+replacement eval or an explicit accepted loss of discrimination.
+
 ## Change Selection
 
 Make the smallest coupled change that closes the contract gap:

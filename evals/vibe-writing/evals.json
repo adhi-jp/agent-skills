@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-writing",
-  "purpose": "External eval set for vibe-writing. Prompts live outside skills/ so they are not bundled as skill content. Covers representative LLM-first development text, source-code comments and docstrings, README/docs and CHANGELOG restraint, changelog format precedence, next-agent contract-log entries, iteration-log collapse for in-progress quality work, exact-format output, verbatim-output boundaries, durable references, workflow boundaries, locale precedence, policy and support-promise restraint, hollow-transition cleanup, local-anchor preservation, and commit-message contracts including body preserve/cut selection, verification formatting, durable proof-source boundaries, multi-line transport, active commit workflows, and stored-message inspection.",
+  "purpose": "External eval set for vibe-writing. Prompts live outside skills/ so they are not bundled as skill content. Covers representative LLM-first development text, source-code comments and docstrings, README/docs and CHANGELOG restraint, changelog format precedence, next-agent contract-log entries, iteration-log collapse for in-progress quality work, exact-format output, verbatim-output boundaries, durable references, workflow boundaries, locale precedence, policy and support-promise restraint, hollow-transition cleanup, local-anchor preservation, and commit-message contracts including body preserve/cut selection, verification formatting, durable proof-source boundaries, multi-line transport, active commit workflows, and stored-message inspection. It also covers a host-neutral generic authorship-trailer formatting example.",
   "common_assertions": [
     "When the prompt identifies or implies the artifact's main reader and the deliverable is prose whose reader priority can vary, output uses LLM-optimized development text by default and human-optimized prose only for a mainly human reader. Exact-format, verbatim-relay, meta-diagnosis, and closure-description cases pass this assertion by non-applicability unless they separately request reader optimization.",
     "When language selection is relevant, output follows the task's language precedence and preserves file paths, commands, identifiers, environment variables, and canonical strings unless translation is explicitly requested. If the prompt has no competing language signal and no translation surface, this assertion passes by non-applicability.",
@@ -266,18 +266,17 @@
     },
     {
       "id": "E15",
-      "name": "Standalone tracked writing edit defaults to safe checkpoint",
+      "name": "Standalone tracked writing edit remains uncommitted",
       "prompt": "Use `vibe-writing` to describe the required closure behavior for this represented workflow state: a tracked `README.md` clarity edit is complete and reviewed, project policy allows local commits, and unrelated source changes already exist. I did not separately ask for a commit. This is a response-only closure description: do not inspect or edit the eval runner's ambient `README.md`, and do not execute the represented commit in this sandbox.",
-      "expected_output": "The standalone writing workflow closes the verified tracked edit with a scoped local checkpoint while preserving message-only and unrelated-path boundaries.",
+      "expected_output": "The standalone writing workflow reports the verified README edit as uncommitted because no commit was explicitly selected.",
       "files": [],
       "expectations": [
-        "Treats explicit primary `vibe-writing` use for the represented tracked edit as permission for a scoped local checkpoint without another commit instruction; response-only delivery means describing rather than executing those authorized closure steps.",
-        "Refreshes dirty state, stages only `README.md` and any coupled tracked documentation actually owned by the request, and inspects the staged diff.",
-        "Leaves unrelated source changes unstaged and uncommitted.",
-        "Uses a Conventional Commit message and inspects the stored message and committed file set after committing, or states those as required gates.",
-        "Distinguishes this tracked-file edit from chat replies, summaries, commit-message drafts, unchanged artifacts, generated output, and empty file sets, which must not be committed.",
-        "Does not push, release, bump versions, amend, rebase, reset, stash, squash, or perform destructive cleanup.",
-        "Treats the prompt as a response-only represented workflow state: does not edit the ambient `README.md`, does not claim an actual sandbox commit or commit hash, and describes the authorized commit gates rather than converting them into an uncommitted checkpoint."
+        "Does not treat explicit `vibe-writing` invocation as commit permission or selection.",
+        "Describes the represented `README.md` and owned coupled text changes as remaining in the working tree; because this is a response-only closure description, the eval sandbox need not contain or create those edits.",
+        "Leaves unrelated source changes untouched.",
+        "Does not stage, commit, push, release, bump versions, or rewrite history.",
+        "Distinguishes the tracked edit from chat-only and unchanged work without inventing an empty commit.",
+        "Uses the represented state and does not inspect or mutate the ambient checkout."
       ]
     },
     {
@@ -304,6 +303,19 @@
         "Adds the adjacent limitation so a reader cannot infer the old 'all latency spikes' promise.",
         "Does not delete only adjectives while keeping the broad promise, and does not invent a new benefit.",
         "Would state the permitted boundary for review if no authoritative replacement existed rather than guessing one."
+      ]
+    },
+    {
+      "id": "E18",
+      "name": "General trailer formatting example stays host-neutral",
+      "prompt": "Using the repository's commit-message reference, provide only the generic four-line stored-message example that demonstrates a `Verification:` section, one passed `git diff --check` bullet, a blank line, and a `Co-Authored-By` placeholder. This is a formatting example, not a real attribution and not a request to commit.",
+      "expected_output": "The raw generic example uses the host-neutral placeholder and no real agent identity.",
+      "files": [],
+      "expectations": [
+        "Outputs exactly the example payload with `Verification:`, `- `git diff --check` passed.`, a blank line, and `Co-Authored-By: <agent> <no-reply address>`.",
+        "Does not substitute Codex, Claude, OpenAI, Anthropic, a model name, or a real address for the placeholders.",
+        "Does not wrap the example in Markdown fences or add explanatory prose.",
+        "Does not claim a commit or attribution occurred."
       ]
     }
   ],

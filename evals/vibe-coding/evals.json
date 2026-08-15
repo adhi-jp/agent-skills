@@ -1,14 +1,13 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-coding",
-  "purpose": "External eval set for vibe-coding. Compact coverage focuses on activation, phase selection from visible metadata, requirements approval and planning continuation, concrete-plan execution with checkpoint commits inside plan execution, unavailable review specialists, saved-plan pre-check walkthrough routing with git-backed review guards, commit routing with auxiliary writing guidance, investigation/debug/creative precedence, refusal to cross phase gates in unattended orchestration, backtracking to the planning or requirements phase when a downstream phase reports a plan-changing or requirements defect, and bound-plan implementation-progress rebinding.",
+  "purpose": "External eval set for vibe-coding covering activation, visible-metadata routing, phase boundaries/backtracking, minimal continuation state, optional durable specialist progress, and explicit commit selection without invocation-level history authority.",
   "common_assertions": [
-    "For prompts with a current-turn `vibe-coding` activation signal, output treats activation as coming only from an explicit host-specific invocation, host-provided invocation signal, or direct instruction such as \"use `vibe-coding`\"; for related continuation prompts with active routing state but no current-turn activation signal, output continues from that state without requiring a new activation signal; it does not treat a plain mention of `vibe coding` as activation.",
     "When a specialist route matches, output selects exactly one primary downstream specialist phase for each route decision, not for the eventual end goal; same-turn sequential continuation, when allowed, is described as a later separate route after boundary evidence rather than as co-primary phases in one specialist response.",
-    "When output selects a downstream specialist or reports a route decision, it grounds the decision in visible metadata or supplied source material. When output reports an unavailable specialist or no matching specialist, it distinguishes `matched-but-unavailable` from `no matching specialist`; an invocation-only turn with no route selected may satisfy this by asking for the missing instruction without availability diagnosis.",
-    "When a downstream phase is selected, revised, executed, or unavailable, output preserves relevant specialist boundaries, including requirements-spec approval stops, planning-only behavior, concrete-plan proceed conditions, review gates, writing-only boundaries, release policy, and commit/checkpoint authorization; an invocation-only turn may satisfy this by refusing to select a phase or edit until a concrete instruction exists.",
+    "When output selects a downstream specialist or reports a route decision, it grounds the decision in visible metadata or supplied source material; using the exact supplied visible specialist name for the matching phase is sufficient without narrating a metadata audit. When output reports an unavailable specialist or no matching specialist, it distinguishes `matched-but-unavailable` from `no matching specialist`; prompts with an available match need not discuss unavailable-route statuses.",
+    "When a downstream phase is selected, revised, executed, or unavailable, output preserves the boundaries material to that selected phase and current turn, such as the applicable approval stop, plan-only or read-only boundary, proceed condition, review or write gate, release boundary, or commit/history authority. It need not enumerate unrelated phases' gates.",
     "When the prompt or visible routing state says a downstream phase has reported a defective bound spec or plan, output treats it as a backtracking signal to the artifact-owning phase rather than forcing the current phase to continue patch-by-patch; prompts without such a defective-artifact report satisfy this assertion by not inventing one and not continuing execution against a known-bad contract.",
-    "Output does not require a separate persisted ledger file to preserve routing state: for workflow-continuation prompts it uses conversation state and existing artifact paths, and for independent classification prompts it does not invent continuation state.",
+    "Output does not require a separate persisted ledger file to preserve routing state: workflow-continuation prompts use the supplied conversation state and existing artifact paths, while independent classification prompts pass by not inventing continuation state and need not explain the state mechanism.",
     "When the task asks for route behavior for represented current user turns and gives no explicit output-language instruction in those represented turns, output chooses each represented turn's user-facing route-block language from that turn's clear natural-language request text when present, otherwise from the active user's conversational language; if all represented turns share one clear language the whole route response uses it, and if they differ each turn block uses its own language. It does not inherit surrounding benchmark, orchestrator, executor-session language, hidden/repository/session/global chat-language defaults, routing-state metadata, assertion text, source quotes, or English phase labels, and it preserves skill names, literal path strings, commands, enum values, field names, and technical identifiers verbatim."
   ],
   "evals": [
@@ -59,7 +58,7 @@
         "For turn A, treats the host-provided invocation signal as `vibe-coding` activation.",
         "For turn A, binds the local plan path before treating the request as executable.",
         "For turn A, routes to exactly one primary downstream phase: `vibe-plan-execution` and mentions that the plan's `Proceed condition` is ready.",
-        "For turn A, treats planned checkpoint review and scoped local commits as part of the `vibe-plan-execution` route under that specialist, not as a separate commit-execution route or a need for another `commit` instruction.",
+        "For turn A, treats an explicitly selected approved checkpoint as prepared by plan execution and executed through the commit route; mere checkpoint prose does not select history.",
         "For turn A, does not route to `vibe-planning` because the plan is already concrete and does not execute adjacent work outside the bound plan.",
         "For turn B, does not treat the task list as a concrete bound implementation plan.",
         "For turn B, identifies missing execution requirements such as acceptance criteria, tests, risks, data handling, implementation steps, or proceed condition.",
@@ -142,7 +141,7 @@
       "expected_output": "The response should preserve the requirements specialist stop boundary while continuing the already-requested workflow to a separate planning route without waiting for another user prompt.",
       "files": [],
       "expectations": [
-        "Treats the current Japanese instruction as explicit approval or finish evidence for the current requirements spec plus an explicit request to create an implementation plan.",
+        "Treats the current Japanese instruction as explicit human approval/finish intent for the current requirements spec and an explicit request to create an implementation plan, while still requiring the requirements specialist to return recordable current-spec approval or handoff evidence before the separate planning route starts.",
         "Routes first to exactly one primary downstream phase for the current requirements work: `vibe-requirements-spec`, and keeps `specs/2026-06-27-sales-csv-import-spec.md` bound.",
         "Preserves the requirements specialist boundary by not creating the implementation plan inside the requirements-spec response.",
         "After recordable current-spec approval or handoff evidence and a clean completion audit are available, continues in the same outer `vibe-coding` turn to a separate primary downstream phase: `vibe-planning`.",
@@ -175,7 +174,7 @@
       "expectations": [
         "Routes to exactly one primary downstream phase: plan execution for the bound implementation plan, not planning or commit execution.",
         "Uses the implementation-progress ledger to rebind the active slice to the next incomplete item, while requiring the execution specialist to verify any recorded completion before relying on it.",
-        "Treats the ledger as plan-execution state, not as a new plan or independent proof of completion; any scoped local commit permission comes from the explicit active `vibe-coding`/execution workflow, not from ledger text.",
+        "Treats the ledger as plan-execution state, not as a new plan or independent proof of completion; the ledger does not select a commit; history still needs an explicit current request or approved selected checkpoint.",
         "Preserves the bound plan path and downstream plan-execution boundaries, including proceed condition, verification, post-implementation review, and any commit-scope rules."
       ]
     },
@@ -224,17 +223,16 @@
     },
     {
       "id": "E14",
-      "name": "Explicit state-changing invocation carries local checkpoint permission",
-      "prompt": "Classify these three independent explicit `vibe-coding` turns. Visible specialists match each requested phase.\n\nA. `use vibe-coding. Implement the approved account-export plan. The plan has two independently verifiable slices but no Commit checkpoints section. Do not push.`\nB. `use vibe-coding. Investigate where account-export authorization is checked. Do not change files.`\nC. Host policy requires a separate human confirmation before any local commit. The user says: `use vibe-coding. Fix the account-export bug.` This is the first turn, before edits.\n\nDescribe the route and local-commit handling for each turn.",
-      "expected_output": "The response preserves phase routing while treating explicit state-changing invocation as scoped local-checkpoint permission, exempting read-only work, and front-loading any host-required confirmation.",
+      "name": "Explicit state-changing invocation does not imply commit",
+      "prompt": "Classify these three independent explicit `vibe-coding` turns. Visible specialists match each requested phase.\n\nA. `use vibe-coding. Implement the approved account-export plan. The plan has two independently verifiable slices but no Commit checkpoints section. Do not push.`\nB. `use vibe-coding. Investigate where account-export authorization is checked. Do not change files.`\nC. The user says: `use vibe-coding. Fix the account-export bug.` They did not ask for a commit.\n\nDescribe the route and local-commit handling for each turn.",
+      "expected_output": "The response routes each phase while keeping commit selection separate from invocation and editing.",
       "files": [],
       "expectations": [
-        "For A, routes to plan execution and treats explicit `vibe-coding` use as permission for scoped local commits after verified reviewed slices even though the plan omitted a Commit checkpoints section.",
-        "For A, chooses natural independently verifiable slice boundaries rather than stopping at the end with an uncommitted working tree solely because no checkpoint prose exists.",
-        "For A, does not authorize push, release/version changes, amend, rebase, reset, stash, squash, destructive cleanup, or unrelated dirty paths.",
-        "For B, routes to read-only code investigation and neither asks for commit permission nor proposes an empty commit.",
-        "For C, routes to debug and repair but asks once for the host-required local-commit confirmation in the first turn before edits, not after the fix is complete.",
-        "For C, records or carries that decision for later checkpoints instead of re-asking at closure."
+        "For A, routes to plan execution and leaves verified slices uncommitted because no approved checkpoint or current commit request selects history.",
+        "For B, routes to read-only investigation and creates no commit state.",
+        "For C, routes to debug/repair and does not ask a startup commit question or infer a closure commit.",
+        "Does not treat any supplied invocation, tracked-status, verification, permission, or capability signal as selecting staging or a commit; it need address only signals present in the represented turns.",
+        "Does not expand the requested route or no-push boundary into release, version, rewrite, destructive, or unrelated operations; absent operations need not be enumerated."
       ]
     },
     {
@@ -247,7 +245,7 @@
         "Routes to the visible review specialist because the user continues the review workflow.",
         "Does not interpret exclusion of the payments finding/repair/package as exclusion of the review workflow.",
         "Keeps the payments package outside review-selected fixes and non-editable for this run.",
-        "Preserves the review specialist availability, consent, stop, frozen-target, and write boundaries.",
+        "Preserves the material review boundaries: the visible specialist remains selected, excluded work is not consented to or editable, stop gates remain active, and the frozen target is retained; the answer need not list each boundary label verbatim.",
         "Does not route to ordinary behavior or silently apply the excluded repair."
       ]
     },
@@ -267,17 +265,17 @@
     },
     {
       "id": "E17",
-      "name": "Checkpoint permission does not promote an untracked plan",
-      "prompt": "Classify these two independent explicit `vibe-coding` turns. Visible specialists match the requested phases.\n\nA. `use vibe-coding. Create the implementation plan for the notification cleanup. Project policy says newly created local plans under docs/plans remain untracked unless I separately ask to version them. Do not implement.`\nB. `use vibe-coding. Continue the approved export plan.` The selected plan-execution phase has changed already tracked `src/export.ts` and `tests/export.test.ts`; the slice is independently verified and reviewed, project policy permits local commits, and no stop condition remains.\n\nDescribe action and checkpoint handling for A and B.",
-      "expected_output": "The response preserves default checkpoint permission for eligible tracked work without converting requested artifact creation into tracking or commit authority.",
+      "name": "Artifact creation and verified edits do not select commits",
+      "prompt": "Classify these two independent explicit `vibe-coding` turns. Visible specialists match the requested phases.\n\nA. `use vibe-coding. Create the implementation plan for the notification cleanup. Project policy says newly created local plans under docs/plans remain untracked unless I separately ask to version them. Do not implement.`\nB. `use vibe-coding. Continue the approved export plan.` The selected plan-execution phase has changed already tracked `src/export.ts` and `tests/export.test.ts`; the slice is independently verified and reviewed, project policy permits local commits, and no stop condition remains. The user did not ask for a commit and no approved plan item explicitly selects one.\n\nDescribe action and checkpoint handling for A and B.",
+      "expected_output": "The response keeps requested artifact creation separate from tracking and commit selection; invocation supplies neither.",
       "files": [],
       "expectations": [
-        "For A, routes to implementation planning and allows creation of the requested plan artifact while preserving the explicit project rule that it remains untracked.",
-        "For A, does not treat explicit `vibe-coding` invocation, conventional `docs/plans` placement, creation, relevance, or checkpoint permission as authority to stage or commit the new plan.",
-        "For A, does not create an identity sidecar, implementation change, empty commit, or unrelated tracked artifact.",
-        "For B, routes to plan execution and permits the coordinator-managed local checkpoint for exactly the verified reviewed tracked source and test paths.",
-        "For B, does not require another generic commit instruction and does not expand permission to push, release, version changes, history rewriting, unrelated paths, or a false stop condition.",
-        "Distinguishes artifact creation/edit authority from track, stage, and commit authority while keeping independently eligible checkpoint behavior functional."
+        "For A, routes to implementation planning and permits the requested plan artifact while preserving the rule that it remains untracked.",
+        "For A, does not treat invocation, conventional placement, creation, relevance, or availability as authority to track, stage, or commit.",
+        "For A, creates no identity sidecar, implementation change, empty commit, or unrelated artifact.",
+        "For B, routes to plan execution and reports the verified tracked source/test changes as uncommitted because no commit is selected.",
+        "For B, does not infer history authority from an approved plan, successful review, tracked paths, or project permission.",
+        "Distinguishes the lifecycle transitions at issue—create/edit, track, stage, and commit—and does not imply publishing authority; publishing need not be named when the represented turns do not propose it."
       ]
     }
   ],

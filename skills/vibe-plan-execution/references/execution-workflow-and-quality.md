@@ -1,6 +1,6 @@
 # Execution Workflow and Quality Reference
 
-Read this reference before executing a bound plan slice, launching post-implementation review, updating the implementation-progress ledger, communicating completion or blockers, or applying the final quality checklist.
+Read this reference before executing a bound plan slice, launching post-implementation review, updating an applicable resumable-progress ledger, communicating completion or blockers, or applying the final quality checklist.
 
 ## Post-Implementation Review Gate
 
@@ -98,31 +98,25 @@ receipts.
      dimensions, recovery or known-good evidence, diagnostic-scope controls,
      failure-pattern applicability, plan integrity gates, and current-slice
      `Unproven` or `Accepted risk` items.
-   - Extract `Skill usage plan` rows when present and map them to the current
-     implementation, proof, review, and communication steps.
-   - Extract `Implementation progress` when present. Reconcile the ledger with
-     the implementation steps and commit checkpoints, identify the first
-     `Not started`, `In progress`, or `Blocked` item that the current request
-     authorizes, and verify any existing `Completed` claim before relying on it.
-     If the section is absent from a writable multi-item or checkpointed plan,
-     derive a minimal ledger from the bound implementation steps and checkpoint
-     scopes without changing the plan contract.
+   - Extract `Capability dependencies` when present and re-check only those material dependencies.
+   - Extract `Implementation progress` when present, identify the current item,
+     and verify any `Completed` claim before relying on it. When absent, do not
+     create a ledger merely because the plan has multiple items.
    - Quote or paraphrase the plan's `Proceed condition` when it has one. For
      artifact-backed planning outputs, read the `Proceed condition` before other
      sections.
-   - Extract consent-bound plan items, including history operations outside
-     scoped planned checkpoint commits and other steps that require exact user
-     authorization before implementation, delegation, external side effects, or
-     repository history mutation.
+   - Extract consent-bound plan items, including every selected history
+     operation and other steps that require exact user authorization before
+     implementation, delegation, external side effects, or repository history
+     mutation.
    - If a user-facing summary differs from the full plan artifact, treat the
      artifact as authoritative and stop for a decision when the difference
      changes behavior, scope, tests, risks, or the proceed condition.
    - If the concrete plan requirements are missing and the gap affects
      implementation, stop and ask for a planning update instead of filling it in.
-   - Validate any declared `full-only` or `mutable-contract` identity and digest
-     coverage before selecting an item. If the named item is absent, rebind only
-     through one unique owning candidate plus the referenced artifact's forward
-     pointer; otherwise stop for authority.
+   - Re-read the current plan content and stop if authority-bearing semantic
+     changes lack clear revision authority. If the named item is absent, rebind
+     only through one unique owning candidate plus a clear forward pointer.
 2. **Run startup consent preflight when needed**
    - Apply the Startup Consent Preflight before editing when the bound plan or
      current instruction contains consent-bound items.
@@ -131,7 +125,7 @@ receipts.
      already authorize implementation.
    - If the missing consent affects delegated execution, external side effects,
      destructive operations, data handling, permissions, security, UX, release
-     work, or history mutation outside scoped planned checkpoint commits, stop
+     work, or history mutation, stop
      until the user decides or choose the plan-preserving fallback stated in the
      preflight.
 3. **Verify before editing**
@@ -139,9 +133,7 @@ receipts.
    - Re-check any plan-authored `Local investigation` that affects the current
      slice and record the current workspace result as `Local evidence` before
      using it.
-   - Verify current availability for any `Skill usage plan` route before
-     relying on that route; if unavailable, use the plan's fallback instead of
-     inventing a companion workflow.
+   - Verify current availability for each material capability dependency; if unavailable, use the recorded fallback or stop at its blocker.
    - Use official docs or upstream source for external APIs, framework rules,
      product limits, permissions, data contracts, and unstable facts.
    - Compare the plan with local reality. Record conflicts before choosing an
@@ -180,9 +172,9 @@ receipts.
      reach its verification gate. Otherwise stop at the preceding verified
      checkpoint and record the start/no-start decision; do not split the atomic
      slice merely to fit the session.
-   - For writable artifact-backed plans, update the `Implementation progress`
-     section for the locked item to `In progress` before meaningful edits when
-     that update itself is safe and does not overwrite unrelated plan changes.
+   - If the plan intentionally carries a resumable `Implementation progress`
+     ledger, mark the locked item `In progress` when safe. Otherwise keep the
+     active item in conversation state.
 5. **Prove behavior before or alongside code**
    - Follow the test or proof strategy in the plan. Run or create the core
      acceptance sentinels before edge hardening when the plan contains paired
@@ -249,146 +241,21 @@ receipts.
    - Report suite status, acceptance-coverage status, unresolved scope, and any
      unverified shared edits as separate facts. Report any skipped check with the
      reason and residual risk.
-   - Update `Implementation progress` after the item is verified and reviewed:
-     record `Completed` only with evidence-backed verification and review
-     disposition, and only when all core acceptance sentinels are passed or
-     explicitly accepted as residual; otherwise record `Blocked` / `Skipped with approved deviation` with
-     the evidence, residual risk, and next required action. If the local plan
-     artifact is unavailable or unwritable, put the same progress row in the
-     execution summary and say the artifact was not updated.
-8. **Review and commit verified checkpoints**
-   - Treat an explicit request to execute, implement, apply, or continue the
-     bound plan as scoped permission for local coordinator-managed checkpoints
-     when no current user or project instruction denies commits.
-   - Use eligible plan-authored checkpoints when present. Otherwise choose
-     natural independently verified and reviewed slice boundaries; do not leave
-     the whole run uncommitted merely because the plan omitted checkpoint text.
-   - Do not pause only to ask for another "commit" instruction before a
-     verified checkpoint. Commit each completed checkpoint after verification,
-     the Post-Implementation Review Gate, material finding disposition, and
-     staged/file-set confirmation, before starting the next planned checkpoint.
-   - Checkpoint permission covers only the checkpoint's scoped local
-     commit. It does not authorize push, release preparation, version bumps,
-     amend, reset, stash, squash, destructive operations, external side effects,
-     work-in-progress commits, failing or skipped verification commits, or
-     scope-changing commits.
-   - When the current user instruction or project policy denies commits for a
-     checkpointed plan, follow that decision; do not run through later
-     checkpoints by default. Stop at the first verified uncommitted checkpoint
-     unless the user explicitly chooses another non-commit checkpoint strategy.
-   - Keep each commit logically scoped to the verified checkpoint change.
-   - Do not commit discovery-only, unverified, failing, or work-in-progress states
-     unless the user explicitly accepts that exact state.
-   - Use Conventional Commits and the repository's commit rules.
-   - Transport a multi-line commit message as one complete payload: a
-     single-quoted heredoc such as `git commit -F - <<'EOF' ... EOF`, or a
-     message file passed with `-F`. Never use repeated `-m` arguments for body
-     lines, bullets, verification lines, or trailers, and never embed a raw
-     newline inside a single `-m` value.
-   - Add trailers with `git commit --trailer`, not by typing trailer lines
-     into the message payload.
-   - After each checkpoint commit, verify the stored message with
-     `git show -s --format=%B HEAD` before reporting the checkpoint or
-     starting the next one.
-   - Defer complex history repair beyond the scoped checkpoint commit to a
-     commit-execution workflow when one is visible; checkpoint authorization
-     does not cover it.
-   - Write commit messages as standalone, durable prose: describe the actual
-     behavior or documentation change, not prompt context, conversation context,
-     or plan labels. Avoid references like `per the plan`, `above`,
-     `as requested`, `Phase 1`, `step 2`, or `implementation plan`; name the
-     concrete change instead. Omit order-only phase, slice, checkpoint, or
-     step labels unless they are part of the product or domain name.
-   - Use an outcome-focused subject. Add a body only when it preserves durable
-     context the diff cannot recover: the reason, user-visible contract,
-     compatibility constraint, accepted risk, non-goal, or verification that
-     changes review confidence. Keep durable references such as issue IDs,
-     commands, committed paths, public APIs, and stable error codes; translate or
-     omit local-only run labels, private tool-session records, ignored generated
-     reports, and other proof a fresh-clone reader cannot resolve.
-   - When reporting a proposed commit message, write the commit-message bytes as
-     raw message lines or inline text. Do not wrap the message itself in
-     Markdown fences, labels, or explanatory wrappers that could be copied into
-     the commit.
-     This controls only the commit-message sub-artifact. Unless the user's
-     requested deliverable is only a commit message, do not replace the required
-     execution summary with a bare commit message.
-   - After each authorized checkpoint commit, keep the proof visible in the
-     durable execution summary: the checkpoint, verification command or manual
-     check, result, commit action, and standalone commit message. A test file
-     name or committed diff is not evidence that the check passed. If
-     verification was skipped, unavailable, or failing, report that status
-     instead of claiming a completed checkpoint.
-   - After each authorized checkpoint commit, update the plan artifact's
-     `Implementation progress` row with the commit action and next item before
-     starting the next planned checkpoint. If commits are denied or no commit is
-     planned, record the verified uncommitted status instead of leaving the row
-     ambiguous.
-   - At the next slice start, treat an `In progress` row whose owned checkpoint
-     commit already exists as stale and reconcile it before locking new work.
-
-## Stop Conditions
-
-Stop before implementation, or pause an in-progress implementation, when:
-
-- No concrete implementation plan is available.
-- The plan cannot be bound to the current workspace or branch.
-- The bound plan's proceed condition, blocker, or risk section says
-  implementation is blocked.
-- The plan omits behavior, tests, data handling, permissions, or external
-  contracts needed for the current slice.
-- Local evidence or a primary source contradicts the plan.
-- The plan is internally inconsistent, or a planned implementation step would
-  produce a verified defect, fail acceptance criteria, violate non-goals, or
-  contradict safety, data-handling, permission, security, UX, or external
-  contract constraints, and no plan-preserving correction is available.
-- The only viable implementation path depends on preserving or encoding a
-  workaround for a locally surprising existing behavior, and current evidence
-  makes that behavior material to the slice without proving it is intended.
-- Execution or verification surfaces a runtime defect in existing behavior
-  that the bound plan does not own: no plan or requirements text is wrong, but
-  the defect needs live diagnosis or repair. Stop the affected slice as
-  blocked and report existing-feature repair work for a separate request
-  instead of debugging open-endedly or patching around it inside execution.
-- A verified plan-changing correction has not been reflected in a revised
-  requirements spec, implementation plan, or replacement plan contract that can
-  be rebound before execution resumes.
-- The requested edit requires changing scope, architecture, data model,
-  permissions, billing, security posture, UX behavior, or release process beyond
-  the plan.
-- A consent-bound plan item lacks exact authorization and affects delegated
-  execution, external side effects, destructive operations, data handling,
-  permissions, security, UX, release work, or history mutation outside eligible
-  bound-plan local checkpoint commits.
-- An external API, library, framework, or product limit is relevant but unverified.
-- A proposed deviation has not passed the Plan Deviation Gate.
-- The Post-Implementation Review Gate cannot run in delegated mode or
-  coordinator fallback, or material review findings remain unclassified or
-  blocked before the execution summary or any authorized commit.
-- A control-flow, ordering, lifecycle, concurrency, priority, timeout, fallback,
-  or first-winner correction has not been re-reviewed for the inverse or
-  symmetric failure it could introduce.
-- The only reason for deviating is perceived redundancy, minimalism, preference,
-  speed, memory, or another unverified assumption.
-- The only available path is destructive, irreversible, credential-exposing, or
-  unsafe without additional proof or permission.
-
-Missing plan-authored checkpoint text is not a stop condition for an
-implementation-ready slice. An explicit request to execute, implement, apply,
-or continue the bound plan supplies scoped local checkpoint permission unless
-the user or project denies commits. Use eligible plan checkpoints when present;
-otherwise choose natural independently verified and reviewed slice boundaries.
-Stop only when the needed history operation falls outside that scoped
-permission, the current user instruction or project policy denies commits, or
-the checkpoint cannot be verified, reviewed, or scoped safely.
-
-When stopping, explain:
-
-1. What part of the plan is blocked.
-2. The evidence behind the blocker.
-3. How that evidence affects the plan's `Proceed condition`, when one exists.
-4. The closest viable path that preserves the user's intent.
-5. The decision or proof needed to resume.
+   - Update an existing intentional `Implementation progress` ledger after the
+     item is verified and reviewed. Otherwise put the evidence-backed status,
+     residual risk, and next item in the execution summary. Never create or
+     mutate a progress artifact solely because execution occurred.
+8. **Hand off explicitly selected commits**
+   - Leave verified changes in the working tree unless the current user
+     explicitly asks for a commit or a bound approved plan item explicitly
+     selects that checkpoint.
+   - For a selected checkpoint, preserve the verified scope, test/review receipt,
+     unrelated-path exclusions, and any proposed message, then use the normal
+     commit-execution workflow. Do not stage or commit inside plan execution by
+     implication.
+   - A failed, blocked, unchanged, unverified, or ambiguous slice is never an
+     eligible commit handoff. Push, release, version changes, history rewrites,
+     destructive actions, and external side effects remain separately consented.
 
 ## User Communication
 
@@ -413,9 +280,8 @@ When stopping, explain:
   Payment Webhook Plan` or `inline password-reset regression plan`. Do not
   describe the source as the current conversation, current prompt, current
   instruction, or eval workspace in user-facing output.
-- When startup consent is missing for operations outside scoped planned
-  checkpoint commits, ask for exact operation-specific decisions before the
-  affected slice and explain the data, permission, delegation, external side
+- When startup consent is missing for a selected history operation, ask for the
+  exact operation-specific decision before that operation and explain the data, permission, delegation, external side
   effect, release, or history risk that makes the decision current rather than
   optional cleanup.
 - Include the plan's `Proceed condition` in the initial binding note or the
@@ -453,8 +319,8 @@ When stopping, explain:
 - In the final response, include the bound plan source, implemented slice,
   verification performed, Post-Implementation Review Gate execution mode and
   material finding dispositions, the durable-artifact language hygiene result
-  when applicable, progress-ledger update status, plan deviations or blockers,
-  and any remaining planned steps. For committed checkpoints, show the
+  when applicable, applicable progress-ledger update status, plan deviations or
+  blockers, and any remaining planned steps. For committed checkpoints, show the
   verification that cleared each checkpoint before the commit.
 
 ## Quality Checklist
@@ -465,12 +331,8 @@ Before finalizing:
 - Any referenced local plan file was read before using a summary.
 - The plan's `Proceed condition`, when present, was quoted or paraphrased before
   editing or in the first blocker notice.
-- The plan's `Implementation progress` ledger, when present, was read before
-  choosing the current item, reconciled with implementation steps and commit
-  checkpoints, and treated as stale until current evidence confirmed any
-  completion claim. If the ledger was absent from a writable multi-item or
-  checkpointed plan, a minimal ledger was initialized from the already-bound
-  steps or checkpoint scopes without changing the plan contract.
+- An intentional `Implementation progress` ledger, when present, was read and
+  verified before use. Its absence did not cause execution to create one.
 - The current slice stayed inside the plan or the user approved an
   evidence-backed deviation after the Plan Deviation Gate was satisfied.
 - No planned step was skipped, reordered, narrowed, or replaced for perceived
@@ -515,20 +377,16 @@ Before finalizing:
   and any material wording finding was classified before the execution summary or
   any authorized commit.
 - The final diff was reviewed against plan scope and non-goals.
-- `Skill usage plan` rows, when present, were bound and route availability was
-  re-checked before use.
+- Material `Capability dependencies`, when present, were re-checked and their
+  fallback or blocker behavior was honored.
 - Consent-bound plan items were extracted during plan binding, and unresolved
-  exact authorization for operations outside scoped local checkpoint commits
+  exact authorization for history operations and other consent-bound actions
   was handled by Startup Consent Preflight before the affected slice.
-- Explicit plan execution supplied scoped local checkpoint permission unless the
-  user or project denied commits. Eligible planned checkpoints were used when
-  present; otherwise natural independently verified slice boundaries were used.
-  Denied, unsafe, unchanged, unverified, failing, unscopable, or out-of-scope
-  history operations stopped before the checkpoint or affected operation.
-- Checkpoint commits, if any, were made only after verification,
-  Post-Implementation Review Gate completion, material finding disposition, and
-  staged/file-set confirmation, and used standalone Conventional Commit messages
-  without prompt or plan-label leaks.
+- Commit selection came only from an explicit current request or an explicitly
+  selected bound checkpoint; invocation and natural slice boundaries were not
+  treated as history authority.
+- Any selected checkpoint was handed to the commit-execution workflow only after
+  verification, review, finding disposition, and safe file-set identification.
 - Proposed commit messages were not wrapped in Markdown fences, and execution
   summaries did not rely on prompt-local or harness-local references.
 - User-facing progress updates, blocker notices, consent questions, execution
@@ -537,8 +395,6 @@ Before finalizing:
 - Final checkpoint summaries preserved the bound plan source, `Proceed
   condition` status, per-checkpoint verification result, commit action, and any
   skipped or failing verification status.
-- The writable plan artifact's `Implementation progress` row was updated after
-  each completed, blocked, skipped, or committed item without changing scope,
-  requirements, acceptance criteria, tests, risks, or implementation steps. When
-  the artifact could not be updated, the final summary included the same
-  evidence-backed row and the reason the durable ledger was not changed.
+- An existing intentional progress ledger was updated without changing contract
+  sections, or the execution summary carried the status because no durable ledger
+  was applicable.

@@ -140,9 +140,12 @@ Protected evidence:
   regenerated, or replaced without coordinator approval]
 
 Model and context budget:
-- Capability tier: [token-efficient / standard / strongest suitable / user-fixed], because [quality-neutral lookup, broad synthesis, risk, or user priority].
 - Context digest: [facts and anchors the worker needs; omit unrelated parent transcript].
-- Escalate to coordinator or stronger reasoning/context tier when [contradiction, uncertainty, blocker, risk, or repeated failure].
+- Record capability tier only for an explicit user override, degraded capability,
+  cost/performance constraint, or audited external execution; include the reason
+  when recorded.
+- Escalate to coordinator or stronger reasoning/context tier when [contradiction,
+  uncertainty, blocker, risk, or repeated failure].
 
 Work-graph position:
 - Unit id: [id].

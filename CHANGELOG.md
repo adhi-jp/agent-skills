@@ -11,6 +11,70 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- `vibe-planning` and `vibe-plan-execution` now bind plans by path and current
+  reviewed content instead of maintained full/section digests. Capability
+  dependencies, durable progress, and additional review perspectives are
+  recorded only when feasibility, safety, proof strength, resumability, or risk
+  requires them. Execution/deviation decisions still surface the material
+  high-risk sections, affected existing-behavior dimensions, out-of-scope
+  items, and explicitly non-selected checks that constrain a proposed shortcut.
+  Reserved planning decisions remain bounded by owner, allowed authority,
+  response carrier, and proceed effect and cannot mutate undeclared plan
+  contract sections.
+- `vibe-coding` and state-changing specialists now separate edit authority from
+  commit selection. Verified changes remain in the working tree unless the
+  current user explicitly requests a commit or an approved plan item explicitly
+  selects a checkpoint; the commit workflow retains staging and history safety.
+- Requirements clarification, saved-plan review persistence, code-review effort
+  and cycles, debug ledgers, brainstorm delegation, research counter-checks,
+  commit receipts, model-choice records, and Minecraft reference-route output
+  now scale to the decision, risk, and continuation need instead of using fixed
+  ceremony. Complex, multi-package, reword/amend, conflicted-message, and
+  audit-requested commit receipts still expose source binding, concern coverage,
+  type/scope/outcome bases, the one-commit or split decision, and drift
+  invalidation. Persisted saved-plan review state still fails closed on target
+  mismatch by naming the current target, derived state path, conflicting target,
+  and the resume/replace/preserve decision.
+- `vibe-review` keeps target-drift detection, secret omission, finding validity,
+  semantic deduplication, acceptance proof, and high-cascade notes while removing
+  public fingerprint/token obligations and fixed reviewer/cycle counts. Public
+  findings also omit internal backend/source reference fields while retaining
+  stable in-run identity and coordinator-authored local evidence.
+- `vibe-review` now records delegated response isolation, result shape,
+  mutation containment, local premise verification, and observed topology as
+  independent capabilities. Unisolated structured or free-text results remain
+  explicitly authorized, quarantined, locally reverified candidates, while the
+  fully isolated closed-schema adapter retains its stronger ingestion contract.
+- `vibe-planning` review fan-out now keeps verified-capacity batching and may
+  use one evidence-backed optimistic batch of at most two units when numeric
+  capacity is unavailable. The first capacity-class failure stops further
+  launches and moves unmet perspectives to coordinator fallback.
+- `vibe-orchestrate` now selects external write lanes by the effects the unit
+  requires and the available isolation, canary, allowlist, receipt, and
+  verification boundaries. Bounded Claude edit-only work is no longer rejected
+  by a blanket Codex preference, while process-requiring units still need a
+  proven process-capable lane or local fallback. Coordinator-authored free text
+  and target contents remain residual injection surfaces, and accepted writes
+  require worker-report, manifest, and Git reconciliation against the allowlist
+  before functional verification.
+- `vibe-writing` now uses a host-neutral authorship placeholder in the general
+  trailer-formatting example; actual commit attribution remains bound to the
+  authoring agent and repository convention.
+- Skill evals now pressure the simplified observable outcomes and retained safety
+  boundaries. Shared-runner static validation passed for every changed suite,
+  and the repository test suite passed 271 tests and 19 subtests. Requested
+  full-suite Codex comparisons ran on `gpt-5.6-luna` with both configs and one
+  run per cell: all 580 cells were scored with no infrastructure failures, and
+  every changed suite's aggregate `with_skill` rate exceeded its
+  `without_skill` baseline. Eight closing runs were sanity-clean; seven remain
+  `REVIEW REQUIRED` after artifact-level adjudication—two for valid zero-score
+  baseline cells and five for single-run candidate-below-baseline cells whose
+  failure locations moved across reruns. The measured one-run comparisons do not
+  establish reliability or a causal improvement across changed assertion sets.
+
+
 ## [vibe-coding 2.0.2] - 2026-08-15
 
 ### Fixed

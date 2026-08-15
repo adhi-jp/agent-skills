@@ -1,7 +1,7 @@
 # Localized Labels
 
 Use this reference when rendering item-review output, interpreting user item
-decisions or identifier shortcuts, counting persistence thresholds, reflecting
+decisions or identifier shortcuts, reflecting
 decisions into the plan, or summarizing review results.
 
 ## Language Selection
@@ -63,10 +63,6 @@ unambiguous, such as `2でお願いします`. If a reply contains multiple choi
 label and identifier that map to different decisions, ask the user to clarify.
 Identifiers are shortcuts only for the current item decision; they are not final
 reflection confirmation, scope approval, or permission to start implementation.
-
-`修正` and `保留` are the revise-or-hold decisions for the temporary review-file
-threshold. After identifier normalization, `2` counts as `修正` and `3` counts
-as `保留`.
 
 ## Reflection Semantics
 

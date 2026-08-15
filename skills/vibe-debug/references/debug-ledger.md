@@ -1,6 +1,8 @@
 # Debug Ledger
 
-Use this ledger for every current-scope symptom. Keep it compact, but keep the
+Use this visible ledger only for recurrent, multi-symptom, multi-environment, long-running, interrupted, or user-retest-dependent diagnosis. Simple reproduced bugs may close with symptom, cause, fix, and proof directly.
+
+When this ledger is applicable, use one row for every current-scope symptom. Keep it compact, but keep the
 fields explicit so a later resume cannot silently lose the issue.
 
 | Field | Purpose |

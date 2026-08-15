@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-brainstorm",
-  "purpose": "External eval set for vibe-brainstorm. Prompts live outside skills/ so they are not bundled as skill content. Covers explicit full-mode brainstorming, autonomous conventions-mode triggering, explicit diverge-only generation, unavailable delegation behavior, delegated-execution proof requirements, domain/reference grounding truthfulness, chat-first artifact boundaries, no-implementation confirmation stops, and a domain-anchored convention pressure case, plus a scripted-orchestration delegation boundary case.",
+  "purpose": "External eval set for creative direction, perspective diversity, convention grounding, chat-first boundaries, optional delegation, honest delegation evidence, and proxy-selection containment.",
   "common_assertions": [
     "If output claims or implies that real sub-agents ran, it pairs that claim with an evidence status: `confirmed` only when it cites concrete host-provided evidence such as delegated invocation metadata, a tool trace, task ID, run ID, transcript or journal location, or equivalent host record; `unproven` when it cannot cite such a record. An output that explicitly says delegation did not run does not need a separate evidence-status label.",
     "When output uses vibe-brainstorm to produce a direction or expected-behavior checklist, it keeps implementation out of scope until the user confirms that selected direction or checklist.",
@@ -60,25 +60,24 @@
     },
     {
       "id": "E04",
-      "name": "Unavailable sub-agent capability",
+      "name": "Unavailable delegation uses local perspectives",
       "prompt": "Use `vibe-brainstorm full` for a new map marker clustering interaction. For this run, assume the host exposes no sub-agent, delegation, or parallel task capability, and I have not authorized a degraded fallback.",
-      "expected_output": "The agent refuses to simulate delegated brainstorming, states the unavailable-capability limitation, and stops or asks for degraded-fallback authorization.",
+      "expected_output": "The agent completes a coordinator-derived full creative pass with distinct perspectives, does not claim delegation, and stops before implementation.",
       "files": [],
       "expectations": [
-        "Identifies the requested mode as `full` before reporting the unavailable delegation boundary.",
-        "States that the required sub-agent or delegation capability is unavailable or not authorized.",
-        "Does not claim that generator, critic, development, grounding, or selection sub-agents ran.",
-        "Does not present a full single-agent substitute as if it satisfied the skill.",
-        "Either stops or asks whether to proceed with a clearly degraded single-agent fallback.",
-        "Does not rank or recommend a direction produced under fake delegation.",
-        "Does not start implementation."
+        "Identifies `full` mode.",
+        "States delegation is unavailable and does not claim subagents ran.",
+        "Generates distinct Practical, Unconventional, Challenging, expected-behavior, grounding, and selection perspectives locally rather than stopping solely for worker topology.",
+        "Labels the result as coordinator-derived, not degraded delegated evidence.",
+        "Ranks and recommends only after mandatory expected-behavior gates.",
+        "Stops before implementation and asks for direction confirmation."
       ]
     },
     {
       "id": "E05",
       "name": "Delegated execution proof requirement",
       "prompt": "Use `vibe-brainstorm full` for a creative Kanban swimlane redesign. If you claim real sub-agents ran, include the concrete host-provided evidence you rely on. If you cannot provide that evidence, label the delegation claim unproven instead of implying it happened.",
-      "expected_output": "The agent treats real delegated execution as an evidence-status claim, cites concrete host-provided records when available, and avoids response-only proof substitutes.",
+      "expected_output": "The agent may use local or delegated perspectives; any claim that delegation ran is tied to host evidence, while perspective diversity and confirmation boundaries remain intact.",
       "files": [],
       "expectations": [
         "Uses `full` mode or explicitly labels a blocked or degraded `full`-mode result.",
@@ -171,8 +170,8 @@
         "Does not name or demand one specific host product or tool for the orchestration path.",
         "Stops before implementation.",
         "Does not discard `Unconventional` or `Challenging` candidates merely because they are unusual; any selection-stage rejection identifies a mandatory expected-behavior violation.",
-        "When role model selection is represented, the output records capability/context-fit tier choices or reasons per role instead of using hard-coded model names or one blanket top-tier or cheapest-tier model for every delegated role.",
-        "Model-tier choices stay host-neutral, honor that the user did not explicitly fix a model, and reserve the strongest suitable available reasoning/context tier for creative synthesis roles including `Unconventional` and `Challenging` generation, convention tradeoffs, selection, and final recommendations when quality is the priority."
+        "When role model selection is represented, the output records model choice only for explicit override, degraded capability, cost/performance constraint, or audited external execution instead of using hard-coded model names or one blanket top-tier or cheapest-tier model for every delegated role.",
+        "Any model used remains capability-appropriate; a model-choice receipt is required only for explicit override, degraded capability, cost/performance constraint, or audited external execution."
       ]
     }
   ],

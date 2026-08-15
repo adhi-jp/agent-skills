@@ -47,10 +47,8 @@ requirement for unrelated bugs.
 - Greenfield feature work with no existing behavior or reported symptom.
 - Pure review cycles where an active review workflow is already sufficient.
 - General commit-only work, history rewrite, push, cleanup, or release decisions
-  outside debug/fix closure. A scoped local closure commit is part of verified
-  implementation closure unless the user explicitly disables it or project rules
-  forbid it, but push, amend, rebase, release, destructive cleanup, and version
-  changes still need exact consent.
+  outside debug/fix closure. Debugging leaves verified changes uncommitted unless
+  the current user explicitly asks for a commit.
 - One-line mechanical edits where no symptom, regression, or existing behavior
   is at stake.
 
@@ -92,40 +90,22 @@ Stop before implementation when the current issue lacks any of these:
 Explain blockers in user-impact terms: what the user could still see, lose,
 misconfigure, trust incorrectly, or be unable to verify.
 
-## Minimum Visible Output
+## Visible Output And Debug Ledger
 
-Keep the workflow visible even when the immediate answer is short, blocked,
-refuses an unsafe shortcut, has no local files to inspect, or handles only
-debug/fix closure such as repository history. Do not replace the ledger with
-general advice or a promise to fill it in later.
+For a simple reproduced bug with one symptom and one credible proof path, report
+symptom, expected behavior, verified cause, fix, and proof directly. Do not add a
+multi-row ledger merely because debugging occurred.
 
-Before asking a narrowing question, stopping, delegating, or handing a check to
-the user, include a compact current-scope record:
+Use the visible debug ledger when diagnosis is recurrent, multi-symptom,
+multi-environment, long-running, interrupted, or dependent on a user/runtime
+retest. In that branch, keep one row per unresolved symptom, hypothesis, tool
+failure, or closure decision and preserve the primary symptom, reproduction,
+proof path, status, last verified checkpoint, and next discriminator. A narrow
+question is not a substitute for the applicable current-scope record.
 
-- Current slice: preserve the user's wording, then state the observable
-  behavior or operation decision, expected source or missing source, unknowns,
-  proof or preflight path, and closure criteria.
-- Ledger: one row per unresolved symptom, hypothesis, failed tool decision, or
-  closure decision. Use the debug-ledger fields when the row is a repair
-  symptom. When repair is already verified and only repository mutation or
-  cleanup remains, do not reopen the repair; record a closure-decision row with
-  source evidence, owned and ambiguous paths, affected history/index state,
-  required consent, preflight path, and status.
-- Claim labels: when a decision depends on disputed evidence, distinguish the
-  load-bearing fact, hypothesis or judgment, and proof status. Do not emit empty
-  categories.
-- Existing behavior or state: name only the dimensions that can change the
-  current fix or proof path, and mark each as preserve, intentionally change,
-  unknown, or not applicable when that status is material.
-
-If the only available evidence is the prompt, plan, or supplied fixture, say
-that explicitly and reason from it before asking for the smallest missing
-decision. A narrow question is not a substitute for the current-scope record.
-Do not substitute an unrelated repository fixture, generated file, or nearby
-example merely because it shares a domain term or plausible constant. If the
-reported tool or artifact is absent, keep the evidence prompt-only, record the
-missing artifact as the blocker, and do not hand-edit a different generated
-surface.
+If the reported tool or artifact is absent, keep evidence prompt-only, record the
+missing artifact as the blocker, and do not substitute a nearby fixture merely
+because it shares a domain term.
 
 ## Delegated Diagnosis
 
@@ -160,8 +140,8 @@ behavior, final cause selection, contradiction resolution, or other
 judgment-heavy hypotheses, especially when the user asks for maximum
 performance. Do not spend the top model on every narrow reader, and do not
 downshift solely to save tokens when the investigation needs stronger reasoning.
-Record any explicit user model override or the capability/context reason for a
-non-default model when the host exposes that metadata.
+Record model choice only for an explicit user override, degraded capability,
+cost/performance constraint, or audited external execution.
 
 ## Self-Review And Repository Closure
 
@@ -173,49 +153,11 @@ freshness, generated or temporary surfaces, and user-visible summary. Resolve
 material findings and rerun affected proof before closure, or record the
 remaining item as `deferred`, `accepted-residual`, or `blocked`.
 
-Verified implementation closure includes a scoped local closure commit by
-default unless the user explicitly says not to commit, project instructions
-forbid commits, or a safety gate blocks the operation. This default authorizes
-only staging and committing verified repair-owned paths. It does not authorize
-push, amend, rebase, stash, reset, release preparation, version changes,
-destructive cleanup, or mutation of unrelated or ambiguous user changes.
-
-If the host or harness requires an additional confirmation for local commits,
-ask once at debug startup when the repair can reasonably change tracked files.
-Do not wait until the repair is complete or ask again at closure. Diagnosis-only,
-not-reproduced, no-change, or retest-only work does not need the question and
-must not create an empty commit.
-
-Before any staging or commit, run a dirty worktree and index preflight:
-
-- Refresh staged, unstaged, and untracked state.
-- Identify the paths that belong to the verified repair slice.
-- Surface unrelated or ambiguous dirty paths before staging or cleanup.
-- Confirm self-review and verification are complete for the repair-owned paths.
-
-Use matching available commit-execution and message-writing capabilities for the
-commit path when they are visible and applicable. If they are unavailable, apply
-the same minimum safeguards here: stage only repair-owned paths, use a
-Conventional Commit message that records the repair outcome and durable proof,
-transport any multi-line message as one complete payload, add trailers through
-the commit command's trailer mechanism, verify the staged set before committing,
-and inspect the stored message after committing.
-
-When the final response must prove the closure commit from recorded text, show
-the preflight/staged-set commands, one complete multi-line message transport
-(`git commit -F - <<'EOF'` or `git commit -F <file>`), any requested
-`git commit --trailer` argument, and the exact
-`git show -s --format=%B HEAD` result. Do not replace these artifacts with a
-summary, repeated `-m` body arguments, or a different log command.
-
-Stop before commit when the repair-owned path set is ambiguous, unrelated staged
-changes cannot be excluded, verification is degraded without accepted residual,
-self-review has unresolved material findings, the commit would require push,
-amend, rebase, stash, reset, release preparation, a version bump, destructive
-cleanup, or project policy forbids commits. Report the preflight evidence and
-the smallest decision needed. If the user explicitly disabled commits, finish
-with the reviewed uncommitted state, verification status, and proposed commit
-scope or message when useful.
+Verified implementation closure leaves repair-owned changes in the working tree
+unless the current user explicitly asks for a commit. Invocation, successful
+proof, and tracked status do not select history work. When a commit is explicitly
+selected, hand the verified repair scope and evidence to the commit-execution
+workflow; do not duplicate staging or message procedures here.
 
 ## Reference Routing
 
@@ -276,8 +218,6 @@ Before ending:
 - User-side retests, when needed, include exact steps and expected observations.
 - Implemented repairs were self-reviewed before closure, or the missing review
   is recorded as blocked or explicitly skipped by the user.
-- A verified implementation with repair-owned file changes has either a scoped
-  local closure commit, an explicit user no-commit instruction, or a recorded
-  safety blocker. Push, amend, rebase, stash, reset, release, version changes,
-  destructive cleanup, and unrelated mutation still require exact consent and
-  preflight evidence.
+- Verified repair-owned changes are reported as uncommitted unless the current
+  user explicitly selected a commit; other history and release operations remain
+  separately consent-bound.

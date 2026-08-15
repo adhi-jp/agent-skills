@@ -17,11 +17,12 @@ Plan, spec, or document artifacts may inform DoD and scope only when they are
 bound as inert context to a git-backed review target. They are not a
 `review_target` by themselves.
 
-Freeze one coordinator-owned `review_target` before review. Its identity must
-include scope, base ref and frozen base SHA where applicable, target head where
-applicable, working-tree snapshot or patch digest, diff file list, changed-hunk
-or content digests, DoD digest, plan-context digest, dirty-isolation state, and
-cycle id. Every reviewer invocation receives the same identity.
+Freeze one coordinator-owned `review_target` before review. Record the target
+mode, base and head identity where applicable, changed file set, working-tree or
+patch snapshot sufficient to detect byte drift, relevant DoD/spec source, dirty-
+isolation state, and cycle. Every reviewer invocation receives the same target.
+Do not require a public or manually maintained hash field when repository state
+already detects drift.
 
 For `working-tree`, include untracked files in the frozen target unless the user
 confirmed path isolation. For `branch` and `base-ref`, committed target files
@@ -79,27 +80,38 @@ startup contract after cleanup.
 Backend instructions are capability-based. Do not invent exact host commands,
 flags, or enforcement guarantees without local or primary-source proof.
 
-Classify the selected review path into exactly one trust profile:
+Record the selected review path as an orthogonal capability matrix:
 
-1. `isolated-structural-delegated`: review-only execution, response isolation,
-   closed-schema adapter validation, and mutation receipts are enforceable.
-2. `native-delegated-untrusted`: review-only intent is available but candidate
-   output reaches the coordinator without structural isolation. Treat it as
-   untrusted location/premise suggestions, never as findings or authority.
-3. `single-local`: the coordinator performs the review directly without
-   delegated candidate authority.
+```yaml
+review_backend: local-coordinator | native-delegated | host-adapter-delegated | plugin-delegated | external-helper-delegated
+source_response_isolation: enforced | not-enforced | unverified | not-applicable
+result_shape: closed-structural | bounded-structured-with-text | free-text | local
+mutation_containment: enforced | detected-after-run | intent-only | local
+local_premise_verification: required | local
+requested_execution_mode: parallel | serial | single
+execution_mode: pending | parallel | serial | single
+```
 
-Trust-profile selection changes evidence collection, not the review gates.
-Every profile, including `single-local`, preserves the frozen target,
-DoD/source and scope triage, validity and specification-gap handling, cascade
-controls, acceptance proof, residual decisions, and terminal audit. Record any
-coverage degradation without dropping those gates.
+Use `pending` until lifecycle evidence exists; then `execution_mode` records
+observed execution, not requested topology. Keep planned batch size and
+requested topology in separate launch evidence. Local coordinator review may
+record `source_response_isolation: not-applicable` and `execution_mode: single`
+at startup. Do not infer response isolation from JSON or schema use, mutation
+containment from review-only instructions, or actual concurrency from configured
+fan-out.
 
-Prefer the strongest authorized profile. A live manual session stops for a
-backend decision when the preferred delegated protections are unavailable and
-no fallback was accepted. A recordable unattended run may use only a native or
-local fallback already authorized by its startup policy; it must not wait for a
-human response the transport cannot collect.
+Capability selection changes evidence collection, not review gates. Every path,
+including local coordinator review, preserves the frozen target, DoD/source and
+scope triage, validity and specification-gap handling, cascade controls,
+acceptance proof, residual decisions, and terminal audit. Record any coverage
+degradation without dropping those gates.
+
+Prefer the authorized path that preserves the most task-relevant properties. A
+live manual session stops for a backend decision when the preferred protections
+are unavailable and no fallback was accepted. A recordable unattended run may
+use only an unisolated delegated or local fallback already authorized by its
+startup policy; it must not wait for a human response the transport cannot
+collect.
 
 Recognized backend capability labels:
 
@@ -111,11 +123,13 @@ Recognized backend capability labels:
   the delegated review path when it is installed and configured; it is never
   required for platform-neutral use.
 
-An isolated structural delegated capability counts as available only when it
-also supplies the host-side `delegated_result_record` adapter required by
-§Delegated-result Trust Contract. Review-only execution without response
-isolation and schema validation may be used only as an explicitly authorized
-`native-delegated-untrusted` profile, never as structural evidence.
+The fully isolated closed-structural path counts as available only when it also
+supplies the host-side `delegated_result_record` adapter required by
+§Delegated-result Trust Contract. A bounded structure that includes
+reviewer-authored text is not this schema and does not prove isolation. It may
+be used only through an explicitly authorized unisolated path whose raw text is
+quarantined and whose locations and premises are independently re-established
+from the frozen local target.
 
 A delegated capability may be provided by ad-hoc per-reviewer invocation or by
 one scripted orchestration run: a host mechanism that fans out the reviewers
@@ -142,14 +156,15 @@ synthesis, security/data-safety angles, cascade analysis, final validity
 judgments, contradiction resolution, or findings where weak reasoning would
 become the bottleneck, especially when the user asks for maximum performance. Do
 not default every reviewer to the top model, and do not downshift solely to save
-tokens when a review angle needs stronger reasoning. Record explicit user model
-overrides or the capability/context reason for non-default reviewer models when
-the host exposes that metadata.
+tokens when a review angle needs stronger reasoning. Record model choice only
+for an explicit user override, degraded capability, cost/performance constraint,
+or audited external execution.
 
-Default to adversarial delegated review where the host supports an authorized
-review-only delegated path. If the strongest selected path is unavailable,
-pause for explicit user approval in a live manual session unless a native or
-single-local fallback is already authorized. In recordable unattended
+When proportional effort selects a delegated path, default to adversarial
+review where the host supports an authorized review-only capability. A small
+low-risk target may stay local. If the selected protections are unavailable,
+pause for explicit user approval in a live manual session unless an unisolated
+delegated or local fallback is already authorized. In recordable unattended
 orchestration, use only that pre-authorized non-interactive fallback or record a
 blocker; do not wait for a live reply that cannot arrive. Do not silently
 downgrade, and do not require any specific host plugin or vendor backend.
@@ -162,49 +177,41 @@ effort and angle set unless the user requests reduced effort, single-reviewer
 behavior, or a different angle set. Absence of an adversarial delegated path is
 not a fallback condition in confirmed normal mode.
 
-Use three reviewers as the baseline for a broad ordinary code target when host
-capacity allows it and the user has not customized effort. Start from these
-coverage surfaces:
+Choose effort from target size and risk:
 
-- `correctness/regression`
-- `scope/specification alignment`
-- `edge-case/security/data-safety`
+- one pass is enough for a small low-risk diff when the coordinator covers
+  correctness, scope, and obvious edge/security/data concerns;
+- broad or high-risk diffs use separated angles for correctness/regression,
+  scope/specification, and security/data, plus target-specific risks;
+- additional reviewers or angles require distinct coverage value, not available
+  capacity alone.
 
-Choose the actual angle set from the review target, DoD, plan context, user
-focus, risk, and host capacity. The coordinator may add or split angles when a
-target has materially distinct risk surfaces, such as data migration,
-authentication, concurrency, accessibility, public API compatibility,
-performance, release/ops, or documentation-only contract risk. The coordinator
-may fold or reduce angles when the target is narrow, the user requests lower
-effort, or host capacity is limited, but must keep the baseline coverage
-accounted for by explicit fold/omit records instead of silently dropping it.
-When reducing below the broad-target baseline without a host limit, record why
-separate reviewers would be low-value for this target, where the folded
-correctness, scope/specification, and edge/security/data-safety coverage will be
-handled, and what residual risk is accepted.
-
-One reviewer may own multiple folded angles only when the startup record names
-the folded surfaces. More than three reviewers are allowed when the extra angles
-map to target-specific risks and do not duplicate the baseline reviews. Do not
-split angles merely to spend available capacity, and do not reduce to one
-generic pass for convenience on a broad or risky target.
-
-Delegated serial execution remains delegated review and must be labeled
-`serial`; it is not a downgrade to normal review. After contract confirmation,
-dropping, folding, adding, or splitting a reviewer or angle requires a compact
-contract-amendment prompt, with special visibility when
-edge-case/security/data-safety coverage is removed, folded, or reduced.
+Record material degradation only when required coverage cannot be supplied. A
+user may request lower effort, but unresolved high-risk coverage remains a
+visible residual or blocker.
 
 ## Review Execution
 
 Before launching delegated reviewers, record a bounded delegation budget for each unit. The record must include the deliverable, review angle or question, expected maximum elapsed time, allowed target paths or surfaces, context digest, verification or evidence receipt, stop-and-return conditions, and whether the unit is read-only. Long-session review uses a compact frozen target/context digest by default; full parent-session context requires a recorded reason tied to the review angle. If the same reviewer or scripted run reaches three consecutive timeouts or empty polls, stop simple waiting and request a checkpoint with completed work, unresolved work, changed paths if any, last verification, estimated remaining time, and whether the task must be split. Do not send user-facing “still waiting” updates unless there is a new result, a blocker, a policy change, a needed user decision, or a user-requested reporting cadence.
 
-For every delegated profile, record the frozen target identity immediately
+For every delegated path, record the frozen target identity immediately
 before launch and compare it with post-result target, index, worktree, and
 history receipts. Any unexplained mutation or identity drift invalidates the
-result. Native candidate output is quarantined from downstream reviewers and
-public records; the coordinator may preserve only bounded source identity and
-its own independently verified location/premise disposition.
+result. Every free-text-bearing candidate from a path without enforced response
+isolation is quarantined from downstream reviewers and public records; the
+coordinator may preserve only bounded private source identity, candidate
+locations needed for verification, and its own independently verified
+location/premise disposition.
+
+When the workflow controls delegated run-artifact placement, keep journals,
+transcripts, results, and receipts outside the reviewed working tree in a
+caller-scoped private directory; use mode 0700 where POSIX modes are available.
+Redact before any workflow-authored persistence. If a host or helper necessarily
+writes raw result bytes before the coordinator can redact them, treat that as
+unavoidable transport-owned persistence: record the limitation, keep the
+directory private, exclude it from the review target when safely possible, and
+block it from chat, staging, publication, and commits. Do not claim a later
+overlay sanitized bytes already persisted by the transport.
 
 Before every reviewer invocation:
 
@@ -219,11 +226,12 @@ Before every reviewer invocation:
    review instructions to every reviewer. Reviewers may differ only by angle
    and stance.
 
-After collection:
+After collection, branch by result shape and isolation:
 
 1. Verify no delegated reviewer mutation occurred.
 2. Verify pre- and post-collection digests match for live targets.
-3. Accept only host-validated `delegated_result_record` objects. The adapter must
+3. On the fully isolated closed-structural path, accept only host-validated
+   `delegated_result_record` objects. The adapter must
    discard the original response outside the coordinator context and supply an
    opaque digest or source reference, validation status, and redaction counts.
    Reject the whole source result when it contains unknown fields, invalid
@@ -231,17 +239,27 @@ After collection:
    free text, tool-call requests, or unstructured trailing content. Do not ask
    the coordinator to clean, parse, summarize, or normalize rejected source
    bytes. Report rejection only through closed validation codes.
-4. Convert accepted records into normalized finding records before validity,
+4. On an authorized path without response isolation, do not feed reviewer text
+   through `delegated_result_record`. Keep raw text private, apply secret hygiene
+   before any workflow-controlled persistence or rendering, extract only bounded
+   candidate locations or issue classes needed for local inspection, record
+   `source_response_isolation: not-enforced`, and independently author or reject
+   every premise from the frozen local target.
+5. Convert safe accepted structural records or independently established local
+   premises into normalized finding records before validity,
    spec-gap handling, DoD triage, dedupe decisions, user selection, cascade
    gates, residual decisions, ledger updates, terminal audit, or final
-   rendering. If no safe accepted record remains, stop under §Failure And Stop
+   rendering. If no safe candidate remains, stop under §Failure And Stop
    Conditions instead of carrying source text forward as fallback content.
 
 ## Finding Normalization
 
-Normalize every accepted `delegated_result_record` before downstream handling.
-The coordinator never receives the source response or transcript; normalized
-finding records carry bounded evidence and opaque provenance.
+Normalize every accepted closed `delegated_result_record`, or every premise
+independently established from an authorized unisolated candidate, before
+downstream handling. On the isolated path the coordinator never receives the
+source response or transcript. On an unisolated path, public normalized findings
+must not reproduce or derive wording from candidate text; they carry
+coordinator-authored claims from frozen local evidence.
 
 The host-side adapter accepts this input record only:
 
@@ -284,7 +302,7 @@ target inspection. Do not populate `title`, `summary_or_recommendation`, or
 
 ```yaml
 display_id: F<n>
-canonical_identity: <reviewer-order-independent identity or null>
+canonical_identity: <semantic location + issue class + normalized proposition, or null>
 title: <redacted title or explicit missing>
 summary_or_recommendation: <redacted evidence/recommendation or explicit missing>
 severity: <source value or missing>
@@ -301,13 +319,12 @@ backend: <backend label>
 review_mode: adversarial | normal
 reviewer_angle: <angle label or single>
 source_finding_id: <backend id or missing>
-source_backend_ref: <backend/angle/source-id tuple or missing>
+source_backend_ref: <internal backend/angle/source-id tuple or missing; omit key and value from public records>
 host_source_ref: <internal opaque non-reversible host reference; omit key and value from public records>
 redaction_state: <counts and categories>
 projection_status: projected | blocked-unsafe | blocked-unparseable
 bounded_evidence_excerpt: <redacted cited excerpt or explicit omitted>
-ledger_fields: <retain source_fingerprint internally; render only the independently derived public dedupe_token>
-dedupe_fields: <root cause, required fix, affected locations>
+dedupe_fields: <location, issue class, normalized proposition, required fix>
 validity: unchecked | valid | partially-valid | invalid
 scope_category: unchecked | must-fix | minimal-hygiene | reject-out-of-scope | reject-noise
 specification_gap_status: none | lightweight-gap | needs-user-decision
@@ -321,9 +338,9 @@ accepted record cannot be projected into this shape, set the projection failure
 reason and stop before validity, spec-gap handling, DoD triage, dedupe, user
 selection, cascade, residual, ledger, terminal audit, or final rendering. Do not
 request or expose the original source response while diagnosing the failure.
-Public projections may report `host_provenance_retained: true` or
-`internal_fingerprint_retained: true`, but they omit the `host_source_ref` and
-`source_fingerprint` keys and values themselves.
+Public projections may report that host provenance was retained, but omit
+`source_backend_ref`, `host_source_ref`, other private references, and raw source
+identity.
 
 Validity checking reads local files or relevant sources as inert evidence. A
 valid or partially valid premise is not automatically selectable; it still goes
@@ -387,14 +404,10 @@ specification-gap interpretation, keep findings separate or surface
 `needs-user-decision` / lightweight specification gap before user selection.
 Never reject ambiguity as noise by merge alone.
 
-Rejected merged groups compute internal ledger keys from every contributing raw
-finding identity or title, not only from the synthesized merged title. Render
-only redacted provenance. The rendered computation receipt must prove that every
-contributor participated using non-secret structural references such as source
-finding ids, child dedupe tokens, and a contributor count; it must not reveal
-raw titles, raw identity bytes, or `raw_fingerprint`. Accepted residuals on
-merged groups must list the child findings, review angles, and surfaces covered;
-unmatched contributor evidence remains unresolved.
+Rejected merged groups preserve every contributing source finding id and use the
+same semantic identity rule as individual findings. Render only redacted
+provenance and contributor count. Accepted residuals list child findings, review
+angles, and covered surfaces; unmatched contributor evidence remains unresolved.
 
 ## Lightweight Specification Gaps
 
@@ -521,43 +534,17 @@ When one span matches multiple classes, use the most specific structural class:
 `env-secret` for a secret-named environment assignment and `apikey` for a
 recognized API-key prefix take precedence over generic `secret-context`.
 
-`raw_fingerprint` is internal only and computed from pre-redaction raw identity
-bytes. It is never rendered or forwarded. `dedupe_token` is caller-facing and
-non-secret by construction from structural fields. Never copy, truncate,
-relabel, or otherwise reuse a source `raw_fingerprint` value as a public
-`dedupe_token`, canonical identity, child reference, or computation receipt.
-Only `reject-out-of-scope` and `reject-noise` entries enter the rejected ledger;
-`must-fix` and `minimal-hygiene` never do.
+Use stable in-run finding IDs and semantic deduplication. Two findings match
+when their changed-target location, issue class, and normalized proposition are
+the same after local verification. A repeated rejected finding increments the
+existing ledger entry; changed severity alone does not create a new identity,
+while a changed premise or required fix may.
 
-## Rejected Ledger
-
-Use this logical schema:
-
-```yaml
-rejected_findings_ledger:
-  - id: L1
-    raw_fingerprint: <internal-only sha256, never rendered>
-    dedupe_token: <8-char public token>
-    category: reject-out-of-scope | reject-noise
-    title: <redacted title>
-    reason: <redacted reason>
-    file: <path or null>
-    count: <integer>
-    first_seen_cycle: <integer>
-    last_seen_cycle: <integer>
-    cluster_id: <optional kebab-case group>
-```
-
-When rendering or forwarding ledger data, omit `raw_fingerprint`. Preserve ids
-and counts; do not renumber across cycles. A ledger hit never suppresses a
-finding that is now must-fix, security-relevant, or required by changed DoD.
-
-If a carried ledger entry has the older `fingerprint` field and lacks
-`raw_fingerprint`, migrate it before triage when the old fingerprint is
-parseable. Redact legacy `title` and `reason`, derive `raw_fingerprint` from the
-legacy fingerprint string, remove the rendered `fingerprint` field, preserve the
-stable metadata, and render a compact migration warning. If the legacy shape is
-missing or unparseable, fail closed rather than synthesizing a matching key.
+Only `reject-out-of-scope` and `reject-noise` entries enter the rejected ledger.
+Keep redacted title/reason, location, count, first/last cycle, and optional
+cluster. Do not expose or require raw fingerprints, source fingerprints, or
+public dedupe tokens. A ledger hit never suppresses a now-valid must-fix,
+security-relevant, or newly required finding.
 
 ## Stop Signals And Scope Health
 
@@ -640,27 +627,24 @@ and `batch_gate_status`.
 Edits are forbidden unless both per-finding and batch gates are `closed` or
 `accepted-residual`. `needs-user-decision`, `high-cascade-risk`,
 `invariant-unknown`, accepted residuals, and batch conflicts require user
-prompts. Normal `closed` outcomes may render as compact audit receipts, but the
-run record must retain per-finding `gate_status`, invocation mode, matrix
-evidence, validation evidence, Phase 6 notes, batch envelope, and batch receipt.
+prompts. Normal narrow fixes retain the finding, applied fix, verification, and gate
+status. Detailed sibling/cascade evidence is required only when the fix is
+cross-file, stateful, security/data-sensitive, or otherwise high-cascade.
 
 `accepted-residual` requires the user to record residuals, accepted surfaces,
 validation limits, and next-cycle attack. After that transition, re-run the
 per-finding and batch gates before edits.
 
-After edits, write a Phase 6 note for every applied finding with invariant,
-surfaces checked, tests or verification, known residuals, and likely next-review
-attack. Missing Phase 6 notes abort the next cycle and terminal audit.
-Pre-edit cascade records that discuss a proposed edit must name those Phase 6
-note fields even when the current gate blocks editing, so the later edit path
-does not lose the post-edit record contract.
+After a high-cascade edit, record the invariant, surfaces checked, verification,
+known residuals, and likely sibling risk. For an ordinary self-evident narrow
+fix, the finding, applied fix, and verification are sufficient.
 
 ## Cycles, Terminal Audit, And History Operations
 
-Default to two cycles. The normal convergence shape is: cycle 1 broad review of
-the frozen origin target, implementation of selected findings only, cycle 2
-targeted review of the fix delta plus acceptance sentinels, and at most one
-final broad review when the target and criteria remain fixed. The user may elect
+Run the first proportional review against the frozen origin target. Run another
+cycle only after applied fixes, changed target/evidence, or an explicit user
+request for a new angle. A post-fix cycle targets the changed bytes plus affected
+acceptance sentinels; a zero-fix review goes directly to terminal audit. The user may elect
 extension cycles with the same focus or a materially different angle only when
 `checkpoint_blocked` is not active or after its legal transition is resolved. A
 zero-selectable-finding state still runs terminal audit, then terminates without
@@ -706,34 +690,16 @@ operation. It checks:
 - For `branch` and `base-ref` with applied fixes: commit-state ownership,
   touched-file cleanliness, commit-delta coverage, and unrelated committed path
   confirmation.
-- For all scopes: Phase 6 note presence, per-finding receipt presence and
-  editability, batch envelope presence when required, and batch receipt
-  editability.
+- For all scopes: finding/fix/verification records, plus detailed cascade notes
+  and batch envelopes when the fix was cross-file, stateful, security/data
+  sensitive, or otherwise high-cascade.
 - Dirty-isolation refresh and recovery status.
 
-A scoped local closure commit for verified review-selected fixes is authorized
-by explicit invocation unless the user or project denied commits. Before that
-commit, run the dirty-state and cycle-owned ownership audit, show or internally
-verify the staged file set and cumulative fix diff, confirm isolation-restore
-status, and satisfy conflict-safety preconditions. Inspect the stored message
-and committed file set afterward.
-
-When the requested deliverable is a response-only terminal decision record and
-the prompt supplies a represented review state whose selected fixes and closure
-gates have passed, record the scoped closure commit as the authorized next
-terminal action under those represented facts; no second commit instruction is
-required. Record the passed staged-file-set, cumulative-fix-diff, ownership,
-isolation-restore, and conflict-safety gates plus the required post-commit
-stored-message and committed-file-set checks. Do not replace that state with
-the ambient host or eval-runner checkout merely because the current sandbox has
-no corresponding diff, and do not claim that the commit was executed when the
-delivery mode records only a decision.
-
-Squash, reset, amend, rebase, push, release preparation, version changes, and
-other history-changing operations outside that closure commit require explicit
-operation-specific user consent. Generic review consent or cycle policy does not
-authorize those operations. Never run history mutation while isolation restore
-or conflict handling is pending.
+Review-selected fixes remain uncommitted unless the current user explicitly
+asks for a commit. For an explicit commit, hand the verified cumulative fix scope,
+terminal audit, isolation status, and conflict-safety evidence to the normal
+commit-execution workflow. Squash, reset, amend, rebase, push, release, version,
+and other history changes remain separately consent-bound.
 
 ## Failure And Stop Conditions
 
@@ -747,19 +713,21 @@ Stop or pause before proceeding when:
 - A delegated reviewer mutates state.
 - Target, plan, dirty state, index, or history drifts during fan-out.
 - DoD item 4 is weak and degraded/override handling has not completed.
-- A delegated result lacks host-side response isolation or fails
-  `delegated_result_record` validation. Render only the closed validation code,
-  source backend/id when safe, redaction state, and projection status; do not
-  request, receive, or dump the original reviewer/backend response into the
-  final response, user-selection candidates, ledger, cascade receipt, terminal
-  audit, or fallback output.
+- A path claims the fully isolated closed-structural contract but lacks
+  host-side response isolation or fails `delegated_result_record` validation.
+  Render only the closed validation code, source backend/id when safe, redaction
+  state, and projection status.
+- An unisolated delegated path lacks explicit fallback authorization, cannot
+  quarantine raw candidate text, cannot independently verify premises from the
+  frozen target, or would forward or publish its raw artifacts. Do not dump the
+  original reviewer/backend response into the final response, user-selection
+  candidates, ledger, later prompts, cascade receipt, terminal audit, or
+  fallback output.
 - Duplicate overlap changes fix, severity, scope, cascade risk, or spec-gap
   interpretation and no user decision has resolved it.
 - Cascade or batch gates are not editable.
 - Terminal audit fails.
-- A history operation outside the scoped local closure commit lacks
-  operation-specific consent and preconditions, or the closure commit cannot
-  satisfy its verification, ownership, or isolation gates.
+- A selected history operation lacks operation-specific consent or its verification, ownership, or isolation gates.
 
 Report the blocking evidence, the affected contract field, and the closest
 plan-preserving next action. Do not silently fall back, skip checks, or continue
@@ -769,12 +737,12 @@ under stale identity.
 
 At the end of a run, summarize:
 
-- Review target identity and backend/mode/effort actually used.
+- Review target identity, backend, review mode, capability matrix, effort, and
+  observed execution topology actually used.
 - Normal findings applied, declined, rejected, invalid, and unresolved.
 - Lightweight specification gaps and their decisions.
 - Cascade receipts and accepted residuals.
 - Suite status for executed checks, acceptance coverage from `acceptance_proof`, unresolved scope, and any unverified shared edits as separate facts.
 - Verification performed and gaps that remain.
 - Terminal audit result.
-- Scoped local closure commit status for applied fixes, plus any additional
-  history operations performed only with operation-specific consent.
+- Verified applied fixes as committed only when explicitly requested; otherwise their uncommitted working-tree status.

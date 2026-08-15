@@ -11,6 +11,9 @@ verification interpretation, review dispositions, and user-risk choices with the
 coordinator or the strongest suitable reasoning/context tier available. Use
 token-efficient delegated models for bounded work only when lower capability is
 quality-neutral or the user has prioritized cost or latency.
+Record the model/tier choice only for an explicit user override, degraded
+capability, cost/performance constraint, or audited external execution. Routine
+compatible host-native choices need no separate receipt.
 
 Good token-saving loops reduce repeated context, not proof. Prefer this loop:
 

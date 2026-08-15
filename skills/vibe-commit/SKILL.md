@@ -47,11 +47,11 @@ of that line unless the user says otherwise.
 
 - **Commit when asked; do not push.** A request to commit is not a request to
   push. Do not `git push` unless the user explicitly asks.
-- **Accept owning-workflow handoffs.** An owning state-changing workflow may
-  hand off a verified scoped checkpoint under its invocation-level local commit
-  permission even when the user did not separately say `commit`. Treat that
-  recorded permission like a commit request for the named paths only. It does
-  not authorize broad staging, empty commits, push, release work, version
+- **Accept only selected checkpoint handoffs.** A bound approved plan item may
+  explicitly select a commit checkpoint, in which case its verified scoped
+  handoff counts as the commit request for the named paths. Generic workflow
+  invocation, edit permission, or a convenient checkpoint does not. The handoff
+  never authorizes broad staging, empty commits, push, release work, version
   changes, or history rewriting.
 - **Separate discovery from lifecycle authority.** Status, diff, path
   existence, same-session creation, logical relevance, conventional repository
@@ -110,16 +110,17 @@ deeper on the judgment calls.
    files present, out-of-scope/ignored files absent, diff matches intent. This
    2–3 second gate is the single highest-leverage habit; see
    `references/staging-and-recovery.md`.
-7. **Reconcile message to the exact target diff (mandatory gate).** Read the
-   complete final staged patch, identify its material reader-visible concerns,
-   and map each concern to the proposed message's type, scope, outcome, and
-   body coverage. The receipt names the owner of every peer concern, states the
-   type and scope bases, and explicitly accepts or rejects any supplied candidate
-   subject. Bind it to the current base and index or exact staged patch, and
-   state that source drift invalidates it and requires reconciliation again. If
-   one shared contract cannot account for all concerns, split or stop; do not
-   choose a constituent scope merely because one package was processed last or
-   has the most files. See `references/history-and-trailers.md`.
+7. **Reconcile message to the exact target diff (mandatory internal gate).** Read
+   the complete final staged patch and map every material concern to the proposed
+   type, scope, outcome, body coverage, and one-commit or split decision. Bind
+   the decision to the current staged bytes; source drift invalidates it. Show a
+   detailed public receipt only for complex or multi-package changes,
+   reword/amend work, a supplied-message conflict, or a user-requested audit. In
+   those cases, keep the receipt compact but explicit about the source target,
+   peer concerns and shared contract, type/scope/outcome bases, subject/body
+   coverage, one-commit or split decision, supplied-message disposition, and the
+   rule that source-patch drift requires reconciliation again. See
+   `references/history-and-trailers.md`.
 8. **Decide amend vs. new.** Create a NEW commit by default. Only `--amend` to
    fix the immediately preceding, unpushed commit. See
    `references/history-and-trailers.md`.
@@ -146,7 +147,7 @@ deeper on the judgment calls.
     commands without review meaning, and local-only proof-source leakage such as
     git-unmanaged local generated artifacts, ignored result files, local-only
     run IDs, or private tool-session records. Compare the stored message with
-    the exact committed patch and the pre-commit reconciliation receipt;
+    the exact committed patch and the internal pre-commit reconciliation;
     `git show --stat HEAD` is only an auxiliary file-set check. A semantic
     mismatch remains incomplete and is repaired only within existing
     unpushed-history authority. `git status --short` confirms only
@@ -242,10 +243,10 @@ Before reporting the commit done:
   mandatory coupling, rather than only relevance, path placement, or commit
   permission?
 - Did you read `git diff --cached` (not just the file list) and run `--check`?
-- Does a visible message-to-diff receipt map every material concern in the exact
-  target patch to type, scope, outcome, body coverage, and the one-commit or
-  split decision, name peer owners, disposition any supplied candidate subject,
-  and invalidate on source drift?
+- Did internal message-to-diff reconciliation cover every material concern and
+  invalidate on source drift? When the change is complex, multi-package,
+  reword/amend, conflicted with a supplied message, or audit-requested, did the
+  public receipt expose that decision clearly?
 - Is the subject a Conventional Commit naming the outcome, with the body kept to
   context the diff cannot recover?
 - Did you verify the **stored** commit (`git show -s --format=%B HEAD` and

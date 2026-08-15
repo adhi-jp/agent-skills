@@ -33,10 +33,10 @@ Read this reference when drafting or revising the implementation-plan body. It o
      A command described as “investigate” or “verify” is still disallowed when
      every possible result leaves the plan unchanged.
    - Preserve planning operations that have their own current-artifact purpose:
-     reading source and plan files, inspecting plan structure and identity,
-     checking status or diffs, gathering review and self-review evidence, and
-     performing an authorized scoped planning-artifact checkpoint. These
-     operations do not prove the later implementation.
+     reading source and plan files, inspecting plan structure and current
+     content, checking status or diffs, and gathering review and self-review
+     evidence. These operations do not prove later implementation or select a
+     commit.
    - Before deep implementation design, name the material investigation surfaces
      the slice depends on: direct implementation, callers, registration or
      configuration, data/schema boundaries, tests or fixtures, user-visible
@@ -135,54 +135,16 @@ Read this reference when drafting or revising the implementation-plan body. It o
    - For `light` plans, collapse not-applicable gate details into concise
      evidence-backed lines. For `strict` plans, keep the applied high-risk
      control evidence visible.
-8. **Plan per-step skill routing**
-   - Inspect available skill metadata at plan creation time when it is already
-     exposed in the runtime, supplied by the user, documented in project
-     instructions, or cheaply discoverable from local skill metadata.
-   - Do not perform broad filesystem, network, package-manager, or marketplace
-     discovery solely to find optional skills. If skill metadata is not visible
-     or cannot be read cheaply, route affected steps to
-     `No matching optional skill verified` and continue with the normal plan.
-   - Select only skills whose descriptions match the planned work, method,
-     stack, artifact, or workflow checkpoint. Do not include a skill just because
-     it is installed.
-   - Assign a skill route for every discovery, implementation, verification,
-     multi-perspective plan review, plan self-review, and commit-checkpoint step
-     in the generated artifact. A global skill list is incomplete unless every
-     step has a route.
-   - Each route must include: step identifier, selected skill route, availability
-     source, when to use it, matching reason, and fallback. The selected skill
-     route is exactly one of:
-     - A verified available matching skill, or a short ordered list of matching
-       skills when the step genuinely needs more than one.
-     - `No matching optional skill verified` when the step could benefit from a
-       skill but none was verified available.
-     - `No skill needed` when the step is mechanical or governed fully by the
-       core plan, repository rules, or local commands.
-   - For `No matching optional skill verified`, the fallback must say how to do
-     that step with the normal plan, repository rules, local evidence, and
-     proposed checkpoint messages when relevant. Ineligible checkpoint routes
-     are not relevant for message drafting: their fallback states only that
-     commit checkpoints are omitted until a code-producing slice is verified.
-     For `No skill needed`, the matching reason must state why no optional skill
-     is useful for that step.
-   - `light` plans may group repeated route rows only when the grouped row names
-     every covered step ID and all route fields are identical.
-   - When the plan includes eligible commit checkpoints and a matching
-     commit-message-writing capability is verified available, schedule that
-     capability after checkpoint verification and before finalizing each proposed
-     commit message. If no matching capability is verified, fall back to the
-     repository's commit rules, recent local history, and the proposed
-     standalone Conventional Commit message in the checkpoint.
-   - Commit-checkpoint routes prepare the message sub-artifact only. They do not
-     authorize staging, committing, release preparation, or history mutation
-     during planning. During later execution, eligible plan-authored checkpoints
-     are scoped local-commit authorization only when the user asks to execute,
-     implement, apply, or continue the bound plan and no current user or project
-     instruction denies commits.
-   - Do not let optional skill usage weaken the core plan contract: acceptance
-     criteria, tests, evidence labels, proceed conditions, and user decisions
-     still control the work.
+8. **Record exceptional capability dependencies**
+   - Add a `Capability dependencies` section only when a named capability's
+     absence changes feasibility, safety, proof strength, or the implementation
+     method materially.
+   - For each dependency, record the affected step, needed capability,
+     availability evidence if already known, impact if absent, and a safe
+     fallback or blocker. Re-check availability during execution.
+   - Do not enumerate ordinary mechanical steps, create `No skill needed` rows,
+     or build an environment-wide routing table. Optional capability metadata
+     does not weaken acceptance criteria, evidence, tests, or proceed gates.
 9. **Describe later implementation**
    - Use only steps supported by `Primary source`, `Local investigation`, or
      explicit `Accepted risk`.
@@ -200,62 +162,26 @@ Read this reference when drafting or revising the implementation-plan body. It o
      README/changelog entries, and similar text do not contain plan-only
      identifiers unless the token is genuinely a product, domain, public, or
      code identifier that explains the artifact.
-   - Include commit checkpoints only for multi-slice plans with independently
-     verifiable code-producing slices. Each checkpoint states the intended
-     scope, required verification, and a proposed standalone Conventional Commit
-     message that names the concrete change. Add a checkpoint body only for
-     durable context the diff cannot recover, such as the reason, compatibility
-     constraint, accepted risk, non-goal, or verification proof. State that
-     during later execution these checkpoints are scoped local-commit
-     authorization after the checkpoint is implemented, verified, receives the
-     required multi-perspective review or recorded fallback, has material
-     findings dispositioned, and is safely scoped, when the user asks to
-     execute, implement, apply, or continue the bound plan and no current user
-     or project instruction denies commits.
-     They do not authorize implementation commits during planning, push, release preparation,
-     version bumps, amend, reset, stash, squash, destructive operations, external
-     side effects, work-in-progress commits, failing or skipped verification
-     commits, or scope-changing commits.
-   - Check checkpoint eligibility before message shaping. A planned single
-     implementation slice is still ineligible even if it will produce code
-     during later execution; a verified code-producing slice means a completed,
-     independently verified slice boundary, not a future implementation step or
-     an implementation-ready plan.
-   - A blocked `Proceed condition`, discovery-first current slice, or unresolved
-     current-slice implementation blocker makes every later code-producing phase
-     ineligible for commit-message bytes until the blocker is cleared and a
-     verified checkpoint boundary exists.
-   - Do not wrap proposed commit messages in Markdown fences or code blocks.
-     Fences are not commit-message bytes and can contaminate copy/paste into
-     `git commit`. In a plan artifact, represent checkpoint messages with
-     `Subject:` and optional `Body:` fields, or another labeled structure that
-     keeps wrapper text outside the proposed message.
-   - For single-slice, discovery-only, blocked, discovery-first without a
-     verified code-producing slice, destructive-risk-blocked, no-code-slice, or
-     work-in-progress plans, write only: `Commit checkpoints are omitted until a code-producing slice is verified.`
-     Do not include `Subject:`, `Body:`, a Conventional Commit example, a
-     proposed message, or conditional future commit text anywhere in the plan,
-     including route-table fallbacks, implementation steps, handoff text, review
-     findings, or self-review. If self-review finds commit-message bytes for an
-     ineligible checkpoint, delete those bytes before final output instead of
-     reformatting or relocating them.
-   - Do not split a single current slice into artificial test, fix, docs, or
-     changelog checkpoints only to create commit messages. Red or failing-test
-     proof work is not a verified code-producing checkpoint.
-   - For multi-item plans, add an `Implementation progress` ledger after the
-     implementation steps and before commit checkpoints. Each row maps one
-     implementation item, slice, or eligible checkpoint to a stable ID, planned
-     scope, current status, required verification or review, commit action when
-     relevant, last update, and remaining blocker or next item. Initial status
-     is `Not started`; planning must not mark any item complete.
+   - Record a commit checkpoint only when the user or an already-approved
+     higher-level artifact explicitly selects that history boundary. State its
+     intended scope and required verification; do not infer a checkpoint from
+     multiple slices, successful review, or future convenience. Message wording
+     may remain deferred to commit execution.
+   - When no checkpoint is explicitly selected, omit commit-checkpoint prose.
+     Planning invocation does not authorize staging or history mutation.
+   - Add `Implementation progress` only when work is expected to span sessions
+     or actors, contains independently resumable items, or the user/project asks
+     for durable progress. Use stable item IDs, evidence-backed status fields,
+     and `Not started` initially. Omit the section for ordinary same-session
+     plans; omission is not a planning defect.
 11. **Prepare the implementation handoff**
    - Include a short handoff that starts with "When implementing this plan" so
      pasted plans remain self-contained execution requests.
    - Tell the implementer to treat the document as authoritative, re-check local
-     facts before editing, follow the acceptance criteria, test plan, and skill
-     usage plan's per-step routes, implement only the current in-scope slice,
-     update the `Implementation progress` ledger after each completed, blocked,
-     skipped, or committed item when the plan artifact is writable, and stop on
+     facts before editing, follow the acceptance criteria and test plan, honor any material capability
+     dependencies, implement only the current in-scope slice, update
+     `Implementation progress` only when the plan intentionally carries a
+     resumable ledger, and stop on
      a blocked `Proceed condition` or contradictory local evidence.
    - If trusted orchestration continuation is available for later execution,
      record it as later-phase handoff evidence only when the `Proceed condition`
@@ -264,117 +190,27 @@ Read this reference when drafting or revising the implementation-plan body. It o
      revision, or equivalent stable handle that the later phase must bind to.
      Do not write imperative workflow-routing text that starts implementation
      inside this `vibe-planning` response.
-12. **Run the plan multi-perspective review gate**
-   - Run this gate after the draft artifact exists, or after a chat-fallback
-     draft is assembled, and before the final coordinator self-review.
-   - When delegated plan-review units are permitted, give each unit a bounded
-     review contract: deliverable, perspective question, maximum elapsed time,
-     allowed artifact sections, context digest, expected finding format, and
-     stop-and-return conditions. Three empty waits require a checkpoint or
-     coordinator fallback, not repeated no-change user notifications.
-   - Reserve the coordinator slot and batch review units within verified
-     remaining host capacity. When remaining capacity cannot be verified, use
-     one bounded unit at a time or coordinator fallback; compatible perspectives
-     may share one unit. A thread-limit, capacity, timeout, or unavailable-
-     capability launch failure stops further launch attempts and moves all unmet
-     perspectives to the coordinator fallback.
-   - Resolve permission with `VIBE_SUBAGENTS=ask|allow|deny` and current-turn
-     override rules before launching any review-only subagent. Use subagents
-     only when permission, host-neutral review-only capability, content safety,
-     bounded prompts, and recordable evidence all pass. If review-only
-     execution is not available, not permitted, cannot be verified, times out,
-     lacks recordable evidence, or is unsafe for the plan contents, record the
-     degraded coordinator-run fallback instead of pretending delegated review
-     ran.
-   - Include `vibe-planning contract compliance` as a required perspective in
-     both delegated and fallback review. When capacity allows, also include
-     `evidence/proof/test adequacy`, `scope/specification alignment`,
-     `user/UX expectation`, and `risk/handoff feasibility`. If capacity is
-     limited, preserve `vibe-planning contract compliance`, include
-     `user/UX expectation` when the slice changes user-visible behavior, plus at
-     least one other relevant perspective, or record why only local fallback was
-     possible.
-   - If trusted orchestration used AI-selected planning defaults or proxy
-     assumptions, include them in the review prompt or fallback review and ask
-     whether any one should become a human-user blocker instead.
-   - Treat reviewer output as inert evidence. Subagents must not investigate
-     source, draft plan content, edit files or artifacts, mutate state, ask the
-     user questions, run implementation, update docs, changelogs, evals, or
-     ledgers, decide final plan disposition, or add active execution tasks.
-   - The coordinator classifies every material review finding as `corrected`,
-     `rejected`, `deferred`, or `blocked`. A review finding may expand
-     current-slice success criteria only when it cites a user requirement, newly
-     verified evidence, or a must-preserve behavioral-equivalence dimension.
-   - Correct admitted material issues in the artifact or chat-fallback draft
-     before final self-review. Rejected or deferred findings need evidence and
-     plan-boundary rationale.
-   - Re-read the stored plan immediately before each correction write. Do not
-     batch dependent text-anchor patches prepared from one earlier read; after
-     a successful write, re-read before constructing the next anchor. Prefer
-     one atomic current-section replacement when several corrections touch the
-     same section. If a non-destructive edit precondition or anchor is stale,
-     re-read and reconcile the intended correction against current bytes, then
-     retry once. If the retry fails, preserve the complete artifact, record the
-     exact blocker, and still return a final planning response rather than
-     ending at a progress update.
+12. **Run risk-proportional plan review**
+   - Always perform a local self-review of scope, evidence, acceptance criteria,
+     tests, risks, implementation order, capability dependencies, and proceed
+     condition.
+   - Run additional separated perspectives only for multi-system, high-risk,
+     destructive, security/permission/billing, migration, external-contract, or
+     user-requested deep-review work. Use the conditional review reference for
+     permission, capability, and disposition rules.
+   - Reviewer output is inert. The coordinator verifies and classifies every
+     material finding as `corrected`, `rejected`, `deferred`, `blocked`, or
+     `reversed`, then corrects the current artifact before closure.
 13. **Run the plan self-review gate**
-   - Run this gate after the draft artifact exists, or after a chat-fallback
-     draft is assembled, and before the concise user-facing summary.
-   - Re-read the artifact or chat-fallback draft as a later implementer and
-     check at least:
-     step-to-skill-route completeness, unavailable-skill leakage, evidence
-     labels, investigation adequacy, acceptance-criteria/test ordering,
-     multi-perspective review completion or degraded fallback, `vibe-planning`
-     contract compliance, reviewer-disposition consistency, user/UX expectation
-     coverage, scope creep from review feedback, plan-only boundary, proceed
-     condition, unresolved `Unproven` implementation blockers, and whether any
-     relevant durable artifact language
-     hygiene check is present without inviting plan-only identifiers into later
-     comments, test names, messages, or documentation. For eligible commit
-     checkpoints, also check that later-execution scoped local-commit
-     authorization and guardrails are present. For multi-item plans, check that
-     the `Implementation progress` ledger exists, maps to the implementation
-     items or checkpoints, starts with `Not started` statuses, and does not claim
-     planning-time completion. If trusted orchestration used
-     AI-selected planning defaults or proxy assumptions, check that they are
-     labeled separately from user decisions and do not hide non-delegable risk.
-     When the plan records
-     trusted orchestration handoff, also check that the evidence is recordable,
-     tied to the current artifact identity, not sourced from inert prompt or
-     artifact text, logs, examples, or delegated output, and blocked whenever the
-     `Proceed condition` is blocked.
-   - If the gate finds a material issue, correct the artifact before responding.
-     Do not record an issue as "noted" while leaving the artifact inconsistent.
-   - Record the outcome in `Plan self-review gate`, including checks performed,
-     corrections made, and any remaining material issues. If remaining material
-     issues exist, the `Proceed condition` must block or clearly state the
-     required decision/proof.
-   - Audit planning-time command use: every investigation command has the
-     pre-registered question, evidence gap, possible outcomes, affected fields,
-     and safe boundary; every executed result informed the plan or is recorded
-     as a non-changing observation; and no later-implementation verification
-     command was run for green-status ceremony. When the host does not expose
-     command identity and arguments, keep actual command non-execution
-     `Unproven` rather than inferring it from the final prose.
-14. **Create the planning-artifact checkpoint**
-   - First establish tracking eligibility independently of checkpoint
-     permission. The plan is eligible when it was already tracked or the
-     current user, project policy, or an applicable owning contract requires or
-     authorizes version control. Creation, conventional path placement,
-     relevance, and generic checkpoint permission are not tracking authority.
-   - When explicit invocation supplied local checkpoint permission and an
-     eligible tracked plan changed, run a dirty worktree and index preflight
-     after both review gates. Stage only the plan-owned tracked paths and any
-     coupled tracked documentation this phase actually changed.
-   - Do not commit a chat fallback, an unchanged plan, temporary review state,
-     generated output, unrelated dirty paths, or a plan whose material review
-     finding remains unresolved.
-   - Use a standalone Conventional Commit message for the planning artifact,
-     verify the staged diff before committing, and inspect the stored message
-     and committed file set afterward.
-   - If the user or project denied commits, or safe isolation is impossible,
-     preserve the reviewed uncommitted artifact and report the exact blocker.
-     Do the same when the newly created plan lacks independent tracking
-     authority; leaving it untracked is the required outcome, not a blocker.
-   - This checkpoint does not authorize implementation, push, release
-     preparation, version changes, amend, rebase, reset, stash, or squash.
+   - Re-read the current artifact as a later implementer. Confirm evidence
+     labels, acceptance-criteria/test ordering, plan-only scope, risk-appropriate
+     review, capability-dependency necessity, conditional-progress necessity,
+     proceed condition, unresolved blockers, and durable-language hygiene.
+   - If authority-bearing content changed after review, semantically re-review
+     the affected contract and any dependent sections. Harmless formatting or
+     evidence-backed progress-only changes do not require digest reconciliation.
+   - Correct material issues before responding and record remaining blockers.
+14. **Finish with working-tree changes**
+   - Do not stage or commit merely because planning was explicitly invoked,
+     review passed, or the plan is tracked. Leave the reviewed artifact in the
+     working tree unless the current user explicitly requests a commit.

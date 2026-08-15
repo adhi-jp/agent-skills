@@ -14,18 +14,17 @@ Read this reference before finalizing any implementation plan or plan revision. 
   this response stop into a categorical requirement for another user prompt.
 - Do not provide patches, edit non-plan files, or claim that code, tests,
   non-plan docs, evals, configs, changelogs, or other implementation work is
-  complete. The only commit this phase may make is the reviewed eligible tracked
-  planning-artifact checkpoint described by the owning skill. Checkpoint
-  permission does not promote a newly created untracked plan into version
-  control. Non-mutating investigation is allowed when it grounds the plan.
+  complete. Planning does not stage or commit; verified plan changes remain in
+  the working tree unless the current user later selects a commit. Non-mutating
+  investigation is allowed when it grounds the plan.
 - Plan-readiness language is later-execution handoff, not current-turn
   authorization. `Implementation plan`, `Commit checkpoints`, `Implementation
   handoff`, `Current slice`, `Proceed condition`, `implementation-ready`, or a
   completed planning phase may indicate that a separate execution request can
   begin; they must not trigger implementation while this skill is active.
 - Trusted orchestration continuation after planning is allowed only as a later
-  phase when the plan artifact has completed multi-perspective review or
-  recorded fallback, completed self-review, and has a ready `Proceed condition`
+  phase when the plan artifact has completed local self-review, any risk-triggered
+  additional perspectives, and has a ready `Proceed condition`
   or a conditional `Proceed condition` tied to already-recorded explicit
   human-user `Accepted risk`. Blocked, discovery-first, destructive-risk-blocked,
   or current-slice-blocker plans must stop orchestration continuation rather than
@@ -96,13 +95,10 @@ Read this reference before finalizing any implementation plan or plan revision. 
   product or domain terms, function and field names, public issue IDs, stable
   error codes, and code identifiers when they explain behavior or trace to a
   durable source.
-- For plans with multiple implementation items, slices, or eligible commit
-  checkpoints, include an `Implementation progress` section that later execution
-  can update in place. The section starts every item as `Not started` and gives
-  stable item IDs, the planned scope, required proof or review, commit
-  expectation when applicable, and a field for the latest evidence-backed
-  status. This is a resume ledger for later agents, not current-turn
-  implementation authorization or a planning-time completion claim.
+- Include `Implementation progress` only when work is expected to span sessions
+  or actors, contains independently resumable items, or the user/project asks
+  for durable progress. It starts unverified items as `Not started` and remains
+  resume state, not proof. Ordinary multi-step same-session plans may omit it.
 - Treat concrete examples, fixtures, project memories, and history-derived
   failure cases as evidence or pressure tests, not skill boundaries. Before an
   example changes scope, acceptance criteria, tests, or implementation order,
@@ -280,10 +276,10 @@ proof strategy, or the proceed condition.
   shows the slice has no existing-behavior change, external contract,
   destructive operation, auth/security/billing boundary, data migration,
   diagnostic finding, replacement/restoration/rollback/rewrite, or
-  current-slice implementation blocker. `light` reduces rendering only: it still
-  needs evidence labels, acceptance criteria before tests, tests before
-  implementation, per-step skill routing, multi-perspective review or recorded
-  fallback, self-review, and a proceed condition.
+  current-slice implementation blocker. `light` reduces rendering only: it still needs evidence labels, acceptance
+  criteria before tests, tests before implementation, material capability
+  dependencies when any exist, local self-review, risk-triggered additional
+  perspectives when applicable, and a proceed condition.
 - `strict` plans are required when the slice touches existing behavior,
   high-risk planning controls, external contracts, destructive risk,
   diagnostic/review/audit/analyzer findings, recovery or replacement work,
@@ -297,10 +293,10 @@ Compact rendering is allowed only for `light` plans:
   evidence-backed not-applicable reason in `Plan integrity gates`.
 - Collapse not-applicable gate details into concise lines instead of expanding
   every subfield.
-- Group repeated skill-route rows only when the row names every covered step ID
-  and all route fields are identical. A grouped row is not a global skill list.
-- Keep the `Multi-perspective plan review` and `Plan self-review gate` concise,
-  but correct material issues before responding.
+- Keep capability dependencies concise and omit the section when no dependency
+  materially changes feasibility, safety, proof strength, or method.
+- Keep additional-perspective review, when triggered, and plan self-review
+  concise, but correct material issues before responding.
 
 Classify every `Unproven` item by `Phase relevance`:
 

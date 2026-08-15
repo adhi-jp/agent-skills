@@ -8,7 +8,9 @@ bytes, then verify what git stored.
 ## Message-to-diff reconciliation
 
 Before executing a freshly composed or reworded message, inspect the complete
-exact target patch and create a compact visible receipt:
+exact target patch and create an internal reconciliation. Render this detailed
+receipt only for complex or multi-package changes, reword/amend work, a supplied-
+message conflict, or a user-requested audit:
 
 - `source target`: base commit plus index tree or exact staged-patch identity;
   for reword/amend, the source commit, parent, tree, and exact source patch;
@@ -27,14 +29,14 @@ tests, docs, metadata, or changelog support for that owner's one contract. If
 two peer contracts have no honest shared owner or outcome, split or stop before
 the commit command.
 
-Bind the receipt to its source epoch. Any unexpected change to the base,
+Bind the reconciliation to its source epoch. Any unexpected change to the base,
 parent, index tree, exact patch, concern set, or intended contract invalidates
-the receipt and requires staged-diff and message reconciliation again. The new
+the decision and requires staged-diff and message reconciliation again. The new
 commit identity created by an authorized commit is a separate output epoch, not
 source drift.
 
 After the commit, compare `git show -s --format=%B HEAD` and the exact committed
-patch, such as `git diff HEAD^ HEAD`, with the receipt. `git show --stat HEAD`
+patch, such as `git diff HEAD^ HEAD`, with the reconciliation. `git show --stat HEAD`
 corroborates file scope but cannot prove semantic concern coverage. A mismatch
 is not complete: repair it only when existing authority permits rewriting the
 unpushed local commit; otherwise stop and report it.

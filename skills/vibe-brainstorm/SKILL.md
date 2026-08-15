@@ -18,9 +18,10 @@ phase does not stop on multiple preference questions. That proxy selection is
 an AI-selected direction for later requirements or planning work, not explicit
 human-user confirmation and not implementation authorization.
 
-This is not a hidden single-agent brainstorming prompt. When a mode requires
-delegation, use real sub-agents only after the host exposes verified delegation
-capability and the current task authorizes it.
+Multiple perspectives are a reasoning goal, not a fixed worker topology. Use
+separate delegated roles only when independence or specialist context adds
+material value and the host safely supports it; otherwise produce the same
+perspective separation locally without claiming delegation.
 
 ## Activation
 
@@ -65,7 +66,7 @@ and selection are all necessary before implementation can be scoped.
 
 ## Delegation Gate
 
-Before running any mode or stage that requires sub-agents:
+Before using delegated perspectives:
 
 1. Verify the host exposes a delegation or sub-agent mechanism.
 2. Verify the current task allows delegated work and any required data sharing.
@@ -91,14 +92,11 @@ Before running any mode or stage that requires sub-agents:
    resolution, or user-risk judgments, especially when the user asks for maximum
    performance. Do not inherit the top model for every small role, and do not
    downshift solely to save tokens when the role needs stronger reasoning.
-   Record any explicit user model override or the capability/context reason for
-   a non-default model in the delegation evidence when the host exposes that
-   metadata.
-6. If delegation is unavailable, unrecordable, or not authorized for a required
-   stage, state that limitation and stop, or ask whether the user wants a
-   clearly degraded single-agent fallback.
-7. If the user authorizes a degraded fallback, label it as degraded and do not
-   claim sub-agents ran.
+   Record model choice only for an explicit user override, degraded capability,
+   cost/performance constraint, or audited external execution.
+6. If delegation is unavailable, unrecordable, or not authorized, continue with
+   coordinator-separated perspectives unless independence is itself material;
+   in that exceptional case, state the limitation and stop or ask about risk.
 
 A delegation mechanism may be ad-hoc per-role sub-agent invocation or one
 scripted orchestration run: a host mechanism that fans out several roles under
@@ -136,10 +134,10 @@ record you rely on. If those records are unavailable or cannot be cited, label
 real delegation as `unproven` and keep any fallback or coordinator-only result
 separate from confirmed delegated output.
 
-
 ## Delegated Roles
 
-When delegation is verified and authorized, use real sub-agents for these roles:
+When delegation is verified, authorized, and materially useful, choose from
+these roles rather than requiring all of them:
 
 - `Practical` generator.
 - `Unconventional` generator.
@@ -150,8 +148,8 @@ When delegation is verified and authorized, use real sub-agents for these roles:
   references.
 - Selection role for applying the mandatory gate and creativity ranking.
 
-If any role required by the selected mode cannot run, follow the Delegation Gate
-instead of silently collapsing that role into the coordinator.
+Cover every selected perspective, but do not stop merely because one named role
+cannot launch; use local reasoning unless independent evidence is required.
 
 ## Modes
 
@@ -159,7 +157,7 @@ instead of silently collapsing that role into the coordinator.
 
 Use for idea generation only.
 
-1. Run three generator sub-agents in parallel when delegation is available:
+1. Generate three distinct perspectives, delegating them only when independence adds value:
    - `Practical`: low-risk ideas that fit familiar expectations.
    - `Unconventional`: unusual ideas that may reframe the experience.
    - `Challenging`: ambitious ideas that stretch implementation or interaction
@@ -175,8 +173,7 @@ Use for expected-behavior grounding without idea generation. This is the default
 mode when the skill triggers autonomously during implementation work.
 
 1. Summarize the feature or behavior being scoped.
-2. Run an expected-behavior critic or end-user/domain-user sub-agent when
-   delegation is available. Ask what a reasonable user would expect to happen,
+2. Apply an expected-behavior critic or end-user/domain-user perspective, delegated only when independence adds value. Ask what a reasonable user would expect to happen,
    including edge cases.
 3. Build a checklist of implicit expected behavior. Separate:
    - mandatory expectations that would make the implementation feel wrong if
@@ -189,10 +186,8 @@ mode when the skill triggers autonomously during implementation work.
    supplies a reference excerpt or named source in the prompt, identify which
    checklist entries are grounded by that source and keep inferred expectations
    and unknowns separate.
-5. If the end-user or domain-user sub-agent cannot run with recordable evidence,
-   state that limitation before using a single-agent checklist and ask whether
-   the user accepts the degraded checklist as enough to continue. Do not present
-   that fallback as a completed delegated conventions pass.
+5. If delegation does not run, label the checklist as coordinator-derived; do not
+   claim delegated evidence.
 6. Stop before implementation and ask the user to confirm or adjust the
    checklist when it changes behavior, UX, domain rules, or implementation
    scope. In trusted proxy-selection mode, a verified

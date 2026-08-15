@@ -16,20 +16,11 @@ artifact's main reader is human.
 This skill controls wording quality and message content. It does not authorize
 releases, PR submission, template changes, or workflow shortcuts.
 
-When the user explicitly invokes this skill to edit tracked text files, that
-invocation permits a scoped local checkpoint commit after the text artifact is
-verified, unless the user says not to commit, project policy forbids commits, or
-the changed paths cannot be isolated safely. Commit only the tracked writing
-artifact and coupled tracked documentation owned by the request. Do not commit a
-chat reply, progress update, final summary, commit-message draft, unchanged
-artifact, generated output, or empty file set. This permission does not include
-push, release preparation, version changes, amend, rebase, reset, stash, squash,
-destructive cleanup, or unrelated changes.
-
-If the host or harness requires separate confirmation for local commits, ask
-once at startup when the requested writing work can change tracked files. Do
-not wait until after editing. When this skill is auxiliary, the active workflow
-supplies and owns the commit permission instead.
+Tracked text edits remain verified working-tree changes unless the current user
+explicitly asks for a commit. Invocation, tracked status, or artifact completion
+does not select history work. A later commit workflow owns staging, file-set
+review, message transport, stored-message verification, and push/history
+boundaries.
 
 When another workflow is active, use this skill only as auxiliary wording
 guidance unless the user asks for a standalone writing deliverable. Incidental
@@ -78,20 +69,10 @@ When a response-only task says changes are staged, an edit is complete, a check
 passed, or another workflow fact is already established, write from that
 represented state. Do not replace it with the eval sandbox's, runner's, or
 ambient checkout's current state unless the prompt explicitly binds that
-checkout as the target to inspect. If the task asks only for the message,
-command sequence, or closure record that would apply, do not perform the
-represented mutation merely because tools are available. Still describe the
-full required outcome from the represented state: response-only delivery does
-not turn an authorized commit closure into an uncommitted checkpoint or remove
-its staging, inspection, commit, and post-commit gates.
-
-For a represented standalone tracked-text closure, make those gates observable
-in the response: refresh dirty state, stage only owned tracked writing paths,
-inspect the staged diff, use a Conventional Commit message, then inspect the
-stored message and committed file set. Name unrelated-path exclusion and the
-no-push/no-release/no-history-rewrite boundary. Do not defer the authorized
-checkpoint to a later explicit commit request merely because the current
-delivery is response-only.
+checkout as the target to inspect. If the task asks only for a message, command sequence, or closure record, do not
+perform a represented mutation merely because tools are available. Describe
+commit mechanics only when the represented current request explicitly selects a
+commit or an owning plan item explicitly selects that checkpoint.
 
 Preserve meaning when editing or summarizing. Keep:
 
@@ -242,7 +223,7 @@ codes.
 - Wrapping a requested commit message in a Markdown code fence.
 - Adding safety, security, performance, rollout, or support promises because
   they sound helpful.
-- Treating scoped tracked-text commit permission as authority to ignore exact
+- Treating a writing request as commit selection, or allowing an explicit commit to ignore exact
   templates, release rules, PR formats, staging procedures, or unrelated dirty
   paths.
 

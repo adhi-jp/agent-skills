@@ -21,20 +21,14 @@ This skill routes work; it does not replace specialist skills and does not
 authorize host command plumbing, release preparation, generated eval
 workspaces, or implementation outside a selected downstream phase.
 
-An explicit `vibe-coding` invocation also carries default permission for scoped
-local checkpoint commits created by a selected state-changing phase, unless the
-user says not to commit or project policy forbids commits. The selected phase
-still owns whether tracked changes exist, when they are verified and reviewed,
-which paths belong to the checkpoint, and whether a safety gate blocks the
-commit. This default never authorizes push, release preparation, version
-changes, amend, rebase, reset, stash, squash, destructive cleanup, or mutation
-of unrelated or ambiguous changes.
-
-If the host or harness requires an additional human confirmation before local
-commits, ask once at workflow startup when the classified request can reasonably
-produce tracked changes. Do not wait until after editing or repeat the question
-at every checkpoint. A read-only, chat-only, no-file, or message-drafting route
-does not need this confirmation and must not create an empty commit.
+A `vibe-coding` invocation selects routing, not repository history. Do not
+select staging or a commit merely because the workflow is state-changing,
+tracked changes exist, or a checkpoint would be convenient. A commit is selected
+only by an explicit current user request or by a bound approved plan item that
+explicitly requires that checkpoint. The selected commit-execution workflow then
+owns staging, file-set review, message transport, and history safety. No route
+implicitly authorizes push, release preparation, version changes, history
+rewrites, destructive cleanup, or unrelated changes.
 
 Before any nontrivial state-changing or external-cost action, distinguish
 selection from permission. Select the action only when the current deliverable
@@ -84,30 +78,20 @@ Use conversation state and existing artifact paths as the routing-state
 mechanism for this implementation. Do not require a separate persisted ledger
 file.
 
-Track these fields when they are known:
+Track only the continuation fields the router owns by default:
 
 - Current goal.
 - Current phase.
+- Active artifact path or paths.
+- Pending user decision, when one exists.
+- Known blocker.
 - Next route.
-- Active artifact paths.
-- Approval evidence or handoff state.
-- Local checkpoint commit policy, permission source, and any host confirmation
-  status.
-- Implementation plan path.
-- Active execution slice.
-- Implementation progress source and latest item status.
-- Debug symptom.
-- Review target.
-- Frozen review target and origin/current diff size when a review loop is active.
-- Primary user journey and acceptance sentinels.
-- Review cycle count and active stop signals.
-- User progress-update policy and subagent wait policy.
-- Delegation budget and context-digest policy.
-- Last verified checkpoint and unverified shared edits.
-- Investigation question.
-- Writing artifact.
-- Pending approvals.
-- Known blockers.
+
+Specialist-specific state—such as execution item status, review target identity,
+debug hypotheses, delegated-work budgets, or verification receipts—stays with
+the active specialist. Summarize only the minimum needed to resume that
+specialist after interruption or compaction; do not duplicate its full ledger in
+top-level routing state.
 
 For later related turns, classify the user request before routing:
 
@@ -321,14 +305,14 @@ Before acting under `vibe-coding`, confirm:
 - Artifact creation or editing was not promoted into tracking, staging,
   committing, release-note inclusion, or publishing without independent
   lifecycle authority.
-- Explicit `vibe-coding` use supplied default scoped local-checkpoint permission
-  to state-changing routes unless the user or project denied commits; any
-  host-required confirmation was requested at startup rather than after edits.
-- Read-only, chat-only, no-file, and message-drafting routes neither requested
-  unnecessary commit permission nor created empty commits.
-- Bound-plan checkpoint commits stayed inside the plan-execution route when the
-  plan supplied eligible checkpoints; standalone commit requests still route to
-  commit execution when available.
+- Invocation, editing permission, tracked status, and checkpoint convenience
+  were not treated as commit selection.
+- A commit route exists only for an explicit current commit request or a bound
+  approved plan item that explicitly selects the checkpoint; no empty commit was
+  created for read-only, chat-only, no-file, or unchanged work.
+- Standalone and plan-selected commits remain owned by the commit-execution
+  workflow; plan execution may prepare verified changes but does not absorb
+  history authority.
 - Bound-plan implementation progress stayed inside the plan-execution route;
   routing state used the ledger only to rebind the active slice and latest
   status, not as proof of completion or as a separate planning/commit route.

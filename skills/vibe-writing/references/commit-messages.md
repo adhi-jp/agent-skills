@@ -418,7 +418,7 @@ section with bullets:
 Verification:
 - `git diff --check` passed.
 
-Co-Authored-By: Codex <noreply@openai.com>
+Co-Authored-By: <agent> <no-reply address>
 ```
 
 Do not split multiple verification commands into separated `Verification: ...`

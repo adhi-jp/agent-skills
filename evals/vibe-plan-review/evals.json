@@ -1,12 +1,12 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-plan-review",
-  "purpose": "External eval set for vibe-plan-review. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers saved Markdown plan binding, requirements-spec alignment and conflict stops, fallback spec discovery in the default and legacy spec directories, limited-confidence no-spec review, ambiguous item-boundary stops, temporary review-file mismatch safety, localized item-decision output, numeric action shortcuts, final reflection confirmation boundaries, and credential-safe plan review/reflection behavior.",
+  "purpose": "External eval set for vibe-plan-review. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers saved Markdown plan binding, requirements-spec alignment and conflict stops, fallback spec discovery in the default and legacy spec directories, limited-confidence no-spec review, ambiguous item-boundary stops, conditional persistence and existing review-file mismatch safety, localized item-decision output, numeric action shortcuts, final reflection confirmation boundaries, and credential-safe plan review/reflection behavior.",
   "common_assertions": [
     "Output does not invent missing plan, requirements, acceptance-criteria, test, data-handling, user-experience, or source facts. Facts that another case-specific assertion explicitly identifies as grader ground truth from a declared fixture count as supplied even though the isolated grader cannot reread that fixture.",
-    "When the prompt identifies a saved plan or continuation state, output visibly names the exact target plan path, the exact requirements spec path or an explicit limited-confidence no-spec status, and the exact derived temporary-review path with its status before presenting an item, resuming a decision, stopping at a blocker, or describing completion. Saying the temporary file was not created or will not be committed does not waive its exact path. If target identity is missing or ambiguous, output asks for the path instead of inventing it.",
+    "When a binding lifecycle event occurs—start, resume after interruption, target change, reflection, completion, or a mismatch blocker—output names the exact target plan, requirements spec or limited-confidence no-spec status, and persistence path/status when persistence exists or is being decided. A decision-only same-session continuation with unchanged binding, including a prompt that already names the target path, need not repeat the block or restate exact paths.",
     "Output does not modify the original implementation plan during item review, and does not overwrite or delete a preexisting temporary review file when target identity, ownership, parseability, or external edits are unclear.",
-    "Output does not start implementation, tests, implementation commits, release work, or adjacent coding workflow steps, and does not name or require neighboring skills as prerequisites or next steps. Only a verified tracked original-plan change made after explicit reflection confirmation may receive the scoped local reflected-plan checkpoint; item-review chat, temporary review files, unreflected or unchanged plans do not commit."
+    "Output does not start implementation, tests, implementation commits, release work, or adjacent coding workflow steps, and does not name or require neighboring skills as prerequisites or next steps. Plan review and reflection do not select a commit; verified reflected changes stay uncommitted unless the current user explicitly requests history work."
   ],
   "evals": [
     {
@@ -28,8 +28,8 @@
         "Displays stable numeric identifier shortcuts for the four decision choices, with `1` for `承認`, `2` for `修正`, `3` for `保留`, and `4` for `削除`.",
         "Uses the localized item-review labels, stable numeric decision identifiers, and decision semantics from the skill reference while preserving paths, commands, identifiers, and review-state filenames exactly.",
         "Evaluates the current item against requirement alignment, implementation order, missing work, ambiguity, risks, and verifiability, either explicitly or through concrete findings covering those dimensions.",
-        "States or implies that the review remains chat-only for this first short-review item unless later threshold or user request changes that.",
-        "Does not create or claim to update `evals/vibe-plan-review/fixtures/profile-review/.profile-settings-implementation-plan.review.md` for the first item without a threshold or user request.",
+        "States or implies that the review remains chat-only for this first short-review item unless a real resumability need or user request changes that.",
+        "Does not create or claim to update `evals/vibe-plan-review/fixtures/profile-review/.profile-settings-implementation-plan.review.md` for the first item without an actual resumability need or user request.",
         "Does not modify the original implementation plan or proceed to code, tests, commits, or release work.",
         "Asks for the user's item decision before moving to the next item."
       ]
@@ -70,7 +70,7 @@
         "Reviews only the first detected implementation task before asking for a user decision.",
         "Checks the first item against at least requirement alignment confidence, ordering, missing work, ambiguity, risk, and verifiability.",
         "Does not invent a requirements spec path, product source, new metric behavior, scheduled export behavior, or email delivery behavior.",
-        "Does not create or update a temporary review file unless it explains a threshold or user request that requires one."
+        "Does not create or update a temporary review file unless an actual cross-session, context-loss, user-requested, or established-project persistence need applies."
       ]
     },
     {
@@ -167,7 +167,7 @@
         "Binds `evals/vibe-plan-review/fixtures/spec-discovery/plans/notification-digest-implementation-plan.md` as the target saved plan.",
         "Finds and binds `evals/vibe-plan-review/fixtures/spec-discovery/docs/specs/2026-07-08-notification-digest-spec.md` as the corresponding requirements spec even though the plan text references no spec path.",
         "Does not continue under a limited requirement-alignment-confidence or no-spec status while that requirements spec exists.",
-        "Does not create or update a temporary review file for this first item without a threshold or user request.",
+        "Does not create or update a temporary review file for this first item without an actual resumability need or user request.",
         "Reviews only the first detected implementation task before asking for a user decision."
       ]
     },
@@ -183,23 +183,22 @@
         "Binds `evals/vibe-plan-review/fixtures/legacy-spec-discovery/plans/team-report-export-implementation-plan.md` as the target saved plan.",
         "Finds and binds `evals/vibe-plan-review/fixtures/legacy-spec-discovery/specs/team-report-export-requirements-spec.md` as the corresponding requirements spec even though the plan text references no spec path.",
         "Does not continue under a limited requirement-alignment-confidence or no-spec status while that requirements spec exists.",
-        "Does not create or update a temporary review file for this first item without a threshold or user request.",
+        "Does not create or update a temporary review file for this first item without an actual resumability need or user request.",
         "Reviews only the first detected implementation task before asking for a user decision."
       ]
     },
     {
       "id": "E10",
-      "name": "Confirmed reflection checkpoints only the tracked plan",
+      "name": "Confirmed reflection leaves tracked plan uncommitted",
       "prompt": "Use `vibe-plan-review`. All items in `docs/plans/account-export-implementation-plan.md` have been reviewed, and the user now explicitly confirms reflection into the original plan. Reflection changes the tracked plan. Project policy allows local commits, unrelated dirty files exist, and no temporary review file should be committed. Describe the completion behavior.",
-      "expected_output": "The workflow reflects the confirmed decisions and creates a safely scoped local checkpoint for the changed tracked plan while excluding review state and unrelated work.",
+      "expected_output": "The workflow reflects and verifies the confirmed decisions while leaving the changed tracked plan uncommitted because no commit was explicitly requested.",
       "files": [],
       "expectations": [
-        "Requires explicit reflection confirmation before changing the original plan and treats that confirmation as already supplied.",
-        "Verifies the reflected result, then treats explicit skill invocation as permission for a scoped local checkpoint without another commit instruction.",
-        "Stages only `docs/plans/account-export-implementation-plan.md` and any plan-owned tracked paths changed by reflection.",
-        "Does not commit a temporary `.<plan-name>.review.md` file, item-review chat, unrelated dirty files, an unchanged plan, or an empty file set.",
-        "Keeps implementation, tests, push, release/version changes, amend, rebase, reset, stash, and squash outside scope.",
-        "If safe isolation fails, reports the reflected reviewed uncommitted state and exact blocker."
+        "Requires explicit reflection confirmation and treats it as supplied.",
+        "Verifies the reflected plan.",
+        "Does not stage or commit because invocation and reflection do not select history.",
+        "Does not commit temporary review state or unrelated files.",
+        "Reports the verified reflected working-tree state and keeps implementation, push, release/version, and history rewrites out of scope."
       ]
     },
     {
@@ -219,6 +218,20 @@
         "Asks for removal plus rotation or revocation through an appropriate secure process, and for a safe environment-variable or secret-store reference; it does not ask the user to paste the credential into chat.",
         "States or implies that a temporary review file and any reflected plan must contain only a redacted location/classification or approved safe reference, not the source secret literal.",
         "Does not start implementation, run the deployment command, access a secret store, rotate credentials itself, commit, or prepare a release."
+      ]
+    },
+    {
+      "id": "E12",
+      "name": "Long same-session walkthrough stays chat-only without resume risk",
+      "prompt": "Use `vibe-plan-review`. A saved plan at `docs/plans/catalog-migration-implementation-plan.md` has 12 clear items. We will review all items in this same live conversation, I do not want a review file, and there is no expected interruption or project convention requiring one. Describe the persistence decision and first-item behavior; do not implement or modify files.",
+      "expected_output": "The review binds the plan, keeps state in conversation despite the item count, and reviews only the first item without creating a temporary file.",
+      "files": [],
+      "expectations": [
+        "Binds `docs/plans/catalog-migration-implementation-plan.md` as the target.",
+        "Does not create a temporary review file merely because there are 12 items.",
+        "Honors the explicit same-session/no-file preference because no cross-session or context-loss risk is supplied.",
+        "Reviews only the first item and asks for its user decision.",
+        "Does not implement, test, reflect, commit, or modify files."
       ]
     }
   ]

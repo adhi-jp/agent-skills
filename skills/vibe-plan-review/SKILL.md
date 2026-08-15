@@ -17,23 +17,14 @@ This skill reviews the plan; it does not execute it. Stop after item review and
 the final plan-reflection confirmation workflow. Do not proceed into
 implementation, tests, releases, or adjacent coding work.
 
-An explicit invocation permits a scoped local checkpoint commit only when the
-user later confirms reflection and that reflection changes the tracked original
-plan. The commit may include only the reflected plan-owned tracked paths after
-the reflection result is verified. Do not commit item-review chat, temporary
-review files, an unreflected plan, an unchanged plan, or an empty file set. The
-permission is denied by an explicit no-commit instruction or project policy and
-does not include implementation, push, release preparation, version changes,
-amend, rebase, reset, stash, squash, or deletion of unrelated state.
-
-If the host requires separate confirmation for local commits, ask once at
-review startup when reflection may update a tracked plan. Do not wait until
-after reflection. A review that is guaranteed to remain chat-only does not need
-the question.
+Review and reflection leave verified plan changes in the working tree. Invocation,
+reflection consent, tracked status, and successful verification do not select a
+commit. Only an explicit current user commit request may route the reflected
+plan to a later history workflow.
 
 Runtime responses should match the user's language. Before rendering item-review
-output, interpreting item decisions, counting review-file thresholds, reflecting
-decisions into the plan, or summarizing review results, read
+output, interpreting item decisions, selecting review-state persistence,
+reflecting decisions into the plan, or summarizing review results, read
 `references/localized-labels.md` and use its exact localized labels, numeric
 choice identifiers, and decision semantics. Preserve non-sensitive file paths,
 commands, identifiers, and review-state paths exactly. Credential-like literal
@@ -93,17 +84,10 @@ and stop at the user's next decision point.
 
 ## Review Binding Output
 
-Begin every review response with a compact binding block before item analysis,
-decisions, blockers, reflection, or completion behavior:
-
-- `Target plan`: the exact saved plan path.
-- `Requirements spec`: the exact spec path, or an explicit limited-confidence
-  no-spec status.
-- `Temporary review`: the exact derived temporary-review path and its current
-  status, including `not created`, `kept`, `blocked`, or `deleted`.
-
-This block is required on first-item, continuation, stop, reflection, and
-completion responses. A status without its path is not a resumable identity.
+Show the target plan, requirements source or limited-confidence no-spec status,
+and persistence state at review start, resume, target change, reflection, and
+completion. Do not repeat a binding block on every same-session item response
+when nothing changed.
 
 ## Start Of Review
 
@@ -120,8 +104,9 @@ Before reviewing items:
    locations, continue only with explicitly limited requirement-alignment
    confidence.
 6. Identify plan items using the item extraction rules below.
-7. Determine whether a temporary review file is required before presenting the
-   first item.
+7. Select persistence before the first item only when the user requests it,
+   cross-session continuation is expected, context-loss risk is material, or an
+   established project convention requires it.
 
 If a corresponding requirements spec exists, it is requirement evidence for
 the review. If the requirements spec and implementation plan conflict, stop the
@@ -182,53 +167,22 @@ count, summarize, and reflect the decision as its canonical localized label, not
 as the numeric identifier. If a user's reply contains conflicting labels or
 identifiers, ask which decision they intend before continuing.
 
-## Temporary Review File
+## Review State Persistence
 
-Short reviews remain chat-only when all of these are true:
+Keep review state in conversation by default. Persist a temporary review file
+only when the user asks, cross-session continuation is expected, context loss is
+a material risk, or an established project convention already owns such state.
+Do not use item-count or decision-count thresholds.
 
-- The plan has fewer than 8 detected items.
-- Fewer than 3 item decisions are revise-or-hold decisions as defined in
-  `references/localized-labels.md`.
-- The user has not asked for a review file.
-
-Create or update a temporary review file when any of these are true:
-
-- The plan has 8 or more detected items.
-- 3 or more item decisions are revise-or-hold decisions as defined in
-  `references/localized-labels.md`.
-- The user asks for a review file.
-
-Store the temporary review file beside the plan as `.<plan-name>.review.md`,
-where `<plan-name>` is the target plan filename stem, meaning the filename
-without its final suffix. For `plans/payment-plan.md`, use
-`plans/.payment-plan.review.md`; for `plans/payment.plan.md`, use
-`plans/.payment.plan.review.md`.
-
-During item review, the only allowed file write is creating or updating this
-temporary review file. Do not modify the original implementation plan during
-item review.
-
-Record enough state to resume review:
-
-- Target plan path.
-- Requirements spec path when known, or the limited-confidence no-spec status.
-- Detected item list.
-- Current review position.
-- Per-item AI judgments.
-- User decisions as canonical localized labels, even when the user supplied a
-  numeric identifier.
-- Unresolved blockers.
-- Important decision summaries.
-- Conversation summary when the user asks for it or when an important decision
-  should survive context loss.
-
-Apply §Sensitive Content Handling before every temporary-review-file write.
-
-If the temporary review file already exists, read it before writing. Resume only
-when it clearly matches the target plan and is parseable. If ownership, target
-identity, parseability, or external edits are unclear, stop and ask whether to
-resume, replace, or preserve the file. Do not overwrite or delete a preexisting
-review file while that question is unresolved.
+When persistence is selected, store the file beside the plan as
+`.<plan-name>.review.md` and record the target, requirements source, item list,
+position, canonical decisions, blockers, and concise continuation context. Apply
+sensitive-content rules before every write. If an existing file is mismatched,
+unparseable, externally edited, or ownership is unclear, stop and ask before
+overwriting or deleting it. At that mismatch blocker, state the exact current
+target, the exact derived review-state path, and the recorded conflicting target,
+then ask whether to resume the old review, replace the state for the current
+plan, or preserve it and continue without using it.
 
 ## Reflection Into The Plan
 
@@ -257,18 +211,15 @@ Apply §Sensitive Content Handling before reflection and verification. A
 reflected plan must not newly contain or reproduce a sensitive literal from the
 source plan, requirements spec, temporary review file, source inspection, or
 conversation. If the pre-reflection scan still finds one, stop before any
-original-plan write or checkpoint.
+original-plan write.
 
 After successful reflection, ask whether to delete the temporary review file.
 Honor a user instruction to keep it. If the file has unexpected changes or
 ownership is unclear, preserve it and report the reason.
 
-After successful reflected-plan verification, create the scoped local
-checkpoint when permitted. Run dirty-state and staged-diff checks, stage only
-the reflected plan-owned paths, use a standalone Conventional Commit message,
-and inspect the stored message and committed file set. If the user denied
-commits, project policy forbids them, or unrelated changes cannot be excluded,
-leave the reflected plan reviewed but uncommitted and report the blocker.
+After successful reflected-plan verification, leave the plan changes
+uncommitted unless the current user explicitly asks for a commit. Temporary
+review-file cleanup remains a separate user decision.
 
 ## Stop Conditions
 
@@ -303,6 +254,5 @@ When the review workflow completes, summarize:
 - Unresolved blockers or held items.
 - Whether the original plan was reflected after explicit confirmation.
 - Whether the temporary review file was created, kept, or deleted.
-- Whether the reflected plan received its scoped local checkpoint, was unchanged,
-  was explicitly left uncommitted, or was blocked by a named safety condition.
+- Whether the reflected plan changed and whether an explicit commit request remains pending.
 - That implementation was not started.

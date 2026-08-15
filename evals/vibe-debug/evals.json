@@ -1,14 +1,14 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-debug",
-  "purpose": "External eval set for vibe-debug. Prompts live outside skills/ so they are not bundled as skill content. Covers rough vibe reports, existing-feature fixes, failed prior attempts, existing-behavior preservation, source routing, speculation control, state-space analysis, artifact freshness, degraded verification, user retest contracts, recurrence, runtime probe escalation, observation-regime representativeness, metric-movement stop rules, self-review and closure-commit boundaries, and broad project-class generality. E09 consolidates the former skipped-check and retest-contract cases into one degraded-verification case; the repository-history case combines default verified-repair closure with unrelated-change isolation; and closure-commit message transport safety retains stored-message verification. It also covers durable diagnosis stop artifacts with environment epochs and control replay on resume.",
+  "purpose": "External eval set for vibe-debug covering concise simple repairs, risk-triggered ledgers, failed attempts, existing-behavior preservation, source routing, runtime probes, artifact freshness, degraded verification, recurrence, model/delegation honesty, explicit commit requests, and verified uncommitted closure by default.",
   "common_assertions": [
-    "Output preserves the user's relevant wording while translating the current debug/fix or closure slice into observable behavior or operation decision, expected source or authorization, unknowns, proof or preflight path, and current-scope closure criteria.",
-    "Output investigates and reasons from the evidence actually supplied. Prompt, plan, and described symptoms count as evidence when no code, tests, logs, or artifacts are supplied; the response states that absence instead of pretending local inspection occurred, and asks only questions that change the fix or proof path.",
+    "Output preserves the user's relevant wording while translating the current debug/fix or closure slice into observable behavior or operation decision, material unknowns, proof or preflight path, and current-scope closure criteria. It identifies the expected source or authorization when that source or authority changes the repair or closure decision, but need not add empty source/authorization fields to every concise response.",
+    "Output investigates and reasons from the evidence actually supplied. Prompt, plan, represented workflow facts, and described symptoms count as evidence. In response-only tasks that establish represented facts and forbid ambient inspection, output reasons from those facts without requiring matching sandbox edits or claiming local inspection. When missing code, tests, logs, or artifacts materially limit the decision, it states that limit; it need not recite every absent evidence class when it already avoids unsupported inspection claims.",
     "Output does not require another named skill or treat another named skill as a dependency.",
-    "When the response selects a new repair action, implementation-affecting facts, hypotheses, judgment, expected outcomes, and proof results remain distinguishable, and an unproven preferred cause or fix includes a disconfirming check.",
+    "When the response selects a new repair action, implementation-affecting facts, hypotheses, judgment, expected outcomes, and proof results remain distinguishable, and an unproven preferred cause or fix includes a disconfirming check. A response-only procedure that explicitly says implementation or proof is absent, presents actions as required future work, and defines a negative discriminator satisfies this without separate labeled categories.",
     "When the prompt is an unresolved behavioral example, output maps the relevant state or lifecycle dimensions and identifies what must be preserved, changed intentionally, or kept unknown instead of treating the named example as the whole fix.",
-    "When verification is incomplete or constrained, skipped, unavailable, flaky, environment-limited, or manual-only checks are not counted as proof; output does not claim fixed without observable proof or required runtime-artifact freshness."
+    "When verification is incomplete or constrained, skipped, unavailable, flaky, environment-limited, or manual-only checks are not counted as proof; output does not claim fixed without observable proof or required runtime-artifact freshness. When the prompt explicitly supplies completed verification and repair facts as authoritative represented workflow state, output may report that represented closure without reproducing edits in the eval sandbox."
   ],
   "evals": [
     {
@@ -188,16 +188,16 @@
         "Specifies a low-friction probe shape such as focused trace labels, counters, compact state logs, test-harness assertions, or runtime artifact inspection, while avoiding broad noisy logging and user-data exposure.",
         "Provides exact build or freshness steps, action sequence, expected probe signatures, failure evidence to capture, and which ledger item the probe would close.",
         "Includes a cleanup or conversion plan for temporary instrumentation before finalizing the fix.",
-        "If output uses or proposes delegated diagnosis with model choice, it records capability/context-fit model-tier choices or reasons per hypothesis without hard-coded model names: bounded file/log checks may use cheaper/faster models when quality-neutral, while contradicted cross-layer runtime hypotheses, contradiction resolution, and final cause selection use the strongest suitable reasoning/context tier when quality is the priority.",
+        "If output uses or proposes delegated diagnosis with model choice, it records model choice only for explicit override, degraded capability, cost/performance constraint, or audited external execution; any selected tier remains capability-appropriate.",
         "Does not spend the top model on every narrow reader and does not choose the cheapest model solely to save tokens for the remaining complex diagnosis."
       ]
     },
     {
       "id": "E13",
-      "name": "Verified repair defaults to isolated closure commit",
+      "name": "Verified repair closes uncommitted without commit request",
       "project_class": "repository-history-safety",
       "prompt": "Use the debug-and-repair workflow. This is a response-only closure decision: do not mutate the ambient checkout or claim an operation ran. The repair ledger says the preview-cache fix is verified. The user says only `finish it up and clean up anything unrelated so we can move on`; they did not separately ask for a commit or deny commits. Project policy allows local commits. Use the listed fixture files as represented local evidence for the ledger and git status. No host-specific review, commit, or message-writing capability is supplied. Describe the required debug/fix closure behavior before final reporting or any staging, commit, stash, reset, or cleanup, including the self-contained fallback when such capabilities are unavailable.",
-      "expected_output": "The agent self-reviews the verified repair and treats a scoped local closure commit as the default, while isolating repair-owned paths and refusing vague authority over unrelated cleanup or other history operations.",
+      "expected_output": "The agent self-reviews the verified repair, leaves repair-owned changes uncommitted, and refuses vague cleanup or other history operations.",
       "files": [
         "evals/vibe-debug/fixtures/history-consent/debug-ledger.md",
         "evals/vibe-debug/fixtures/history-consent/git-status.txt"
@@ -205,35 +205,34 @@
       "expectations": [
         "Acknowledges the repair ledger as debug proof for the preview-cache slice and keeps the closure decision focused on self-review, repository history, index, and cleanup operations instead of reopening the repair.",
         "Runs a self-review of the repair slice before final repair claims, covering ledger closure, minimal patch envelope, preserved behavior, verification proof, artifact freshness, temporary/generated surfaces, and summary accuracy.",
-        "Runs or requires a dirty worktree and index preflight before staging or committing.",
         "Separates repair-owned paths from ambiguous or unrelated paths such as `docs/manual-test-notes.md` and `tmp/local-scratch.md`.",
-        "Treats explicit use of the state-changing repair workflow plus completed verification as eligible for a scoped local closure commit of repair-owned paths without another commit instruction, unless a current no-commit instruction, project policy, degraded proof, or dirty-state safety blocker prevents it.",
-        "If a safety gate blocks the closure commit, reports the reviewed uncommitted state, verification status, blocker, and proposed commit scope or message instead of silently skipping the step.",
         "Requires operation-specific user consent for cleanup, stash, reset, push, amend, rebase, release, version changes, destructive actions, or other non-closure history/index operations.",
         "Does not stage, stash, reset, delete, or otherwise mutate unrelated or ambiguous user changes under the broad phrase `clean up anything unrelated`.",
         "Reports whether non-closure history or cleanup operations were absent or explicitly consented in the finish gate.",
-        "Treats review, commit-execution, and message-writing capability use as conditional on visible availability; because none is supplied here, gives a self-contained fallback without claiming an unavailable capability ran or naming another skill as a required dependency."
+        "Treats review, commit-execution, and message-writing capability use as conditional on visible availability; because none is supplied here, gives a self-contained fallback without claiming an unavailable capability ran or naming another skill as a required dependency.",
+        "Does not stage or commit because the user did not select a commit.",
+        "Reports the verified repair-owned working-tree state and keeps unrelated cleanup separately consent-bound."
       ]
     },
     {
       "id": "E14",
-      "name": "Consented closure commit with a body and trailer",
+      "name": "Explicit closure commit selects history handoff",
       "project_class": "repository-history-safety",
-      "prompt": "The repair ledger at `evals/vibe-debug/fixtures/closure-commit/repair-ledger.md` records a verified session-refresh fix that is not yet applied in this workspace. The user says: `この検証済みの修正を適用して、修正コミットまでやって。メッセージ本文には原因と検証結果を残して、トレーラー Co-authored-by: Repair Bot <repair@example.com> を付けて。` Use the listed fixture files as the local workspace for this eval. The eval records only your final response, so include the exact commands you ran for the closure commit and for the stored-message verification, plus that verification's output.",
-      "expected_output": "A repair-closure response that applies the ledger-recorded verified fix, performs the consented scoped closure commit, and reports the exact commit and verification commands used.",
+      "prompt": "Response-only closure decision: do not inspect or mutate the ambient checkout and do not claim a commit ran. Treat the listed fixture files as represented repair evidence. The repair ledger records a verified session-refresh fix that is not yet applied. The user says: `この検証済みの修正を適用して、修正コミットまでやって。メッセージ本文には原因と検証結果を残して、トレーラー Co-authored-by: Repair Bot <repair@example.com> を付けて。` No commit-execution capability is supplied in this exercise. Describe the debug repair closure and the exact history handoff that should follow.",
+      "expected_output": "A repair-closure response that keeps the verified fix scoped, treats the explicit commit request as history selection, and hands the verified scope and message requirements to commit execution without duplicating or inventing the commit.",
       "files": [
         "evals/vibe-debug/fixtures/closure-commit/repair-ledger.md",
         "evals/vibe-debug/fixtures/closure-commit/src/session-refresh.js"
       ],
       "expectations": [
-        "Applies exactly the ledger-recorded verified fix (`REFRESH_SKEW_MS` from `0` to `30000`) to `evals/vibe-debug/fixtures/closure-commit/src/session-refresh.js` and nothing else.",
-        "Checks worktree and index state before staging and stages only the repair-slice path.",
-        "Treats the user's instruction as consent for this scoped closure commit only, not for push, amend, rebase, cleanup, or other history operations.",
-        "Transports the multi-line closure message as one complete payload: a single-quoted heredoc (for example `git commit -F - <<'EOF'`) or a message file passed with `-F`.",
-        "Does not use repeated `-m` arguments for body lines, bullets, verification lines, or trailers, and does not embed a raw newline inside a single `-m` value.",
-        "Applies the requested trailer with a `git commit --trailer` argument rather than typing the trailer line inside the message payload.",
-        "Runs `git show -s --format=%B HEAD` after the commit and reports the stored message as the post-commit verification before reporting closure.",
-        "Writes a body that records the root cause and the ledger's retest evidence as durable prose without prompt-only references."
+        "Keeps the repair scope to the ledger-recorded `REFRESH_SKEW_MS` change from `0` to `30000` in `evals/vibe-debug/fixtures/closure-commit/src/session-refresh.js` and does not invent unrelated edits.",
+        "Treats the user's current instruction as explicit selection of a scoped commit after the verified repair, while keeping push, amend, rebase, cleanup, release, and unrelated history operations separately unauthorized.",
+        "Completes or requires the debug-side self-review and verification/freshness check before handing history work off.",
+        "Hands the exact repair path, verified ledger evidence, unrelated-path exclusions, and requested message content to the commit-execution workflow.",
+        "Preserves the requested durable body content for root cause and retest evidence plus the `Co-authored-by: Repair Bot <repair@example.com>` trailer as handoff requirements.",
+        "Does not stage, commit, invent a commit identifier, or claim stored-message verification occurred in this response-only exercise.",
+        "Reports the repair as verified but still uncommitted pending the history handoff, rather than treating explicit commit selection as permission to duplicate commit mechanics inside debugging.",
+        "Does not require or name another skill as a dependency; it describes the capability boundary as a workflow handoff."
       ]
     },
     {
@@ -254,17 +253,17 @@
     },
     {
       "id": "E16",
-      "name": "Host-required commit confirmation happens before repair edits",
-      "prompt": "Use the debug-and-repair workflow. The user reports a reproducible account-export crash and asks you to fix it. The repair will likely change tracked source and test files. This host requires a separate human confirmation before any local commit. This is the first turn before edits. Describe the startup and closure behavior. Also contrast a diagnosis-only run that changes no files.",
-      "expected_output": "The debug workflow asks once for the host-required local-commit decision before edits, carries it through closure, and does not burden a no-change diagnosis with an irrelevant commit question.",
+      "name": "Repair startup does not ask about an unselected commit",
+      "prompt": "Use the debug-and-repair workflow. The user reports a reproducible account-export crash and asks you to fix it. The repair will likely change tracked source and test files. This is the first turn before edits. Describe the startup and closure behavior. Also contrast a diagnosis-only run that changes no files.",
+      "expected_output": "The debug workflow starts repair without a commit-policy question and finishes uncommitted unless the user later explicitly requests a commit.",
       "files": [],
       "expectations": [
-        "Asks once in the first turn for the host-required local-commit confirmation because the repair can reasonably change tracked files.",
-        "Does not wait until after implementation, verification, or self-review to ask the question.",
-        "Records and reuses the confirmation or denial at closure instead of asking again.",
-        "If permitted, creates only a scoped local closure commit after repair verification, self-review, dirty-state preflight, staged-diff checks, and safe repair-owned path isolation.",
-        "Keeps push, release/version changes, amend, rebase, reset, stash, squash, destructive cleanup, and unrelated or ambiguous changes outside the permission.",
-        "States that a diagnosis-only, no-change, not-reproduced, or retest-only run neither asks for commit confirmation nor creates an empty commit."
+        "Does not ask a startup commit-confirmation question merely because tracked files may change.",
+        "Runs diagnosis, repair, verification, and self-review under their own gates.",
+        "Leaves verified repair changes uncommitted when no current commit request exists.",
+        "If a later current user explicitly requests a commit, routes the verified scope through commit execution.",
+        "Diagnosis-only/no-change work creates no empty commit or history state.",
+        "Keeps push, release/version, rewrite, cleanup, and unrelated changes separately unauthorized."
       ]
     },
     {
@@ -326,12 +325,26 @@
         "If both controls later pass, classifies environment drift or not-reproduced transient behavior and treats the prior works/fails result as historical epoch-bound evidence that cannot decide the current cause or fix.",
         "Labels any historically safe robustness change a mitigation rather than a proven root-cause fix."
       ]
+    },
+    {
+      "id": "E21",
+      "name": "Simple reproduced bug closes without visible ledger ceremony",
+      "prompt": "Response-only closure exercise: do not inspect or mutate the ambient checkout. Treat these represented workflow facts as established. A unit test deterministically reproduced a null dereference in `formatUserName` when `middleName` was absent. The documented expected behavior is to omit the missing middle name. The fix added the null guard, the regression test and full relevant suite passed, and self-review found no material issue. Give the closure summary; no commit was requested.",
+      "expected_output": "A concise repair closure stating symptom, verified cause, fix, and proof without a multi-row ledger or inferred commit.",
+      "files": [],
+      "expectations": [
+        "Names the reproduced symptom and documented expected behavior.",
+        "States the verified null-dereference cause and bounded null-guard fix.",
+        "Reports the regression and relevant suite proof plus self-review result.",
+        "Does not emit a multi-row debug ledger for this simple deterministic repair.",
+        "Reports the represented verified changes as uncommitted because no commit was requested; the response-only sandbox need not contain those edits."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.55,
     "per_eval_expectation_weight": 0.45,
     "pass_threshold": 0.75,
-    "notes": "With-skill runs should pass by building a debug ledger, proof path, existing-behavior analysis, source route, state-space matrix, representative-regime record, metric discriminator check, probe escalation when source-only debugging stalls, artifact freshness proof, degraded-verification handling, concrete user retest contract, recurrence check, self-review, or scoped closure-commit handling as prompted. Baselines are expected to over-index on direct fixes, ask the user for a full reproduction too early, require another named skill, fix only the named example, treat skipped checks as passes, continue source-only or same-target guesses when a runtime probe or metric revalidation is needed, abandon tools too broadly, skip self-review or commit closure, or claim fixed without artifact freshness or observable proof. E20 covers the report-derived discriminator stop artifact and transient non-reproduction classification."
+    "notes": "With-skill runs should preserve evidence-backed diagnosis and proof, use a durable ledger only for recurrent/complex/resumable cases, keep simple reproduced repairs concise, and leave verified changes uncommitted unless the current user explicitly selects a commit. Provider execution is not implied by these definitions."
   }
 }

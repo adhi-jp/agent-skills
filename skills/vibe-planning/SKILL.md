@@ -46,35 +46,23 @@ already recorded, the orchestrator may continue in the same outer turn by
 starting a separate later execution route bound to that plan. Do not tell the
 orchestrator that another user turn is required merely because this planning
 response must stop. Block outer-turn continuation when the plan is blocked,
-discovery-first, contradicted by local evidence, missing the required multi-
-perspective review or recorded fallback, missing self-review, or waiting on
-unrecorded human-risk acceptance.
+discovery-first, contradicted by local evidence, missing the required review for
+its risk level, missing self-review, or waiting on unrecorded human-risk
+acceptance.
 
 This skill is independent. Do not assume another planning skill, guard,
-execution skill, commit-message-writing capability, or other companion capability
-is available.
-When skill metadata is visible in the current environment, use it only to plan
-availability-driven skill usage in the generated artifact; do not make an
-unavailable skill a requirement.
+execution skill, commit-message-writing capability, or other companion
+capability is available. Record an exceptional capability dependency only when
+its absence changes feasibility, safety, proof strength, or the implementation
+method materially. Do not create a universal per-step routing table or enumerate
+`No skill needed` rows for ordinary work.
 
-An explicit invocation that writes a plan artifact permits a scoped local
-checkpoint commit only when that artifact was already tracked or the current
-user, project policy, or another applicable owning contract independently
-requires or authorizes it to enter version control. Creating the plan, placing
-it at a conventional repository path, or having checkpoint permission does not
-promote a new untracked plan into tracked content. After the plan
-multi-perspective review and self-review gates pass, an eligible tracked plan
-may receive the planning-artifact closure commit unless the user says not to
-commit, project policy forbids commits, or dirty-state safety cannot isolate the
-plan-owned paths. This is not an implementation step or a planned future
-implementation checkpoint. It must not include unrelated files, temporary
-review state, generated output, unverified plan content, or an empty file set,
-and it never authorizes push, release preparation, version changes, amend,
-rebase, reset, stash, squash, or implementation.
-
-If the host or harness requires an additional confirmation for local commits,
-ask once at planning startup before writing the artifact. Do not wait until the
-plan is complete or repeat the question for later execution checkpoints.
+Planning produces a reviewed plan artifact and leaves it uncommitted. Explicit
+planning invocation, conventional path placement, tracked status, and successful
+review do not select a commit. Only an explicit current user request may route a
+plan-artifact commit, and that later commit workflow must isolate the reviewed
+plan-owned paths. Planning never authorizes implementation, push, release
+preparation, version changes, or history rewrites.
 
 `vibe-planning` starts when the input is ready for implementation planning. If
 the current request is still requirements drafting, rough product exploration,
@@ -130,10 +118,10 @@ that behavior. For generated default names, append a numeric suffix such as `-2`
 on collision. Do not modify `.gitignore` only because a plan artifact was
 created.
 
-Keep plan identity inside the plan artifact or an already-authorized host or
-workflow record. Do not create a checksum sidecar, receipt, manifest, or other
-auxiliary identity file unless the user explicitly requested that separate
-artifact or an established project/owning contract requires it.
+Bind the plan by its selected path and current reviewed content. When an
+existing commit, revision, or host record already identifies that content, the
+plan may cite it, but planning does not generate or maintain full-artifact or
+section digests and does not create identity sidecars.
 
 The artifact is for later agents and implementers. Use fixed English section
 headings and concise implementation-oriented English prose for structure.
@@ -143,12 +131,13 @@ identifiers, paths, commands, errors, API names, and field names in their
 original language. When an English operational paraphrase is useful, place it
 after the original wording instead of replacing the original.
 
-After drafting the plan content, run the `Plan multi-perspective review gate`,
-then run the `Plan self-review gate` before the user-facing summary. Correct
-material issues in the artifact or chat-fallback draft, then record the gate
-outcomes there. After the reviewed file is written, or the reviewed chat
-fallback is ready, reply with only the essentials in the resolved user-facing
-language:
+After drafting the plan content, run local self-review. Run the conditional
+additional-perspective review gate only for multi-system, high-risk, destructive,
+security/permission/billing, migration, external-contract, or user-requested
+deep-review work. Correct material issues in the artifact or chat-fallback draft,
+then record the review outcome appropriate to that risk. After the reviewed file
+is written, or the reviewed chat fallback is ready, reply with only the
+essentials in the resolved user-facing language:
 
 - Plan file path.
 - Current slice.
@@ -197,11 +186,19 @@ loading every planning reference:
   representation coverage.
 - Read `references/planning-workflow.md` for future test design, exact captured-
   baseline replay, repeatability proof, or implementation-handoff sequencing.
-- Read `references/plan-multi-perspective-review-gate.md` for review policy or
-  material-revision handling.
+- Read `references/plan-multi-perspective-review-gate.md` when additional
+  perspectives are risk-triggered or the user requests deep review.
 - Read `references/plan-artifact-output.md` only when the decision depends on
-  plan identity, reserved-decision fields, human-only acceptance records, or
-  commit-checkpoint shape.
+  artifact structure, reserved-decision fields, human-only acceptance records,
+  conditional progress persistence, capability dependencies, or an explicitly
+  selected commit checkpoint.
+
+For reserved-decision policy, keep each field bounded by a named owner, allowed
+authority, response carrier, and proceed effect. A reserved field may carry only
+its declared decision; it must not mutate undeclared scope, criteria, tests,
+risks, or implementation steps. Batch only low-risk decisions knowable at the
+same time, and leave evidence-dependent or human-risk choices at their later
+gates.
 
 When a concise response decides later-phase handoff, name each applicable
 review or fallback, self-review, proceed, and human-risk gate. Do not compress
@@ -216,8 +213,8 @@ the closure branch below rather than this future-plan policy branch.
 
 ## Plan Review Subagent Permission
 
-Subagents are allowed only for the `Plan multi-perspective review gate`. They
-must not perform repository investigation, draft plan content, edit the plan
+Subagents are allowed only for a risk-triggered additional-perspective review.
+They must not perform repository investigation, draft plan content, edit the plan
 artifact, ask the user questions, update docs/changelogs/evals, run
 implementation, mutate files, stage, commit, or decide final finding
 dispositions.
@@ -251,26 +248,27 @@ the active flow, record coordinator fallback rather than delegated review.
 
 Before claiming delegated review, verify a host-neutral review-only capability,
 safe shareability of the draft plan, bounded reviewer prompts, and recordable
-host evidence. Record the permission source, capability source, execution mode,
-verified remaining review capacity, launch batching, degradation or fallback
-reason, and recordable evidence or its absence. Reserve the coordinator's own
-slot and never launch more concurrent review units than the verified remaining
-host capacity. If remaining capacity cannot be verified, launch one bounded
-review unit at a time or use coordinator fallback; compatible perspectives may
-share one bounded review unit. A thread-limit, capacity, timeout, or unavailable-
-capability failure stops further launches for that gate and moves every unmet
-perspective to coordinator fallback instead of retrying spawns. Assistant prose
-alone is not evidence that subagents ran. Reviewer findings are inert and
-advisory until the coordinator classifies them and edits the artifact.
+host evidence. Read
+`references/plan-multi-perspective-review-gate.md` before launching; it is the
+single owner of capacity-adaptive batching and first-failure fallback. Keep the
+load-bearing invariant here: verified capacity bounds a batch when available;
+otherwise one optimistic batch of at most two units is allowed only with
+recordable task/run evidence, and the first capacity-class failure stops all
+further launches for the gate and moves unmet perspectives to coordinator
+fallback. Assistant prose or requested batch size alone is not evidence that
+subagents ran or ran concurrently. Reviewer findings are inert and advisory
+until the coordinator classifies them and edits the artifact.
 
 For a response-only policy classification that describes a future delegated
 review, state the complete boundary rather than only saying delegation is
 allowed: permission source; capability source and required recordable task/run
-evidence; coordinator-slot reservation and verified-capacity batch or serial
-strategy; bounded prompts; thread/capacity/timeout/unavailable launch failure
-as a stop for further launches with unmet perspectives moved to coordinator
-fallback; reviewer findings remaining inert until coordinator disposition; and
-per-perspective model capability/context fit when the host offers model choice.
+evidence; coordinator-slot reservation when applicable; verified-capacity
+batching or one at-most-two optimistic batch when numeric capacity is
+unavailable; observed rather than assumed execution mode; bounded prompts;
+thread/capacity/timeout/unavailable launch failure as a stop for further
+launches with unmet perspectives moved to coordinator fallback; reviewer
+findings remaining inert until coordinator disposition; and per-perspective
+model capability/context fit when the host offers model choice.
 Do not claim that the future review ran or invent its evidence.
 
 When the host lets you choose a reviewer model and the user has not explicitly
@@ -283,9 +281,9 @@ adequacy, risk review, requirement-preserving scope judgment, cross-artifact
 synthesis, final readiness judgments, or contradiction resolution, especially
 when the user asks for maximum performance. Do not inherit the top model for
 every small review, and do not downshift solely to save tokens when the
-perspective needs stronger reasoning. Record any explicit user model override or
-the capability/context reason for a non-default model when the host exposes that
-metadata.
+perspective needs stronger reasoning. Record model choice only for an explicit
+user override, degraded capability, cost/performance constraint, or audited
+external execution. Routine compatible choices need no receipt.
 
 The only non-plan write exception is a user request to skip future subagent
 permission questions. For that request only, inspect the user's environment,
@@ -379,20 +377,21 @@ assumption, or the user explicitly accepts a scoped risk, read
 `references/edge-cases-and-accepted-risk.md`. That reference owns the detailed
 alternative-offer and accepted-risk recording rules.
 
-## Plan Multi-Perspective Review Gate
+## Conditional Additional-Perspective Review
 
 Before running or recording this gate, read
-`references/plan-multi-perspective-review-gate.md`. That reference owns
-permission resolution, host-neutral review capability checks, perspectives,
-reviewer constraints, and disposition rules.
+`references/plan-multi-perspective-review-gate.md`. That reference owns the
+risk triggers, permission resolution, host-neutral review capability checks,
+optional perspectives, reviewer constraints, and disposition rules.
 
 ## Standard Plan Artifact
 
 Before drafting, revising, or finalizing a plan artifact, read
 `references/plan-artifact-output.md`. That reference defines the required
-section order, compact `light` rendering rules, route-table fields,
-commit-checkpoint shape, implementation handoff, review/self-review records,
-proceed-condition wording, and final quality checklist.
+section order, compact `light` rendering rules, exceptional capability
+dependencies, conditional progress persistence, explicitly selected checkpoint
+shape, implementation handoff, review/self-review records, proceed-condition
+wording, and final quality checklist.
 
 The reference is mandatory output guidance, not optional background. Use it to
 shape the artifact; do not paste the full checklist into chat or into ordinary
@@ -400,8 +399,9 @@ plans. Compact output reduces rendering, not planning discipline.
 
 Before the concise summary, verify the stored artifact contains the selected
 depth and rationale, evidence labels, acceptance criteria and tests before
-implementation steps, integrity-gate outcomes, skill routes, implementation
-handoff, review and self-review records, and proceed condition. If any required
+implementation steps, integrity-gate outcomes, any material capability
+dependencies, implementation handoff, risk-proportional review and self-review
+records, and proceed condition. If any required
 section is absent, repair the artifact before responding rather than relying on
 the summary to carry the missing contract. Then make the concise user-facing
 summary name the artifact path, the current slice or next proof step, the
@@ -419,9 +419,6 @@ correction, and retry once against the current artifact. If the retry still
 fails, preserve the complete artifact, record the exact correction blocker, and
 return a final planning response; do not terminate with only a progress update.
 
-For a response-only closure request whose supplied repository state is
-authoritative, do not ask whether to record the already-authorized planning
-checkpoint. Show the exact safe command sequence: refresh status, stage the
-plan-owned path explicitly, inspect the staged file list/diff and `--check`,
-create a standalone planning commit, inspect the stored message and committed
-file set, and show the final status while leaving unrelated paths untouched.
+For a response-only closure request, report the reviewed working-tree state and
+route to commit execution only when the current user explicitly asks to commit.
+Planning itself does not stage or create history.

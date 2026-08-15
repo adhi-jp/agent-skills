@@ -78,8 +78,7 @@ Read this reference before shaping or retrying detailed MCP calls, relying on MC
   obfuscated names; do not retry with `mapping="mojang"` unless the artifact is
   actually a Minecraft runtime artifact.
 - When explaining stale MCP response-shape or retry-posture notes, keep the
-  answer narrow: record project profile, MCP status, all four verification
-  source labels, and the reference route; say that callable schema must be
+  answer narrow: record project profile, MCP status, and all four verification source labels; explain the reference/fallback route only when it materially affects provenance; say that callable schema must be
   inspected before sending corrected payloads; include the `get-class-members`
   pagination, owner, modifier, and descriptor cautions together with the target
   shape; and only name the fallback gate unless MCP has actually failed in the

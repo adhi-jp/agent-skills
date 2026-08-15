@@ -74,6 +74,21 @@ prevention: recover a violated workspace with `git restore`/cleanup before
 trusting any of the round's output. The delegated checkout must start clean so
 every observed change is attributable to the worker.
 
+Select a write-capable lane by required effects and containment, not by provider
+name. A bounded edit-only mission may use a lane that supplies read, edit, and
+write effects when its clean-baseline, allowlist, result-schema, manifest, and
+coordinator-verification requirements are satisfied. A unit that must itself run
+commands, builds, tests, generators, or another process effect requires a lane
+whose canary and receipt prove that effect under an adequate sandbox. If no
+available lane satisfies the required effects and safety boundary, keep the work
+local or stop.
+
+Record the task-required effects, selected lane, unavailable effects, isolation
+boundary, write-scope receipt, and coordinator-owned verification still needed.
+Manifest reconciliation proves which paths changed; it does not prove functional
+correctness. When a delegate lacks a verification effect, the coordinator must
+run that verification before accepting the edit.
+
 ## Two-Layer Authorization
 
 The outer host owns every escalation and records authorization once. The inner
@@ -208,9 +223,11 @@ Claude tool-profile enforcement detects contract drift but does not provide an
 OS sandbox. The read-only profile omits write tools; the workspace-write
 profile adds `Edit`/`Write` under `acceptEdits` but still omits shell and
 network tools. Never use `bypassPermissions` or
-`--dangerously-skip-permissions`. Because there is no OS boundary, prefer the
-Codex helper for write-capable work when both runners are available, and rely
-on the manifest reconciliation as the authoritative write check.
+`--dangerously-skip-permissions`. This lane is suitable only for bounded
+file-edit work that needs no delegated shell or network effect and whose
+functional verification can be run by the coordinator. Its manifest
+reconciliation is the authoritative changed-path check, not an OS sandbox or a
+functional verification result.
 
 ## Worker Prohibitions
 

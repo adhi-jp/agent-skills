@@ -25,8 +25,11 @@ Read this reference when actively diagnosing, repairing, verifying, or handing o
      stack, proof method, writing pass, or tool path.
    - If none apply or one is unavailable, continue with this workflow.
 
-4. **Open the debug ledger**
-   - When a concrete runtime regression is the user's active report, open a
+4. **Open the debug ledger when applicable**
+   - Use the ledger for recurrent, multi-symptom, multi-environment,
+     long-running, interrupted, or user-retest-dependent diagnosis. A simple
+     reproduced bug may keep the same facts in a concise direct record.
+   - When a concrete runtime regression needs ledger continuity, open a
      primary-symptom record first: reported symptom, reproduction or first
      failing proof, root-cause hypothesis, minimal patch envelope, positive
      sentinel, negative sentinel, last verified checkpoint, adjacent findings
@@ -40,8 +43,8 @@ Read this reference when actively diagnosing, repairing, verifying, or handing o
      path; acceptance discriminator with before/current result; closure status.
    - Closure status is exactly one of `fixed`, `not-reproduced`, `deferred`,
      `accepted-residual`, or `blocked`.
-   - Do not claim "fixed" until every current-scope ledger item has proof and a
-     closure status.
+   - Do not claim "fixed" until every current-scope item has proof and a closure
+     status, whether recorded in a ledger or concise direct form.
 
 5. **Analyze existing behavior**
    - Identify current behavior to preserve before changing code.
@@ -224,36 +227,11 @@ Read this reference when actively diagnosing, repairing, verifying, or handing o
       record the remaining item as `deferred`, `accepted-residual`, or `blocked`.
 
 17. **Close repository operations**
-    - When the repair changed files and verification plus self-review are
-      complete, create a scoped local closure commit by default unless the user
-      explicitly said not to commit, project instructions forbid commits, or a
-      safety gate blocks the operation.
-    - Before staging or committing, refresh dirty worktree and index state,
-      identify repair-owned paths, surface unrelated or ambiguous dirty paths,
-      and confirm self-review and verification coverage for the repair-owned
-      paths.
-    - Stage and commit only paths proven to belong to the repair slice. Do not
-      mutate unrelated or ambiguous user changes. Push, amend, rebase, stash,
-      reset, release preparation, version changes, destructive cleanup, or other
-      non-closure history operations still require exact operation-specific
-      consent.
-    - Use matching available commit-execution and message-writing capabilities
-      when they are visible and applicable. If they are unavailable, keep the
-      same safeguards in this workflow: verify the staged set before commit,
-      use a Conventional Commit message with durable repair outcome and proof,
-      and inspect the stored message after commit.
-    - When a consented closure commit needs a multi-line message, transport it
-      as one complete payload: a single-quoted heredoc such as
-      `git commit -F - <<'EOF' ... EOF`, or a message file passed with `-F`.
-      Never use repeated `-m` arguments for body lines, bullets, verification
-      lines, or trailers, and never embed a raw newline inside a single `-m`
-      value. Add trailers with
-      `git commit --trailer`, not by typing trailer lines into the message
-      payload.
-    - After a closure commit, verify the stored message with
-      `git show -s --format=%B HEAD` before reporting closure. Defer complex
-      history repair beyond the consented closure commit to a commit-execution
-      workflow when one is visible.
-    - If the user explicitly disabled commits or a safety gate blocks the
-      default closure commit, finish with the reviewed uncommitted state,
-      verification status, and proposed commit scope or message when useful.
+    - Finish with verified repair-owned working-tree changes unless the current
+      user explicitly requests a commit.
+    - Invocation, successful verification, or tracked status does not select
+      staging or history work. Do not ask for startup commit policy.
+    - When a commit is explicitly selected, hand the verified scope, review and
+      test evidence, and unrelated-path exclusions to the commit-execution
+      workflow. Keep push, release, version changes, rewrites, destructive
+      cleanup, and unrelated paths separately consent-bound.

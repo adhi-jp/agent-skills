@@ -131,14 +131,14 @@ sandbox location.
   the material unsupplied surfaces that could change the conclusion — such as
   other callers or UI surfaces, locales, runtime rendering, screenshots,
   configuration layers, or tests — rather than using one generic limitation.
-- **Check the strongest counter-evidence.** Before presenting a main
-  conclusion, run at least one check that could disprove it: a caller that
-  bypasses the traced path, a config that swaps the implementation, a test that
-  encodes different behavior, or history that shows the code recently changed.
-  Keep this check inside the bound evidence universe. In closed-corpus mode,
-  inspect the supplied artifacts for the strongest available contradiction; if
-  none was supplied, record that counter-evidence was unavailable rather than
-  widening into the ambient workspace.
+- **Check material counter-evidence.** For negative conclusions, architecture or
+  blast-radius claims, runtime inference, security, or data-loss risk, run a
+  plausible check that could disprove the conclusion: a bypassing caller,
+  selected configuration, contradictory test, or relevant history. Keep the
+  check inside the bound evidence universe. Direct anchored path, symbol, or
+  literal lookups do not need a ceremonial counter-check. In closed-corpus mode,
+  record unavailable counter-evidence rather than widening into the ambient
+  workspace.
 
 ## Workflow
 
@@ -167,8 +167,7 @@ sandbox location.
    - Use `git log` and `git blame` when the question is "why is it like this"
      or "when did this change", and treat commit messages as claims, not proof.
 4. **Pressure-test the conclusion**
-   - Run the disconfirming check from the core rules within the bound evidence
-     universe.
+   - Run the disconfirming check when the conclusion type requires it.
    - Downgrade anything that failed verification to `Unproven` with the reason,
      rather than dropping or silently keeping it.
 5. **Report the findings**
@@ -207,9 +206,9 @@ When fanning out:
   resolution, final conclusions, or investigations where weak reasoning would
   become the bottleneck, especially when the user asks for maximum performance.
   Do not default every small lookup to the top model, and do not downshift
-  solely to save tokens when the question needs stronger reasoning. Record any
-  explicit user model override or the capability/context reason for a
-  non-default model when the host exposes that metadata.
+  solely to save tokens when the question needs stronger reasoning. Record model
+  choice only for an explicit user override, degraded capability,
+  cost/performance constraint, or audited external execution.
 - The fan-out may run as ad-hoc sub-agent calls or as one scripted
   orchestration run: a host mechanism that runs the investigators under a
   single deterministic, independently recorded run and returns their results.
@@ -308,7 +307,8 @@ Before responding, check:
   workspace, runner, eval, or harness state?
 - Were runtime-behavior claims either backed by execution evidence or
   qualified?
-- Did at least one disconfirming check run against the main conclusion?
+- For negative, architectural, blast-radius, runtime-inference, security, or
+  data-loss conclusions, did a plausible disconfirming check run?
 - Are uninspected areas and failed searches reported as coverage limits?
 - For broad or user-visible questions, did the search cover every named
   investigation surface, or explicitly justify why a surface was out of scope?

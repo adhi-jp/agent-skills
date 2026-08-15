@@ -282,7 +282,7 @@ without declaring its lifecycle status.
 ## Spec metadata
 - Current spec path: [path]
 - Last updated: YYYY-MM-DD
-- Requirement mode: strict-four-choice|lightweight-four-choice|freestyle
+- Requirement mode: adaptive|strict-four-choice|lightweight-four-choice|freestyle
 
 ## User goal
 
@@ -370,15 +370,20 @@ escape hatch that is not part of the requirement path itself. If that safeguard
 would make the path acceptable, include it as an explicit requirement in the
 option; otherwise keep the path out of the visible choices.
 
+### `adaptive`
+
+Use `adaptive` when no explicit mode is selected. Capture concrete low-risk
+requirements directly. Ask the smallest question whose answer changes product
+behavior, scope, data handling, permissions, safety, or acceptance. Present
+labeled options only when multiple viable paths make the decision easier.
+Destructive, migration, permission, security, billing, contradictory, and
+material data decisions remain one-at-a-time human questions.
+
 ### `strict-four-choice`
 
-Use `strict-four-choice` whenever no explicit current-user mode selection is
-present, and for vague, high-risk, contradictory, destructive, or
-recognition-alignment-heavy requests. Ask one visible requirements decision
-question per turn and continue for as many turns as needed to protect the
-requirement contract and completion gate. Startup permission questions, such as
-subagent permission, do not count as the requirements decision question, but
-keep them separate and brief.
+Use `strict-four-choice` only when the current user explicitly requests it. Ask
+one visible requirements decision question per turn and continue as needed to
+protect the contract and completion gate.
 
 In trusted orchestration proxy mode, the one-question cadence describes what
 would be asked in a manual session. A proxy pass may resolve multiple delegable
@@ -395,7 +400,7 @@ state its risk, assumptions, and adoption conditions.
 ### `lightweight-four-choice`
 
 Use `lightweight-four-choice` only after explicit current-user selection or
-confirmation to leave strict mode. Ask one visible question per turn for the
+confirmation of that interaction preference. Ask one visible question per turn for the
 main requirement dimensions, normally for up to roughly three main questions.
 Record lower-impact details as AI-recommended defaults, assumptions, or open
 unknowns instead of turning every detail into a question.
@@ -410,8 +415,8 @@ main benefit, and the main drawback.
 
 ### `freestyle`
 
-Use `freestyle` only after explicit current-user selection or confirmation to
-leave strict mode. Organize sufficiently formed free-form requirements into the
+Use `freestyle` only after explicit current-user selection or confirmation of
+that interaction preference. Organize sufficiently formed free-form requirements into the
 spec with minimal follow-up questions. Stop before adopting a requirement when
 the user's input contains a factual error, feasibility risk, destructive-change
 risk, or a significant break from an existing specification, API, data contract,

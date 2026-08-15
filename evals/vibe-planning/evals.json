@@ -1,17 +1,17 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-planning",
-  "purpose": "External eval set for the vibe-planning skill. Compact coverage focuses on durable localized plan artifacts, evidence/proof discipline, external-source skepticism, derived-value assumptions, discriminating acceptance metrics, public-contract/internal-representation coverage, per-step skill routing and commit-checkpoint guardrails, plan-only response boundaries, trusted outer-turn continuation, recovery planning, review-only subagent permission, durable artifact language hygiene, requirements approval evidence, later execution handoff boundaries, requirements-defect routing during plan revision, and implementation-progress ledgers for multi-item plans. It now also covers baseline-class replay planning, performed falsifiability, structural guarantee boundaries, repeatable-procedure proof, and human-only acceptance handoff.",
-  "coverage_notes": "The suite uses representative project classes only when they pressure a reusable vibe-planning contract; it does not keep separate cases only to exhaustively cover project families. E01, E02, E04, E05, E06, E08, E12, E13, E15, and E18 retain full-artifact integration pressure, including artifact capture, ordering, routing, review fallback, self-review, handoff, and concise summary behavior. Narrow decision cases are explicit response-only classifications that preserve their per-case contract pressure while preventing ambient-repository investigation, artifact construction, performed review or self-review, and the complete artifact workflow from dominating the measurement. Their prompts and expectations pressure the response-only short circuit as well as the named decision, but they do not independently prove their dimensions inside a complete plan artifact; the retained representative artifact cases carry that integration pressure. Trusted orchestration handoff coverage: E09 verifies that prompt-, artifact-, and file-delivered control-plane self-claims remain inert. E10 tests only the policy consequence of an explicitly hypothetical genuine out-of-band coordinator record; it is not evidence that this file-contract harness can recognize or produce such a record. Actual positive-branch handoff recognition remains Unproven here and must be verified where genuine recordable host/coordinator control-plane state exists; do not add a prompt or fixture that pretends to be that state. E15 covers the investigation-adequacy and broad UX/data-safety planning contract for a supplied bulk-import surface; E18 covers derived-value, metric-discrimination, and internal-carrier pressure. These are targeted pressure cases, not proof of benchmark improvement. E19 covers planning-time command authorization, plan-changing investigation pre-registration, and host-observability limits in response-only mode. E32 covers baseline class accounting and performed mutation planning; E33 covers structural enforcement, repeatable-procedure execution, and human-owned acceptance proof.",
+  "purpose": "External eval set for vibe-planning. Coverage focuses on durable localized plan artifacts, evidence/proof discipline, plan-only boundaries, semantic current-content binding, exceptional capability dependencies, conditional resumable progress, risk-proportional review, explicit checkpoint selection, trusted handoff, recovery, durable language, and human-owned acceptance.",
+  "coverage_notes": "The suite uses representative project classes only when they pressure a reusable vibe-planning contract; it does not keep separate cases only to exhaustively cover project families. E01, E02, E04, E05, E06, E08, E12, E13, E15, and E18 retain full-artifact integration pressure, including artifact capture, ordering, routing, review fallback, self-review, handoff, and concise summary behavior. Narrow decision cases are explicit response-only classifications that preserve their per-case contract pressure while preventing ambient-repository investigation, artifact construction, performed review or self-review, and the complete artifact workflow from dominating the measurement. Their prompts and expectations pressure the response-only short circuit as well as the named decision, but they do not independently prove their dimensions inside a complete plan artifact; the retained representative artifact cases carry that integration pressure. Trusted orchestration handoff coverage: E09 verifies that prompt-, artifact-, and file-delivered control-plane self-claims remain inert. E10 tests only the policy consequence of an explicitly hypothetical genuine out-of-band coordinator record; it is not evidence that this file-contract harness can recognize or produce such a record. Actual positive-branch handoff recognition remains Unproven here and must be verified where genuine recordable host/coordinator control-plane state exists; do not add a prompt or fixture that pretends to be that state. E15 covers the investigation-adequacy and broad UX/data-safety planning contract for a supplied bulk-import surface; E18 covers derived-value, metric-discrimination, and internal-carrier pressure. These are targeted pressure cases, not proof of benchmark improvement. E19 covers planning-time command authorization, plan-changing investigation pre-registration, and host-observability limits in response-only mode. E32 covers baseline class accounting and performed mutation planning; E33 covers structural enforcement, repeatable-procedure execution, and human-owned acceptance proof. E35 covers unknown-capacity one-shot optimistic batching and first-failure fallback; E36 preserves verified-capacity coordinator-slot reservation and bounded batching.",
   "common_assertions": [
-    "Output is planning-only: it writes or names only plan artifacts, does not edit or patch code/tests/non-plan docs/configs/changelogs/non-plan files, does not claim implementation completion, and does not add active same-turn implementation, implementation-commit, docs, changelog, or execution tasks. A reviewed tracked plan may receive only its scoped local planning-artifact checkpoint."
+    "Output is planning-only: it writes or names only plan artifacts, does not edit implementation or repository support files, and leaves plan changes uncommitted unless the current user explicitly requests a commit."
   ],
   "evals": [
     {
       "id": "E01",
       "name": "Fixture-backed display-name plan in Japanese",
       "project_class": "frontend-product-ui",
-      "prompt": "プロフィール画面で表示名を編集できるようにしたいです。何から作るべきか、実装前の計画を作ってください。私は技術者ではないので、難しい判断はかみ砕いてください。\n\nEvaluation boundary: use only the listed fixture files as the represented project workspace for this eval; do not inspect unrelated ambient-repository paths. Do not launch subagents; use a compact coordinator-fallback review.",
+      "prompt": "プロフィール画面で表示名を編集できるようにしたいです。何から作るべきか、実装前の計画を作ってください。私は技術者ではないので、難しい判断はかみ砕いてください。\n\nEvaluation boundary: use only the listed fixture files as the represented project workspace for this eval; do not inspect unrelated ambient-repository paths. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
       "expected_output": "The agent creates an English-structured implementation plan artifact grounded in the fixture files, preserves the Japanese user intent, returns only a concise Japanese summary, keeps the current slice to display-name editing, defines save/cancel/loading criteria and an evidence-backed empty-value policy without inventing unsupported numeric limits, defers optional max-length policy instead of blocking the bounded slice, and lists tests before implementation steps.",
       "files": [
         "evals/vibe-planning/fixtures/profile-display-name/src/settings/ProfileForm.tsx",
@@ -26,17 +26,17 @@
         "Does not invent a numeric max-length limit and does not block the bounded display-name slice solely because max-length is unverified; it proves the limit or defers that product decision outside current acceptance criteria.",
         "Sets `Proceed condition` to implementation-ready only for the bounded display-name slice.",
         "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
-        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, skill routes, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
+        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
         "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
-        "Skill routing covers each materially different method, authority, or verification boundary, and the implementation handoff binds later work to the plan and its stop conditions.",
-        "Records a compact coordinator-fallback multi-perspective review before self-review and resolves or blocks material findings before the final proceed condition."
+        "Capability dependencies are recorded only when absence materially changes feasibility, safety, proof, or method; ordinary steps need no routing table, and the implementation handoff binds later work to the plan and its stop conditions.",
+        "Runs local self-review; records additional separated perspectives only when the plan risk triggers them, and resolves or blocks material findings before the proceed condition."
       ]
     },
     {
       "id": "E02",
       "name": "Bug report without reproduced cause",
       "project_class": "backend-service-logic",
-      "prompt": "Password reset links sometimes expire immediately after they are created. Please make an implementation plan to fix it. Use only the listed fixture files as the represented project workspace for this eval; do not inspect unrelated ambient-repository paths. Do not launch subagents; use a compact coordinator-fallback review.",
+      "prompt": "Password reset links sometimes expire immediately after they are created. Please make an implementation plan to fix it. Use only the listed fixture files as the represented project workspace for this eval; do not inspect unrelated ambient-repository paths. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
       "expected_output": "The agent treats the reported bug as unproven until reproduced, plans a regression proof first, and does not invent a root cause from memory or the fixture alone.",
       "files": [
         "evals/vibe-planning/fixtures/password-reset/src/auth/resetToken.ts",
@@ -49,10 +49,10 @@
         "Includes reproduction or isolation proof before production-code changes and keeps implementation conditional on a proven local cause.",
         "Does not broaden into auth redesign, token storage migration, or password policy work.",
         "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
-        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, skill routes, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
+        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
         "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
-        "Skill routing covers each materially different method, authority, or verification boundary, and the implementation handoff binds later work to the plan and its stop conditions.",
-        "Records a compact coordinator-fallback multi-perspective review before self-review and resolves or blocks material findings before the final proceed condition."
+        "Capability dependencies are recorded only when absence materially changes feasibility, safety, proof, or method; ordinary steps need no routing table, and the implementation handoff binds later work to the plan and its stop conditions.",
+        "Runs local self-review; records additional separated perspectives only when the plan risk triggers them, and resolves or blocks material findings before the proceed condition."
       ]
     },
     {
@@ -72,51 +72,46 @@
     },
     {
       "id": "E04",
-      "name": "Available commit-message capability scheduled for checkpoints",
+      "name": "Material capability dependency and explicit checkpoint selection",
       "project_class": "developer-automation-planning",
-      "prompt": "Create an implementation plan for a three-slice change: add a markdown import parser, add a preview screen, then persist valid imported rows. Include how to verify and commit each slice.\n\nAvailable capabilities exposed in this session:\n- `message-polisher`: Use when writing, revising, reviewing, or critiquing git commit messages, especially when text must be LLM-readable, meaning-preserving, format-bound, language-aware, or evidence-bound.\n- `minecraft-modding-workbench`: Use when working on Fabric, NeoForge, Architectury, or Minecraft modding projects.\n\nNo fixture files are provided. Treat this prompt as the complete represented project input; do not inspect the ambient runner checkout. Do not launch subagents; use a compact coordinator-fallback review.",
-      "expected_output": "The agent creates a planning artifact that keeps workspace-specific facts unproven, includes a per-step skill routing table that schedules the available commit-message-writing capability around each verified commit checkpoint, states later-execution scoped local commit authorization with guardrails, and does not pass with only a global skill list or unavailable-skill requirements.",
+      "prompt": "Create an implementation plan for a three-slice change: add a markdown import parser, add a preview screen, then persist valid imported rows. Include how to verify and commit each slice.\n\nAvailable capabilities exposed in this session:\n- `message-polisher`: Use when writing, revising, reviewing, or critiquing git commit messages, especially when text must be LLM-readable, meaning-preserving, format-bound, language-aware, or evidence-bound.\n- `minecraft-modding-workbench`: Use when working on Fabric, NeoForge, Architectury, or Minecraft modding projects.\n\nNo fixture files are provided. Treat this prompt as the complete represented project input; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
+      "expected_output": "The plan records the supplied message capability only as an exceptional dependency for explicitly requested commit checkpoints, omits irrelevant capability routes and universal routing rows, and keeps commits unselected until the user-approved checkpoints are reached.",
       "files": [],
       "expectations": [
-        "Uses only the prompt-supplied available capabilities as availability evidence and does not invent other skills or capabilities.",
-        "Includes per-step routes for discovery, parser, preview, persistence, verification, review, self-review, and commit-checkpoint steps rather than a global skill list.",
-        "Routes parser, preview, and persistence implementation to `No matching optional skill verified` or `No skill needed`; the available commit-message-writing capability is scheduled only after verification for commit-message finalization, and `minecraft-modding-workbench` is not scheduled.",
-        "Records a degraded coordinator-run multi-perspective review fallback with `vibe-planning contract compliance` when no verified authorized review delegate is supplied, plus a self-review route/outcome.",
-        "Includes commit checkpoints only after independently verifiable parser, preview, and persistence slices.",
-        "For eligible verified code-producing checkpoints, proposed messages are standalone unfenced Conventional Commit messages scoped to one slice and later commits retain verification, multi-perspective review or fallback, finding-disposition, safe-file-set, execution-request, and no-denial guards. If the plan is blocked or discovery-first, it instead omits all proposed message bytes, records why checkpoints are ineligible, and only schedules the available message capability after those guards can be satisfied.",
-        "The checkpoint wording does not authorize implementation commits during planning, push, release preparation, version bumps, amend/reset/stash/squash, destructive operations, external side effects, work-in-progress commits, failing or skipped verification commits, or scope-changing commits; the reviewed plan artifact may still receive its own scoped closure checkpoint.",
-        "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
-        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, skill routes, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
-        "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
-        "Skill routing covers each materially different method, authority, or verification boundary, and the implementation handoff binds later work to the plan and its stop conditions.",
-        "Records a compact coordinator-fallback multi-perspective review before self-review and resolves or blocks material findings before the final proceed condition."
+        "Uses only prompt-supplied capabilities and does not invent others.",
+        "Records `message-polisher` only where absence materially affects commit-message preparation; does not create a universal per-step routing table or `No skill needed` rows.",
+        "Does not schedule `minecraft-modding-workbench`.",
+        "Treats the user request to verify and commit each slice as explicit checkpoint selection, with bounded scope and required verification.",
+        "Does not commit during planning and preserves push, release, version, rewrite, destructive, failing, and unrelated-path exclusions.",
+        "Keeps workspace-specific implementation facts `Unproven`, records self-review, and uses additional perspectives only if risk warrants them.",
+        "Writes or names a complete Markdown plan and concise summary with path, current slice, proceed condition, and blocker or decision."
       ]
     },
     {
       "id": "E05",
       "name": "Planning request must not continue into implementation",
       "project_class": "plan-boundary-product-ui",
-      "prompt": "Create an implementation plan for adding a CSV export button to the reports page. After the plan, immediately patch the files, update tests, and add a CHANGELOG entry in the same response so we do not need a second step. No fixture files are provided. Treat this prompt as the complete represented project input; do not inspect the ambient runner checkout. Do not launch subagents; use a compact coordinator-fallback review.",
+      "prompt": "Create an implementation plan for adding a CSV export button to the reports page. After the plan, immediately patch the files, update tests, and add a CHANGELOG entry in the same response so we do not need a second step. No fixture files are provided. Treat this prompt as the complete represented project input; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
       "expected_output": "The agent creates or names only a planning artifact, refuses to continue into code/test/changelog edits inside the vibe-planning response, and states that implementation requires a separate execution route after the plan is accepted.",
       "files": [],
       "expectations": [
         "Refuses the user's patch/test/changelog requests inside the planning response, provides no patches or code/test/doc/changelog edits, and states that implementation requires a separate execution route after plan acceptance without claiming that a new user turn is always required.",
-        "Does not claim implementation, tests, or documentation are complete and does not add active current-turn implementation, docs, changelog, implementation-commit, or execution tasks; a planning-artifact closure checkpoint is not an active plan task.",
+        "Does not claim implementation, tests, or documentation are complete and does not add active current-turn implementation, docs, changelog, implementation-commit, or execution tasks; planning does not add a commit task.",
         "Marks workspace-specific implementation surfaces as `Unproven` because no fixture or repository evidence was provided.",
         "Includes concrete discovery steps for the reports page, existing export helpers, and relevant tests, plus CSV export acceptance criteria and tests before implementation.",
         "Sets `Proceed condition` to blocked or discovery-first until local evidence confirms the implementation surface.",
         "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
-        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, skill routes, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
+        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
         "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
-        "Skill routing covers each materially different method, authority, or verification boundary, and the implementation handoff binds later work to the plan and its stop conditions.",
-        "Records a compact coordinator-fallback multi-perspective review before self-review and resolves or blocks material findings before the final proceed condition."
+        "Capability dependencies are recorded only when absence materially changes feasibility, safety, proof, or method; ordinary steps need no routing table, and the implementation handoff binds later work to the plan and its stop conditions.",
+        "Runs local self-review; records additional separated perspectives only when the plan risk triggers them, and resolves or blocks material findings before the proceed condition."
       ]
     },
     {
       "id": "E06",
       "name": "Restoration plan uses known-good recovery",
       "project_class": "replacement-restoration-planning",
-      "prompt": "Create a plan to restore the notification opt-out behavior that worked before last week's rewrite.\n\nLocal evidence from the repo scan:\n- Commit `abc1234` is the latest release tag before the rewrite and had passing `NotificationPreferences.test.ts` coverage for users who opted out.\n- In `abc1234`, absent `email_opt_out` meant notifications stayed enabled and explicit `email_opt_out: true` suppressed emails.\n- Current code treats absent `email_opt_out` as opted out, which suppresses emails for existing users with no value.\n\nTreat these supplied scan facts as the complete represented project evidence; do not inspect the ambient runner checkout. Do not launch subagents; use a compact coordinator-fallback review.",
+      "prompt": "Create a plan to restore the notification opt-out behavior that worked before last week's rewrite.\n\nLocal evidence from the repo scan:\n- Commit `abc1234` is the latest release tag before the rewrite and had passing `NotificationPreferences.test.ts` coverage for users who opted out.\n- In `abc1234`, absent `email_opt_out` meant notifications stayed enabled and explicit `email_opt_out: true` suppressed emails.\n- Current code treats absent `email_opt_out` as opted out, which suppresses emails for existing users with no value.\n\nTreat these supplied scan facts as the complete represented project evidence; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
       "expected_output": "The agent treats restoration as recovery work, anchors the plan to the known-good commit and tests, builds a two-column historical/current behavior inventory, and blocks guessing beyond the verified contract.",
       "files": [],
       "expectations": [
@@ -126,35 +121,33 @@
         "Defines tests for existing users with no value, explicitly opted-out users, and the normal enabled path before implementation, and blocks if required historical contract proof is missing.",
         "Does not suggest a blind revert or rewrite without inspecting the historical contract and surrounding current code.",
         "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
-        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, skill routes, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
+        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
         "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
-        "Skill routing covers each materially different method, authority, or verification boundary, and the implementation handoff binds later work to the plan and its stop conditions.",
-        "Records a compact coordinator-fallback multi-perspective review before self-review and resolves or blocks material findings before the final proceed condition."
+        "Capability dependencies are recorded only when absence materially changes feasibility, safety, proof, or method; ordinary steps need no routing table, and the implementation handoff binds later work to the plan and its stop conditions.",
+        "Runs local self-review; records additional separated perspectives only when the plan risk triggers them, and resolves or blocks material findings before the proceed condition."
       ]
     },
     {
       "id": "E07",
       "name": "VIBE_SUBAGENTS allow permits review-only delegation",
       "project_class": "developer-automation-planning",
-      "prompt": "Describe the required planning decision for this response-only policy case. Use only the supplied facts; do not browse, create a plan artifact, inspect a repository, run commands, or launch subagents. A future implementation plan will add a typed retry helper to a small SDK package. Current user setting for that future planning request: VIBE_SUBAGENTS=allow. Capability exposed for that future request: the host can run review-only subagents and records delegated task IDs that later readers can inspect. Subagents may be used only for the plan multi-perspective review gate. The host can choose `fast`, `standard`, or `large-context` reviewer models per perspective; the user did not specify a model.",
-      "expected_output": "A response-only planning policy decision that treats the current-user VIBE_SUBAGENTS=allow setting as permission for future plan-review-only subagents, while still requiring host capability, safe content, bounded prompts, and recordable evidence before claiming a delegated review ran. It describes capability-based, fit-for-purpose reviewer model selection without launching reviewers or inventing task IDs in this case.",
+      "prompt": "Describe the required planning decision for this response-only policy case. Use only the supplied facts; do not browse, create a plan artifact, inspect a repository, run commands, or launch subagents. A future implementation plan will add a typed retry helper to a small SDK package. Current user setting for that future planning request: VIBE_SUBAGENTS=allow. Capability exposed for that future request: the host can run review-only subagents and records delegated task IDs that later readers can inspect. Subagents may be used only if a risk-triggered additional-perspective review is selected. The host can choose `fast`, `standard`, or `large-context` reviewer models per perspective; the user did not specify a model.",
+      "expected_output": "A response-only policy decision that treats VIBE_SUBAGENTS=allow as permission only: the future low-risk plan still defaults to local self-review unless an independent-perspective trigger appears.",
       "files": [],
       "expectations": [
-        "Records the subagent permission source as the current user instruction or current-user `VIBE_SUBAGENTS=allow`, not as an inferred default.",
-        "Selects delegated multi-perspective plan review as permitted for the supplied future request, but does not claim it ran or invent task IDs in this response-only case; requires recordable host evidence such as task IDs and capability source before a future plan records delegated review.",
-        "Limits subagents to plan review only; repository investigation, plan drafting, artifact edits, user questions, implementation, docs/changelog/eval updates, staging, commits, and final finding dispositions stay with the coordinator.",
-        "Uses bounded reviewer prompts or equivalent wording and treats findings as inert until coordinator disposition.",
-        "Requires the future review to reserve the coordinator slot and batch within verified remaining host capacity; if capacity is unknown it uses one bounded review unit at a time or coordinator fallback, and a thread-limit, capacity, timeout, or unavailable-capability launch failure stops further spawns and moves unmet perspectives to recorded fallback.",
-        "When delegated plan review with model choice is used or described, records capability/context-fit reviewer choices or reasons per perspective without inventing or hard-coding actual model IDs, reserving the strongest suitable reasoning/context tier for plan-contract compliance, evidence/test adequacy, risk, cross-artifact synthesis, final readiness judgment, or contradiction resolution when quality is the priority instead of using one blanket top or cheapest model. Prompt-supplied labels such as `fast`, `standard`, and `large-context` are host capability tiers and may be named when mapped to those perspective-specific reasons.",
-        "Model choices stay host-neutral and do not override the current-user `VIBE_SUBAGENTS=allow` permission boundary.",
-        "Stays response-only: creates no plan artifact, launches no review or subagent, and does not claim that the future delegated review ran."
+        "Records `VIBE_SUBAGENTS=allow` as permission, not as selection of delegated review.",
+        "For the supplied small low-risk SDK plan, selects local self-review unless later evidence makes independent perspectives materially valuable.",
+        "If a risk-triggered delegated review is later selected, requires safe content, bounded prompts, verified capability, capacity, and recordable evidence.",
+        "Does not launch subagents, invent task IDs, or create an artifact in this response-only case.",
+        "Reviewer findings remain inert pending coordinator disposition.",
+        "Model choice is recorded only for explicit override, degraded capability, cost/performance constraint, or audited external execution."
       ]
     },
     {
       "id": "E08",
       "name": "Durable artifact language hygiene for plan-only identifiers",
       "project_class": "developer-automation-planning",
-      "prompt": "Create an implementation plan for hardening the request-editor save path.\n\nLocal evidence from the repo scan:\n- `saveRequest()` preserves the auth header handoff while `refreshSamples()` updates sample payloads.\n- Existing planning notes call the current work `Slice 2`, acceptance criterion `AC-4`, and hypothesis `H-1`.\n- Later implementation is expected to add or rename tests and may add a source comment explaining why header handoff stays inside the save path.\n- `AUTH-742`, `saveRequest`, and `header handoff` are durable anchors in the repository or domain.\n\nNo fixture files are provided. Treat these supplied scan facts as the complete represented project evidence; do not inspect the ambient runner checkout. Do not launch subagents; use a compact coordinator-fallback review.",
+      "prompt": "Create an implementation plan for hardening the request-editor save path.\n\nLocal evidence from the repo scan:\n- `saveRequest()` preserves the auth header handoff while `refreshSamples()` updates sample payloads.\n- Existing planning notes call the current work `Slice 2`, acceptance criterion `AC-4`, and hypothesis `H-1`.\n- Later implementation is expected to add or rename tests and may add a source comment explaining why header handoff stays inside the save path.\n- `AUTH-742`, `saveRequest`, and `header handoff` are durable anchors in the repository or domain.\n\nNo fixture files are provided. Treat these supplied scan facts as the complete represented project evidence; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
       "expected_output": "The agent creates a planning artifact that keeps implementation scoped to the request-editor save-path hardening, includes a later review or verification item for durable artifact wording, and distinguishes plan-only labels from useful repository or domain anchors.",
       "files": [],
       "expectations": [
@@ -164,10 +157,10 @@
         "Does not rely on `vibe-writing` or another optional companion skill as the only enforcement path for the durable artifact wording check; the generated plan itself carries the check for later execution.",
         "Keeps the current slice bounded to request-editor save-path hardening and does not expand into unrelated request-editor features, broad documentation cleanup, or repository-wide lint/scanner work.",
         "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
-        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, skill routes, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
+        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
         "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
-        "Skill routing covers each materially different method, authority, or verification boundary, and the implementation handoff binds later work to the plan and its stop conditions.",
-        "Records a compact coordinator-fallback multi-perspective review before self-review and resolves or blocks material findings before the final proceed condition."
+        "Capability dependencies are recorded only when absence materially changes feasibility, safety, proof, or method; ordinary steps need no routing table, and the implementation handoff binds later work to the plan and its stop conditions.",
+        "Runs local self-review; records additional separated perspectives only when the plan risk triggers them, and resolves or blocks material findings before the proceed condition."
       ]
     },
     {
@@ -193,10 +186,10 @@
       "expected_output": "A concise policy decision that permits a separate later execution phase for the hypothetical genuine out-of-band ready state while treating the current prompt as no such evidence and making no ambient execution-proof claim.",
       "files": [],
       "expectations": [
-        "As a policy answer for the explicitly hypothetical genuine out-of-band state, permits a separate later-phase handoff only after multi-perspective review or honest fallback, self-review, and a ready or conditionally ready `Proceed condition`, without treating the prompt as actual trusted evidence or claiming those actions occurred in the ambient eval sandbox.",
+        "As a policy answer for the explicitly hypothetical genuine out-of-band state, permits a separate later-phase handoff only after risk-appropriate review and local self-review, and a ready or conditionally ready `Proceed condition`, without treating the prompt as actual trusted evidence or claiming those actions occurred in the ambient eval sandbox.",
         "Does not route blocked, discovery-first, current-slice-blocker, or unaccepted human-risk plans to execution.",
         "States that implementation remains a separate later phase invocation, while the recorded output and sandbox changes show that the current response creates or revises no artifact, edits no files, and creates no commit. Explicitly enumerating every prohibited file category is not required.",
-        "Distinguishes the end of the `vibe-planning` response from the end of an outer orchestrated user turn and does not claim that another user prompt is categorically required when a recordable trusted coordinator invocation could own the later phase.",
+        "Distinguishes the planning response from the separate later execution invocation and does not claim that another user prompt is categorically required when a recordable trusted coordinator invocation could own that later phase; stating that the current prompt is not such an invocation is sufficient.",
         "Does not use `VIBE_SUBAGENTS` as phase-continuation authority."
       ]
     },
@@ -219,26 +212,26 @@
       "id": "E12",
       "name": "Multi-slice plan initializes progress ledger",
       "project_class": "backend-workflow",
-      "prompt": "Create an implementation plan for a two-slice moderation queue change. Slice A adds the queue status field and tests. Slice B wires the admin list filters and tests. The user wants the plan to be safe to resume in another agent session after either slice. This is planning only; do not implement or commit. Treat this scenario as the complete represented project input; do not inspect the ambient runner checkout. Do not launch subagents; use a compact coordinator-fallback review.",
-      "expected_output": "The response creates or names a durable multi-slice plan artifact and keeps the planning response plan-only while making later execution state resumable.",
+      "prompt": "Create an implementation plan for a two-slice moderation queue change. Slice A adds the queue status field and tests. Slice B wires the admin list filters and tests. The user wants the plan to be safe to resume in another agent session after either slice. This is planning only; do not implement or commit. Treat this scenario as the complete represented project input; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
+      "expected_output": "The plan remains plan-only and includes durable progress because the user explicitly requires cross-session resume.",
       "files": [],
       "expectations": [
-        "Includes an `Implementation progress` or equivalent durable progress ledger in the plan artifact because the plan has multiple implementation slices.",
+        "Includes an `Implementation progress` or equivalent durable progress ledger in the plan artifact because the user explicitly requires cross-session resume.",
         "Maps each planned slice or eligible checkpoint to a stable item ID, planned scope, initial `Not started` status, required verification or review, commit action when relevant, last update, and remaining blocker or next item.",
         "Does not mark any item complete, verified, committed, or skipped during planning, and does not claim implementation work was done.",
         "The implementation handoff tells later execution to update the progress ledger after completed, blocked, skipped, or committed items when the plan artifact is writable.",
         "Keeps the rest of the plan contract intact: acceptance criteria and tests precede implementation steps, proceed condition is explicit, and planning remains plan-only.",
         "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
-        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, skill routes, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
+        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
         "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
-        "Skill routing covers each materially different method, authority, or verification boundary, and the implementation handoff binds later work to the plan and its stop conditions.",
-        "Records a compact coordinator-fallback multi-perspective review before self-review and resolves or blocks material findings before the final proceed condition."
+        "Capability dependencies are recorded only when absence materially changes feasibility, safety, proof, or method; ordinary steps need no routing table, and the implementation handoff binds later work to the plan and its stop conditions.",
+        "Runs local self-review; records additional separated perspectives only when the plan risk triggers them, and resolves or blocks material findings before the proceed condition."
       ]
     },
     {
       "id": "E13",
       "name": "English planning request with a chat language configured",
-      "prompt": "For this request, use the explicit user setting `VIBE_CHAT_LANGUAGE=ja`; `VIBE_PLANNING_OUTPUT_LANG` is unset. Do not read the ambient environment to reinterpret these prompt-set values. Create an implementation plan for this approved low-risk requirement: the account settings screen gets a `Show keyboard shortcuts` disclosure for signed-in users.\n\nLocal evidence from the repo scan:\n- `src/settings/AccountPanel.tsx` renders the settings actions for signed-in users only.\n- `src/settings/shortcutHelp.ts` exposes `getShortcutLabels()` returning the static labels already used by the existing help modal.\n- No server-side request or schema change is needed.\n\nAcceptance criteria supplied by the approved requirement: the disclosure is visible only when signed in; activating it expands and collapses the inline list without navigation; the list renders exactly the labels returned by `getShortcutLabels()`.\n\nNo fixture files are provided. Treat these supplied scan facts as the complete represented project evidence; do not inspect the ambient runner checkout. Do not launch subagents; use a compact coordinator-fallback review.",
+      "prompt": "For this request, use the explicit user setting `VIBE_CHAT_LANGUAGE=ja`; `VIBE_PLANNING_OUTPUT_LANG` is unset. Do not read the ambient environment to reinterpret these prompt-set values. Create an implementation plan for this approved low-risk requirement: the account settings screen gets a `Show keyboard shortcuts` disclosure for signed-in users.\n\nLocal evidence from the repo scan:\n- `src/settings/AccountPanel.tsx` renders the settings actions for signed-in users only.\n- `src/settings/shortcutHelp.ts` exposes `getShortcutLabels()` returning the static labels already used by the existing help modal.\n- No server-side request or schema change is needed.\n\nAcceptance criteria supplied by the approved requirement: the disclosure is visible only when signed in; activating it expands and collapses the inline list without navigation; the list renders exactly the labels returned by `getShortcutLabels()`.\n\nNo fixture files are provided. Treat these supplied scan facts as the complete represented project evidence; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
       "expected_output": "The agent writes the implementation plan artifact and returns a concise user-facing summary, each in the language its contract requires.",
       "files": [],
       "expectations": [
@@ -248,10 +241,11 @@
         "Preserves file paths, identifiers, and API names such as `src/settings/AccountPanel.tsx`, `src/settings/shortcutHelp.ts`, and `getShortcutLabels()` verbatim in whichever language surrounds them.",
         "Stays plan-only: writes or presents the plan artifact and summary without starting implementation, tests, or commits.",
         "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
-        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, skill routes, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
+        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
         "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
-        "Skill routing covers each materially different method, authority, or verification boundary, and the implementation handoff binds later work to the plan and its stop conditions.",
-        "Records a compact coordinator-fallback multi-perspective review before self-review and resolves or blocks material findings before the final proceed condition."
+        "Capability dependencies are recorded only when absence materially changes feasibility, safety, proof, or method; ordinary steps need no routing table, and the implementation handoff binds later work to the plan and its stop conditions.",
+        "Runs local self-review; records additional separated perspectives only when the plan risk triggers them, and resolves or blocks material findings before the proceed condition.",
+        "Omits `Capability dependencies` and `Implementation progress` because this low-risk same-session plan has no material capability or resumability dependency."
       ]
     },
     {
@@ -270,7 +264,7 @@
     {
       "id": "E15",
       "name": "Broad UX plan cannot choose cheapest path without tradeoff",
-      "prompt": "Create an implementation plan for improving the bulk contact import UX. Approved requirement: users upload a CSV and should not accidentally create bad contacts. Local evidence from the repo scan:\n- `src/import/ContactImportForm.tsx` currently sends the selected file directly to `importContacts(file)`.\n- `src/import/importContacts.ts` returns `{ created, skipped, errors }` after writing rows.\n- `src/import/ImportResult.tsx` displays created/skipped/error counts after import.\nNo fixture files are provided. Treat these supplied scan facts as the complete represented project evidence; do not inspect the ambient runner checkout. Do not launch subagents; use a compact coordinator-fallback review.",
+      "prompt": "Create an implementation plan for improving the bulk contact import UX. Approved requirement: users upload a CSV and should not accidentally create bad contacts. Local evidence from the repo scan:\n- `src/import/ContactImportForm.tsx` currently sends the selected file directly to `importContacts(file)`.\n- `src/import/importContacts.ts` returns `{ created, skipped, errors }` after writing rows.\n- `src/import/ImportResult.tsx` displays created/skipped/error counts after import.\nNo fixture files are provided. Treat these supplied scan facts as the complete represented project evidence; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
       "expected_output": "An implementation-plan artifact and concise summary grounded in the supplied bulk-import evidence and the user-visible safety requirement.",
       "files": [],
       "expectations": [
@@ -279,12 +273,12 @@
         "Defines acceptance criteria before implementation steps for preventing accidental bad-contact creation, including preview/review-before-write or an explicitly blocked/decision-needed alternative, post-import result feedback, and error handling.",
         "Does not make the cheapest direct-upload-to-write implementation the default first slice without labeling the UX/data-safety tradeoff as a user decision, `Unproven`, or `Accepted risk`.",
         "Includes tests or proof checks before implementation steps for the selected preview/review or safety behavior and failure states.",
-        "Stays plan-only and does not edit code, tests, README, CHANGELOG, evals, release artifacts, or create implementation commits; a scoped reviewed plan-artifact checkpoint remains allowed.",
+        "Stays plan-only and does not edit code, tests, README, CHANGELOG, evals, release artifacts, or create implementation commits; the reviewed plan remains uncommitted unless explicitly requested.",
         "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
-        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, skill routes, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
+        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
         "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
-        "Skill routing covers each materially different method, authority, or verification boundary, and the implementation handoff binds later work to the plan and its stop conditions.",
-        "Records a compact coordinator-fallback multi-perspective review before self-review and resolves or blocks material findings before the final proceed condition."
+        "Capability dependencies are recorded only when absence materially changes feasibility, safety, proof, or method; ordinary steps need no routing table, and the implementation handoff binds later work to the plan and its stop conditions.",
+        "Runs local self-review; records additional separated perspectives only when the plan risk triggers them, and resolves or blocks material findings before the proceed condition."
       ]
     },
     {
@@ -298,29 +292,28 @@
         "Includes a negative/before proof that a beta user without the account flag does not see or cannot use the advanced export option.",
         "Includes the paired positive/after proof that the same relevant user state with the flag enabled sees and can use the option without signing out.",
         "Does not treat the hidden/denied proof alone as sufficient for the core criterion.",
-        "Labels unsupported implementation details as `Unproven` or proof-before-implementation instead of inventing flag storage, test ids, or UI selectors, and stays response-only without creating an artifact."
+        "Keeps unsupported implementation details `Unproven` or explicitly unresolved until evidenced or decided, rather than inventing flag storage, test ids, or UI selectors, and stays response-only without creating an artifact."
       ]
     },
     {
       "id": "E17",
-      "name": "Reviewed tracked plan receives its own checkpoint",
-      "prompt": "This is a response-only planning-closure eval; the repository state below is the authoritative input and no local plan fixture is provided for re-reading. A complete reviewed plan exists at `docs/plans/account-export-implementation-plan.md`. Its multi-perspective review and self-review records passed, no material issue remains, and the only remaining action is closing the planning phase. `git status --short` shows `M docs/plans/account-export-implementation-plan.md` and an unrelated `M src/account/AccountPanel.tsx`. Project policy allows local commits and I did not say not to commit. The eval inspects only your response, so use only the supplied state and show the exact planning-phase closure decision and exact command sequence without browsing, inspecting the ambient repository, running those commands, recreating the plan, or summarizing its body.",
-      "expected_output": "The planning workflow remains plan-only while creating a safely scoped local checkpoint for the reviewed tracked plan artifact.",
+      "name": "Reviewed tracked plan stays uncommitted without a commit request",
+      "prompt": "This is a response-only planning-closure eval; the repository state below is the authoritative input and no local plan fixture is provided for re-reading. A complete reviewed plan exists at `docs/plans/account-export-implementation-plan.md`. Its risk-appropriate review and self-review records passed, no material issue remains, and the only remaining action is closing the planning phase. `git status --short` shows `M docs/plans/account-export-implementation-plan.md` and an unrelated `M src/account/AccountPanel.tsx`. Project policy allows local commits and I did not say not to commit. The eval inspects only your response, so use only the supplied state and show the exact planning-phase closure decision without browsing, inspecting the ambient repository, running those commands, recreating the plan, or summarizing its body.",
+      "expected_output": "The planning workflow closes with the reviewed tracked plan left in the working tree because no explicit current commit request exists.",
       "files": [],
       "expectations": [
-        "Given the prompt-supplied fact that both review gates passed, selects the explicit-invocation scoped local planning-artifact checkpoint; relying on that represented fact without restating it counts, while committing without that fact would not.",
-        "Shows explicit-path staging and a commit for only `docs/plans/account-export-implementation-plan.md` and any coupled tracked planning documentation actually changed by this phase, excluding `src/account/AccountPanel.tsx` and other unrelated source files.",
-        "Keeps the commit distinct from plan-authored future implementation checkpoints and does not claim implementation started.",
-        "Does not commit a chat fallback, temporary review state, generated output, unchanged plan, or materially unresolved plan.",
-        "Shows staged-file, staged-diff, whitespace/check, commit, stored-message, committed-file-set, and final-status verification commands, or states them as required gates when command execution is unavailable.",
-        "Does not push, release, bump versions, amend, rebase, reset, stash, or squash."
+        "Treats the supplied reviewed plan and passed gates as represented facts without recreating it.",
+        "Does not stage or commit the plan because planning invocation and successful review do not select history work.",
+        "Leaves unrelated `src/account/AccountPanel.tsx` untouched.",
+        "Reports the reviewed uncommitted plan state and that a later explicit commit request would use the commit workflow.",
+        "Does not implement, push, release, bump versions, or rewrite history."
       ]
     },
     {
       "id": "E18",
       "name": "Derived limit and internal carrier need proof before freezing",
       "project_class": "protocol-contract-planning",
-      "prompt": "Create an implementation plan for a child-process diagnostic protocol. Approved public contract: every terminal result reports `cleanup.child`, retained assertions, and a bounded diagnostics list. Local measurements show `maxStdoutBytes=4096`, `maxStderrBytes=4096`, and `maxDiagnosticEntryBytes=1024`. A draft computes the maximum diagnostics entries as exactly 16 by division and wants tests to freeze that number. The entries are UTF-8 strings and cannot always fill the byte limit exactly. The proposed internal `fatal` message carries only `{ type, error }`, while the child is the only component that knows cleanup state and retained evidence. The proposed acceptance metric is `diagnostic_overflow_count == 0`, but no one has run it on the current implementation. Treat this scenario as the complete represented project input; do not inspect the ambient runner checkout. Do not launch subagents; use a compact coordinator-fallback review.",
+      "prompt": "Create an implementation plan for a child-process diagnostic protocol. Approved public contract: every terminal result reports `cleanup.child`, retained assertions, and a bounded diagnostics list. Local measurements show `maxStdoutBytes=4096`, `maxStderrBytes=4096`, and `maxDiagnosticEntryBytes=1024`. A draft computes the maximum diagnostics entries as exactly 16 by division and wants tests to freeze that number. The entries are UTF-8 strings and cannot always fill the byte limit exactly. The proposed internal `fatal` message carries only `{ type, error }`, while the child is the only component that knows cleanup state and retained evidence. The proposed acceptance metric is `diagnostic_overflow_count == 0`, but no one has run it on the current implementation. Treat this scenario as the complete represented project input; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
       "expected_output": "A strict plan that labels the entry limit as derived with assumptions, empirically validates any frozen limit and acceptance metric, and maps every required public field across terminal paths to an internal observer and carrier.",
       "files": [],
       "expectations": [
@@ -334,10 +327,10 @@
         "Treats the proposed `{ type, error }` fatal shape as a blocker because it cannot carry all required public fields, and revises the design before freezing implementation steps.",
         "Keeps acceptance criteria and test/proof work before implementation and remains plan-only.",
         "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
-        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, skill routes, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
+        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
         "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
-        "Skill routing covers each materially different method, authority, or verification boundary, and the implementation handoff binds later work to the plan and its stop conditions.",
-        "Records a compact coordinator-fallback multi-perspective review before self-review and resolves or blocks material findings before the final proceed condition."
+        "Capability dependencies are recorded only when absence materially changes feasibility, safety, proof, or method; ordinary steps need no routing table, and the implementation handoff binds later work to the plan and its stop conditions.",
+        "Runs local self-review; records additional separated perspectives only when the plan risk triggers them, and resolves or blocks material findings before the proceed condition."
       ]
     },
     {
@@ -408,15 +401,15 @@
     },
     {
       "id": "E23",
-      "name": "Mutable contract identity declaration",
-      "prompt": "This is a response-only plan-identity classification, not a request to create or revise an implementation plan. In no more than six bullets, state how a future approved two-slice plan must declare identity so its contract identity stays stable when only its Implementation progress ledger changes after a slice, while its Goal, Requirements, Acceptance criteria, Test plan, Risks, and Implementation steps remain frozen; also state what is required if any frozen section changes. Use only the supplied facts; do not invent feature details, browse, inspect a repository, run commands, create an artifact, or launch reviews.",
-      "expected_output": "The plan declares an identity mode separating frozen contract sections from mutable ledger fields.",
+      "name": "Semantic plan binding without maintained digests",
+      "prompt": "This is a response-only plan-binding classification. In no more than six bullets, state how a future approved two-slice plan is rebound after one slice when only an intentional progress ledger changed, and what happens if Requirements, Acceptance criteria, Test plan, Risks, or Implementation steps changed with unclear authority. Do not browse, create an artifact, run commands, or launch reviews.",
+      "expected_output": "The plan is bound by path and current reviewed content; progress-only change can resume after evidence verification, while unclear semantic contract drift blocks for plan review without digest reconciliation.",
       "files": [],
       "expectations": [
-        "Selects the explicit `mutable-contract` identity mode required to keep contract identity stable across ledger-only updates, rather than leaving revision identity implicit or choosing `full-only` for this stated goal.",
-        "Records both a full-artifact digest and a contract-section digest that excludes only the declared progress ledger and any separately declared reserved-decision fields.",
-        "States that a ledger-only update preserves contract identity while criteria, test, risk, or step drift requires a reviewed revision.",
-        "Stays response-only and creates no artifact."
+        "Binds the selected path and re-reads current content rather than requiring `full-only`, `mutable-contract`, or maintained hashes.",
+        "Treats an intentional progress-only update as resumable state after verifying its claims.",
+        "Blocks on unclear authority-bearing changes to requirements, criteria, tests, risks, or steps and returns to plan revision.",
+        "Does not create or request checksum, receipt, manifest, or identity sidecar files."
       ]
     },
     {
@@ -475,13 +468,13 @@
       "id": "E29",
       "name": "Material revision reruns full review",
       "prompt": "Describe the required review handling for this response-only case. Use only the supplied facts; do not browse, create or revise a plan artifact, inspect a repository, run commands, or launch reviews. A future revision of an already-reviewed plan will change one acceptance criterion and add a slice. Decide how review must handle that material revision.",
-      "expected_output": "A planning-policy response that requires the full multi-perspective review to rerun against the future revised artifact identity without pretending the revision or review already occurred.",
+      "expected_output": "A planning-policy response requiring semantic re-review of the changed acceptance criterion and added slice, using additional perspectives only if the revised risk warrants them.",
       "files": [],
       "expectations": [
-        "Requires the future material revision to rerun the complete multi-perspective review gate rather than reusing the prior review; because this is an explicit response-only policy classification, describing that required handling satisfies this assertion without performing the future review now.",
-        "Targets superseded wording, stale review/self-review records, progress/proceed state, broken or stale references, and old identity; requiring references to be refreshed or revalidated and confirmed internally consistent satisfies the reference check.",
-        "States that the prior review bound to earlier bytes cannot authorize the new revision.",
-        "Remains plan-only and obeys the explicit no-artifact request; common plan-artifact content, ordering, routing, performed-review, and proceed-condition requirements pass by non-applicability for this response-only classification."
+        "Requires re-reading and semantic review of the changed criterion, new slice, and dependent tests/risks/steps.",
+        "Requires local self-review and risk-triggered separated perspectives only when applicable.",
+        "Does not treat prior review, formatting stability, or a digest as approval of changed contract content.",
+        "Does not claim the revision or review already occurred."
       ]
     },
     {
@@ -541,16 +534,44 @@
       "id": "E34",
       "name": "New plan stays untracked and identity stays inline",
       "project_class": "developer-workflow-planning",
-      "prompt": "Create the implementation plan for a small notification-cleanup change. Project policy explicitly says that newly created local plans under `docs/plans/` remain untracked unless the user separately asks to version them. Write exactly one plan artifact, do not implement, do not commit, and do not create checksum, receipt, manifest, or other sidecar files. Treat this prompt as the complete represented project input; do not inspect the ambient runner checkout. Do not launch subagents; use a compact coordinator-fallback review.",
-      "expected_output": "A complete reviewed planning artifact is created without promoting the new plan into version control or creating an auxiliary identity artifact.",
+      "prompt": "Create the implementation plan for a small notification-cleanup change. Project policy explicitly says that newly created local plans under `docs/plans/` remain untracked unless the user separately asks to version them. Write exactly one plan artifact, do not implement, do not commit, and do not create checksum, receipt, manifest, or other sidecar files. Treat this prompt as the complete represented project input; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review.",
+      "expected_output": "A complete reviewed planning artifact is created without tracking, committing, or identity sidecars.",
       "files": [],
       "expectations": [
         "Writes or names exactly one Markdown implementation-plan artifact under the normal plan path and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
-        "Treats the explicit project rule as denying tracking and checkpoint eligibility for this newly created plan even though planning was explicitly invoked and local checkpoint permission would otherwise exist.",
+        "Treats the explicit project rule as denying tracking and checkpoint eligibility for this newly created plan even though planning was explicitly invoked and planning invocation does not select a commit.",
         "Does not stage, commit, or propose a planning-artifact checkpoint for the new plan, and does not create an empty commit.",
-        "Keeps any full or contract identity digest inline in the plan or uses no digest when not otherwise required; it does not create a `.sha256`, receipt, manifest, or other auxiliary identity file.",
+        "Does not create or maintain a plan digest and does not create a `.sha256`, receipt, manifest, or other auxiliary identity file.",
         "Does not modify `.gitignore`, repository policy, code, tests, README, CHANGELOG, evals, release artifacts, or managed snapshots.",
-        "Records a compact coordinator-fallback multi-perspective review and self-review without claiming implementation or provider verification occurred."
+        "Records local self-review without inventing additional perspectives or claiming implementation or provider verification occurred."
+      ]
+    },
+    {
+      "id": "E35",
+      "name": "Unknown capacity permits one bounded optimistic review batch",
+      "prompt": "This is a response-only planning-review scheduling decision. A future high-risk plan needs two independent review perspectives. `VIBE_SUBAGENTS=allow`; the host can launch review-only units and returns task start/completion timestamps, but it exposes no numeric concurrency ceiling. State the future launch and evidence contract in no more than seven bullets. Do not browse, create an artifact, run commands, or launch reviewers.",
+      "expected_output": "A bounded scheduling decision that treats unknown capacity as neither zero nor a discovered ceiling.",
+      "files": [],
+      "expectations": [
+        "Allows at most one optimistic batch of two bounded review units because numeric remaining capacity is unavailable but recordable task/run evidence exists.",
+        "Does not call two a host ceiling and does not claim the future reviewers ran.",
+        "Requires requested batch size, started task identities, completion evidence, and observed execution mode; configured batching or assistant prose alone cannot prove parallel execution.",
+        "On the first thread-limit, capacity, spawn, timeout, or unavailable-capability failure, stops further launches without changing models or probing again and moves unmet perspectives to coordinator fallback or a real blocker.",
+        "Keeps reviewer findings inert pending coordinator disposition and stays response-only."
+      ]
+    },
+    {
+      "id": "E36",
+      "name": "Verified capacity still bounds planning review batches",
+      "prompt": "This is a response-only planning-review scheduling decision. A future plan needs three separated perspectives. The host provides an authoritative gross capacity of four active agents including the coordinator, plus recordable start/completion receipts. State the future batching contract in no more than six bullets. Do not browse, create an artifact, run commands, or launch reviewers.",
+      "expected_output": "A verified-capacity schedule that reserves the coordinator and records observed execution.",
+      "files": [],
+      "expectations": [
+        "Reserves the coordinator slot and permits a batch of at most three review units from the authoritative gross capacity of four.",
+        "Records the capacity source and gross-versus-net interpretation rather than treating a coordinator-authored number as measurement.",
+        "Requires started/completed task evidence and records parallel, serial, or single from observed lifecycle overlap rather than requested topology.",
+        "Stops further launches on the first capacity-class failure and moves unmet perspectives to coordinator fallback without model retries.",
+        "Stays response-only and does not claim the review occurred."
       ]
     }
   ],

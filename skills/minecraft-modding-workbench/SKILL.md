@@ -63,8 +63,8 @@ visible before giving version-sensitive recommendations:
   and `Unverified`. For fallback/error-recovery tasks or eval-style answers,
   include empty categories as `none yet` when omitting them would blur the
   source boundary.
-- `Reference route`: for substantial plans or debugging routes, name the
-  loaded references and the relevant skipped categories briefly.
+- Keep bundled-reference routing internal unless the user requests an audit or
+  a fallback/provenance decision needs explanation.
 
 ## Quick Path
 
@@ -74,7 +74,7 @@ visible before giving version-sensitive recommendations:
    version-, loader-, mapping-, or Java-sensitive claims.
 2. Run MCP preflight before assuming `minecraft-modding` tools are callable.
 3. Use one high-level MCP call first for the relevant fact.
-4. Choose a narrow reference route before loading bundled references. Once the
+4. Choose narrow internal reference context before loading bundled references. Once the
    task shape is known, start with its checklist section and add loader, MCP
    recipe, fallback, or task-specific references only when their conditions match.
 5. If a worker restart, timeout, or transport failure occurs, retry once with a
@@ -171,10 +171,9 @@ whole reference bundle just because this skill triggered.
   - Read `references/subagent-mcp-contract.md` only when delegating Minecraft
     work to another agent.
 
-For substantial plans, debugging explanations, eval outputs, or handoffs where
-reference choices affect implementation facts, include a brief reference-route
-record: loaded references with reasons, plus skipped reference categories with
-reasons. Keep it short; it is provenance, not a summary of every skipped file.
+Keep loaded/skipped reference choices internal by default. Surface them only
+when the user requests an audit or when explaining a fallback, missing source,
+or provenance limitation materially affects the recommendation.
 
 ## MCP Guardrails
 
@@ -189,7 +188,6 @@ visible:
   failures, never an identical deterministic server fault;
 - keep project version, mapping, artifact, and workspace provenance explicit;
 - mark fallback facts as fallback-verified, not MCP-verified.
-
 
 ## Unsupported or Risky Requests
 
@@ -237,7 +235,6 @@ codec, dependency, HUD/rendering, GameTest, NBT, cache/index, model/texture,
 side-only, or version-porting failures. It owns the detailed Gradle, datagen,
 runtime, resource, and category-specific verification paths. A green build
 alone is not runtime proof for resource-heavy or runtime-only changes.
-
 
 ## References
 

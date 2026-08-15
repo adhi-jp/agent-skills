@@ -125,10 +125,9 @@ items.
 
 Consent-bound items include:
 
-- Repository history operations outside the bound plan's scoped local checkpoint
-  policy: unplanned staging or committing, amending, stashing, resetting,
-  release preparation, version bumps, squashes, push, or checkpoint scope
-  changes.
+- Repository history operations: any commit not explicitly requested now or
+  explicitly selected by a bound approved plan item, plus amend, stash, reset,
+  release preparation, version bumps, squash, push, or checkpoint scope changes.
 - Destructive, irreversible, credential-exposing, paid, production, or external
   side-effecting operations.
 - Host delegation or orchestration that shares work with other agents, runs
@@ -139,20 +138,14 @@ Consent-bound items include:
 For each item, record the `Plan` source, the exact operation, when it would
 occur, current authorization evidence, and the fallback if authorization is
 denied or absent. Current authorization must name the operation or decision.
-An explicit request to execute, implement, apply, or continue the bound plan
-supplies scoped local checkpoint permission for verified and reviewed
-plan-owned changes; eligible `Commit checkpoints` or "commit after each slice"
-text names preferred boundaries, and natural verified slice boundaries apply
-when that text is absent. The same general request does not authorize other
-consent-bound operations.
+An execution request does not select a commit. Commit authority must come from
+an explicit current request or an explicitly selected bound approved checkpoint.
+The same general request does not authorize history or other consent-bound
+operations.
 
-If any consent-bound item lacks exact authorization, pause before implementing
-the affected slice and ask for the smallest exact decision. If the current user
-instruction or project policy denies commits for a plan that contains commit
-checkpoints, follow that decision: implement at most the current checkpoint,
-report the verified uncommitted state and checkpoint message, and stop before
-the next planned checkpoint unless the user explicitly chooses another
-non-commit checkpoint strategy.
+If any consent-bound item lacks exact authorization, pause before the affected
+operation and ask for the smallest exact decision. Missing commit selection does
+not block ordinary implementation; finish with verified uncommitted changes.
 
 Batch startup questions only when every answer is simultaneously knowable and
 the plan reserved the corresponding field. Do not pre-approve later
@@ -178,9 +171,9 @@ plan-contract judgment, cross-file synthesis, adversarial review, high-risk
 sections, deviation/consent-adjacent analysis, final review dispositions, or
 contradiction resolution, especially when the user asks for maximum performance.
 Do not inherit the top model for every small unit, and do not downshift solely to
-save tokens when the slice needs stronger reasoning. Record any explicit user
-model override or the capability/context reason for a non-default model in the
-delegation or review gate record when the host exposes that metadata.
+save tokens when the slice needs stronger reasoning. Record model choice only
+for an explicit user override, degraded capability, cost/performance constraint,
+or audited external execution.
 
 Before launching a delegated unit, record a bounded delegation budget: deliverable, hypothesis or task question, maximum elapsed time, maximum files or allowed paths, maximum changed lines when implementation is allowed, verification receipt, stop-and-return conditions, and context digest. Prefer isolated work, review-only execution, command output, or patch/diff handoff. Shared-root edits by a delegated unit require explicit slice ownership and must leave changed paths plus verification status before the coordinator treats the work as progress. Three consecutive empty waits require a checkpoint or task split decision rather than repeated short polling.
 
@@ -195,14 +188,10 @@ Delegation never weakens the plan contract:
   condition, a Plan Deviation Gate decision, or a consent boundary must either
   stay with the coordinator or make the delegated unit stop and report instead
   of deciding.
-- Plan binding, deviation decisions, checkpoint commit authorization, history
-  operations, progress-ledger updates, and final verification against the plan's
+- Plan binding, deviation decisions, history operations, applicable progress-ledger updates, and final verification against the plan's
   acceptance criteria stay with the coordinator.
-- A request to let delegated units or a scripted run commit automatically when
-  checks pass does not move history operations into that delegated run. Treat it
-  at most as authorization for coordinator-managed commits after the coordinator
-  verifies the completed checkpoint as `Local evidence`, runs the
-  Post-Implementation Review Gate, and confirms the scoped file set.
+- Delegated units never commit. An explicitly selected commit remains a separate
+  coordinator-owned history workflow after local verification and review.
 - Run delegated implementation of different slices concurrently only when the
   bound plan defines those slices as independent and the host isolates their
   working state from each other; otherwise execute serially.

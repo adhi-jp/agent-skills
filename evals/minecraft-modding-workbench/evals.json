@@ -9,7 +9,6 @@
     "Output uses high-level MCP tools first when they are available and uses fallback references only after preflight, older-MCP detection, or the stated failure budget justifies fallback.",
     "Output does not treat `./gradlew build` alone as proof for resource codec loading, loader runtime wiring, or client rendering behavior.",
     "Output keeps implementation or debugging fixes narrow and grounded in same-version Minecraft, loader, mapping, workspace, source jar, or runtime log evidence.",
-    "Output uses a narrow reference route: it names only task-relevant references or explicitly explains why an extra reference was needed.",
     "Output does not restate unrelated MCP recipes, loader recipes, HUD guidance, GameTest guidance, or fallback playbooks when the task route does not require them."
   ],
   "evals": [
@@ -52,11 +51,11 @@
       "expectations": [
         "Starts from the workspace's Gradle dependency and `architectury_api_version` rather than online examples.",
         "Prefers MCP or dependency source jar before bytecode inspection.",
-        "Reads or cites `references/dependency-jars.md` for source-jar and artifact reporting discipline.",
+        "Uses the dependency-source lookup discipline: prefer the configured dependency source JAR, keep artifact provenance, and use bytecode only when source is unavailable; it need not expose the internal reference filename.",
         "Looks in Gradle module caches for the exact group, artifact, and version.",
         "Uses `*-sources.jar` when available.",
         "Falls back to `jar tf` or `javap` only when source is unavailable.",
-        "Reports the exact group, artifact, version, and artifact path used as evidence.",
+        "Requires reporting the exact group, artifact, version, and artifact path once resolved, and does not invent those values when the workspace evidence is unavailable.",
         "Labels facts as dependency source fallback when MCP did not verify them.",
         "Does not restate unrelated Fabric, NeoForge, HUD, GameTest, validator, worldgen, or MCP-unavailable fallback guidance unless module placement truly requires it."
       ]
@@ -71,7 +70,7 @@
         "Does not mark the feature complete from `./gradlew build`.",
         "Classifies the runtime errors as likely codec or schema mismatch.",
         "Requires same-version vanilla configured feature and placed feature examples before editing JSON broadly.",
-        "Identifies intentionally changed fields from vanilla.",
+        "Requires identifying the fields intentionally changed from the same-version vanilla anchors before broad edits or replacement JSON, without inventing them when the current JSON is unavailable.",
         "Plans MCP resource/project validation if available, or fallback resource-load validation if not.",
         "Requires GameTest, datagen/resource validation, platform run task, or `runClient` evidence before claiming natural generation works."
       ]
@@ -84,7 +83,7 @@
       "files": [],
       "expectations": [
         "Uses HUD, screens, or client rendering checklist guidance rather than a generic build-only plan.",
-        "Reads or cites `references/rendering-hud.md` for projection, GUI scale, FOV, behind-camera, and visual verification concerns.",
+        "Applies the HUD/rendering guidance for projection, GUI scale, FOV, behind-camera, and runtime visual verification without requiring the internal reference filename in the answer.",
         "Separates fixed 2D overlay behavior from world-to-screen projection.",
         "Checks world position, camera position, front/behind-camera decision, projected coordinates, GUI-scaled pixels, and clamp behavior.",
         "Verifies same-version client method signatures through MCP or workspace/source fallback before changing projection math.",
@@ -122,7 +121,7 @@
         "Uses the Simple Block or Item checklist for the requested feature slice.",
         "Uses Architectury placement guidance when workspace inspection shows a multi-loader common module, and uses Fabric-specific guidance only for Fabric project structure, registration, datagen, resources, or common pitfalls that apply to this slice.",
         "Does not restate unrelated Fabric/NeoForge platform-only, HUD, GameTest, validator, dependency-jar, NBT, mod-JAR, or MCP-unavailable fallback guidance.",
-        "Includes a brief reference-route record or equivalent explanation naming loaded and skipped reference categories."
+        "Keeps loaded/skipped bundled-reference routing internal because no audit or fallback explanation is requested."
       ]
     },
     {
@@ -133,7 +132,7 @@
       "files": [],
       "expectations": [
         "Classifies `ERR_INVALID_INPUT` as invalid payload shape, not MCP unavailability.",
-        "Reads or cites `references/mcp-recipes.md` only for the relevant payload shape and error recovery.",
+        "Uses only the relevant current payload-shape and error-recovery guidance without requiring the internal reference filename in the answer.",
         "Corrects the old-shape request toward the current MCP 6.3.0 high-level shape, such as replacing unsupported `compact` response shaping with `detail` and `include[]` where needed.",
         "Corrects the payload once and retries the same high-level `inspect-minecraft` path before changing tools.",
         "Does not switch to `references/mcp-unavailable-fallback.md` unless the corrected call also fails under the stated failure budget.",
@@ -153,7 +152,7 @@
         "Uses the nearest older-compatible path when one is known, otherwise switches to workspace/source fallback.",
         "Labels facts from the fallback path as workspace/source-jar fallback, not MCP-verified.",
         "Does not restate unrelated NBT, GameTest, HUD, loader-registration, or mod-JAR recipes.",
-        "Records the reference route or fallback reason briefly."
+        "Explains the fallback reason because it materially affects provenance; it need not enumerate skipped reference files."
       ]
     },
     {
@@ -223,7 +222,7 @@
         "States that workspace `subject.focus` must be an object, not a string.",
         "Uses one of the schema-validated `exampleCalls` or equivalent structured shapes such as `{ kind: \"class\", className: \"net.minecraft.world.item.Item\" }` for the retry.",
         "States that `task=\"auto\"` dispatches from `subject.kind` and `focus.kind`, not from natural-language prose.",
-        "Retries the same high-level `inspect-minecraft` path once before using Gradle cache or source-jar fallback.",
+        "Directs one corrected retry of the same high-level `inspect-minecraft` path before Gradle cache or source-jar fallback; the explanation task does not require actually invoking MCP.",
         "Keeps Minecraft class facts unverified until the corrected MCP call or later fallback actually verifies them.",
         "Does not guess alternate tool names or restate unrelated loader, HUD, GameTest, NBT, dependency-jar, or validator recipes."
       ]

@@ -38,27 +38,27 @@ acting. Repository contributors must also follow [`AGENTS.md`](AGENTS.md).
 | --- | --- | --- | --- |
 | Route an explicitly invoked, multi-turn coding workflow | `vibe-coding` | Selects one primary visible specialist for the current phase, preserves that specialist's gates, and separates required work from permission, capability, and artifact lifecycle authority | [source](skills/vibe-coding/SKILL.md) · [evals](evals/vibe-coding/) |
 | Confirm or correct the agent's understanding before ambiguous or risky work | `vibe-goal-alignment` | Produces an understanding record and stops before action until the user confirms or corrects it | [source](skills/vibe-goal-alignment/SKILL.md) · [evals](evals/vibe-goal-alignment/) |
-| Coordinate bounded subagent research, edits, repairs, or review | `vibe-orchestrate` | The coordinator keeps scope, verification, and consent ownership; binds runtime identity, write rounds, reviews, measurements, and receipts to the exact evidence/effect epoch; treats worker output as non-authorizing; and permits concurrency only through isolated workspaces or guarded private generated-output roots. Optional external helpers run closed read-only inspect/review tasks or hardened coordinator-authored missions whose writes are reconciled against an explicit allowlist | [source](skills/vibe-orchestrate/SKILL.md) · [evals](evals/vibe-orchestrate/) |
+| Coordinate bounded subagent research, edits, repairs, or review | `vibe-orchestrate` | The coordinator keeps scope, verification, and consent ownership; treats worker output as non-authorizing; and selects external write lanes by required effects plus isolation and receipts, with free-text residual risk and report/manifest/Git reconciliation before acceptance | [source](skills/vibe-orchestrate/SKILL.md) · [evals](evals/vibe-orchestrate/) |
 
 ### Shape, investigate, and change software
 
 | Task | Skill | Important boundary | Package |
 | --- | --- | --- | --- |
-| Turn a rough, ambiguous, or contradictory goal into requirements | `vibe-requirements-spec` | Writes or revises the requirements spec, keeps outside-authored raw text out of secondary sinks, and stops before planning or implementation | [source](skills/vibe-requirements-spec/SKILL.md) · [evals](evals/vibe-requirements-spec/) |
-| Explore implementation ideas, alternatives, or expected conventions | `vibe-brainstorm` | Returns chat-first directions; a selected direction is not implementation approval | [source](skills/vibe-brainstorm/SKILL.md) · [evals](evals/vibe-brainstorm/) |
-| Understand, locate, trace, or assess existing code | `vibe-code-research` | Read-only; static evidence is not presented as runtime proof | [source](skills/vibe-code-research/SKILL.md) · [evals](evals/vibe-code-research/) |
-| Create or revise an implementation plan from approved or concrete inputs | `vibe-planning` | Writes plan artifacts and stops before implementation; explicit future-plan policy classifications stay response-only, and new plans need independent authority before tracking or checkpointing | [source](skills/vibe-planning/SKILL.md) · [evals](evals/vibe-planning/) |
-| Walk through a saved implementation plan item by item | `vibe-plan-review` | Interactive pre-check; it stops before implementation and does not grant execution approval | [source](skills/vibe-plan-review/SKILL.md) · [evals](evals/vibe-plan-review/) |
-| Implement a concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Binds the implementation input, checks proceed conditions, and verifies and reviews completed slices | [source](skills/vibe-plan-execution/SKILL.md) · [evals](evals/vibe-plan-execution/) |
-| Diagnose and repair an existing bug, regression, failed fix, or runtime mismatch | `vibe-debug` | Keeps cause and repair claims evidence-backed and supplies a retest contract when local proof is unavailable | [source](skills/vibe-debug/SKILL.md) · [evals](evals/vibe-debug/) |
-| Review a working tree, branch, base ref, or git-backed document change | `vibe-review` | Requires a non-empty git-backed target; fixes and history actions stay behind the workflow's gates | [source](skills/vibe-review/SKILL.md) · [evals](evals/vibe-review/) |
+| Turn a rough, ambiguous, or contradictory goal into requirements | `vibe-requirements-spec` | Uses adaptive clarification, keeps high-risk decisions human-owned and outside-authored raw text out of secondary sinks, and stops before planning or implementation | [source](skills/vibe-requirements-spec/SKILL.md) · [evals](evals/vibe-requirements-spec/) |
+| Explore implementation ideas, alternatives, or expected conventions | `vibe-brainstorm` | Returns chat-first multi-perspective directions; delegation is optional, and a selected direction is not implementation approval | [source](skills/vibe-brainstorm/SKILL.md) · [evals](evals/vibe-brainstorm/) |
+| Understand, locate, trace, or assess existing code | `vibe-code-research` | Read-only; direct lookups stay concise, and material negative/architecture/risk conclusions receive a disconfirming check | [source](skills/vibe-code-research/SKILL.md) · [evals](evals/vibe-code-research/) |
+| Create or revise an implementation plan from approved or concrete inputs | `vibe-planning` | Writes concise plan artifacts and stops before implementation; reserved decisions stay authority-bounded, and risk-triggered review uses verified-capacity or one bounded optimistic batch before coordinator fallback | [source](skills/vibe-planning/SKILL.md) · [evals](evals/vibe-planning/) |
+| Walk through a saved implementation plan item by item | `vibe-plan-review` | Interactive pre-check; review state stays in chat unless resumability needs persistence, exact target/state mismatches fail closed, and it stops before implementation | [source](skills/vibe-plan-review/SKILL.md) · [evals](evals/vibe-plan-review/) |
+| Implement a concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Binds the current reviewed plan content, keeps material high-risk and out-of-scope constraints visible, checks proceed conditions, and verifies and reviews completed slices without inferring commits | [source](skills/vibe-plan-execution/SKILL.md) · [evals](evals/vibe-plan-execution/) |
+| Diagnose and repair an existing bug, regression, failed fix, or runtime mismatch | `vibe-debug` | Keeps cause and repair claims evidence-backed; simple bugs close concisely while recurrent or environment-bound work retains a ledger/retest contract | [source](skills/vibe-debug/SKILL.md) · [evals](evals/vibe-debug/) |
+| Review a working tree, branch, base ref, or git-backed document change | `vibe-review` | Requires a non-empty git-backed target; records capability properties separately, quarantines delegated evidence, and omits private backend/source references from public findings while preserving common review gates | [source](skills/vibe-review/SKILL.md) · [evals](evals/vibe-review/) |
 
 ### Write and commit
 
 | Task | Skill | Important boundary | Package |
 | --- | --- | --- | --- |
 | Write or revise README/docs, comments, changelog entries, PR text, UI copy, summaries, or commit messages | `vibe-writing` | Preserves facts, modality, exact formats, and language contracts; it does not authorize releases or broader history work | [source](skills/vibe-writing/SKILL.md) · [evals](evals/vibe-writing/) |
-| Select files, stage, commit, split changes, or repair commit history and message transport | `vibe-commit` | Owns artifact eligibility, commit scope, exact-diff message reconciliation, and git safety; it does not push or rewrite shared history without explicit consent | [source](skills/vibe-commit/SKILL.md) · [evals](evals/vibe-commit/) |
+| Select files, stage, commit, split changes, or repair commit history and message transport | `vibe-commit` | Owns artifact eligibility, commit scope, exact-diff message reconciliation, and git safety; detailed receipts are conditional but retain concern coverage and drift invalidation when required, and it does not push or rewrite shared history without explicit consent | [source](skills/vibe-commit/SKILL.md) · [evals](evals/vibe-commit/) |
 
 ### Maintain skills and run evals
 
@@ -71,7 +71,7 @@ acting. Repository contributors must also follow [`AGENTS.md`](AGENTS.md).
 
 | Task | Skill | Important boundary | Package |
 | --- | --- | --- | --- |
-| Build, debug, port, or inspect Minecraft Java Edition mods | `minecraft-modding-workbench` | Covers Fabric, NeoForge, and Architectury and labels MCP, workspace, source, runtime, and unverified facts | [source](skills/minecraft-modding-workbench/SKILL.md) · [evals](evals/minecraft-modding-workbench/) |
+| Build, debug, port, or inspect Minecraft Java Edition mods | `minecraft-modding-workbench` | Covers Fabric, NeoForge, and Architectury, labels material MCP/workspace/source/runtime provenance, and keeps internal reference routing out of ordinary output | [source](skills/minecraft-modding-workbench/SKILL.md) · [evals](evals/minecraft-modding-workbench/) |
 
 ## Shared Workflow Boundaries
 
@@ -83,15 +83,14 @@ of truth when a summary and a detailed contract differ.
   investigation does not become a fix.
 - Approval, proceed, accepted-risk, and consent gates remain explicit. An
   AI-selected default or delegated recommendation is not human approval.
-- Explicit state-changing `vibe-*` workflows may create scoped local checkpoint
-  commits after their own verification and file-ownership gates pass, unless
-  the user opts out or project policy forbids them.
-- Checkpoint permission does not select optional work or promote a newly created
-  untracked artifact into version control; tracking and commit eligibility need
-  their own user, project, or owning-workflow authority.
-- Scoped checkpoint permission does not include push, release preparation,
-  version changes, tags, amend, rebase, reset, stash, squash, destructive
-  cleanup, or unrelated and ambiguous paths.
+- State-changing workflow invocation permits the selected edit phase; it does
+  not select a commit. Verified changes remain in the working tree unless the
+  current user explicitly asks for a commit or an approved plan item explicitly
+  selects that checkpoint.
+- Artifact creation, tracking, staging, commit, release-note inclusion, and
+  publishing are separate lifecycle transitions with their own authority.
+- Commit selection never implies push, release preparation, versions, tags,
+  history rewriting, destructive cleanup, or unrelated paths.
 - Current versions come from each source `SKILL.md`. Released changes and
   in-progress changes are recorded in [`CHANGELOG.md`](CHANGELOG.md); the README
   does not duplicate the version registry or the full skill contracts.

@@ -120,15 +120,13 @@ Bare post-planning handoff wording such as "continue", "go ahead", "ready", or
 "looks good" is insufficient unless it clearly asks to execute the known plan or
 current slice and the proceed condition allows execution.
 
-When the bound plan contains eligible commit checkpoints, treat checkpoint
-review and local coordinator-managed commits as part of the plan-execution
-phase under that specialist's rules. Do not require a separate commit-execution
-route or another "commit" instruction for each planned checkpoint. Standalone
-commit-execution routing still owns ordinary commit requests outside a bound
-checkpointed plan, and planned checkpoint execution does not authorize push,
-release preparation, version bumps, history rewrites, destructive operations, or
-commits that fail the execution specialist's verification, review, and scope
-gates.
+When a bound approved plan item explicitly selects a commit checkpoint, plan
+execution may prepare and verify that checkpoint, then route the history action
+to the visible commit-execution specialist without requiring a second generic
+"commit" instruction. A plan that merely has slices, mentions possible
+checkpoints, or is being executed does not select a commit. Standalone commit
+requests and explicitly selected plan checkpoints both remain subject to the
+commit workflow's file-set, verification, message, and history-safety gates.
 
 When the bound plan has a durable implementation-progress ledger, keep that
 ledger inside the plan-execution phase. Use it to rebind the active execution
@@ -238,65 +236,52 @@ Downstream specialist boundaries are authoritative:
 
 - The requirements-specification phase writes or updates only the current
   requirements spec artifact, stays downstream-neutral while active, and stops
-  after approval. When it wrote a verified tracked artifact, the coordinator may
-  create a scoped local checkpoint commit under the invocation-level permission
-  before later phases start.
+  after approval. It leaves verified changes in the working tree unless the
+  current user separately selects a commit.
 - The creative-exploration phase stays chat-first and stops at a confirmed
   direction or trusted orchestration proxy selection; neither is implementation
   authorization.
 - The code-investigation phase is read-only: it produces evidence-backed
   findings and never edits files, fixes defects, or mutates state.
 - The implementation-planning phase writes implementation-plan artifacts only
-  and does not authorize same-turn implementation. A verified tracked plan
-  artifact may receive its own scoped local checkpoint commit before execution.
+  and does not authorize same-turn implementation or a plan-artifact commit.
 - The plan-execution phase requires a concrete bound plan and its proceed or
   accepted-risk condition before code execution, then preserves the bound
   plan's scope, acceptance criteria, required documentation or changelog
-  coupling, release policy, verification path, implementation-progress ledger,
-  and scoped checkpoint commit policy.
+  coupling, release policy, verification path, any applicable resumable-progress
+  record, and explicit checkpoint selections.
 - The debug-and-repair phase owns existing-feature diagnosis and repair proof;
-  after proof and review it may use the invocation-level permission for a
-  repair-owned local closure commit.
+  verified repair changes remain uncommitted unless the current user explicitly
+  selects a commit.
 - The review phase owns review target selection, delegated review coordination,
   scope triage, gated fixes, terminal audit, and history-operation consent.
 - The plan pre-check walkthrough phase reviews a saved implementation plan
   item by item with the user before execution starts; it stops before
   implementation, keeps item decisions and reflection consent with the user,
-  and yields no execution authorization. If confirmed reflection changed the
-  tracked plan, the reflected-plan update may receive a scoped local checkpoint
-  commit; chat-only review state and temporary review files do not.
+  and yields no execution authorization. Confirmed reflected-plan changes remain
+  uncommitted unless the current user explicitly selects a commit; chat-only
+  review state and temporary review files never select one.
 - The commit-execution phase owns staging, commit safety, message transport,
   trailers, and history repair under operation-specific consent; it does not
   push or rewrite shared history without explicit consent.
-- The writing phase owns wording and text-quality deliverables. A standalone
-  explicit writing route may commit verified tracked text edits under the
-  invocation-level permission, but a chat-only reply or commit-message draft
-  does not authorize staging or history mutation.
+- The writing phase owns wording and text-quality deliverables. Verified tracked
+  text edits remain uncommitted unless the current user explicitly selects a
+  commit; a chat-only reply or commit-message draft never selects history work.
 
-## Invocation-Level Local Commit Permission
+## Commit Selection Boundary
 
-Treat explicit `vibe-coding` use for a state-changing request as permission for
-scoped local commits that preserve verified rollback points. The permission
-travels with later related turns in the same active workflow until the user
-denies commits, replaces or cancels the workflow, or project policy forbids
-them. It applies only to tracked changes owned by the selected phase after that
-phase's verification, review, and file-set gates pass.
+Keep edit authority and commit selection separate. Explicit `vibe-coding` use,
+a state-changing route, successful verification, tracked status, or an available
+commit specialist does not select a commit. Select history work only when the
+current user explicitly asks for it or a bound approved plan item explicitly
+requires that checkpoint. Route the selected history action to the
+commit-execution phase and preserve its normal staging, exact-diff, message, and
+post-commit verification rules.
 
-If the host requires a separate human approval for local commits, ask once
-before the first state-changing phase starts when the request can reasonably
-produce tracked changes. Record the answer in routing state and do not defer the
-question until completion or re-ask at each checkpoint. Host command approval
-prompts may still appear when the commit command runs; the startup decision is
-the workflow-level permission record.
-
-Do not infer a commit from a route that produced no tracked change. Read-only
-investigation, chat-only creative work, no-file requirements work, unreflected
-plan walkthroughs, progress summaries, and commit-message drafting must not
-create empty commits or ask an irrelevant commit question.
-
-The permission excludes push, release preparation, version changes, tags,
-amend, rebase, reset, stash, squash, destructive cleanup, force-adds, and
-unrelated or ambiguous dirty paths. Those remain operation-specific decisions.
+A route that produced no eligible tracked change must not create an empty
+commit. Push, release preparation, version changes, tags, amend, rebase, reset,
+stash, squash, destructive cleanup, force-adds, and unrelated or ambiguous
+paths remain separately consent-bound even when a local commit was selected.
 
 Do not collapse phases inside one downstream specialist response when that
 specialist requires stopping after an artifact, summary, approval, or
@@ -349,8 +334,8 @@ recommendations, contract compliance, contradiction resolution, or work where
 weak reasoning would become the bottleneck, especially when the user asks for
 maximum performance. Do not inherit the top model for every small delegate, and
 do not downshift solely to save tokens when the delegated decision needs stronger
-reasoning. Record explicit user model overrides or the capability/context reason
-when the selected specialist records delegation evidence.
+reasoning. Record model choice only for an explicit user override, degraded
+capability, cost/performance constraint, or audited external execution.
 Likewise, orchestration quality is not a token-minimization objective. Do not
 narrow investigation scope, skip user/domain perspectives, or choose a poorer UX
 path only because it is faster when the selected phase's contract says those

@@ -175,8 +175,7 @@ stale payload or response path. The current recipes prefer MCP 6.3.0 shapes.
 When answering a stale-shape or retry-posture question, keep the response as an
 MCP-shape correction unless the current task already reached a real fallback
 condition. Include: callable schema must be inspected before corrected payloads;
-all four verification source labels; the relevant table rows below; and a
-brief reference route. Do not paste a full validator, loader, GameTest, source
+all four verification source labels; the relevant table rows below; and a brief fallback reason only when it materially affects provenance. Do not paste a full validator, loader, GameTest, source
 jar, or Gradle fallback playbook just because a fallback gate is named.
 
 | Old or risky shape | Current shape |
