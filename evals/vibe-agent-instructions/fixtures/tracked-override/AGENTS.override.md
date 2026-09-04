@@ -1,0 +1,2 @@
+- Run `npm run lint` before every commit on this machine.
+- Use the staging database URL from `~/.config/app/staging.env`.

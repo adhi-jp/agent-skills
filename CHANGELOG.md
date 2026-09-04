@@ -13,6 +13,19 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Added
 
+- New `vibe-agent-instructions` skill creates, refreshes, and localizes a
+  repository's agent instruction files: `AGENTS.md` is the source; `CLAUDE.md`
+  is a relative symlink, the documented `@AGENTS.md` stub when links are
+  unavailable, or a regular file that imports `AGENTS.md` and keeps only
+  Claude-specific content; personal rules live in a Git-ignored
+  `AGENTS.override.md` whose managed block tells agents to read the shared
+  rules first, with `CLAUDE.local.md` linked (or stubbed) to it; detailed
+  procedures go to a pointer-referenced docs folder; every existing path is
+  previewed before a write; and known best-practice divergences are reported
+  before the policy is applied. It never stages or commits. README now
+  includes the source and eval packages without assigning a release version.
+  Validation:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-agent-instructions/evals.json`.
 - `vibe-orchestrate`: a worker report now carries a named section for work the
   contract itself blocked, and the coordinator must give every such item a
   disposition — re-contracted, scheduled to a named later round, or dropped with
