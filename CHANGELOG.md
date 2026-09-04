@@ -62,6 +62,11 @@ use `[Repository] - YYYY-MM-DD`.
   for that per-path confirmation. Prompted by an incident where a rewrite script
   reused a global untracked-file snapshot as its per-commit deletion source and
   permanently destroyed seven never-committed documents.
+- `vibe-planning`: an investigation whose scope exceeds what the planning phase
+  can read directly now has an explicit route — narrow the current slice, or
+  hand it back to a separate read-only code-investigation phase — because
+  planning delegates only for risk-triggered plan review. Findings returned that
+  way stay `Unproven` until their anchors are re-read during planning.
 
 ### Changed
 

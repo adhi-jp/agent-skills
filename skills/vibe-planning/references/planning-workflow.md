@@ -47,6 +47,11 @@ Read this reference when drafting or revising the implementation-plan body. It o
    - Record facts with evidence labels.
    - If a material surface is unavailable or intentionally skipped, record the
      impact and whether the plan becomes discovery-first, blocked, or narrowed.
+   - When the investigation the current slice needs exceeds what this phase can
+     read directly — planning delegates only for risk-triggered plan review —
+     narrow the slice or hand it back to a separate read-only code-investigation
+     phase instead of planning on thin evidence; findings returned that way stay
+     `Unproven` until their anchors are re-read here.
    - If primary sources are unavailable, say why and keep dependent claims
      `Unproven`.
 3. **Clarify intent**
