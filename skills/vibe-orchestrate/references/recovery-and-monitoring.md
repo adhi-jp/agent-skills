@@ -82,9 +82,21 @@ host's reliable signals:
 - **Progress staleness**: the journal, output receipt, or task activity has not
   changed for longer than the task's expected quiet period.
 
-Suggested starting thresholds are appearance around 5 minutes, staleness around
-10 minutes, and polling around 20 seconds. Adjust for task size, runner behavior,
-and known long quiet phases.
+Suggested starting thresholds are appearance around 5 minutes and staleness
+around 10 minutes. Adjust for task size, runner behavior, and known long quiet
+phases.
+
+Observation is not free: the coordinator pays for it from the budget it needs to
+adjudicate results, so choose a mechanism whose cost does not grow with the
+artifact watched. Prefer host-delivered completion and failure signals, then a
+bounded status query returning a fixed-size record, then an incremental read of
+only what changed; re-reading a growing artifact in full, or re-fetching a
+task's accumulated output from its beginning, costs most and informs least. A
+fixed short cadence suits a watchdog process with no context budget, not a
+monitor that must read in order to look: set the interval from the unit's
+expected quiet phase, do non-overlapping work between checks, and treat repeated
+re-reads of an unchanged artifact as a defect in the mechanism rather than
+evidence that the unit is slow.
 
 `running` is not progress proof. When the journal, output, or activity receipt
 exceeds the predeclared staleness budget, treat the unit as stalled regardless

@@ -245,6 +245,11 @@ receipts.
      item is verified and reviewed. Otherwise put the evidence-backed status,
      residual risk, and next item in the execution summary. Never create or
      mutate a progress artifact solely because execution occurred.
+   - A planned item that the slice's own scope, allowlist, or delegated contract
+     prevented from being delivered is not a completed item. Give it a
+     disposition — re-scoped now, scheduled to a named later item, or dropped
+     with the reason — wherever the item's status is recorded. An otherwise
+     verified slice is where such an item disappears unnoticed.
 8. **Hand off explicitly selected commits**
    - Leave verified changes in the working tree unless the current user
      explicitly asks for a commit or a bound approved plan item explicitly

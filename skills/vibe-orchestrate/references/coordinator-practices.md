@@ -74,11 +74,24 @@ instruction-only. Without every condition, the one-shared-tree-writer rule
 stands.
 
 Include commit visibility in coupling analysis. An isolated worktree starts from
-committed state; a unit that needs another unit's uncommitted output is not
-independent and must run serially or receive a coordinator-materialized input.
+some committed state, not necessarily the coordinator's head: a host may create
+it from the repository default, leaving the worker without the files, fixtures,
+and line positions the contract describes and unable to tell a wrong contract
+from a wrong workspace. Verify that base before the first isolated unit with a
+read-only check reporting the workspace's resolved commit and ref decoration,
+and re-verify when the isolation mechanism, host, or repository default changes.
+State the expected base in every isolated unit's contract and require the worker
+to echo the base observed; a mismatch is a coordinator blocker — supply the
+correct base, materialize the inputs, or move the unit to the shared tree under
+single-writer rules — never a worker-side workspace mutation. A unit that needs
+another unit's uncommitted output is not independent and must run serially or
+receive a coordinator-materialized input.
 Avoid placing temporary worktrees below the repository root because glob-driven
 tests, linters, formatters, and file counters can traverse the duplicate tree.
-Remove an isolation worktree promptly after extracting and verifying its diff.
+Expect repository-wide gates to fail or double-count while such a workspace
+exists: do not run an authoritative gate in that window, and do not attribute a
+failure observed in it to a worker's slice. Remove an isolation worktree
+promptly after extracting and verifying its diff.
 
 Each parallel unit needs its own mission, allowed paths, expected receipt,
 budget, stop conditions, and verification responsibility. The coordinator must

@@ -190,6 +190,10 @@ DEVIATIONS:
 VERIFICATION BOUNDARY:
 - [what was actually checked, where, in which mode/environment, by what method,
   and what remains unverifiable here]
+BLOCKED BY CONTRACT:
+- [each contracted work item the allowlist, tool profile, or command scope
+  prevented you from delivering, with the constraint that blocked it and what
+  would unblock it; `none` is expected and must be stated, not omitted]
 BLOCKERS:
 - [blockers, or `none`]
 ```
@@ -197,8 +201,8 @@ BLOCKERS:
 When a transport enforces a narrower structured schema, preserve these
 semantics inside its allowed fields rather than adding invalid keys. For
 `worker-report-v1`, prefix relevant `decisions` entries with
-`DECISION-IMPACT:`, `DEVIATION:`, or `VERIFICATION-BOUNDARY:` and keep blockers
-in `blockers`.
+`DECISION-IMPACT:`, `DEVIATION:`, `BLOCKED-BY-CONTRACT:`, or
+`VERIFICATION-BOUNDARY:` and keep blockers in `blockers`.
 
 For debugging or repair, add:
 
@@ -240,6 +244,11 @@ Inline facts that affect correctness before sending the worker:
   or user-facing text.
 - Verification limits: commands the worker may run and commands only the
   coordinator will run.
+- The base these facts were read at, whenever the unit runs in an isolated
+  workspace. File contents, line anchors, fixture inventories, and symbol
+  positions are asserted about the coordinator's tree and describe the worker's
+  only if the two share a base; require the worker to report a mismatch rather
+  than reconcile it.
 
 Label unverified claims. Do not ask a worker to rediscover broad API or local
 architecture facts unless the assignment is explicitly read-only research.
@@ -356,6 +365,12 @@ When the worker returns:
   aggregate pass counts cannot prove non-deletion.
 - Treat any missing `BLOCKERS:` section as a contract failure to inspect before
   trusting the result.
+- Give every item the worker reports as blocked by the contract itself a
+  disposition where the round is recorded, before accepting the round:
+  re-contracted now with widened scope, scheduled to a named later round, or
+  dropped with the reason. An otherwise complete and green round is exactly
+  where such an item disappears, and the worker already discharged its duty by
+  reporting it.
 - Reconcile the progress journal with the working tree for long or interrupted
   work.
 - For parallel units, reconcile shared assumptions and interface claims before

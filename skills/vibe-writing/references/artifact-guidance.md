@@ -15,6 +15,18 @@ Public APIs may need intent, contracts, invariants, and non-obvious usage.
 Internal comments should orient the next maintainer only when the code itself
 does not.
 
+Do not leave a comment describing something the change removed. Version control
+already records what was there and why; a comment repeating it keeps the removed
+thing alive as prose and makes each later reader decide whether it still
+describes anything. Delete the code and its comment together, and where the
+removal leaves a non-obvious rule behind, state that rule positively in terms of
+what the code now does, without naming what is gone.
+
+This applies to source comments, not to decision records. A specification, plan,
+ledger, changelog, or commit message exists to record how a decision was
+reached, and a wrong turn edited out of one leaves the next reader free to take
+it again.
+
 ### README, docs, guides, and UI copy
 
 Match the artifact's reader. For human-first text, lead with what the reader can

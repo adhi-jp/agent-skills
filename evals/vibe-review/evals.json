@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-review",
-  "purpose": "External eval set for git-backed review: proportional effort and cycles, frozen-target drift, safe delegated-result ingestion, semantic deduplication, secret omission, risk-adaptive cascade notes, acceptance proof, scope health, and explicit history selection.",
+  "purpose": "External eval set for git-backed review: proportional effort and cycles, frozen-target drift, safe delegated-result ingestion, semantic deduplication, secret omission, risk-adaptive cascade notes, acceptance proof, scope health, and explicit history selection. Also covers validity adjudication when a passing test contradicts a confirmed finding.",
   "common_assertions": [],
   "evals": [
     {
@@ -370,6 +370,21 @@
         "Classifies the fix as narrow/local with no material cascade risk.",
         "Does not require sibling matrices, likely-next-attack prose, or detailed post-edit cascade notes for this self-evident fix.",
         "Preserves terminal audit and explicit commit-selection boundaries."
+      ]
+    },
+    {
+      "id": "E24",
+      "name": "Passing test does not invalidate a confirmed finding",
+      "prompt": "Return JSON only. Reviewing a `branch` target. One normalized finding cites a handler that accepts a request and never settles it; the cited lines are inside a changed hunk and the premise is confirmed by a local read of the cited file. A named test in the same package passes and asserts the documented rejection for that method. Produce the validity outcome with its reasoning fields.",
+      "expected_output": "JSON assigning validity from the file, line, premise, and changed-hunk checks, with the passing test treated as a competing claim rather than authority.",
+      "files": [],
+      "expectations": [
+        "Valid JSON only.",
+        "Does not assign `invalid` on the basis of the passing test.",
+        "Bases the outcome on the file-in-target, line-exists, premise-matches, and changed-hunk checks that were satisfied.",
+        "Treats the passing test as a claim on equal terms and reads it as a specification rather than as authority.",
+        "Notes that an assertion whose expected value is the reported defect makes the test wrong rather than the finding.",
+        "Does not add prose outside the JSON."
       ]
     }
   ],

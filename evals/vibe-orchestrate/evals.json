@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-orchestrate",
-  "purpose": "External eval set for vibe-orchestrate. Prompts live outside skills/ so they are not bundled as skill content. Covers coordinator-owned delegation contracts, stop-as-blocker behavior, fact inlining, progress journals, reference-only monitoring, coordinator verification, review adjudication and evidence-epoch freshness, worker-output authority and relay boundaries, direct intervention disclosure, parallel-writer accident cleanup, frontier-model loop engineering with token-efficient delegates, deliberate multi-subagent decomposition for substantial work, explicit commit selection with coordinator-owned history boundaries, evidence-authority/premise-contradiction handling for protected external proof, handle-returning delegation transports, per-gate verification-receipt integrity, and fail-closed external-helper task input with coordinator-authored missions and allowlist-reconciled writes. It also covers constrained execution-identity admissibility, immutable measurement-subject instruments, guarded disjoint generated-output concurrency, and live-task status/result semantics. It also covers effect-based external write-lane selection for edit-only and process-required units.",
+  "purpose": "External eval set for vibe-orchestrate. Prompts live outside skills/ so they are not bundled as skill content. Covers coordinator-owned delegation contracts, stop-as-blocker behavior, fact inlining, progress journals, reference-only monitoring, coordinator verification, review adjudication and evidence-epoch freshness, worker-output authority and relay boundaries, direct intervention disclosure, parallel-writer accident cleanup, frontier-model loop engineering with token-efficient delegates, deliberate multi-subagent decomposition for substantial work, explicit commit selection with coordinator-owned history boundaries, evidence-authority/premise-contradiction handling for protected external proof, handle-returning delegation transports, per-gate verification-receipt integrity, and fail-closed external-helper task input with coordinator-authored missions and allowlist-reconciled writes. It also covers constrained execution-identity admissibility, immutable measurement-subject instruments, guarded disjoint generated-output concurrency, and live-task status/result semantics. It also covers effect-based external write-lane selection for edit-only and process-required units. Later additions cover contract-blocked deliverables and their disposition, external result transport that does not depend on a permitted filesystem write, isolated-workspace base verification and repo-wide gate suspension while such a workspace exists, observation cost as a coordinator budget, and adjudicating a finding that a passing test contradicts.",
   "coverage_notes": "Coverage matrix: bounded delegation contracts -> E01; blocker-stop behavior -> E02; fact inlining -> E03; journal recovery -> E04; reference-only monitoring -> E05; coordinator verification -> E06; review adjudication -> E07; direct-intervention disclosure -> E08; parallel-writer cleanup -> E09; frontier/subagent loop engineering -> E10; multi-subagent work-graph selection -> E11; explicit commit selection and coordinator-owned history boundaries -> E12; evidence authority, premise contradiction, protected parity evidence, round-boundary attribution, named-test non-deletion, and command effect scope -> E13; handle-returning transport completion and writer-slot ownership -> E14; filtered verification output and per-gate status -> E15; evidence-separated finding disposition -> E16; load-bearing refutation writeback -> E17; source binding and delegation budget -> E18; registration and test-count inclusion -> E19; receipt-less relaunch blocking -> E20; resumed-role mismatch -> E21; failed-launch residue recovery -> E22; requested-versus-observed launch metadata -> E23; monitor-versus-worker lifecycle -> E24; actionable progress updates -> E25; independent defect attack -> E26; execution-mode isolation -> E27; oracle deletion and presence proof -> E28; unexplained flake residuals -> E29; diagnosis-complete direct intervention -> E30; coordinator-only executable verification -> E31; proof-only perturbation evidence -> E32; coordinator-authored mission transport, allowlisted external-helper writes, and raw third-party prompt refusal -> E33; review evidence-epoch freshness and proportional rereview -> E34; worker-output authority separation and coordinator-authored downstream relay -> E35. All cases have distinct contract coverage, so E01-E35 are retained in sequence. Scenario-specific behavior is graded only by each case's expectations rather than duplicated through common assertions. Eval-runner validation proves schema/format only; behavioral coverage is reviewed through these mapped cases and measurable expectations. Report-driven additions: constrained runtime identity and evidence admissibility -> E36; measurement-subject instrument and replay boundary -> E37; guarded disjoint generated-output writers -> E38; live status versus result-interface absence -> E39. Effect-based external write selection -> E40-E41.",
   "common_assertions": [],
   "evals": [
@@ -557,6 +557,77 @@
         "States that the Claude edit-only lane cannot satisfy this unit's required effects and does not silently add Bash or weaken the unit.",
         "If no adequate process-capable lane is available, keeps generation and verification local or stops rather than delegating an incomplete contract.",
         "Coordinator still verifies the kept bytes and owns history boundaries."
+      ]
+    },
+    {
+      "id": "E42",
+      "name": "Contract-blocked deliverable needs a disposition",
+      "prompt": "Use `vibe-orchestrate`. A write-capable unit returns: compile passed, the suite is green, and every path it changed is inside the editable allowlist. One line of its report says the second test file the contracted digest assertion required was outside that allowlist, so the assertion was not added. Decide whether to accept the round, and state what the next contract for this worker must require in its report.",
+      "expected_output": "An acceptance decision that carries the undelivered contracted item with an explicit disposition and adds a reporting carrier for the next round.",
+      "files": [],
+      "expectations": [
+        "Does not accept the round as complete on the strength of green gates and an in-allowlist change set.",
+        "Gives the undelivered contracted item an explicit disposition — re-contracted now with widened scope, scheduled to a named later round, or dropped with a recorded reason — and places it where the round is recorded.",
+        "Does not classify the worker's report as a scope violation, deviation, or worker fault.",
+        "Requires the next contract to carry a named report section for work the contract itself blocked, with an explicit empty answer when there is none.",
+        "Does not treat the green suite or the matching changed-file list as evidence that the digest assertion exists."
+      ]
+    },
+    {
+      "id": "E43",
+      "name": "External run product travels by the result interface",
+      "prompt": "Use `vibe-orchestrate`. You are writing the contract for a read-only external analysis unit on a runner whose sandbox policy has varied between invocations; an earlier unit on the same runner wrote its report to a scratch path successfully. State how the analysis must be delivered and how you will treat any file the unit writes.",
+      "expected_output": "A delivery contract that binds the product to the runner's own result interface and treats a written file as optional.",
+      "files": [],
+      "expectations": [
+        "Contracts the report to arrive through the runner's own result interface rather than a filesystem path the runner may not be permitted to write.",
+        "Treats any file the worker writes as a convenience copy that may be absent.",
+        "States that the earlier successful write does not predict the next invocation, and does not offer a preflight write check as sufficient.",
+        "Distinguishes this from receipt verification by noting that a terminal, successful run can still have lost its output.",
+        "If the product might exceed the result interface, contracts a chunked or summarized final message instead of making the file the delivery."
+      ]
+    },
+    {
+      "id": "E44",
+      "name": "Isolated base is verified and a live workspace suspends repo-wide gates",
+      "prompt": "Use `vibe-orchestrate`. You are about to dispatch the first of three isolated write units from a feature branch several commits ahead of the repository default, and the contract inlines file contents and line anchors read from your own tree. While one isolated workspace still exists inside the repository, someone asks you for the repository-wide lint result. State what you verify before dispatch and how you answer the lint request.",
+      "expected_output": "A pre-dispatch base verification plus a refusal to treat the repo-wide gate as authoritative while the workspace exists.",
+      "files": [],
+      "expectations": [
+        "Verifies the isolated workspace's actual base before the first unit with a read-only check reporting the resolved commit and ref decoration, rather than assuming it matches the coordinator's head.",
+        "States the expected base in the unit contract and requires the worker to echo the base it observed.",
+        "Treats a base mismatch as a coordinator-resolved blocker rather than something the worker fixes by switching its own workspace.",
+        "Notes that inlined file contents and line anchors describe the coordinator's tree and describe the worker's only if the bases match.",
+        "Does not run or report the repository-wide lint gate as authoritative while the in-repository workspace exists, and does not attribute a failure observed in that window to a worker's slice."
+      ]
+    },
+    {
+      "id": "E45",
+      "name": "Monitoring mechanism is chosen for its cost to the observer",
+      "prompt": "Use `vibe-orchestrate`. A delegated repair unit is expected to run about half an hour and writes an append-only progress journal. The transport delivers a completion signal and a failure signal. Describe how you will monitor it.",
+      "expected_output": "A monitoring plan that leans on delivered signals and bounds what observation costs the coordinator.",
+      "files": [],
+      "expectations": [
+        "Prefers the host-delivered completion and failure signals over repeated reads of the journal.",
+        "Does not recommend a fixed short polling cadence and does not name a specific number of seconds as a starting polling interval.",
+        "Notes that re-reading a growing artifact in full, or re-fetching accumulated task output from its beginning, spends the coordinator's own budget and returns little new information per check.",
+        "Sets any interval from the unit's expected quiet phase and does non-overlapping work between checks.",
+        "Treats repeated re-reads of an unchanged artifact as a defect in the monitoring mechanism rather than evidence that the unit is slow."
+      ]
+    },
+    {
+      "id": "E46",
+      "name": "Passing test does not refute a traced finding",
+      "prompt": "Use `vibe-orchestrate`. A read-only reviewer reports, from source tracing, that a protocol method is accepted but never settled, wedging the connection. The suite is fully green with no skips, and a named test in that package passes while asserting that the method returns the documented rejection. Decide the finding's disposition.",
+      "expected_output": "A disposition that keeps the finding open and adjudicates at the behavior rather than at either claim.",
+      "files": [],
+      "expectations": [
+        "Does not reject, downgrade, or defer the finding on the strength of the passing test.",
+        "Reproduces the reported behavior against the real integration surface before disposing of the finding.",
+        "Reads the asserting test as a specification and asks what it would permit.",
+        "Identifies that an assertion whose expected value is the reported defective behavior makes the test wrong rather than weak.",
+        "States that repairing such a defect requires rewriting that test, that the repair contract must authorize it explicitly, and that the report must name it.",
+        "Does not treat suite greenness as evidence that the documented contract is met."
       ]
     }
   ],

@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-writing",
-  "purpose": "External eval set for vibe-writing. Prompts live outside skills/ so they are not bundled as skill content. Covers representative LLM-first development text, source-code comments and docstrings, README/docs and CHANGELOG restraint, changelog format precedence, next-agent contract-log entries, iteration-log collapse for in-progress quality work, exact-format output, verbatim-output boundaries, durable references, workflow boundaries, locale precedence, policy and support-promise restraint, hollow-transition cleanup, local-anchor preservation, and commit-message contracts including body preserve/cut selection, verification formatting, durable proof-source boundaries, multi-line transport, active commit workflows, and stored-message inspection. It also covers a host-neutral generic authorship-trailer formatting example.",
+  "purpose": "External eval set for vibe-writing. Prompts live outside skills/ so they are not bundled as skill content. Covers representative LLM-first development text, source-code comments and docstrings, README/docs and CHANGELOG restraint, changelog format precedence, next-agent contract-log entries, iteration-log collapse for in-progress quality work, exact-format output, verbatim-output boundaries, durable references, workflow boundaries, locale precedence, policy and support-promise restraint, hollow-transition cleanup, local-anchor preservation, and commit-message contracts including body preserve/cut selection, verification formatting, durable proof-source boundaries, multi-line transport, active commit workflows, and stored-message inspection. It also covers a host-neutral generic authorship-trailer formatting example. Later additions cover removing comments that narrate deleted code while preserving the rule the deletion leaves behind, and the boundary that keeps superseded decisions in decision records.",
   "common_assertions": [
     "When the prompt identifies or implies the artifact's main reader and the deliverable is prose whose reader priority can vary, output uses LLM-optimized development text by default and human-optimized prose only for a mainly human reader. Exact-format, verbatim-relay, meta-diagnosis, and closure-description cases pass this assertion by non-applicability unless they separately request reader optimization.",
     "When language selection is relevant, output follows the task's language precedence and preserves file paths, commands, identifiers, environment variables, and canonical strings unless translation is explicitly requested. If the prompt has no competing language signal and no translation surface, this assertion passes by non-applicability.",
@@ -316,6 +316,34 @@
         "Does not substitute Codex, Claude, OpenAI, Anthropic, a model name, or a real address for the placeholders.",
         "Does not wrap the example in Markdown fences or add explanatory prose.",
         "Does not claim a commit or attribution occurred."
+      ]
+    },
+    {
+      "id": "E19",
+      "name": "Comments do not narrate what the change removed",
+      "prompt": "Rewrite comments only. Keep code behavior unchanged.\n\n```ts\n// SUPPORTED_MODES used to list the renderable modes. It was deleted in the\n// rewrite because the renderer now negotiates the mode at run time.\nexport function render(doc: Doc) {\n  // Note: no longer reads SUPPORTED_MODES.\n  return negotiate(doc).draw();\n}\n```\n\nContext: negotiation is required before drawing because a document may declare a mode the active backend cannot draw.",
+      "expected_output": "Comments that carry the negotiation rule positively and no longer reference the deleted constant.",
+      "files": [],
+      "expectations": [
+        "Removes the block comment that narrates the deleted constant and the reason it was deleted.",
+        "Removes the inline comment that references the deleted name.",
+        "Does not retain the removed identifier anywhere in the comments.",
+        "Preserves the supplied non-obvious rule positively, in terms of what the code now does — negotiation is required because a document may declare a mode the active backend cannot draw.",
+        "Does not change function names, signatures, return values, or implementation behavior.",
+        "Does not add a change summary or task-frame prose such as `rewritten below`."
+      ]
+    },
+    {
+      "id": "E20",
+      "name": "A decision record keeps the wrong turn it recorded",
+      "prompt": "Tidy this plan artifact's decision log. The current design is the async queue.\n\n```markdown\n## Decisions\n- D3: The first revision proposed a synchronous flush on every append. Replaced\n  after measurement showed it blocked the render thread for the whole flush.\n- D4: Current design is an async queue drained on an idle callback.\n```",
+      "expected_output": "A decision log that still records the superseded proposal and the measurement that replaced it.",
+      "files": [],
+      "expectations": [
+        "Keeps the record of the superseded synchronous-flush proposal and the measurement that replaced it.",
+        "Does not delete the wrong turn on the grounds that the current design no longer uses it.",
+        "Does not apply source-comment removal norms to a decision record.",
+        "Leaves the current design entry intact and does not invent new decisions or measurements."
       ]
     }
   ],

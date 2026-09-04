@@ -415,8 +415,9 @@ to prove that no prior plan exists.
      user explicitly accepts that risk.
    - For each metric used as an acceptance gate, record the known-bad or current
      baseline. The gate must fail, differ, or otherwise expose the defect before
-     the planned fix. If the baseline already satisfies the threshold, the
-     metric is non-discriminating and cannot gate implementation completion.
+     the planned fix. A metric returning the same verdict before and after the
+     planned change is non-discriminating regardless of which verdict it
+     returns, and cannot gate implementation completion.
    - Ask what wrong implementation would still pass each load-bearing
      assertion. Reject proof based only on an unused observation seam,
      expectations imported from the implementation, best-case input for a

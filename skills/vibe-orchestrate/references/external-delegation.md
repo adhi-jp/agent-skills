@@ -147,6 +147,16 @@ transport. For a long multi-command procedure crossing an interop or stdin
 boundary, prefer a file, include an end-of-payload marker, and retain
 per-command exit receipts so truncation cannot look successful.
 
+Contract the run's product to arrive through the runner's own result interface,
+not a filesystem path the runner may not be permitted to write; any file the
+worker writes is a convenience copy that may be absent. Write permission is not
+stable enough to preflight, and a denial lands after the work is finished, so
+the product is lost rather than unattempted. This is not receipt verification: a
+run can be terminal, successful, and still have lost its output. For an
+oversized product contract a chunked or summarized final message rather than a
+file. Re-emitting a lost product from the runner's own session is usually
+cheaper than re-running, but bound that recovery before starting it.
+
 When clean-baseline transport is required to review uncommitted candidate bytes,
 use a disposable checkout and an explicitly labeled local transport commit that
 never enters shared refs. Bind the review epoch to that commit, prove byte

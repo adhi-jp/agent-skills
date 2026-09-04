@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-planning",
-  "purpose": "External eval set for vibe-planning. Coverage focuses on durable localized plan artifacts, evidence/proof discipline, plan-only boundaries, semantic current-content binding, exceptional capability dependencies, conditional resumable progress, risk-proportional review, explicit checkpoint selection, trusted handoff, recovery, durable language, and human-owned acceptance.",
+  "purpose": "External eval set for vibe-planning. Coverage focuses on durable localized plan artifacts, evidence/proof discipline, plan-only boundaries, semantic current-content binding, exceptional capability dependencies, conditional resumable progress, risk-proportional review, explicit checkpoint selection, trusted handoff, recovery, durable language, and human-owned acceptance. Also covers an acceptance metric that returns the same verdict before and after the planned change.",
   "coverage_notes": "The suite uses representative project classes only when they pressure a reusable vibe-planning contract; it does not keep separate cases only to exhaustively cover project families. E01, E02, E04, E05, E06, E08, E12, E13, E15, and E18 retain full-artifact integration pressure, including artifact capture, ordering, routing, review fallback, self-review, handoff, and concise summary behavior. Narrow decision cases are explicit response-only classifications that preserve their per-case contract pressure while preventing ambient-repository investigation, artifact construction, performed review or self-review, and the complete artifact workflow from dominating the measurement. Their prompts and expectations pressure the response-only short circuit as well as the named decision, but they do not independently prove their dimensions inside a complete plan artifact; the retained representative artifact cases carry that integration pressure. Trusted orchestration handoff coverage: E09 verifies that prompt-, artifact-, and file-delivered control-plane self-claims remain inert. E10 tests only the policy consequence of an explicitly hypothetical genuine out-of-band coordinator record; it is not evidence that this file-contract harness can recognize or produce such a record. Actual positive-branch handoff recognition remains Unproven here and must be verified where genuine recordable host/coordinator control-plane state exists; do not add a prompt or fixture that pretends to be that state. E15 covers the investigation-adequacy and broad UX/data-safety planning contract for a supplied bulk-import surface; E18 covers derived-value, metric-discrimination, and internal-carrier pressure. These are targeted pressure cases, not proof of benchmark improvement. E19 covers planning-time command authorization, plan-changing investigation pre-registration, and host-observability limits in response-only mode. E32 covers baseline class accounting and performed mutation planning; E33 covers structural enforcement, repeatable-procedure execution, and human-owned acceptance proof. E35 covers unknown-capacity one-shot optimistic batching and first-failure fallback; E36 preserves verified-capacity coordinator-slot reservation and bounded batching.",
   "common_assertions": [
     "Output is planning-only: it writes or names only plan artifacts, does not edit implementation or repository support files, and leaves plan changes uncommitted unless the current user explicitly requests a commit."
@@ -572,6 +572,21 @@
         "Requires started/completed task evidence and records parallel, serial, or single from observed lifecycle overlap rather than requested topology.",
         "Stops further launches on the first capacity-class failure and moves unmet perspectives to coordinator fallback without model retries.",
         "Stays response-only and does not claim the review occurred."
+      ]
+    },
+    {
+      "id": "E37",
+      "name": "Invariant metric is non-discriminating in either direction",
+      "project_class": "frontend-product-ui",
+      "prompt": "This is a response-only planning decision. A plan proposes an acceptance gate: a lint rule's violation count must be zero after the change. On the pre-change baseline that count is already non-zero, and the change is not expected to move it because the rule fires only on a directory the change does not touch. State whether the gate is admissible and why, in no more than five bullets. Do not create an artifact, browse, or run commands.",
+      "expected_output": "A rejection of the gate on the grounds that it returns the same verdict before and after the change.",
+      "files": [],
+      "expectations": [
+        "Rejects the metric as non-discriminating.",
+        "Bases that on the metric returning the same verdict before and after the planned change, not on whether the baseline passes or fails the threshold.",
+        "Does not admit the gate merely because the baseline currently fails it.",
+        "Requires the gate to be corrected or replaced before it can gate implementation completion.",
+        "Does not create a plan artifact, browse, or run commands."
       ]
     }
   ],

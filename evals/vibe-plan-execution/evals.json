@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-plan-execution",
-  "purpose": "External eval set for plan execution. Coverage focuses on concrete current-plan binding, semantic drift, accepted risk, deviation/validity gates, conditional capability/progress state, discriminating proof, post-implementation review, explicit commit selection, and existing-feature repair handoff.",
+  "purpose": "External eval set for plan execution. Coverage focuses on concrete current-plan binding, semantic drift, accepted risk, deviation/validity gates, conditional capability/progress state, discriminating proof, post-implementation review, explicit commit selection, and existing-feature repair handoff. Also covers a plan item the slice's own scope prevented from being delivered, which needs a disposition rather than a completed status.",
   "common_assertions": [],
   "evals": [
     {
@@ -337,6 +337,20 @@
         "Requires the refusal rule to be observed through a production path rather than treating its direct unit test as reachability proof.",
         "Requires a same-channel positive control for the absence assertion so an empty or mis-pathed capture cannot pass.",
         "Requires a reversible performed mutation for the load-bearing proof, cleanup evidence, and final-byte verification before completion or commit."
+      ]
+    },
+    {
+      "id": "E21",
+      "name": "Scope-blocked plan item is not a completed item",
+      "prompt": "The bound plan's item S2 required both a serializer change and a matching fixture regeneration. The slice's declared path scope covered the serializer only, so the fixture regeneration was not performed. The serializer change is implemented, its tests pass, and the post-implementation review found no material findings. Describe the durable progress-ledger update and the user-facing summary. Do not implement or commit in this response.",
+      "expected_output": "A ledger update that records S2 as partially delivered and carries the blocked fixture work with an explicit disposition.",
+      "files": [],
+      "expectations": [
+        "Does not record S2 as complete.",
+        "Gives the undelivered fixture regeneration an explicit disposition — re-scoped now, scheduled to a named later item, or dropped with the reason — wherever the item's status is recorded.",
+        "Does not let the passing serializer tests or the clean review stand as evidence that the fixture work happened.",
+        "Keeps the ledger update to status and evidence without changing plan scope, acceptance criteria, tests, or risks.",
+        "Does not stage or commit."
       ]
     }
   ],

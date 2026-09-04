@@ -299,6 +299,15 @@ proposition, authority, remaining inference, severity, current-scope basis,
 introduced assumption, disposition, and repair authorization. Validity,
 severity, confidence, or reviewer agreement cannot authorize repair by itself.
 
+A finding that contradicts a passing test is not thereby refuted. Both are
+claims about the same behavior, and a test written from the same
+misunderstanding as the code passes, counts as coverage, and hides the defect
+from the review meant to catch it. Adjudicate at the behavior: reproduce the
+finding against the real integration surface, then read the test as a
+specification and ask what it permits. An assertion whose expected value is the
+defective behavior is wrong rather than weak, so the repair rewrites it, the
+repair contract authorizes that explicitly, and the report names it.
+
 Coordinator-noticed contract deviations are findings too. Give each an explicit
 disposition, rationale, and falsification or revisit trigger instead of silently
 waiving it. Reviewer convergence is a reason to inspect cited evidence, not a

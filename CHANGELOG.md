@@ -11,6 +11,50 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Added
+
+- `vibe-orchestrate`: a worker report now carries a named section for work the
+  contract itself blocked, and the coordinator must give every such item a
+  disposition — re-contracted, scheduled to a named later round, or dropped with
+  a reason — before accepting the round. An otherwise complete and green round
+  is not evidence that a contracted item was delivered.
+- `vibe-orchestrate`: an external run's product must arrive through the runner's
+  own result interface rather than a filesystem path the runner may not be
+  permitted to write. A file the worker writes is a convenience copy that may be
+  absent, and a terminal successful run can still have lost its output.
+- `vibe-orchestrate`: an isolated workspace's base commit must be verified
+  before the first isolated unit and echoed by each unit, because a host may
+  create the workspace from the repository's default branch rather than the
+  coordinator's head. Facts inlined from the coordinator's tree describe the
+  worker's tree only when the two share a base.
+- `vibe-orchestrate`: repository-wide gates are suspended while an isolated
+  workspace exists inside the repository, and a failure observed in that window
+  is not attributable to a worker's slice.
+- `vibe-orchestrate`: a finding that contradicts a passing test is not refuted
+  by it. Adjudication happens at the behavior, and an assertion whose expected
+  value is the reported defect makes the test wrong rather than weak, so
+  repairing it requires explicit repair-contract authorization.
+- `vibe-review`: validity assessment treats a contradicting passing test as a
+  competing claim rather than as authority for marking a finding invalid.
+- `vibe-plan-execution`: a plan item the slice's own scope prevented from being
+  delivered is not a completed item and needs a disposition wherever its status
+  is recorded.
+- `vibe-writing`: comments must not narrate what a change removed; the rule the
+  removal leaves behind is stated positively instead. Decision records —
+  specifications, plans, ledgers, changelogs, commit messages — keep their
+  superseded entries.
+
+### Changed
+
+- `vibe-orchestrate`: monitoring guidance now selects a mechanism by what
+  observation costs the coordinator, preferring delivered completion signals and
+  bounded status queries over repeated full reads of a growing artifact. The
+  previous fixed polling-interval suggestion is removed as unestablished;
+  appearance and staleness thresholds are unchanged.
+- `vibe-planning`: an acceptance metric is non-discriminating when it returns
+  the same verdict before and after the planned change, in either direction,
+  not only when the baseline already satisfies the threshold.
+
 ## [vibe-coding 3.0.0] - 2026-08-16
 
 ### Changed
