@@ -66,6 +66,17 @@ of that line unless the user says otherwise.
   commit rewrites history other clones depend on. Only amend/rebase commits that
   have not left this machine, and never force-push a shared branch without an
   explicit, informed request.
+- **Never let a scripted rewrite delete live files without a separate confirmed
+  stop.** When a scripted or looped multi-commit rewrite drops paths from
+  history, derive each step's target list from that commit's own tree (e.g.
+  `git ls-tree`), never from an ambient whole-worktree snapshot (`git status`,
+  `-uall`, or similar) — the two are different states, and conflating them
+  deletes files unrelated to the commit being rewritten. Print the full
+  resolved list first and require an explicit confirmed stop before any
+  deletion executes; a preview a script can run straight past is not a gate. A
+  backup limits damage if something goes wrong — it never substitutes for that
+  per-path confirmation, and it does not by itself authorize deleting a live
+  working-tree file. See `references/history-and-trailers.md`.
 - **Honor `.gitignore` and the agreed scope.** Never `git add -f` an ignored
   path, and never stage files outside the change being committed, unless the
   user explicitly asks to include that ignored path after you have surfaced why
@@ -174,6 +185,8 @@ Not every invocation is a full "commit please." Jump to the relevant reference:
   recover lost work → `references/staging-and-recovery.md`
 - fix the last commit, amend, reword, add/fix a `Co-Authored-By`, multi-line
   message corruption → `references/history-and-trailers.md`
+- a rewrite must drop or delete paths across multiple commits (not just a
+  trailer repair) → `references/history-and-trailers.md`
 - "what should I commit / leave out?", excluding generated or secret files →
   `references/file-selection.md`
 - "commit the staged changes" → do not invent extra staging, but still run the
@@ -233,6 +246,9 @@ Not every invocation is a full "commit please." Jump to the relevant reference:
   messy.
 - Destructive recovery without a plan (`git reset --hard`, force-push) that
   loses work or rewrites shared history.
+- A scripted rewrite deriving its deletion targets from a global `git status`
+  snapshot, or deleting right after printing a preview with no confirmed stop
+  in between — see `references/history-and-trailers.md`.
 
 ## Self-check
 
@@ -261,3 +277,6 @@ Before reporting the commit done:
   -C ... --trailer`, never a hand-edited footer, raw append, or plumbing-created
   message?
 - Did anything outside the agreed scope get committed, pushed, or rewritten?
+- If the rewrite deleted any path, did it pass the commit-scoped, confirmed-stop
+  gate in `references/history-and-trailers.md` rather than an ambient snapshot
+  or an unconfirmed preview?

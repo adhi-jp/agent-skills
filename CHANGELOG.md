@@ -52,6 +52,16 @@ use `[Repository] - YYYY-MM-DD`.
   removal leaves behind is stated positively instead. Decision records —
   specifications, plans, ledgers, changelogs, commit messages — keep their
   superseded entries.
+- `vibe-commit`: a scripted or looped multi-commit history rewrite that drops
+  paths must derive each step's deletion list from that commit's own full tree
+  (not just its parent-diff), never from an ambient whole-worktree snapshot such
+  as `git status -uall`; must split preview from execution with an explicit
+  confirmed stop between them; and must use `git rm` rather than a raw
+  filesystem `rm` so an untracked path outside the current replay is refused
+  rather than silently deleted. A backup limits damage but never substitutes
+  for that per-path confirmation. Prompted by an incident where a rewrite script
+  reused a global untracked-file snapshot as its per-commit deletion source and
+  permanently destroyed seven never-committed documents.
 
 ### Changed
 

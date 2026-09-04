@@ -311,6 +311,82 @@ git switch "$current_branch"
 If the original branch moved, the range was not fully unpushed, or verification
 shows duplicate trailers or metadata drift, stop before repointing the branch.
 
+## Dropping paths during a range rewrite
+
+Use this only for the same simple, unpushed, linear range as the trailer
+repair above — a merge commit needs a separate plan; do not extend this to a
+range containing one.
+
+A range rewrite that must drop certain paths from history (not just repair
+trailers) needs its own scope check per commit, or it can delete files that
+have nothing to do with the commit currently being replayed.
+
+The failure mode: computing the deletion list once from a whole-worktree
+snapshot — `git status --porcelain -uall`, a recursive `find`, or any other
+ambient view of "what untracked files currently exist" — and reusing that same
+list, or a pattern match against it, on every iteration of the replay loop.
+That list describes the state of the working directory *right now*, not the
+paths that any particular historical commit actually carried. Applied inside a
+loop across many commits, it deletes the same matching files repeatedly and
+catches anything present at rewrite time, including files that were never part
+of the commit being processed and were never tracked by git at all — which
+means `rm` on them is unrecoverable.
+
+Derive each step's scope from that commit's own tree, not its diff against the
+parent. A path can sit unchanged in a commit's tree, inherited from an earlier
+one, without appearing in that commit's parent-diff at all; if the requirement
+is "this pathspec must not exist in the rewritten history," a diff-based check
+(`git show`, `git diff-tree`) silently leaves those inherited, untouched copies
+in place. Check the full tree instead:
+
+```sh
+# Does this pathspec exist anywhere in this commit's tree — not just in what
+# this commit's own diff changed?
+git ls-tree -r --name-only -z "$old_commit" -- 'docs/investigations/*'
+```
+
+`-z` NUL-delimits the output so unusual filenames (spaces, newlines) can't
+split incorrectly; read it with a NUL-aware loop (`while IFS= read -r -d ''
+path; do …; done`), not word-splitting on newlines.
+
+Split preview from execution into two separate passes with a hard stop between
+them — a preview a script runs straight past in the same iteration is not a
+gate:
+
+```sh
+# Pass 1: resolve and print every target across the whole range. Do not delete.
+for old_commit in $(git rev-list --reverse "$base".."$old_head"); do
+  git ls-tree -r --name-only -z "$old_commit" -- 'docs/investigations/*' |
+    while IFS= read -r -d '' path; do printf '%s\t%s\n' "$old_commit" "$path"; done
+done > /tmp/rewrite-targets.txt
+cat /tmp/rewrite-targets.txt   # get explicit confirmation on this exact list before pass 2 runs at all
+```
+
+Only after that confirmed stop does pass 2 touch anything, and only through
+`git rm`, never a raw filesystem `rm`, on the path *inside the current replay's
+index* (for example after `git cherry-pick --no-commit "$old_commit"`):
+
+```sh
+git rm -f -- "$path"
+```
+
+`git rm` is the by-construction safeguard: it refuses a path that is not
+currently tracked in the index it is operating on, so an ambient untracked
+file that happens to share a name cannot be silently caught by it the way a
+blind `rm -f` on a glob match can. Never substitute a raw `rm`/`find -delete`
+for this step merely because the target list "should" be correct — let git
+itself reject anything outside the tracked scope.
+
+A path with no git history at all is a distinct, higher-severity case: `git
+log --all --full-history -- <path>` returning nothing means git can never
+restore it if deleted. This still only bounds *some* of the risk — the check
+proves no commit anywhere carries that pathname, not that a live untracked
+file sitting at that path right now is safe to lose. Never treat a backup, or
+the absence of one, as what authorizes a deletion: a backup only limits damage
+after the fact. The actual authorization is the explicit per-path confirmation
+from the stop above, required every time, regardless of whether a backup
+exists — a confident pattern match against a glob is not a substitute for it.
+
 ## Always verify the stored message
 
 The command you ran is not proof of what git stored. Confirm the actual artifact:
