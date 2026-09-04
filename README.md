@@ -97,6 +97,30 @@ of truth when a summary and a detailed contract differ.
   in-progress changes are recorded in [`CHANGELOG.md`](CHANGELOG.md); the README
   does not duplicate the version registry or the full skill contracts.
 
+## Check Shared Contract Blocks
+
+[`shared/vibe-contract.md`](shared/vibe-contract.md) is the single source of the
+contract blocks the `vibe-*` skills share. The rendered copies inside `skills/`
+are generated; change the source and re-render instead of editing a copy.
+
+```sh
+python3 scripts/vibe_shared_contract.py render
+python3 scripts/vibe_shared_contract.py check --strict
+python3 scripts/vibe_shared_contract.py audit-names
+python3 scripts/vibe_session_record.py check .plans/vibe-sessions/<record-id>.json
+```
+
+`render` fills empty marker pairs in the dependent packages and refuses a copy
+that drifted from the source unless `--force` is given. `check --strict`
+verifies every rendered copy byte for byte against the source and requires each
+dependent's markers and class declaration to be complete. `audit-names` reports
+any sibling skill name cited outside `skills/vibe-coding/`. The record checker
+reports `accept`, `flag`, or `reject` for one session record, with one reason
+line per finding. `render`, `check`, and `list` accept `--source PATH`
+(default `shared/vibe-contract.md`); `render`, `check`, and `audit-names`
+accept `--root R` (default `skills`); `check --strict --package <name>` gates
+one package on its own.
+
 ## Run Skill Evals
 
 [`skill-eval`](skills/skill-eval/SKILL.md) is authoritative for eval workspace
@@ -124,12 +148,15 @@ artifacts unless the user explicitly requests otherwise.
 | --- | --- |
 | `skills/<skill-name>/SKILL.md` | Authoritative metadata and workflow contract; released skills also carry their current `version` |
 | `skills/<skill-name>/references/` | Detailed guidance read when the skill routes to it |
+| `shared/vibe-contract.md` | Single source of the contract blocks the `vibe-*` skills share; rendered into each dependent package as marked generated blocks that are never hand-edited |
 | `evals/<skill-name>/` | Repository eval definitions, fixtures, and scoring notes |
 | `skills/skill-eval/scripts/eval_runner.py` | Shared `validate` / `run` / `report` CLI |
 | `CHANGELOG.md` | Keep a Changelog history and the current `Unreleased` buffer |
 | `AGENTS.md` | Mandatory repository operating, release, coupling, snapshot, eval, and commit rules |
 | `LICENSE` | MIT license for this repository |
 | `scripts/sync_dev_agent_skills.py` | Managed local snapshot and Claude-link synchronization |
+| `scripts/vibe_shared_contract.py` | Renders, checks, lists, and audits the shared-contract blocks and cross-package name citations |
+| `scripts/vibe_session_record.py` | Checks a workflow session record under `.plans/vibe-sessions/` against the shared schema |
 | `.agents/skills/`, `.claude/skills/` | Managed local copies and links; never the repository source of truth |
 
 Some skill packages also include helper assets or scripts. Follow the routing in

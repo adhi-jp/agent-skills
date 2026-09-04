@@ -80,6 +80,21 @@ use `[Repository] - YYYY-MM-DD`.
   hand it back to a separate read-only code-investigation phase — because
   planning delegates only for risk-triggered plan review. Findings returned that
   way stay `Unproven` until their anchors are re-read during planning.
+- Repository maintenance: `shared/vibe-contract.md` is the single source of the
+  contract blocks the `vibe-*` skills share — evidence classes, accepted-risk
+  semantics, delegated-result proof, chat and document language precedence,
+  effect and write boundaries, commit selection for state-changing and for
+  document-only phases, human-risk decisions, model-tier selection, trusted
+  orchestration evidence, subagent permission, secret redaction, the
+  history-mutation, commit-selection, and read-only-phase write gate wordings,
+  and the session-record schema. `scripts/vibe_shared_contract.py` renders the
+  blocks into dependent packages, checks every copy against the source, lists
+  the blocks, and audits sibling skill names; `scripts/vibe_session_record.py`
+  checks a session record under `.plans/vibe-sessions/` against that schema;
+  `tests/test_vibe_shared_contract.py` and `tests/test_vibe_session_record.py`
+  cover both scripts; README gains the repository-map rows for the three files
+  and a `Check Shared Contract Blocks` section. Verification: unit tests pass;
+  no skill contract changed yet.
 
 ### Changed
 
