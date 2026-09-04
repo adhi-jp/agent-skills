@@ -96,6 +96,11 @@ of truth when a summary and a detailed contract differ.
 - Current versions come from each source `SKILL.md`. Released changes and
   in-progress changes are recorded in [`CHANGELOG.md`](CHANGELOG.md); the README
   does not duplicate the version registry or the full skill contracts.
+- Obligations several skills share are written once in
+  [`shared/vibe-contract.md`](shared/vibe-contract.md), their single owner. The
+  copies inside `skills/` sit between `shared-contract` begin and end markers,
+  are generated from that source, are never hand-edited, and are verified by
+  `python3 scripts/vibe_shared_contract.py check --strict`.
 
 ## Check Shared Contract Blocks
 

@@ -128,6 +128,23 @@ use `[Repository] - YYYY-MM-DD`.
   of committed, and read-only or no-change routes still create no commit.
   Requirements capture, implementation planning, saved-plan pre-check, and
   standalone writing deliverables keep their existing explicit-request rule.
+- Repository maintenance: `AGENTS.md` cross-reference rules now govern the
+  generated shared-contract blocks. The blocks inside `skills/vibe-*/` are
+  marked with `shared-contract` begin and end markers and are never
+  hand-edited — change `shared/vibe-contract.md`, re-render, and pass
+  `python3 scripts/vibe_shared_contract.py check --strict` before proposing the
+  change set; that source path is the only cross-package citation a `vibe-*`
+  skill instruction may make, with one class-declaration line above a package's
+  first generated block; naming a sibling specialist outside
+  `skills/vibe-coding/` stays forbidden inside and outside generated blocks,
+  audited by `audit-names`; a change to the shared source needs one
+  `## [Unreleased]` entry naming the block and every dependent skill whose
+  rendered text changed, and couples each dependent's `SKILL.md` or reference;
+  and each dependent's version is still decided at release, so a shared-source
+  change bumps nothing by itself. README gains a matching boundary bullet naming
+  the source as the single owner of the shared obligations. Verification: policy
+  text only; `python3 scripts/vibe_shared_contract.py check` passes non-strict
+  on the current tree.
 
 ## [vibe-coding 3.0.0] - 2026-08-16
 

@@ -38,12 +38,18 @@
 
 - Any skill behavior change must update the relevant `SKILL.md`, supporting references, README text, and `CHANGELOG.md` entry in the same change set when those artifacts describe the changed behavior.
 - Do not defer sibling documentation updates when the current change invalidates existing text.
+- A change to `shared/vibe-contract.md` couples every dependent package's `SKILL.md` or reference that carries the block, and the changelog entry names them all.
 
 ## Vibe Skill Cross-Reference Rules
 
 - In `skills/vibe-*` skill instructions outside `skills/vibe-coding/`, do not explicitly name another `vibe-*` skill. Use phase, capability, or workflow-boundary terms such as "top-level orchestration", "requirements capture", "implementation planning", "plan execution", "review workflow", or "commit-execution workflow" instead.
 - `skills/vibe-coding/` is the only vibe skill package that may explicitly name other vibe specialists for routing or orchestration. Other vibe skills must remain self-contained and downstream-neutral when referring to neighboring phases.
 - Self-identifying frontmatter such as a skill's own `name` field is allowed. Repository catalog text, eval prompts, changelog entries, and release sections may name skills when that naming is the artifact's purpose, but do not copy those names into non-`vibe-coding` skill instructions as cross-skill dependencies.
+- Generated blocks inside `skills/vibe-*/` are marked `<!-- shared-contract:begin <id> source=shared/vibe-contract.md -->` and `<!-- shared-contract:end <id> -->`, and are never hand-edited. Change the wording in `shared/vibe-contract.md` and run `python3 scripts/vibe_shared_contract.py render`; `python3 scripts/vibe_shared_contract.py check --strict` must pass before the change set is proposed.
+- `shared/vibe-contract.md` is the only path a `vibe-*` skill instruction may cite across packages. Each package carries at most one class-declaration line (`<!-- shared-contract:class language=… commit=… effect=… -->`) directly above its first generated block.
+- Naming a sibling `vibe-*` specialist stays forbidden outside `skills/vibe-coding/` under the rules above, inside and outside generated blocks. `python3 scripts/vibe_shared_contract.py audit-names` is the check.
+- A change to `shared/vibe-contract.md` requires one `## [Unreleased]` entry in `CHANGELOG.md` naming the block and every dependent skill whose rendered text changed; the change coupling rules apply to each dependent.
+- Each dependent skill's version is decided at release under the release rules above. A change to the shared source does not itself bump any version.
 
 ## Local Skill Snapshot Rules
 
