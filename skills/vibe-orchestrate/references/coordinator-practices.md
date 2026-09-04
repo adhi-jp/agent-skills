@@ -1,6 +1,6 @@
 # Coordinator Practices
 
-Read this reference before selecting delegated model tiers, decomposing substantial work, writing or auditing worker contracts, inlining facts and protected evidence, directly intervening, or handling multiple/overlapping writers.
+Read this reference before selecting delegated model tiers, judging the coordinator's own capability fit, decomposing substantial work, writing or auditing worker contracts, inlining facts and protected evidence, directly intervening, or handling multiple/overlapping writers.
 
 ## Frontier Coordinator And Model-Tier Loops
 
@@ -39,6 +39,67 @@ hard-code vendor model names into the skill contract, inherit the top model for
 every small worker, downshift judgment-heavy work solely to save tokens, or
 claim token, quality, latency, or reliability improvement without recorded
 metrics or review evidence.
+
+## Coordinator Capability Fit
+
+Tier choice applies to the coordinator's own seat, not only to delegates. A
+coordinator running on a mid-capability or economy seat is a legitimate
+configuration when its work is decomposition, contracting, receipt
+verification, and integration. It becomes a defect when a load-bearing judgment
+silently stays in a seat that cannot support it.
+
+Separate two axes before routing:
+
+- Size is the volume of bounded work. Work that is only large is decomposed
+  into separately verifiable delegated units; volume alone never justifies
+  moving it to a stronger seat.
+- Difficulty is the reasoning the decision itself requires. Work that is small
+  but hard is escalated even when it touches few files and cannot be
+  decomposed.
+
+When difficulty is not yet established, run a bounded read-only reconnaissance
+before the first write-capable contract: read the named files, locate the
+affected call sites, check the existing tests, and inspect working-tree and
+dependency state. Change nothing during it, and bound it by what the routing
+decision needs rather than by what a full investigation would want. A request
+that reads as routine in prose is often not routine in the repository, so
+decide the shape from observed code rather than from the request text alone.
+
+Escalate the coordinator seat, instead of continuing, on observable signals:
+
+- an architecture, interface, or data-model decision whose reversal would be
+  expensive, or competing approaches where the wrong choice is costly to undo;
+- authorization, secrets, cryptography, payment, privacy, or data migration as
+  the central question rather than an incidental surface;
+- concurrency, distributed state, cache coherence, or ordering as the defect
+  mechanism;
+- a cause that spans layers no single unit observed, or an existing design
+  whose intent the coordinator cannot reconstruct from the code and its
+  history;
+- material ambiguity or contradiction in the requirement itself;
+- delegated results that contradict each other on a load-bearing fact;
+- the same contract failing twice, a premise the round was built on turning out
+  false, a repair producing a new defect, or scope growing past what the round
+  was contracted for.
+
+Re-evaluate at every join gate, not only at intake. Difficulty that surfaces
+after the first round is the ordinary case, and an intake judgment does not
+license finishing a round whose own evidence has contradicted it.
+
+A self-rated success probability may support the decision but does not replace
+these signals, because it is an estimate produced with the same limits it is
+meant to detect. Prefer the observable combination — unreconstructed design
+intent, a migration with no stated rollback, two contradicting receipts — over
+a number or a threshold.
+
+Escalation is a stop, not a background upgrade. When the host cannot re-seat
+the current session at a stronger tier, say so and hand off rather than
+proceeding at the current seat. The handoff carries the goal, the observed
+difficulty signal, verified facts with their anchors, what was already changed
+and verified, the open question, and options already ruled out with their
+reasons; it does not carry the accumulated transcript. Do not escalate work
+that is merely large, do not escalate to avoid writing a bounded contract, and
+do not report an escalation as completed work.
 
 ## Multi-Subagent Decomposition
 

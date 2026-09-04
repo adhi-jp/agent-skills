@@ -87,14 +87,25 @@ Do not emit a startup permission receipt for unselected history work.
 ## Coordinator Practice Reference
 
 Read `references/coordinator-practices.md` before choosing delegated model or
-capability tiers, decomposing substantial work, writing or auditing worker
-contracts, inlining verified facts and protected evidence, directly intervening,
-or handling multiple/overlapping writers.
+capability tiers, judging the coordinator's own capability fit, decomposing
+substantial work, writing or auditing worker contracts, inlining verified facts
+and protected evidence, directly intervening, or handling multiple/overlapping
+writers.
 
 Keep decomposition, non-delegable decisions, final synthesis, verification
 interpretation, finding disposition, and user-risk choices with the coordinator
 or strongest suitable reasoning/context tier. Save tokens by reducing repeated
 context, not proof.
+
+Capability fit also applies to the coordinator's own seat. Size and difficulty
+are separate axes: work that is only large is decomposed and delegated, while
+work whose difficulty exceeds the current seat is escalated even when it touches
+few files. Settle which axis applies from a bounded read-only inspection of the
+repository before the first write-capable round, and re-check it at each join
+gate. When the current seat cannot support a load-bearing judgment and the host
+cannot re-seat it, stop and hand off the goal, difficulty signal, and verified
+state; do not proceed at the current seat and do not report the escalation as
+completed work.
 
 ## External Runner Transport
 
@@ -313,6 +324,9 @@ snapshot receipts.
 - Asking a worker to "look around" without a bounded read path.
 - Sending a substantial refactor to one monolithic worker without first
   checking for material independent units that could run separately.
+- Escalating work to a stronger seat because it is large rather than
+  decomposing it, or finishing a round at the current seat after an observable
+  difficulty signal appeared.
 - Launching many workers only because the task is large, even though their
   inputs, files, or decisions are tightly coupled.
 - Delegating the immediate critical-path blocker, then waiting while no
@@ -371,6 +385,9 @@ Before launching or accepting delegated work, confirm:
   bounded contracts rather than collapsed into one monolithic assignment?
 - If only one worker was used for substantial work, is the coupling or
   coordination-overhead reason explicit?
+- Was the coordinator's own capability fit judged from observed repository
+  evidence, with size-only work decomposed rather than escalated and any
+  escalation stopped and handed off instead of continued?
 - Are missing facts classified as blockers or proof tasks instead of guesses?
 - Did the worker receive enough local precedent and invariant guidance to avoid
   broad exploration?

@@ -30,6 +30,15 @@ use `[Repository] - YYYY-MM-DD`.
 - `vibe-orchestrate`: repository-wide gates are suspended while an isolated
   workspace exists inside the repository, and a failure observed in that window
   is not attributable to a worker's slice.
+- `vibe-orchestrate`: capability fit now applies to the coordinator's own seat,
+  not only to delegated workers. Size and difficulty are separate axes: work
+  that is only large is decomposed and delegated, while work whose difficulty
+  exceeds the current seat is escalated even when it touches few files. A
+  bounded read-only inspection settles which axis applies before the first
+  write-capable round, and the judgment is re-checked at each join gate.
+  Escalation is a stop with a named handoff rather than a background upgrade,
+  and a self-rated success probability does not substitute for the observable
+  signals.
 - `vibe-orchestrate`: a finding that contradicts a passing test is not refuted
   by it. Adjudication happens at the behavior, and an assertion whose expected
   value is the reported defect makes the test wrong rather than weak, so
