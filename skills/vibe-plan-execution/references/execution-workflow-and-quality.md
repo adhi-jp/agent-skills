@@ -250,17 +250,19 @@ receipts.
      disposition — re-scoped now, scheduled to a named later item, or dropped
      with the reason — wherever the item's status is recorded. An otherwise
      verified slice is where such an item disappears unnoticed.
-8. **Hand off explicitly selected commits**
-   - Leave verified changes in the working tree unless the current user
-     explicitly asks for a commit or a bound approved plan item explicitly
-     selects that checkpoint.
-   - For a selected checkpoint, preserve the verified scope, test/review receipt,
+8. **Hand off the unit's checkpoint commit**
+   - Close each verified, reviewed, self-contained unit with a local checkpoint
+     commit of its own scope. A no-commit instruction, a bound plan that forbids
+     commits, or project policy suspends this; then leave the changes in the
+     working tree and report the reason.
+   - For every checkpoint, preserve the verified scope, test/review receipt,
      unrelated-path exclusions, and any proposed message, then use the normal
-     commit-execution workflow. Do not stage or commit inside plan execution by
-     implication.
+     commit-execution workflow. Do not stage or commit inside plan execution.
    - A failed, blocked, unchanged, unverified, or ambiguous slice is never an
-     eligible commit handoff. Push, release, version changes, history rewrites,
-     destructive actions, and external side effects remain separately consented.
+     eligible commit handoff, and neither is a file set the unit's own changes
+     cannot be cleanly separated from. Push, release, version changes, history
+     rewrites, destructive actions, tracking a newly created artifact, and
+     external side effects remain separately consented.
 
 ## User Communication
 
@@ -387,10 +389,10 @@ Before finalizing:
 - Consent-bound plan items were extracted during plan binding, and unresolved
   exact authorization for history operations and other consent-bound actions
   was handled by Startup Consent Preflight before the affected slice.
-- Commit selection came only from an explicit current request or an explicitly
-  selected bound checkpoint; invocation and natural slice boundaries were not
-  treated as history authority.
-- Any selected checkpoint was handed to the commit-execution workflow only after
+- Each checkpoint commit stayed within the closing unit's own verified changes;
+  invocation and natural slice boundaries were not treated as authority for a
+  wider file set or for any other history operation.
+- Every checkpoint was handed to the commit-execution workflow only after
   verification, review, finding disposition, and safe file-set identification.
 - Proposed commit messages were not wrapped in Markdown fences, and execution
   summaries did not rely on prompt-local or harness-local references.

@@ -21,14 +21,15 @@ This skill routes work; it does not replace specialist skills and does not
 authorize host command plumbing, release preparation, generated eval
 workspaces, or implementation outside a selected downstream phase.
 
-A `vibe-coding` invocation selects routing, not repository history. Do not
-select staging or a commit merely because the workflow is state-changing,
-tracked changes exist, or a checkpoint would be convenient. A commit is selected
-only by an explicit current user request or by a bound approved plan item that
-explicitly requires that checkpoint. The selected commit-execution workflow then
-owns staging, file-set review, message transport, and history safety. No route
-implicitly authorizes push, release preparation, version changes, history
-rewrites, destructive cleanup, or unrelated changes.
+A `vibe-coding` invocation selects routing, not repository history. Routing
+alone, a convenient stopping point, or the mere presence of tracked changes in
+the working tree never selects a commit. A commit is selected by an explicit
+current user request, by a bound approved plan item that requires that
+checkpoint, or by a state-changing specialist closing a verified, reviewed unit
+of its own in-scope changes under its checkpoint default. The selected
+commit-execution workflow then owns staging, file-set review, message transport,
+and history safety. No route implicitly authorizes push, release preparation,
+version changes, history rewrites, destructive cleanup, or unrelated changes.
 
 Before any nontrivial state-changing or external-cost action, distinguish
 selection from permission. Select the action only when the current deliverable
@@ -45,6 +46,16 @@ artifact does not by itself authorize tracking, staging, committing,
 release-note inclusion, or publishing it. A mandatory repository or
 owning-workflow coupling may select one of those transitions, but the workflow
 must cite that obligation rather than infer it from usefulness or visibility.
+
+Recording a workflow's own completed work is part of the selected deliverable
+rather than new work, so a local checkpoint commit is the one transition a
+state-changing specialist's own contract selects. It reaches only that unit's
+verified in-scope changes, and only locally: a wider file set, an artifact whose
+tracked status would itself be new, and every irreversible or outward-facing
+operation stay under the separation above. Deferring the checkpoint is not the
+conservative choice — it accumulates a change set the user can neither review
+nor split without re-verifying each block — so treat an unexplained uncommitted
+pile at the end of a state-changing run as a defect, not as safety.
 
 This skill does not hardcode a specialist roster. Routes are resolved at
 routing time from the skill metadata visible in the current environment, so the
@@ -305,14 +316,19 @@ Before acting under `vibe-coding`, confirm:
 - Artifact creation or editing was not promoted into tracking, staging,
   committing, release-note inclusion, or publishing without independent
   lifecycle authority.
-- Invocation, editing permission, tracked status, and checkpoint convenience
-  were not treated as commit selection.
-- A commit route exists only for an explicit current commit request or a bound
-  approved plan item that explicitly selects the checkpoint; no empty commit was
-  created for read-only, chat-only, no-file, or unchanged work.
-- Standalone and plan-selected commits remain owned by the commit-execution
-  workflow; plan execution may prepare verified changes but does not absorb
-  history authority.
+- Invocation, editing permission, pre-existing tracked changes, and checkpoint
+  convenience were not treated as authority for a file set wider than the
+  closing unit's own verified changes.
+- A commit route exists for an explicit current commit request, a bound approved
+  plan item that selects the checkpoint, or a state-changing specialist closing
+  its own verified reviewed unit; no empty commit was created for read-only,
+  chat-only, no-file, or unchanged work.
+- A state-changing run that ended with verified changes left uncommitted named
+  the no-commit instruction, project policy, or unseparable mixed working tree
+  that suspended the checkpoint default.
+- Standalone, plan-selected, and specialist-checkpoint commits remain owned by
+  the commit-execution workflow; plan execution may prepare and select verified
+  changes but does not absorb staging, message-transport, or history authority.
 - Bound-plan implementation progress stayed inside the plan-execution route;
   routing state used the ledger only to rebind the active slice and latest
   status, not as proof of completion or as a separate planning/commit route.

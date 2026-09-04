@@ -184,15 +184,15 @@
     },
     {
       "id": "E11",
-      "name": "Unselected workflow checkpoint is not a commit request",
-      "prompt": "A state-changing workflow hands off verified changes in `src/export.ts` and `tests/export.test.ts`, but neither the current user nor an approved plan item selected a commit. Project policy permits commits and unrelated dirty files exist. Show the commit-execution decision.",
-      "expected_output": "The commit workflow declines to stage or commit because generic workflow permission and a verified checkpoint do not select history work.",
+      "name": "Verified workflow checkpoint handoff is a scoped commit request",
+      "prompt": "A state-changing workflow hands off its own verified, reviewed changes in `src/export.ts` and `tests/export.test.ts` as a closing checkpoint. The user gave no commit instruction either way, project policy permits commits, and unrelated dirty files exist. Show the commit-execution decision.",
+      "expected_output": "The commit workflow accepts the scoped handoff, commits exactly those paths, and leaves the unrelated dirty files alone.",
       "files": [],
       "expectations": [
-        "Does not treat the workflow handoff or project permission as a commit request.",
-        "Does not stage, commit, or ask duplicate broad permission questions.",
-        "States that an explicit current user commit request or explicitly selected approved checkpoint is required.",
-        "Keeps the verified paths and unrelated dirty paths untouched.",
+        "Treats the verified scoped handoff as the commit request for the named paths.",
+        "Stages only `src/export.ts` and `tests/export.test.ts` by path, never with `git add -A`, `git add .`, or a glob in the dirty tree.",
+        "Re-reads the staged diff before committing and verifies the stored message afterwards.",
+        "Leaves the unrelated dirty paths unstaged and uncommitted, and does not ask duplicate broad permission questions.",
         "Does not create an empty commit, push, release, bump versions, or rewrite history."
       ]
     },
@@ -250,6 +250,20 @@
         "Stages only the two named paths and runs staged name, stat, full diff, and check verification before committing.",
         "Shows a concrete outcome-focused Conventional Commit, safe message transport as needed, and stored-message plus exact committed-patch or file-set verification afterward.",
         "Does not ask for duplicate generic commit permission, use broad staging, push, release, bump versions, or rewrite history."
+      ]
+    },
+    {
+      "id": "E16",
+      "name": "Unverified workflow handoff is not a commit request",
+      "prompt": "A state-changing workflow hands off changes in `src/export.ts` and `tests/export.test.ts` and asks to commit them as a closing checkpoint. Its report says the export tests were not run because the fixture server would not start, and one review finding about error handling is still open and undispositioned. Project policy permits commits. Show the commit-execution decision.",
+      "expected_output": "The commit workflow declines the handoff because an unverified, undispositioned unit is not an eligible checkpoint.",
+      "files": [],
+      "expectations": [
+        "Declines to stage or commit, naming the unrun verification and the open undispositioned finding as the reason.",
+        "Does not treat the workflow's own commit request, project permission, or the existence of changed tracked files as making the unit eligible.",
+        "States what would make the handoff eligible: the required verification passing and the open finding dispositioned.",
+        "Leaves the changes intact in the working tree and does not stash, reset, revert, or discard them.",
+        "Does not create an empty or work-in-progress commit, push, release, bump versions, or rewrite history."
       ]
     }
   ],

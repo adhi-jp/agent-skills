@@ -227,11 +227,13 @@ Read this reference when actively diagnosing, repairing, verifying, or handing o
       record the remaining item as `deferred`, `accepted-residual`, or `blocked`.
 
 17. **Close repository operations**
-    - Finish with verified repair-owned working-tree changes unless the current
-      user explicitly requests a commit.
-    - Invocation, successful verification, or tracked status does not select
-      staging or history work. Do not ask for startup commit policy.
-    - When a commit is explicitly selected, hand the verified scope, review and
-      test evidence, and unrelated-path exclusions to the commit-execution
-      workflow. Keep push, release, version changes, rewrites, destructive
-      cleanup, and unrelated paths separately consent-bound.
+    - Close a proven repair with a local checkpoint commit of the repair-owned
+      changes. A no-commit instruction or project policy against commits
+      suspends this; then finish with verified working-tree changes and name
+      the reason.
+    - A diagnosis with no fix, an unproven or partial repair, and a deferred or
+      blocked item are not eligible. Do not ask for startup commit policy.
+    - Hand the verified scope, review and test evidence, and unrelated-path
+      exclusions to the commit-execution workflow. Keep push, release, version
+      changes, rewrites, destructive cleanup, and unrelated paths separately
+      consent-bound.

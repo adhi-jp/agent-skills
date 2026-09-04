@@ -700,11 +700,16 @@ operation. It checks:
   sensitive, or otherwise high-cascade.
 - Dirty-isolation refresh and recovery status.
 
-Review-selected fixes remain uncommitted unless the current user explicitly
-asks for a commit. For an explicit commit, hand the verified cumulative fix scope,
-terminal audit, isolation status, and conflict-safety evidence to the normal
-commit-execution workflow. Squash, reset, amend, rebase, push, release, version,
-and other history changes remain separately consent-bound.
+A completed fix loop closes with a local commit of its verified fixes, without
+waiting for a separate commit instruction: hand the verified cumulative fix
+scope, terminal audit, isolation status, and conflict-safety evidence to the
+normal commit-execution workflow. Review-only work with no applied fix commits
+nothing, and unverified, deferred, or blocked findings stay out of the scope.
+A no-commit instruction or project policy against commits suspends the default;
+then report the fixes as verified working-tree changes with that reason. When
+the fixes cannot be separated from the pre-existing changes under review, keep
+them uncommitted and say so. Squash, reset, amend, rebase, push, release,
+version, and other history changes remain separately consent-bound.
 
 ## Failure And Stop Conditions
 
@@ -750,4 +755,4 @@ At the end of a run, summarize:
 - Suite status for executed checks, acceptance coverage from `acceptance_proof`, unresolved scope, and any unverified shared edits as separate facts.
 - Verification performed and gaps that remain.
 - Terminal audit result.
-- Verified applied fixes as committed only when explicitly requested; otherwise their uncommitted working-tree status.
+- Verified applied fixes as committed with their scope, or their uncommitted working-tree status and the instruction or policy that suspended the default.

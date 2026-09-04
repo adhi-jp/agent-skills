@@ -250,16 +250,16 @@
     },
     {
       "id": "E15",
-      "name": "Selected verified fixes remain uncommitted without commit request",
-      "prompt": "Return JSON only. Produce a response-only terminal decision record for this represented review run; do not inspect the ambient checkout or execute a commit. An explicitly invoked working-tree review/fix run has two selected in-scope tracked fixes. Cascade checks, verification, acceptance proof, terminal audit, cycle ownership, isolation restore, and conflict-safety preconditions have passed. The non-empty staged file set and cumulative fix diff contain only those fixes; unrelated dirty paths remain excluded. Project policy allows local commits, but the user gave no separate commit instruction. No post-commit stored-message or committed-file-set check exists yet. No squash, amend, reset, rebase, push, release preparation, version change, or destructive cleanup is requested.",
-      "expected_output": "The JSON reports terminal review closure with verified uncommitted fixes because no explicit commit was selected.",
+      "name": "Completed fix loop commits its verified fix scope",
+      "prompt": "Return JSON only. Produce a response-only terminal decision record for this represented review run; do not inspect the ambient checkout or execute a commit. An explicitly invoked working-tree review/fix run has two selected in-scope tracked fixes. Cascade checks, verification, acceptance proof, terminal audit, cycle ownership, isolation restore, and conflict-safety preconditions have passed. The non-empty staged file set and cumulative fix diff contain only those fixes; unrelated dirty paths remain excluded. Project policy allows local commits and the user gave no commit instruction either way. No post-commit stored-message or committed-file-set check has run yet. No squash, amend, reset, rebase, push, release preparation, version change, or destructive cleanup is requested.",
+      "expected_output": "The JSON reports terminal review closure with the verified fix scope committed as the loop's own checkpoint.",
       "files": [],
       "expectations": [
         "Valid JSON only.",
-        "Records passed target, fix, verification, acceptance, terminal-audit, ownership, isolation, and conflict-safety gates.",
-        "Records that no commit was selected or executed; explicit review invocation is not commit authority.",
-        "Preserves the non-empty verified fix scope and excludes unrelated paths.",
-        "Does not require post-commit checks when no commit is selected.",
+        "Records passed target, fix, verification, acceptance, terminal-audit, ownership, isolation, and conflict-safety preconditions.",
+        "Records the verified cumulative fix scope as the loop's own checkpoint commit, handed to commit execution rather than executed inside review.",
+        "Preserves the non-empty verified fix scope and excludes the unrelated dirty paths from the commit.",
+        "Requires post-commit stored-message and committed-file-set verification before the record is closed.",
         "Does not authorize squash, amend, reset, rebase, push, release, version changes, or cleanup."
       ]
     },

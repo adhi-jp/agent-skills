@@ -47,8 +47,8 @@ requirement for unrelated bugs.
 - Greenfield feature work with no existing behavior or reported symptom.
 - Pure review cycles where an active review workflow is already sufficient.
 - General commit-only work, history rewrite, push, cleanup, or release decisions
-  outside debug/fix closure. Debugging leaves verified changes uncommitted unless
-  the current user explicitly asks for a commit.
+  outside debug/fix closure. Repair closes its own verified changes with a local
+  checkpoint commit; every other history operation stays outside this skill.
 - One-line mechanical edits where no symptom, regression, or existing behavior
   is at stake.
 
@@ -153,11 +153,17 @@ freshness, generated or temporary surfaces, and user-visible summary. Resolve
 material findings and rerun affected proof before closure, or record the
 remaining item as `deferred`, `accepted-residual`, or `blocked`.
 
-Verified implementation closure leaves repair-owned changes in the working tree
-unless the current user explicitly asks for a commit. Invocation, successful
-proof, and tracked status do not select history work. When a commit is explicitly
-selected, hand the verified repair scope and evidence to the commit-execution
-workflow; do not duplicate staging or message procedures here.
+Close a verified repair by committing the repair-owned changes locally, without
+waiting for a separate commit instruction. Hand that scope and its evidence to
+the commit-execution workflow; do not duplicate staging or message procedures
+here. The default covers only the repair's own verified changes: a diagnosis
+with no fix, an unproven or partial repair, a deferred or blocked item, and any
+path outside the repair are not committed, and push, release work, version
+changes, history rewrites, and destructive cleanup remain separately authorized.
+A current no-commit instruction or project policy against commits suspends the
+default; then report the verified changes as uncommitted with that reason. When
+the repair cannot be separated from unrelated pre-existing working-tree changes,
+report the mixed state and ask.
 
 ## Reference Routing
 
@@ -218,6 +224,7 @@ Before ending:
 - User-side retests, when needed, include exact steps and expected observations.
 - Implemented repairs were self-reviewed before closure, or the missing review
   is recorded as blocked or explicitly skipped by the user.
-- Verified repair-owned changes are reported as uncommitted unless the current
-  user explicitly selected a commit; other history and release operations remain
-  separately consent-bound.
+- Verified repair-owned changes were committed as a local checkpoint of exactly
+  that scope, or reported as uncommitted with the instruction or policy that
+  suspended the default; other history and release operations remain separately
+  consent-bound.

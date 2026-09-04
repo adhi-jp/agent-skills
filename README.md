@@ -49,7 +49,7 @@ acting. Repository contributors must also follow [`AGENTS.md`](AGENTS.md).
 | Understand, locate, trace, or assess existing code | `vibe-code-research` | Read-only; direct lookups stay concise, and material negative/architecture/risk conclusions receive a disconfirming check | [source](skills/vibe-code-research/SKILL.md) · [evals](evals/vibe-code-research/) |
 | Create or revise an implementation plan from approved or concrete inputs | `vibe-planning` | Writes concise plan artifacts and stops before implementation; reserved decisions stay authority-bounded, and risk-triggered review uses verified-capacity or one bounded optimistic batch before coordinator fallback | [source](skills/vibe-planning/SKILL.md) · [evals](evals/vibe-planning/) |
 | Walk through a saved implementation plan item by item | `vibe-plan-review` | Interactive pre-check; review state stays in chat unless resumability needs persistence, exact target/state mismatches fail closed, and it stops before implementation | [source](skills/vibe-plan-review/SKILL.md) · [evals](evals/vibe-plan-review/) |
-| Implement a concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Binds the current reviewed plan content, keeps material high-risk and out-of-scope constraints visible, checks proceed conditions, and verifies and reviews completed slices without inferring commits | [source](skills/vibe-plan-execution/SKILL.md) · [evals](evals/vibe-plan-execution/) |
+| Implement a concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Binds the current reviewed plan content, keeps material high-risk and out-of-scope constraints visible, checks proceed conditions, and verifies and reviews completed slices, then closes each one with a scoped local checkpoint commit | [source](skills/vibe-plan-execution/SKILL.md) · [evals](evals/vibe-plan-execution/) |
 | Diagnose and repair an existing bug, regression, failed fix, or runtime mismatch | `vibe-debug` | Keeps cause and repair claims evidence-backed; simple bugs close concisely while recurrent or environment-bound work retains a ledger/retest contract | [source](skills/vibe-debug/SKILL.md) · [evals](evals/vibe-debug/) |
 | Review a working tree, branch, base ref, or git-backed document change | `vibe-review` | Requires a non-empty git-backed target; records capability properties separately, quarantines delegated evidence, and omits private backend/source references from public findings while preserving common review gates | [source](skills/vibe-review/SKILL.md) · [evals](evals/vibe-review/) |
 
@@ -83,10 +83,11 @@ of truth when a summary and a detailed contract differ.
   investigation does not become a fix.
 - Approval, proceed, accepted-risk, and consent gates remain explicit. An
   AI-selected default or delegated recommendation is not human approval.
-- State-changing workflow invocation permits the selected edit phase; it does
-  not select a commit. Verified changes remain in the working tree unless the
-  current user explicitly asks for a commit or an approved plan item explicitly
-  selects that checkpoint.
+- A state-changing workflow closes each verified, reviewed unit of its own
+  changes with a scoped local commit, without needing a per-request commit
+  instruction; a no-commit instruction or project policy suspends that. The
+  commit covers only that unit — never pre-existing working-tree changes, an
+  artifact whose tracked status would itself be new, or paths outside it.
 - Artifact creation, tracking, staging, commit, release-note inclusion, and
   publishing are separate lifecycle transitions with their own authority.
 - Commit selection never implies push, release preparation, versions, tags,

@@ -47,12 +47,13 @@ of that line unless the user says otherwise.
 
 - **Commit when asked; do not push.** A request to commit is not a request to
   push. Do not `git push` unless the user explicitly asks.
-- **Accept only selected checkpoint handoffs.** A bound approved plan item may
-  explicitly select a commit checkpoint, in which case its verified scoped
-  handoff counts as the commit request for the named paths. Generic workflow
-  invocation, edit permission, or a convenient checkpoint does not. The handoff
-  never authorizes broad staging, empty commits, push, release work, version
-  changes, or history rewriting.
+- **Accept scoped checkpoint handoffs.** A bound approved plan item, or a
+  state-changing workflow closing a verified, reviewed unit of its own changes
+  under its checkpoint default, hands off a commit request for the named paths.
+  Edit permission alone, an unverified unit, or a convenient stopping point does
+  not. Every handoff still passes this skill's file-set, verification, message,
+  and history-safety gates, and none of them authorizes broad staging, empty
+  commits, push, release work, version changes, or history rewriting.
 - **Separate discovery from lifecycle authority.** Status, diff, path
   existence, same-session creation, logical relevance, conventional repository
   placement, and commit permission make a path a candidate; they do not by

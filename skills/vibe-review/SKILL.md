@@ -20,10 +20,13 @@ fixes from creating predictable next-cycle findings. Low burden never means
 silent scope expansion, unapproved backend downgrade, ungated edits, or
 unselected history mutation.
 
-Review-selected fixes remain verified working-tree changes unless the current
-user explicitly asks for a commit. Invocation, selected fixes, passed
-verification, and terminal audit do not select history work. A later commit workflow owns
-staging, exact-diff review, message transport, and post-commit verification.
+A completed fix loop closes by committing its own verified fixes locally,
+without waiting for a separate commit instruction; a review that applies no fix
+commits nothing, and the commit never reaches the pre-existing changes under
+review, unverified or deferred findings, or push, release, version, and
+history-rewrite operations. A no-commit instruction or project policy against
+commits suspends the default. The commit workflow owns staging, exact-diff
+review, message transport, and post-commit verification.
 
 ## Language
 
@@ -198,7 +201,8 @@ non-secret structural references. When the user requests
 a response-only decision record for a represented completed review state, bind
 the decision to those supplied facts rather than substituting the ambient host
 or runner checkout as the reviewed worktree. Response-only delivery does not execute history. Include
-commit mechanics only when the represented current request explicitly selects a commit.
+commit mechanics only when the represented state carries a commit the fix loop
+would close, or the represented current request selects one.
 
 Structured decision records are lossless projections of the applicable control
 state, not generic summaries. Preserve load-bearing reference fields when their
@@ -256,6 +260,7 @@ all other history operations in the coordinator's post-collection state; a
 user's desired eventual fix or squash does not schedule those actions inside
 the scripted run.
 
-For response-only closure decisions, report the terminal review state. Route to
-commit execution only when the represented current request explicitly selected a
-commit; otherwise report verified uncommitted fixes.
+For response-only closure decisions, report the terminal review state. Route
+verified applied fixes to commit execution as the loop's own checkpoint, and
+report fixes as uncommitted when no fix was applied or when the represented
+state suspends the default.

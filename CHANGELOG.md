@@ -63,6 +63,28 @@ use `[Repository] - YYYY-MM-DD`.
 - `vibe-planning`: an acceptance metric is non-discriminating when it returns
   the same verdict before and after the planned change, in either direction,
   not only when the baseline already satisfies the threshold.
+- `vibe-coding`, `vibe-plan-execution`, `vibe-debug`, `vibe-review`,
+  `vibe-orchestrate`, and `vibe-commit`: a state-changing workflow now closes
+  each verified, reviewed unit of its own changes with a scoped local commit
+  instead of waiting for a per-request commit instruction. Recording completed
+  work is part of the selected deliverable, and an unexplained uncommitted pile
+  at the end of a run is a defect rather than a safe default, because the user
+  can neither review nor split it without re-verifying each block. Plan
+  execution uses plan-authored `Commit checkpoints` when present and natural
+  verified slice boundaries otherwise; repair closes a proven fix; a review's
+  fix loop closes its applied fixes; the coordinator closes an accepted
+  integrated round.
+- `vibe-coding` and `vibe-commit`: the selection-versus-permission separation is
+  unchanged for everything the checkpoint does not cover. A checkpoint reaches
+  only that unit's own verified changes and only locally — never pre-existing
+  working-tree changes the workflow did not make, an artifact whose tracked
+  status would itself be new, unverified or undispositioned work, or push,
+  release, version, amend, rebase, reset, or other history operations. A
+  no-commit instruction or project policy suspends the default and its reason is
+  reported, a working tree whose changes cannot be separated is reported instead
+  of committed, and read-only or no-change routes still create no commit.
+  Requirements capture, implementation planning, saved-plan pre-check, and
+  standalone writing deliverables keep their existing explicit-request rule.
 
 ## [vibe-coding 3.0.0] - 2026-08-16
 

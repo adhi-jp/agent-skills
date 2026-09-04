@@ -125,9 +125,13 @@ items.
 
 Consent-bound items include:
 
-- Repository history operations: any commit not explicitly requested now or
-  explicitly selected by a bound approved plan item, plus amend, stash, reset,
-  release preparation, version bumps, squash, push, or checkpoint scope changes.
+- Repository history operations beyond a local checkpoint of the executing
+  unit's own verified changes: amend, stash, reset, release preparation, version
+  bumps, squash, push, tracking a newly created artifact, or checkpoint scope
+  changes. The unit's own local checkpoint is covered by the skill's checkpoint
+  default and is consent-bound only when a no-commit instruction or project
+  policy applies, or when the host requires separate confirmation for local
+  commits.
 - Destructive, irreversible, credential-exposing, paid, production, or external
   side-effecting operations.
 - Host delegation or orchestration that shares work with other agents, runs
@@ -138,14 +142,14 @@ Consent-bound items include:
 For each item, record the `Plan` source, the exact operation, when it would
 occur, current authorization evidence, and the fallback if authorization is
 denied or absent. Current authorization must name the operation or decision.
-An execution request does not select a commit. Commit authority must come from
-an explicit current request or an explicitly selected bound approved checkpoint.
-The same general request does not authorize history or other consent-bound
-operations.
+An execution request selects local checkpoint commits of the work it produces,
+and nothing wider. It does not authorize other history operations or other
+consent-bound operations, which still need authorization naming the operation.
 
 If any consent-bound item lacks exact authorization, pause before the affected
-operation and ask for the smallest exact decision. Missing commit selection does
-not block ordinary implementation; finish with verified uncommitted changes.
+operation and ask for the smallest exact decision. A denied or suspended commit
+default does not block ordinary implementation; finish with verified
+uncommitted changes and say so.
 
 Batch startup questions only when every answer is simultaneously knowable and
 the plan reserved the corresponding field. Do not pre-approve later
@@ -190,7 +194,7 @@ Delegation never weakens the plan contract:
   of deciding.
 - Plan binding, deviation decisions, history operations, applicable progress-ledger updates, and final verification against the plan's
   acceptance criteria stay with the coordinator.
-- Delegated units never commit. An explicitly selected commit remains a separate
+- Delegated units never commit. Every checkpoint remains a separate
   coordinator-owned history workflow after local verification and review.
 - Run delegated implementation of different slices concurrently only when the
   bound plan defines those slices as independent and the host isolates their

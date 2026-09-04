@@ -16,11 +16,13 @@ artifact's main reader is human.
 This skill controls wording quality and message content. It does not authorize
 releases, PR submission, template changes, or workflow shortcuts.
 
-Tracked text edits remain verified working-tree changes unless the current user
-explicitly asks for a commit. Invocation, tracked status, or artifact completion
-does not select history work. A later commit workflow owns staging, file-set
-review, message transport, stored-message verification, and push/history
-boundaries.
+A standalone writing deliverable's tracked text edits remain verified
+working-tree changes unless the current user asks for a commit. Invocation,
+tracked status, or artifact completion does not select history work, and wording
+the user has not yet read is not a closed unit. When wording is produced inside
+another active workflow, that workflow's own checkpoint rules govern its
+changes. A later commit workflow owns staging, file-set review, message
+transport, stored-message verification, and push/history boundaries.
 
 When another workflow is active, use this skill only as auxiliary wording
 guidance unless the user asks for a standalone writing deliverable. Incidental
@@ -71,8 +73,8 @@ represented state. Do not replace it with the eval sandbox's, runner's, or
 ambient checkout's current state unless the prompt explicitly binds that
 checkout as the target to inspect. If the task asks only for a message, command sequence, or closure record, do not
 perform a represented mutation merely because tools are available. Describe
-commit mechanics only when the represented current request explicitly selects a
-commit or an owning plan item explicitly selects that checkpoint.
+commit mechanics only when the represented current request selects a commit or
+an owning workflow's checkpoint closes over the represented changes.
 
 Preserve meaning when editing or summarizing. Keep:
 

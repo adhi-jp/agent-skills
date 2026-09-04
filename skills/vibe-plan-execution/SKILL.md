@@ -27,14 +27,28 @@ If no concrete plan exists, return to planning before coding. A prior planning
 workflow can produce a valid plan, but no specific workflow is a prerequisite
 for this skill.
 
-Executing a plan selects implementation, not repository history. Leave verified
-plan-owned changes in the working tree unless the current user explicitly asks
-for a commit or a bound approved plan item explicitly selects that checkpoint.
-When a checkpoint is selected, route its history operation through the normal
-commit-execution workflow after implementation verification and review. Never
-infer a commit from invocation, multiple slices, tracked status, or a convenient
-rollback boundary; push, release work, version changes, history rewrites,
-destructive cleanup, and unrelated paths remain separately unauthorized.
+Executing a plan includes leaving the work in a durable reviewable form. After
+a self-contained plan-owned unit is implemented, verified, reviewed, and its
+material findings are dispositioned, commit that unit locally as a checkpoint
+without waiting for a separate commit instruction. Use plan-authored
+`Commit checkpoints` when they exist; otherwise close on the natural
+independently verified slice boundaries rather than letting a whole multi-slice
+run accumulate as one undifferentiated working tree. Route each checkpoint's
+history operation through the normal commit-execution workflow.
+
+This default reaches only local commits of the executing unit's own verified
+changes. It does not select a commit for discovery-only, blocked, unchanged,
+failing, or work-in-progress state, and it never widens the staged file set
+beyond the verified unit. Push, release work, version changes, amend, rebase,
+reset, stash, squash, destructive cleanup, tracking a newly created artifact,
+and unrelated or ambiguous paths remain separately unauthorized. When the unit's
+own changes cannot be separated from unrelated pre-existing working-tree
+changes, report the mixed state and ask instead of committing it.
+
+A current no-commit instruction, a bound plan that forbids commits, or project
+policy against them suspends this default. If the host or harness requires
+separate confirmation for local commits, ask once at startup before the first
+edit that can produce tracked changes, not again at each checkpoint.
 
 ## Plan Sources
 
@@ -209,11 +223,12 @@ Do not use this skill for:
   contract surfaces affected, the owning artifact to revise, and the condition
   for rebinding execution. Do not silently rewrite the plan and report only the
   corrected conclusion.
-- Commit only when the current user explicitly requests it or the bound approved
-  plan explicitly selects that checkpoint. A merely descriptive checkpoint or
-  multi-slice plan does not select history work. After verification and review,
-  hand the selected scope and evidence to the commit-execution workflow; keep
-  staging, message transport, trailers, and stored-commit inspection there.
+- Each verified, reviewed, self-contained unit closes with a local checkpoint
+  commit of its own scope unless a no-commit instruction or project policy
+  suspends that default. Hand the scope and evidence to the commit-execution
+  workflow; keep staging, message transport, trailers, and stored-commit
+  inspection there. The default never reaches unverified state, paths outside
+  the unit, or push, release, version, or history-rewrite operations.
 - An acceptance metric is executable proof only after current `Local evidence`
   shows it distinguishes the before state from the required after state. A
   known-bad baseline that already passes the metric blocks completion and

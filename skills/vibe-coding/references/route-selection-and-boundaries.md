@@ -120,13 +120,14 @@ Bare post-planning handoff wording such as "continue", "go ahead", "ready", or
 "looks good" is insufficient unless it clearly asks to execute the known plan or
 current slice and the proceed condition allows execution.
 
-When a bound approved plan item explicitly selects a commit checkpoint, plan
-execution may prepare and verify that checkpoint, then route the history action
-to the visible commit-execution specialist without requiring a second generic
-"commit" instruction. A plan that merely has slices, mentions possible
-checkpoints, or is being executed does not select a commit. Standalone commit
-requests and explicitly selected plan checkpoints both remain subject to the
-commit workflow's file-set, verification, message, and history-safety gates.
+Plan execution prepares and verifies each checkpoint, then routes the history
+action to the visible commit-execution specialist without requiring a second
+generic "commit" instruction — whether the checkpoint came from a plan-authored
+`Commit checkpoints` item or from the specialist closing a natural verified
+slice under its own checkpoint default. Standalone commit requests and
+specialist checkpoints alike remain subject to the commit workflow's file-set,
+verification, message, and history-safety gates, and none of them widens the
+scope past the closing unit's own verified changes.
 
 When the bound plan has a durable implementation-progress ledger, keep that
 ledger inside the plan-execution phase. Use it to rebind the active execution
@@ -250,11 +251,13 @@ Downstream specialist boundaries are authoritative:
   plan's scope, acceptance criteria, required documentation or changelog
   coupling, release policy, verification path, any applicable resumable-progress
   record, and explicit checkpoint selections.
-- The debug-and-repair phase owns existing-feature diagnosis and repair proof;
-  verified repair changes remain uncommitted unless the current user explicitly
-  selects a commit.
+- The debug-and-repair phase owns existing-feature diagnosis and repair proof,
+  and closes a proven repair with a local checkpoint commit of the repair-owned
+  changes; a diagnosis with no fix commits nothing.
 - The review phase owns review target selection, delegated review coordination,
-  scope triage, gated fixes, terminal audit, and history-operation consent.
+  scope triage, gated fixes, terminal audit, and history-operation consent. A
+  completed fix loop commits its own verified fixes; a review that applies no
+  fix commits nothing and never commits the changes under review.
 - The plan pre-check walkthrough phase reviews a saved implementation plan
   item by item with the user before execution starts; it stops before
   implementation, keeps item decisions and reflection consent with the user,
@@ -270,18 +273,23 @@ Downstream specialist boundaries are authoritative:
 
 ## Commit Selection Boundary
 
-Keep edit authority and commit selection separate. Explicit `vibe-coding` use,
-a state-changing route, successful verification, tracked status, or an available
-commit specialist does not select a commit. Select history work only when the
-current user explicitly asks for it or a bound approved plan item explicitly
-requires that checkpoint. Route the selected history action to the
-commit-execution phase and preserve its normal staging, exact-diff, message, and
-post-commit verification rules.
+Separate what a commit covers from whether one happens. A state-changing route
+that produced verified, reviewed changes of its own selects a local checkpoint
+commit over exactly those changes; the current user may also request a commit
+directly, and a bound approved plan item may select a named checkpoint. What
+none of these selects is a wider file set: pre-existing working-tree changes the
+route did not make, an artifact whose tracked status would itself be new, and
+paths outside the closing unit stay excluded, and an available commit specialist
+or ambient tracked status is never the reason for including them. Route the
+history action to the commit-execution phase and preserve its normal staging,
+exact-diff, message, and post-commit verification rules.
 
-A route that produced no eligible tracked change must not create an empty
-commit. Push, release preparation, version changes, tags, amend, rebase, reset,
-stash, squash, destructive cleanup, force-adds, and unrelated or ambiguous
-paths remain separately consent-bound even when a local commit was selected.
+A read-only, chat-only, no-file, or unchanged route must not create an empty
+commit, and a route whose changes cannot be separated from unrelated
+working-tree state reports the mix rather than committing it. Push, release
+preparation, version changes, tags, amend, rebase, reset, stash, squash,
+destructive cleanup, force-adds, and unrelated or ambiguous paths remain
+separately consent-bound even when a local checkpoint was selected.
 
 Do not collapse phases inside one downstream specialist response when that
 specialist requires stopping after an artifact, summary, approval, or
