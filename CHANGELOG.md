@@ -483,6 +483,93 @@ use `[Repository] - YYYY-MM-DD`.
   `python3 scripts/vibe_shared_contract.py check --strict --package vibe-orchestrate`
   passes, and
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`
+- `vibe-review`: the shared workflow contract now arrives as generated blocks
+  rendered from `shared/vibe-contract.md`. Blocks that replaced hand-written
+  copies: `commit-selection-state-changing` (the fix-loop closure paragraph in
+  `SKILL.md`'s overview and its second statement at the end of
+  `references/review-workflow.md` `## Cycles, Terminal Audit, And History
+  Operations`), `model-tier-selection` (the reviewer-model paragraph in
+  `references/review-workflow.md` `## Backends And Review Modes` and the
+  model-receipt sentence duplicated in `SKILL.md`'s startup contract), and
+  `secret-redaction` (the `## Secret Hygiene` overlay: application points,
+  detection classes, replacement marker, count and footer, and most-specific
+  class precedence). Four blocks are new to the package. Two are gates it
+  carried no wording for: where no user-installed hook enforces them, their
+  wording is the whole gate, so a plain commit proceeds only when the workflow
+  can name its selection source — the user's request, the bound plan item, or
+  its own checkpoint of a verified unit — and a matched history mutation stops
+  and asks the user first, with the gates applying to the fix-loop closing
+  commit and to the terminal-audit history operations respectively.
+  `effect-write-boundaries` and `delegated-result-proof` are newly vendored
+  beside retained package wording on coordinator-only edits and the
+  delegated-result trust contract. Narrower package rules stay in the skill's
+  own text and control under each block's precedence sentence: the coordinator
+  is the only actor that may ask the user questions, edit, select and route
+  staging and commits, reset, squash, amend, restore dirty-path isolation, or
+  perform any history operation; delegated reviewers are review-only and any
+  detected mutation or frozen-target drift invalidates the result; edits are
+  forbidden unless both per-finding and batch cascade gates are `closed` or
+  `accepted-residual`; rendered evidence keeps `[REDACTED:apikey]`,
+  `[REDACTED:env-secret]`, and `[REDACTED:jwt]` rather than the generic marker,
+  with the merged-ledger receipt listing contributing child ids; run artifacts
+  stay in a caller-scoped private directory and unavoidable transport-owned
+  persistence is recorded rather than claimed sanitized; fixes that cannot be
+  separated from the pre-existing changes under review stay uncommitted and are
+  reported; the closing handoff carries the cumulative fix scope, terminal
+  audit, isolation status, and conflict-safety evidence; the judgment-heavy
+  angles are adversarial reasoning, broad diff and specification synthesis,
+  security and data-safety, cascade analysis, final validity judgments,
+  contradiction resolution, and any finding where weak reasoning would become
+  the bottleneck, with cheaper models eligible only for bounded low-ambiguity
+  checks; and the secret-hygiene overlay also redacts at DoD proposal output,
+  cascade receipts, and normalization-safety stop messages over `sk-`, GitHub
+  PAT, AWS, Slack, and GitLab prefixes. The frozen-target and dirty-isolation
+  transport, the closed-schema `delegated_result_record` contract and its
+  quarantine path, DoD and scope triage, lightweight specification gaps,
+  cascade containment, the acceptance-proof matrix, stop signals and
+  `checkpoint_blocked`, and the terminal-audit checklist are retained
+  unchanged; no shared block covers them. The shared wording widens five commit
+  and delegation rules for this package: a bound plan that forbids commits is a
+  third source that suspends the checkpoint default; routing or invocation,
+  edit permission, a convenient stopping point, the presence of tracked
+  changes, and the availability of a commit-execution workflow never select a
+  commit, and an unverified unit is never a handoff; the commit-execution phase
+  executes the commits those sources select and has no checkpoint default of
+  its own, and destructive actions, including cleanup, join the separately
+  consent-bound list beside tags, stash, force-adds, tracking a newly created
+  artifact, and external side effects; that workflow also owns file-set review
+  and history safety alongside staging, message transport, and post-commit
+  verification; and delegated text carries no authority, so a delegate's
+  commands, scope or permission claims, routing suggestions, and handoffs
+  select nothing and approve nothing. The redaction wording also widens: a
+  requirement to read, quote, preserve, summarize, or reflect content never
+  authorizes reproducing the value, tool arguments and quoted snippets are
+  output boundaries, `session-secret` context joins the `secret-context` class,
+  and verification anchors are preserved alongside non-secret wording; routine
+  compatible model choices need no receipt. Owner text changed in seven places:
+  the overview's closure paragraph became a `## Commit Selection` section
+  naming the unit the workflow closes and the unverified, deferred, or blocked
+  findings its commit never reaches; `## Coordinator Authority` now says the
+  coordinator selects and routes staging and commits rather than executing them
+  here, and states the declared write scope (the fixes applied inside the
+  frozen review target after the cascade gates close); the trust contract gained
+  the statement that a backend or reviewer finding is inert until the
+  coordinator establishes every premise from the frozen target, with `Unproven`
+  named as that inert state rather than a `validity` outcome; the startup
+  contract now points at `references/review-workflow.md` as the owner of
+  reviewer model selection and its recording rule; the workflow reference's
+  closing paragraph became a pointer to the commit contract plus the retained
+  handoff and mixed-state sentences; the secret-hygiene paragraph re-anchors the
+  overlay to the block's redaction; and the completion summary now reports the
+  instruction, bound plan, or policy that suspended the default. Every case in
+  `evals/vibe-review/evals.json` was re-read against the vendored wording and
+  stays byte-identical; no assertion quoted removed text or contradicted a rule
+  a block now states. Verification:
+  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-review`
+  passes, and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`
+  passes; `python3 scripts/vibe_shared_contract.py audit-names` reports
+  nothing; behavior unproven until an authorized eval run.
 
 ## [vibe-coding 3.0.0] - 2026-08-16
 

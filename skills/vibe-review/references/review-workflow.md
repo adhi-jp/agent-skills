@@ -146,20 +146,6 @@ after collection. Target-drift rules are unchanged: verify the frozen target
 identity immediately before launch and validate digests when the run returns.
 Do not require a specific host orchestration tool for platform-neutral use.
 
-When the host lets you choose reviewer models and the user has not explicitly
-fixed them, choose a fit-for-purpose model per angle by capability and context
-fit, not by hard-coded model name. Use cheaper or faster models only for bounded
-low-ambiguity checks when lower capability is quality-neutral or the user
-prioritizes cost/latency. Bias upward to the strongest suitable
-reasoning/context tier available for adversarial reasoning, broad diff/spec
-synthesis, security/data-safety angles, cascade analysis, final validity
-judgments, contradiction resolution, or findings where weak reasoning would
-become the bottleneck, especially when the user asks for maximum performance. Do
-not default every reviewer to the top model, and do not downshift solely to save
-tokens when a review angle needs stronger reasoning. Record model choice only
-for an explicit user override, degraded capability, cost/performance constraint,
-or audited external execution.
-
 When proportional effort selects a delegated path, default to adversarial
 review where the host supports an authorized review-only capability. A small
 low-risk target may stay local. If the selected protections are unavailable,
@@ -189,6 +175,19 @@ Choose effort from target size and risk:
 Record material degradation only when required coverage cannot be supplied. A
 user may request lower effort, but unresolved high-risk coverage remains a
 visible residual or blocker.
+
+### Reviewer Model Choice
+
+<!-- shared-contract:begin model-tier-selection source=shared/vibe-contract.md -->
+When the host lets the phase choose a delegated model and the user has not explicitly fixed one, choose a fit-for-purpose model per delegated unit by capability and context fit, not by hard-coded model name. Use a cheaper or faster model only for bounded, low-ambiguity work — lookups, extraction, mechanical checks, simple review — when lower capability is quality-neutral or the user prioritizes cost or latency. Bias upward to the strongest suitable reasoning and context tier available for judgment-heavy work: cross-artifact synthesis, adversarial review, security, data-safety, and other human-risk reasoning, contract compliance, contradiction resolution, and final recommendations or dispositions, especially when the user asks for maximum performance. Do not inherit the top model for every small unit, and do not downshift solely to save tokens when the unit needs stronger reasoning. Record the model choice only for an explicit user override, degraded capability, a cost or performance constraint, or audited external execution; routine compatible choices need no receipt.
+Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+<!-- shared-contract:end model-tier-selection -->
+
+Each delegated unit here is one review angle. The judgment-heavy angles are
+adversarial reasoning, broad diff and specification synthesis, security and
+data-safety angles, cascade analysis, final validity judgments, contradiction
+resolution, and any finding where weak reasoning would become the bottleneck; a
+cheaper or faster model is eligible only for bounded low-ambiguity checks.
 
 ## Review Execution
 
@@ -517,27 +516,25 @@ that never executes is a proof-sufficiency finding, not a product fix.
 
 ## Secret Hygiene
 
-Apply the overlay before render, persistence, backend forwarding, ledger
-projection, DoD proposal output, terminal summaries, cascade receipts, and
-normalization-safety stop messages.
+<!-- shared-contract:begin secret-redaction source=shared/vibe-contract.md -->
+Redact secret-like literals before any text crosses an output boundary: rendering, persistence, forwarding to another agent or backend, ledger projection, quoted snippets, summaries, and tool arguments. A requirement to read, quote, preserve, summarize, or reflect content never authorizes reproducing the value. Detection classes:
 
-Detection classes:
-
-- `apikey`: known-prefix API keys such as `sk-`, GitHub PAT prefixes, AWS
-  access keys, Slack tokens, and GitLab PATs.
+- `apikey`: known-prefix API keys and access tokens.
 - `jwt`: three-part JWT-like tokens.
 - `private-key`: PEM private-key headers and matching footers.
 - `url-auth`: credentials embedded in `http` or `https` URLs.
-- `secret-context`: high-entropy text co-occurring with key, token, secret,
-  password, api key, or bearer context.
-- `env-secret`: env-style assignment names ending in key, token, secret,
-  password, or pwd.
+- `secret-context`: high-entropy text co-occurring with key, token, secret, password, api key, bearer, or session-secret context.
+- `env-secret`: env-style assignment names ending in key, token, secret, password, or pwd.
 
-Replace matches with `[REDACTED:<type>]`. Preserve non-secret wording. Count
-redactions and render a compact audit/footer when redactions occurred.
-When one span matches multiple classes, use the most specific structural class:
-`env-secret` for a secret-named environment assignment and `apikey` for a
-recognized API-key prefix take precedence over generic `secret-context`.
+Replace each match with `[REDACTED:<type>]`. When one span matches several classes, the most specific structural class wins: `env-secret` for a secret-named environment assignment and `apikey` for a recognized API-key prefix take precedence over generic `secret-context`. Preserve non-secret wording and the anchors needed to verify the finding — paths, line numbers, symbols, commands, API names, field names, and identifiers. Count the redactions and render a compact footer when any occurred.
+Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+<!-- shared-contract:end secret-redaction -->
+
+This workflow's secret-hygiene overlay applies that redaction at its own output
+boundaries too: DoD proposal output, cascade receipts, and
+normalization-safety stop messages. The prefixes it recognizes for `apikey`
+include `sk-`, GitHub PAT prefixes, AWS access keys, Slack tokens, and GitLab
+PATs.
 
 Use stable in-run finding IDs and semantic deduplication. Two findings match
 when their changed-target location, issue class, and normalized proposition are
@@ -700,16 +697,14 @@ operation. It checks:
   sensitive, or otherwise high-cascade.
 - Dirty-isolation refresh and recovery status.
 
-A completed fix loop closes with a local commit of its verified fixes, without
-waiting for a separate commit instruction: hand the verified cumulative fix
-scope, terminal audit, isolation status, and conflict-safety evidence to the
-normal commit-execution workflow. Review-only work with no applied fix commits
-nothing, and unverified, deferred, or blocked findings stay out of the scope.
-A no-commit instruction or project policy against commits suspends the default;
-then report the fixes as verified working-tree changes with that reason. When
-the fixes cannot be separated from the pre-existing changes under review, keep
-them uncommitted and say so. Squash, reset, amend, rebase, push, release,
-version, and other history changes remain separately consent-bound.
+A completed fix loop closes under the commit contract in `SKILL.md`, which
+states what selects the commit, what its scope may cover, what suspends it, and
+what stays separately consent-bound: hand the verified cumulative fix scope,
+terminal audit, isolation status, and conflict-safety evidence to the normal
+commit-execution workflow.
+
+When the fixes cannot be separated from the pre-existing changes under review,
+keep them uncommitted and say so.
 
 ## Failure And Stop Conditions
 
@@ -755,4 +750,4 @@ At the end of a run, summarize:
 - Suite status for executed checks, acceptance coverage from `acceptance_proof`, unresolved scope, and any unverified shared edits as separate facts.
 - Verification performed and gaps that remain.
 - Terminal audit result.
-- Verified applied fixes as committed with their scope, or their uncommitted working-tree status and the instruction or policy that suspended the default.
+- Verified applied fixes as committed with their scope, or their uncommitted working-tree status and the instruction, bound plan, or policy that suspended the default.
