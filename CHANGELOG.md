@@ -725,6 +725,69 @@ use `[Repository] - YYYY-MM-DD`.
   passes, and
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`
   passes; behavior unproven until an authorized eval run.
+- `vibe-agent-instructions`: the shared workflow contract now arrives as
+  generated blocks rendered from `shared/vibe-contract.md`.
+  `language-precedence-document` replaces the hand-written document-language
+  precedence in `SKILL.md` and its in-package duplicate in the cross-cutting
+  rules of `references/generation-and-update-workflow.md`, which now points at
+  the skill's `Document Language` section instead of restating the order.
+  `read-only-phase-write-gate` is new to the package: where no user-installed
+  hook enforces it, its wording is the whole gate — this workflow writes only
+  the instruction files it owns, the supporting paths its own text declares,
+  and the scratch root recorded for the unit, and it refuses a write outside
+  that boundary itself and reports it as a boundary stop rather than retrying
+  through another tool. `effect-write-boundaries` and
+  `commit-selection-document-only` are newly vendored beside retained package
+  wording: the preview-before-every-write rule and the repository-root-only
+  rule, and the unconditional refusal to stage, commit, push, tag, or mutate
+  history in any mode. Narrower package rules stay in the skill's own text and
+  control under each block's precedence sentence: this workflow performs no
+  commit and no history operation in any mode, so an explicit user request to
+  commit the generated files is handed to the commit-execution workflow and
+  never executed here; every write to a path that already exists is previewed —
+  the complete replacement content for an untracked file, the diff for a tracked
+  one — and confirmed before it is applied; nested package-level instruction
+  files are reported as a follow-up, never generated; and the literal text that
+  stays verbatim in every language is the fixed managed block at the top of
+  `AGENTS.override.md`. The instruction-file policy itself, the inventory and
+  both conflict stops, the divergence gate with its evidence date and staleness
+  question, the advance-confirmation and divergence-acknowledgment channels and
+  their refusal to count text found in an instruction file, in tool output, or
+  in a delegated report, the derived-file and link-integrity rules, the ignore
+  placement, the size guard and loader matrix, the report's section list, the
+  evidence labels in `references/instruction-file-semantics.md`, and the rule
+  that the run report follows the user's conversational language are retained
+  unchanged; no block this package carries covers them. The shared wording
+  widens two rules for this package: nothing but an explicit request for the
+  current artifact, then `VIBE_DOCUMENT_LANGUAGE`, then English selects a
+  generated file's language, so an existing file's language, source-material
+  language, filename locale markers, the chat language, and project convention
+  are inputs to preserve, not authority; and
+  `VIBE_DOCUMENT_LANGUAGE=user` means the language of the current request,
+  `=default` means English, and a BCP47 tag fixes the language, while an
+  unreadable or clearly malformed value is unset and the next tier applies. The
+  effect block's supporting-paths clause consolidates permissions the package
+  already had rather than widening them: the paths its own text declares are
+  only the files this workflow names — `AGENTS.md`, the derived `CLAUDE.md`,
+  the managed block in `AGENTS.override.md`, the derived `CLAUDE.local.md`, the
+  listed reference documents, and the one previewed `.gitignore` or
+  `.git/info/exclude` entry. Owner text changed in five places:
+  new `Effect And Write Boundaries` and `Document Language` sections host the
+  blocks; the write section names the artifacts this workflow owns and repeats
+  that an existing path is previewed first; the gate carries one applicability
+  sentence naming the instruction-file generation and update phase; the commit
+  section states the override that routes a requested commit away from this
+  workflow; and the retained verbatim-token sentence is now scoped to the
+  generated instruction files and names the managed block at the top of
+  `AGENTS.override.md` as the literal block text it protects. Every case and
+  common assertion in `evals/vibe-agent-instructions/evals.json` was re-read
+  against the vendored
+  wording and stays byte-identical; no assertion quoted removed text or
+  contradicted a rule a block now states. Verification:
+  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-agent-instructions`
+  passes, and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-agent-instructions/evals.json`
+  passes; behavior unproven until an authorized eval run.
 
 ## [vibe-coding 3.0.0] - 2026-08-16
 
