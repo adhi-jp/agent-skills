@@ -251,34 +251,35 @@ receipts.
      with the reason — wherever the item's status is recorded. An otherwise
      verified slice is where such an item disappears unnoticed.
 8. **Hand off the unit's checkpoint commit**
-   - Close each verified, reviewed, self-contained unit with a local checkpoint
-     commit of its own scope. A no-commit instruction, a bound plan that forbids
-     commits, or project policy suspends this; then leave the changes in the
-     working tree and report the reason.
+   - Close the unit under the checkpoint default, its suspend conditions, and
+     its eligibility and exclusion rules in the `SKILL.md` Commit Selection
+     section.
    - For every checkpoint, preserve the verified scope, test/review receipt,
      unrelated-path exclusions, and any proposed message, then use the normal
      commit-execution workflow. Do not stage or commit inside plan execution.
-   - A failed, blocked, unchanged, unverified, or ambiguous slice is never an
-     eligible commit handoff, and neither is a file set the unit's own changes
-     cannot be cleanly separated from. Push, release, version changes, history
-     rewrites, destructive actions, tracking a newly created artifact, and
-     external side effects remain separately consented.
 
 ## User Communication
 
-- Resolve user-facing chat language before progress updates, blocker notices,
-  consent questions, execution summaries, or final responses. Use: explicit
-  current-user instruction for chat/output language; `VIBE_CHAT_LANGUAGE` when
-  the environment is safely readable or the current user explicitly sets it for
-  the request, using a natural language name or BCP47 language tag such as
-  `Japanese`, `ja`, `en`, or `pt-BR`; the user's active conversational language;
-  the last clear user conversational language available in the current workflow
-  context; then English. Treat unreadable, empty, or invalid
-  `VIBE_CHAT_LANGUAGE` values as unset. Do not infer chat language from a source
-  plan, implementation file, filename without a locale marker, command, skill
-  invocation, code identifier, or host-wrapper text. Preserve file paths,
-  commands, identifiers, evidence labels, plan headings, and quoted source text
-  verbatim unless the user asks to translate or rename them.
+### Chat Language
+
+<!-- shared-contract:begin language-precedence-chat source=shared/vibe-contract.md -->
+Resolve the language of user-facing chat text — replies, progress updates, blocker and consent questions, summaries, and final responses — separately from any artifact's language, in this order:
+
+1. An explicit current-user instruction for chat, response, or output language.
+2. `VIBE_CHAT_LANGUAGE`, when the environment is safely readable or the current user explicitly sets it for the request. It may be a natural language name or a BCP47 language tag such as `Japanese`, `ja`, `en`, or `pt-BR`; an unreadable, empty, or invalid value is unset.
+3. The user's active conversational language.
+4. The last clear user conversational language available in the current workflow context.
+5. English.
+
+Do not infer chat language from source artifacts, referenced plan or implementation files, filenames without locale markers, commands, skill invocations, code, identifiers, or host-wrapper text; those inputs are language-neutral for chat unless the current user explicitly makes them the response-language contract. Preserve file paths, commands, identifiers, environment variables, locale tags, message keys, product names, canonical strings, and code verbatim unless the user explicitly asks to translate or rename them.
+Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+<!-- shared-contract:end language-precedence-chat -->
+
+The tokens this phase preserves verbatim in execution output also include
+identifiers, evidence labels, plan headings, and quoted source text.
+
+### Progress, Blockers, And Summaries
+
 - Keep progress updates tied to the plan: "I am implementing step 2" or "This
   conflicts with acceptance criterion 3."
 - When bound to a plan file, include the path in the initial binding note so the

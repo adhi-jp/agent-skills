@@ -27,28 +27,54 @@ If no concrete plan exists, return to planning before coding. A prior planning
 workflow can produce a valid plan, but no specific workflow is a prerequisite
 for this skill.
 
-Executing a plan includes leaving the work in a durable reviewable form. After
-a self-contained plan-owned unit is implemented, verified, reviewed, and its
-material findings are dispositioned, commit that unit locally as a checkpoint
-without waiting for a separate commit instruction. Use plan-authored
-`Commit checkpoints` when they exist; otherwise close on the natural
-independently verified slice boundaries rather than letting a whole multi-slice
-run accumulate as one undifferentiated working tree. Route each checkpoint's
-history operation through the normal commit-execution workflow.
+## Effect And Write Boundaries
 
-This default reaches only local commits of the executing unit's own verified
-changes. It does not select a commit for discovery-only, blocked, unchanged,
-failing, or work-in-progress state, and it never widens the staged file set
-beyond the verified unit. Push, release work, version changes, amend, rebase,
-reset, stash, squash, destructive cleanup, tracking a newly created artifact,
-and unrelated or ambiguous paths remain separately unauthorized. When the unit's
-own changes cannot be separated from unrelated pre-existing working-tree
-changes, report the mixed state and ask instead of committing it.
+<!-- shared-contract:class language=chat commit=state-changing effect=state-changing -->
+<!-- shared-contract:begin effect-write-boundaries source=shared/vibe-contract.md -->
+Every workflow phase belongs to one effect class, declared in its own text, and writes nothing beyond what that class and its declared boundary permit.
 
-A current no-commit instruction, a bound plan that forbids commits, or project
-policy against them suspends this default. If the host or harness requires
-separate confirmation for local commits, ask once at startup before the first
-edit that can produce tracked changes, not again at each checkpoint.
+- A read-only phase reads and reports. Its deliverable is chat: findings, alignment, or direction. It edits no source, test, config, doc, or other file, runs no command that mutates runtime or repository state, and does not stage, commit, tag, push, change versions, delete data, or start services. It writes a file only when the current user explicitly asks for a saved artifact.
+- An artifact-only phase creates or updates the artifact it owns — the requirements spec, the plan, the plan-review state, the instruction files, or the text artifacts the request names — and the supporting paths its own text declares: the text it was asked to revise (comments, docstrings, docs), a confirmed reflection into the bound plan, an ignore file it previewed and the user confirmed, or a narrowly confirmed configuration edit its text names. It leaves those verified changes in the working tree. It does not implement executable behavior, does not edit application code or tests as implementation, does not produce an artifact another phase owns, and does not perform release work; its artifact never authorizes same-turn implementation.
+- A state-changing phase edits files and runs commands inside the scope its own text declares — the unit it implements, the repair it proves, the fixes it applies, the round it integrates, or the commit it executes — and keeps its edits to the smallest verified unit of that scope. Paths outside the scope, pre-existing working-tree changes it did not make, and runtime or external state beyond the scope stay unwritten unless the current user selects them, and every irreversible or outward-facing operation stays under its own consent.
+Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+<!-- shared-contract:end effect-write-boundaries -->
+
+The scope this phase declares is the current slice the bound plan authorizes,
+implemented as the smallest coherent unit of that slice that can be tested.
+
+## Commit Selection
+
+<!-- shared-contract:begin commit-selection-state-changing source=shared/vibe-contract.md -->
+A commit is selected by exactly three sources: an explicit current user request; a bound approved plan item that requires that checkpoint; or a state-changing workflow closing a verified, reviewed unit of its own in-scope changes under its checkpoint default. Routing or invocation, edit permission, a convenient stopping point, the presence of tracked changes in the working tree, and the availability of a commit-execution workflow never select one, and an unverified unit is never a handoff. The commit-execution phase itself executes the commits those sources select and has no checkpoint default of its own.
+
+The checkpoint default: once a self-contained unit of the workflow's own work is implemented, verified, reviewed, and its material findings are dispositioned, the workflow closes it with a local commit of exactly that unit without waiting for a separate commit instruction, rather than letting a multi-unit run accumulate as one undifferentiated working tree. A current no-commit instruction, a bound plan that forbids commits, or project policy against commits suspends the default; then the verified changes stay in the working tree and the reason is reported. The default reaches only local commits of the unit's own verified changes: discovery-only, blocked, unchanged, failing, unverified, or work-in-progress state selects no commit, and the staged set never widens beyond the verified unit — pre-existing working-tree changes the workflow did not make, an artifact whose tracked status would itself be new, and paths outside the unit stay excluded, and neither an available commit-execution workflow nor ambient tracked status is a reason to include them. When the unit's changes cannot be separated from unrelated working-tree state, report the mixed state and ask instead of committing.
+
+Every selected commit is routed through the commit-execution workflow with the verified scope, its test and review evidence, its unrelated-path exclusions, and any proposed message; that workflow owns staging, file-set and exact-diff review, message transport, history safety, and post-commit verification. A request to commit is not a request to push. Push, release preparation, version changes, tags, amend, rebase, reset, stash, squash, destructive actions, including cleanup, force-adds, tracking a newly created artifact, external side effects, and unrelated or ambiguous paths remain separately consent-bound even when a checkpoint was selected; no route, checkpoint, or handoff implicitly authorizes them.
+Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+<!-- shared-contract:end commit-selection-state-changing -->
+
+The unit this workflow closes is a verified, reviewed execution unit of the
+bound plan; this phase hands it to the commit-execution workflow and neither
+stages nor commits itself. Use plan-authored `Commit checkpoints` when they
+exist; otherwise close on the natural independently verified slice boundaries.
+
+If the host or harness requires separate confirmation for local commits,
+ask once at startup before the first edit that can produce tracked changes, not
+again at each checkpoint. That startup confirmation is in addition to the gate's
+per-commit ask and never replaces it.
+
+### Commit-Selection Gate
+
+<!-- shared-contract:begin commit-selection-gate source=shared/vibe-contract.md -->
+This gate covers plain commits. Observable input: a shell tool call whose command runs `git commit` without a history-rewriting option (an amend or other rewrite belongs to the history-mutation gate), together with the session record for this worktree under `.plans/vibe-sessions/`, reading `status`, `lease.expires_at`, `repository.worktree`, `host_session_id`, `phase`, `effect_mode`, and the `source`, `at`, and `note` of every `events[]` entry of kind `commit-selection`; the directory's other candidate records, to detect a conflicting record; the readable bytes of every artifact named in `artifact_identity`, to detect an identity mismatch; and any supplied prior record, to check `generation`. A plain commit needs a recorded commit-selection source: `user-turn`, `bound-plan-item`, or `specialist-checkpoint` — the three selection sources of the commit contract — while `agent-proposed` records a proposal, not a selection.
+
+Observable stop, with three outcomes: `allow` when the command is not a commit; `ask` for every plain commit, with a reason that quotes the `source`, `at`, and `note` of the most recent recorded `commit-selection` event and the recorded `phase` — or states that no commit-selection event is recorded, or that the record is absent, malformed, stale, foreign, session-unbound, or conflicting; and `deny`, which this gate never returns. A plain commit is never allowed silently: the recorded `source` is surfaced at the prompt so that a self-attested selection is caught there, and a record in any invalid state yields `ask`, never `deny`.
+
+When no user-installed hook enforces this gate, this wording is the whole gate: a plain commit proceeds only when the workflow can name the selection source it rests on — the user's request, the bound plan item, or the workflow's own checkpoint of a verified unit. When the workflow is router-bound, the router records that source as a `commit-selection` event before the command runs; for a standalone commit with no router active, the direct current-user request or the verified checkpoint handoff is the named selection source, and the phase follows its ordinary confirmation policy. When no source can be named, do not commit, and ask the user if a commit appears to be wanted.
+A package may state which of its phases this gate applies to; it may not change the gate's inputs, outcomes, or fields.
+<!-- shared-contract:end commit-selection-gate -->
+
+This gate applies to the plan-execution phase's checkpoint commit.
 
 ## Plan Sources
 
@@ -223,12 +249,10 @@ Do not use this skill for:
   contract surfaces affected, the owning artifact to revise, and the condition
   for rebinding execution. Do not silently rewrite the plan and report only the
   corrected conclusion.
-- Each verified, reviewed, self-contained unit closes with a local checkpoint
-  commit of its own scope unless a no-commit instruction or project policy
-  suspends that default. Hand the scope and evidence to the commit-execution
-  workflow; keep staging, message transport, trailers, and stored-commit
-  inspection there. The default never reaches unverified state, paths outside
-  the unit, or push, release, version, or history-rewrite operations.
+- Each verified, reviewed, self-contained unit closes under the checkpoint
+  default in the Commit Selection section; staging, message transport,
+  trailers, and stored-commit inspection stay with the commit-execution
+  workflow.
 - An acceptance metric is executable proof only after current `Local evidence`
   shows it distinguishes the before state from the required after state. A
   known-bad baseline that already passes the metric blocks completion and
@@ -263,10 +287,8 @@ Do not use this skill for:
   diagnostic-scope limits, success-criteria freezes, plan-body firewall
   outcomes, and selected failure-pattern checks constrain implementation and
   verification.
-- If the bound plan leaves a current-slice implementation assumption
-  `Unproven`, do not implement that slice unless the plan records an explicit
-  `Accepted risk` for the conditional step. Risk level by itself never clears
-  an `Unproven` implementation blocker.
+- A current-slice implementation assumption the bound plan leaves `Unproven`
+  lets that slice proceed only under the Accepted-Risk Semantics section.
 - When the bound plan intentionally includes `Implementation progress`, update
   only that section with evidence-backed status when safe. Do not edit scope,
   requirements, acceptance criteria, tests, risks, or steps as a status update.
@@ -282,22 +304,30 @@ Do not use this skill for:
 
 ## Evidence Classes
 
-Use these labels internally and in user-facing blockers, questions, plan
-deviation notices, commit-checkpoint decisions, and execution summaries when
-provenance affects scope, behavior, verification, risk, commit authorization,
-or whether implementation may proceed. Label the load-bearing claims; do not
-list unused classes merely to satisfy a template:
+<!-- shared-contract:begin evidence-classes source=shared/vibe-contract.md -->
+Evidence carries one of four shared base classes. Label a claim with its class wherever the claim is load-bearing: where it affects scope, feasibility, behavior, verification, risk, implementation order, commit authorization, or whether work may proceed.
+
+- `Primary source`: official documentation, an authoritative specification, upstream source, vendor documentation, user-provided source material, or a known-good historical implementation.
+- `Local investigation`: repository inspection, non-mutating command output, reproduced behavior, or existing tests, configs, schemas, and logs read in the current workspace.
+- `Unproven`: memory, inference, secondhand claims or summaries, stale documentation, unchecked user claims, training-data recall, missing access, or hypotheses.
+- `Accepted risk`: an `Unproven` item the user explicitly chose to proceed with after its impact was explained, or that the bound plan already records as accepted for the active request, with its impact and revisit trigger preserved.
+
+A package may declare disjoint extensions or a freshness qualifier in its own text; such a declaration extends this set and never renames or redefines the base classes. An execution phase's `Plan` class is authority by binding to the bound plan, and its `Local evidence` label is an execution-freshness label; neither is a rename or a redefinition of a base class.
+Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+<!-- shared-contract:end evidence-classes -->
+
+The two labels below are this phase's own:
 
 - `Plan`: stated by the bound implementation plan, specification, acceptance
   criteria, or task list.
 - `Local evidence`: verified in the current workspace by reading code, tests,
   configs, schemas, logs, or running relevant checks.
-- `Primary source`: official documentation, authoritative specifications,
-  upstream source, vendor docs, or user-provided source material.
-- `Accepted risk`: an `Unproven` item explicitly accepted in the bound plan or
-  by the user for the active request, with impact and revisit trigger preserved.
-- `Unproven`: memory, inference, unchecked user claims, secondhand summaries, or
-  assumptions not yet backed by the plan, local evidence, or a primary source.
+
+Use all six labels internally and in user-facing blockers, questions, plan
+deviation notices, commit-checkpoint decisions, and execution summaries when
+provenance affects scope, behavior, verification, risk, commit authorization,
+or whether implementation may proceed. Label the load-bearing claims; do not
+list unused classes merely to satisfy a template.
 
 Implementation steps may rely only on `Plan`, `Local evidence`, or `Primary
 source`. `Accepted risk` may support only the conditional steps that the plan
@@ -314,13 +344,29 @@ request for clarification, commit-message correction, or "proceed with this
 slice" response still needs labeled evidence when the decision depends on the
 plan or on checked facts.
 
+## Accepted-Risk Semantics
+
+<!-- shared-contract:begin accepted-risk-semantics source=shared/vibe-contract.md -->
+`Accepted risk` is the only way an `Unproven` item may support work that depends on it. An item becomes `Accepted risk` only when the human user explicitly chooses to proceed with it after its impact was explained, or when the bound plan already records that acceptance for the active request; a proxy decision, an AI-selected default, or a risk judged low never makes the acceptance. Record the exact assumption, who accepted it and why, the impact area (feasibility, behavior, data, integration, performance, security, UX, cost, or schedule), the fastest proof path, and the revisit trigger, and tie the acceptance to the conditional step, deferred decision, or follow-up it affects. Keep the label `Accepted risk`; never convert the item into verified fact.
+
+An accepted risk supports only the conditional steps already tied to it, and those steps stay conditional wherever the assumption could invalidate them. Every other `Unproven` item that blocks the current work becomes proof work, a question, or a blocker, and risk level by itself never clears such a blocker. Decisions that the bounded current work does not need are deferred rather than allowed to block it.
+
+Accepted risk is never used for irreversible, destructive, unsafe, illegal, or credential-exposing actions; those require proof or a safer alternative. A human deliberately selecting a known destructive action is a human-risk decision and is recorded as one; accepted risk never stands in for it and never excuses an unproven safety or legality premise.
+Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+<!-- shared-contract:end accepted-risk-semantics -->
+
+Here the acceptance must be recorded in the bound plan itself before the
+affected slice is implemented; an acceptance given only in conversation is
+written into the plan first.
+
 ## Execution Gates And Delegation Reference
 
 Before deviating from a bound plan, correcting a plan defect, crossing a consent
 boundary, or delegating execution or review work, read
 `references/execution-gates-and-delegation.md`. That reference owns the Plan
 Deviation Gate, Plan Validity Gate, Existing-Feature Repair Handoff, Startup
-Consent Preflight, and Delegated Execution Support rules.
+Consent Preflight, human-risk decisions, Delegated Execution Support, and
+delegated-result proof rules.
 
 ## Execution Workflow, Review, And Quality Reference
 

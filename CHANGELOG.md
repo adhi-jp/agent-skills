@@ -975,6 +975,86 @@ use `[Repository] - YYYY-MM-DD`.
   passes, and
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`
   passes; behavior unproven until an authorized eval run.
+- `vibe-plan-execution`: carries the shared-contract blocks. `evidence-classes`
+  replaces the hand-written `Primary source`, `Accepted risk`, and `Unproven`
+  definitions in `SKILL.md` `## Evidence Classes`; `accepted-risk-semantics`
+  replaces the Core Rules `Unproven`-slice rule;
+  `commit-selection-state-changing` replaces the `## Overview`
+  checkpoint-default, scope, and suspend paragraphs plus both in-package
+  duplicates — the Core Rules checkpoint bullet and step 8 of
+  `references/execution-workflow-and-quality.md`; `human-risk-decisions`
+  replaces the six-member consent-bound operations bullet,
+  `model-tier-selection` the delegated-model paragraph, and
+  `delegated-result-proof` the delegated-results bullet in
+  `references/execution-gates-and-delegation.md`; `language-precedence-chat`
+  replaces the chat-language bullet in
+  `references/execution-workflow-and-quality.md`. `commit-selection-gate` is new
+  to the package and carried no copy: with no user-installed hook its wording is
+  the whole gate, so a plain commit proceeds only when the workflow can name its
+  selection source, and it applies to the plan-execution phase's checkpoint
+  commit; under a user-installed hook every plain commit yields `ask` with its
+  recorded selection source surfaced, never `deny`. `effect-write-boundaries` is
+  newly vendored beside retained wording — the overview's smallest-safe-slice
+  statement and the reference's slice-locking rules stay. Retained narrower text
+  that controls: plan execution neither stages nor commits itself and hands each
+  checkpoint to the commit-execution workflow, which keeps staging, message
+  transport, trailers, and stored-commit inspection; delegated units never
+  commit; an `Accepted risk` for an `Unproven` current-slice assumption must be
+  recorded in the bound plan itself before the affected slice is implemented, so
+  an acceptance given only in conversation is written into the plan first; the
+  `Accepted risk` support limit to the conditional steps the plan tied to it;
+  the plan-authored `Commit checkpoints` boundary; the startup confirmation
+  asked once before the first edit that can produce tracked changes, which is in
+  addition to the gate's per-commit ask and never replaces it. Package-only text
+  retained unchanged, no shared block covers it: the `Plan` and `Local evidence`
+  class definitions, the rule that a planning-owned artifact keeps its
+  `Local investigation` label, the requirement to label evidence even when no
+  files were edited, the verbatim `Do not commit` reason in summaries and the
+  progress ledger, and the light evidence labels for non-technical users.
+  Widened by the shared wording: human-risk decisions grow from six operations
+  to fourteen classes; `Primary source` now includes a known-good historical
+  implementation; `Unproven` now includes stale documentation, training-data
+  recall, and missing access; routing or invocation, edit permission, a
+  convenient stopping point, the presence of tracked changes in the working
+  tree, and the availability of a commit-execution workflow never select a
+  commit, and an unverified unit is never a handoff; a request to commit is not
+  a request to push; the consent-bound list gains `tags` and `force-adds`, and
+  "destructive cleanup" becomes "destructive actions, including cleanup"; the
+  commit-execution phase executes selected commits and has no checkpoint default
+  of its own; routine compatible model choices need no receipt; and the
+  chat-language preserve list grows to environment variables, locale tags,
+  message keys, product names, and canonical strings. Narrowed by the shared
+  wording: accepted risk is never available for irreversible, destructive,
+  unsafe, illegal, or credential-exposing actions, which require proof or a
+  safer alternative. Added: `Local investigation` is now defined in this package
+  rather than only used. The checkpoint default's suspend sources are now three
+  in every suspend enumeration — a current no-commit instruction, a bound plan
+  that forbids commits, or project policy — correcting the Core Rules copy that
+  listed two, and the consent-bound preflight item was reconciled to the same
+  three. Owner text added: the declared write scope (the current slice the bound
+  plan authorizes, implemented as the smallest coherent unit that can be
+  tested); the unit the workflow closes; the requirement that an accepted risk
+  be recorded in the bound plan before the affected slice is implemented; the
+  clause making the startup confirmation additive to the gate's per-commit ask;
+  the statement that a delegated unit never asks a human-risk question itself
+  but stops and returns the decision to the coordinator; the package's
+  judgment-heavy and cheap-model-eligible delegated units; the mapping that a
+  delegated result becomes `Local evidence` only after coordinator verification
+  with the plan's checks; and the execution-output tokens preserved verbatim
+  (identifiers, evidence labels, plan headings, quoted source text). New
+  sections host the blocks: `## Effect And Write Boundaries`,
+  `## Commit Selection` with `### Commit-Selection Gate`, and
+  `## Accepted-Risk Semantics` in `SKILL.md`; `## Human-Risk Decisions`,
+  `### Model Choice`, `### Delegation Contract`, and `## Delegated Result Proof`
+  in the gates reference; `### Chat Language` and
+  `### Progress, Blockers, And Summaries` in the workflow reference.
+  `evals/vibe-plan-execution/evals.json` is unchanged: the full re-read found no
+  assertion quoting deleted text and none contradicting a block rule.
+  Verification:
+  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-plan-execution`
+  passes, and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`
+  passes; behavior unproven until an authorized eval run.
 
 ## [vibe-coding 3.0.0] - 2026-08-16
 
