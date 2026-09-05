@@ -641,6 +641,90 @@ use `[Repository] - YYYY-MM-DD`.
   passes, and
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`
   passes; behavior unproven until an authorized eval run.
+- `vibe-writing`: the shared workflow contract now arrives as generated blocks
+  rendered from `shared/vibe-contract.md`. Blocks that replaced hand-written
+  copies: `effect-write-boundaries` (the `SKILL.md` class statement that this
+  skill controls wording quality and message content),
+  `commit-selection-document-only` (the two sentences holding a standalone
+  writing deliverable's tracked text edits in the working tree until the user
+  asks for a commit and denying invocation, tracked status, and artifact
+  completion any power to select history work, and the sentence assigning a
+  later commit workflow staging, file-set review, message transport,
+  stored-message verification, and push and history boundaries), and
+  `language-precedence-chat` (the five-tier chat-language precedence, the list
+  of inputs that never infer chat language, and the
+  path/command/identifier/environment-variable/locale-tag/message-key/product-
+  name/canonical-string/code preservation sentence). All three references are
+  unchanged: none carried a second copy of the chat-language precedence, and
+  their commit sentences scope the reference itself rather than defining the
+  phase's commit rule — `references/changelog.md` still says its guidance
+  controls changelog wording only and authorizes no commit, staging, release,
+  version bump, or move of an `Unreleased` entry into a release section, and
+  `references/commit-messages.md` still returns a split-or-stop requirement to
+  the workflow that owns commit execution. `read-only-phase-write-gate` is new
+  to the package, which carried no copy: an artifact-only phase writes only the
+  artifact it owns, the supporting paths its own text declares, and the unit's
+  recorded scratch root, and where no user-installed hook enforces the gate that
+  wording is the whole gate, so the phase itself refuses a write outside that
+  boundary and reports it as a boundary stop rather than retrying through
+  another tool. Narrower package rules stay in the skill's own text and control
+  under each block's precedence sentence: this skill does not authorize
+  releases, PR submission, template changes, or workflow shortcuts; wording the
+  user has not yet read is not a closed unit; when wording is produced inside
+  another active workflow, that workflow's own checkpoint rules govern its
+  changes; chat-language selection controls only wrapper prose, progress
+  updates, summaries, and confirmation questions and never translates the
+  requested artifact or overrides exact-format output; a commit-execution
+  workflow controls staging, authorization, command safety, signing, release
+  processes, and history mutation, while this skill controls the message
+  artifact; and a standalone tracked-text edit under this skill's scoped
+  permission applies the same minimum commit safety of refreshing dirty state,
+  staging only owned paths, inspecting the staged diff, using a Conventional
+  Commit message, and inspecting the stored message and committed file set. The
+  six-tier artifact-language cascade, including its existing-artifact,
+  filename-locale-marker, and project-convention tiers, the exactness boundary
+  that refuses to rewrite verbatim tool or log output, protocol snippets,
+  quoted source, or a bare acknowledgment, the auxiliary-wording-mode section
+  subordinating incidental wording to the active workflow's authority, stop
+  gates, verification, release policy, and commit rules, the reader-priority,
+  evidence-and-meaning, format, durable-reference, common-mistake, and
+  self-check sections, and all three references are retained unchanged; no
+  shared block covers them. The shared wording widens one rule for this
+  package: an artifact-only phase may also write the supporting paths its own
+  text declares, which here reach only the text deliverables the request names
+  and the tracked text this phase was asked to revise. It also reconciles one
+  rule that was already split across the package: a user-requested commit
+  scoped to the owned artifact may be performed by a commit-execution workflow
+  or by this phase itself, which `references/artifact-guidance.md` already
+  required under its minimum commit safety, so `SKILL.md` now states what that
+  reference already governed rather than granting a new permission. Owner text
+  changed in five places: `## Overview` now names the artifacts this phase owns
+  — source comments and docstrings, README, docs, guides, and UI copy, a saved
+  audit, report, or postmortem, policy or support copy, a changelog or release
+  note, a PR description, a progress or final summary, and a commit message,
+  including a rewrite, polish, or localization of any of them; the unread-
+  wording rule now adds that such wording selects no commit; a new sentence
+  names both actors a user-requested commit may take and binds the phase's own
+  execution to the minimum commit safety the artifact guidance states; a new
+  sentence closing the artifact-language section binds the
+  path/command/identifier/environment-variable/locale-tag/message-key/product-
+  name/canonical-string/code preservation rule to artifact and localized output
+  as well as chat, because that rule now lives inside a chat-scoped block; and
+  the sentence withholding release, PR-submission, template-change, and
+  workflow-shortcut authority now names this skill instead of opening with a
+  pronoun. The chat-selection scope sentence moved from the artifact-language
+  passage to sit beside the chat-language block, and new
+  `### Effect And Write Boundaries`, `### Read-Only-Phase Write Gate`,
+  `### Commit Selection`, `### Auxiliary Wording Mode`, `### Chat Language`,
+  `### Artifact Language`, and `### Format And Exactness` headings keep any
+  block from being read as scoped by neighbouring prose. Every case in
+  `evals/vibe-writing/evals.json` was re-read against the vendored wording and
+  stays byte-identical; no assertion quoted removed text or contradicted a rule
+  a block now states. Verification:
+  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-writing`
+  passes, and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`
+  passes; behavior unproven until an authorized eval run.
 
 ## [vibe-coding 3.0.0] - 2026-08-16
 

@@ -13,16 +13,54 @@ agent-assisted coding work, the default reader is an LLM that needs precise cont
 stable anchors, and explicit evidence. Optimize for human readers only when the
 artifact's main reader is human.
 
-This skill controls wording quality and message content. It does not authorize
-releases, PR submission, template changes, or workflow shortcuts.
+### Effect And Write Boundaries
 
-A standalone writing deliverable's tracked text edits remain verified
-working-tree changes unless the current user asks for a commit. Invocation,
-tracked status, or artifact completion does not select history work, and wording
-the user has not yet read is not a closed unit. When wording is produced inside
-another active workflow, that workflow's own checkpoint rules govern its
-changes. A later commit workflow owns staging, file-set review, message
-transport, stored-message verification, and push/history boundaries.
+<!-- shared-contract:class language=chat commit=document-only effect=artifact-only -->
+<!-- shared-contract:begin effect-write-boundaries source=shared/vibe-contract.md -->
+Every workflow phase belongs to one effect class, declared in its own text, and writes nothing beyond what that class and its declared boundary permit.
+
+- A read-only phase reads and reports. Its deliverable is chat: findings, alignment, or direction. It edits no source, test, config, doc, or other file, runs no command that mutates runtime or repository state, and does not stage, commit, tag, push, change versions, delete data, or start services. It writes a file only when the current user explicitly asks for a saved artifact.
+- An artifact-only phase creates or updates the artifact it owns — the requirements spec, the plan, the plan-review state, the instruction files, or the text artifacts the request names — and the supporting paths its own text declares: the text it was asked to revise (comments, docstrings, docs), a confirmed reflection into the bound plan, an ignore file it previewed and the user confirmed, or a narrowly confirmed configuration edit its text names. It leaves those verified changes in the working tree. It does not implement executable behavior, does not edit application code or tests as implementation, does not produce an artifact another phase owns, and does not perform release work; its artifact never authorizes same-turn implementation.
+- A state-changing phase edits files and runs commands inside the scope its own text declares — the unit it implements, the repair it proves, the fixes it applies, the round it integrates, or the commit it executes — and keeps its edits to the smallest verified unit of that scope. Paths outside the scope, pre-existing working-tree changes it did not make, and runtime or external state beyond the scope stay unwritten unless the current user selects them, and every irreversible or outward-facing operation stays under its own consent.
+Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+<!-- shared-contract:end effect-write-boundaries -->
+
+The artifacts this phase owns are the text deliverables the request names —
+source comments and docstrings, README, docs, guides, and UI copy, a saved
+audit, report, or postmortem, policy or support copy, a changelog or release
+note, a PR description, a progress or final summary, and a commit message —
+including a rewrite, polish, or localization of any of them.
+This skill does not authorize releases, PR submission, template changes, or workflow shortcuts.
+
+### Read-Only-Phase Write Gate
+
+<!-- shared-contract:begin read-only-phase-write-gate source=shared/vibe-contract.md -->
+This gate covers writes during a read-only or artifact-only phase. Observable input: the target path of a file-edit or file-write tool call, or a shell tool call whose command writes a path (redirection, `sed -i`, `tee`, a heredoc, `mv`, `cp`, `rm`, `git checkout --`, matched best-effort), together with the session record for this worktree under `.plans/vibe-sessions/`, reading `status`, `lease.expires_at`, `repository.worktree`, `host_session_id`, `phase`, `effect_mode`, and `allowed_paths`; the directory's other candidate records, to detect a conflicting record; the readable bytes of every artifact named in `artifact_identity`, to detect an identity mismatch; and any supplied prior record, to check `generation`.
+
+Observable stop, with three outcomes: `deny`, with a reason that names the target path and quotes the recorded `phase`, `effect_mode`, and `allowed_paths`, only when a fresh, valid, session-bound record exists whose `effect_mode` is `read-only` or `artifact-only` and the target's canonical absolute path is outside every recorded `allowed_paths` entry (the entry itself or a path beneath a recorded directory); `allow` in every other case — a target inside `allowed_paths`, an `effect_mode` of `state-changing` or `none`, or a record that is absent, malformed, stale, foreign, session-unbound, conflicting, or identity-mismatched; and `ask`, which this gate never returns. No invalid record state ever produces `deny`, so the refusal never rests on unverified host behavior. A denied write is reported verbatim by the agent as a boundary stop, not retried through another tool.
+
+Control-plane exception: a write whose target is the active session record itself — `.plans/vibe-sessions/<record_id>.json` under the repository root — or that record's temporary file in the same directory, written for the atomic rename, is `allow` regardless of `effect_mode`, when the target's canonical path is inside `.plans/vibe-sessions/` and its stem equals the active record's `record_id`. Every other path under that directory is judged like any other path, and the exception does not broaden `allowed_paths`.
+
+When no user-installed hook enforces this gate, this wording is the whole gate: a read-only phase writes only an explicitly requested saved artifact whose canonical path is recorded in `allowed_paths` and otherwise writes no file; an artifact-only phase writes only the artifact it owns, the supporting paths its own text declares, and the scratch root recorded for the unit; the router's write of its own record falls under the exception above and is not a phase write; and a write outside that boundary is refused by the phase itself and reported as a boundary stop.
+A package may state which of its phases this gate applies to; it may not change the gate's inputs, outcomes, or fields.
+<!-- shared-contract:end read-only-phase-write-gate -->
+
+This gate applies to the writing phase.
+
+### Commit Selection
+
+<!-- shared-contract:begin commit-selection-document-only source=shared/vibe-contract.md -->
+A document-only phase never selects a commit. Its verified artifact changes remain in the working tree: invocation, conventional path placement, tracked status, a successful review, audit, or verification, reflection consent, and artifact completion do not select history work, and the phase itself never stages, commits, pushes, prepares releases, changes versions, or rewrites history while it drafts. Only an explicit current user request selects a commit; that commit is scoped to the artifact the phase owns and follows the commit-execution workflow's checks — file-set review, message transport, stored-message verification, and the push and history boundaries — whether a visible commit-execution specialist performs it or the phase performs it itself under those same checks. The artifact itself authorizes no implementation, push, release preparation, version change, or history rewrite.
+Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+<!-- shared-contract:end commit-selection-document-only -->
+
+A commit the current user explicitly requests covers the owned text artifact only; a commit-execution workflow performs it, or this phase performs it itself under the minimum commit safety this skill's artifact guidance states.
+
+Wording the user has not yet read is not a closed unit and selects no commit.
+When wording is produced inside another active workflow,
+that workflow's own checkpoint rules govern its changes.
+
+### Auxiliary Wording Mode
 
 When another workflow is active, use this skill only as auxiliary wording
 guidance unless the user asks for a standalone writing deliverable. Incidental
@@ -91,24 +129,24 @@ allowed, what is optional, or what happens on failure, it is wrong.
 
 ## Language And Format
 
-Resolve chat language separately from artifact language. User-facing chat
-replies, progress updates, final summaries, and confirmation questions use this
-precedence:
+### Chat Language
 
-1. Explicit current-user instruction for chat, response, or output language.
-2. `VIBE_CHAT_LANGUAGE`, if the environment is safely readable, or a current
-   user instruction explicitly sets it for the request. It may be a natural
-   language name or BCP47 language tag such as `Japanese`, `ja`, `en`, or
-   `pt-BR`; unreadable, empty, or invalid values are unset.
+<!-- shared-contract:begin language-precedence-chat source=shared/vibe-contract.md -->
+Resolve the language of user-facing chat text — replies, progress updates, blocker and consent questions, summaries, and final responses — separately from any artifact's language, in this order:
+
+1. An explicit current-user instruction for chat, response, or output language.
+2. `VIBE_CHAT_LANGUAGE`, when the environment is safely readable or the current user explicitly sets it for the request. It may be a natural language name or a BCP47 language tag such as `Japanese`, `ja`, `en`, or `pt-BR`; an unreadable, empty, or invalid value is unset.
 3. The user's active conversational language.
-4. The last clear user conversational language available in the current
-   workflow context.
+4. The last clear user conversational language available in the current workflow context.
 5. English.
 
-Do not infer chat language from source artifacts, referenced plan files,
-filenames without locale markers, commands, skill invocations, code,
-identifiers, or host-wrapper text. Those inputs are language-neutral for chat
-unless the current user explicitly makes them the response-language contract.
+Do not infer chat language from source artifacts, referenced plan or implementation files, filenames without locale markers, commands, skill invocations, code, identifiers, or host-wrapper text; those inputs are language-neutral for chat unless the current user explicitly makes them the response-language contract. Preserve file paths, commands, identifiers, environment variables, locale tags, message keys, product names, canonical strings, and code verbatim unless the user explicitly asks to translate or rename them.
+Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+<!-- shared-contract:end language-precedence-chat -->
+
+Chat-language selection controls only wrapper prose, progress updates, summaries, and confirmation questions; it does not translate the requested artifact or override exact-format output.
+
+### Artifact Language
 
 Choose artifact language by this precedence:
 
@@ -126,12 +164,6 @@ already resolved the artifact language. In that case, use the selected artifact
 language for generated prose and preserve original-language source wording only
 where it is a useful quote, term, identifier, or evidence anchor.
 
-Preserve file paths, commands, identifiers, environment variables, locale tags,
-message keys, product names, canonical strings, and code unless the user
-explicitly asks to translate or rename them. Chat-language selection controls
-only wrapper prose, progress updates, summaries, and confirmation questions; it
-does not translate the requested artifact or override exact-format output.
-
 When the requested deliverable is the artifact itself, return the artifact
 directly. Do not add process notes, source-read confirmations, "here is"
 preambles, separators, change summaries, or placement instructions unless the
@@ -140,6 +172,10 @@ language, filename locale marker, or repository convention wins over chat
 language. Internal evidence checks, source classification, and proof-source
 decisions stay out of the delivered artifact unless the user explicitly asks for
 that explanation.
+
+The path, command, identifier, environment-variable, locale-tag, message-key, product-name, canonical-string, and code preservation rule above binds artifact and localized output as well as chat.
+
+### Format And Exactness
 
 For rewrite, polish, localization, comment, docstring, policy, template, and
 other artifact-editing tasks, wrapper text is part of the output and can be
