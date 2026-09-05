@@ -81,22 +81,26 @@ Before using delegated perspectives:
    self-reported token totals as proof of delegation.
 4. Keep the delegated prompts bounded: ask for concise findings, tradeoffs, and
    observable checks, not private chain-of-thought.
-5. When the host lets you choose a delegated model and the user has not
-   explicitly fixed one, choose a fit-for-purpose model per role by capability
-   and context fit, not by hard-coded model name. Use cheaper or faster models
-   only for bounded low-ambiguity checks when lower capability is quality-neutral
-   or the user prioritizes cost/latency. Bias upward to the strongest suitable
-   reasoning/context tier available for creative synthesis, especially
-   `Unconventional` and `Challenging` generators, convention tradeoffs,
-   selection, broad-context grounding, final recommendations, contradiction
-   resolution, or user-risk judgments, especially when the user asks for maximum
-   performance. Do not inherit the top model for every small role, and do not
-   downshift solely to save tokens when the role needs stronger reasoning.
-   Record model choice only for an explicit user override, degraded capability,
-   cost/performance constraint, or audited external execution.
+5. Choose the delegated model for each role under `Model Choice` below.
 6. If delegation is unavailable, unrecordable, or not authorized, continue with
    coordinator-separated perspectives unless independence is itself material;
    in that exceptional case, state the limitation and stop or ask about risk.
+
+### Model Choice
+
+<!-- shared-contract:class language=none commit=none effect=read-only -->
+<!-- shared-contract:begin model-tier-selection source=shared/vibe-contract.md -->
+When the host lets the phase choose a delegated model and the user has not explicitly fixed one, choose a fit-for-purpose model per delegated unit by capability and context fit, not by hard-coded model name. Use a cheaper or faster model only for bounded, low-ambiguity work — lookups, extraction, mechanical checks, simple review — when lower capability is quality-neutral or the user prioritizes cost or latency. Bias upward to the strongest suitable reasoning and context tier available for judgment-heavy work: cross-artifact synthesis, adversarial review, security, data-safety, and other human-risk reasoning, contract compliance, contradiction resolution, and final recommendations or dispositions, especially when the user asks for maximum performance. Do not inherit the top model for every small unit, and do not downshift solely to save tokens when the unit needs stronger reasoning. Record the model choice only for an explicit user override, degraded capability, a cost or performance constraint, or audited external execution; routine compatible choices need no receipt.
+Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+<!-- shared-contract:end model-tier-selection -->
+
+Each delegated role is one such unit: the judgment-heavy ones here are creative
+synthesis — especially the `Unconventional` and `Challenging` generators —
+convention tradeoffs, selection, broad-context grounding, final recommendations,
+contradiction resolution, and user-risk judgments. A cheaper or faster model
+is eligible here only for bounded low-ambiguity checks.
+
+### Delegation Mechanisms And Evidence
 
 A delegation mechanism may be ad-hoc per-role sub-agent invocation or one
 scripted orchestration run: a host mechanism that fans out several roles under
@@ -252,16 +256,45 @@ goal, and label any cheaper alternative as optional or needing confirmation.
 
 ## Output Contract
 
-Chat is the default deliverable. Create files only when the user explicitly
-asks for an artifact. A host or runner that merely designates a path to use *if*
-an artifact is written does not count as that request; do not write to the path
-unless the user's instruction asks for a saved artifact.
+### Effect And Write Boundaries
+
+<!-- shared-contract:begin effect-write-boundaries source=shared/vibe-contract.md -->
+Every workflow phase belongs to one effect class, declared in its own text, and writes nothing beyond what that class and its declared boundary permit.
+
+- A read-only phase reads and reports. Its deliverable is chat: findings, alignment, or direction. It edits no source, test, config, doc, or other file, runs no command that mutates runtime or repository state, and does not stage, commit, tag, push, change versions, delete data, or start services. It writes a file only when the current user explicitly asks for a saved artifact.
+- An artifact-only phase creates or updates the artifact it owns — the requirements spec, the plan, the plan-review state, the instruction files, or the text artifacts the request names — and the supporting paths its own text declares: the text it was asked to revise (comments, docstrings, docs), a confirmed reflection into the bound plan, an ignore file it previewed and the user confirmed, or a narrowly confirmed configuration edit its text names. It leaves those verified changes in the working tree. It does not implement executable behavior, does not edit application code or tests as implementation, does not produce an artifact another phase owns, and does not perform release work; its artifact never authorizes same-turn implementation.
+- A state-changing phase edits files and runs commands inside the scope its own text declares — the unit it implements, the repair it proves, the fixes it applies, the round it integrates, or the commit it executes — and keeps its edits to the smallest verified unit of that scope. Paths outside the scope, pre-existing working-tree changes it did not make, and runtime or external state beyond the scope stay unwritten unless the current user selects them, and every irreversible or outward-facing operation stays under its own consent.
+Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+<!-- shared-contract:end effect-write-boundaries -->
+
+This phase owns no artifact and has no canonical path of its own: the only file
+it writes is one the current user's own instruction asks to save.
+A host or runner that merely designates a path to use *if* an artifact is
+written does not count as that request; do not write to the path unless the
+user's instruction asks for a saved artifact.
 
 Apply this as a pre-output gate: before any file write, identify the user's
 explicit persistence request. If there is none, keep the entire brainstorm,
 checklist, orchestration schedule, and confirmation request in chat. These
 outputs are not implementation plans, specifications, or other primary file
 artifacts merely because they use Markdown headings or describe later work.
+
+### Read-Only-Phase Write Gate
+
+<!-- shared-contract:begin read-only-phase-write-gate source=shared/vibe-contract.md -->
+This gate covers writes during a read-only or artifact-only phase. Observable input: the target path of a file-edit or file-write tool call, or a shell tool call whose command writes a path (redirection, `sed -i`, `tee`, a heredoc, `mv`, `cp`, `rm`, `git checkout --`, matched best-effort), together with the session record for this worktree under `.plans/vibe-sessions/`, reading `status`, `lease.expires_at`, `repository.worktree`, `host_session_id`, `phase`, `effect_mode`, and `allowed_paths`; the directory's other candidate records, to detect a conflicting record; the readable bytes of every artifact named in `artifact_identity`, to detect an identity mismatch; and any supplied prior record, to check `generation`.
+
+Observable stop, with three outcomes: `deny`, with a reason that names the target path and quotes the recorded `phase`, `effect_mode`, and `allowed_paths`, only when a fresh, valid, session-bound record exists whose `effect_mode` is `read-only` or `artifact-only` and the target's canonical absolute path is outside every recorded `allowed_paths` entry (the entry itself or a path beneath a recorded directory); `allow` in every other case — a target inside `allowed_paths`, an `effect_mode` of `state-changing` or `none`, or a record that is absent, malformed, stale, foreign, session-unbound, conflicting, or identity-mismatched; and `ask`, which this gate never returns. No invalid record state ever produces `deny`, so the refusal never rests on unverified host behavior. A denied write is reported verbatim by the agent as a boundary stop, not retried through another tool.
+
+Control-plane exception: a write whose target is the active session record itself — `.plans/vibe-sessions/<record_id>.json` under the repository root — or that record's temporary file in the same directory, written for the atomic rename, is `allow` regardless of `effect_mode`, when the target's canonical path is inside `.plans/vibe-sessions/` and its stem equals the active record's `record_id`. Every other path under that directory is judged like any other path, and the exception does not broaden `allowed_paths`.
+
+When no user-installed hook enforces this gate, this wording is the whole gate: a read-only phase writes only an explicitly requested saved artifact whose canonical path is recorded in `allowed_paths` and otherwise writes no file; an artifact-only phase writes only the artifact it owns, the supporting paths its own text declares, and the scratch root recorded for the unit; the router's write of its own record falls under the exception above and is not a phase write; and a write outside that boundary is refused by the phase itself and reported as a boundary stop.
+A package may state which of its phases this gate applies to; it may not change the gate's inputs, outcomes, or fields.
+<!-- shared-contract:end read-only-phase-write-gate -->
+
+This gate applies to the brainstorming phase.
+
+### Response Shape
 
 Use this shape, omitting or marking skipped sections only when the selected mode
 does not run that stage:

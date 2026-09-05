@@ -832,6 +832,74 @@ use `[Repository] - YYYY-MM-DD`.
   passes, and
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-goal-alignment/evals.json`
   passes; behavior unproven until an authorized eval run.
+- `vibe-brainstorm`: the package now takes its shared obligations from
+  `shared/vibe-contract.md` as generated blocks, under one class-declaration
+  line (`language=none commit=none effect=read-only`). Two blocks replace
+  hand-written copies: `model-tier-selection` replaces the whole of the
+  Delegation Gate's fifth check, the per-role model paragraph, which is now a
+  one-line pointer to the block's own `### Model Choice` section so the gate's
+  six checks stay numbered and the later "check 1" and "check 3" references
+  still resolve; and `effect-write-boundaries` replaces the first two sentences
+  of the output contract's opening paragraph, the chat-is-the-default class
+  statement, leaving the rest of that paragraph in place. Neither block
+  had a second in-package copy to delete. `read-only-phase-write-gate` is new to
+  the package, which carried no copy: a read-only phase writes only an
+  explicitly requested saved artifact whose canonical path is recorded in
+  `allowed_paths` and otherwise writes no file, and where no user-installed hook
+  enforces the gate that wording is the whole gate, so the phase itself refuses
+  a write outside that boundary and reports it as a boundary stop rather than
+  retrying through another tool; its applicability line names the brainstorming
+  phase. Retained narrower text that controls under the blocks' precedence
+  sentence: a host or runner that merely designates a path to use if an artifact
+  is written is still not the user's request, so that path stays unwritten; the
+  pre-output gate still requires the explicit persistence request to be
+  identified before any file write and keeps the brainstorm, checklist,
+  orchestration schedule, and confirmation request in chat, and still refuses to
+  treat Markdown headings as evidence that an output is a plan or specification;
+  and a cheaper or faster model stays eligible here only for bounded
+  low-ambiguity checks, narrower than the block's lookups, extraction,
+  mechanical checks, and simple review. The delegation
+  evidence contract (`confirmed` only against a host-issued identifier or record
+  location, otherwise `unproven`, and `unavailable/degraded` with its
+  limitation), the rule that a polished response, role headings, persona
+  separation, runtime summaries, or self-reported token totals are not proof of
+  delegation, the trusted-orchestration proxy selection that is AI-selected
+  input rather than human confirmation, the mode selection table, the scripted
+  orchestration schedule boundary, convention grounding, and the response shape
+  are retained unchanged; no shared block covers them. The shared wording widens
+  two rules for this package: the read-only class now states unconditionally
+  that this phase edits no source, test, config, doc, or other file, runs no
+  command that mutates runtime or repository state, and does not stage, commit,
+  tag, push, change versions, delete data, or start services, where the package
+  had stated only that chat is the default deliverable and that files are
+  created on explicit request, with a narrower prohibition in its handoff
+  boundary; and the bias toward the strongest suitable reasoning and context
+  tier now covers cross-artifact synthesis, adversarial review, security,
+  data-safety and other human-risk reasoning, contract compliance, and final
+  dispositions, beside the creative-synthesis roles the package already listed.
+  Owner text changed in two places: a new sentence in `### Model Choice` names
+  each delegated role as one of the block's units and keeps the package's own
+  judgment-heavy list — creative synthesis, especially the `Unconventional` and
+  `Challenging` generators, convention tradeoffs, selection, broad-context
+  grounding, final recommendations, contradiction resolution, and user-risk
+  judgments — with the narrower cheap-model eligibility above; and a new
+  sentence opening the effect boundary's owner text states that this phase owns
+  no artifact and has no canonical path of its own, so the only file it
+  writes is one the current user's own instruction asks to save, which also
+  restores the antecedent the runner-designated-path sentence had in the deleted
+  class statement. New `### Model Choice`, `### Delegation Mechanisms And
+  Evidence`, `### Effect And Write Boundaries`, `### Read-Only-Phase Write
+  Gate`, and `### Response Shape` headings keep any block from being read as
+  scoped by neighbouring prose and keep the gate section to the block plus its
+  applicability line. Every case in `evals/vibe-brainstorm/evals.json` was
+  re-read against the vendored wording and stays byte-identical; no assertion
+  quoted removed text or contradicted a rule a block now states, and the
+  orchestration case's role-tier expectations keep their basis because the owner
+  sentence maps each delegated role to the block's delegated unit. Verification:
+  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-brainstorm`
+  passes, and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-brainstorm/evals.json`
+  passes; behavior unproven until an authorized eval run.
 
 ## [vibe-coding 3.0.0] - 2026-08-16
 
