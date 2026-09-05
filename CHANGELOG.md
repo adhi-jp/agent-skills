@@ -99,8 +99,28 @@ use `[Repository] - YYYY-MM-DD`.
   digest), and the router's write of its own record under
   `.plans/vibe-sessions/` is exempt from the read-only-phase write gate.
   `render --package <name>` fills only that package's marker pairs, so packages
-  can migrate side by side. Verification: unit tests pass; no skill contract
-  changed yet.
+  can migrate side by side. A source block whose first non-empty line is a bold
+  lead (`**…**`) is in the scannable shape and is measured against the shape
+  caps — lead 25 words opening with an imperative, bullet 40 words (30 in a gate
+  block), two-space sub-bullet 30, one exception line after the bullets 35, any
+  prose paragraph 60, a gate block 260 words in total, and `Example:` lines
+  excluded from every count and allowed twice per block; `check` reports these
+  as warnings and `check --strict` as errors, while a block with no bold lead
+  keeps the legacy shape, is checked as before, and is reported only as a
+  non-strict `legacy-shape` warning. Once a scannable block drops its closing
+  boilerplate, the closing sentences are rendered once per package as a
+  `closing` block directly below the class line — the precedence sentence, plus
+  the applicability sentence for a package carrying a gate or schema block —
+  which `render` fills, `check --strict` requires exactly once per package, and
+  refuses while the source still closes every block. An appendix outside the
+  block markers, with its headings, tables, and fenced examples, is ignored
+  exactly as the preamble is. `measure` prints per-package entry-file lines and
+  words, in-block words, and reference words, then the four routed reading
+  tasks' line and word sums against the frozen baselines in
+  `shared/measure-manifest.json`; `measure --strict` exits 1 unless every task
+  is below its baseline words. Verification: unit tests pass;
+  `python3 scripts/vibe_shared_contract.py check --strict` still reports no
+  finding for all 14 packages; no skill contract changed yet.
 
 ### Changed
 

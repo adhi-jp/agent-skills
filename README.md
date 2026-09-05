@@ -124,6 +124,7 @@ are generated; change the source and re-render instead of editing a copy.
 python3 scripts/vibe_shared_contract.py render
 python3 scripts/vibe_shared_contract.py check --strict
 python3 scripts/vibe_shared_contract.py audit-names
+python3 scripts/vibe_shared_contract.py measure
 python3 scripts/vibe_session_record.py check .plans/vibe-sessions/<record-id>.json
 ```
 
@@ -134,10 +135,36 @@ dependent's markers and class declaration to be complete. `audit-names` reports
 any sibling skill name cited outside `skills/vibe-coding/`. The record checker
 reports `accept`, `flag`, or `reject` for one session record, with one reason
 line per finding. `render`, `check`, and `list` accept `--source PATH`
-(default `shared/vibe-contract.md`); `render`, `check`, and `audit-names`
-accept `--root R` (default `skills`); `check --strict --package <name>` gates
-one package on its own, and `render --package <name>` fills only that
+(default `shared/vibe-contract.md`); `render`, `check`, `audit-names`, and
+`measure` accept `--root R` (default `skills`); `check --strict --package <name>`
+gates one package on its own, and `render --package <name>` fills only that
 package's marker pairs.
+
+A source block whose first non-empty line is a bold lead (`**…**`) is in the
+scannable shape and is measured against the shape caps: a lead of at most 25
+words opening with an imperative, bullets of at most 40 words (30 in a gate
+block) with two-space sub-bullets of at most 30, at most one prose paragraph
+after the bullets and at most 35 words long, any prose paragraph at most 60
+words, and a gate block at most 260 words in total. Lines beginning `Example:`
+are excluded from every count and allowed twice per block. `check` reports shape
+faults as warnings and `check --strict` reports them as errors; a block with no
+bold lead keeps the legacy shape, is checked as before, and is reported only as
+a non-strict `legacy-shape` warning. `list` marks a scannable block `shape=new`.
+
+Once a scannable block drops its closing boilerplate, the source closes its
+blocks once per package rather than once per block: the package then carries one
+`closing` block directly below its class line, holding the precedence sentence
+and, for a package with a gate or schema block, the applicability sentence.
+`render` fills that pair like any other, `check --strict` requires exactly one
+per package, and both refuse it while the source still closes every block.
+Prose outside every block marker — the preamble and any appendix with its
+headings, tables, and fenced examples — belongs to the source file rather than
+to a block, and `list`, `render`, and `check` ignore it.
+
+`measure` prints entry-file lines and words, in-block words, and reference words
+per package, then the four routed reading tasks' line and word sums against the
+frozen baselines in [`shared/measure-manifest.json`](shared/measure-manifest.json).
+`measure --strict` exits 1 unless every task is below its baseline words.
 
 ## Run Skill Evals
 
@@ -167,6 +194,7 @@ artifacts unless the user explicitly requests otherwise.
 | `skills/<skill-name>/SKILL.md` | Authoritative metadata and workflow contract; released skills also carry their current `version` |
 | `skills/<skill-name>/references/` | Detailed guidance read when the skill routes to it |
 | `shared/vibe-contract.md` | Single source of the contract blocks the `vibe-*` skills share; rendered into each dependent package as marked generated blocks that are never hand-edited |
+| `shared/measure-manifest.json` | Frozen size baselines for the four routed reading tasks that `python3 scripts/vibe_shared_contract.py measure` reports against |
 | `evals/<skill-name>/` | Repository eval definitions, fixtures, and scoring notes |
 | `skills/skill-eval/scripts/eval_runner.py` | Shared `validate` / `run` / `report` CLI |
 | `CHANGELOG.md` | Keep a Changelog history and the current `Unreleased` buffer |

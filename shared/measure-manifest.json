@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "description": "Frozen load-size baseline for the four routed reading tasks measured by `python3 scripts/vibe_shared_contract.py measure`. Counts are whitespace-token words (`wc -w`) and newline counts (`wc -l`) over each listed file. `baseline` is the state the readability restructure must come in under; `pre_change` records the same tasks before the restructure began, when the router carried a single reference file.",
+  "baseline": {
+    "commit": "f1b8eedb3aa3a72fd7a23af93dae8f627a223574",
+    "label": "S5-end"
+  },
+  "pre_change": {
+    "commit": "dfea56996b0adc535621099a8a2ea55d49fa1a1f",
+    "label": "pre-change tree"
+  },
+  "tasks": [
+    {
+      "id": "T1",
+      "title": "Route to implementation planning and produce a plan artifact",
+      "files": [
+        "skills/vibe-coding/SKILL.md",
+        "skills/vibe-coding/references/phase-boundaries.md",
+        "skills/vibe-planning/SKILL.md",
+        "skills/vibe-planning/references/core-planning-controls.md",
+        "skills/vibe-planning/references/planning-workflow.md",
+        "skills/vibe-planning/references/plan-artifact-output.md"
+      ],
+      "baseline": {
+        "lines": 2045,
+        "words": 21505
+      },
+      "pre_change": {
+        "files": [
+          "skills/vibe-coding/SKILL.md",
+          "skills/vibe-coding/references/route-selection-and-boundaries.md",
+          "skills/vibe-planning/SKILL.md",
+          "skills/vibe-planning/references/core-planning-controls.md",
+          "skills/vibe-planning/references/planning-workflow.md",
+          "skills/vibe-planning/references/plan-artifact-output.md"
+        ],
+        "lines": 2035,
+        "words": 16258
+      }
+    },
+    {
+      "id": "T2",
+      "title": "Route to plan execution and close a verified unit with a commit",
+      "files": [
+        "skills/vibe-coding/SKILL.md",
+        "skills/vibe-plan-execution/SKILL.md",
+        "skills/vibe-plan-execution/references/execution-workflow-and-quality.md",
+        "skills/vibe-commit/SKILL.md",
+        "skills/vibe-commit/references/history-and-trailers.md"
+      ],
+      "baseline": {
+        "lines": 2178,
+        "words": 23736
+      },
+      "pre_change": {
+        "files": [
+          "skills/vibe-coding/SKILL.md",
+          "skills/vibe-coding/references/route-selection-and-boundaries.md",
+          "skills/vibe-plan-execution/SKILL.md",
+          "skills/vibe-plan-execution/references/execution-workflow-and-quality.md",
+          "skills/vibe-commit/SKILL.md",
+          "skills/vibe-commit/references/history-and-trailers.md"
+        ],
+        "lines": 2220,
+        "words": 18316
+      }
+    },
+    {
+      "id": "T3",
+      "title": "Route to debug and repair and commit the proven fix",
+      "files": [
+        "skills/vibe-coding/SKILL.md",
+        "skills/vibe-debug/SKILL.md",
+        "skills/vibe-debug/references/debug-workflow.md",
+        "skills/vibe-commit/SKILL.md",
+        "skills/vibe-commit/references/history-and-trailers.md"
+      ],
+      "baseline": {
+        "lines": 1899,
+        "words": 20607
+      },
+      "pre_change": {
+        "files": [
+          "skills/vibe-coding/SKILL.md",
+          "skills/vibe-coding/references/route-selection-and-boundaries.md",
+          "skills/vibe-debug/SKILL.md",
+          "skills/vibe-debug/references/debug-workflow.md",
+          "skills/vibe-commit/SKILL.md",
+          "skills/vibe-commit/references/history-and-trailers.md"
+        ],
+        "lines": 1949,
+        "words": 15342
+      }
+    },
+    {
+      "id": "T4",
+      "title": "Route to commit execution and select the commit's file set",
+      "files": [
+        "skills/vibe-coding/SKILL.md",
+        "skills/vibe-coding/references/phase-boundaries.md",
+        "skills/vibe-commit/SKILL.md",
+        "skills/vibe-commit/references/history-and-trailers.md",
+        "skills/vibe-commit/references/file-selection.md"
+      ],
+      "baseline": {
+        "lines": 1653,
+        "words": 17624
+      },
+      "pre_change": {
+        "files": [
+          "skills/vibe-coding/SKILL.md",
+          "skills/vibe-coding/references/route-selection-and-boundaries.md",
+          "skills/vibe-commit/SKILL.md",
+          "skills/vibe-commit/references/history-and-trailers.md",
+          "skills/vibe-commit/references/file-selection.md"
+        ],
+        "lines": 1630,
+        "words": 12727
+      }
+    }
+  ]
+}

@@ -17,16 +17,27 @@ A dependent package carries a marker pair per block it depends on::
 that names a package discovered under ``--root`` (any ``vibe-`` token that is not a
 package name, such as ``vibe-contract`` or ``vibe-sessions``, is allowed);
 ``audit-names`` reports roster package names cited outside the router package;
-``list`` prints the blocks the source declares.
+``list`` prints the blocks the source declares;
+``measure`` prints per-package and per-task size against a frozen manifest.
 
 Marker-looking lines inside a correctly matched Markdown code fence are ordinary text
-for both parsers, so a file may show the marker grammar as an example.
+for both parsers, so a file may show the marker grammar as an example. Prose outside
+every block marker — the preamble and any appendix section with its headings, tables,
+and fenced examples — is not part of any block and is ignored by all commands.
+
+A source block whose first non-empty line is a bold lead (``**…**``) is in the scannable
+shape and is measured against the shape caps below; a block without one keeps the legacy
+shape and is only checked as before. Once any scannable block drops its closing
+boilerplate, the source has adopted per-package closings: each package then carries one
+synthetic ``closing`` block directly below its class line, holding the precedence
+sentence and, for a package with a gate or schema block, the applicability sentence.
 """
 
 from __future__ import annotations
 
 import argparse
 import difflib
+import json
 import os
 import re
 import shutil
@@ -39,7 +50,9 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_SOURCE = REPO_ROOT / "shared" / "vibe-contract.md"
+DEFAULT_MANIFEST = REPO_ROOT / "shared" / "measure-manifest.json"
 DEFAULT_ROOT = REPO_ROOT / "skills"
+ENTRY_FILE_NAME = "SKILL.md"
 SOURCE_CITATION = "shared/vibe-contract.md"
 ROUTER_PACKAGE = "vibe-coding"
 PACKAGE_PREFIX = "vibe-"
@@ -54,14 +67,65 @@ APPLICABILITY_SENTENCE = (
     "A package may state which of its phases this gate applies to; "
     "it may not change the gate's inputs, outcomes, or fields."
 )
-NON_OVERRIDABLE_BLOCK_IDS = frozenset(
+GATE_BLOCK_IDS = frozenset(
     {
-        "session-record-schema",
         "history-mutation-gate",
         "commit-selection-gate",
         "read-only-phase-write-gate",
     }
 )
+SCHEMA_BLOCK_IDS = frozenset({"session-record-schema"})
+NON_OVERRIDABLE_BLOCK_IDS = GATE_BLOCK_IDS | SCHEMA_BLOCK_IDS
+BOILERPLATE_SENTENCES = (PRECEDENCE_SENTENCE, APPLICABILITY_SENTENCE)
+
+# The synthetic per-package block that carries the closing sentences once the shared
+# source stops closing every block. It is never declared in the source.
+CLOSING_BLOCK_ID = "closing"
+CLOSING_PER_BLOCK = "per-block"
+CLOSING_PER_PACKAGE = "per-package"
+
+# Shape caps for a scannable block: a bold imperative lead, one obligation per bullet,
+# and at most one exception line after the bullets.
+LEAD_WORD_CAP = 25
+CONSOLIDATION_BULLET_WORD_CAP = 40
+GATE_BULLET_WORD_CAP = 30
+SUB_BULLET_WORD_CAP = 30
+EXCEPTION_WORD_CAP = 35
+PARAGRAPH_WORD_CAP = 60
+GATE_BLOCK_WORD_CAP = 260
+EXAMPLE_LINE_CAP = 2
+
+# A bold lead opens with "Never", "Only", or a base-form verb. The allowlist below
+# carries the verbs the contract actually uses; anything outside it passes unless it is
+# an article or a pronoun, so an unlisted verb is never a false finding.
+IMPERATIVE_LEAD_WORDS = frozenset({"never", "only"})
+IMPERATIVE_VERBS = frozenset(
+    {
+        "accept", "apply", "ask", "assume", "avoid", "bind", "carry", "check", "choose",
+        "cite", "classify", "close", "commit", "confirm", "count", "declare", "decide",
+        "defer", "delegate", "deliver", "describe", "disclose", "do", "document", "drop",
+        "echo", "edit", "end", "ensure", "enter", "escalate", "exclude", "execute",
+        "expand", "explain", "fill", "fix", "follow", "hand", "hold", "identify",
+        "ignore", "implement", "include", "keep", "label", "leave", "limit", "list",
+        "load", "log", "mark", "match", "move", "name", "note", "observe", "open",
+        "pause", "plan", "prefer", "present", "preserve", "prove", "publish", "quote",
+        "raise", "read", "record", "redact", "refuse", "reject", "render", "repeat",
+        "replace", "report", "request", "require", "rerun", "resolve", "restate",
+        "return", "review", "rewrite", "route", "run", "save", "scope", "select",
+        "separate", "set", "show", "split", "stage", "start", "state", "stay", "stop",
+        "store", "summarize", "surface", "suspend", "tag", "tie", "track", "treat",
+        "trust", "use", "verify", "wait", "widen", "write",
+    }
+)
+NON_IMPERATIVE_LEAD_WORDS = frozenset(
+    {
+        "a", "an", "the", "this", "that", "these", "those", "it", "its", "he", "him",
+        "his", "she", "her", "hers", "they", "them", "their", "theirs", "we", "us",
+        "our", "ours", "you", "your", "yours", "i", "me", "my", "mine", "who", "whom",
+        "whose", "which", "what",
+    }
+)
+
 CLASS_AXES = ("language", "commit", "effect")
 CLASS_VALUES = {
     "language": ("chat", "document", "none"),
@@ -93,6 +157,11 @@ CLASS_ARGS_RE = re.compile(
 HEADING_RE = re.compile(r"^ {0,3}#{1,6}(\s|$)")
 FENCE_OPEN_RE = re.compile(r"^ {0,3}(?P<fence>`{3,}|~{3,})(?P<info>.*)$")
 FENCE_CLOSE_RE = re.compile(r"^ {0,3}(?P<fence>`{3,}|~{3,})\s*$")
+BOLD_LEAD_RE = re.compile(r"^ {0,3}\*\*(?P<bold>[^\s*][^*]*)\*\*")
+BULLET_RE = re.compile(r"^(?P<indent> *)-\s+(?P<text>.*)$")
+TABLE_ROW_RE = re.compile(r"^ {0,3}\|")
+EXAMPLE_LINE_RE = re.compile(r"^ *(?:[-*+]\s+)?(?:\*\*)?Example:")
+WORD_EDGE_CHARS = "*_`~[]()<>#\"'|.,;:!?/\\…—–-“”‘’„«»‹›"
 
 EXIT_OK = 0
 EXIT_FINDINGS = 1
@@ -130,6 +199,32 @@ class SourceBlock:
     @property
     def closing_sentence(self) -> str:
         return APPLICABILITY_SENTENCE if self.kind == "non-overridable" else PRECEDENCE_SENTENCE
+
+    @property
+    def is_gate(self) -> bool:
+        return self.block_id in GATE_BLOCK_IDS
+
+    @property
+    def lead_line(self) -> str:
+        """The first non-empty body line, stripped of its line ending."""
+        for line in self.body.splitlines():
+            if line.strip():
+                return line
+        return ""
+
+    @property
+    def is_new_shape(self) -> bool:
+        """True when the body opens with a bold lead line, the scannable block shape."""
+        return BOLD_LEAD_RE.match(self.lead_line) is not None
+
+    @property
+    def last_content_line(self) -> str:
+        lines = [line.strip() for line in self.body.splitlines() if line.strip()]
+        return lines[-1] if lines else ""
+
+    @property
+    def ends_with_closing(self) -> bool:
+        return self.last_content_line == self.closing_sentence
 
 
 @dataclass
@@ -205,6 +300,15 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     listing = subparsers.add_parser("list", help="print the blocks the shared source declares")
     add_source_option(listing)
 
+    measure = subparsers.add_parser("measure", help="print package and task sizes against the frozen manifest")
+    measure.add_argument("--strict", action="store_true", help="exit 1 unless every task is below its baseline words")
+    measure.add_argument(
+        "--manifest",
+        default=None,
+        help=f"frozen task manifest (default: {DEFAULT_MANIFEST})",
+    )
+    add_root_option(measure)
+
     return parser.parse_args(argv)
 
 
@@ -245,6 +349,12 @@ def main(argv: list[str] | None = None) -> int:
             return run_audit_names(resolve_root(args.root))
         if args.command == "list":
             return run_list(resolve_source(args.source))
+        if args.command == "measure":
+            return run_measure(
+                resolve_root(args.root),
+                resolve_manifest(args.manifest),
+                strict=args.strict,
+            )
     except ContractError as exc:
         print(f"error: {exc}", file=sys.stderr)
         return EXIT_FATAL
@@ -397,6 +507,214 @@ def fenced_line_indexes(lines: list[str]) -> set[int]:
     return fenced
 
 
+def count_words(text: str) -> int:
+    """Count whitespace tokens, stripping Markdown markers and dropping punctuation-only tokens."""
+    total = 0
+    for token in text.split():
+        cleaned = token.strip(WORD_EDGE_CHARS)
+        if cleaned and any(char.isalnum() for char in cleaned):
+            total += 1
+    return total
+
+
+def wc_counts(text: str) -> tuple[int, int]:
+    """Return ``(lines, words)`` with ``wc -l`` and ``wc -w`` semantics."""
+    return text.count("\n"), len(text.split())
+
+
+@dataclass
+class BodySegment:
+    """One structural unit of a block body: the lead, a bullet, or a prose paragraph."""
+
+    kind: str  # lead, bullet, sub-bullet, paragraph, example
+    offset: int  # zero-based line offset inside the block body
+    text: str
+
+
+def trailing_boilerplate_offsets(lines: list[str]) -> set[int]:
+    """The offset of a trailing precedence or applicability sentence, when the body has one.
+
+    A block mid-migration may keep its closing sentence while already carrying a bold
+    lead; that tail is not the block's own prose and is excluded from every shape count.
+    """
+    for offset in range(len(lines) - 1, -1, -1):
+        stripped = lines[offset].strip()
+        if not stripped:
+            continue
+        return {offset} if stripped in BOILERPLATE_SENTENCES else set()
+    return set()
+
+
+def segment_block_body(block: SourceBlock) -> list[BodySegment]:
+    """Split a block body into lead, bullets, sub-bullets, prose paragraphs, and examples.
+
+    Fenced code and Markdown table rows separate segments and carry no prose of their own,
+    so a table or a JSON example never reads as an over-long paragraph.
+    """
+    raw_lines = block.body.splitlines(keepends=True)
+    fenced = fenced_line_indexes(raw_lines)
+    lines = [line.rstrip("\r\n") for line in raw_lines]
+    skipped = trailing_boilerplate_offsets(lines)
+    segments: list[BodySegment] = []
+    current: BodySegment | None = None
+
+    for offset, line in enumerate(lines):
+        if offset in skipped or offset in fenced or not line.strip() or TABLE_ROW_RE.match(line):
+            current = None
+            continue
+        stripped = line.strip()
+        if EXAMPLE_LINE_RE.match(line):
+            segments.append(BodySegment("example", offset, stripped))
+            current = None
+            continue
+        bullet = BULLET_RE.match(line)
+        if bullet is not None:
+            kind = "bullet" if not bullet.group("indent") else "sub-bullet"
+            current = BodySegment(kind, offset, bullet.group("text").strip())
+            segments.append(current)
+            continue
+        if current is not None:
+            # A prose line directly under an open segment continues it: an indented bullet
+            # continuation stays part of its bullet, and a wrapped paragraph stays one paragraph.
+            current.text += " " + stripped
+            continue
+        kind = "lead" if not segments and BOLD_LEAD_RE.match(line) else "paragraph"
+        current = BodySegment(kind, offset, stripped)
+        segments.append(current)
+    return segments
+
+
+def block_word_total(block: SourceBlock) -> int:
+    """Every word in the body except example lines and a trailing closing sentence."""
+    lines = [line.rstrip("\r\n") for line in block.body.splitlines(keepends=True)]
+    skipped = trailing_boilerplate_offsets(lines)
+    total = 0
+    for offset, line in enumerate(lines):
+        if offset in skipped or EXAMPLE_LINE_RE.match(line):
+            continue
+        total += count_words(line)
+    return total
+
+
+def lead_starter(text: str) -> str:
+    for token in text.split():
+        cleaned = token.strip(WORD_EDGE_CHARS)
+        if cleaned:
+            return cleaned
+    return ""
+
+
+def lead_opens_imperatively(word: str) -> bool:
+    """True unless the lead opens with an article or a pronoun.
+
+    An allowlisted imperative starter always passes; an unlisted word passes too, so the
+    check flags only leads that clearly describe rather than instruct.
+    """
+    lowered = word.lower()
+    if lowered in IMPERATIVE_LEAD_WORDS or lowered in IMPERATIVE_VERBS:
+        return True
+    return lowered not in NON_IMPERATIVE_LEAD_WORDS
+
+
+def check_block_shape(block: SourceBlock, label: str, level: str) -> list[Finding]:
+    """Shape findings for one scannable block; the caller decides warning or error."""
+    findings: list[Finding] = []
+
+    def where(offset: int) -> str:
+        return f"{label}:{block.line + 1 + offset}: block {block.block_id}"
+
+    segments = segment_block_body(block)
+    bullet_cap = GATE_BULLET_WORD_CAP if block.is_gate else CONSOLIDATION_BULLET_WORD_CAP
+    bullet_offsets = [index for index, segment in enumerate(segments) if segment.kind in ("bullet", "sub-bullet")]
+    last_bullet = bullet_offsets[-1] if bullet_offsets else -1
+    trailing: list[tuple[BodySegment, int]] = []
+    examples: list[BodySegment] = []
+
+    for index, segment in enumerate(segments):
+        words = count_words(segment.text)
+        if segment.kind == "lead":
+            if words > LEAD_WORD_CAP:
+                findings.append(Finding(level, f"{where(segment.offset)}: bold lead is {words} words (cap {LEAD_WORD_CAP})"))
+            starter = lead_starter(segment.text)
+            if starter and not lead_opens_imperatively(starter):
+                findings.append(
+                    Finding(
+                        level,
+                        f"{where(segment.offset)}: bold lead does not open with an imperative: {starter!r}",
+                    )
+                )
+        elif segment.kind == "bullet":
+            if words > bullet_cap:
+                findings.append(Finding(level, f"{where(segment.offset)}: bullet is {words} words (cap {bullet_cap})"))
+        elif segment.kind == "sub-bullet":
+            if words > SUB_BULLET_WORD_CAP:
+                findings.append(
+                    Finding(level, f"{where(segment.offset)}: sub-bullet is {words} words (cap {SUB_BULLET_WORD_CAP})")
+                )
+        elif segment.kind == "example":
+            examples.append(segment)
+        else:
+            if words > PARAGRAPH_WORD_CAP:
+                findings.append(
+                    Finding(level, f"{where(segment.offset)}: paragraph is {words} words (cap {PARAGRAPH_WORD_CAP})")
+                )
+            if last_bullet >= 0 and index > last_bullet:
+                trailing.append((segment, words))
+
+    for extra, _words in trailing[1:]:
+        findings.append(
+            Finding(
+                level,
+                f"{where(extra.offset)}: more than one prose paragraph after the bullets "
+                "(at most one exception line is allowed)",
+            )
+        )
+    for segment, words in trailing:
+        if words > EXCEPTION_WORD_CAP:
+            findings.append(
+                Finding(level, f"{where(segment.offset)}: exception line is {words} words (cap {EXCEPTION_WORD_CAP})")
+            )
+    for extra in examples[EXAMPLE_LINE_CAP:]:
+        findings.append(
+            Finding(level, f"{where(extra.offset)}: more than {EXAMPLE_LINE_CAP} 'Example:' lines in the block")
+        )
+    if block.is_gate:
+        total = block_word_total(block)
+        if total > GATE_BLOCK_WORD_CAP:
+            findings.append(
+                Finding(level, f"{label}:{block.line}: block {block.block_id}: gate block is {total} words (cap {GATE_BLOCK_WORD_CAP})")
+            )
+    return findings
+
+
+def source_closing_mode(blocks: list[SourceBlock]) -> str:
+    """``per-package`` once any scannable block has dropped its closing sentence."""
+    for block in blocks:
+        if block.is_new_shape and not block.ends_with_closing:
+            return CLOSING_PER_PACKAGE
+    return CLOSING_PER_BLOCK
+
+
+def closing_block_for(package: str, block_map: dict[str, SourceBlock]) -> SourceBlock:
+    """The synthetic per-package closing block: precedence, plus applicability when owed."""
+    lines = [PRECEDENCE_SENTENCE]
+    carries_non_overridable = any(
+        package in block_map[block_id].dependents
+        for block_id in sorted(NON_OVERRIDABLE_BLOCK_IDS)
+        if block_id in block_map
+    )
+    if carries_non_overridable:
+        lines.append(APPLICABILITY_SENTENCE)
+    body = "".join(line + "\n" for line in lines)
+    return SourceBlock(CLOSING_BLOCK_ID, (package,), body, 0)
+
+
+def block_for(block_map: dict[str, SourceBlock], package: str, block_id: str) -> SourceBlock | None:
+    if block_id == CLOSING_BLOCK_ID:
+        return closing_block_for(package, block_map)
+    return block_map.get(block_id)
+
+
 def validate_block_id(block_id: str) -> str | None:
     if block_id.startswith(PACKAGE_PREFIX):
         return f"block id must not start with {PACKAGE_PREFIX!r}: {block_id}"
@@ -516,10 +834,16 @@ def parse_dependents(text: str, label: str, line_no: int, findings: list[Finding
     return tuple(names)
 
 
-def check_source_blocks(blocks: list[SourceBlock], packages: dict[str, Path], label: str) -> list[Finding]:
+def check_source_blocks(
+    blocks: list[SourceBlock], packages: dict[str, Path], label: str, *, strict: bool = False
+) -> list[Finding]:
     findings: list[Finding] = []
     for block in blocks:
         where = f"{label}:{block.line}: block {block.block_id}"
+        if block.block_id == CLOSING_BLOCK_ID:
+            findings.append(
+                Finding("error", f"{where}: block id {CLOSING_BLOCK_ID!r} is reserved for the per-package closing block")
+            )
         for dependent in block.dependents:
             if dependent not in packages:
                 findings.append(Finding("error", f"{where}: dependent is not an existing package: {dependent}"))
@@ -539,14 +863,35 @@ def check_source_blocks(blocks: list[SourceBlock], packages: dict[str, Path], la
                 findings.append(
                     Finding("error", f"{label}:{line_no}: block {block.block_id} names a vibe-* specialist: {token}")
                 )
-        last_line = [line for line in block.body.splitlines() if line.strip()][-1].strip()
-        if last_line != block.closing_sentence:
+        if not block.is_new_shape:
+            if not block.ends_with_closing:
+                findings.append(
+                    Finding(
+                        "error",
+                        f"{where}: {block.kind} block does not end with its closing sentence: {block.closing_sentence!r}",
+                    )
+                )
+            if not strict:
+                findings.append(
+                    Finding(
+                        "warning",
+                        f"{where}: legacy-shape block (no bold lead line); the shape checks do not apply to it",
+                    )
+                )
+            continue
+        wrong_closing = next(
+            (sentence for sentence in BOILERPLATE_SENTENCES if sentence != block.closing_sentence),
+            "",
+        )
+        if block.last_content_line == wrong_closing:
             findings.append(
                 Finding(
                     "error",
-                    f"{where}: {block.kind} block does not end with its closing sentence: {block.closing_sentence!r}",
+                    f"{where}: {block.kind} block ends with the other closing sentence; "
+                    f"drop it or use {block.closing_sentence!r}",
                 )
             )
+        findings.extend(check_block_shape(block, label, "error" if strict else "warning"))
     return findings
 
 
@@ -679,6 +1024,42 @@ def drift_diff(site: BlockSite, block: SourceBlock) -> str:
     )
 
 
+def single_class_line(files: list[PackageFile]) -> tuple[PackageFile, ClassLine] | None:
+    entries = [(package_file, class_line) for package_file in files for class_line in package_file.class_lines]
+    return entries[0] if len(entries) == 1 else None
+
+
+def check_closing_site(
+    package: str,
+    package_file: PackageFile,
+    site: BlockSite,
+    class_entry: tuple[PackageFile, ClassLine] | None,
+    closing_mode: str,
+) -> list[Finding]:
+    """Placement and admissibility of one package's synthetic closing block."""
+    where = f"{site.rel}:{site.begin_index + 1}"
+    if closing_mode != CLOSING_PER_PACKAGE:
+        return [
+            Finding(
+                "error",
+                f"{where}: package {package} carries a {CLOSING_BLOCK_ID} block while every source block "
+                "still ends with its own closing sentence",
+            )
+        ]
+    if class_entry is None:
+        return []
+    class_file, class_line = class_entry
+    if class_file is package_file and class_line.index + 1 == site.begin_index:
+        return []
+    return [
+        Finding(
+            "error",
+            f"{where}: the {CLOSING_BLOCK_ID} block must be the line directly below the class declaration "
+            f"({class_file.rel}:{class_line.index + 1}) with no blank line between them",
+        )
+    ]
+
+
 def check_packages(
     blocks: list[SourceBlock],
     tree: dict[str, list[PackageFile]],
@@ -687,9 +1068,11 @@ def check_packages(
     report_states: bool = True,
 ) -> list[Finding]:
     block_map = {block.block_id: block for block in blocks}
+    closing_mode = source_closing_mode(blocks)
     findings: list[Finding] = []
     for package, files in tree.items():
         seen: dict[str, str] = {}
+        class_entry = single_class_line(files)
         for package_file in files:
             findings.extend(package_file.findings)
             for site in package_file.sites:
@@ -703,11 +1086,13 @@ def check_packages(
                     )
                     continue
                 seen[site.block_id] = site.rel
-                block = block_map.get(site.block_id)
+                block = block_for(block_map, package, site.block_id)
                 if block is None:
                     findings.append(Finding("error", f"{where}: unknown block id {site.block_id}"))
                     continue
-                if package not in block.dependents:
+                if site.block_id == CLOSING_BLOCK_ID:
+                    findings.extend(check_closing_site(package, package_file, site, class_entry, closing_mode))
+                elif package not in block.dependents:
                     findings.append(
                         Finding("error", f"{where}: package {package} is not a listed dependent of block {site.block_id}")
                     )
@@ -718,6 +1103,8 @@ def check_packages(
                             f"{where}: begin marker source must be {SOURCE_CITATION}: {site.source_attr}",
                         )
                     )
+                if site.block_id == CLOSING_BLOCK_ID and closing_mode != CLOSING_PER_PACKAGE:
+                    continue
                 site.state = classify_site(site.content, block.body)
                 if not report_states:
                     continue
@@ -735,6 +1122,15 @@ def check_packages(
                 findings.append(
                     Finding(level, f"package {package} is a listed dependent of block {block.block_id} but has no marker")
                 )
+        if closing_mode == CLOSING_PER_PACKAGE and CLOSING_BLOCK_ID not in seen:
+            level = "error" if strict else "warning"
+            findings.append(
+                Finding(
+                    level,
+                    f"package {package} has no {CLOSING_BLOCK_ID} block; the shared source closes its blocks "
+                    "once per package",
+                )
+            )
         if strict:
             findings.extend(check_class_declaration(package, files, block_map))
     return findings
@@ -808,7 +1204,7 @@ def analyze(
 ) -> CheckResult:
     blocks, findings = parse_source(source)
     packages = discover_packages(root)
-    findings.extend(check_source_blocks(blocks, packages, source.name))
+    findings.extend(check_source_blocks(blocks, packages, source.name, strict=strict))
     if package_filter is not None and package_filter not in packages:
         raise ContractError(f"unknown package: {package_filter}")
     names = [package_filter] if package_filter else sorted(packages)
@@ -850,7 +1246,9 @@ def run_render(source: Path, root: Path, *, force: bool, package_filter: str | N
         for package_file in files:
             changed: list[BlockSite] = []
             for site in package_file.sites:
-                block = block_map[site.block_id]
+                block = block_for(block_map, package_file.package, site.block_id)
+                if block is None:
+                    continue
                 if site.state == "pristine":
                     changed.append(site)
                 elif site.state == "drifted":
@@ -893,8 +1291,11 @@ def rebuild_file(package_file: PackageFile, block_map: dict[str, SourceBlock]) -
     parts: list[str] = []
     cursor = 0
     for site in package_file.sites:
+        block = block_for(block_map, package_file.package, site.block_id)
+        if block is None:
+            continue
         parts.append("".join(package_file.lines[cursor : site.begin_index + 1]))
-        parts.append(block_map[site.block_id].body)
+        parts.append(block.body)
         cursor = site.end_index
     parts.append("".join(package_file.lines[cursor:]))
     return "".join(parts)
@@ -953,8 +1354,117 @@ def run_list(source: Path) -> int:
         print_findings(errors)
         return EXIT_FINDINGS
     for block in blocks:
-        print(f"{block.block_id}\tkind={block.kind}\tdependents={','.join(block.dependents)}")
+        fields = [block.block_id, f"kind={block.kind}"]
+        if block.is_new_shape:
+            fields.append("shape=new")
+        fields.append(f"dependents={','.join(block.dependents)}")
+        print("\t".join(fields))
+    if source_closing_mode(blocks) == CLOSING_PER_PACKAGE:
+        print(f"closing={CLOSING_PER_PACKAGE}")
     return EXIT_OK
+
+
+# --- measure -----------------------------------------------------------------
+
+
+def resolve_manifest(manifest_arg: str | os.PathLike[str] | None) -> Path:
+    candidate = DEFAULT_MANIFEST if manifest_arg is None else Path(manifest_arg)
+    if candidate.is_symlink():
+        raise ContractError(f"measure manifest must not be a symlink: {candidate.as_posix()}")
+    if not candidate.is_file():
+        raise ContractError(f"measure manifest does not exist: {candidate.as_posix()}")
+    return candidate.resolve()
+
+
+def load_manifest(manifest: Path) -> list[dict]:
+    try:
+        data = json.loads(manifest.read_bytes().decode("utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        raise ContractError(f"cannot read measure manifest {manifest.as_posix()}: {exc}") from exc
+    tasks = data.get("tasks") if isinstance(data, dict) else None
+    if not isinstance(tasks, list) or not tasks:
+        raise ContractError(f"measure manifest has no tasks: {manifest.as_posix()}")
+    for task in tasks:
+        if not isinstance(task, dict) or not isinstance(task.get("id"), str):
+            raise ContractError(f"measure manifest task is missing its id: {manifest.as_posix()}")
+        files = task.get("files")
+        if not isinstance(files, list) or not all(isinstance(item, str) for item in files):
+            raise ContractError(f"measure manifest task {task['id']} has no file list")
+        baseline = task.get("baseline")
+        if not isinstance(baseline, dict) or not isinstance(baseline.get("words"), int):
+            raise ContractError(f"measure manifest task {task['id']} has no baseline words")
+    return tasks
+
+
+def package_measurements(root: Path, tree: dict[str, list[PackageFile]], packages: dict[str, Path]) -> list[tuple]:
+    rows: list[tuple] = []
+    for package in sorted(tree):
+        entry_lines = entry_words = block_words = reference_words = 0
+        for package_file in tree[package]:
+            text = "".join(package_file.lines)
+            lines, words = wc_counts(text)
+            if package_file.path.parent == packages[package] and package_file.path.name == ENTRY_FILE_NAME:
+                entry_lines, entry_words = lines, words
+            else:
+                reference_words += words
+            for site in package_file.sites:
+                block_words += wc_counts(site.content)[1]
+        rows.append((package, entry_lines, entry_words, block_words, reference_words))
+    return rows
+
+
+def task_measurements(tasks: list[dict], root: Path) -> list[tuple]:
+    rows: list[tuple] = []
+    for task in tasks:
+        lines = words = 0
+        for rel in task["files"]:
+            path = root.parent / rel
+            refuse_symlink_components(path.parent, "measured file directory")
+            refuse_symlink(path, "measured file", root)
+            ensure_within(path, root)
+            if not path.is_file():
+                raise ContractError(f"measure manifest task {task['id']} lists a missing file: {rel}")
+            try:
+                text = path.read_bytes().decode("utf-8")
+            except (OSError, UnicodeDecodeError) as exc:
+                raise ContractError(f"cannot read {rel}: {exc}") from exc
+            file_lines, file_words = wc_counts(text)
+            lines += file_lines
+            words += file_words
+        rows.append((task, lines, words))
+    return rows
+
+
+def run_measure(root: Path, manifest: Path, *, strict: bool) -> int:
+    tasks = load_manifest(manifest)
+    packages = discover_packages(root)
+    tree = scan_packages(root, packages, sorted(packages))
+
+    print("package\tentry_lines\tentry_words\tblock_words\treference_words")
+    for row in package_measurements(root, tree, packages):
+        print("\t".join(str(field) for field in row))
+
+    print()
+    print("task\tlines\twords\tbaseline_lines\tbaseline_words\tpre_change_words\tdelta_words")
+    above = 0
+    for task, lines, words in task_measurements(tasks, root):
+        baseline = task["baseline"]
+        pre_change = task.get("pre_change") or {}
+        baseline_words = baseline["words"]
+        baseline_lines = baseline.get("lines", "-")
+        delta = words - baseline_words
+        if delta >= 0:
+            above += 1
+        print(
+            f"{task['id']}\t{lines}\t{words}\t{baseline_lines}\t{baseline_words}"
+            f"\t{pre_change.get('words', '-')}\t{delta:+d}"
+        )
+    mode = "strict" if strict else "non-strict"
+    print(
+        f"measure ({mode}): {len(tree)} package(s), {len(tasks)} task(s), "
+        f"{above} task(s) not below baseline"
+    )
+    return EXIT_FINDINGS if strict and above else EXIT_OK
 
 
 if __name__ == "__main__":
