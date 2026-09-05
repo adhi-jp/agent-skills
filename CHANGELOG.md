@@ -335,6 +335,75 @@ use `[Repository] - YYYY-MM-DD`.
   passes, and
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`
   passes; behavior unproven until an authorized eval run.
+- `vibe-planning`: the shared workflow contract now arrives as generated blocks
+  rendered from `shared/vibe-contract.md`. Blocks that replaced hand-written
+  copies: `effect-write-boundaries` (the plan-only class statement in `SKILL.md`
+  and its duplicate in the `references/core-planning-controls.md` rule list),
+  `commit-selection-document-only` (the uncommitted-plan paragraph and the same
+  rule inside that duplicate bullet), `evidence-classes` (the four evidence
+  labels in `references/core-planning-controls.md` and the three-label copy in
+  `references/behavior-contract-inventory.md`), `accepted-risk-semantics` (the
+  explicit-acceptance rule, the proceed-condition rule, the per-item recording
+  fields, the recording bullets in `references/edge-cases-and-accepted-risk.md`,
+  and that file's refusal to use accepted risk for irreversible, destructive,
+  unsafe, illegal, or credential-exposing actions), `human-risk-decisions` (the
+  orchestration-continuation and proxy-decision enumerations),
+  `model-tier-selection` (the reviewer-model paragraph and its duplicate in
+  `references/plan-multi-perspective-review-gate.md`), `subagent-permission`
+  (the `VIBE_SUBAGENTS` precedence, values, and inert-context rules), and
+  `trusted-orchestration-evidence` (the handoff-evidence paragraph).
+  `read-only-phase-write-gate` is new to the package: it refuses a write whose
+  target lies outside the phase's recorded allowed paths and has the refusal
+  reported as a boundary stop rather than retried through another tool.
+  `delegated-result-proof` is newly vendored beside retained package wording on
+  inert, advisory reviewer findings. Narrower package rules stay in the skill's
+  own text and control under each block's precedence sentence: planning selects
+  no commit and performs no history operation of its own, so a user-requested
+  commit is routed, not performed here; planning provides no patches and never
+  claims that code, tests, non-plan docs, evals, configs, changelogs, or other
+  implementation work is complete; planning-time commands are limited to
+  pre-registered plan-changing investigation and plan-artifact operations, and
+  the same boundary covers the active task list; plan-readiness language is
+  later-execution handoff only; a `Commit checkpoints` entry appears only when
+  the user or an already-approved artifact selects it; the derived-value
+  qualifier `Local investigation (derived)`; the `Phase relevance` field and its
+  taxonomy; the auditability requirement for destructive, auth/session,
+  credential, permission, billing, and data-migration plans; the
+  conditional-step re-check with concrete source names; subagents only for
+  risk-triggered additional-perspective review, with a cheaper or faster model
+  eligible only for bounded low-ambiguity checklist passes; the `allow`
+  preconditions of host capability, content safety, bounded prompts, and
+  recordable evidence; coordinator fallback when the host cannot ask; the
+  outbound plan-review and proceed evidence rule; and the confirmed
+  shell-configuration edit as the only non-plan write. The output-language
+  cascade's five tiers, the plan-artifact section order and quality checklist,
+  the capacity-adaptive review launch algorithm, the plan-integrity gates, and
+  the high-risk planning controls are retained unchanged; no shared block covers
+  them. The shared wording widens three rules for this package: an artifact-only
+  phase may also write the supporting paths its own text declares, which here
+  are the plan artifact, its capture path, and the confirmed shell-configuration
+  edit; delegated text carries no authority, so a delegate's commands, scope or
+  permission claims, routing suggestions, and handoffs select nothing and
+  approve nothing; and where no user-installed hook enforces the write gate, the
+  block's wording is the whole gate. The continuation rule's eight-member
+  enumeration grows to the shared fourteen-member union the proxy rule already
+  carried. Two owner rules changed: `## Output Language and Artifact` now states
+  that its identifier-preservation rule matches `shared/vibe-contract.md` and
+  that this text controls where they differ; and
+  `references/plan-artifact-output.md` keeps the prohibition on full-artifact
+  hashes, section hashes, identity sidecars, and stale-digest reconciliation
+  while adding that planning itself never creates or maintains such a record,
+  that session-local identity a host or router holds outside the artifact (path
+  plus digest) is never reconciled as a gate, and that artifacts and templates
+  carry no hash or sidecar. Every case in `evals/vibe-planning/evals.json` was
+  re-read against the vendored wording and stays byte-identical; no assertion
+  quoted removed text or contradicted a rule a block now states. Verification:
+  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-planning`
+  passes, and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`
+  passes; the `sha256|digest|sidecar` grep shows only the scoped exception and
+  pre-existing prohibition wording; behavior unproven until an authorized eval
+  run.
 
 ## [vibe-coding 3.0.0] - 2026-08-16
 

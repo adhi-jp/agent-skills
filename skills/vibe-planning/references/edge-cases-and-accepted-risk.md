@@ -18,16 +18,12 @@ it affects.
 
 ## Accepted-Risk Branch
 
-If the user explicitly chooses to continue with an unproven assumption:
+When the user explicitly chooses to continue with an unproven assumption, record
+the acceptance as the accepted-risk semantics in
+`references/core-planning-controls.md` require, and record `Phase relevance` so
+the risk is tied to a current conditional step, future deferred decision, or
+non-implementation follow-up. Then, in the plan:
 
-- Record the exact assumption.
-- Record the user's acceptance and rationale.
-- Record the impact area: feasibility, behavior, data, integration, performance,
-  security, UX, cost, or schedule.
-- Keep the evidence label as `Accepted risk`.
-- Record `Phase relevance` so the risk is tied to a current conditional step,
-  future deferred decision, or non-implementation follow-up.
-- Include the fastest proof path and revisit trigger.
 - Make implementation steps conditional where the unproven assumption could
   invalidate the plan.
 - When an `Accepted risk` can invalidate a named local identifier, mapping,
@@ -36,8 +32,6 @@ If the user explicitly chooses to continue with an unproven assumption:
   concrete source names to re-read. A generic handoff reminder to "re-check
   local facts" is not enough for that conditional step.
 
-Never use accepted risk for irreversible, destructive, unsafe, illegal, or
-credential-exposing actions. Those require proof or a safer alternative.
 For destructive, auth/session, credential, permission, billing, or data-migration
 plans, acceptance criteria and tests/proof must cover auditability or
 traceability sufficient to identify what changed, who or what was affected, and

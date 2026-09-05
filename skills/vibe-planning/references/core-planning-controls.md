@@ -12,11 +12,7 @@ Read this reference before finalizing any implementation plan or plan revision. 
   current instruction already requested implementation; it is never
   implementation inside the current `vibe-planning` response. Do not convert
   this response stop into a categorical requirement for another user prompt.
-- Do not provide patches, edit non-plan files, or claim that code, tests,
-  non-plan docs, evals, configs, changelogs, or other implementation work is
-  complete. Planning does not stage or commit; verified plan changes remain in
-  the working tree unless the current user later selects a commit. Non-mutating
-  investigation is allowed when it grounds the plan.
+- Non-mutating investigation is allowed when it grounds the plan.
 - Plan-readiness language is later-execution handoff, not current-turn
   authorization. `Implementation plan`, `Commit checkpoints`, `Implementation
   handoff`, `Current slice`, `Proceed condition`, `implementation-ready`, or a
@@ -28,10 +24,8 @@ Read this reference before finalizing any implementation plan or plan revision. 
   or a conditional `Proceed condition` tied to already-recorded explicit
   human-user `Accepted risk`. Blocked, discovery-first, destructive-risk-blocked,
   or current-slice-blocker plans must stop orchestration continuation rather than
-  route to execution. Orchestration cannot accept destructive, credential,
-  auth/session, permission, billing, security, irreversible, data-migration, or
-  other human-risk decisions on the user's behalf unless explicit human-user
-  acceptance is already recorded and tied to the current plan.
+  route to execution. Orchestration continues past a human-risk decision only when
+  explicit human-user acceptance is already recorded and tied to the current plan.
 - During trusted top-level orchestration, do not stop on a sequence of
   delegable planning-quality questions when local evidence, the approved spec,
   existing project conventions, or bounded review perspectives can support a
@@ -42,11 +36,7 @@ Read this reference before finalizing any implementation plan or plan revision. 
   defaults, assumptions, or `Unproven` items with proof paths, not as explicit
   human-user decisions or accepted risk.
 - Trusted orchestration proxy decisions do not authorize requirement changes,
-  blocked proceed conditions, destructive or irreversible operations, external
-  side effects, credentials, auth/session, permission, billing, security,
-  data-migration, legal/compliance, paid or production actions, release work, or
-  history mutation. Ask the smallest human-user question or return to the owning
-  requirements artifact when those decisions are unresolved.
+  blocked proceed conditions, or any other human-risk decision.
 - `VIBE_SUBAGENTS` controls only plan-review subagent permission. It is not
   phase-continuation authority and must not be used to approve requirements
   handoff, execution handoff, implementation, staging, commits, or release work.
@@ -160,9 +150,6 @@ Read this reference before finalizing any implementation plan or plan revision. 
   slice when a later implementer could plausibly expand into them. Include
   destructive or high-risk adjacent account actions, such as account deletion,
   only as out of scope unless the user asked for them.
-- If implementation proceeds with an `Unproven` assumption, require explicit
-  user risk acceptance and keep the item labeled as `Accepted risk`; never
-  convert it into verified fact.
 - Treat plan updates as replacement work, not additive history. When
   investigation verifies, refutes, or replaces a hypothesis, remove stale
   `Unproven` entries, old API names, and superseded implementation proposals
@@ -187,6 +174,13 @@ Read this reference before finalizing any implementation plan or plan revision. 
   causal link. Do not treat a plausible boundary, off-by-one, clock,
   configuration, or data-shape issue as the root cause only because it could
   explain the symptom.
+
+### Human-Risk Decisions
+
+<!-- shared-contract:begin human-risk-decisions source=shared/vibe-contract.md -->
+Destructive, credential, auth/session, permission, billing, security, irreversible, data-migration, legal/compliance, paid, production, external-side-effect, release, history-mutation, or other human-risk decisions belong to the human user. They require explicit human-user acceptance, and that acceptance counts only when it is already recorded and tied to the current artifact or request. No orchestration handoff, proxy perspective, delegated recommendation, or AI-selected default accepts such a decision on the user's behalf. When one is unresolved, ask the smallest human-user question or return to the artifact that owns the decision; do not proceed, hand off, or route past it.
+Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+<!-- shared-contract:end human-risk-decisions -->
 
 ## High-Risk Planning Controls
 
@@ -239,12 +233,20 @@ the full checklist into every plan is a planning failure; missing an applicable
 section is also a failure. Fold selected answers into facts, blockers,
 acceptance criteria, or tests before locking the test plan.
 
-If any current-slice implementation blocker remains `Unproven`, the `Proceed
-condition` must block implementation or make the affected step conditional on
-explicit `Accepted risk` already recorded in the plan. Risk level does not
-override this stop condition. Future or optional decisions that are not needed
-for the bounded current slice should be deferred instead of blocking
-implementation.
+## Accepted-Risk Semantics
+
+<!-- shared-contract:begin accepted-risk-semantics source=shared/vibe-contract.md -->
+`Accepted risk` is the only way an `Unproven` item may support work that depends on it. An item becomes `Accepted risk` only when the human user explicitly chooses to proceed with it after its impact was explained, or when the bound plan already records that acceptance for the active request; a proxy decision, an AI-selected default, or a risk judged low never makes the acceptance. Record the exact assumption, who accepted it and why, the impact area (feasibility, behavior, data, integration, performance, security, UX, cost, or schedule), the fastest proof path, and the revisit trigger, and tie the acceptance to the conditional step, deferred decision, or follow-up it affects. Keep the label `Accepted risk`; never convert the item into verified fact.
+
+An accepted risk supports only the conditional steps already tied to it, and those steps stay conditional wherever the assumption could invalidate them. Every other `Unproven` item that blocks the current work becomes proof work, a question, or a blocker, and risk level by itself never clears such a blocker. Decisions that the bounded current work does not need are deferred rather than allowed to block it.
+
+Accepted risk is never used for irreversible, destructive, unsafe, illegal, or credential-exposing actions; those require proof or a safer alternative. A human deliberately selecting a known destructive action is a human-risk decision and is recorded as one; accepted risk never stands in for it and never excuses an unproven safety or legality premise.
+Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+<!-- shared-contract:end accepted-risk-semantics -->
+
+`Phase relevance` is this workflow's own field: every `Unproven` or
+`Accepted risk` item in the plan records it together with the item's impact, the
+fastest proof path, and where the item must be revisited.
 
 ## Plan Depth and Unproven Triage
 
@@ -327,22 +329,17 @@ from current acceptance criteria, and record the unknown as a deferred decision.
 
 ## Evidence Labels
 
-Use these labels in the plan when a claim affects scope, feasibility, behavior,
-tests, or implementation order:
+<!-- shared-contract:begin evidence-classes source=shared/vibe-contract.md -->
+Evidence carries one of four shared base classes. Label a claim with its class wherever the claim is load-bearing: where it affects scope, feasibility, behavior, verification, risk, implementation order, commit authorization, or whether work may proceed.
 
-- `Primary source`: official documentation, authoritative specification,
-  upstream source, vendor docs, user-provided source material, or a known-good
-  historical implementation.
-- `Local investigation`: repository inspection, non-mutating command output,
-  reproduced behavior, existing tests, configs, schemas, or logs from the
-  current workspace.
-- `Unproven`: memory, inference, secondhand claims, stale docs, unchecked user
-  claims, missing access, or hypotheses.
-- `Accepted risk`: an `Unproven` item the user explicitly chose to proceed with
-  after the impact was explained.
+- `Primary source`: official documentation, an authoritative specification, upstream source, vendor documentation, user-provided source material, or a known-good historical implementation.
+- `Local investigation`: repository inspection, non-mutating command output, reproduced behavior, or existing tests, configs, schemas, and logs read in the current workspace.
+- `Unproven`: memory, inference, secondhand claims or summaries, stale documentation, unchecked user claims, training-data recall, missing access, or hypotheses.
+- `Accepted risk`: an `Unproven` item the user explicitly chose to proceed with after its impact was explained, or that the bound plan already records as accepted for the active request, with its impact and revisit trigger preserved.
 
-Every `Unproven` or `Accepted risk` item must include impact, `Phase
-relevance`, the fastest proof path, and where it must be revisited.
+A package may declare disjoint extensions or a freshness qualifier in its own text; such a declaration extends this set and never renames or redefines the base classes. An execution phase's `Plan` class is authority by binding to the bound plan, and its `Local evidence` label is an execution-freshness label; neither is a rename or a redefinition of a base class.
+Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+<!-- shared-contract:end evidence-classes -->
 
 A value calculated from measured or source-backed inputs is a derivation, not a
 measurement. Record it as `Local investigation (derived)` with the formula,

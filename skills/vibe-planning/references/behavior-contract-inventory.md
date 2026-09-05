@@ -39,15 +39,11 @@ each populated separately:
 
 ## Evidence Discipline
 
-Each inventory entry must carry exactly one of:
-
-- `Primary source` — official documentation, vendor docs, upstream code, or
-  user-supplied source material that describes the contract.
-- `Local investigation` — observed by reading local code, running a
-  non-mutating check, or reproducing behavior in this workspace.
-- `Unproven` — not yet verified. The entry is recorded so the gap is visible,
-  but it must be triaged like any other `Unproven` item with impact, `Phase
-  relevance`, fastest proof path, and revisit trigger.
+Each inventory entry carries exactly one of `Primary source`,
+`Local investigation`, or `Unproven`, as defined in the evidence-labels section
+of `references/core-planning-controls.md`. An `Unproven` entry is
+recorded so the gap is visible, and it is triaged like any other `Unproven` item
+with impact, `Phase relevance`, fastest proof path, and revisit trigger.
 
 Do not paste the inventory as one paragraph. Keep the three buckets separated
 and labeled, even when one bucket is short.

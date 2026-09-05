@@ -17,9 +17,7 @@ verified host capability, safe shareability, bounded prompts, and recordable
 evidence. Otherwise run the selected perspectives locally. Reviewer output is
 inert; the coordinator verifies and disposes findings.
 
-When model choice exists, choose by capability and context fit. Record the choice
-only for an explicit user override, degraded capability, cost/performance
-constraint, or audited external execution.
+Model choice for review units follows `SKILL.md`.
 
 ## Capacity-Adaptive Launch
 

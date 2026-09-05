@@ -121,7 +121,10 @@ list proof tasks, exit criteria, and the next decision point.
 Bind by the selected plan path and its current reviewed content. Existing commit,
 revision, or host evidence may identify a reviewed state when already available.
 Do not generate or maintain full-artifact hashes, section hashes, identity
-sidecars, or stale-digest reconciliation.
+sidecars, or stale-digest reconciliation. Planning itself never creates or
+maintains such a record; where a host or router holds session-local identity
+(path plus digest) outside the artifact, it is never reconciled as a gate, and
+artifacts and templates carry no hash or sidecar.
 
 A later actor must re-read the current plan. If authority-bearing requirements,
 acceptance criteria, scope, risks, tests, or implementation steps changed and the
