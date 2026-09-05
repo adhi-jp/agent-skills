@@ -578,10 +578,12 @@ use `[Repository] - YYYY-MM-DD`.
   convenient-stopping-point exclusions (its closing sentence is retained below);
   no reference file carried a second copy of either. `commit-selection-gate` is
   new to the package, which carried no copy of it: a plain commit needs a
-  recorded selection source, and where no user-installed hook enforces the gate
-  its wording is the whole gate — a plain commit proceeds only when the workflow
-  can name the user request, bound plan item, or verified checkpoint it rests
-  on, and when no source can be named it does not commit and asks the user.
+  recorded selection source; under a user-installed hook every plain commit,
+  including one with a valid source, surfaces that source through an `ask`
+  prompt before it runs, and where no such hook enforces the gate its wording
+  is the whole gate — a plain commit proceeds only when the workflow can name
+  the user request, bound plan item, or verified checkpoint it rests on, and
+  when no source can be named it does not commit and asks the user.
   `history-mutation-gate` is newly vendored beside retained history wording: a
   matched history mutation — an amend, rebase, filter rewrite, hard reset, push,
   or scripted multi-commit replay — is never run silently, and where no hook
