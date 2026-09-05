@@ -2,10 +2,11 @@
 
 Read this reference at a workflow's first record write and whenever the
 capability map is invalidated; ordinary continuation turns need only the write
-points in `SKILL.md`. It carries the session-record schema shared with the
-repository checker and any user-installed hook, the router's own conventions
-for filling the record, the capability-map cache, and what a checker finding
-means for routing.
+points in `SKILL.md`. It carries the rendered session-record schema block
+shared with the repository checker and any user-installed hook, the router's
+own conventions for filling the record, the capability-map cache, and what a
+checker finding means for routing; the field table, the write procedure, and
+the record-state table are in `shared/vibe-contract.md`.
 
 ## Schema
 
@@ -82,14 +83,12 @@ means for routing.
   and its own `source`. `note` states where the event came from in at most 200
   characters and never carries a secret-like literal. A router-owned row's own
   checkpoint is recorded with `source: specialist-checkpoint`.
-- All recorded paths — `artifact_paths`, `artifact_identity[].path`,
-  `events[].artifact.path`, `allowed_paths` — are canonical absolute paths.
-  Conversation state and specialist reports usually name repository-relative
+- Conversation state and specialist reports usually name repository-relative
   paths; the router converts them against the repository root before writing.
 - Each write goes through the temporary file `<record_id>.tmp` in the record's
   directory, renamed over the record. The router's own record write is never a
-  gated write; the read-only-phase write gate's control-plane exception in
-  `SKILL.md` names it.
+  gated write; the read-only-phase write gate's exception in `SKILL.md` names
+  it.
 - The plan's implementation-progress ledger is plan-execution state and stays
   in the plan; the record carries the routing fields only, never a copy of the
   ledger, and rebinding the active slice still goes through the execution
@@ -114,12 +113,13 @@ cancelled; a replacement's new workflow starts with a null map.
 
 ## Checker Findings And Routing
 
-The record-state table in the schema names what each gate returns for every
-state. For routing: a record the checker would reject or flag is not used to
-rebind. Routing continues from conversation state and the active artifact
-paths, the finding is reported, and the next route decision writes a fresh
-record; a malformed file is reported and left in place; a conflicting pair is
-reported, neither is selected, and every gate answers as for a conflicting
-record until the user cancels or replaces one of the workflows. An identity
-mismatch means the bound artifact changed outside the recorded refresh: report
-it as a blocker and never overwrite the digest to make it match.
+The record-state table in `shared/vibe-contract.md` names what each gate
+returns for every state. For routing: a record the checker would reject or
+flag is not used to rebind. Routing continues from conversation state and the
+active artifact paths, the finding is reported, and the next route decision
+writes a fresh record; a malformed file is reported and left in place; a
+conflicting pair is reported, neither is selected, and every gate answers as
+for a conflicting record until the user cancels or replaces one of the
+workflows. An identity mismatch means the bound artifact changed outside the
+recorded refresh: report it as a blocker and never overwrite the digest to make
+it match.

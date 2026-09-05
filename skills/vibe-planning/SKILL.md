@@ -379,10 +379,11 @@ Do not claim that the future review ran or invent its evidence.
 - Give routine compatible choices no receipt.
 <!-- shared-contract:end model-tier-selection -->
 
-The judgment-heavy units here are plan-contract compliance, evidence and test
-adequacy, risk review, requirement-preserving scope judgment, cross-artifact
-synthesis, final readiness judgments, and contradiction resolution. A cheaper or
-faster model is eligible here only for bounded low-ambiguity checklist passes.
+The judgment-heavy units here include plan-contract compliance, evidence and
+test adequacy, risk review, requirement-preserving scope judgment,
+cross-artifact synthesis, final readiness judgments, and contradiction
+resolution. A cheaper or faster model is eligible here only for bounded
+low-ambiguity checklist passes.
 
 ### Shell Configuration Exception
 

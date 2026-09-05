@@ -191,7 +191,7 @@ visible residual or blocker.
 - Give routine compatible choices no receipt.
 <!-- shared-contract:end model-tier-selection -->
 
-Each delegated unit here is one review angle. The judgment-heavy angles are
+Each delegated unit here is one review angle. The judgment-heavy angles include
 adversarial reasoning, broad diff and specification synthesis, security and
 data-safety angles, cascade analysis, final validity judgments, contradiction
 resolution, and any finding where weak reasoning would become the bottleneck; a

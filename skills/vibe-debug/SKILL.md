@@ -198,7 +198,7 @@ and is labeled `Unproven`.
 - Give routine compatible choices no receipt.
 <!-- shared-contract:end model-tier-selection -->
 
-The judgment-heavy hypotheses here are contradicted prior fixes, cross-layer
+The judgment-heavy hypotheses here include contradicted prior fixes, cross-layer
 diagnosis, environment-sensitive behavior, and final cause selection. A cheaper
 or faster model is eligible here only for bounded file/log lookup or mechanical
 reproduction checks.

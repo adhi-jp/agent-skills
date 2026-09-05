@@ -448,10 +448,10 @@ request only because `vibe-coding` was invoked.
 
 The router writes the session record at
 `.plans/vibe-sessions/<record_id>.json` under the repository root; the router's
-default `record_id` is the workflow id. The schema, the record states, and the
-full write procedure are the `session-record-schema` block in
-`references/session-record.md`, read at a workflow's first record write and
-whenever the capability map is invalidated. Write points:
+default `record_id` is the workflow id. The schema is the
+`session-record-schema` block in `references/session-record.md`, read at a
+workflow's first record write and whenever the capability map is invalidated.
+Write points:
 
 - Every route decision and every phase boundary. The first route decision of a
   new workflow creates the workflow id (a UUIDv4) and the record; a bare
@@ -478,13 +478,14 @@ Every recorded path — `artifact_paths`, `artifact_identity[].path`,
 `events[].artifact.path`, `allowed_paths` — is a canonical absolute path; the
 router converts repository-relative paths it reads from conversation state
 before writing. `host_session_id` is taken from the host when it exposes a
-session id and is null otherwise, which makes the record session-unbound and
-every gate answer `ask`. Replacing the workflow marks the record `superseded`
-and starts a new workflow id; cancelling marks it `cancelled`; the finish gate
-marks it `completed`; the tombstone stays in place. The record is never
-committed, staged, or tracked, and it is neither a journal to remove before
-handoff nor a sidecar of any artifact: an artifact's identity lives only here,
-and the artifact itself carries no hash.
+session id and is null otherwise, which makes the record session-unbound: the
+commit-selection and history-mutation gates answer `ask`, and the
+read-only-phase write gate answers `allow`. Replacing the workflow marks the
+record `superseded` and starts a new workflow id; cancelling marks it
+`cancelled`; the finish gate marks it `completed`; the tombstone stays in
+place. The record is never committed, staged, or tracked, and it is neither a
+journal to remove before handoff nor a sidecar of any artifact: an artifact's
+identity lives only here, and the artifact itself carries no hash.
 
 Before a plain commit, whichever row selected it, record a `commit-selection`
 event whose `source` names the selection — `user-turn` for a direct request,
@@ -525,9 +526,9 @@ Read each reference at its trigger; none is required on every turn.
   delegation record, proxy decisions, and the model-tier contract; read before
   choosing a delegated model or accepting a delegate's result, and whenever
   host delegation is in play.
-- `references/session-record.md` — the session-record schema, the write
-  procedure, and capability-map caching and invalidation; read at a workflow's
-  first record write and on invalidation.
+- `references/session-record.md` — the session-record schema, the router's
+  record conventions, and capability-map caching and invalidation; read at a
+  workflow's first record write and on invalidation.
 
 Choose exactly one primary visible route per route decision unless
 `references/phase-boundaries.md` allows a boundary-preserving sequence, and do

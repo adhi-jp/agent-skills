@@ -208,72 +208,75 @@ use `[Repository] - YYYY-MM-DD`.
   Requirements capture, implementation planning, saved-plan pre-check, and
   standalone writing deliverables keep their existing explicit-request rule.
 - `vibe-coding`: `## Workflow Phases` is now one decision table — trigger,
-  exclusions, owner, required artifact, next boundary — with a mapping from
-  each precedence item to a row, preceded by a goal-alignment gate that fires
-  only on an unresolved history, release, irreversible, or outward-facing
-  ambiguity and never on a settled direct request, a negation such as "do not
-  push", quoted or background material, plan metadata such as
-  `Commit checkpoints`, or an action the request names as out of scope; the
-  gate routes to the visible goal-alignment specialist or asks the one
-  confirming question itself, records the confirmation with
-  `source: user-turn`, and is not proceed evidence for anything else. Two
-  router-owned rows — `direct-implementation` (a concrete single-surface edit
-  with stated or obvious acceptance and verification, no saved plan, no defect
-  report) and `maintenance` (dependency updates, build repairs without a
-  defect, test-only edits, explicitly requested release preparation,
-  repository chores) — are classified after implementation planning and before
-  requirements specification, are exempt from the availability gate, never
-  report `matched-but-unavailable`, and end at the commit-selection gate.
+  exclusions, owner, required artifact, next boundary — with a mapping from each
+  precedence item to a row, preceded by a goal-alignment gate that fires only on
+  an unresolved history, release, irreversible, or outward-facing ambiguity and
+  never on a settled direct request, a negation such as "do not push", quoted or
+  background material, plan metadata such as `Commit checkpoints`, or an action
+  the request names as out of scope; the gate routes to the visible
+  goal-alignment specialist or asks the one confirming question itself, records
+  the confirmation with `source: user-turn`, and is not proceed evidence for
+  anything else. Two router-owned rows — `direct-implementation` (a concrete
+  single-surface edit with stated or obvious acceptance and verification, no
+  saved plan, no defect report) and `maintenance` (dependency updates, build
+  repairs without a defect, test-only edits, explicitly requested release
+  preparation, repository chores) — are classified after implementation planning
+  and before requirements specification, are exempt from the availability gate,
+  never report `matched-but-unavailable`, and end at the commit-selection gate.
   Specialist availability is verified once per workflow and re-verified on
   invalidation, cached in the session record's `capability_map`. Routing state
   is persisted as a record, not authority: the router writes
   `.plans/vibe-sessions/<record_id>.json`, where the router's default record id
-  is the workflow id — the six routing fields;
-  approval, proceed, handoff, commit-selection, and confirmation events, each
-  with its `source`; an 8-hour lease renewed on every write; tombstones on
-  cancel, replace, and completion; never committed — at every route decision,
-  phase boundary, and event, immediately before any gated action, and after
-  any write to a bound artifact, and records a `commit-selection` event naming
-  its source before any plain commit. The router's write of its own record is
-  never a gated write, every event is written with `status: current`, and a
-  digest refresh marks stale approval, proceed, and handoff events
-  `superseded` in place rather than deleting them. Approvals, proceed
-  decisions, and stop
-  boundaries stay in the conversation; the record names them and does not
-  relocate them, replacing the earlier "keep them in the conversation"
-  sentence, and the "no separate persisted ledger file" and "verify before
-  naming a downstream route" sentences are replaced by the record and the
-  once-per-workflow check. The single always-read reference is split into four
-  trigger-indexed references (`route-selection.md`, `phase-boundaries.md`,
-  `delegation-and-proxy.md`, `session-record.md`), and the package carries the
-  generated shared-contract blocks `effect-write-boundaries`,
-  `commit-selection-state-changing`, `human-risk-decisions`,
-  `trusted-orchestration-evidence`, `model-tier-selection`,
-  `history-mutation-gate`, `commit-selection-gate`,
+  is the workflow id — the six routing fields; approval, proceed, handoff,
+  commit-selection, and confirmation events, each with its `source`; an 8-hour
+  lease renewed on every write; tombstones on cancel, replace, and completion;
+  never committed — at every route decision, phase boundary, and event,
+  immediately before any gated action, and after any write to a bound artifact,
+  and records a `commit-selection` event naming its source before any plain
+  commit. The router's write of its own record is never a gated write, every
+  event is written with `status: current`, and a digest refresh marks stale
+  approval, proceed, and handoff events `superseded` in place rather than
+  deleting them. Approvals, proceed decisions, and stop boundaries stay in the
+  conversation; the record names them and does not relocate them, replacing the
+  earlier "keep them in the conversation" sentence, and the "no separate
+  persisted ledger file" and "verify before naming a downstream route" sentences
+  are replaced by the record and the once-per-workflow check. The single
+  always-read reference is split into four trigger-indexed references
+  (`route-selection.md`, `phase-boundaries.md`, `delegation-and-proxy.md`,
+  `session-record.md`), and the package carries the generated shared-contract
+  blocks `effect-write-boundaries`, `commit-selection-state-changing`,
+  `human-risk-decisions`, `trusted-orchestration-evidence`,
+  `model-tier-selection`, `history-mutation-gate`, `commit-selection-gate`,
   `read-only-phase-write-gate`, and `session-record-schema` in place of its
-  hand-written copies. Verification — static:
+  hand-written copies. After the shared source's scannable rewrite, the
+  package's own session-record text says the rendered block is the schema while
+  the field table, write procedure, and record-state table stay in
+  `shared/vibe-contract.md`, states that a session-unbound record makes the
+  commit-selection and history-mutation gates answer `ask` and the
+  read-only-phase write gate `allow`, and drops a sentence that restated the
+  block's canonical-path rule. Verification — static:
   `python3 scripts/vibe_shared_contract.py check --strict --package vibe-coding`
   passes; a written walk of eval cases E01–E17 finds no contradicted
   expectation; behavior unproven until an authorized eval run. The eval suite
   follows: its routing-state common assertion is rewritten in place to the
   record-not-authority form — a continuation turn rebinds from conversation
   state, artifact paths, and a supplied record, while approvals, proceed
-  decisions, and stop boundaries come from the conversation and a recorded
-  event counts only for its enumerated `source` — and eight cases are added
-  (E18–E25): a concrete default change with no plan, a dependency bump with
-  lint repair, the goal-alignment gate with and without a visible alignment
-  specialist, the six turns that gate must not stop, an approved spec handing
-  off to planning, an execution slice closing at a checkpoint, a proven repair
-  closing at a checkpoint, and a commit request on a mixed working tree. The
-  seventeen existing cases are unchanged. README gains a boundary bullet
-  stating that the three gates are enforced at the tool call only by
-  user-installed hooks, that without them the instruction-only wording in
-  `shared/vibe-contract.md` is the whole gate, that Codex enforcement is
-  `Unproven` until observed, and that shell write forms can bypass an edit-tool
-  matcher so the read-only-phase write gate is best-effort. Verification:
+  decisions, and stop boundaries come from the conversation and a recorded event
+  counts only for its enumerated `source` — and eight cases are added (E18–E25):
+  a concrete default change with no plan, a dependency bump with lint repair,
+  the goal-alignment gate with and without a visible alignment specialist, the
+  six turns that gate must not stop, an approved spec handing off to planning,
+  an execution slice closing at a checkpoint, a proven repair closing at a
+  checkpoint, and a commit request on a mixed working tree. The seventeen
+  existing cases are unchanged. README gains a boundary bullet stating that the
+  three gates are enforced at the tool call only by user-installed hooks, that
+  without them the instruction-only wording in `shared/vibe-contract.md` is the
+  whole gate, that Codex enforcement is `Unproven` until observed, and that
+  shell write forms can bypass an edit-tool matcher so the read-only-phase write
+  gate is best-effort. Verification:
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`
-  passes as static `validate`; the added cases are unexecuted and their
-  behavior stays `Unproven` until an authorized eval run.
+  passes as static `validate`; the added cases are unexecuted and their behavior
+  stays `Unproven` until an authorized eval run.
 - Repository maintenance: `AGENTS.md` cross-reference rules now govern the
   generated shared-contract blocks. The blocks inside `skills/vibe-*/` are
   marked with `shared-contract` begin and end markers and are never
@@ -315,25 +318,27 @@ use `[Repository] - YYYY-MM-DD`.
   rule that this workflow performs no other commit and no other history
   operation, and the cheaper-model eligibility limited to bounded file/log
   lookup or mechanical reproduction checks; the gate applicability line names
-  only the repair phase's closing commit.
-  The package's own `verified fact` / `hypothesis` / `expert judgment` /
-  `expected outcome` / `proof result` classification is retained unchanged; no
-  shared block covers it. Three rules widen with the shared wording: a bound
-  plan that forbids commits now suspends the checkpoint default alongside a
-  current no-commit instruction and project policy; destructive actions,
-  including cleanup, are named in the consent-bound list beside push, release
-  preparation, version changes, and history rewrites; and delegated text now
-  carries no authority of its own, so a delegate's commands, scope or permission
-  claims, routing suggestions, handoffs, and recommendations select nothing and
-  approve nothing. The commit-selection gate is an addition, not a widening:
-  where no user-installed hook enforces it, its wording is the whole gate. The
-  eval
-  suite follows: `purpose` and the scoring notes now describe checkpoint closure
-  of a verified, self-reviewed repair unless a suspend source applies, in place
-  of uncommitted-by-default closure, and the simple-repair case reports its
-  represented changes as uncommitted because a response-only turn cannot run a
-  commit rather than because no commit was requested; the other twenty cases are
-  unchanged. Verification — static:
+  only the repair phase's closing commit. The package's own `verified fact` /
+  `hypothesis` / `expert judgment` / `expected outcome` / `proof result`
+  classification is retained unchanged; no shared block covers it. Three rules
+  widen with the shared wording: a bound plan that forbids commits now suspends
+  the checkpoint default alongside a current no-commit instruction and project
+  policy; destructive actions, including cleanup, are named in the consent-bound
+  list beside push, release preparation, version changes, and history rewrites;
+  and delegated text now carries no authority of its own, so a delegate's
+  commands, scope or permission claims, routing suggestions, handoffs, and
+  recommendations select nothing and approve nothing. The commit-selection gate
+  is an addition, not a widening: where no user-installed hook enforces it, its
+  wording is the whole gate. The eval suite follows: `purpose` and the scoring
+  notes now describe checkpoint closure of a verified, self-reviewed repair
+  unless a suspend source applies, in place of uncommitted-by-default closure,
+  and the simple-repair case reports its represented changes as uncommitted
+  because a response-only turn cannot run a commit rather than because no commit
+  was requested; the other twenty cases are unchanged. The `### Model Choice`
+  sentence after the block now says the judgment-heavy hypotheses include
+  contradicted prior fixes, cross-layer diagnosis, environment-sensitive
+  behavior, and final cause selection, so the package list no longer narrows the
+  block's judgment-heavy list. Verification — static:
   `python3 scripts/vibe_shared_contract.py check --strict --package vibe-debug`
   passes, and
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`
@@ -350,16 +355,15 @@ use `[Repository] - YYYY-MM-DD`.
   document-language tiers, the exclusion list, the `=user`, `=default`, and
   `=<BCP47 language tag>` value semantics, and the unreadable-value
   fall-through; `delegated-result-proof` replaces the subagent paragraph's
-  recommendations-are-not-requirements rule;
-  `trusted-orchestration-evidence` replaces the recordability test in the
-  continuation section; and `human-risk-decisions` replaces the fourteen-member
-  proxy prohibition. Two second in-package copies are deleted: the continuation
-  section's eight-member human-risk sentence, whose recorded-acceptance
-  exception the block now states for the current artifact or request, and the
-  drafting reference's restatement of the recordability test, which keeps only
-  its stop-signal list and points at the evidence section of `SKILL.md`; the
-  contract reference's second document-language restatement gives way to a
-  one-line pointer to `SKILL.md`.
+  recommendations-are-not-requirements rule; `trusted-orchestration-evidence`
+  replaces the recordability test in the continuation section; and
+  `human-risk-decisions` replaces the fourteen-member proxy prohibition. Two
+  second in-package copies are deleted: the continuation section's eight-member
+  human-risk sentence, whose recorded-acceptance exception the block now states
+  for the current artifact or request, and the drafting reference's restatement
+  of the recordability test, which keeps only its stop-signal list and points at
+  the evidence section of `SKILL.md`; the contract reference's second
+  document-language restatement gives way to a one-line pointer to `SKILL.md`.
   One block is new to the package, which carried no copy:
   `read-only-phase-write-gate` states that an artifact-only phase writes only
   the artifact it owns, the supporting paths its own text declares, and the
@@ -376,17 +380,16 @@ use `[Repository] - YYYY-MM-DD`.
   inspection, review, and proxy perspectives, may not ask the user, edit
   artifacts, stage, commit, or route, and the main AI stays responsible for
   final judgment, requirements updates, and recording where each decision came
-  from; destructive, migration, permission, security,
-  billing, and data decisions stay one-at-a-time human questions;
-  drafting-discovered unknowns and twelve named categories cannot be
-  proxy-deferred; trusted evidence with a clean completion audit may count as
-  finish or handoff evidence but never lets this workflow create a later phase's
-  artifact in the same response, and that evidence must record that the
-  requirements completion audit passed, not merely a completion or audit
-  outcome; a cheaper or faster delegated model is eligible only for bounded
-  low-ambiguity option checks, narrower than the block's lookups, extraction,
-  mechanical checks, and simple review; no strict parser behavior is invented
-  for a document-language value; and a permitted scoped
+  from; destructive, migration, permission, security, billing, and data
+  decisions stay one-at-a-time human questions; drafting-discovered unknowns and
+  twelve named categories cannot be proxy-deferred; trusted evidence with a
+  clean completion audit may count as finish or handoff evidence but never lets
+  this workflow create a later phase's artifact in the same response, and that
+  evidence must record that the requirements completion audit passed, not merely
+  a completion or audit outcome; a cheaper or faster delegated model is eligible
+  only for bounded low-ambiguity option checks, narrower than the block's
+  lookups, extraction, mechanical checks, and simple review; no strict parser
+  behavior is invented for a document-language value; and a permitted scoped
   checkpoint still names the committed paths and confirms the audit,
   dirty-state, staged-diff, and committed-file-set checks. The continuation
   section keeps as usage, not as a second rule, that `VIBE_SUBAGENTS` controls
@@ -403,8 +406,12 @@ use `[Repository] - YYYY-MM-DD`.
   no user-installed hook enforces it, its wording is the whole gate. The eval
   suite is unchanged: no assertion quoted removed text or contradicts a rule a
   block now states, and the eight `VIBE_DOCUMENT_LANGUAGE` and six
-  `VIBE_SUBAGENTS` mentions were re-read against the vendored wording.
-  Verification — static:
+  `VIBE_SUBAGENTS` mentions were re-read against the vendored wording. The
+  model-choice sentence after the block now says the judgment-heavy units
+  include high-ambiguity requirements judgment and the rest of its list, so the
+  package list no longer narrows the block's judgment-heavy list, and the
+  `## Startup Decisions` opener ends in a period now that its items are
+  headings. Verification — static:
   `python3 scripts/vibe_shared_contract.py check --strict --package vibe-requirements-spec`
   passes, and
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`
@@ -471,7 +478,10 @@ use `[Repository] - YYYY-MM-DD`.
   plus digest) is never reconciled as a gate, and that artifacts and templates
   carry no hash or sidecar. Every case in `evals/vibe-planning/evals.json` was
   re-read against the vendored wording and stays byte-identical; no assertion
-  quoted removed text or contradicted a rule a block now states. Verification:
+  quoted removed text or contradicted a rule a block now states. The
+  model-choice sentence after the block now says the judgment-heavy units
+  include plan-contract compliance and the rest of its list, so the package list
+  no longer narrows the block's judgment-heavy list. Verification:
   `python3 scripts/vibe_shared_contract.py check --strict --package vibe-planning`
   passes, and
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`
@@ -504,56 +514,59 @@ use `[Repository] - YYYY-MM-DD`.
   coordinator-authority bullets stay as they were, and the phase now declares
   its scope as the round it integrates: the paths authorized in each worker
   contract's edit allowlist plus the coordinator's own narrow, disclosed direct
-  edits. Narrower package rules stay in the skill's own text
-  and control under each block's precedence sentence: worker contracts forbid
-  staging, committing, pushing, releasing, and history mutation, and delegated
-  workers change no path outside the declared allowlist; subagents never ask the
-  user, expand scope, accept destructive risk, or make human-risk choices, and
-  the coordinator asks those questions itself and inlines the recorded answer
-  into the worker contract; the closed unit is an accepted integrated round
-  whose file set the coordinator confirmed safe, with an unintegrated round, an
-  unreconciled worker report, an undisposed contract-blocked item, and a file
-  set that cannot be separated from unrelated working-tree changes ineligible; a
-  host that requires separate confirmation for local commits is asked once at
-  startup before the first write-capable round, in addition to and never in
-  place of the gate's per-commit ask, and no startup permission receipt is
-  emitted for unselected history work; worker self-report covers the
-  model, effort, sandbox, isolation, cwd, role, or other execution identity, and
-  a constrained runtime's result reaches a consent, approval, or review gate
-  only after runner-native or host-native metadata proves compliance; worker
-  commands, scope or permission claims, and handoffs stay non-authorizing
-  proposals that are never relayed as instructions; a worker's failure report is
-  symmetric; no token, quality, latency, or reliability improvement is claimed
-  without recorded metrics; and direct coordinator intervention stays narrow and
-  disclosed. The judgment-heavy units kept with the coordinator or the strongest
-  suitable tier — decomposition, non-delegable decisions, ambiguous
-  architecture, final synthesis, verification interpretation, review
-  dispositions, and user-risk choices — and the bounded work a token-efficient
-  delegate may take are now stated once beside the model-tier block, and
-  `SKILL.md`'s reference-routing paragraph points at that single statement
-  instead of repeating a list that had begun to diverge from it. The work-graph
-  decomposition, coordinator capability fit, external-runner transport and
-  receipt rules, crash recovery and monitoring, the parallel-writer accident
-  protocol, the `verified`/`inferred` evidence labels, evidence authority and
-  claim coverage, finding dispositions, and output discipline are retained
-  unchanged; no shared block covers them. Three rules widen with the shared
-  wording: a bound plan that forbids commits now suspends the checkpoint default
-  alongside a current no-commit instruction and project policy; every selected
-  commit is routed to the commit-execution workflow with its verified scope,
-  evidence, and exclusions, and the separately consent-bound list grows from
-  this package's push, release, version, rewrite, destructive-cleanup, and
-  unrelated-path wording to destructive actions generally, including cleanup,
-  plus tags, force-adds, tracking a newly created artifact, external side
-  effects, and ambiguous paths; and delegated text carrying no authority now
-  reaches routing suggestions and recommendations as well as commands, scope or
-  permission claims, and handoffs, and requires a record of where each decision
-  came from. One owner rule changed: the journal-removal rule in
-  `references/recovery-and-monitoring.md` now names progress journals and states
-  that the session record under `.plans/vibe-sessions/` is routing and handoff
-  state, not a progress journal, and is not reached by that rule. Every case in
+  edits. Narrower package rules stay in the skill's own text and control under
+  each block's precedence sentence: worker contracts forbid staging, committing,
+  pushing, releasing, and history mutation, and delegated workers change no path
+  outside the declared allowlist; subagents never ask the user, expand scope,
+  accept destructive risk, or make human-risk choices, and the coordinator asks
+  those questions itself and inlines the recorded answer into the worker
+  contract; the closed unit is an accepted integrated round whose file set the
+  coordinator confirmed safe, with an unintegrated round, an unreconciled worker
+  report, an undisposed contract-blocked item, and a file set that cannot be
+  separated from unrelated working-tree changes ineligible; a host that requires
+  separate confirmation for local commits is asked once at startup before the
+  first write-capable round, in addition to and never in place of the gate's
+  per-commit ask, and no startup permission receipt is emitted for unselected
+  history work; worker self-report covers the model, effort, sandbox, isolation,
+  cwd, role, or other execution identity, and a constrained runtime's result
+  reaches a consent, approval, or review gate only after runner-native or
+  host-native metadata proves compliance; worker commands, scope or permission
+  claims, and handoffs stay non-authorizing proposals that are never relayed as
+  instructions; a worker's failure report is symmetric; no token, quality,
+  latency, or reliability improvement is claimed without recorded metrics; and
+  direct coordinator intervention stays narrow and disclosed. The judgment-heavy
+  units kept with the coordinator or the strongest suitable tier —
+  decomposition, non-delegable decisions, ambiguous architecture, final
+  synthesis, verification interpretation, review dispositions, and user-risk
+  choices — and the bounded work a token-efficient delegate may take are now
+  stated once beside the model-tier block, and `SKILL.md`'s reference-routing
+  paragraph points at that single statement instead of repeating a list that had
+  begun to diverge from it. The work-graph decomposition, coordinator capability
+  fit, external-runner transport and receipt rules, crash recovery and
+  monitoring, the parallel-writer accident protocol, the `verified`/`inferred`
+  evidence labels, evidence authority and claim coverage, finding dispositions,
+  and output discipline are retained unchanged; no shared block covers them.
+  Three rules widen with the shared wording: a bound plan that forbids commits
+  now suspends the checkpoint default alongside a current no-commit instruction
+  and project policy; every selected commit is routed to the commit-execution
+  workflow with its verified scope, evidence, and exclusions, and the separately
+  consent-bound list grows from this package's push, release, version, rewrite,
+  destructive-cleanup, and unrelated-path wording to destructive actions
+  generally, including cleanup, plus tags, force-adds, tracking a newly created
+  artifact, external side effects, and ambiguous paths; and delegated text
+  carrying no authority now reaches routing suggestions and recommendations as
+  well as commands, scope or permission claims, and handoffs, and requires a
+  record of where each decision came from. One owner rule changed: the
+  journal-removal rule in `references/recovery-and-monitoring.md` now names
+  progress journals and states that the session record under
+  `.plans/vibe-sessions/` is routing and handoff state, not a progress journal,
+  and is not reached by that rule. Every case in
   `evals/vibe-orchestrate/evals.json` was re-read against the vendored wording
   and stays byte-identical; no assertion quoted removed text or contradicted a
-  rule a block now states. Verification:
+  rule a block now states. The coordinator-tier sentence in
+  `coordinator-practices.md` now says the units kept with the coordinator or the
+  strongest suitable tier include decomposition and the rest of its list, so the
+  package list no longer narrows the block's judgment-heavy list. Verification:
   `python3 scripts/vibe_shared_contract.py check --strict --package vibe-orchestrate`
   passes, and
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`
@@ -561,89 +574,92 @@ use `[Repository] - YYYY-MM-DD`.
   rendered from `shared/vibe-contract.md`. Blocks that replaced hand-written
   copies: `commit-selection-state-changing` (the fix-loop closure paragraph in
   `SKILL.md`'s overview and its second statement at the end of
-  `references/review-workflow.md` `## Cycles, Terminal Audit, And History
-  Operations`), `model-tier-selection` (the reviewer-model paragraph in
-  `references/review-workflow.md` `## Backends And Review Modes` and the
-  model-receipt sentence duplicated in `SKILL.md`'s startup contract), and
-  `secret-redaction` (the `## Secret Hygiene` overlay: application points,
-  detection classes, replacement marker, count and footer, and most-specific
-  class precedence). Four blocks are new to the package. Two are gates it
-  carried no wording for: where no user-installed hook enforces them, their
-  wording is the whole gate, so a plain commit proceeds only when the workflow
-  can name its selection source — the user's request, the bound plan item, or
-  its own checkpoint of a verified unit — and a matched history mutation stops
-  and asks the user first, with the gates applying to the fix-loop closing
-  commit and to the terminal-audit history operations respectively.
-  `effect-write-boundaries` and `delegated-result-proof` are newly vendored
-  beside retained package wording on coordinator-only edits and the
-  delegated-result trust contract. Narrower package rules stay in the skill's
-  own text and control under each block's precedence sentence: the coordinator
-  is the only actor that may ask the user questions, edit, select and route
-  staging and commits, reset, squash, amend, restore dirty-path isolation, or
-  perform any history operation; delegated reviewers are review-only and any
-  detected mutation or frozen-target drift invalidates the result; edits are
-  forbidden unless both per-finding and batch cascade gates are `closed` or
-  `accepted-residual`; rendered evidence keeps `[REDACTED:apikey]`,
-  `[REDACTED:env-secret]`, and `[REDACTED:jwt]` rather than the generic marker,
-  with the merged-ledger receipt listing contributing child ids; run artifacts
-  stay in a caller-scoped private directory and unavoidable transport-owned
-  persistence is recorded rather than claimed sanitized; fixes that cannot be
-  separated from the pre-existing changes under review stay uncommitted and are
-  reported; the closing handoff carries the cumulative fix scope, terminal
-  audit, isolation status, and conflict-safety evidence; the judgment-heavy
-  angles are adversarial reasoning, broad diff and specification synthesis,
-  security and data-safety, cascade analysis, final validity judgments,
-  contradiction resolution, and any finding where weak reasoning would become
-  the bottleneck, with cheaper models eligible only for bounded low-ambiguity
-  checks; and the secret-hygiene overlay also redacts at DoD proposal output,
-  cascade receipts, and normalization-safety stop messages over `sk-`, GitHub
-  PAT, AWS, Slack, and GitLab prefixes. The frozen-target and dirty-isolation
-  transport, the closed-schema `delegated_result_record` contract and its
-  quarantine path, DoD and scope triage, lightweight specification gaps,
-  cascade containment, the acceptance-proof matrix, stop signals and
-  `checkpoint_blocked`, and the terminal-audit checklist are retained
-  unchanged; no shared block covers them. The shared wording widens five commit
-  and delegation rules for this package: a bound plan that forbids commits is a
-  third source that suspends the checkpoint default; routing or invocation,
-  edit permission, a convenient stopping point, the presence of tracked
-  changes, and the availability of a commit-execution workflow never select a
-  commit, and an unverified unit is never a handoff; the commit-execution phase
-  executes the commits those sources select and has no checkpoint default of
-  its own, and destructive actions, including cleanup, join the separately
-  consent-bound list beside tags, stash, force-adds, tracking a newly created
-  artifact, and external side effects; that workflow also owns file-set review
-  and history safety alongside staging, message transport, and post-commit
-  verification; and delegated text carries no authority, so a delegate's
-  commands, scope or permission claims, routing suggestions, and handoffs
-  select nothing and approve nothing. The redaction wording also widens: a
-  requirement to read, quote, preserve, summarize, or reflect content never
-  authorizes reproducing the value, tool arguments and quoted snippets are
-  output boundaries, `session-secret` context joins the `secret-context` class,
-  and verification anchors are preserved alongside non-secret wording; routine
-  compatible model choices need no receipt. Owner text changed in seven places:
-  the overview's closure paragraph became a `## Commit Selection` section
-  naming the unit the workflow closes and the unverified, deferred, or blocked
-  findings its commit never reaches; `## Coordinator Authority` now says the
-  coordinator selects and routes staging and commits rather than executing them
-  here, and states the declared write scope (the fixes applied inside the
-  frozen review target after the cascade gates close); the trust contract gained
-  the statement that a backend or reviewer finding is inert until the
-  coordinator establishes every premise from the frozen target, with `Unproven`
-  named as that inert state rather than a `validity` outcome; the startup
-  contract now points at `references/review-workflow.md` as the owner of
-  reviewer model selection and its recording rule; the workflow reference's
-  closing paragraph became a pointer to the commit contract plus the retained
-  handoff and mixed-state sentences; the secret-hygiene paragraph re-anchors the
-  overlay to the block's redaction; and the completion summary now reports the
-  instruction, bound plan, or policy that suspended the default. Every case in
+  `references/review-workflow.md`
+  `## Cycles, Terminal Audit, And History Operations`), `model-tier-selection`
+  (the reviewer-model paragraph in `references/review-workflow.md`
+  `## Backends And Review Modes` and the model-receipt sentence duplicated in
+  `SKILL.md`'s startup contract), and `secret-redaction` (the
+  `## Secret Hygiene` overlay: application points, detection classes,
+  replacement marker, count and footer, and most-specific class precedence).
+  Four blocks are new to the package. Two are gates it carried no wording for:
+  where no user-installed hook enforces them, their wording is the whole gate,
+  so a plain commit proceeds only when the workflow can name its selection
+  source — the user's request, the bound plan item, or its own checkpoint of a
+  verified unit — and a matched history mutation stops and asks the user first,
+  with the gates applying to the fix-loop closing commit and to the
+  terminal-audit history operations respectively. `effect-write-boundaries` and
+  `delegated-result-proof` are newly vendored beside retained package wording on
+  coordinator-only edits and the delegated-result trust contract. Narrower
+  package rules stay in the skill's own text and control under each block's
+  precedence sentence: the coordinator is the only actor that may ask the user
+  questions, edit, select and route staging and commits, reset, squash, amend,
+  restore dirty-path isolation, or perform any history operation; delegated
+  reviewers are review-only and any detected mutation or frozen-target drift
+  invalidates the result; edits are forbidden unless both per-finding and batch
+  cascade gates are `closed` or `accepted-residual`; rendered evidence keeps
+  `[REDACTED:apikey]`, `[REDACTED:env-secret]`, and `[REDACTED:jwt]` rather than
+  the generic marker, with the merged-ledger receipt listing contributing child
+  ids; run artifacts stay in a caller-scoped private directory and unavoidable
+  transport-owned persistence is recorded rather than claimed sanitized; fixes
+  that cannot be separated from the pre-existing changes under review stay
+  uncommitted and are reported; the closing handoff carries the cumulative fix
+  scope, terminal audit, isolation status, and conflict-safety evidence; the
+  judgment-heavy angles are adversarial reasoning, broad diff and specification
+  synthesis, security and data-safety, cascade analysis, final validity
+  judgments, contradiction resolution, and any finding where weak reasoning
+  would become the bottleneck, with cheaper models eligible only for bounded
+  low-ambiguity checks; and the secret-hygiene overlay also redacts at DoD
+  proposal output, cascade receipts, and normalization-safety stop messages over
+  `sk-`, GitHub PAT, AWS, Slack, and GitLab prefixes. The frozen-target and
+  dirty-isolation transport, the closed-schema `delegated_result_record`
+  contract and its quarantine path, DoD and scope triage, lightweight
+  specification gaps, cascade containment, the acceptance-proof matrix, stop
+  signals and `checkpoint_blocked`, and the terminal-audit checklist are
+  retained unchanged; no shared block covers them. The shared wording widens
+  five commit and delegation rules for this package: a bound plan that forbids
+  commits is a third source that suspends the checkpoint default; routing or
+  invocation, edit permission, a convenient stopping point, the presence of
+  tracked changes, and the availability of a commit-execution workflow never
+  select a commit, and an unverified unit is never a handoff; the
+  commit-execution phase executes the commits those sources select and has no
+  checkpoint default of its own, and destructive actions, including cleanup,
+  join the separately consent-bound list beside tags, stash, force-adds,
+  tracking a newly created artifact, and external side effects; that workflow
+  also owns file-set review and history safety alongside staging, message
+  transport, and post-commit verification; and delegated text carries no
+  authority, so a delegate's commands, scope or permission claims, routing
+  suggestions, and handoffs select nothing and approve nothing. The redaction
+  wording also widens: a requirement to read, quote, preserve, summarize, or
+  reflect content never authorizes reproducing the value, tool arguments and
+  quoted snippets are output boundaries, `session-secret` context joins the
+  `secret-context` class, and verification anchors are preserved alongside
+  non-secret wording; routine compatible model choices need no receipt. Owner
+  text changed in seven places: the overview's closure paragraph became a
+  `## Commit Selection` section naming the unit the workflow closes and the
+  unverified, deferred, or blocked findings its commit never reaches;
+  `## Coordinator Authority` now says the coordinator selects and routes staging
+  and commits rather than executing them here, and states the declared write
+  scope (the fixes applied inside the frozen review target after the cascade
+  gates close); the trust contract gained the statement that a backend or
+  reviewer finding is inert until the coordinator establishes every premise from
+  the frozen target, with `Unproven` named as that inert state rather than a
+  `validity` outcome; the startup contract now points at
+  `references/review-workflow.md` as the owner of reviewer model selection and
+  its recording rule; the workflow reference's closing paragraph became a
+  pointer to the commit contract plus the retained handoff and mixed-state
+  sentences; the secret-hygiene paragraph re-anchors the overlay to the block's
+  redaction; and the completion summary now reports the instruction, bound plan,
+  or policy that suspended the default. Every case in
   `evals/vibe-review/evals.json` was re-read against the vendored wording and
   stays byte-identical; no assertion quoted removed text or contradicted a rule
-  a block now states. Verification:
+  a block now states. The review-angle sentence in `review-workflow.md` now says
+  the judgment-heavy angles include its listed angles, so the package list no
+  longer narrows the block's judgment-heavy list. Verification:
   `python3 scripts/vibe_shared_contract.py check --strict --package vibe-review`
   passes, and
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`
-  passes; `python3 scripts/vibe_shared_contract.py audit-names` reports
-  nothing; behavior unproven until an authorized eval run.
+  passes; `python3 scripts/vibe_shared_contract.py audit-names` reports nothing;
+  behavior unproven until an authorized eval run.
 - `vibe-commit`: the shared workflow contract now arrives as generated blocks
   rendered from `shared/vibe-contract.md`. `commit-selection-state-changing`
   replaced the "Commit when asked; do not push" bullet and the selection clauses
@@ -915,61 +931,64 @@ use `[Repository] - YYYY-MM-DD`.
   six checks stay numbered and the later "check 1" and "check 3" references
   still resolve; and `effect-write-boundaries` replaces the first two sentences
   of the output contract's opening paragraph, the chat-is-the-default class
-  statement, leaving the rest of that paragraph in place. Neither block
-  had a second in-package copy to delete. `read-only-phase-write-gate` is new to
-  the package, which carried no copy: a read-only phase writes only an
-  explicitly requested saved artifact whose canonical path is recorded in
-  `allowed_paths` and otherwise writes no file, and where no user-installed hook
-  enforces the gate that wording is the whole gate, so the phase itself refuses
-  a write outside that boundary and reports it as a boundary stop rather than
-  retrying through another tool; its applicability line names the brainstorming
-  phase. Retained narrower text that controls under the blocks' precedence
-  sentence: a host or runner that merely designates a path to use if an artifact
-  is written is still not the user's request, so that path stays unwritten; the
-  pre-output gate still requires the explicit persistence request to be
-  identified before any file write and keeps the brainstorm, checklist,
-  orchestration schedule, and confirmation request in chat, and still refuses to
-  treat Markdown headings as evidence that an output is a plan or specification;
-  and a cheaper or faster model stays eligible here only for bounded
-  low-ambiguity checks, narrower than the block's lookups, extraction,
-  mechanical checks, and simple review. The delegation
-  evidence contract (`confirmed` only against a host-issued identifier or record
-  location, otherwise `unproven`, and `unavailable/degraded` with its
-  limitation), the rule that a polished response, role headings, persona
-  separation, runtime summaries, or self-reported token totals are not proof of
-  delegation, the trusted-orchestration proxy selection that is AI-selected
-  input rather than human confirmation, the mode selection table, the scripted
-  orchestration schedule boundary, convention grounding, and the response shape
-  are retained unchanged; no shared block covers them. The shared wording widens
-  two rules for this package: the read-only class now states unconditionally
-  that this phase edits no source, test, config, doc, or other file, runs no
-  command that mutates runtime or repository state, and does not stage, commit,
-  tag, push, change versions, delete data, or start services, where the package
-  had stated only that chat is the default deliverable and that files are
-  created on explicit request, with a narrower prohibition in its handoff
-  boundary; and the bias toward the strongest suitable reasoning and context
-  tier now covers cross-artifact synthesis, adversarial review, security,
-  data-safety and other human-risk reasoning, contract compliance, and final
-  dispositions, beside the creative-synthesis roles the package already listed.
-  Owner text changed in two places: a new sentence in `### Model Choice` names
-  each delegated role as one of the block's units and keeps the package's own
-  judgment-heavy list — creative synthesis, especially the `Unconventional` and
-  `Challenging` generators, convention tradeoffs, selection, broad-context
-  grounding, final recommendations, contradiction resolution, and user-risk
-  judgments — with the narrower cheap-model eligibility above; and a new
-  sentence opening the effect boundary's owner text states that this phase owns
-  no artifact and has no canonical path of its own, so the only file it
-  writes is one the current user's own instruction asks to save, which also
-  restores the antecedent the runner-designated-path sentence had in the deleted
-  class statement. New `### Model Choice`, `### Delegation Mechanisms And
-  Evidence`, `### Effect And Write Boundaries`, `### Read-Only-Phase Write
-  Gate`, and `### Response Shape` headings keep any block from being read as
-  scoped by neighbouring prose and keep the gate section to the block plus its
+  statement, leaving the rest of that paragraph in place. Neither block had a
+  second in-package copy to delete. `read-only-phase-write-gate` is new to the
+  package, which carried no copy: a read-only phase writes only an explicitly
+  requested saved artifact whose canonical path is recorded in `allowed_paths`
+  and otherwise writes no file, and where no user-installed hook enforces the
+  gate that wording is the whole gate, so the phase itself refuses a write
+  outside that boundary and reports it as a boundary stop rather than retrying
+  through another tool; its applicability line names the brainstorming phase.
+  Retained narrower text that controls under the blocks' precedence sentence: a
+  host or runner that merely designates a path to use if an artifact is written
+  is still not the user's request, so that path stays unwritten; the pre-output
+  gate still requires the explicit persistence request to be identified before
+  any file write and keeps the brainstorm, checklist, orchestration schedule,
+  and confirmation request in chat, and still refuses to treat Markdown headings
+  as evidence that an output is a plan or specification; and a cheaper or faster
+  model stays eligible here only for bounded low-ambiguity checks, narrower than
+  the block's lookups, extraction, mechanical checks, and simple review. The
+  delegation evidence contract (`confirmed` only against a host-issued
+  identifier or record location, otherwise `unproven`, and
+  `unavailable/degraded` with its limitation), the rule that a polished
+  response, role headings, persona separation, runtime summaries, or
+  self-reported token totals are not proof of delegation, the
+  trusted-orchestration proxy selection that is AI-selected input rather than
+  human confirmation, the mode selection table, the scripted orchestration
+  schedule boundary, convention grounding, and the response shape are retained
+  unchanged; no shared block covers them. The shared wording widens two rules
+  for this package: the read-only class now states unconditionally that this
+  phase edits no source, test, config, doc, or other file, runs no command that
+  mutates runtime or repository state, and does not stage, commit, tag, push,
+  change versions, delete data, or start services, where the package had stated
+  only that chat is the default deliverable and that files are created on
+  explicit request, with a narrower prohibition in its handoff boundary; and the
+  bias toward the strongest suitable reasoning and context tier now covers
+  cross-artifact synthesis, adversarial review, security, data-safety and other
+  human-risk reasoning, contract compliance, and final dispositions, beside the
+  creative-synthesis roles the package already listed. Owner text changed in two
+  places: a new sentence in `### Model Choice` names each delegated role as one
+  of the block's units and keeps the package's own judgment-heavy list —
+  creative synthesis, especially the `Unconventional` and `Challenging`
+  generators, convention tradeoffs, selection, broad-context grounding, final
+  recommendations, contradiction resolution, and user-risk judgments — with the
+  narrower cheap-model eligibility above; and a new sentence opening the effect
+  boundary's owner text states that this phase owns no artifact and has no
+  canonical path of its own, so the only file it writes is one the current
+  user's own instruction asks to save, which also restores the antecedent the
+  runner-designated-path sentence had in the deleted class statement. New
+  `### Model Choice`, `### Delegation Mechanisms And Evidence`,
+  `### Effect And Write Boundaries`, `### Read-Only-Phase Write Gate`, and
+  `### Response Shape` headings keep any block from being read as scoped by
+  neighbouring prose and keep the gate section to the block plus its
   applicability line. Every case in `evals/vibe-brainstorm/evals.json` was
   re-read against the vendored wording and stays byte-identical; no assertion
   quoted removed text or contradicted a rule a block now states, and the
   orchestration case's role-tier expectations keep their basis because the owner
-  sentence maps each delegated role to the block's delegated unit. Verification:
+  sentence maps each delegated role to the block's delegated unit. The
+  `### Model Choice` sentence after the block now says the judgment-heavy units
+  include creative synthesis, so the package list no longer narrows the block's
+  judgment-heavy list. Verification:
   `python3 scripts/vibe_shared_contract.py check --strict --package vibe-brainstorm`
   passes, and
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-brainstorm/evals.json`
@@ -1123,8 +1142,11 @@ use `[Repository] - YYYY-MM-DD`.
   in the gates reference; `### Chat Language` and
   `### Progress, Blockers, And Summaries` in the workflow reference.
   `evals/vibe-plan-execution/evals.json` is unchanged: the full re-read found no
-  assertion quoting deleted text and none contradicting a block rule.
-  Verification:
+  assertion quoting deleted text and none contradicting a block rule. The
+  model-choice sentence in `execution-gates-and-delegation.md` now says the
+  judgment-heavy units include implementation, plan-contract judgment, and the
+  rest of its list, so the package list no longer narrows the block's
+  judgment-heavy list. Verification:
   `python3 scripts/vibe_shared_contract.py check --strict --package vibe-plan-execution`
   passes, and
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`

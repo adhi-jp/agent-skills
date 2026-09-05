@@ -106,11 +106,11 @@ For every gate and schema block this package carries, here and in its references
 - Give routine compatible choices no receipt.
 <!-- shared-contract:end model-tier-selection -->
 
-Each delegated role is one such unit: the judgment-heavy ones here are creative
-synthesis — especially the `Unconventional` and `Challenging` generators —
-convention tradeoffs, selection, broad-context grounding, final recommendations,
-contradiction resolution, and user-risk judgments. A cheaper or faster model
-is eligible here only for bounded low-ambiguity checks.
+Each delegated role is one such unit: the judgment-heavy ones here include
+creative synthesis — especially the `Unconventional` and `Challenging`
+generators — convention tradeoffs, selection, broad-context grounding, final
+recommendations, contradiction resolution, and user-risk judgments. A cheaper
+or faster model is eligible here only for bounded low-ambiguity checks.
 
 ### Delegation Mechanisms And Evidence
 

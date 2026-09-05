@@ -195,7 +195,7 @@ slice. Do not require a specific host orchestration tool.
 - Give routine compatible choices no receipt.
 <!-- shared-contract:end model-tier-selection -->
 
-The judgment-heavy units here are implementation, plan-contract judgment,
+The judgment-heavy units here include implementation, plan-contract judgment,
 cross-file synthesis, adversarial review, high-risk sections, deviation- or
 consent-adjacent analysis, final review dispositions, and contradiction
 resolution; a cheaper or faster model is eligible only for bounded

@@ -20,11 +20,11 @@ Read this reference before selecting delegated model tiers, judging the coordina
 <!-- shared-contract:end model-tier-selection -->
 
 The judgment-heavy units this workflow keeps with the coordinator or the
-strongest suitable tier are decomposition, non-delegable decisions, ambiguous
-architecture, final synthesis, verification interpretation, review dispositions,
-and user-risk choices; a token-efficient delegate is eligible only for
-low-ambiguity lookup, extraction, mechanical checks, fixture comparisons, and
-narrow read-only review.
+strongest suitable tier include decomposition, non-delegable decisions,
+ambiguous architecture, final synthesis, verification interpretation, review
+dispositions, and user-risk choices; a token-efficient delegate is eligible only
+for low-ambiguity lookup, extraction, mechanical checks, fixture comparisons,
+and narrow read-only review.
 
 ### Token-Saving Loop
 

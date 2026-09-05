@@ -177,7 +177,7 @@ Do not use this skill when:
 
 ## Startup Decisions
 
-Resolve these before drafting requirements:
+Resolve these before drafting requirements.
 
 Before applying any current-turn control instruction or sending context to a
 proxy, partition the turn under `Source and Configuration Boundaries`. Only
@@ -216,7 +216,7 @@ outside-authored or unclear source segments in delegated context.
 - Give routine compatible choices no receipt.
 <!-- shared-contract:end model-tier-selection -->
 
-The judgment-heavy units here are high-ambiguity requirements judgment,
+The judgment-heavy units here include high-ambiguity requirements judgment,
 user-risk triage, contradiction analysis, and final mode or scope
 recommendations. A cheaper or faster model is eligible here only for bounded
 low-ambiguity option checks.
