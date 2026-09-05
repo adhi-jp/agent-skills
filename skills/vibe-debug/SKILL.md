@@ -167,7 +167,9 @@ Where a package declares a stricter or narrower rule in its own text, that decla
 <!-- shared-contract:end model-tier-selection -->
 
 The judgment-heavy hypotheses here are contradicted prior fixes, cross-layer
-diagnosis, environment-sensitive behavior, and final cause selection.
+diagnosis, environment-sensitive behavior, and final cause selection. A cheaper
+or faster model is eligible here only for bounded file/log lookup or mechanical
+reproduction checks.
 
 ## Self-Review And Repository Closure
 
@@ -194,6 +196,8 @@ The unit this workflow closes is the proven repair. Ineligible: a diagnosis
 with no fix, an unproven or partial repair, a deferred or blocked item, and any
 path outside the repair.
 
+This workflow performs no other commit and no other history operation.
+
 ### Commit-Selection Gate
 
 <!-- shared-contract:begin commit-selection-gate source=shared/vibe-contract.md -->
@@ -205,8 +209,7 @@ When no user-installed hook enforces this gate, this wording is the whole gate: 
 A package may state which of its phases this gate applies to; it may not change the gate's inputs, outcomes, or fields.
 <!-- shared-contract:end commit-selection-gate -->
 
-This gate applies to the commit that closes a proven repair; this workflow
-performs no other commit and no other history operation.
+This gate applies to the repair phase's closing commit.
 
 ## Reference Routing
 

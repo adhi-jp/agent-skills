@@ -238,7 +238,11 @@ use `[Repository] - YYYY-MM-DD`.
   ineligibility list (a diagnosis with no fix, an unproven or partial repair, a
   deferred or blocked item), the ledger clause that a delegated finding is
   recorded evidence for a hypothesis and not the proven cause, the
-  adjacent-findings and probe-removal boundaries, and the startup rule above.
+  adjacent-findings and probe-removal boundaries, the startup rule above, the
+  rule that this workflow performs no other commit and no other history
+  operation, and the cheaper-model eligibility limited to bounded file/log
+  lookup or mechanical reproduction checks; the gate applicability line names
+  only the repair phase's closing commit.
   The package's own `verified fact` / `hypothesis` / `expert judgment` /
   `expected outcome` / `proof result` classification is retained unchanged; no
   shared block covers it. Four rules widen with the shared wording: a bound plan
