@@ -93,8 +93,12 @@ use `[Repository] - YYYY-MM-DD`.
   checks a session record under `.plans/vibe-sessions/` against that schema;
   `tests/test_vibe_shared_contract.py` and `tests/test_vibe_session_record.py`
   cover both scripts; README gains the repository-map rows for the three files
-  and a `Check Shared Contract Blocks` section. Verification: unit tests pass;
-  no skill contract changed yet.
+  and a `Check Shared Contract Blocks` section. Session-record events carry a
+  `status` (`current` or `superseded`; an approval, proceed, or handoff event
+  is superseded in place when a digest refresh invalidates its artifact
+  digest), and the router's write of its own record under
+  `.plans/vibe-sessions/` is exempt from the read-only-phase write gate.
+  Verification: unit tests pass; no skill contract changed yet.
 
 ### Changed
 

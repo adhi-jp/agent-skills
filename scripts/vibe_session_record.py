@@ -54,6 +54,7 @@ PHASES = (
 EFFECT_MODES = ("read-only", "artifact-only", "state-changing", "none")
 EVENT_KINDS = ("approval", "proceed", "handoff", "commit-selection", "confirmation")
 EVENT_SOURCES = ("user-turn", "bound-plan-item", "specialist-checkpoint", "agent-proposed")
+EVENT_STATUSES = ("current", "superseded")
 ARTIFACT_BOUND_EVENT_KINDS = ("approval", "proceed", "handoff")
 ALWAYS_BINDING_PHASES = ("implementation-planning", "plan-execution", "plan-pre-check-walkthrough")
 
@@ -523,11 +524,12 @@ class SchemaValidator:
             if not isinstance(event, dict):
                 self.reject("schema", f"{label} must be an object")
                 continue
-            for key in ("kind", "source", "at", "artifact", "note"):
+            for key in ("kind", "source", "at", "artifact", "note", "status"):
                 if key not in event:
                     code = "event-source" if key == "source" else "missing-key"
                     self.reject(code, f"required key {label}.{key} is absent")
             kind = self.enum(event, "kind", f"{label}.kind", EVENT_KINDS) if "kind" in event else None
+            status = self.enum(event, "status", f"{label}.status", EVENT_STATUSES) if "status" in event else None
             if "source" in event:
                 source = event.get("source")
                 if not isinstance(source, str) or source not in EVENT_SOURCES:
@@ -544,11 +546,23 @@ class SchemaValidator:
                 elif len(note) > NOTE_MAX_LENGTH:
                     self.reject("note-length", f"{label}.note exceeds {NOTE_MAX_LENGTH} characters ({len(note)})")
             if "artifact" in event:
-                self.validate_event_artifact(label, kind, event.get("artifact"), identity)
+                self.validate_event_artifact(label, kind, status, event.get("artifact"), identity)
 
     def validate_event_artifact(
-        self, label: str, kind: str | None, artifact: object, identity: list[tuple[str, str]]
+        self,
+        label: str,
+        kind: str | None,
+        status: str | None,
+        artifact: object,
+        identity: list[tuple[str, str]],
     ) -> None:
+        """Check an event's artifact binding.
+
+        A ``current`` approval, proceed, or handoff event must match a current
+        ``artifact_identity`` entry; a ``superseded`` one must not (an event cannot be
+        superseded while its digest is current). A null artifact is rejected for those
+        kinds whatever the status.
+        """
         if artifact is None:
             if kind in ARTIFACT_BOUND_EVENT_KINDS:
                 self.reject("event-artifact", f"{label}.artifact is null for a {kind} event")
@@ -565,10 +579,17 @@ class SchemaValidator:
             self.reject("schema", f"{label}.artifact.sha256 must be 64 lowercase hex characters")
             digest = None
         if kind in ARTIFACT_BOUND_EVENT_KINDS and path is not None and digest is not None:
-            if (path, digest) not in identity:
+            matches_current = (path, digest) in identity
+            if status == "current" and not matches_current:
                 self.reject(
                     "event-artifact",
                     f"{label}.artifact ({quote(path)}, {digest[:12]}...) matches no current artifact_identity entry",
+                )
+            elif status == "superseded" and matches_current:
+                self.reject(
+                    "event-status",
+                    f"{label} is superseded but its artifact ({quote(path)}, {digest[:12]}...) "
+                    "matches a current artifact_identity entry",
                 )
 
 

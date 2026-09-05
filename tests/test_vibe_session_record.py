@@ -12,7 +12,8 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = REPO_ROOT / "scripts" / "vibe_session_record.py"
 
-# Copied verbatim from the plan's S1 design contract ("Example (complete, accepted by the checker)").
+# The plan's design-contract example ("Example (complete, accepted by the checker)"), plus the
+# event `status` field the shared contract added afterwards.
 EXAMPLE_RECORD_JSON = """{
   "schema_version": "1",
   "record_id": "3f1c9a52-6b7e-4c1d-9a0e-2f7d4c8b1e10",
@@ -33,7 +34,7 @@ EXAMPLE_RECORD_JSON = """{
   "artifact_paths": ["/home/user/repo/docs/specs/2026-09-04-x-spec.md"],
   "artifact_identity": [{"path": "/home/user/repo/docs/specs/2026-09-04-x-spec.md", "sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08", "refreshed_at": "2026-09-04T13:02:11Z"}],
   "capability_map": {"checked_at": "2026-09-04T12:40:00Z", "source": "host skill metadata", "phases": {"implementation-planning": "vibe-planning", "commit-execution": "vibe-commit", "review": null}},
-  "events": [{"kind": "approval", "source": "user-turn", "at": "2026-09-04T12:58:40Z", "artifact": {"path": "/home/user/repo/docs/specs/2026-09-04-x-spec.md", "sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"}, "note": "spec approved in the user's own words"}]
+  "events": [{"kind": "approval", "source": "user-turn", "at": "2026-09-04T12:58:40Z", "artifact": {"path": "/home/user/repo/docs/specs/2026-09-04-x-spec.md", "sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"}, "status": "current", "note": "spec approved in the user's own words"}]
 }
 """
 
@@ -65,6 +66,8 @@ ALL_STATUSES = ("active", "completed", "cancelled", "superseded")
 ALL_EFFECT_MODES = ("read-only", "artifact-only", "state-changing", "none")
 ALL_EVENT_KINDS = ("approval", "proceed", "handoff", "commit-selection", "confirmation")
 ALL_EVENT_SOURCES = ("user-turn", "bound-plan-item", "specialist-checkpoint", "agent-proposed")
+ALL_EVENT_STATUSES = ("current", "superseded")
+STALE_SHA = "0" * 64
 REQUIRED_KEYS = (
     "schema_version",
     "record_id",
@@ -156,11 +159,13 @@ class VibeSessionRecordTests(unittest.TestCase):
         record.update(changes)
         return record
 
-    def record_with_event(self, kind, artifact="match", source="user-turn"):
+    def record_with_event(self, kind, artifact="match", source="user-turn", status="current"):
         record = example_record()
         if artifact == "match":
             artifact = {"path": SPEC_PATH, "sha256": SPEC_SHA}
-        record["events"] = [{"kind": kind, "source": source, "at": "2026-09-04T12:58:40Z", "artifact": artifact, "note": "n"}]
+        record["events"] = [
+            {"kind": kind, "source": source, "at": "2026-09-04T12:58:40Z", "artifact": artifact, "status": status, "note": "n"}
+        ]
         return record
 
     def bound_temp_artifact(self, content=b"the bound spec bytes\n", name="spec.md"):
@@ -173,7 +178,7 @@ class VibeSessionRecordTests(unittest.TestCase):
         record = self.variant(
             artifact_paths=[path],
             artifact_identity=[{"path": path, "sha256": digest, "refreshed_at": "2026-09-04T13:02:11Z"}],
-            events=[{"kind": "approval", "source": "user-turn", "at": "2026-09-04T12:58:40Z", "artifact": {"path": path, "sha256": digest}, "note": "ok"}],
+            events=[{"kind": "approval", "source": "user-turn", "at": "2026-09-04T12:58:40Z", "artifact": {"path": path, "sha256": digest}, "status": "current", "note": "ok"}],
         )
         record.update(changes)
         return record
@@ -209,7 +214,7 @@ class VibeSessionRecordTests(unittest.TestCase):
             effect_mode="none",
             artifact_paths=[],
             artifact_identity=[],
-            events=[{"kind": "confirmation", "source": "user-turn", "at": "2026-09-04T12:58:40Z", "artifact": None, "note": "chat-only"}],
+            events=[{"kind": "confirmation", "source": "user-turn", "at": "2026-09-04T12:58:40Z", "artifact": None, "status": "current", "note": "chat-only"}],
         )
         result = self.run_check(self.write_record(record), expect=0)
         self.assert_outcome(result, "accept")
@@ -283,6 +288,7 @@ class VibeSessionRecordTests(unittest.TestCase):
         self.assertEqual(module.EFFECT_MODES, ALL_EFFECT_MODES)
         self.assertEqual(module.EVENT_KINDS, ALL_EVENT_KINDS)
         self.assertEqual(module.EVENT_SOURCES, ALL_EVENT_SOURCES)
+        self.assertEqual(module.EVENT_STATUSES, ALL_EVENT_STATUSES)
         self.assertEqual(module.REQUIRED_KEYS, REQUIRED_KEYS)
 
     def test_reject_invalid_enum_values(self):
@@ -583,6 +589,54 @@ class VibeSessionRecordTests(unittest.TestCase):
         record = self.record_with_event("cheer")
         result = self.run_check(self.write_record(record), expect=2)
         self.assertIn("reject: enum: events[0].kind must be one of", result.stdout)
+
+    # --- event status lifecycle -----------------------------------------------
+
+    def test_accept_superseded_event_with_stale_digest(self):
+        record = example_record()
+        record["events"].append(
+            {"kind": "approval", "source": "user-turn", "at": "2026-09-04T12:00:00Z", "artifact": {"path": SPEC_PATH, "sha256": STALE_SHA}, "status": "superseded", "note": "before the last refresh"}
+        )
+        result = self.run_check(self.write_record(record), expect=0)
+        self.assert_outcome(result, "accept")
+        self.assertNotIn("reject:", result.stdout)
+
+    def test_accept_superseded_confirmation_and_commit_selection_with_null_artifact(self):
+        for kind, source in (("confirmation", "user-turn"), ("commit-selection", "specialist-checkpoint")):
+            with self.subTest(kind=kind):
+                record = self.record_with_event(kind, artifact=None, source=source, status="superseded")
+                result = self.run_check(self.write_record(record), expect=0)
+                self.assert_outcome(result, "accept")
+
+    def test_reject_superseded_event_with_current_digest(self):
+        for kind in ("approval", "proceed", "handoff"):
+            with self.subTest(kind=kind):
+                record = self.record_with_event(kind, status="superseded")
+                result = self.run_check(self.write_record(record), expect=2)
+                self.assertIn(f'reject: event-status: events[0] is superseded but its artifact ("{SPEC_PATH}", {SPEC_SHA[:12]}...) matches a current artifact_identity entry', result.stdout)
+
+    def test_reject_current_event_with_stale_digest(self):
+        for kind in ("approval", "proceed", "handoff"):
+            with self.subTest(kind=kind):
+                record = self.record_with_event(kind, artifact={"path": SPEC_PATH, "sha256": STALE_SHA}, status="current")
+                result = self.run_check(self.write_record(record), expect=2)
+                self.assertIn("reject: event-artifact: events[0].artifact", result.stdout)
+                self.assertIn("matches no current artifact_identity entry", result.stdout)
+
+    def test_reject_superseded_event_with_null_artifact_for_bound_kinds(self):
+        result = self.run_check(self.write_record(self.record_with_event("approval", artifact=None, status="superseded")), expect=2)
+        self.assertIn("reject: event-artifact: events[0].artifact is null for a approval event", result.stdout)
+
+    def test_reject_event_with_missing_status(self):
+        record = example_record()
+        del record["events"][0]["status"]
+        result = self.run_check(self.write_record(record), expect=2)
+        self.assertIn("reject: missing-key: required key events[0].status is absent", result.stdout)
+
+    def test_reject_event_with_invalid_status(self):
+        record = self.record_with_event("approval", status="stale")
+        result = self.run_check(self.write_record(record), expect=2)
+        self.assertIn('reject: enum: events[0].status must be one of current, superseded; got "stale"', result.stdout)
 
     def test_reject_dominates_flag(self):
         record = self.variant(status="open")
