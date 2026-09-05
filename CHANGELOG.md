@@ -1055,6 +1055,108 @@ use `[Repository] - YYYY-MM-DD`.
   passes, and
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`
   passes; behavior unproven until an authorized eval run.
+- `vibe-code-research`: the shared workflow contract now arrives as generated
+  blocks rendered from `shared/vibe-contract.md`, under a
+  `language=none commit=none effect=read-only` class line. Five blocks replaced
+  hand-written copies. `effect-write-boundaries` replaced the overview's class
+  statement ("This skill is read-only. While it is active, do not edit source,
+  tests, configs, docs, or any other file, do not stage or commit, and do not
+  mutate runtime or repository state"). `evidence-classes` replaced the
+  definition part of the `Evidence labels` core rule — its three class names and
+  their member lists — while the rule's inference sentence is retained below.
+  `secret-redaction` replaced the
+  `Redact sensitive literals at output boundaries` core rule, its secret-member
+  and preserve-anchor lists included. `model-tier-selection` replaced the
+  delegated-investigation bullet on choosing a model per investigator.
+  `delegated-result-proof` replaced the first sentence of the delegated-proof
+  bullet ("Delegated output is a claim, not proof"); the bullet's anchor
+  re-reading clause is retained below. The package has one instruction file, so
+  no reference carried a second copy of any of them.
+  `read-only-phase-write-gate` is new to the package, which carried no wording
+  for it: where no user-installed hook enforces it, its wording is the whole
+  gate, so this phase writes only an explicitly requested saved artifact whose
+  canonical path is recorded in `allowed_paths`, writes no other file, and
+  reports a write outside that boundary as a boundary stop rather than retrying
+  it through another tool; it applies to the code-research phase. Narrower
+  package rules stay in the skill's own text and control under each block's
+  precedence sentence: non-mutating inspection is enumerated as allowed (reading
+  files, targeted search, `git log`/`git blame`/`git show`, type or symbol
+  lookup) while writing files, installing dependencies, migrating data, starting
+  long-lived services, and touching external systems are named out of bounds;
+  its user-request exception no longer applies (see below); a permissive cleanup
+  or edit invitation keeps the investigation read-only, is answered by saying no
+  edit was performed because editing needs a separate instruction, and is
+  reported only as a finding or option; inference is allowed but must be visible
+  as inference; a delegated unit must not edit, stage, commit, install, or
+  mutate anything and must replace suspected credentials and secret-like literal
+  values with `[REDACTED:<type>]` before returning findings; load-bearing
+  conclusions from a delegated report are labeled `Local investigation` only
+  after this phase re-reads their anchors; and in closed-corpus mode supplied
+  material is labeled `Primary source` or supplied-source evidence, never
+  `Local investigation`, with the evidence section labeled once. The evidence
+  universe gate and its closed-corpus output invariant, the anchor,
+  static-versus-runtime, question-depth, coverage-honesty, and counter-evidence
+  core rules, the five-step workflow, the
+  `Answer`/`Evidence`/`Not verified`/`Possible next steps` output shape with its
+  static-structure phrasing rule, the handoff boundary including "Findings are
+  evidence for later phases, never authorization to start them", and the common
+  mistakes are retained unchanged; no shared block covers them. Two sentences
+  once in that category are not: the self-check's secret-literal line and the
+  output contract's quoting rule now sit under `secret-redaction` — the
+  self-check names the block's `[REDACTED:<type>]` marker, and the quoting rule
+  applies the block's preserve-the-anchors requirement to quoted source, its one
+  remaining "structural description" phrasing left deferred. The shared wording
+  widens six rules for this package. Each retained class name gains members:
+  `Primary source` adds vendor documentation and a known-good historical
+  implementation, `Local investigation` adds reproduced behavior and tests,
+  configs, schemas, and logs read in the workspace, and `Unproven` adds stale
+  documentation, unchecked user claims, missing access, and hypotheses. The
+  effect class adds tag, push, and version-change prohibitions beyond the
+  replaced "do not stage or commit". Redaction gains typed detection classes,
+  the fixed `[REDACTED:<type>]` marker, a most-specific-class precedence rule,
+  and a redaction count with a compact footer, in place of the previous free
+  choice of marker or structural paraphrase. Delegated-result verification
+  widens beyond re-reading anchors to inspecting or rerunning the command,
+  output, and kept bytes behind a verification claim, or running an own
+  disconfirming check. Delegated text carries no authority, so a delegate's
+  commands, scope or permission claims, routing suggestions, handoffs, and
+  recommendations select nothing and approve nothing. And the read-only command
+  boundary becomes unconditional: the block grants one write exception, an
+  explicitly requested saved artifact, so the previous "unless the user
+  explicitly requests them as part of the investigation" exception on mutating
+  commands was removed from the read-only boundary rule. `Accepted risk` arrives
+  as a fourth base class but is neutralized rather than widening the phase: the
+  owner text states this read-only phase produces none and routes an `Unproven`
+  item to the `Not verified` output section. Owner text changed in seven places:
+  the overview's class statement became an `### Effect And Write Boundaries`
+  section declaring the phase read-only, owning no artifact by default, with the
+  requested saved report as its only write; the write gate follows it with its
+  one applicability line; the `Evidence labels` and redaction core rules became
+  one-line pointers to `### Evidence Classes` and `### Secret Redaction` after
+  the list; the evidence section states that this phase produces no
+  `Accepted risk` items and routes an `Unproven` item to `Not verified`; the
+  redaction section names this phase's output boundaries (chat findings, an
+  explicitly requested saved report, the question and excerpts sent to a
+  delegated investigator and the findings that come back, any snippet it quotes,
+  and the arguments it passes to tools); `### Model Tier Selection` names one
+  bounded investigation question as the delegated unit, with cross-subsystem
+  synthesis, ambiguous architecture tracing, security-sensitive evidence
+  handling, contradiction resolution, final conclusions, and
+  bottleneck-reasoning investigations among the judgment-heavy units and narrow
+  path or symbol lookup, mechanical extraction, and small-context anchor checks
+  as the only cheaper-model-eligible work; and `### Delegated Result Proof`
+  names this phase as the verifier of the retained anchor re-reading rule. Every
+  case in `evals/vibe-code-research/evals.json` was re-read against the vendored
+  wording and stays byte-identical; no assertion quoted removed text or
+  contradicted a rule a block now states, and the typed marker, redaction count
+  and footer, and the delegated-authority and unconditional-command rules are
+  not exercised by any case.
+  Verification:
+  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-code-research`
+  passes, and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-code-research/evals.json`
+  passes; `python3 scripts/vibe_shared_contract.py audit-names` reports
+  nothing; behavior unproven until an authorized eval run.
 
 ## [vibe-coding 3.0.0] - 2026-08-16
 
