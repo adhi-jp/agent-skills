@@ -570,6 +570,75 @@ use `[Repository] - YYYY-MM-DD`.
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`
   passes; `python3 scripts/vibe_shared_contract.py audit-names` reports
   nothing; behavior unproven until an authorized eval run.
+- `vibe-commit`: the shared workflow contract now arrives as generated blocks
+  rendered from `shared/vibe-contract.md`. `commit-selection-state-changing`
+  replaced the "Commit when asked; do not push" bullet and the selection clauses
+  of the "Accept scoped checkpoint handoffs" bullet — its bound-plan-item and
+  checkpoint-default sources and its edit-permission, unverified-unit, and
+  convenient-stopping-point exclusions (its closing sentence is retained below);
+  no reference file carried a second copy of either. `commit-selection-gate` is
+  new to the package, which carried no copy of it: a plain commit needs a
+  recorded selection source, and where no user-installed hook enforces the gate
+  its wording is the whole gate — a plain commit proceeds only when the workflow
+  can name the user request, bound plan item, or verified checkpoint it rests
+  on, and when no source can be named it does not commit and asks the user.
+  `history-mutation-gate` is newly vendored beside retained history wording: a
+  matched history mutation — an amend, rebase, filter rewrite, hard reset, push,
+  or scripted multi-commit replay — is never run silently, and where no hook
+  enforces the gate it stops and asks the user first with a reason that names
+  the matched operation and quotes the recorded phase and events.
+  `effect-write-boundaries` is newly vendored beside retained package wording
+  and declares the package's effect class for the first time: a state-changing
+  phase keeps its edits to the smallest verified unit of the scope its own text
+  declares, and paths outside that scope, pre-existing working-tree changes it
+  did not make, and runtime state beyond the scope stay unwritten unless the
+  current user selects them. Narrower package rules stay in the skill's own text
+  and control under each block's precedence sentence: every handoff still passes
+  the file-set, verification, message, and history-safety gates, and none of
+  them authorizes broad staging or empty commits; status, diff, path existence,
+  same-session creation, relevance, conventional placement, and commit
+  permission make a path a candidate but never authorize tracking, staging, or
+  commit membership, and a newly selected untracked artifact still needs
+  explicit tracking intent or a mandatory repository or owning-workflow
+  coupling; amend and rebase reach only commits that have not left this machine,
+  and a shared branch is never force-pushed without an explicit, informed
+  request; an ignored path is never force-added until the ignore rule and its
+  risk are surfaced and the user asks for the override, and scope is decided by
+  the user-visible change; versions, releases, and repository hooks are never
+  triggered as a byproduct of committing; and a scripted rewrite that drops
+  paths derives each step's target list from that commit's own tree and deletes
+  only after an explicit confirmed stop. The twelve-step commit workflow, the
+  narrower-request routing list, the message-transport and authorship-trailer
+  rules, the stored-artifact verification rule, and the `file-selection`,
+  `staging-and-recovery`, and `history-and-trailers` references are retained
+  unchanged; no shared block covers them. The shared wording widens these rules
+  for this package: the commit-execution phase executes the commits the three
+  selection sources select and has no checkpoint default of its own; and tags,
+  reset, stash, squash, destructive actions, including cleanup, and external
+  side effects join the operations that stay separately consent-bound even when
+  a checkpoint was selected. The set of things that never select a commit also
+  grows to include routing or invocation, the presence of tracked changes in the
+  working tree, and the availability of a commit-execution workflow. Owner text:
+  the safety boundary became five subsections — effect and write boundaries,
+  commit selection, the two gates, and history safety — so the blocks sit
+  outside list items and each gate section holds only its block and one
+  applicability line, with the retained rules kept as paragraphs; one added
+  sentence declares the scope this phase owns, the index and history of the
+  selected commit and the message it transports, with no source edits; another
+  names this workflow as that commit-execution phase, which keeps no checkpoint
+  default of its own and runs no `git push` unless the current user explicitly
+  asks; a third states that scoped checkpoint handoffs reach it as commit
+  requests for their named paths; the commit-selection gate carries one sentence
+  naming the plain commits it applies to and the history-mutation gate one
+  naming the phase it applies to; and the retained shared-history and
+  scripted-rewrite rules moved under a new `### History Safety` heading. Every
+  case in `evals/vibe-commit/evals.json` was re-read against the vendored
+  wording and stays byte-identical; no assertion quoted removed text or
+  contradicted a rule a block now states. Verification:
+  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-commit`
+  passes, and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`
+  passes; behavior unproven until an authorized eval run.
 
 ## [vibe-coding 3.0.0] - 2026-08-16
 
