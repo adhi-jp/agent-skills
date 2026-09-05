@@ -21,8 +21,8 @@ hand off findings.
 
 <!-- shared-contract:class language=none commit=none effect=read-only -->
 <!-- shared-contract:begin closing source=shared/vibe-contract.md -->
-Where a package declares a stricter or narrower rule in its own text, that declaration controls.
-A package may state which of its phases this gate applies to; it may not change the gate's inputs, outcomes, or fields.
+For every consolidation block this package carries, here and in its references: where this package declares a stricter or narrower rule in its own text, that declaration controls.
+For every gate and schema block this package carries, here and in its references: this package may state which of its phases the block applies to; it may not change the block's inputs, outcomes, or fields.
 <!-- shared-contract:end closing -->
 <!-- shared-contract:begin effect-write-boundaries source=shared/vibe-contract.md -->
 **Write nothing beyond what the phase's own effect class and its declared boundary permit.**
@@ -33,13 +33,17 @@ A package may state which of its phases this gate applies to; it may not change 
 - In a read-only phase, never stage, commit, tag, push, change versions, delete data, or start services.
 - In a read-only phase, write a file only when the current user explicitly asks for a saved artifact.
 - In an artifact-only phase, create or update the artifact it owns: the requirements spec, the plan, the plan-review state, the instruction files, or the text artifacts the request names.
-- In an artifact-only phase, write the supporting paths its own text declares: text it was asked to revise (comments, docstrings, docs), a confirmed bound-plan reflection, a previewed and user-confirmed ignore file, or a narrowly confirmed configuration edit its text names.
+- In an artifact-only phase, write the supporting paths its own text declares:
+  - the text it was asked to revise (comments, docstrings, docs);
+  - a confirmed reflection into the bound plan;
+  - an ignore file it previewed and the user confirmed;
+  - a narrowly confirmed configuration edit its text names.
 - In an artifact-only phase, leave those verified changes in the working tree.
 - In an artifact-only phase, never implement executable behavior, never edit application code or tests as implementation, never produce an artifact another phase owns, and never perform release work.
 - Never let an artifact-only phase's artifact authorize same-turn implementation.
 - In a state-changing phase, edit files and run commands inside the scope its own text declares — the unit it implements, the repair it proves, the fixes it applies, the round it integrates, or the commit it executes.
 - In a state-changing phase, keep its edits to the smallest verified unit of that scope.
-- Leave paths outside the scope, pre-existing working-tree changes the phase did not make, and runtime or external state beyond the scope unwritten unless the current user selects them.
+- In a state-changing phase, leave paths outside the scope, pre-existing working-tree changes the phase did not make, and runtime or external state beyond the scope unwritten unless the current user selects them.
 - Keep every irreversible or outward-facing operation under its own consent.
 <!-- shared-contract:end effect-write-boundaries -->
 
@@ -54,20 +58,21 @@ Findings are evidence for later phases, never authorization to start them.
 <!-- shared-contract:begin read-only-phase-write-gate source=shared/vibe-contract.md -->
 **Never write a path your phase's effect class and recorded `allowed_paths` do not permit.**
 
-- With no user-installed hook enforcing this gate, this wording is the whole gate: refuse the write in the phase itself.
+- With no user-installed hook enforcing this gate, this wording is the whole gate.
 - Count as a write any file-edit or file-write tool call, and any shell command that writes a path — redirection, `sed -i`, `tee`, a heredoc, `mv`, `cp`, `rm`, `git checkout --`.
 - In a read-only phase, write only an explicitly requested saved artifact whose canonical path is recorded in `allowed_paths`; otherwise write no file.
 - In an artifact-only phase, write only the artifact it owns, the supporting paths its own text declares, and the scratch root recorded for the unit.
 - Refuse a write outside that boundary in the phase itself and report it as a boundary stop.
-- Report a denied write verbatim; never retry it through another tool.
-- Return `deny` only for a fresh, valid, session-bound `read-only` or `artifact-only` record whose canonical target lies outside every `allowed_paths` entry and recorded directory; name the path, quote `phase`, `effect_mode`, `allowed_paths`.
+- Report a denied write verbatim as a boundary stop; never retry it through another tool.
+- Return `deny` only for a fresh, valid, session-bound `read-only` or `artifact-only` record whose canonical target lies outside every `allowed_paths` entry and recorded directory.
+- Name the target path in that reason and quote the recorded `phase`, `effect_mode`, and `allowed_paths`.
 - Return `allow` in every other case: a target inside `allowed_paths`, an `effect_mode` of `state-changing` or `none`, or a record absent, malformed, stale, foreign, session-unbound, conflicting, or identity-mismatched.
 - Never return `ask` from this gate.
 - Never let an invalid record state produce `deny`, so the refusal never rests on unverified host behavior.
 
-Example: in an artifact-only planning phase `allowed_paths` is the plan file plus the unit's scratch root; editing application code is outside that boundary.
+Example: in an artifact-only phase whose `allowed_paths` holds only the artifact it owns, a write to that artifact is inside the boundary; a write to a source file is outside it, and with a fresh, valid, session-bound record the gate returns `deny`.
 
-Exception: the router writing its own session record — `.plans/vibe-sessions/<record_id>.json` or its rename temp file — is `allow` regardless of `effect_mode` and is not a phase write; no other path there is, and `allowed_paths` does not widen.
+Exception: writing the router's own record — `.plans/vibe-sessions/<record_id>.json` or its rename temp file — is `allow` at any `effect_mode`, not a phase write; judge every other path there like any other path, and `allowed_paths` does not widen.
 <!-- shared-contract:end read-only-phase-write-gate -->
 
 This gate applies to the code-research phase.
@@ -187,12 +192,12 @@ sandbox location.
 <!-- shared-contract:begin evidence-classes source=shared/vibe-contract.md -->
 **Label every load-bearing claim with one of the four shared base evidence classes.**
 
-- Label a claim wherever it is load-bearing: where it affects scope, feasibility, behavior, verification, risk, implementation order, commit authorization, or whether work may proceed.
+- Label a claim with its class wherever it is load-bearing: where it affects scope, feasibility, behavior, verification, risk, implementation order, commit authorization, or whether work may proceed.
 - `Primary source`: official documentation, an authoritative specification, upstream source, vendor documentation, user-provided source material, or a known-good historical implementation.
 - `Local investigation`: repository inspection, non-mutating command output, reproduced behavior, or existing tests, configs, schemas, and logs read in the current workspace.
 - `Unproven`: memory, inference, secondhand claims or summaries, stale documentation, unchecked user claims, training-data recall, missing access, or hypotheses.
 - `Accepted risk`: an `Unproven` item the user explicitly chose to proceed with after its impact was explained, or that the bound plan already records as accepted for the active request, with its impact and revisit trigger preserved.
-- Extend this set only by a package's own declaration of a disjoint extension or a freshness qualifier.
+- Extend this set only by a package's declaration, in its own text, of a disjoint extension or a freshness qualifier.
 - Never let such a declaration rename or redefine a base class.
 - Read an execution phase's `Plan` class as authority by binding to the bound plan, and its `Local evidence` label as an execution-freshness label; neither is a rename or a redefinition of a base class.
 <!-- shared-contract:end evidence-classes -->
@@ -210,12 +215,12 @@ reported under `Not verified` rather than accepted.
 - Count as an output boundary rendering, persistence, forwarding to another agent or backend, ledger projection, quoted snippets, summaries, and tool arguments.
 - Never let a requirement to read, quote, preserve, summarize, or reflect content authorize reproducing the value.
 - Detect these classes:
-- `apikey`: known-prefix API keys and access tokens.
-- `jwt`: three-part JWT-like tokens.
-- `private-key`: PEM private-key headers and matching footers.
-- `url-auth`: credentials embedded in `http` or `https` URLs.
-- `secret-context`: high-entropy text co-occurring with key, token, secret, password, api key, bearer, or session-secret context.
-- `env-secret`: env-style assignment names ending in key, token, secret, password, or pwd.
+  - `apikey`: known-prefix API keys and access tokens.
+  - `jwt`: three-part JWT-like tokens.
+  - `private-key`: PEM private-key headers and matching footers.
+  - `url-auth`: credentials embedded in `http` or `https` URLs.
+  - `secret-context`: high-entropy text co-occurring with key, token, secret, password, api key, bearer, or session-secret context.
+  - `env-secret`: env-style assignment names ending in key, token, secret, password, or pwd.
 - Replace each match with `[REDACTED:<type>]`.
 - When one span matches several classes, let the most specific structural class win.
 - Give `env-secret` for a secret-named environment assignment and `apikey` for a recognized API-key prefix precedence over generic `secret-context`.

@@ -530,12 +530,12 @@ that never executes is a proof-sufficiency finding, not a product fix.
 - Count as an output boundary rendering, persistence, forwarding to another agent or backend, ledger projection, quoted snippets, summaries, and tool arguments.
 - Never let a requirement to read, quote, preserve, summarize, or reflect content authorize reproducing the value.
 - Detect these classes:
-- `apikey`: known-prefix API keys and access tokens.
-- `jwt`: three-part JWT-like tokens.
-- `private-key`: PEM private-key headers and matching footers.
-- `url-auth`: credentials embedded in `http` or `https` URLs.
-- `secret-context`: high-entropy text co-occurring with key, token, secret, password, api key, bearer, or session-secret context.
-- `env-secret`: env-style assignment names ending in key, token, secret, password, or pwd.
+  - `apikey`: known-prefix API keys and access tokens.
+  - `jwt`: three-part JWT-like tokens.
+  - `private-key`: PEM private-key headers and matching footers.
+  - `url-auth`: credentials embedded in `http` or `https` URLs.
+  - `secret-context`: high-entropy text co-occurring with key, token, secret, password, api key, bearer, or session-secret context.
+  - `env-secret`: env-style assignment names ending in key, token, secret, password, or pwd.
 - Replace each match with `[REDACTED:<type>]`.
 - When one span matches several classes, let the most specific structural class win.
 - Give `env-secret` for a secret-named environment assignment and `apikey` for a recognized API-key prefix precedence over generic `secret-context`.

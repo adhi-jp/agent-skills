@@ -12,19 +12,19 @@ The host file supplies the heading above each rendered copy and, immediately abo
 
 The headings between the blocks below belong to this file, not to the blocks.
 
-`## Appendix: hook and record contract`, after the last block, carries the material a package never needs at an action moment: each gate's observable input, the mechanics of the control-plane exception, the record-state matrix every gate answers from, and the session record's field table, full write procedure, and complete example. It is written for whoever implements a hook, the checker, or this contract itself, and it is read here. No block cites it, no package renders it, and it adds no citable path: `shared/vibe-contract.md` remains the only one.
+`## Appendix: hook and record contract`, after the last block, carries the material a package never needs at an action moment — each gate's observable input, the mechanics of the control-plane exception, and the record-state matrix every gate answers from — together with the session record's field table, full write procedure, and complete example, which the router reads before the first write of a record. It is written for whoever implements a hook, the checker, or this contract itself, and it is read here. Only the session-record schema block cites it, no package renders it, and it adds no citable path: `shared/vibe-contract.md` remains the only one.
 
 ## Evidence classes
 
 <!-- shared-contract:block evidence-classes dependents=vibe-code-research,vibe-plan-execution,vibe-planning -->
 **Label every load-bearing claim with one of the four shared base evidence classes.**
 
-- Label a claim wherever it is load-bearing: where it affects scope, feasibility, behavior, verification, risk, implementation order, commit authorization, or whether work may proceed.
+- Label a claim with its class wherever it is load-bearing: where it affects scope, feasibility, behavior, verification, risk, implementation order, commit authorization, or whether work may proceed.
 - `Primary source`: official documentation, an authoritative specification, upstream source, vendor documentation, user-provided source material, or a known-good historical implementation.
 - `Local investigation`: repository inspection, non-mutating command output, reproduced behavior, or existing tests, configs, schemas, and logs read in the current workspace.
 - `Unproven`: memory, inference, secondhand claims or summaries, stale documentation, unchecked user claims, training-data recall, missing access, or hypotheses.
 - `Accepted risk`: an `Unproven` item the user explicitly chose to proceed with after its impact was explained, or that the bound plan already records as accepted for the active request, with its impact and revisit trigger preserved.
-- Extend this set only by a package's own declaration of a disjoint extension or a freshness qualifier.
+- Extend this set only by a package's declaration, in its own text, of a disjoint extension or a freshness qualifier.
 - Never let such a declaration rename or redefine a base class.
 - Read an execution phase's `Plan` class as authority by binding to the bound plan, and its `Local evidence` label as an execution-freshness label; neither is a rename or a redefinition of a base class.
 <!-- shared-contract:endblock evidence-classes -->
@@ -34,7 +34,7 @@ The headings between the blocks below belong to this file, not to the blocks.
 <!-- shared-contract:block accepted-risk-semantics dependents=vibe-plan-execution,vibe-planning -->
 **Only `Accepted risk` lets an `Unproven` item support work that depends on it.**
 
-- Accept a risk only on the human user's explicit choice to proceed after its impact was explained, or on the bound plan's already-recorded acceptance for the active request.
+- Label an item `Accepted risk` only on the human user's explicit choice to proceed after its impact was explained, or on the bound plan's already-recorded acceptance for the active request.
 - Never let a proxy decision, an AI-selected default, or a risk judged low make the acceptance.
 - Record the exact assumption, who accepted it and why, the impact area (feasibility, behavior, data, integration, performance, security, UX, cost, or schedule), the fastest proof path, and the revisit trigger.
 - Tie the acceptance to the conditional step, deferred decision, or follow-up it affects.
@@ -109,13 +109,17 @@ The headings between the blocks below belong to this file, not to the blocks.
 - In a read-only phase, never stage, commit, tag, push, change versions, delete data, or start services.
 - In a read-only phase, write a file only when the current user explicitly asks for a saved artifact.
 - In an artifact-only phase, create or update the artifact it owns: the requirements spec, the plan, the plan-review state, the instruction files, or the text artifacts the request names.
-- In an artifact-only phase, write the supporting paths its own text declares: text it was asked to revise (comments, docstrings, docs), a confirmed bound-plan reflection, a previewed and user-confirmed ignore file, or a narrowly confirmed configuration edit its text names.
+- In an artifact-only phase, write the supporting paths its own text declares:
+  - the text it was asked to revise (comments, docstrings, docs);
+  - a confirmed reflection into the bound plan;
+  - an ignore file it previewed and the user confirmed;
+  - a narrowly confirmed configuration edit its text names.
 - In an artifact-only phase, leave those verified changes in the working tree.
 - In an artifact-only phase, never implement executable behavior, never edit application code or tests as implementation, never produce an artifact another phase owns, and never perform release work.
 - Never let an artifact-only phase's artifact authorize same-turn implementation.
 - In a state-changing phase, edit files and run commands inside the scope its own text declares — the unit it implements, the repair it proves, the fixes it applies, the round it integrates, or the commit it executes.
 - In a state-changing phase, keep its edits to the smallest verified unit of that scope.
-- Leave paths outside the scope, pre-existing working-tree changes the phase did not make, and runtime or external state beyond the scope unwritten unless the current user selects them.
+- In a state-changing phase, leave paths outside the scope, pre-existing working-tree changes the phase did not make, and runtime or external state beyond the scope unwritten unless the current user selects them.
 - Keep every irreversible or outward-facing operation under its own consent.
 <!-- shared-contract:endblock effect-write-boundaries -->
 
@@ -132,7 +136,7 @@ The headings between the blocks below belong to this file, not to the blocks.
 - Commit that unit without waiting for a separate commit instruction.
 - Never let a multi-unit run accumulate as one undifferentiated working tree.
 - When the default is suspended, leave the verified changes in the working tree and report the reason.
-- Reach only local commits of the unit's own verified changes.
+- Let the checkpoint default reach only local commits of the unit's own verified changes.
 - Select no commit from discovery-only, blocked, unchanged, failing, unverified, or work-in-progress state.
 - Never widen the staged set beyond the verified unit.
 - Exclude pre-existing working-tree changes the workflow did not make, an artifact whose tracked status would itself be new, and paths outside the unit.
@@ -144,7 +148,7 @@ The headings between the blocks below belong to this file, not to the blocks.
 - Keep push, release preparation, version changes, tags, amend, rebase, reset, stash, squash, destructive actions including cleanup, force-adds, tracking a newly created artifact, external side effects, and unrelated or ambiguous paths separately consent-bound even when a checkpoint was selected.
 - Never let a route, checkpoint, or handoff implicitly authorize them.
 
-Example: name the source as the current user's request in this turn, as the bound plan item that requires the checkpoint, or as the workflow's own checkpoint of the unit it just verified.
+Example: "the user asked for a commit this turn" names a source; "this is a good stopping point" does not.
 
 Exception: a current no-commit instruction, a bound plan that forbids commits, or project policy against commits suspends the checkpoint default.
 <!-- shared-contract:endblock commit-selection-state-changing -->
@@ -230,12 +234,12 @@ Exception: a current no-commit instruction, a bound plan that forbids commits, o
 - Count as an output boundary rendering, persistence, forwarding to another agent or backend, ledger projection, quoted snippets, summaries, and tool arguments.
 - Never let a requirement to read, quote, preserve, summarize, or reflect content authorize reproducing the value.
 - Detect these classes:
-- `apikey`: known-prefix API keys and access tokens.
-- `jwt`: three-part JWT-like tokens.
-- `private-key`: PEM private-key headers and matching footers.
-- `url-auth`: credentials embedded in `http` or `https` URLs.
-- `secret-context`: high-entropy text co-occurring with key, token, secret, password, api key, bearer, or session-secret context.
-- `env-secret`: env-style assignment names ending in key, token, secret, password, or pwd.
+  - `apikey`: known-prefix API keys and access tokens.
+  - `jwt`: three-part JWT-like tokens.
+  - `private-key`: PEM private-key headers and matching footers.
+  - `url-auth`: credentials embedded in `http` or `https` URLs.
+  - `secret-context`: high-entropy text co-occurring with key, token, secret, password, api key, bearer, or session-secret context.
+  - `env-secret`: env-style assignment names ending in key, token, secret, password, or pwd.
 - Replace each match with `[REDACTED:<type>]`.
 - When one span matches several classes, let the most specific structural class win.
 - Give `env-secret` for a secret-named environment assignment and `apikey` for a recognized API-key prefix precedence over generic `secret-context`.
@@ -252,7 +256,8 @@ Exception: a current no-commit instruction, a bound plan that forbids commits, o
 - Before running a matched command, stop and ask the user with that reason, and proceed only on the user's answer.
 - Match `git commit --amend`, `git rebase`, `git filter-branch` or another `filter-*` rewrite, `git reset --hard`, `git push`, or a scripted or looped replay that rewrites more than one commit.
 - Return `allow` when the command is not a history mutation.
-- Return `ask` for every matched history mutation; name the matched operation and quote `phase`, `effect_mode`, and the `kind` and `source` of every recorded event bearing on it.
+- Return `ask` for every matched history mutation, naming the matched operation.
+- Quote from the session record under `.plans/vibe-sessions/` the recorded `phase`, `effect_mode`, and the `kind` and `source` of every recorded event bearing on it.
 - Or state that the record is absent, malformed, stale, foreign, session-unbound, or conflicting, or that no such event is recorded.
 - Never return `deny` from this gate.
 - Never allow a matched history mutation silently, whatever the record says: surface the recorded values at the prompt so a self-attested record is caught there rather than trusted.
@@ -271,11 +276,12 @@ Exception: a plain `git commit` belongs to the commit-selection gate, not this o
 - With no user-installed hook enforcing this gate, this wording is the whole gate: apply it yourself before the command runs.
 - Name one recorded source before committing: the current user's request (`user-turn`), the bound plan item (`bound-plan-item`), or the workflow's own checkpoint of a verified unit (`specialist-checkpoint`).
 - Treat `agent-proposed` as a recorded proposal, never a selection.
-- When the workflow is router-bound, record that source as a `commit-selection` event before the command runs.
+- When the workflow is router-bound, have the router record that source as a `commit-selection` event before the command runs.
 - For a standalone commit with no router active, name the direct current-user request or the verified checkpoint handoff and follow the phase's ordinary confirmation policy.
 - When no source can be named, do not commit; ask the user whether a commit is wanted.
 - Return `allow` when the command is not a commit.
-- Return `ask` on every plain commit; quote `phase` and the latest `commit-selection` event's `source`, `at`, `note`, or state the record absent, malformed, stale, foreign, session-unbound, conflicting, or missing that event.
+- Return `ask` on every plain commit, quoting from the session record under `.plans/vibe-sessions/` the recorded `phase` and the most recent recorded `commit-selection` event's `source`, `at`, and `note`.
+- Or state that no `commit-selection` event is recorded, or that the record is absent, malformed, stale, foreign, session-unbound, or conflicting.
 - Never return `deny` from this gate.
 - Never allow a plain commit silently: surface the recorded `source` at the prompt so a self-attested selection is caught there.
 - Answer `ask`, never `deny`, for a record in any invalid state.
@@ -288,20 +294,21 @@ Exception: an amend or other history rewrite belongs to the history-mutation gat
 <!-- shared-contract:block read-only-phase-write-gate dependents=vibe-agent-instructions,vibe-brainstorm,vibe-code-research,vibe-coding,vibe-goal-alignment,vibe-plan-review,vibe-planning,vibe-requirements-spec,vibe-writing -->
 **Never write a path your phase's effect class and recorded `allowed_paths` do not permit.**
 
-- With no user-installed hook enforcing this gate, this wording is the whole gate: refuse the write in the phase itself.
+- With no user-installed hook enforcing this gate, this wording is the whole gate.
 - Count as a write any file-edit or file-write tool call, and any shell command that writes a path — redirection, `sed -i`, `tee`, a heredoc, `mv`, `cp`, `rm`, `git checkout --`.
 - In a read-only phase, write only an explicitly requested saved artifact whose canonical path is recorded in `allowed_paths`; otherwise write no file.
 - In an artifact-only phase, write only the artifact it owns, the supporting paths its own text declares, and the scratch root recorded for the unit.
 - Refuse a write outside that boundary in the phase itself and report it as a boundary stop.
-- Report a denied write verbatim; never retry it through another tool.
-- Return `deny` only for a fresh, valid, session-bound `read-only` or `artifact-only` record whose canonical target lies outside every `allowed_paths` entry and recorded directory; name the path, quote `phase`, `effect_mode`, `allowed_paths`.
+- Report a denied write verbatim as a boundary stop; never retry it through another tool.
+- Return `deny` only for a fresh, valid, session-bound `read-only` or `artifact-only` record whose canonical target lies outside every `allowed_paths` entry and recorded directory.
+- Name the target path in that reason and quote the recorded `phase`, `effect_mode`, and `allowed_paths`.
 - Return `allow` in every other case: a target inside `allowed_paths`, an `effect_mode` of `state-changing` or `none`, or a record absent, malformed, stale, foreign, session-unbound, conflicting, or identity-mismatched.
 - Never return `ask` from this gate.
 - Never let an invalid record state produce `deny`, so the refusal never rests on unverified host behavior.
 
-Example: in an artifact-only planning phase `allowed_paths` is the plan file plus the unit's scratch root; editing application code is outside that boundary.
+Example: in an artifact-only phase whose `allowed_paths` holds only the artifact it owns, a write to that artifact is inside the boundary; a write to a source file is outside it, and with a fresh, valid, session-bound record the gate returns `deny`.
 
-Exception: the router writing its own session record — `.plans/vibe-sessions/<record_id>.json` or its rename temp file — is `allow` regardless of `effect_mode` and is not a phase write; no other path there is, and `allowed_paths` does not widen.
+Exception: writing the router's own record — `.plans/vibe-sessions/<record_id>.json` or its rename temp file — is `allow` at any `effect_mode`, not a phase write; judge every other path there like any other path, and `allowed_paths` does not widen.
 <!-- shared-contract:endblock read-only-phase-write-gate -->
 
 ## Session-record schema
@@ -309,35 +316,42 @@ Exception: the router writing its own session record — `.plans/vibe-sessions/<
 <!-- shared-contract:block session-record-schema dependents=vibe-coding -->
 **Write the session record at every route decision as routing state, never as authority.**
 
+- Before the first write of a record, read the field table and write procedure in the appendix of `shared/vibe-contract.md`.
 - Keep one JSON file per workflow and worktree at `.plans/vibe-sessions/<record_id>.json` under the repository root; never commit it.
-- Leave approvals, proceed decisions, and stop boundaries in the conversation; an event counts only for its enumerated `source` and while `status` is `current`.
-- Record the active phase's effect class as `effect_mode` and its declared write boundary as `allowed_paths`, narrower where the phase declares one.
+- Leave approvals, proceed decisions, and stop boundaries in the conversation; a recorded event counts only for its enumerated `source` and only while its `status` is `current`.
+- Write `schema_version` as the string `"1"`.
+- Set `lease.owner` equal to `workflow_id`.
+- Record the active phase's effect class as `effect_mode` and its declared write boundary as `allowed_paths`.
+- Record as `allowed_paths` the narrower boundary when a phase's own text declares one tighter than its class.
 - Fill `goal`, `phase`, `artifact_paths`, `pending_decision`, `blocker`, and `next_route` at every write.
-- Compare the stored `generation` with the last you wrote — one you did not produce is `conflicting` — then increment it.
-- Write the whole record to `<record_id>.tmp` beside it and rename that over the record; no reader sees a partial file.
+- Compare the stored `generation` with the last value you wrote — one you did not produce is a conflicting record — then increment it.
+- Write the whole record to `<record_id>.tmp` beside it and rename that over the record, so a reader sees the previous record or the new one, never a partial file.
 - Never treat the router's own record write as a gated write.
 - Renew the lease on every write, immediately before any gated action, and at every phase boundary.
-- Write `artifact_paths[]`, `artifact_identity[].path`, `events[].artifact.path`, and `allowed_paths[]` as canonical absolute paths — lexically normalized, no `.` or `..` segment, no trailing separator — converting repository-relative values first.
-- Refresh a bound artifact's `artifact_identity` digest and `refreshed_at` after any router or specialist write.
-- Report a digest no longer matching the opened artifact as a blocker; never reconcile it silently.
-- Supersede a stale-digest `approval`, `proceed`, or `handoff` event in place; never delete it and never rewrite it to the new digest.
-- Select the record on a continuation turn:
-  - scan every `*.json` there, discarding and reporting malformed files;
-  - keep records `active`, unexpired, and of this worktree;
-  - prefer the one whose `host_session_id` matches the host's; a null one is session-unbound;
-  - treat more than one candidate as `conflicting`, route from conversation state, and answer every gate as for a conflicting record;
+- Write `artifact_paths[]`, `artifact_identity[].path`, `events[].artifact.path`, and `allowed_paths[]` as canonical absolute paths — lexically normalized, no `.` or `..` segment, no trailing separator — converting repository-relative paths read from conversation state first.
+- Refresh a bound artifact's `artifact_identity` digest and `refreshed_at` after any write the router or its routed specialist makes to it.
+- Report a recorded digest no longer matching the opened artifact as a blocker; never reconcile it silently.
+- When a digest refresh changes an artifact's digest, supersede in place every `approval`, `proceed`, or `handoff` event whose `artifact.sha256` no longer matches a current identity entry.
+- Never delete such an event and never rewrite it to the new digest.
+- Select the record on a continuation turn, before binding:
+  - scan every `*.json` in the directory, discarding and reporting malformed files;
+  - keep records that are `active`, unexpired, and belong to this worktree;
+  - when both the host's session id and a record's `host_session_id` are known, select the record whose `host_session_id` equals the current host session id;
+  - treat a record whose `host_session_id` is null as session-unbound;
+  - treat more than one remaining eligible candidate as `conflicting`, route from conversation state, and answer every gate as for a conflicting record;
   - rebind from the latest known artifact path when no valid record exists.
-- Mark the record `superseded` with `closed_at` and a new workflow id when the workflow is replaced, `cancelled` on cancellation, `completed` on completion.
+- Mark the old record `superseded` with `closed_at` set and create a new workflow id when the workflow is replaced; mark it `cancelled` on cancellation, `completed` on completion.
+- Set `closed_at` for every terminal status — `superseded`, `cancelled`, `completed`.
 - Leave the tombstoned file in place; roll back only by deleting it.
 - Treat a phase as binding-required once a bound artifact exists — always for `implementation-planning`, `plan-execution`, `plan-pre-check-walkthrough`, and for `requirements-specification` once the spec file exists.
 - Leave `artifact_identity` empty only in a no-file or pre-creation state.
-- Fill the capability map at the first availability check and reuse it for that workflow; invalidate it when visible specialist metadata changes or the workflow is replaced or cancelled.
+- Fill the capability map at a workflow's first availability check and reuse it for that workflow; invalidate it when visible specialist metadata changes or the workflow is replaced or cancelled.
 - Never write a secret-like literal into any field.
 <!-- shared-contract:endblock session-record-schema -->
 
 ## Appendix: hook and record contract
 
-This appendix is not a block. No package renders it and no block cites it; it is read here, in this file, by whoever implements a user-installed hook, `scripts/vibe_session_record.py`, or a change to the contract itself.
+This appendix is not a block. No package renders it, and only the session-record schema block cites it, sending the router here before the first write of a record; otherwise it is read here, in this file, by whoever implements a user-installed hook, `scripts/vibe_session_record.py`, or a change to the contract itself.
 
 ### Appendix G1 — commit-selection gate, hook contract
 
@@ -414,7 +428,7 @@ This schema is shared by the router as writer, by `scripts/vibe_session_record.p
 
 ### Appendix S2 — session record, write procedure as the checker and hook see it
 
-The `session-record-schema` block renders every step of this procedure that the router performs. This section keeps the procedure whole, in its original wording, because the checker validates against it and a hook reads records the router wrote under it; it also holds the steps no router acts on — creation defaults, the checker's own rejections, the definition of the no-file or pre-creation state, and the event-authority rules the block states as reading rules.
+The `session-record-schema` block renders the steps of this procedure the router performs at every write; the creation and event-status defaults below stay here. This section keeps the procedure whole, in its original wording, because the router reads it before the first write of a record, the checker validates against it, and a hook reads records the router wrote under it; it also holds what the checker and hook apply without the router — creation defaults, the checker's own rejections, the definition of the no-file or pre-creation state, and the event-authority rules the block states as reading rules.
 
 Write procedure, owned by the workflow router:
 

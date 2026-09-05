@@ -94,70 +94,89 @@ use `[Repository] - YYYY-MM-DD`.
   `tests/test_vibe_shared_contract.py` and `tests/test_vibe_session_record.py`
   cover both scripts; README gains the repository-map rows for the three files
   and a `Check Shared Contract Blocks` section. Session-record events carry a
-  `status` (`current` or `superseded`; an approval, proceed, or handoff event
-  is superseded in place when a digest refresh invalidates its artifact
-  digest), and the router's write of its own record under
-  `.plans/vibe-sessions/` is exempt from the read-only-phase write gate.
-  `render --package <name>` fills only that package's marker pairs, so packages
-  can migrate side by side. A source block whose first non-empty line is a bold
-  lead (`**…**`) is in the scannable shape and is measured against the shape
-  caps — lead 25 words opening with an imperative, bullet 40 words (30 in a gate
-  block), two-space sub-bullet 30, one exception line after the bullets 35, any
-  prose paragraph 60, a gate block 260 words in total, a numbered item counted
+  `status` (`current` or `superseded`; an approval, proceed, or handoff event is
+  superseded in place when a digest refresh invalidates its artifact digest),
+  and the router's write of its own record under `.plans/vibe-sessions/` is
+  exempt from the read-only-phase write gate. `render --package <name>` fills
+  only that package's marker pairs, so packages can migrate side by side. A
+  source block whose first non-empty line is a bold lead (`**…**`) is in the
+  scannable shape and is measured against the shape caps — lead 25 words opening
+  with `Never`, `Only`, or a listed imperative verb, bullet 40 words (30 in a
+  gate block), two-space sub-bullet 30, one exception line after the bullets 35,
+  any prose paragraph 60, a gate block 260 words in total, a schema block 530
+  (its smallest lossless size plus a one-bullet margin), a numbered item counted
   as a bullet with its indented children as sub-bullets, and `Example:` lines
-  excluded from every count and allowed twice per block; `check` reports these
-  as warnings and `check --strict` as errors, while a block with no bold lead
-  keeps the legacy shape, is checked as before, and is reported only as a
-  non-strict `legacy-shape` warning. Once a scannable block drops its closing
-  boilerplate, the closing sentences are rendered once per package as a
-  `closing` block directly below the class line — the precedence sentence, plus
-  the applicability sentence for a package carrying a gate or schema block —
-  which `render` fills, `check --strict` requires exactly once per package, and
-  refuses while the source still closes every block. An appendix outside the
-  block markers, with its headings, tables, and fenced examples, is ignored
-  exactly as the preamble is. `measure` prints per-package entry-file lines and
-  words, in-block words, and reference words, then the four routed reading
-  tasks' line and word sums against the frozen baselines in
-  `shared/measure-manifest.json`; `measure --strict` exits 1 unless every task
-  is below its baseline words. Verification: unit tests pass;
-  `python3 scripts/vibe_shared_contract.py check --strict` still reports no
-  finding for all 14 packages; no skill contract changed yet.
+  excluded from every count and allowed once per block; `check` reports these as
+  warnings and `check --strict` as errors, while a block with no bold lead keeps
+  the legacy shape, is checked as before, and is reported only as a non-strict
+  `legacy-shape` warning. A block that stated a negative rule before the rewrite
+  must still open a lead, bullet, or sub-bullet with `Never` or `Only`, and
+  every `Appendix S<n>` or `Appendix G<n>` citation must resolve to its own
+  heading, and a block that sends the reader to the appendix needs the appendix
+  heading. Once a scannable block drops its closing boilerplate, the closing
+  sentences are rendered once per package as a `closing` block directly below
+  the class line — the precedence sentence, plus the applicability sentence for
+  a package carrying a gate or schema block, each sentence naming the blocks it
+  binds (every consolidation block, or every gate and schema block, the package
+  carries here and in its references), which `render` fills, `check --strict`
+  requires exactly once per package and reports inside any other generated
+  block, and both refuse while the source still closes every block. An appendix
+  outside the block markers, with its headings, tables, and fenced examples, is
+  excluded from rendering and from the block-shape checks exactly as the
+  preamble is, while its appendix citations are resolved source-wide. `measure`
+  prints per-package entry-file lines and words, in-block words, and reference
+  words, then the four routed reading tasks' line and word sums against the
+  frozen baselines in `shared/measure-manifest.json`; `measure --strict` exits 1
+  unless every task is below its baseline words. Verification: unit tests pass;
+  `python3 scripts/vibe_shared_contract.py check --strict` reports no finding
+  for all 14 packages after `render`; the contract wording changes are recorded
+  in their own entries.
 
 ### Changed
 
-- `shared/vibe-contract.md`: every block is rewritten in the scannable shape —
-  a bold imperative lead, one obligation per bullet, ordered lists kept
-  numbered, at most one exception line, and no closing sentence inside the
-  block — with a block-level obligation map showing no obligation dropped or
-  weakened, for all seventeen blocks: `evidence-classes`,
-  `accepted-risk-semantics`, `delegated-result-proof`,
-  `language-precedence-chat`, `language-precedence-document`,
-  `effect-write-boundaries`, `commit-selection-state-changing`,
-  `commit-selection-document-only`, `human-risk-decisions`,
-  `model-tier-selection`, `trusted-orchestration-evidence`,
-  `subagent-permission`, `secret-redaction`, `history-mutation-gate`,
-  `commit-selection-gate`, `read-only-phase-write-gate`, and
-  `session-record-schema`. The three gate blocks keep the whole agent-side gate
-  (trigger, the three outcomes, the fallback, and the six field names it needs)
-  and hand the hook contract — input-field enumerations, the record-state
-  matrix, the session-record field table, its write procedure, and the example
-  — to a new `## Appendix: hook and record contract` that is never rendered;
-  the router's record-writing procedure stays a rendered block. Two marked
-  `Example:` lines are added, naming the commit selection source and the
-  read-only write boundary. The precedence and applicability sentences now
-  render once per package as a `closing` block directly below the class line
-  instead of closing every block. Rendered copies changed in all fourteen
-  dependents: `vibe-agent-instructions`, `vibe-brainstorm`,
-  `vibe-code-research`, `vibe-coding`, `vibe-commit`, `vibe-debug`,
-  `vibe-goal-alignment`, `vibe-orchestrate`, `vibe-plan-execution`,
-  `vibe-plan-review`, `vibe-planning`, `vibe-requirements-spec`,
-  `vibe-review`, and `vibe-writing`. Rendered block text falls from 4,938 to
-  3,605 words at the source and by about 2,200 words across the copies, and
-  every routed reading task measures below its frozen baseline. Verification
-  — static: `python3 scripts/vibe_shared_contract.py check --strict` passes for
-  all fourteen packages, `python3 scripts/vibe_shared_contract.py measure`
-  reports every task below baseline, and every eval suite validates; behavior
-  unproven until an authorized eval run.
+- `shared/vibe-contract.md`: every block is rewritten in the scannable shape — a
+  bold imperative lead, one obligation per bullet, ordered lists kept numbered,
+  at most one exception line, and no closing sentence inside the block — with a
+  block-level obligation map showing no obligation dropped or weakened, for all
+  seventeen blocks: `evidence-classes`, `accepted-risk-semantics`,
+  `delegated-result-proof`, `language-precedence-chat`,
+  `language-precedence-document`, `effect-write-boundaries`,
+  `commit-selection-state-changing`, `commit-selection-document-only`,
+  `human-risk-decisions`, `model-tier-selection`,
+  `trusted-orchestration-evidence`, `subagent-permission`, `secret-redaction`,
+  `history-mutation-gate`, `commit-selection-gate`,
+  `read-only-phase-write-gate`, and `session-record-schema`. The three gate
+  blocks keep the whole agent-side gate (trigger, the three outcomes, the
+  fallback, and the six field names it needs) and hand the hook contract —
+  input-field enumerations, the record-state matrix, the session-record field
+  table, its write procedure, and the example — to a new
+  `## Appendix: hook and record contract` that is never rendered; the router's
+  record-writing rules stay a rendered block, which also tells the router to
+  read the appendix's field table and write procedure before the first write of
+  a record, to write `schema_version` as `"1"`, to set `lease.owner` to
+  `workflow_id` and `closed_at` for every terminal status, and to select the
+  record whose `host_session_id` equals the host's rather than prefer it. The
+  commit-selection and history-mutation gate blocks' quoting bullets name the
+  session record under `.plans/vibe-sessions/` as the source of the fields they
+  quote, and every `effect-write-boundaries` bullet names its effect class
+  except the declaration and consent rules, which bind every phase. Two marked
+  `Example:` lines are added, one contrasting a named commit-selection source
+  with a non-source and one showing a write inside and a write outside
+  `allowed_paths`. The precedence and applicability sentences now render once
+  per package as a `closing` block directly below the class line instead of
+  closing every block, each sentence naming the blocks it binds. Rendered copies
+  changed in all fourteen dependents: `vibe-agent-instructions`,
+  `vibe-brainstorm`, `vibe-code-research`, `vibe-coding`, `vibe-commit`,
+  `vibe-debug`, `vibe-goal-alignment`, `vibe-orchestrate`,
+  `vibe-plan-execution`, `vibe-plan-review`, `vibe-planning`,
+  `vibe-requirements-spec`, `vibe-review`, and `vibe-writing`. Rendered block
+  text falls from 4,938 to about 3,730 words at the source and by about 1,600
+  words across the copies, and every routed reading task measures below its
+  frozen baseline. Verification — static:
+  `python3 scripts/vibe_shared_contract.py check --strict` passes for all
+  fourteen packages, `python3 scripts/vibe_shared_contract.py measure` reports
+  every task below baseline, and every eval suite validates; behavior unproven
+  until an authorized eval run.
 - `vibe-orchestrate`: monitoring guidance now selects a mechanism by what
   observation costs the coordinator, preferring delivered completion signals and
   bounded status queries over repeated full reads of a growing artifact. The

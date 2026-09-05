@@ -244,7 +244,7 @@ acceptance criteria, or tests before locking the test plan.
 <!-- shared-contract:begin accepted-risk-semantics source=shared/vibe-contract.md -->
 **Only `Accepted risk` lets an `Unproven` item support work that depends on it.**
 
-- Accept a risk only on the human user's explicit choice to proceed after its impact was explained, or on the bound plan's already-recorded acceptance for the active request.
+- Label an item `Accepted risk` only on the human user's explicit choice to proceed after its impact was explained, or on the bound plan's already-recorded acceptance for the active request.
 - Never let a proxy decision, an AI-selected default, or a risk judged low make the acceptance.
 - Record the exact assumption, who accepted it and why, the impact area (feasibility, behavior, data, integration, performance, security, UX, cost, or schedule), the fastest proof path, and the revisit trigger.
 - Tie the acceptance to the conditional step, deferred decision, or follow-up it affects.
@@ -346,12 +346,12 @@ from current acceptance criteria, and record the unknown as a deferred decision.
 <!-- shared-contract:begin evidence-classes source=shared/vibe-contract.md -->
 **Label every load-bearing claim with one of the four shared base evidence classes.**
 
-- Label a claim wherever it is load-bearing: where it affects scope, feasibility, behavior, verification, risk, implementation order, commit authorization, or whether work may proceed.
+- Label a claim with its class wherever it is load-bearing: where it affects scope, feasibility, behavior, verification, risk, implementation order, commit authorization, or whether work may proceed.
 - `Primary source`: official documentation, an authoritative specification, upstream source, vendor documentation, user-provided source material, or a known-good historical implementation.
 - `Local investigation`: repository inspection, non-mutating command output, reproduced behavior, or existing tests, configs, schemas, and logs read in the current workspace.
 - `Unproven`: memory, inference, secondhand claims or summaries, stale documentation, unchecked user claims, training-data recall, missing access, or hypotheses.
 - `Accepted risk`: an `Unproven` item the user explicitly chose to proceed with after its impact was explained, or that the bound plan already records as accepted for the active request, with its impact and revisit trigger preserved.
-- Extend this set only by a package's own declaration of a disjoint extension or a freshness qualifier.
+- Extend this set only by a package's declaration, in its own text, of a disjoint extension or a freshness qualifier.
 - Never let such a declaration rename or redefine a base class.
 - Read an execution phase's `Plan` class as authority by binding to the bound plan, and its `Local evidence` label as an execution-freshness label; neither is a rename or a redefinition of a base class.
 <!-- shared-contract:end evidence-classes -->

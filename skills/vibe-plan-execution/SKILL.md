@@ -31,8 +31,8 @@ for this skill.
 
 <!-- shared-contract:class language=chat commit=state-changing effect=state-changing -->
 <!-- shared-contract:begin closing source=shared/vibe-contract.md -->
-Where a package declares a stricter or narrower rule in its own text, that declaration controls.
-A package may state which of its phases this gate applies to; it may not change the gate's inputs, outcomes, or fields.
+For every consolidation block this package carries, here and in its references: where this package declares a stricter or narrower rule in its own text, that declaration controls.
+For every gate and schema block this package carries, here and in its references: this package may state which of its phases the block applies to; it may not change the block's inputs, outcomes, or fields.
 <!-- shared-contract:end closing -->
 <!-- shared-contract:begin effect-write-boundaries source=shared/vibe-contract.md -->
 **Write nothing beyond what the phase's own effect class and its declared boundary permit.**
@@ -43,13 +43,17 @@ A package may state which of its phases this gate applies to; it may not change 
 - In a read-only phase, never stage, commit, tag, push, change versions, delete data, or start services.
 - In a read-only phase, write a file only when the current user explicitly asks for a saved artifact.
 - In an artifact-only phase, create or update the artifact it owns: the requirements spec, the plan, the plan-review state, the instruction files, or the text artifacts the request names.
-- In an artifact-only phase, write the supporting paths its own text declares: text it was asked to revise (comments, docstrings, docs), a confirmed bound-plan reflection, a previewed and user-confirmed ignore file, or a narrowly confirmed configuration edit its text names.
+- In an artifact-only phase, write the supporting paths its own text declares:
+  - the text it was asked to revise (comments, docstrings, docs);
+  - a confirmed reflection into the bound plan;
+  - an ignore file it previewed and the user confirmed;
+  - a narrowly confirmed configuration edit its text names.
 - In an artifact-only phase, leave those verified changes in the working tree.
 - In an artifact-only phase, never implement executable behavior, never edit application code or tests as implementation, never produce an artifact another phase owns, and never perform release work.
 - Never let an artifact-only phase's artifact authorize same-turn implementation.
 - In a state-changing phase, edit files and run commands inside the scope its own text declares — the unit it implements, the repair it proves, the fixes it applies, the round it integrates, or the commit it executes.
 - In a state-changing phase, keep its edits to the smallest verified unit of that scope.
-- Leave paths outside the scope, pre-existing working-tree changes the phase did not make, and runtime or external state beyond the scope unwritten unless the current user selects them.
+- In a state-changing phase, leave paths outside the scope, pre-existing working-tree changes the phase did not make, and runtime or external state beyond the scope unwritten unless the current user selects them.
 - Keep every irreversible or outward-facing operation under its own consent.
 <!-- shared-contract:end effect-write-boundaries -->
 
@@ -69,7 +73,7 @@ implemented as the smallest coherent unit of that slice that can be tested.
 - Commit that unit without waiting for a separate commit instruction.
 - Never let a multi-unit run accumulate as one undifferentiated working tree.
 - When the default is suspended, leave the verified changes in the working tree and report the reason.
-- Reach only local commits of the unit's own verified changes.
+- Let the checkpoint default reach only local commits of the unit's own verified changes.
 - Select no commit from discovery-only, blocked, unchanged, failing, unverified, or work-in-progress state.
 - Never widen the staged set beyond the verified unit.
 - Exclude pre-existing working-tree changes the workflow did not make, an artifact whose tracked status would itself be new, and paths outside the unit.
@@ -81,7 +85,7 @@ implemented as the smallest coherent unit of that slice that can be tested.
 - Keep push, release preparation, version changes, tags, amend, rebase, reset, stash, squash, destructive actions including cleanup, force-adds, tracking a newly created artifact, external side effects, and unrelated or ambiguous paths separately consent-bound even when a checkpoint was selected.
 - Never let a route, checkpoint, or handoff implicitly authorize them.
 
-Example: name the source as the current user's request in this turn, as the bound plan item that requires the checkpoint, or as the workflow's own checkpoint of the unit it just verified.
+Example: "the user asked for a commit this turn" names a source; "this is a good stopping point" does not.
 
 Exception: a current no-commit instruction, a bound plan that forbids commits, or project policy against commits suspends the checkpoint default.
 <!-- shared-contract:end commit-selection-state-changing -->
@@ -104,11 +108,12 @@ per-commit ask and never replaces it.
 - With no user-installed hook enforcing this gate, this wording is the whole gate: apply it yourself before the command runs.
 - Name one recorded source before committing: the current user's request (`user-turn`), the bound plan item (`bound-plan-item`), or the workflow's own checkpoint of a verified unit (`specialist-checkpoint`).
 - Treat `agent-proposed` as a recorded proposal, never a selection.
-- When the workflow is router-bound, record that source as a `commit-selection` event before the command runs.
+- When the workflow is router-bound, have the router record that source as a `commit-selection` event before the command runs.
 - For a standalone commit with no router active, name the direct current-user request or the verified checkpoint handoff and follow the phase's ordinary confirmation policy.
 - When no source can be named, do not commit; ask the user whether a commit is wanted.
 - Return `allow` when the command is not a commit.
-- Return `ask` on every plain commit; quote `phase` and the latest `commit-selection` event's `source`, `at`, `note`, or state the record absent, malformed, stale, foreign, session-unbound, conflicting, or missing that event.
+- Return `ask` on every plain commit, quoting from the session record under `.plans/vibe-sessions/` the recorded `phase` and the most recent recorded `commit-selection` event's `source`, `at`, and `note`.
+- Or state that no `commit-selection` event is recorded, or that the record is absent, malformed, stale, foreign, session-unbound, or conflicting.
 - Never return `deny` from this gate.
 - Never allow a plain commit silently: surface the recorded `source` at the prompt so a self-attested selection is caught there.
 - Answer `ask`, never `deny`, for a record in any invalid state.
@@ -349,12 +354,12 @@ Do not use this skill for:
 <!-- shared-contract:begin evidence-classes source=shared/vibe-contract.md -->
 **Label every load-bearing claim with one of the four shared base evidence classes.**
 
-- Label a claim wherever it is load-bearing: where it affects scope, feasibility, behavior, verification, risk, implementation order, commit authorization, or whether work may proceed.
+- Label a claim with its class wherever it is load-bearing: where it affects scope, feasibility, behavior, verification, risk, implementation order, commit authorization, or whether work may proceed.
 - `Primary source`: official documentation, an authoritative specification, upstream source, vendor documentation, user-provided source material, or a known-good historical implementation.
 - `Local investigation`: repository inspection, non-mutating command output, reproduced behavior, or existing tests, configs, schemas, and logs read in the current workspace.
 - `Unproven`: memory, inference, secondhand claims or summaries, stale documentation, unchecked user claims, training-data recall, missing access, or hypotheses.
 - `Accepted risk`: an `Unproven` item the user explicitly chose to proceed with after its impact was explained, or that the bound plan already records as accepted for the active request, with its impact and revisit trigger preserved.
-- Extend this set only by a package's own declaration of a disjoint extension or a freshness qualifier.
+- Extend this set only by a package's declaration, in its own text, of a disjoint extension or a freshness qualifier.
 - Never let such a declaration rename or redefine a base class.
 - Read an execution phase's `Plan` class as authority by binding to the bound plan, and its `Local evidence` label as an execution-freshness label; neither is a rename or a redefinition of a base class.
 <!-- shared-contract:end evidence-classes -->
@@ -392,7 +397,7 @@ plan or on checked facts.
 <!-- shared-contract:begin accepted-risk-semantics source=shared/vibe-contract.md -->
 **Only `Accepted risk` lets an `Unproven` item support work that depends on it.**
 
-- Accept a risk only on the human user's explicit choice to proceed after its impact was explained, or on the bound plan's already-recorded acceptance for the active request.
+- Label an item `Accepted risk` only on the human user's explicit choice to proceed after its impact was explained, or on the bound plan's already-recorded acceptance for the active request.
 - Never let a proxy decision, an AI-selected default, or a risk judged low make the acceptance.
 - Record the exact assumption, who accepted it and why, the impact area (feasibility, behavior, data, integration, performance, security, UX, cost, or schedule), the fastest proof path, and the revisit trigger.
 - Tie the acceptance to the conditional step, deferred decision, or follow-up it affects.

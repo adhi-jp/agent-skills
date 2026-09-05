@@ -142,25 +142,37 @@ package's marker pairs.
 
 A source block whose first non-empty line is a bold lead (`**…**`) is in the
 scannable shape and is measured against the shape caps: a lead of at most 25
-words opening with an imperative, bullets or numbered items of at most 40
-words (30 in a gate block) with two-space sub-bullets of at most 30, at most
-one prose paragraph after the bullets and at most 35 words long, any prose
-paragraph at most 60 words, and a gate block at most 260 words in total. Lines
-beginning `Example:` are excluded from every count and allowed twice per block.
-`check` reports shape faults as warnings and `check --strict` reports them as
-errors; a block with no bold lead keeps the legacy shape, is checked as before,
-and is reported only as a non-strict `legacy-shape` warning. `list` marks a
-scannable block `shape=new`.
+words opening with `Never`, `Only`, or a listed imperative verb, bullets or
+numbered items of at most 40 words (30 in a gate block) with two-space
+sub-bullets of at most 30, at most one prose paragraph after the bullets and at
+most 35 words long, any prose paragraph at most 60 words, a gate block at most
+260 words in total, and a schema block at most 530. Lines beginning `Example:`
+are excluded from every count and allowed once per block. A block that stated a
+negative rule before the scannable rewrite must still open a lead, bullet, or
+sub-bullet with `Never` or `Only`, and every `Appendix S<n>` or `Appendix G<n>`
+citation in the source must resolve to its own `###` heading, and a block that
+sends the reader to the appendix needs the `## Appendix: hook and record
+contract` heading. `check` reports shape faults as warnings and `check --strict`
+reports them as errors; a block with no bold lead keeps the legacy shape, is
+checked as before, and is reported only as a non-strict `legacy-shape` warning.
+`list` marks a scannable block `shape=new`.
 
 Once a scannable block drops its closing boilerplate, the source closes its
 blocks once per package rather than once per block: the package then carries one
 `closing` block directly below its class line, holding the precedence sentence
-and, for a package with a gate or schema block, the applicability sentence.
-`render` fills that pair like any other, `check --strict` requires exactly one
-per package, and both refuse it while the source still closes every block.
+and, for a package with a gate or schema block, the applicability sentence. Each
+sentence names the blocks it binds and where they sit — every consolidation
+block, or every gate and schema block, the package carries in its entry file and
+in its references — so the body is one line or two and no line explains the
+lines above it. `render` fills that pair like any other, `check --strict`
+requires exactly one per package with each owed sentence rendered exactly once
+and no generated block outside it carrying either sentence, and both refuse the
+pair while the source still closes every block.
 Prose outside every block marker — the preamble and any appendix with its
 headings, tables, and fenced examples — belongs to the source file rather than
-to a block, and `list`, `render`, and `check` ignore it.
+to a block; `list` and `render` ignore it, and `check` applies no block-shape
+rule to it while still resolving every `Appendix S<n>` or `Appendix G<n>`
+citation it carries.
 
 `measure` prints entry-file lines and words, in-block words, and reference words
 per package, then the four routed reading tasks' line and word sums against the

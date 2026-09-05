@@ -30,7 +30,9 @@ shape and is measured against the shape caps below; a block without one keeps th
 shape and is only checked as before. Once any scannable block drops its closing
 boilerplate, the source has adopted per-package closings: each package then carries one
 synthetic ``closing`` block directly below its class line, holding the precedence
-sentence and, for a package with a gate or schema block, the applicability sentence.
+sentence and, for a package with a gate or schema block, the applicability sentence. Each
+of those sentences names the blocks it binds and where they sit, so no third line explains
+them, and no other generated block in the package may carry either sentence.
 """
 
 from __future__ import annotations
@@ -67,6 +69,17 @@ APPLICABILITY_SENTENCE = (
     "A package may state which of its phases this gate applies to; "
     "it may not change the gate's inputs, outcomes, or fields."
 )
+# The two sentences the per-package closing block renders. Each carries its own scope, so
+# it binds where it stands and needs no separate line explaining which blocks it reaches.
+CLOSING_PRECEDENCE_SENTENCE = (
+    "For every consolidation block this package carries, here and in its references: "
+    "where this package declares a stricter or narrower rule in its own text, that declaration controls."
+)
+CLOSING_APPLICABILITY_SENTENCE = (
+    "For every gate and schema block this package carries, here and in its references: "
+    "this package may state which of its phases the block applies to; "
+    "it may not change the block's inputs, outcomes, or fields."
+)
 GATE_BLOCK_IDS = frozenset(
     {
         "history-mutation-gate",
@@ -76,7 +89,44 @@ GATE_BLOCK_IDS = frozenset(
 )
 SCHEMA_BLOCK_IDS = frozenset({"session-record-schema"})
 NON_OVERRIDABLE_BLOCK_IDS = GATE_BLOCK_IDS | SCHEMA_BLOCK_IDS
-BOILERPLATE_SENTENCES = (PRECEDENCE_SENTENCE, APPLICABILITY_SENTENCE)
+# The closing sentences the per-package closing block renders, in body order.
+CLOSING_SENTENCES = (CLOSING_PRECEDENCE_SENTENCE, CLOSING_APPLICABILITY_SENTENCE)
+# A block never carries any of these: the two legacy per-block tails and the two
+# self-scoped sentences the closing block renders once per package.
+BOILERPLATE_SENTENCES = (PRECEDENCE_SENTENCE, APPLICABILITY_SENTENCE) + CLOSING_SENTENCES
+BOILERPLATE_SENTENCE_NAMES = {
+    PRECEDENCE_SENTENCE: "the per-block precedence sentence",
+    APPLICABILITY_SENTENCE: "the per-block applicability sentence",
+    CLOSING_PRECEDENCE_SENTENCE: "the precedence sentence",
+    CLOSING_APPLICABILITY_SENTENCE: "the applicability sentence",
+}
+
+# Block ids whose pre-rewrite text carried at least one negative rule, so the rewritten
+# block must still open a lead, bullet, or sub-bullet with "Never" or "Only" (design v3
+# rule 8). Derived from the pre-rewrite source: every block body was split into sentences
+# and every block holding a never/not/no/only sentence was kept. All seventeen blocks
+# qualified, so the set is the full block list.
+NEGATIVE_LINE_BLOCK_IDS = frozenset(
+    {
+        "evidence-classes",
+        "accepted-risk-semantics",
+        "delegated-result-proof",
+        "language-precedence-chat",
+        "language-precedence-document",
+        "effect-write-boundaries",
+        "commit-selection-state-changing",
+        "commit-selection-document-only",
+        "human-risk-decisions",
+        "model-tier-selection",
+        "trusted-orchestration-evidence",
+        "subagent-permission",
+        "secret-redaction",
+        "history-mutation-gate",
+        "commit-selection-gate",
+        "read-only-phase-write-gate",
+        "session-record-schema",
+    }
+)
 
 # The synthetic per-package block that carries the closing sentences once the shared
 # source stops closing every block. It is never declared in the source.
@@ -93,38 +143,49 @@ SUB_BULLET_WORD_CAP = 30
 EXCEPTION_WORD_CAP = 35
 PARAGRAPH_WORD_CAP = 60
 GATE_BLOCK_WORD_CAP = 260
-EXAMPLE_LINE_CAP = 2
+# Set by the coordinator from the smallest lossless size the schema block reaches, and
+# recorded in design v3: 522 words with every actor, modality, condition, and scope kept,
+# plus a margin for one short bullet. A block that outgrows it after a lossless
+# restoration moves this value, never the enforcement.
+SCHEMA_BLOCK_WORD_CAP = 530
+EXAMPLE_LINE_CAP = 1
 
-# A bold lead opens with "Never", "Only", or a base-form verb. The allowlist below
-# carries the verbs the contract actually uses; anything outside it passes unless it is
-# an article or a pronoun, so an unlisted verb is never a false finding.
-IMPERATIVE_LEAD_WORDS = frozenset({"never", "only"})
-IMPERATIVE_VERBS = frozenset(
+# A bold lead opens with "Never", "Only", or a listed base-form verb, capitalised. The
+# list is an allowlist: a lead opening with any other word is flagged, so a declarative
+# lead ("Evidence carries one of four classes") never passes. It seeds from the first
+# word of every lead the shared source carries plus common contract imperatives; add a
+# verb here when a new lead needs one.
+IMPERATIVE_LEAD_WORDS = frozenset({"Never", "Only"})
+IMPERATIVE_LEAD_VERBS = frozenset(
     {
-        "accept", "apply", "ask", "assume", "avoid", "bind", "carry", "check", "choose",
-        "cite", "classify", "close", "commit", "confirm", "count", "declare", "decide",
-        "defer", "delegate", "deliver", "describe", "disclose", "do", "document", "drop",
-        "echo", "edit", "end", "ensure", "enter", "escalate", "exclude", "execute",
-        "expand", "explain", "fill", "fix", "follow", "hand", "hold", "identify",
-        "ignore", "implement", "include", "keep", "label", "leave", "limit", "list",
-        "load", "log", "mark", "match", "move", "name", "note", "observe", "open",
-        "pause", "plan", "prefer", "present", "preserve", "prove", "publish", "quote",
-        "raise", "read", "record", "redact", "refuse", "reject", "render", "repeat",
-        "replace", "report", "request", "require", "rerun", "resolve", "restate",
-        "return", "review", "rewrite", "route", "run", "save", "scope", "select",
-        "separate", "set", "show", "split", "stage", "start", "state", "stay", "stop",
-        "store", "summarize", "surface", "suspend", "tag", "tie", "track", "treat",
-        "trust", "use", "verify", "wait", "widen", "write",
+        "Accept", "Allow", "Apply", "Ask", "Assume", "Avoid", "Bind", "Carry", "Check",
+        "Choose", "Cite", "Classify", "Close", "Commit", "Compare", "Confirm", "Count",
+        "Declare", "Decide", "Defer", "Delegate", "Deliver", "Deny", "Describe",
+        "Detect", "Disclose", "Do", "Document", "Drop", "Echo", "Edit", "End",
+        "Enumerate", "Ensure", "Enter", "Escalate", "Exclude", "Execute", "Expand",
+        "Explain", "Fill", "Fix", "Follow", "Give", "Hand", "Hold", "Identify", "Ignore",
+        "Implement", "Include", "Judge", "Keep", "Label", "Leave", "Limit", "List",
+        "Load", "Log", "Mark", "Match", "Move", "Name", "Note", "Observe", "Omit",
+        "Open", "Pause", "Place", "Plan", "Prefer", "Present", "Preserve", "Prove",
+        "Publish", "Put", "Quote", "Raise", "Read", "Record", "Redact", "Refuse",
+        "Reject", "Render", "Renew", "Repeat", "Replace", "Report", "Request",
+        "Require", "Rerun", "Resolve", "Restate", "Return", "Review", "Rewrite",
+        "Route", "Run", "Save", "Scope", "Select", "Separate", "Set", "Show", "Split",
+        "Stage", "Start", "State", "Stay", "Stop", "Store", "Summarize", "Surface",
+        "Suspend", "Tag", "Take", "Tie", "Track", "Treat", "Trust", "Use", "Verify",
+        "Wait", "Widen", "Write",
     }
 )
-NON_IMPERATIVE_LEAD_WORDS = frozenset(
-    {
-        "a", "an", "the", "this", "that", "these", "those", "it", "its", "he", "him",
-        "his", "she", "her", "hers", "they", "them", "their", "theirs", "we", "us",
-        "our", "ours", "you", "your", "yours", "i", "me", "my", "mine", "who", "whom",
-        "whose", "which", "what",
-    }
-)
+# A lead, bullet, or sub-bullet that opens a negative rule, for the survival check.
+NEGATIVE_LINE_RE = re.compile(r"^ *(?:[-*+]\s+|\d+\.\s+)?(?:\*\*)?(?:Never|Only)\b")
+
+# Appendix cross-references. Every `Appendix S<n>`/`Appendix G<n>` citation resolves to
+# its own `###` heading, and a block that sends the reader to "the appendix" is valid
+# only while the appendix section heading exists.
+APPENDIX_SECTION_HEADING = "## Appendix: hook and record contract"
+APPENDIX_REF_RE = re.compile(r"\bAppendix\s+(?P<id>[SG]\d+)\b")
+APPENDIX_HEADING_RE = re.compile(r"^ {0,3}###\s+Appendix\s+(?P<id>[SG]\d+)\b")
+APPENDIX_MENTION_RE = re.compile(r"\bthe appendix\b", re.IGNORECASE)
 
 CLASS_AXES = ("language", "commit", "effect")
 CLASS_VALUES = {
@@ -204,6 +265,10 @@ class SourceBlock:
     @property
     def is_gate(self) -> bool:
         return self.block_id in GATE_BLOCK_IDS
+
+    @property
+    def is_schema(self) -> bool:
+        return self.block_id in SCHEMA_BLOCK_IDS
 
     @property
     def lead_line(self) -> str:
@@ -619,15 +684,13 @@ def lead_starter(text: str) -> str:
 
 
 def lead_opens_imperatively(word: str) -> bool:
-    """True unless the lead opens with an article or a pronoun.
+    """True only for a listed opener: ``Never``, ``Only``, or a listed imperative verb.
 
-    An allowlisted imperative starter always passes; an unlisted word passes too, so the
-    check flags only leads that clearly describe rather than instruct.
+    The comparison is case-sensitive on the capitalised form, so a mid-sentence or
+    lowercased word never passes. An unlisted imperative is a finding whose fix is to add
+    the verb to ``IMPERATIVE_LEAD_VERBS``.
     """
-    lowered = word.lower()
-    if lowered in IMPERATIVE_LEAD_WORDS or lowered in IMPERATIVE_VERBS:
-        return True
-    return lowered not in NON_IMPERATIVE_LEAD_WORDS
+    return word in IMPERATIVE_LEAD_WORDS or word in IMPERATIVE_LEAD_VERBS
 
 
 def check_block_shape(block: SourceBlock, label: str, level: str) -> list[Finding]:
@@ -654,7 +717,8 @@ def check_block_shape(block: SourceBlock, label: str, level: str) -> list[Findin
                 findings.append(
                     Finding(
                         level,
-                        f"{where(segment.offset)}: bold lead does not open with an imperative: {starter!r}",
+                        f"{where(segment.offset)}: bold lead does not open with an imperative: {starter!r} "
+                        "(use 'Never', 'Only', or a verb listed in IMPERATIVE_LEAD_VERBS)",
                     )
                 )
         elif segment.kind == "bullet":
@@ -698,6 +762,27 @@ def check_block_shape(block: SourceBlock, label: str, level: str) -> list[Findin
             findings.append(
                 Finding(level, f"{label}:{block.line}: block {block.block_id}: gate block is {total} words (cap {GATE_BLOCK_WORD_CAP})")
             )
+    if block.is_schema:
+        total = block_word_total(block)
+        if total > SCHEMA_BLOCK_WORD_CAP:
+            findings.append(
+                Finding(
+                    level,
+                    f"{label}:{block.line}: block {block.block_id}: schema block is {total} words "
+                    f"(cap {SCHEMA_BLOCK_WORD_CAP})",
+                )
+            )
+    if block.block_id in NEGATIVE_LINE_BLOCK_IDS and not any(
+        segment.kind in ("lead", "bullet", "sub-bullet") and NEGATIVE_LINE_RE.match(segment.text)
+        for segment in segments
+    ):
+        findings.append(
+            Finding(
+                level,
+                f"{label}:{block.line}: block {block.block_id}: no lead, bullet, or sub-bullet opens with "
+                "'Never' or 'Only'; the pre-rewrite block stated a negative rule and one must survive",
+            )
+        )
     return findings
 
 
@@ -710,15 +795,20 @@ def source_closing_mode(blocks: list[SourceBlock]) -> str:
 
 
 def closing_block_for(package: str, block_map: dict[str, SourceBlock]) -> SourceBlock:
-    """The synthetic per-package closing block: precedence, plus applicability when owed."""
-    lines = [PRECEDENCE_SENTENCE]
+    """The synthetic per-package closing block: precedence, plus applicability when owed.
+
+    Each sentence names the blocks it binds and where they sit, so the body is one line for
+    a package carrying only consolidation blocks and two for a package that also carries a
+    gate or schema block. No third line explains the first two.
+    """
+    lines = [CLOSING_PRECEDENCE_SENTENCE]
     carries_non_overridable = any(
         package in block_map[block_id].dependents
         for block_id in sorted(NON_OVERRIDABLE_BLOCK_IDS)
         if block_id in block_map
     )
     if carries_non_overridable:
-        lines.append(APPLICABILITY_SENTENCE)
+        lines.append(CLOSING_APPLICABILITY_SENTENCE)
     body = "".join(line + "\n" for line in lines)
     return SourceBlock(CLOSING_BLOCK_ID, (package,), body, 0)
 
@@ -766,11 +856,15 @@ def roster_tokens(line: str, packages: dict[str, Path], own_name: str | None = N
 # --- Source parsing ----------------------------------------------------------
 
 
-def parse_source(source: Path) -> tuple[list[SourceBlock], list[Finding]]:
+def read_source_text(source: Path) -> str:
     try:
-        text = source.read_bytes().decode("utf-8")
+        return source.read_bytes().decode("utf-8")
     except (OSError, UnicodeDecodeError) as exc:
         raise ContractError(f"cannot read shared source {source.as_posix()}: {exc}") from exc
+
+
+def parse_source(source: Path) -> tuple[list[SourceBlock], list[Finding]]:
+    text = read_source_text(source)
     lines = text.splitlines(keepends=True)
     fenced = fenced_line_indexes(lines)
     blocks: list[SourceBlock] = []
@@ -909,6 +1003,56 @@ def check_source_blocks(
     return findings
 
 
+def check_appendix_references(text: str, blocks: list[SourceBlock], label: str, level: str) -> list[Finding]:
+    """Every appendix citation resolves, and a block sends the reader only to a real section.
+
+    ``Appendix S<n>`` and ``Appendix G<n>`` are checked source-wide — preamble, blocks, and
+    the appendix itself — against the ``###`` headings the appendix declares. A block that
+    tells the reader to consult "the appendix" needs the appendix section heading, because
+    the block is what a package renders and the reader follows it out of the package.
+    """
+    findings: list[Finding] = []
+    lines = [line.rstrip("\r\n") for line in text.splitlines(keepends=True)]
+    fenced = fenced_line_indexes(text.splitlines(keepends=True))
+    defined: set[str] = set()
+    has_section = False
+    for index, line in enumerate(lines):
+        if index in fenced:
+            continue
+        heading = APPENDIX_HEADING_RE.match(line)
+        if heading is not None:
+            defined.add(heading.group("id"))
+        if line.strip() == APPENDIX_SECTION_HEADING:
+            has_section = True
+    for index, line in enumerate(lines):
+        if index in fenced or APPENDIX_HEADING_RE.match(line):
+            continue
+        for match in APPENDIX_REF_RE.finditer(line):
+            name = match.group("id")
+            if name not in defined:
+                findings.append(
+                    Finding(
+                        level,
+                        f"{label}:{index + 1}: Appendix {name} is cited but the source declares no "
+                        f"'### Appendix {name}' heading",
+                    )
+                )
+    if not has_section:
+        for block in blocks:
+            for segment in segment_block_body(block):
+                if segment.kind in ("lead", "bullet", "sub-bullet", "paragraph") and APPENDIX_MENTION_RE.search(
+                    segment.text
+                ):
+                    findings.append(
+                        Finding(
+                            level,
+                            f"{label}:{block.line + 1 + segment.offset}: block {block.block_id} sends the reader to "
+                            f"the appendix, but the source has no '{APPENDIX_SECTION_HEADING}' heading",
+                        )
+                    )
+    return findings
+
+
 # --- Package parsing ---------------------------------------------------------
 
 
@@ -1043,6 +1187,62 @@ def single_class_line(files: list[PackageFile]) -> tuple[PackageFile, ClassLine]
     return entries[0] if len(entries) == 1 else None
 
 
+def sentence_line_hits(content: str, sentence: str) -> list[int]:
+    """Zero-based offsets of the content lines carrying ``sentence``, prefixed or not."""
+    return [offset for offset, line in enumerate(content.splitlines()) if sentence in line]
+
+
+def check_closing_sentence_counts(site: BlockSite, block: SourceBlock) -> list[Finding]:
+    """Each closing sentence the package owes appears exactly once in its closing block.
+
+    The two legacy per-block sentences are owed by no package and must not appear here.
+    """
+    findings: list[Finding] = []
+    where = f"{site.rel}:{site.begin_index + 1}"
+    owed = [line.strip() for line in block.body.splitlines() if line.strip()]
+    for sentence in BOILERPLATE_SENTENCES:
+        expected = 1 if sentence in owed else 0
+        found = len(sentence_line_hits(site.content, sentence))
+        if found != expected:
+            findings.append(
+                Finding(
+                    "error",
+                    f"{where}: block {CLOSING_BLOCK_ID} renders {BOILERPLATE_SENTENCE_NAMES[sentence]} "
+                    f"{found} time(s), expected {expected}",
+                )
+            )
+    return findings
+
+
+def check_stray_closing_sentences(site: BlockSite, block: SourceBlock) -> list[Finding]:
+    """No generated block outside the closing block carries a closing sentence.
+
+    A legacy-shape block mid-migration still ends with its own tail; that one sanctioned
+    line is skipped so the check reports only sentences rendered a second time.
+    """
+    lines = site.content.splitlines()
+    tail = -1
+    if block.ends_with_closing:
+        for offset in range(len(lines) - 1, -1, -1):
+            if lines[offset].strip():
+                tail = offset
+                break
+    findings: list[Finding] = []
+    for sentence in BOILERPLATE_SENTENCES:
+        for offset in sentence_line_hits(site.content, sentence):
+            if offset == tail:
+                continue
+            findings.append(
+                Finding(
+                    "error",
+                    f"{site.rel}:{site.begin_index + 2 + offset}: block {site.block_id} carries "
+                    f"{BOILERPLATE_SENTENCE_NAMES[sentence]}; the package renders it once, in its "
+                    f"{CLOSING_BLOCK_ID} block",
+                )
+            )
+    return findings
+
+
 def check_closing_site(
     package: str,
     package_file: PackageFile,
@@ -1122,6 +1322,11 @@ def check_packages(
                 site.state = classify_site(site.content, block.body)
                 if not report_states:
                     continue
+                if closing_mode == CLOSING_PER_PACKAGE and site.state != "pristine":
+                    if site.block_id == CLOSING_BLOCK_ID:
+                        findings.extend(check_closing_sentence_counts(site, block))
+                    else:
+                        findings.extend(check_stray_closing_sentences(site, block))
                 if site.state == "drifted":
                     findings.append(
                         Finding("error", f"{where}: block {site.block_id} drifted from the source", drift_diff(site, block))
@@ -1219,6 +1424,11 @@ def analyze(
     blocks, findings = parse_source(source)
     packages = discover_packages(root)
     findings.extend(check_source_blocks(blocks, packages, source.name, strict=strict))
+    findings.extend(
+        check_appendix_references(
+            read_source_text(source), blocks, source.name, "error" if strict else "warning"
+        )
+    )
     if package_filter is not None and package_filter not in packages:
         raise ContractError(f"unknown package: {package_filter}")
     names = [package_filter] if package_filter else sorted(packages)

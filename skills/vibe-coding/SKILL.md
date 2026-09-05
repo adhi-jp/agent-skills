@@ -242,8 +242,8 @@ or a maintenance unit is not the terminal fallback and never reports
 
 <!-- shared-contract:class language=none commit=state-changing effect=state-changing -->
 <!-- shared-contract:begin closing source=shared/vibe-contract.md -->
-Where a package declares a stricter or narrower rule in its own text, that declaration controls.
-A package may state which of its phases this gate applies to; it may not change the gate's inputs, outcomes, or fields.
+For every consolidation block this package carries, here and in its references: where this package declares a stricter or narrower rule in its own text, that declaration controls.
+For every gate and schema block this package carries, here and in its references: this package may state which of its phases the block applies to; it may not change the block's inputs, outcomes, or fields.
 <!-- shared-contract:end closing -->
 <!-- shared-contract:begin commit-selection-gate source=shared/vibe-contract.md -->
 **Never run a plain `git commit` without naming the selection source it rests on.**
@@ -251,11 +251,12 @@ A package may state which of its phases this gate applies to; it may not change 
 - With no user-installed hook enforcing this gate, this wording is the whole gate: apply it yourself before the command runs.
 - Name one recorded source before committing: the current user's request (`user-turn`), the bound plan item (`bound-plan-item`), or the workflow's own checkpoint of a verified unit (`specialist-checkpoint`).
 - Treat `agent-proposed` as a recorded proposal, never a selection.
-- When the workflow is router-bound, record that source as a `commit-selection` event before the command runs.
+- When the workflow is router-bound, have the router record that source as a `commit-selection` event before the command runs.
 - For a standalone commit with no router active, name the direct current-user request or the verified checkpoint handoff and follow the phase's ordinary confirmation policy.
 - When no source can be named, do not commit; ask the user whether a commit is wanted.
 - Return `allow` when the command is not a commit.
-- Return `ask` on every plain commit; quote `phase` and the latest `commit-selection` event's `source`, `at`, `note`, or state the record absent, malformed, stale, foreign, session-unbound, conflicting, or missing that event.
+- Return `ask` on every plain commit, quoting from the session record under `.plans/vibe-sessions/` the recorded `phase` and the most recent recorded `commit-selection` event's `source`, `at`, and `note`.
+- Or state that no `commit-selection` event is recorded, or that the record is absent, malformed, stale, foreign, session-unbound, or conflicting.
 - Never return `deny` from this gate.
 - Never allow a plain commit silently: surface the recorded `source` at the prompt so a self-attested selection is caught there.
 - Answer `ask`, never `deny`, for a record in any invalid state.
@@ -278,7 +279,8 @@ commit-execution specialist or, when none is visible, under the fallback in
 - Before running a matched command, stop and ask the user with that reason, and proceed only on the user's answer.
 - Match `git commit --amend`, `git rebase`, `git filter-branch` or another `filter-*` rewrite, `git reset --hard`, `git push`, or a scripted or looped replay that rewrites more than one commit.
 - Return `allow` when the command is not a history mutation.
-- Return `ask` for every matched history mutation; name the matched operation and quote `phase`, `effect_mode`, and the `kind` and `source` of every recorded event bearing on it.
+- Return `ask` for every matched history mutation, naming the matched operation.
+- Quote from the session record under `.plans/vibe-sessions/` the recorded `phase`, `effect_mode`, and the `kind` and `source` of every recorded event bearing on it.
 - Or state that the record is absent, malformed, stale, foreign, session-unbound, or conflicting, or that no such event is recorded.
 - Never return `deny` from this gate.
 - Never allow a matched history mutation silently, whatever the record says: surface the recorded values at the prompt so a self-attested record is caught there rather than trusted.
@@ -299,20 +301,21 @@ with the wording above before running it.
 <!-- shared-contract:begin read-only-phase-write-gate source=shared/vibe-contract.md -->
 **Never write a path your phase's effect class and recorded `allowed_paths` do not permit.**
 
-- With no user-installed hook enforcing this gate, this wording is the whole gate: refuse the write in the phase itself.
+- With no user-installed hook enforcing this gate, this wording is the whole gate.
 - Count as a write any file-edit or file-write tool call, and any shell command that writes a path — redirection, `sed -i`, `tee`, a heredoc, `mv`, `cp`, `rm`, `git checkout --`.
 - In a read-only phase, write only an explicitly requested saved artifact whose canonical path is recorded in `allowed_paths`; otherwise write no file.
 - In an artifact-only phase, write only the artifact it owns, the supporting paths its own text declares, and the scratch root recorded for the unit.
 - Refuse a write outside that boundary in the phase itself and report it as a boundary stop.
-- Report a denied write verbatim; never retry it through another tool.
-- Return `deny` only for a fresh, valid, session-bound `read-only` or `artifact-only` record whose canonical target lies outside every `allowed_paths` entry and recorded directory; name the path, quote `phase`, `effect_mode`, `allowed_paths`.
+- Report a denied write verbatim as a boundary stop; never retry it through another tool.
+- Return `deny` only for a fresh, valid, session-bound `read-only` or `artifact-only` record whose canonical target lies outside every `allowed_paths` entry and recorded directory.
+- Name the target path in that reason and quote the recorded `phase`, `effect_mode`, and `allowed_paths`.
 - Return `allow` in every other case: a target inside `allowed_paths`, an `effect_mode` of `state-changing` or `none`, or a record absent, malformed, stale, foreign, session-unbound, conflicting, or identity-mismatched.
 - Never return `ask` from this gate.
 - Never let an invalid record state produce `deny`, so the refusal never rests on unverified host behavior.
 
-Example: in an artifact-only planning phase `allowed_paths` is the plan file plus the unit's scratch root; editing application code is outside that boundary.
+Example: in an artifact-only phase whose `allowed_paths` holds only the artifact it owns, a write to that artifact is inside the boundary; a write to a source file is outside it, and with a fresh, valid, session-bound record the gate returns `deny`.
 
-Exception: the router writing its own session record — `.plans/vibe-sessions/<record_id>.json` or its rename temp file — is `allow` regardless of `effect_mode` and is not a phase write; no other path there is, and `allowed_paths` does not widen.
+Exception: writing the router's own record — `.plans/vibe-sessions/<record_id>.json` or its rename temp file — is `allow` at any `effect_mode`, not a phase write; judge every other path there like any other path, and `allowed_paths` does not widen.
 <!-- shared-contract:end read-only-phase-write-gate -->
 
 This gate applies while the recorded row is `creative-direction-exploration`,
@@ -333,7 +336,7 @@ This gate applies while the recorded row is `creative-direction-exploration`,
 - Commit that unit without waiting for a separate commit instruction.
 - Never let a multi-unit run accumulate as one undifferentiated working tree.
 - When the default is suspended, leave the verified changes in the working tree and report the reason.
-- Reach only local commits of the unit's own verified changes.
+- Let the checkpoint default reach only local commits of the unit's own verified changes.
 - Select no commit from discovery-only, blocked, unchanged, failing, unverified, or work-in-progress state.
 - Never widen the staged set beyond the verified unit.
 - Exclude pre-existing working-tree changes the workflow did not make, an artifact whose tracked status would itself be new, and paths outside the unit.
@@ -345,7 +348,7 @@ This gate applies while the recorded row is `creative-direction-exploration`,
 - Keep push, release preparation, version changes, tags, amend, rebase, reset, stash, squash, destructive actions including cleanup, force-adds, tracking a newly created artifact, external side effects, and unrelated or ambiguous paths separately consent-bound even when a checkpoint was selected.
 - Never let a route, checkpoint, or handoff implicitly authorize them.
 
-Example: name the source as the current user's request in this turn, as the bound plan item that requires the checkpoint, or as the workflow's own checkpoint of the unit it just verified.
+Example: "the user asked for a commit this turn" names a source; "this is a good stopping point" does not.
 
 Exception: a current no-commit instruction, a bound plan that forbids commits, or project policy against commits suspends the checkpoint default.
 <!-- shared-contract:end commit-selection-state-changing -->
@@ -367,13 +370,17 @@ history action.
 - In a read-only phase, never stage, commit, tag, push, change versions, delete data, or start services.
 - In a read-only phase, write a file only when the current user explicitly asks for a saved artifact.
 - In an artifact-only phase, create or update the artifact it owns: the requirements spec, the plan, the plan-review state, the instruction files, or the text artifacts the request names.
-- In an artifact-only phase, write the supporting paths its own text declares: text it was asked to revise (comments, docstrings, docs), a confirmed bound-plan reflection, a previewed and user-confirmed ignore file, or a narrowly confirmed configuration edit its text names.
+- In an artifact-only phase, write the supporting paths its own text declares:
+  - the text it was asked to revise (comments, docstrings, docs);
+  - a confirmed reflection into the bound plan;
+  - an ignore file it previewed and the user confirmed;
+  - a narrowly confirmed configuration edit its text names.
 - In an artifact-only phase, leave those verified changes in the working tree.
 - In an artifact-only phase, never implement executable behavior, never edit application code or tests as implementation, never produce an artifact another phase owns, and never perform release work.
 - Never let an artifact-only phase's artifact authorize same-turn implementation.
 - In a state-changing phase, edit files and run commands inside the scope its own text declares — the unit it implements, the repair it proves, the fixes it applies, the round it integrates, or the commit it executes.
 - In a state-changing phase, keep its edits to the smallest verified unit of that scope.
-- Leave paths outside the scope, pre-existing working-tree changes the phase did not make, and runtime or external state beyond the scope unwritten unless the current user selects them.
+- In a state-changing phase, leave paths outside the scope, pre-existing working-tree changes the phase did not make, and runtime or external state beyond the scope unwritten unless the current user selects them.
 - Keep every irreversible or outward-facing operation under its own consent.
 <!-- shared-contract:end effect-write-boundaries -->
 

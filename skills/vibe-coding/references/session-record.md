@@ -12,29 +12,36 @@ means for routing.
 <!-- shared-contract:begin session-record-schema source=shared/vibe-contract.md -->
 **Write the session record at every route decision as routing state, never as authority.**
 
+- Before the first write of a record, read the field table and write procedure in the appendix of `shared/vibe-contract.md`.
 - Keep one JSON file per workflow and worktree at `.plans/vibe-sessions/<record_id>.json` under the repository root; never commit it.
-- Leave approvals, proceed decisions, and stop boundaries in the conversation; an event counts only for its enumerated `source` and while `status` is `current`.
-- Record the active phase's effect class as `effect_mode` and its declared write boundary as `allowed_paths`, narrower where the phase declares one.
+- Leave approvals, proceed decisions, and stop boundaries in the conversation; a recorded event counts only for its enumerated `source` and only while its `status` is `current`.
+- Write `schema_version` as the string `"1"`.
+- Set `lease.owner` equal to `workflow_id`.
+- Record the active phase's effect class as `effect_mode` and its declared write boundary as `allowed_paths`.
+- Record as `allowed_paths` the narrower boundary when a phase's own text declares one tighter than its class.
 - Fill `goal`, `phase`, `artifact_paths`, `pending_decision`, `blocker`, and `next_route` at every write.
-- Compare the stored `generation` with the last you wrote — one you did not produce is `conflicting` — then increment it.
-- Write the whole record to `<record_id>.tmp` beside it and rename that over the record; no reader sees a partial file.
+- Compare the stored `generation` with the last value you wrote — one you did not produce is a conflicting record — then increment it.
+- Write the whole record to `<record_id>.tmp` beside it and rename that over the record, so a reader sees the previous record or the new one, never a partial file.
 - Never treat the router's own record write as a gated write.
 - Renew the lease on every write, immediately before any gated action, and at every phase boundary.
-- Write `artifact_paths[]`, `artifact_identity[].path`, `events[].artifact.path`, and `allowed_paths[]` as canonical absolute paths — lexically normalized, no `.` or `..` segment, no trailing separator — converting repository-relative values first.
-- Refresh a bound artifact's `artifact_identity` digest and `refreshed_at` after any router or specialist write.
-- Report a digest no longer matching the opened artifact as a blocker; never reconcile it silently.
-- Supersede a stale-digest `approval`, `proceed`, or `handoff` event in place; never delete it and never rewrite it to the new digest.
-- Select the record on a continuation turn:
-  - scan every `*.json` there, discarding and reporting malformed files;
-  - keep records `active`, unexpired, and of this worktree;
-  - prefer the one whose `host_session_id` matches the host's; a null one is session-unbound;
-  - treat more than one candidate as `conflicting`, route from conversation state, and answer every gate as for a conflicting record;
+- Write `artifact_paths[]`, `artifact_identity[].path`, `events[].artifact.path`, and `allowed_paths[]` as canonical absolute paths — lexically normalized, no `.` or `..` segment, no trailing separator — converting repository-relative paths read from conversation state first.
+- Refresh a bound artifact's `artifact_identity` digest and `refreshed_at` after any write the router or its routed specialist makes to it.
+- Report a recorded digest no longer matching the opened artifact as a blocker; never reconcile it silently.
+- When a digest refresh changes an artifact's digest, supersede in place every `approval`, `proceed`, or `handoff` event whose `artifact.sha256` no longer matches a current identity entry.
+- Never delete such an event and never rewrite it to the new digest.
+- Select the record on a continuation turn, before binding:
+  - scan every `*.json` in the directory, discarding and reporting malformed files;
+  - keep records that are `active`, unexpired, and belong to this worktree;
+  - when both the host's session id and a record's `host_session_id` are known, select the record whose `host_session_id` equals the current host session id;
+  - treat a record whose `host_session_id` is null as session-unbound;
+  - treat more than one remaining eligible candidate as `conflicting`, route from conversation state, and answer every gate as for a conflicting record;
   - rebind from the latest known artifact path when no valid record exists.
-- Mark the record `superseded` with `closed_at` and a new workflow id when the workflow is replaced, `cancelled` on cancellation, `completed` on completion.
+- Mark the old record `superseded` with `closed_at` set and create a new workflow id when the workflow is replaced; mark it `cancelled` on cancellation, `completed` on completion.
+- Set `closed_at` for every terminal status — `superseded`, `cancelled`, `completed`.
 - Leave the tombstoned file in place; roll back only by deleting it.
 - Treat a phase as binding-required once a bound artifact exists — always for `implementation-planning`, `plan-execution`, `plan-pre-check-walkthrough`, and for `requirements-specification` once the spec file exists.
 - Leave `artifact_identity` empty only in a no-file or pre-creation state.
-- Fill the capability map at the first availability check and reuse it for that workflow; invalidate it when visible specialist metadata changes or the workflow is replaced or cancelled.
+- Fill the capability map at a workflow's first availability check and reuse it for that workflow; invalidate it when visible specialist metadata changes or the workflow is replaced or cancelled.
 - Never write a secret-like literal into any field.
 <!-- shared-contract:end session-record-schema -->
 
