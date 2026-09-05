@@ -2,10 +2,11 @@
 
 Read this reference when host delegation or model choice is in play: the user
 asks a sub-agent or a scripted orchestration run to carry work, a routed phase
-is about to delegate, the host offers a choice of delegated models, or a
-question-heavy specialist phase could use a proxy-decision branch. It owns host
-delegation as transport, the delegation record, model choice inside a routed
-phase, and proxy decisions.
+is about to delegate, the host offers a choice of delegated models, a delegated
+unit returns a result to accept, or a question-heavy specialist phase could use
+a proxy-decision branch. It owns host delegation as transport, the delegation
+record, the model-tier contract and model choice inside a routed phase, and
+proxy decisions.
 
 ## Delegation Is Transport
 
@@ -36,13 +37,17 @@ progress. Delegated shared-root edits must be avoided unless the phase permits
 them and records changed paths plus verification status; otherwise use isolated
 work or patch/diff handoff.
 
-## Model Choice
+## Before choosing a delegated model
 
-When the host lets a routed phase choose delegated models and the user has not
-explicitly fixed a model, model selection stays inside that phase's delegation
-contract and follows the model-tier contract in `SKILL.md`: fit-for-purpose per
-delegated unit by capability and context fit, never a hard-coded name, never
-one blanket model for an unattended cross-phase run.
+<!-- shared-contract:begin model-tier-selection source=shared/vibe-contract.md -->
+When the host lets the phase choose a delegated model and the user has not explicitly fixed one, choose a fit-for-purpose model per delegated unit by capability and context fit, not by hard-coded model name. Use a cheaper or faster model only for bounded, low-ambiguity work — lookups, extraction, mechanical checks, simple review — when lower capability is quality-neutral or the user prioritizes cost or latency. Bias upward to the strongest suitable reasoning and context tier available for judgment-heavy work: cross-artifact synthesis, adversarial review, security, data-safety, and other human-risk reasoning, contract compliance, contradiction resolution, and final recommendations or dispositions, especially when the user asks for maximum performance. Do not inherit the top model for every small unit, and do not downshift solely to save tokens when the unit needs stronger reasoning. Record the model choice only for an explicit user override, degraded capability, a cost or performance constraint, or audited external execution; routine compatible choices need no receipt.
+Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+<!-- shared-contract:end model-tier-selection -->
+
+Inside a routed phase the choice stays within that phase's delegation contract:
+model selection never leaves the selected phase's contract, never uses a
+hard-coded model name, and never assigns one blanket model to an unattended
+cross-phase run.
 
 Orchestration quality is not a token-minimization objective. Do not narrow
 investigation scope, skip user/domain perspectives, or choose a poorer UX path
