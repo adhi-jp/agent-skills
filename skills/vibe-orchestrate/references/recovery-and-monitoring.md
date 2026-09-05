@@ -23,7 +23,9 @@ Rules:
 - Give every unit a private, disjoint journal and scratch root. Foreign or
   unexplained content in that root invalidates it as trusted scratch; stop and
   reconcile rather than reading, overwriting, or attributing it to the worker.
-- Remove or exclude journals before commit or final handoff.
+- Remove or exclude progress journals before commit or final handoff. The
+  session record under `.plans/vibe-sessions/` is routing and handoff state, not
+  a progress journal, and this removal rule does not reach it.
 
 ## Worker Death Recovery
 

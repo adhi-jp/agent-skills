@@ -4,16 +4,21 @@ Read this reference before selecting delegated model tiers, judging the coordina
 
 ## Frontier Coordinator And Model-Tier Loops
 
-When the host exposes both high-capability frontier models and cheaper, faster,
-or previous-generation models, treat model choice as part of the delegation
-contract. Keep decomposition, non-delegable decisions, final synthesis,
-verification interpretation, review dispositions, and user-risk choices with the
-coordinator or the strongest suitable reasoning/context tier available. Use
-token-efficient delegated models for bounded work only when lower capability is
-quality-neutral or the user has prioritized cost or latency.
-Record the model/tier choice only for an explicit user override, degraded
-capability, cost/performance constraint, or audited external execution. Routine
-compatible host-native choices need no separate receipt.
+### Model Choice
+
+<!-- shared-contract:begin model-tier-selection source=shared/vibe-contract.md -->
+When the host lets the phase choose a delegated model and the user has not explicitly fixed one, choose a fit-for-purpose model per delegated unit by capability and context fit, not by hard-coded model name. Use a cheaper or faster model only for bounded, low-ambiguity work — lookups, extraction, mechanical checks, simple review — when lower capability is quality-neutral or the user prioritizes cost or latency. Bias upward to the strongest suitable reasoning and context tier available for judgment-heavy work: cross-artifact synthesis, adversarial review, security, data-safety, and other human-risk reasoning, contract compliance, contradiction resolution, and final recommendations or dispositions, especially when the user asks for maximum performance. Do not inherit the top model for every small unit, and do not downshift solely to save tokens when the unit needs stronger reasoning. Record the model choice only for an explicit user override, degraded capability, a cost or performance constraint, or audited external execution; routine compatible choices need no receipt.
+Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+<!-- shared-contract:end model-tier-selection -->
+
+The judgment-heavy units this workflow keeps with the coordinator or the
+strongest suitable tier are decomposition, non-delegable decisions, ambiguous
+architecture, final synthesis, verification interpretation, review dispositions,
+and user-risk choices; a token-efficient delegate is eligible only for
+low-ambiguity lookup, extraction, mechanical checks, fixture comparisons, and
+narrow read-only review.
+
+### Token-Saving Loop
 
 Good token-saving loops reduce repeated context, not proof. Prefer this loop:
 

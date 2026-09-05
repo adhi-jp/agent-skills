@@ -66,8 +66,9 @@ defect; disclose and scope any conformance repair separately, but do not waive
 the gate.
 
 A worker's `COMPILE: PASS`, local test summary, or statement that a suite ran is
-not final proof. It becomes evidence only after the coordinator verifies the
-command, output, and kept bytes.
+the delegated-result case stated under `### Delegated Result Proof` in
+`SKILL.md`: it becomes evidence only after the coordinator verifies the command,
+output, and kept bytes.
 
 A worker's failure report is symmetric: it is not a product defect until the
 coordinator reproduces it in the authoritative environment or records why that

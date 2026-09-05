@@ -213,11 +213,11 @@ DIAGNOSIS:
 
 ## Model And Context Budget
 
-Use lower-cost or previous-generation workers to save tokens only for bounded,
-low-ambiguity work where lower capability is quality-neutral or the user has
-explicitly prioritized cost or latency. Keep ambiguous architecture,
-contract-compliance judgment, contradiction resolution, security/data-safety,
-final recommendations, review dispositions, and user-risk decisions with the
+Model-tier choice is stated once under `## Frontier Coordinator And Model-Tier
+Loops` in `references/coordinator-practices.md`: lower-cost workers only for
+bounded, low-ambiguity work, with ambiguous architecture, contract-compliance
+judgment, contradiction resolution, security/data-safety, final
+recommendations, review dispositions, and user-risk decisions kept with the
 coordinator or the strongest suitable reasoning/context tier available.
 
 A compact context digest should contain verified facts, local anchors, the

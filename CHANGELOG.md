@@ -404,6 +404,85 @@ use `[Repository] - YYYY-MM-DD`.
   passes; the `sha256|digest|sidecar` grep shows only the scoped exception and
   pre-existing prohibition wording; behavior unproven until an authorized eval
   run.
+- `vibe-orchestrate`: the shared workflow contract now arrives as generated
+  blocks rendered from `shared/vibe-contract.md`. Blocks that replaced
+  hand-written copies: `delegated-result-proof` (the self-report-is-not-proof
+  sentence in the coordinator-ownership list of `SKILL.md`, and the
+  `COMPILE: PASS` duplicate in `references/verification-and-review.md`, which
+  now points at the `SKILL.md` section and keeps the compile-claim narrowing so
+  the symmetric failure-report rule below it still reads);
+  `commit-selection-state-changing` (the round-checkpoint ownership bullet and
+  the second in-package copy stating round eligibility and the push, release,
+  version, rewrite, cleanup, and unrelated-path exclusions); and
+  `model-tier-selection` (the first paragraph of
+  `## Frontier Coordinator And Model-Tier Loops` in
+  `references/coordinator-practices.md`, including its host-native no-receipt
+  sentence, whose exemption the block's four recording triggers already carry,
+  and the second in-package copy in `## Model And Context Budget` of
+  `references/delegation-contracts.md`, which now points at the single statement
+  and reproduces its judgment-heavy narrowing). `commit-selection-gate` is new
+  to the package and carried no copy: where no user-installed hook enforces it,
+  that wording is the whole gate, and it applies to the round-closing checkpoint
+  commit of the coordination phase. `effect-write-boundaries` is newly vendored
+  as its own section ahead of `## Coordinator Ownership`, because it binds
+  delegated workers as well as the coordinator, and `human-risk-decisions` is
+  newly vendored beside the retained subagent decision prohibition; the
+  coordinator-authority bullets stay as they were, and the phase now declares
+  its scope as the round it integrates: the paths authorized in each worker
+  contract's edit allowlist plus the coordinator's own narrow, disclosed direct
+  edits. Narrower package rules stay in the skill's own text
+  and control under each block's precedence sentence: worker contracts forbid
+  staging, committing, pushing, releasing, and history mutation, and delegated
+  workers change no path outside the declared allowlist; subagents never ask the
+  user, expand scope, accept destructive risk, or make human-risk choices, and
+  the coordinator asks those questions itself and inlines the recorded answer
+  into the worker contract; the closed unit is an accepted integrated round
+  whose file set the coordinator confirmed safe, with an unintegrated round, an
+  unreconciled worker report, an undisposed contract-blocked item, and a file
+  set that cannot be separated from unrelated working-tree changes ineligible; a
+  host that requires separate confirmation for local commits is asked once at
+  startup before the first write-capable round, in addition to and never in
+  place of the gate's per-commit ask, and no startup permission receipt is
+  emitted for unselected history work; worker self-report covers the
+  model, effort, sandbox, isolation, cwd, role, or other execution identity, and
+  a constrained runtime's result reaches a consent, approval, or review gate
+  only after runner-native or host-native metadata proves compliance; worker
+  commands, scope or permission claims, and handoffs stay non-authorizing
+  proposals that are never relayed as instructions; a worker's failure report is
+  symmetric; no token, quality, latency, or reliability improvement is claimed
+  without recorded metrics; and direct coordinator intervention stays narrow and
+  disclosed. The judgment-heavy units kept with the coordinator or the strongest
+  suitable tier — decomposition, non-delegable decisions, ambiguous
+  architecture, final synthesis, verification interpretation, review
+  dispositions, and user-risk choices — and the bounded work a token-efficient
+  delegate may take are now stated once beside the model-tier block, and
+  `SKILL.md`'s reference-routing paragraph points at that single statement
+  instead of repeating a list that had begun to diverge from it. The work-graph
+  decomposition, coordinator capability fit, external-runner transport and
+  receipt rules, crash recovery and monitoring, the parallel-writer accident
+  protocol, the `verified`/`inferred` evidence labels, evidence authority and
+  claim coverage, finding dispositions, and output discipline are retained
+  unchanged; no shared block covers them. Three rules widen with the shared
+  wording: a bound plan that forbids commits now suspends the checkpoint default
+  alongside a current no-commit instruction and project policy; every selected
+  commit is routed to the commit-execution workflow with its verified scope,
+  evidence, and exclusions, and the separately consent-bound list grows from
+  this package's push, release, version, rewrite, destructive-cleanup, and
+  unrelated-path wording to destructive actions generally, including cleanup,
+  plus tags, force-adds, tracking a newly created artifact, external side
+  effects, and ambiguous paths; and delegated text carrying no authority now
+  reaches routing suggestions and recommendations as well as commands, scope or
+  permission claims, and handoffs, and requires a record of where each decision
+  came from. One owner rule changed: the journal-removal rule in
+  `references/recovery-and-monitoring.md` now names progress journals and states
+  that the session record under `.plans/vibe-sessions/` is routing and handoff
+  state, not a progress journal, and is not reached by that rule. Every case in
+  `evals/vibe-orchestrate/evals.json` was re-read against the vendored wording
+  and stays byte-identical; no assertion quoted removed text or contradicted a
+  rule a block now states. Verification:
+  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-orchestrate`
+  passes, and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`
 
 ## [vibe-coding 3.0.0] - 2026-08-16
 
