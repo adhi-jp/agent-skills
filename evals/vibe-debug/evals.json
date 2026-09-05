@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-debug",
-  "purpose": "External eval set for vibe-debug covering concise simple repairs, risk-triggered ledgers, failed attempts, existing-behavior preservation, source routing, runtime probes, artifact freshness, degraded verification, recurrence, model/delegation honesty, explicit commit requests, and verified uncommitted closure by default.",
+  "purpose": "External eval set for vibe-debug covering concise simple repairs, risk-triggered ledgers, failed attempts, existing-behavior preservation, source routing, runtime probes, artifact freshness, degraded verification, recurrence, model/delegation honesty, explicit commit requests, and checkpoint closure of a verified, self-reviewed repair unless a suspend source applies.",
   "common_assertions": [
     "Output preserves the user's relevant wording while translating the current debug/fix or closure slice into observable behavior or operation decision, material unknowns, proof or preflight path, and current-scope closure criteria. It identifies the expected source or authorization when that source or authority changes the repair or closure decision, but need not add empty source/authorization fields to every concise response.",
     "Output investigates and reasons from the evidence actually supplied. Prompt, plan, represented workflow facts, and described symptoms count as evidence. In response-only tasks that establish represented facts and forbid ambient inspection, output reasons from those facts without requiring matching sandbox edits or claiming local inspection. When missing code, tests, logs, or artifacts materially limit the decision, it states that limit; it need not recite every absent evidence class when it already avoids unsupported inspection claims.",
@@ -337,7 +337,7 @@
         "States the verified null-dereference cause and bounded null-guard fix.",
         "Reports the regression and relevant suite proof plus self-review result.",
         "Does not emit a multi-row debug ledger for this simple deterministic repair.",
-        "Reports the represented verified changes as uncommitted because no commit was requested; the response-only sandbox need not contain those edits."
+        "Reports the represented verified changes as uncommitted because this response-only turn cannot run a commit, not because no commit was requested; the response-only sandbox need not contain those edits."
       ]
     }
   ],
@@ -345,6 +345,6 @@
     "common_assertion_weight": 0.55,
     "per_eval_expectation_weight": 0.45,
     "pass_threshold": 0.75,
-    "notes": "With-skill runs should preserve evidence-backed diagnosis and proof, use a durable ledger only for recurrent/complex/resumable cases, keep simple reproduced repairs concise, and leave verified changes uncommitted unless the current user explicitly selects a commit. Provider execution is not implied by these definitions."
+    "notes": "With-skill runs should preserve evidence-backed diagnosis and proof, use a durable ledger only for recurrent/complex/resumable cases, keep simple reproduced repairs concise, and close a verified, self-reviewed repair with a scoped local checkpoint commit unless a current no-commit instruction, a bound plan that forbids commits, or project policy suspends the default. Provider execution is not implied by these definitions."
   }
 }

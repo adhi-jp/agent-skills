@@ -216,6 +216,48 @@ use `[Repository] - YYYY-MM-DD`.
   the source as the single owner of the shared obligations. Verification: policy
   text only; `python3 scripts/vibe_shared_contract.py check` passes non-strict
   on the current tree.
+- `vibe-debug`: the package now takes its shared obligations from
+  `shared/vibe-contract.md` as generated blocks. Three blocks replace
+  hand-written copies: `delegated-result-proof` replaces the delegated-diagnosis
+  proof sentence, `model-tier-selection` replaces the per-hypothesis model
+  paragraph, and `commit-selection-state-changing` replaces the closure
+  paragraph. The duplicate checkpoint-default copy in the workflow reference's
+  closing step is deleted; that step now points at the commit contract in
+  `SKILL.md` and keeps "Do not ask for startup commit policy." Two blocks are
+  new to the package, which carried no copy of either: `effect-write-boundaries`
+  states the state-changing write boundary the package had only implied through
+  its minimal-patch-envelope and probe-removal rules, and
+  `commit-selection-gate` states that a plain commit proceeds only when the
+  workflow can name the selection source it rests on — the user's request, the
+  bound plan item, or its own checkpoint of a verified unit — which the workflow
+  router records as a `commit-selection` event before the command runs, and that
+  a commit with no nameable source is not made. Retained narrower text that
+  controls under the blocks' precedence sentence: the repair-shaped
+  ineligibility list (a diagnosis with no fix, an unproven or partial repair, a
+  deferred or blocked item), the ledger clause that a delegated finding is
+  recorded evidence for a hypothesis and not the proven cause, the
+  adjacent-findings and probe-removal boundaries, and the startup rule above.
+  The package's own `verified fact` / `hypothesis` / `expert judgment` /
+  `expected outcome` / `proof result` classification is retained unchanged; no
+  shared block covers it. Four rules widen with the shared wording: a bound plan
+  that forbids commits now suspends the checkpoint default alongside a current
+  no-commit instruction and project policy; destructive actions, including
+  cleanup, are named in the consent-bound list beside push, release preparation,
+  version changes, and history rewrites; delegated text now carries no authority
+  of its own, so a delegate's commands, scope or permission claims, routing
+  suggestions, handoffs, and recommendations select nothing and approve nothing;
+  and the commit-selection gate's fallback now applies here — where no
+  user-installed hook enforces it, that wording is the whole gate. The eval
+  suite follows: `purpose` and the scoring notes now describe checkpoint closure
+  of a verified, self-reviewed repair unless a suspend source applies, in place
+  of uncommitted-by-default closure, and the simple-repair case reports its
+  represented changes as uncommitted because a response-only turn cannot run a
+  commit rather than because no commit was requested; the other twenty cases are
+  unchanged. Verification — static:
+  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-debug`
+  passes, and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`
+  passes; behavior unproven until an authorized eval run.
 
 ## [vibe-coding 3.0.0] - 2026-08-16
 
