@@ -152,7 +152,8 @@ use `[Repository] - YYYY-MM-DD`.
   Specialist availability is verified once per workflow and re-verified on
   invalidation, cached in the session record's `capability_map`. Routing state
   is persisted as a record, not authority: the router writes
-  `.plans/vibe-sessions/<workflow_id>.json` — the six routing fields;
+  `.plans/vibe-sessions/<record_id>.json`, where the router's default record id
+  is the workflow id — the six routing fields;
   approval, proceed, handoff, commit-selection, and confirmation events, each
   with its `source`; an 8-hour lease renewed on every write; tombstones on
   cancel, replace, and completion; never committed — at every route decision,
@@ -178,7 +179,26 @@ use `[Repository] - YYYY-MM-DD`.
   hand-written copies. Verification — static:
   `python3 scripts/vibe_shared_contract.py check --strict --package vibe-coding`
   passes; a written walk of eval cases E01–E17 finds no contradicted
-  expectation; behavior unproven until an authorized eval run.
+  expectation; behavior unproven until an authorized eval run. The eval suite
+  follows: its routing-state common assertion is rewritten in place to the
+  record-not-authority form — a continuation turn rebinds from conversation
+  state, artifact paths, and a supplied record, while approvals, proceed
+  decisions, and stop boundaries come from the conversation and a recorded
+  event counts only for its enumerated `source` — and eight cases are added
+  (E18–E25): a concrete default change with no plan, a dependency bump with
+  lint repair, the goal-alignment gate with and without a visible alignment
+  specialist, the six turns that gate must not stop, an approved spec handing
+  off to planning, an execution slice closing at a checkpoint, a proven repair
+  closing at a checkpoint, and a commit request on a mixed working tree. The
+  seventeen existing cases are unchanged. README gains a boundary bullet
+  stating that the three gates are enforced at the tool call only by
+  user-installed hooks, that without them the instruction-only wording in
+  `shared/vibe-contract.md` is the whole gate, that Codex enforcement is
+  `Unproven` until observed, and that shell write forms can bypass an edit-tool
+  matcher so the read-only-phase write gate is best-effort. Verification:
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`
+  passes as static `validate`; the added cases are unexecuted and their
+  behavior stays `Unproven` until an authorized eval run.
 - Repository maintenance: `AGENTS.md` cross-reference rules now govern the
   generated shared-contract blocks. The blocks inside `skills/vibe-*/` are
   marked with `shared-contract` begin and end markers and are never

@@ -104,6 +104,15 @@ of truth when a summary and a detailed contract differ.
   copies inside `skills/` sit between `shared-contract` begin and end markers,
   are generated from that source, are never hand-edited, and are verified by
   `python3 scripts/vibe_shared_contract.py check --strict`.
+- The history-mutation, commit-selection, and read-only-phase write gates are
+  enforced at the tool call only by hooks you install in your own host
+  configuration; this repository ships none. Without them the instruction-only
+  wording in [`shared/vibe-contract.md`](shared/vibe-contract.md) is the whole
+  gate, and the family behaves as its prose says. Whether Codex honors a hook's
+  `ask` or `deny` is `Unproven` until it is observed there. Shell write forms
+  such as redirection, `sed -i`, `tee`, a heredoc, `mv`, `cp`, `rm`, or
+  `git checkout --` can bypass an edit-tool matcher on either host, so the
+  read-only-phase write gate is best-effort even with a hook installed.
 
 ## Check Shared Contract Blocks
 
