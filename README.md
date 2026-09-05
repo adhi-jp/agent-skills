@@ -15,9 +15,12 @@ concrete request:
 - Codex: `$vibe-coding <request>`
 - Claude Code: `/vibe-coding <request>`
 
-These are representative host syntaxes. `vibe-coding` selects one visible
-specialist for the immediate phase; it does not run every phase at once or
-bypass the selected specialist's approval, write, verification, or stop rules.
+These are representative host syntaxes. `vibe-coding` classifies the
+instruction into one row of its decision table and routes only specialist-owned
+rows to a visible specialist; router-owned rows (workflow control, direct
+implementation, maintenance) run as the router's own behavior under the shared
+contract. It does not run every phase at once or bypass the selected
+specialist's approval, write, verification, or stop rules.
 The examples assume the host can already see the skill. Host installation is
 environment-specific; `scripts/sync_dev_agent_skills.py` only manages this
 checkout's local `.agents/skills/` snapshots and `.claude/skills/` links.
@@ -36,7 +39,7 @@ acting. Repository contributors must also follow [`AGENTS.md`](AGENTS.md).
 
 | Task | Skill | Important boundary | Package |
 | --- | --- | --- | --- |
-| Route an explicitly invoked, multi-turn coding workflow | `vibe-coding` | Selects one primary visible specialist for the current phase, preserves that specialist's gates, and separates required work from permission, capability, and artifact lifecycle authority | [source](skills/vibe-coding/SKILL.md) · [evals](evals/vibe-coding/) |
+| Route an explicitly invoked, multi-turn coding workflow | `vibe-coding` | Classifies each turn into one row of a decision table after a narrowly triggered goal-alignment gate; routes specialist-owned rows to one visible specialist and preserves its gates; performs the router-owned `direct-implementation` and `maintenance` rows itself under the shared effect and commit boundaries; and keeps routing state in a session record under `.plans/vibe-sessions/` that is a record, not authority, while approvals, proceed decisions, and stop boundaries stay in the conversation | [source](skills/vibe-coding/SKILL.md) · [evals](evals/vibe-coding/) |
 | Confirm or correct the agent's understanding before ambiguous or risky work | `vibe-goal-alignment` | Produces an understanding record and stops before action until the user confirms or corrects it | [source](skills/vibe-goal-alignment/SKILL.md) · [evals](evals/vibe-goal-alignment/) |
 | Coordinate bounded subagent research, edits, repairs, or review | `vibe-orchestrate` | The coordinator keeps scope, verification, and consent ownership; treats worker output as non-authorizing; and selects external write lanes by required effects plus isolation and receipts, with free-text residual risk and report/manifest/Git reconciliation before acceptance | [source](skills/vibe-orchestrate/SKILL.md) · [evals](evals/vibe-orchestrate/) |
 

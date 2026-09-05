@@ -132,6 +132,53 @@ use `[Repository] - YYYY-MM-DD`.
   of committed, and read-only or no-change routes still create no commit.
   Requirements capture, implementation planning, saved-plan pre-check, and
   standalone writing deliverables keep their existing explicit-request rule.
+- `vibe-coding`: `## Workflow Phases` is now one decision table — trigger,
+  exclusions, owner, required artifact, next boundary — with a mapping from
+  each precedence item to a row, preceded by a goal-alignment gate that fires
+  only on an unresolved history, release, irreversible, or outward-facing
+  ambiguity and never on a settled direct request, a negation such as "do not
+  push", quoted or background material, plan metadata such as
+  `Commit checkpoints`, or an action the request names as out of scope; the
+  gate routes to the visible goal-alignment specialist or asks the one
+  confirming question itself, records the confirmation with
+  `source: user-turn`, and is not proceed evidence for anything else. Two
+  router-owned rows — `direct-implementation` (a concrete single-surface edit
+  with stated or obvious acceptance and verification, no saved plan, no defect
+  report) and `maintenance` (dependency updates, build repairs without a
+  defect, test-only edits, explicitly requested release preparation,
+  repository chores) — are classified after implementation planning and before
+  requirements specification, are exempt from the availability gate, never
+  report `matched-but-unavailable`, and end at the commit-selection gate.
+  Specialist availability is verified once per workflow and re-verified on
+  invalidation, cached in the session record's `capability_map`. Routing state
+  is persisted as a record, not authority: the router writes
+  `.plans/vibe-sessions/<workflow_id>.json` — the six routing fields;
+  approval, proceed, handoff, commit-selection, and confirmation events, each
+  with its `source`; an 8-hour lease renewed on every write; tombstones on
+  cancel, replace, and completion; never committed — at every route decision,
+  phase boundary, and event, immediately before any gated action, and after
+  any write to a bound artifact, and records a `commit-selection` event naming
+  its source before any plain commit. The router's write of its own record is
+  never a gated write, every event is written with `status: current`, and a
+  digest refresh marks stale approval, proceed, and handoff events
+  `superseded` in place rather than deleting them. Approvals, proceed
+  decisions, and stop
+  boundaries stay in the conversation; the record names them and does not
+  relocate them, replacing the earlier "keep them in the conversation"
+  sentence, and the "no separate persisted ledger file" and "verify before
+  naming a downstream route" sentences are replaced by the record and the
+  once-per-workflow check. The single always-read reference is split into four
+  trigger-indexed references (`route-selection.md`, `phase-boundaries.md`,
+  `delegation-and-proxy.md`, `session-record.md`), and the package carries the
+  generated shared-contract blocks `effect-write-boundaries`,
+  `commit-selection-state-changing`, `human-risk-decisions`,
+  `trusted-orchestration-evidence`, `model-tier-selection`,
+  `history-mutation-gate`, `commit-selection-gate`,
+  `read-only-phase-write-gate`, and `session-record-schema` in place of its
+  hand-written copies. Verification — static:
+  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-coding`
+  passes; a written walk of eval cases E01–E17 finds no contradicted
+  expectation; behavior unproven until an authorized eval run.
 - Repository maintenance: `AGENTS.md` cross-reference rules now govern the
   generated shared-contract blocks. The blocks inside `skills/vibe-*/` are
   marked with `shared-contract` begin and end markers and are never
