@@ -18,7 +18,7 @@ without inventing missing behavior. Treat the user's request as valuable intent,
 not verified fact: preserve the goal, prove what can be proven, and make
 uncertainty visible.
 
-### Effect and Write Boundaries
+### Effect And Write Boundaries
 
 <!-- shared-contract:class language=none commit=document-only effect=artifact-only -->
 <!-- shared-contract:begin effect-write-boundaries source=shared/vibe-contract.md -->

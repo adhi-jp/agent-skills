@@ -245,15 +245,16 @@ use `[Repository] - YYYY-MM-DD`.
   only the repair phase's closing commit.
   The package's own `verified fact` / `hypothesis` / `expert judgment` /
   `expected outcome` / `proof result` classification is retained unchanged; no
-  shared block covers it. Four rules widen with the shared wording: a bound plan
-  that forbids commits now suspends the checkpoint default alongside a current
-  no-commit instruction and project policy; destructive actions, including
-  cleanup, are named in the consent-bound list beside push, release preparation,
-  version changes, and history rewrites; delegated text now carries no authority
-  of its own, so a delegate's commands, scope or permission claims, routing
-  suggestions, handoffs, and recommendations select nothing and approve nothing;
-  and the commit-selection gate's fallback now applies here — where no
-  user-installed hook enforces it, that wording is the whole gate. The eval
+  shared block covers it. Three rules widen with the shared wording: a bound
+  plan that forbids commits now suspends the checkpoint default alongside a
+  current no-commit instruction and project policy; destructive actions,
+  including cleanup, are named in the consent-bound list beside push, release
+  preparation, version changes, and history rewrites; and delegated text now
+  carries no authority of its own, so a delegate's commands, scope or permission
+  claims, routing suggestions, handoffs, and recommendations select nothing and
+  approve nothing. The commit-selection gate is an addition, not a widening:
+  where no user-installed hook enforces it, its wording is the whole gate. The
+  eval
   suite follows: `purpose` and the scoring notes now describe checkpoint closure
   of a verified, self-reviewed repair unless a suspend source applies, in place
   of uncommitted-by-default closure, and the simple-repair case reports its
@@ -319,14 +320,14 @@ use `[Repository] - YYYY-MM-DD`.
   only research and review subagent permission for this workflow. The package's
   own provenance partition, exact-content containment and durable-anchor rules,
   drafting modes, spec template, completion audit, and lifecycle gates are
-  retained unchanged; no shared block covers them. Three rules widen with the
+  retained unchanged; no shared block covers them. Two rules widen with the
   shared wording: the artifact-only class now permits supporting paths a phase's
   own text declares, of which this workflow declares none beyond the spec
-  artifact and its capture destination; delegated text now carries no authority
-  of its own, so a proxy's commands, scope or permission claims, routing
-  suggestions, handoffs, and recommendations select nothing and approve nothing;
-  and the read-only-phase write gate's fallback applies here — where no
-  user-installed hook enforces it, that wording is the whole gate. The eval
+  artifact and its capture destination; and delegated text now carries no
+  authority of its own, so a proxy's commands, scope or permission claims,
+  routing suggestions, handoffs, and recommendations select nothing and approve
+  nothing. The read-only-phase write gate is an addition, not a widening: where
+  no user-installed hook enforces it, its wording is the whole gate. The eval
   suite is unchanged: no assertion quoted removed text or contradicts a rule a
   block now states, and the eight `VIBE_DOCUMENT_LANGUAGE` and six
   `VIBE_SUBAGENTS` mentions were re-read against the vendored wording.
@@ -959,9 +960,9 @@ use `[Repository] - YYYY-MM-DD`.
   declares consolidates a permission this skill already had — the confirmed
   reflection into the target plan — rather than widening it. Owner text changed
   in three places: `### Effect And Write Boundaries` now carries the phase's
-  stop
-  point after item review and the final plan-reflection confirmation workflow
-  together with a declaration of the artifact this phase owns and its single
+  stop point after item review and the final plan-reflection confirmation
+  workflow together with a declaration of the artifact this phase owns and its
+  single
   supporting path; `### Commit Selection` restates the routed-commit actor and
   the reflected-plan target; and `## Sensitive Content Handling` keeps plan,
   requirements-spec, source, temporary-review content, and any commit message
