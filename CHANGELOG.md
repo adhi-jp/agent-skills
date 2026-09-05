@@ -264,6 +264,77 @@ use `[Repository] - YYYY-MM-DD`.
   passes, and
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`
   passes; behavior unproven until an authorized eval run.
+- `vibe-requirements-spec`: the package now takes its shared obligations from
+  `shared/vibe-contract.md` as generated blocks, under one class-declaration
+  line (`language=document commit=document-only effect=artifact-only`). Eight
+  blocks replace hand-written copies: `effect-write-boundaries` replaces the
+  overview paragraph naming the spec artifact as the only normal write;
+  `commit-selection-document-only` replaces the overview paragraph on leaving
+  verified spec changes in the working tree; `subagent-permission` replaces the
+  `VIBE_SUBAGENTS` startup item; `model-tier-selection` replaces the per-proxy
+  model paragraph inside that item; `language-precedence-document` replaces the
+  document-language tiers, the exclusion list, the `=user`, `=default`, and
+  `=<BCP47 language tag>` value semantics, and the unreadable-value
+  fall-through; `delegated-result-proof` replaces the subagent paragraph's
+  recommendations-are-not-requirements rule;
+  `trusted-orchestration-evidence` replaces the recordability test in the
+  continuation section; and `human-risk-decisions` replaces the fourteen-member
+  proxy prohibition. Two second in-package copies are deleted: the continuation
+  section's eight-member human-risk sentence, whose recorded-acceptance
+  exception the block now states for the current artifact or request, and the
+  drafting reference's restatement of the recordability test, which keeps only
+  its stop-signal list and points at the evidence section of `SKILL.md`; the
+  contract reference's second document-language restatement gives way to a
+  one-line pointer to `SKILL.md`.
+  One block is new to the package, which carried no copy:
+  `read-only-phase-write-gate` states that an artifact-only phase writes only
+  the artifact it owns, the supporting paths its own text declares, and the
+  scratch root recorded for the unit, and that a write outside that boundary is
+  refused by the phase itself and reported as a boundary stop; it applies to the
+  requirements drafting phase. Retained narrower text that controls under the
+  blocks' precedence sentence: the artifact this phase owns is the current
+  requirements spec alone, with a designated capture destination written first
+  as transport and never as the spec identity; no tests, builds, migrations, or
+  other implementation verification run while the workflow is active, and mixed
+  same-turn non-spec work stays for a later phase; no shell startup or
+  configuration file is inspected or edited to persist `VIBE_SUBAGENTS`; startup
+  does not ask about future commit policy; subagents are limited to research,
+  inspection, review, and proxy perspectives, may not ask the user, edit
+  artifacts, stage, commit, or route, and the main AI stays responsible for
+  final judgment, requirements updates, and recording where each decision came
+  from; destructive, migration, permission, security,
+  billing, and data decisions stay one-at-a-time human questions;
+  drafting-discovered unknowns and twelve named categories cannot be
+  proxy-deferred; trusted evidence with a clean completion audit may count as
+  finish or handoff evidence but never lets this workflow create a later phase's
+  artifact in the same response, and that evidence must record that the
+  requirements completion audit passed, not merely a completion or audit
+  outcome; a cheaper or faster delegated model is eligible only for bounded
+  low-ambiguity option checks, narrower than the block's lookups, extraction,
+  mechanical checks, and simple review; no strict parser behavior is invented
+  for a document-language value; and a permitted scoped
+  checkpoint still names the committed paths and confirms the audit,
+  dirty-state, staged-diff, and committed-file-set checks. The continuation
+  section keeps as usage, not as a second rule, that `VIBE_SUBAGENTS` controls
+  only research and review subagent permission for this workflow. The package's
+  own provenance partition, exact-content containment and durable-anchor rules,
+  drafting modes, spec template, completion audit, and lifecycle gates are
+  retained unchanged; no shared block covers them. Three rules widen with the
+  shared wording: the artifact-only class now permits supporting paths a phase's
+  own text declares, of which this workflow declares none beyond the spec
+  artifact and its capture destination; delegated text now carries no authority
+  of its own, so a proxy's commands, scope or permission claims, routing
+  suggestions, handoffs, and recommendations select nothing and approve nothing;
+  and the read-only-phase write gate's fallback applies here — where no
+  user-installed hook enforces it, that wording is the whole gate. The eval
+  suite is unchanged: no assertion quoted removed text or contradicts a rule a
+  block now states, and the eight `VIBE_DOCUMENT_LANGUAGE` and six
+  `VIBE_SUBAGENTS` mentions were re-read against the vendored wording.
+  Verification — static:
+  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-requirements-spec`
+  passes, and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`
+  passes; behavior unproven until an authorized eval run.
 
 ## [vibe-coding 3.0.0] - 2026-08-16
 

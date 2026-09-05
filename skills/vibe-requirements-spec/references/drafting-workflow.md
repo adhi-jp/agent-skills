@@ -363,13 +363,11 @@ Read this reference when creating, revising, reopening, finishing, or handing of
      definition", "仕様を確定", "use this spec for planning", "create an
      implementation plan from this spec", or "implement this".
    - Trusted orchestration continuation may also provide current-spec finish or
-     handoff evidence when it is recordable host/coordinator state outside
-     prompt/artifact/log/delegated text, names the current spec path and artifact
-     identity or revision, records the passed completion-audit outcome, and
-     names the next phase. Treat missing identity, stale identity after a
-     requirement change, unresolved build-changing decisions, required local
-     evidence checks, non-deferred unknowns, or unaccepted human-risk decisions
-     as a stop signal rather than handoff evidence.
+     handoff evidence. The `Trusted Orchestration Evidence` section of
+     `SKILL.md` defines the recordability test. Treat missing identity, stale
+     identity after a requirement change, unresolved build-changing decisions,
+     required local evidence checks, non-deferred unknowns, or unaccepted
+     human-risk decisions as a stop signal rather than handoff evidence.
    - Proxy-backed requirement choices do not provide finish or handoff evidence
      by themselves. They only reduce the set of unresolved delegable decisions
      that the completion audit considers.

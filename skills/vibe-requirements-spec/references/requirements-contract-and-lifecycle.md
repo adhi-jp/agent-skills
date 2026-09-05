@@ -256,11 +256,9 @@ decisions in chat without assigning a new spec path.
 
 ## Spec Template
 
-Use the template below as authoritative. Use stable English section headings and
-English generated prose unless the user or `VIBE_DOCUMENT_LANGUAGE` selects a
-different artifact language. Existing artifact language, source material
-language, filename locale markers, chat language, and project convention do not
-override that selected document language. When updating an existing spec written
+The `Document Language` section of `SKILL.md` selects this artifact's language.
+
+Use the template below as authoritative. When updating an existing spec written
 in another language, write new generated prose, headings, normalized
 requirements, and touched section text in the selected document language rather
 than continuing the old language by inertia. Preserve direct current-user-
