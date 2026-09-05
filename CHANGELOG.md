@@ -900,6 +900,81 @@ use `[Repository] - YYYY-MM-DD`.
   passes, and
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-brainstorm/evals.json`
   passes; behavior unproven until an authorized eval run.
+- `vibe-plan-review`: the shared workflow contract now arrives as generated
+  blocks rendered from `shared/vibe-contract.md`, carried in four new sections —
+  `### Effect And Write Boundaries`, `### Read-Only-Phase Write Gate`, and
+  `### Commit Selection` under `## Overview`, plus the existing
+  `## Sensitive Content Handling` — with a fourth new section,
+  `### Runtime Language`, holding the unchanged runtime-language paragraph so
+  that it no longer reads as part of the commit section. Blocks that replaced
+  hand-written copies: `effect-write-boundaries` (the `## Overview` class
+  statement that the skill reviews the plan, does not execute it, and does not
+  proceed into implementation, tests, releases, or adjacent coding work),
+  `commit-selection-document-only` (one part of the `## Overview` commit
+  paragraph: leaving verified plan changes in the working tree, and invocation,
+  reflection consent, tracked status, and successful verification not selecting
+  a commit; the paragraph's routing sentence is restated as owner text instead,
+  below), and `secret-redaction` (in `## Sensitive Content Handling`, two parts
+  only: the paragraph listing credential, token, password, private key,
+  URL-embedded authentication value, session secret, and env-style secret
+  assignment as the sensitive classes, and the first two bullets, which named
+  the emission surfaces and the path/line/class/marker reference shape; the
+  section's blocker, no-copy-into-the-review-file, and no-reflection bullets and
+  its uncertainty paragraph stay hand-written). `read-only-phase-write-gate` is
+  new to the package, which carried no copy of it: where no user-installed hook
+  enforces it, the block's wording is the whole gate, so this phase writes only
+  the artifact it owns, the supporting paths its own text declares, and the
+  scratch root recorded for the unit, and it refuses a write outside that
+  boundary itself and reports it as a boundary stop instead of retrying through
+  another tool. Narrower package rules stay in the skill's own text and control
+  under each block's precedence sentence: review stops after item review and the
+  final plan-reflection confirmation workflow; a commit the current user
+  explicitly requests is routed to a later commit-execution workflow and is
+  never performed by this phase, where the block would also allow the phase to
+  perform it under the same checks; that commit's target is the reflected plan
+  file, where the block scopes a requested commit to the artifact the phase owns
+  — here the temporary review-state file — which is itself never committed; the
+  temporary review file is stored beside the plan as `.<plan-name>.review.md`
+  and a mismatched, unparseable, externally edited, or unclearly owned one stops
+  the review instead of being overwritten; reflection into the original plan
+  happens only after explicit confirmation that states all four localized
+  decision outcomes, and never while a suspected sensitive literal remains in
+  the target plan or the review state; a live-looking credential in the plan is
+  a blocker whose remedy is removal plus rotation or revocation through a secure
+  process, never a value pasted into the conversation; a sensitive source line
+  is never copied into the review file; an uncertain candidate is redacted and
+  asked about without showing it; redaction authorizes no implementation,
+  rotation, revocation, or secret-store access; and after verification the plan
+  changes are left uncommitted unless the current user explicitly asks, with
+  review-file cleanup a separate user decision. Item extraction and stable item
+  identity, the localized decision labels and their numeric identifiers,
+  requirements-spec discovery and the requirements-plan conflict stop, minimal
+  source inspection, the review binding output, the stop conditions, and the
+  completion summary are retained unchanged; no shared block covers them. The
+  shared wording widens one rule for this package: redaction is now typed, with
+  six detection classes, the `[REDACTED:<type>]` marker, a most-specific-class
+  precedence rule, and a redaction count rendered as a compact footer, where the
+  skill previously listed seven untyped kinds and one example marker. The
+  artifact-only clause permitting the supporting paths a phase's own text
+  declares consolidates a permission this skill already had — the confirmed
+  reflection into the target plan — rather than widening it. Owner text changed
+  in three places: `### Effect And Write Boundaries` now carries the phase's
+  stop
+  point after item review and the final plan-reflection confirmation workflow
+  together with a declaration of the artifact this phase owns and its single
+  supporting path; `### Commit Selection` restates the routed-commit actor and
+  the reflected-plan target; and `## Sensitive Content Handling` keeps plan,
+  requirements-spec, source, temporary-review content, and any commit message
+  this phase drafts or hands on in scope, keeps the plan item anchor among the
+  preserved verification anchors, and keeps a suspected credential that matches
+  none of the typed classes secret-like here, redacted with a `credential` type.
+  Every case in `evals/vibe-plan-review/evals.json` was re-read against the
+  vendored wording and stays byte-identical; no assertion quoted removed text or
+  contradicted a rule a block now states. Verification:
+  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-plan-review`
+  passes, and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`
+  passes; behavior unproven until an authorized eval run.
 
 ## [vibe-coding 3.0.0] - 2026-08-16
 
