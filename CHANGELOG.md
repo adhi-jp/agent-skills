@@ -788,6 +788,50 @@ use `[Repository] - YYYY-MM-DD`.
   passes, and
   `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-agent-instructions/evals.json`
   passes; behavior unproven until an authorized eval run.
+- `vibe-goal-alignment`: this skill now carries three blocks from
+  `shared/vibe-contract.md`, and no hand-written rule was deleted to make room
+  for them. `effect-write-boundaries` and `human-risk-decisions` are newly
+  vendored beside retained wording — the skill's own no-execution sentence and
+  its risk-and-ambiguity gate list. `read-only-phase-write-gate` is new to the
+  package, which carried no copy: where no user-installed hook enforces it, its
+  wording is the whole gate, so a read-only phase writes only an explicitly
+  requested saved artifact whose canonical path is recorded in `allowed_paths`
+  and otherwise writes no file — an allowance this package removes outright,
+  below — and a write outside that boundary is refused by the phase itself and
+  reported as a boundary stop. The class declaration
+  `language=none commit=none effect=read-only` names this phase read-only, so
+  the block's read-only clause is the one that binds it: it reads and reports,
+  its deliverable is chat, and it runs no command that mutates runtime or
+  repository state. The skill's stricter sentence — do not run commands, edit
+  files, stage, commit, tag, push, bump versions, delete data, or start
+  services from this skill — is retained word for word and controls under the
+  effect block's precedence sentence, and one added sentence records the empty
+  write boundary that follows from it: this phase owns no artifact and writes
+  no file, so the block's allowance for an explicitly requested saved artifact
+  does not reach it. The alignment-record fields and the `User-stated`,
+  `Local evidence`, `Assumption`, and `Unresolved` labels, the
+  risk-and-ambiguity gate list, the correction loop, the output-boundary style
+  rules, the common-mistake and self-check lists, and the response-language
+  sentence are retained unchanged; no shared block covers them. The shared
+  wording widens one rule for this package: a human-risk decision needs
+  explicit human-user acceptance that is already recorded and tied to the
+  current artifact or request; no orchestration handoff, proxy perspective,
+  delegated recommendation, or AI-selected default accepts one on the user's
+  behalf; and paid decisions join the classes that stop for the user. Owner
+  text: the no-execution sentence moved out of the output-boundary list into a
+  new `## Effect And Write Boundaries` section so the block sits outside a list
+  item, keeping its wording and line breaks; the write gate has its own
+  subsection holding the block and one applicability line naming this phase;
+  one sentence states that alignment surfaces human-risk decisions as questions
+  before any action and that this phase has no owning artifact to return one
+  to; and the empty-write-boundary sentence stated above.
+  Every case in `evals/vibe-goal-alignment/evals.json` was re-read against the
+  vendored wording and stays byte-identical; no assertion quoted removed text or
+  contradicted a rule a block now states. Verification:
+  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-goal-alignment`
+  passes, and
+  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-goal-alignment/evals.json`
+  passes; behavior unproven until an authorized eval run.
 
 ## [vibe-coding 3.0.0] - 2026-08-16
 
