@@ -107,9 +107,19 @@ the agreement required to proceed.
 ### Human-Risk Decisions
 
 <!-- shared-contract:class language=none commit=none effect=read-only -->
-<!-- shared-contract:begin human-risk-decisions source=shared/vibe-contract.md -->
-Destructive, credential, auth/session, permission, billing, security, irreversible, data-migration, legal/compliance, paid, production, external-side-effect, release, history-mutation, or other human-risk decisions belong to the human user. They require explicit human-user acceptance, and that acceptance counts only when it is already recorded and tied to the current artifact or request. No orchestration handoff, proxy perspective, delegated recommendation, or AI-selected default accepts such a decision on the user's behalf. When one is unresolved, ask the smallest human-user question or return to the artifact that owns the decision; do not proceed, hand off, or route past it.
+<!-- shared-contract:begin closing source=shared/vibe-contract.md -->
 Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+A package may state which of its phases this gate applies to; it may not change the gate's inputs, outcomes, or fields.
+<!-- shared-contract:end closing -->
+<!-- shared-contract:begin human-risk-decisions source=shared/vibe-contract.md -->
+**Leave every human-risk decision to the human user.**
+
+- Treat as human-risk any destructive, credential, auth/session, permission, billing, security, irreversible, data-migration, legal/compliance, paid, production, external-side-effect, release, history-mutation, or other human-risk decision.
+- Require explicit human-user acceptance for it.
+- Count that acceptance only when it is already recorded and tied to the current artifact or request.
+- Never let an orchestration handoff, proxy perspective, delegated recommendation, or AI-selected default accept such a decision on the user's behalf.
+- When one is unresolved, ask the smallest human-user question or return to the artifact that owns the decision.
+- Never proceed, hand off, or route past an unresolved human-risk decision.
 <!-- shared-contract:end human-risk-decisions -->
 
 Alignment surfaces these decisions as questions before any action; this phase
@@ -153,12 +163,22 @@ Keep alignment concise and operational:
 ## Effect And Write Boundaries
 
 <!-- shared-contract:begin effect-write-boundaries source=shared/vibe-contract.md -->
-Every workflow phase belongs to one effect class, declared in its own text, and writes nothing beyond what that class and its declared boundary permit.
+**Write nothing beyond what the phase's own effect class and its declared boundary permit.**
 
-- A read-only phase reads and reports. Its deliverable is chat: findings, alignment, or direction. It edits no source, test, config, doc, or other file, runs no command that mutates runtime or repository state, and does not stage, commit, tag, push, change versions, delete data, or start services. It writes a file only when the current user explicitly asks for a saved artifact.
-- An artifact-only phase creates or updates the artifact it owns — the requirements spec, the plan, the plan-review state, the instruction files, or the text artifacts the request names — and the supporting paths its own text declares: the text it was asked to revise (comments, docstrings, docs), a confirmed reflection into the bound plan, an ignore file it previewed and the user confirmed, or a narrowly confirmed configuration edit its text names. It leaves those verified changes in the working tree. It does not implement executable behavior, does not edit application code or tests as implementation, does not produce an artifact another phase owns, and does not perform release work; its artifact never authorizes same-turn implementation.
-- A state-changing phase edits files and runs commands inside the scope its own text declares — the unit it implements, the repair it proves, the fixes it applies, the round it integrates, or the commit it executes — and keeps its edits to the smallest verified unit of that scope. Paths outside the scope, pre-existing working-tree changes it did not make, and runtime or external state beyond the scope stay unwritten unless the current user selects them, and every irreversible or outward-facing operation stays under its own consent.
-Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+- Declare exactly one effect class for every workflow phase, in that phase's own text.
+- In a read-only phase, read and report; make chat the deliverable — findings, alignment, or direction.
+- In a read-only phase, edit no source, test, config, doc, or other file, and run no command that mutates runtime or repository state.
+- In a read-only phase, never stage, commit, tag, push, change versions, delete data, or start services.
+- In a read-only phase, write a file only when the current user explicitly asks for a saved artifact.
+- In an artifact-only phase, create or update the artifact it owns: the requirements spec, the plan, the plan-review state, the instruction files, or the text artifacts the request names.
+- In an artifact-only phase, write the supporting paths its own text declares: text it was asked to revise (comments, docstrings, docs), a confirmed bound-plan reflection, a previewed and user-confirmed ignore file, or a narrowly confirmed configuration edit its text names.
+- In an artifact-only phase, leave those verified changes in the working tree.
+- In an artifact-only phase, never implement executable behavior, never edit application code or tests as implementation, never produce an artifact another phase owns, and never perform release work.
+- Never let an artifact-only phase's artifact authorize same-turn implementation.
+- In a state-changing phase, edit files and run commands inside the scope its own text declares — the unit it implements, the repair it proves, the fixes it applies, the round it integrates, or the commit it executes.
+- In a state-changing phase, keep its edits to the smallest verified unit of that scope.
+- Leave paths outside the scope, pre-existing working-tree changes the phase did not make, and runtime or external state beyond the scope unwritten unless the current user selects them.
+- Keep every irreversible or outward-facing operation under its own consent.
 <!-- shared-contract:end effect-write-boundaries -->
 
 Do not run commands, edit files, stage, commit, tag, push, bump versions,
@@ -169,14 +189,22 @@ This phase owns no artifact and writes no file.
 ### Read-Only-Phase Write Gate
 
 <!-- shared-contract:begin read-only-phase-write-gate source=shared/vibe-contract.md -->
-This gate covers writes during a read-only or artifact-only phase. Observable input: the target path of a file-edit or file-write tool call, or a shell tool call whose command writes a path (redirection, `sed -i`, `tee`, a heredoc, `mv`, `cp`, `rm`, `git checkout --`, matched best-effort), together with the session record for this worktree under `.plans/vibe-sessions/`, reading `status`, `lease.expires_at`, `repository.worktree`, `host_session_id`, `phase`, `effect_mode`, and `allowed_paths`; the directory's other candidate records, to detect a conflicting record; the readable bytes of every artifact named in `artifact_identity`, to detect an identity mismatch; and any supplied prior record, to check `generation`.
+**Never write a path your phase's effect class and recorded `allowed_paths` do not permit.**
 
-Observable stop, with three outcomes: `deny`, with a reason that names the target path and quotes the recorded `phase`, `effect_mode`, and `allowed_paths`, only when a fresh, valid, session-bound record exists whose `effect_mode` is `read-only` or `artifact-only` and the target's canonical absolute path is outside every recorded `allowed_paths` entry (the entry itself or a path beneath a recorded directory); `allow` in every other case — a target inside `allowed_paths`, an `effect_mode` of `state-changing` or `none`, or a record that is absent, malformed, stale, foreign, session-unbound, conflicting, or identity-mismatched; and `ask`, which this gate never returns. No invalid record state ever produces `deny`, so the refusal never rests on unverified host behavior. A denied write is reported verbatim by the agent as a boundary stop, not retried through another tool.
+- With no user-installed hook enforcing this gate, this wording is the whole gate: refuse the write in the phase itself.
+- Count as a write any file-edit or file-write tool call, and any shell command that writes a path — redirection, `sed -i`, `tee`, a heredoc, `mv`, `cp`, `rm`, `git checkout --`.
+- In a read-only phase, write only an explicitly requested saved artifact whose canonical path is recorded in `allowed_paths`; otherwise write no file.
+- In an artifact-only phase, write only the artifact it owns, the supporting paths its own text declares, and the scratch root recorded for the unit.
+- Refuse a write outside that boundary in the phase itself and report it as a boundary stop.
+- Report a denied write verbatim; never retry it through another tool.
+- Return `deny` only for a fresh, valid, session-bound `read-only` or `artifact-only` record whose canonical target lies outside every `allowed_paths` entry and recorded directory; name the path, quote `phase`, `effect_mode`, `allowed_paths`.
+- Return `allow` in every other case: a target inside `allowed_paths`, an `effect_mode` of `state-changing` or `none`, or a record absent, malformed, stale, foreign, session-unbound, conflicting, or identity-mismatched.
+- Never return `ask` from this gate.
+- Never let an invalid record state produce `deny`, so the refusal never rests on unverified host behavior.
 
-Control-plane exception: a write whose target is the active session record itself — `.plans/vibe-sessions/<record_id>.json` under the repository root — or that record's temporary file in the same directory, written for the atomic rename, is `allow` regardless of `effect_mode`, when the target's canonical path is inside `.plans/vibe-sessions/` and its stem equals the active record's `record_id`. Every other path under that directory is judged like any other path, and the exception does not broaden `allowed_paths`.
+Example: in an artifact-only planning phase `allowed_paths` is the plan file plus the unit's scratch root; editing application code is outside that boundary.
 
-When no user-installed hook enforces this gate, this wording is the whole gate: a read-only phase writes only an explicitly requested saved artifact whose canonical path is recorded in `allowed_paths` and otherwise writes no file; an artifact-only phase writes only the artifact it owns, the supporting paths its own text declares, and the scratch root recorded for the unit; the router's write of its own record falls under the exception above and is not a phase write; and a write outside that boundary is refused by the phase itself and reported as a boundary stop.
-A package may state which of its phases this gate applies to; it may not change the gate's inputs, outcomes, or fields.
+Exception: the router writing its own session record — `.plans/vibe-sessions/<record_id>.json` or its rename temp file — is `allow` regardless of `effect_mode` and is not a phase write; no other path there is, and `allowed_paths` does not widen.
 <!-- shared-contract:end read-only-phase-write-gate -->
 
 This gate applies to the goal-alignment phase.

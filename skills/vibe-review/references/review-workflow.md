@@ -179,8 +179,16 @@ visible residual or blocker.
 ### Reviewer Model Choice
 
 <!-- shared-contract:begin model-tier-selection source=shared/vibe-contract.md -->
-When the host lets the phase choose a delegated model and the user has not explicitly fixed one, choose a fit-for-purpose model per delegated unit by capability and context fit, not by hard-coded model name. Use a cheaper or faster model only for bounded, low-ambiguity work — lookups, extraction, mechanical checks, simple review — when lower capability is quality-neutral or the user prioritizes cost or latency. Bias upward to the strongest suitable reasoning and context tier available for judgment-heavy work: cross-artifact synthesis, adversarial review, security, data-safety, and other human-risk reasoning, contract compliance, contradiction resolution, and final recommendations or dispositions, especially when the user asks for maximum performance. Do not inherit the top model for every small unit, and do not downshift solely to save tokens when the unit needs stronger reasoning. Record the model choice only for an explicit user override, degraded capability, a cost or performance constraint, or audited external execution; routine compatible choices need no receipt.
-Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+**Choose a fit-for-purpose model per delegated unit by capability and context fit, not by hard-coded model name.**
+
+- Choose only when the host lets the phase choose a delegated model and the user has not explicitly fixed one.
+- Use a cheaper or faster model only for bounded, low-ambiguity work — lookups, extraction, mechanical checks, simple review — when lower capability is quality-neutral or the user prioritizes cost or latency.
+- Bias upward to the strongest suitable reasoning and context tier available for judgment-heavy work: cross-artifact synthesis, adversarial review, security, data-safety, and other human-risk reasoning, contract compliance, contradiction resolution, and final recommendations or dispositions.
+- Bias upward especially when the user asks for maximum performance.
+- Never inherit the top model for every small unit.
+- Never downshift solely to save tokens when the unit needs stronger reasoning.
+- Record the model choice only for an explicit user override, degraded capability, a cost or performance constraint, or audited external execution.
+- Give routine compatible choices no receipt.
 <!-- shared-contract:end model-tier-selection -->
 
 Each delegated unit here is one review angle. The judgment-heavy angles are
@@ -517,17 +525,22 @@ that never executes is a proof-sufficiency finding, not a product fix.
 ## Secret Hygiene
 
 <!-- shared-contract:begin secret-redaction source=shared/vibe-contract.md -->
-Redact secret-like literals before any text crosses an output boundary: rendering, persistence, forwarding to another agent or backend, ledger projection, quoted snippets, summaries, and tool arguments. A requirement to read, quote, preserve, summarize, or reflect content never authorizes reproducing the value. Detection classes:
+**Redact secret-like literals before any text crosses an output boundary.**
 
+- Count as an output boundary rendering, persistence, forwarding to another agent or backend, ledger projection, quoted snippets, summaries, and tool arguments.
+- Never let a requirement to read, quote, preserve, summarize, or reflect content authorize reproducing the value.
+- Detect these classes:
 - `apikey`: known-prefix API keys and access tokens.
 - `jwt`: three-part JWT-like tokens.
 - `private-key`: PEM private-key headers and matching footers.
 - `url-auth`: credentials embedded in `http` or `https` URLs.
 - `secret-context`: high-entropy text co-occurring with key, token, secret, password, api key, bearer, or session-secret context.
 - `env-secret`: env-style assignment names ending in key, token, secret, password, or pwd.
-
-Replace each match with `[REDACTED:<type>]`. When one span matches several classes, the most specific structural class wins: `env-secret` for a secret-named environment assignment and `apikey` for a recognized API-key prefix take precedence over generic `secret-context`. Preserve non-secret wording and the anchors needed to verify the finding — paths, line numbers, symbols, commands, API names, field names, and identifiers. Count the redactions and render a compact footer when any occurred.
-Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+- Replace each match with `[REDACTED:<type>]`.
+- When one span matches several classes, let the most specific structural class win.
+- Give `env-secret` for a secret-named environment assignment and `apikey` for a recognized API-key prefix precedence over generic `secret-context`.
+- Preserve non-secret wording and the anchors needed to verify the finding — paths, line numbers, symbols, commands, API names, field names, and identifiers.
+- Count the redactions and render a compact footer when any occurred.
 <!-- shared-contract:end secret-redaction -->
 
 This workflow's secret-hygiene overlay applies that redaction at its own output

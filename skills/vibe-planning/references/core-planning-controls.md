@@ -178,8 +178,14 @@ Read this reference before finalizing any implementation plan or plan revision. 
 ### Human-Risk Decisions
 
 <!-- shared-contract:begin human-risk-decisions source=shared/vibe-contract.md -->
-Destructive, credential, auth/session, permission, billing, security, irreversible, data-migration, legal/compliance, paid, production, external-side-effect, release, history-mutation, or other human-risk decisions belong to the human user. They require explicit human-user acceptance, and that acceptance counts only when it is already recorded and tied to the current artifact or request. No orchestration handoff, proxy perspective, delegated recommendation, or AI-selected default accepts such a decision on the user's behalf. When one is unresolved, ask the smallest human-user question or return to the artifact that owns the decision; do not proceed, hand off, or route past it.
-Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+**Leave every human-risk decision to the human user.**
+
+- Treat as human-risk any destructive, credential, auth/session, permission, billing, security, irreversible, data-migration, legal/compliance, paid, production, external-side-effect, release, history-mutation, or other human-risk decision.
+- Require explicit human-user acceptance for it.
+- Count that acceptance only when it is already recorded and tied to the current artifact or request.
+- Never let an orchestration handoff, proxy perspective, delegated recommendation, or AI-selected default accept such a decision on the user's behalf.
+- When one is unresolved, ask the smallest human-user question or return to the artifact that owns the decision.
+- Never proceed, hand off, or route past an unresolved human-risk decision.
 <!-- shared-contract:end human-risk-decisions -->
 
 ## High-Risk Planning Controls
@@ -236,12 +242,20 @@ acceptance criteria, or tests before locking the test plan.
 ## Accepted-Risk Semantics
 
 <!-- shared-contract:begin accepted-risk-semantics source=shared/vibe-contract.md -->
-`Accepted risk` is the only way an `Unproven` item may support work that depends on it. An item becomes `Accepted risk` only when the human user explicitly chooses to proceed with it after its impact was explained, or when the bound plan already records that acceptance for the active request; a proxy decision, an AI-selected default, or a risk judged low never makes the acceptance. Record the exact assumption, who accepted it and why, the impact area (feasibility, behavior, data, integration, performance, security, UX, cost, or schedule), the fastest proof path, and the revisit trigger, and tie the acceptance to the conditional step, deferred decision, or follow-up it affects. Keep the label `Accepted risk`; never convert the item into verified fact.
+**Only `Accepted risk` lets an `Unproven` item support work that depends on it.**
 
-An accepted risk supports only the conditional steps already tied to it, and those steps stay conditional wherever the assumption could invalidate them. Every other `Unproven` item that blocks the current work becomes proof work, a question, or a blocker, and risk level by itself never clears such a blocker. Decisions that the bounded current work does not need are deferred rather than allowed to block it.
-
-Accepted risk is never used for irreversible, destructive, unsafe, illegal, or credential-exposing actions; those require proof or a safer alternative. A human deliberately selecting a known destructive action is a human-risk decision and is recorded as one; accepted risk never stands in for it and never excuses an unproven safety or legality premise.
-Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+- Accept a risk only on the human user's explicit choice to proceed after its impact was explained, or on the bound plan's already-recorded acceptance for the active request.
+- Never let a proxy decision, an AI-selected default, or a risk judged low make the acceptance.
+- Record the exact assumption, who accepted it and why, the impact area (feasibility, behavior, data, integration, performance, security, UX, cost, or schedule), the fastest proof path, and the revisit trigger.
+- Tie the acceptance to the conditional step, deferred decision, or follow-up it affects.
+- Keep the label `Accepted risk`; never convert the item into verified fact.
+- Support only the conditional steps already tied to the accepted risk, and keep those steps conditional wherever the assumption could invalidate them.
+- Turn every other `Unproven` item that blocks the current work into proof work, a question, or a blocker.
+- Never let risk level by itself clear such a blocker.
+- Defer decisions the bounded current work does not need rather than letting them block it.
+- Never use accepted risk for irreversible, destructive, unsafe, illegal, or credential-exposing actions; those require proof or a safer alternative.
+- Record a human deliberately selecting a known destructive action as a human-risk decision.
+- Never let accepted risk stand in for that decision or excuse an unproven safety or legality premise.
 <!-- shared-contract:end accepted-risk-semantics -->
 
 `Phase relevance` is this workflow's own field: every `Unproven` or
@@ -330,15 +344,16 @@ from current acceptance criteria, and record the unknown as a deferred decision.
 ## Evidence Labels
 
 <!-- shared-contract:begin evidence-classes source=shared/vibe-contract.md -->
-Evidence carries one of four shared base classes. Label a claim with its class wherever the claim is load-bearing: where it affects scope, feasibility, behavior, verification, risk, implementation order, commit authorization, or whether work may proceed.
+**Label every load-bearing claim with one of the four shared base evidence classes.**
 
+- Label a claim wherever it is load-bearing: where it affects scope, feasibility, behavior, verification, risk, implementation order, commit authorization, or whether work may proceed.
 - `Primary source`: official documentation, an authoritative specification, upstream source, vendor documentation, user-provided source material, or a known-good historical implementation.
 - `Local investigation`: repository inspection, non-mutating command output, reproduced behavior, or existing tests, configs, schemas, and logs read in the current workspace.
 - `Unproven`: memory, inference, secondhand claims or summaries, stale documentation, unchecked user claims, training-data recall, missing access, or hypotheses.
 - `Accepted risk`: an `Unproven` item the user explicitly chose to proceed with after its impact was explained, or that the bound plan already records as accepted for the active request, with its impact and revisit trigger preserved.
-
-A package may declare disjoint extensions or a freshness qualifier in its own text; such a declaration extends this set and never renames or redefines the base classes. An execution phase's `Plan` class is authority by binding to the bound plan, and its `Local evidence` label is an execution-freshness label; neither is a rename or a redefinition of a base class.
-Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+- Extend this set only by a package's own declaration of a disjoint extension or a freshness qualifier.
+- Never let such a declaration rename or redefine a base class.
+- Read an execution phase's `Plan` class as authority by binding to the bound plan, and its `Local evidence` label as an execution-freshness label; neither is a rename or a redefinition of a base class.
 <!-- shared-contract:end evidence-classes -->
 
 A value calculated from measured or source-backed inputs is a derivation, not a

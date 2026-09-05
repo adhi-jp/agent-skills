@@ -125,6 +125,39 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `shared/vibe-contract.md`: every block is rewritten in the scannable shape —
+  a bold imperative lead, one obligation per bullet, ordered lists kept
+  numbered, at most one exception line, and no closing sentence inside the
+  block — with a block-level obligation map showing no obligation dropped or
+  weakened, for all seventeen blocks: `evidence-classes`,
+  `accepted-risk-semantics`, `delegated-result-proof`,
+  `language-precedence-chat`, `language-precedence-document`,
+  `effect-write-boundaries`, `commit-selection-state-changing`,
+  `commit-selection-document-only`, `human-risk-decisions`,
+  `model-tier-selection`, `trusted-orchestration-evidence`,
+  `subagent-permission`, `secret-redaction`, `history-mutation-gate`,
+  `commit-selection-gate`, `read-only-phase-write-gate`, and
+  `session-record-schema`. The three gate blocks keep the whole agent-side gate
+  (trigger, the three outcomes, the fallback, and the six field names it needs)
+  and hand the hook contract — input-field enumerations, the record-state
+  matrix, the session-record field table, its write procedure, and the example
+  — to a new `## Appendix: hook and record contract` that is never rendered;
+  the router's record-writing procedure stays a rendered block. Two marked
+  `Example:` lines are added, naming the commit selection source and the
+  read-only write boundary. The precedence and applicability sentences now
+  render once per package as a `closing` block directly below the class line
+  instead of closing every block. Rendered copies changed in all fourteen
+  dependents: `vibe-agent-instructions`, `vibe-brainstorm`,
+  `vibe-code-research`, `vibe-coding`, `vibe-commit`, `vibe-debug`,
+  `vibe-goal-alignment`, `vibe-orchestrate`, `vibe-plan-execution`,
+  `vibe-plan-review`, `vibe-planning`, `vibe-requirements-spec`,
+  `vibe-review`, and `vibe-writing`. Rendered block text falls from 4,938 to
+  3,605 words at the source and by about 2,200 words across the copies, and
+  every routed reading task measures below its frozen baseline. Verification
+  — static: `python3 scripts/vibe_shared_contract.py check --strict` passes for
+  all fourteen packages, `python3 scripts/vibe_shared_contract.py measure`
+  reports every task below baseline, and every eval suite validates; behavior
+  unproven until an authorized eval run.
 - `vibe-orchestrate`: monitoring guidance now selects a mechanism by what
   observation costs the coordinator, preferring delivered completion signals and
   bounded status queries over repeated full reads of a growing artifact. The

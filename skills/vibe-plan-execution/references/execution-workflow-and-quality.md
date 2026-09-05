@@ -263,16 +263,19 @@ receipts.
 ### Chat Language
 
 <!-- shared-contract:begin language-precedence-chat source=shared/vibe-contract.md -->
-Resolve the language of user-facing chat text — replies, progress updates, blocker and consent questions, summaries, and final responses — separately from any artifact's language, in this order:
+**Resolve the language of user-facing chat text separately from any artifact's language, in this order:**
 
 1. An explicit current-user instruction for chat, response, or output language.
-2. `VIBE_CHAT_LANGUAGE`, when the environment is safely readable or the current user explicitly sets it for the request. It may be a natural language name or a BCP47 language tag such as `Japanese`, `ja`, `en`, or `pt-BR`; an unreadable, empty, or invalid value is unset.
+2. `VIBE_CHAT_LANGUAGE`, when the environment is safely readable or the current user explicitly sets it for the request.
 3. The user's active conversational language.
 4. The last clear user conversational language available in the current workflow context.
 5. English.
 
-Do not infer chat language from source artifacts, referenced plan or implementation files, filenames without locale markers, commands, skill invocations, code, identifiers, or host-wrapper text; those inputs are language-neutral for chat unless the current user explicitly makes them the response-language contract. Preserve file paths, commands, identifiers, environment variables, locale tags, message keys, product names, canonical strings, and code verbatim unless the user explicitly asks to translate or rename them.
-Where a package declares a stricter or narrower rule in its own text, that declaration controls.
+- Apply this precedence to replies, progress updates, blocker and consent questions, summaries, and final responses.
+- Read `VIBE_CHAT_LANGUAGE` as a natural language name or a BCP47 language tag such as `Japanese`, `ja`, `en`, or `pt-BR`; treat an unreadable, empty, or invalid value as unset.
+- Never infer chat language from source artifacts, referenced plan or implementation files, filenames without locale markers, commands, skill invocations, code, identifiers, or host-wrapper text.
+- Treat those inputs as language-neutral for chat unless the current user explicitly makes them the response-language contract.
+- Preserve file paths, commands, identifiers, environment variables, locale tags, message keys, product names, canonical strings, and code verbatim unless the user explicitly asks to translate or rename them.
 <!-- shared-contract:end language-precedence-chat -->
 
 The tokens this phase preserves verbatim in execution output also include
