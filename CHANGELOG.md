@@ -103,7 +103,8 @@ use `[Repository] - YYYY-MM-DD`.
   lead (`**…**`) is in the scannable shape and is measured against the shape
   caps — lead 25 words opening with an imperative, bullet 40 words (30 in a gate
   block), two-space sub-bullet 30, one exception line after the bullets 35, any
-  prose paragraph 60, a gate block 260 words in total, and `Example:` lines
+  prose paragraph 60, a gate block 260 words in total, a numbered item counted
+  as a bullet with its indented children as sub-bullets, and `Example:` lines
   excluded from every count and allowed twice per block; `check` reports these
   as warnings and `check --strict` as errors, while a block with no bold lead
   keeps the legacy shape, is checked as before, and is reported only as a

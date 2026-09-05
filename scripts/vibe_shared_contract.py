@@ -159,6 +159,7 @@ FENCE_OPEN_RE = re.compile(r"^ {0,3}(?P<fence>`{3,}|~{3,})(?P<info>.*)$")
 FENCE_CLOSE_RE = re.compile(r"^ {0,3}(?P<fence>`{3,}|~{3,})\s*$")
 BOLD_LEAD_RE = re.compile(r"^ {0,3}\*\*(?P<bold>[^\s*][^*]*)\*\*")
 BULLET_RE = re.compile(r"^(?P<indent> *)-\s+(?P<text>.*)$")
+NUMBERED_RE = re.compile(r"^(?P<indent>\s*)\d+\.\s+(?P<text>.*)$")
 TABLE_ROW_RE = re.compile(r"^ {0,3}\|")
 EXAMPLE_LINE_RE = re.compile(r"^ *(?:[-*+]\s+)?(?:\*\*)?Example:")
 WORD_EDGE_CHARS = "*_`~[]()<>#\"'|.,;:!?/\\…—–-“”‘’„«»‹›"
@@ -545,8 +546,16 @@ def trailing_boilerplate_offsets(lines: list[str]) -> set[int]:
     return set()
 
 
+def list_item(line: str) -> re.Match[str] | None:
+    """Match a ``- `` bullet or a ``1. `` numbered item; both are list items of one kind."""
+    return BULLET_RE.match(line) or NUMBERED_RE.match(line)
+
+
 def segment_block_body(block: SourceBlock) -> list[BodySegment]:
     """Split a block body into lead, bullets, sub-bullets, prose paragraphs, and examples.
+
+    A numbered item counts as a bullet, so an ordered precedence list is measured against
+    the same caps as a dashed list; an indented item of either kind is a sub-bullet.
 
     Fenced code and Markdown table rows separate segments and carry no prose of their own,
     so a table or a JSON example never reads as an over-long paragraph.
@@ -567,7 +576,7 @@ def segment_block_body(block: SourceBlock) -> list[BodySegment]:
             segments.append(BodySegment("example", offset, stripped))
             current = None
             continue
-        bullet = BULLET_RE.match(line)
+        bullet = list_item(line)
         if bullet is not None:
             kind = "bullet" if not bullet.group("indent") else "sub-bullet"
             current = BodySegment(kind, offset, bullet.group("text").strip())
@@ -585,14 +594,19 @@ def segment_block_body(block: SourceBlock) -> list[BodySegment]:
 
 
 def block_word_total(block: SourceBlock) -> int:
-    """Every word in the body except example lines and a trailing closing sentence."""
+    """Every word in the body except example lines and a trailing closing sentence.
+
+    A list marker is not a word: a ``- `` drops out of ``count_words`` on its own, and a
+    numbered item's ordinal is dropped here, so renumbering a list never changes a total.
+    """
     lines = [line.rstrip("\r\n") for line in block.body.splitlines(keepends=True)]
     skipped = trailing_boilerplate_offsets(lines)
     total = 0
     for offset, line in enumerate(lines):
         if offset in skipped or EXAMPLE_LINE_RE.match(line):
             continue
-        total += count_words(line)
+        item = list_item(line)
+        total += count_words(item.group("text") if item is not None else line)
     return total
 
 

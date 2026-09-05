@@ -142,14 +142,15 @@ package's marker pairs.
 
 A source block whose first non-empty line is a bold lead (`**…**`) is in the
 scannable shape and is measured against the shape caps: a lead of at most 25
-words opening with an imperative, bullets of at most 40 words (30 in a gate
-block) with two-space sub-bullets of at most 30, at most one prose paragraph
-after the bullets and at most 35 words long, any prose paragraph at most 60
-words, and a gate block at most 260 words in total. Lines beginning `Example:`
-are excluded from every count and allowed twice per block. `check` reports shape
-faults as warnings and `check --strict` reports them as errors; a block with no
-bold lead keeps the legacy shape, is checked as before, and is reported only as
-a non-strict `legacy-shape` warning. `list` marks a scannable block `shape=new`.
+words opening with an imperative, bullets or numbered items of at most 40
+words (30 in a gate block) with two-space sub-bullets of at most 30, at most
+one prose paragraph after the bullets and at most 35 words long, any prose
+paragraph at most 60 words, and a gate block at most 260 words in total. Lines
+beginning `Example:` are excluded from every count and allowed twice per block.
+`check` reports shape faults as warnings and `check --strict` reports them as
+errors; a block with no bold lead keeps the legacy shape, is checked as before,
+and is reported only as a non-strict `legacy-shape` warning. `list` marks a
+scannable block `shape=new`.
 
 Once a scannable block drops its closing boilerplate, the source closes its
 blocks once per package rather than once per block: the package then carries one

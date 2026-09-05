@@ -947,6 +947,58 @@ class VibeSharedContractTests(unittest.TestCase):
         result = self.shape_check(failing, block_id="history-mutation-gate", strict=True, expect=1)
         self.assertIn("gate block is 268 words (cap 260)", result.stdout)
 
+    def test_check_numbered_item_is_capped_like_a_bullet(self):
+        passing = SHAPE_LEAD + "\n\n1. " + words(40) + "\n2. " + words(40) + "\n" + PRECEDENCE + "\n"
+        self.shape_check(passing, strict=True, expect=0)
+        failing = SHAPE_LEAD + "\n\n1. " + words(40) + "\n2. " + words(41) + "\n" + PRECEDENCE + "\n"
+        result = self.shape_check(failing, strict=True, expect=1)
+        self.assertIn("bullet is 41 words (cap 40)", result.stdout)
+        self.assertEqual(result.stdout.count("bullet is"), 1)
+        gate = SHAPE_LEAD + "\n\n1. " + words(31) + "\n" + APPLICABILITY + "\n"
+        result = self.shape_check(gate, block_id="commit-selection-gate", strict=True, expect=1)
+        self.assertIn("bullet is 31 words (cap 30)", result.stdout)
+
+    def test_check_indented_items_under_a_numbered_item_are_sub_bullets(self):
+        passing = (
+            SHAPE_LEAD + "\n\n1. " + words(40) + "\n  - " + words(30) + "\n  2. " + words(30) + "\n" + PRECEDENCE + "\n"
+        )
+        self.shape_check(passing, strict=True, expect=0)
+        failing = (
+            SHAPE_LEAD + "\n\n1. " + words(10) + "\n  - " + words(31) + "\n  2. " + words(31) + "\n" + PRECEDENCE + "\n"
+        )
+        result = self.shape_check(failing, strict=True, expect=1)
+        self.assertEqual(result.stdout.count("sub-bullet is 31 words (cap 30)"), 2)
+
+    def test_check_numbering_a_gate_list_does_not_change_its_word_total(self):
+        tail = "- " + words(20) + "\n" + APPLICABILITY + "\n"
+        dashed = SHAPE_LEAD + "\n\n" + "".join("- " + words(30) + "\n" for _ in range(8)) + tail
+        numbered = (
+            SHAPE_LEAD
+            + "\n\n"
+            + "".join(f"{index}. " + words(30) + "\n" for index in range(1, 9))
+            + "9. "
+            + words(20)
+            + "\n"
+            + APPLICABILITY
+            + "\n"
+        )
+        for label, body in (("dashed", dashed), ("numbered", numbered)):
+            with self.subTest(list=label):
+                result = self.shape_check(body, block_id="history-mutation-gate", strict=True, expect=1)
+                self.assertIn("gate block is 268 words (cap 260)", result.stdout)
+
+    def test_check_schema_block_has_no_total_word_cap(self):
+        bullets = "".join("- " + words(40) + "\n" for _ in range(9)) + "- " + words(32) + "\n"
+        body = SHAPE_LEAD + "\n\n" + bullets + APPLICABILITY + "\n"
+        result = self.shape_check(body, block_id="session-record-schema", strict=True, expect=0)
+        self.assertIn("0 error(s), 0 warning(s)", result.stdout)
+        module = load_module()
+        blocks, findings = module.parse_source(self.source)
+        self.assertEqual(findings, [])
+        self.assertEqual(module.block_word_total(blocks[0]), 400)
+        gated = self.shape_check(body, block_id="history-mutation-gate", strict=True, expect=1)
+        self.assertIn("gate block is 400 words (cap 260)", gated.stdout)
+
     def test_check_example_lines_are_excluded_from_the_counts_and_capped_at_two(self):
         example = "Example: " + words(80) + "\n"
         passing = SHAPE_LEAD + "\n\n" + SHAPE_BULLETS + example + example + APPLICABILITY + "\n"
