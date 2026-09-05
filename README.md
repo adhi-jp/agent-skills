@@ -136,7 +136,8 @@ reports `accept`, `flag`, or `reject` for one session record, with one reason
 line per finding. `render`, `check`, and `list` accept `--source PATH`
 (default `shared/vibe-contract.md`); `render`, `check`, and `audit-names`
 accept `--root R` (default `skills`); `check --strict --package <name>` gates
-one package on its own.
+one package on its own, and `render --package <name>` fills only that
+package's marker pairs.
 
 ## Run Skill Evals
 

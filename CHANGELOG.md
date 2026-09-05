@@ -98,7 +98,9 @@ use `[Repository] - YYYY-MM-DD`.
   is superseded in place when a digest refresh invalidates its artifact
   digest), and the router's write of its own record under
   `.plans/vibe-sessions/` is exempt from the read-only-phase write gate.
-  Verification: unit tests pass; no skill contract changed yet.
+  `render --package <name>` fills only that package's marker pairs, so packages
+  can migrate side by side. Verification: unit tests pass; no skill contract
+  changed yet.
 
 ### Changed
 

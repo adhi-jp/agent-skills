@@ -203,6 +203,23 @@ class VibeSharedContractTests(unittest.TestCase):
         leftovers = [p.name for p in skill.parent.iterdir() if p.name != "SKILL.md"]
         self.assertEqual(leftovers, [])
 
+    def test_render_package_filter_writes_only_that_package(self):
+        self.write_source([("evidence-classes", ["vibe-alpha", "vibe-beta"], BODY)])
+        self.write_package("vibe-alpha", {"SKILL.md": marked_file("vibe-alpha", "evidence-classes", "")})
+        beta = self.write_package("vibe-beta", {"SKILL.md": marked_file("vibe-beta", "evidence-classes", "")})
+        beta_before = (beta / "SKILL.md").read_bytes()
+        result = self.render("--package", "vibe-alpha", expect=0)
+        self.assertIn("rendered skills/vibe-alpha/SKILL.md evidence-classes (pristine)", result.stdout)
+        self.assertNotIn("vibe-beta", result.stdout)
+        self.assertEqual((beta / "SKILL.md").read_bytes(), beta_before)
+        self.assertEqual(
+            (self.root / "vibe-alpha" / "SKILL.md").read_text(encoding="utf-8"),
+            marked_file("vibe-alpha", "evidence-classes", BODY),
+        )
+        self.check("--package", "vibe-alpha", expect=0)
+        self.check("--package", "vibe-beta", expect=1)
+        self.render("--package", "vibe-gamma", expect=2)
+
     # --- check: marker refusals ----------------------------------------------
 
     def test_check_pristine_pair_fails_check(self):

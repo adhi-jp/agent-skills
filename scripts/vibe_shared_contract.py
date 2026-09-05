@@ -189,6 +189,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
 
     render = subparsers.add_parser("render", help="fill pristine marker pairs from the shared source")
     render.add_argument("--force", action="store_true", help="overwrite drifted blocks instead of refusing")
+    render.add_argument("--package", default=None, help="limit rendering to this package name")
     add_root_option(render)
     add_source_option(render)
 
@@ -227,7 +228,12 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(argv)
     try:
         if args.command == "render":
-            return run_render(resolve_source(args.source), resolve_root(args.root), force=args.force)
+            return run_render(
+                resolve_source(args.source),
+                resolve_root(args.root),
+                force=args.force,
+                package_filter=args.package,
+            )
         if args.command == "check":
             return run_check(
                 resolve_source(args.source),
@@ -830,8 +836,8 @@ def run_check(source: Path, root: Path, *, strict: bool, package_filter: str | N
     return EXIT_FINDINGS if result.errors else EXIT_OK
 
 
-def run_render(source: Path, root: Path, *, force: bool) -> int:
-    result = analyze(source, root, strict=False, package_filter=None, report_states=False)
+def run_render(source: Path, root: Path, *, force: bool, package_filter: str | None = None) -> int:
+    result = analyze(source, root, strict=False, package_filter=package_filter, report_states=False)
     if result.errors:
         print_findings(result.errors)
         print(f"render refused: {len(result.errors)} error(s)")
