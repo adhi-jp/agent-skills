@@ -254,4 +254,5 @@ task-sensitive text. Do not attach raw artifacts to chat or commits by
 default.
 Preserve the load-bearing receipt method and runner-native execution identity in
 a durable gate record or owning workflow artifact before temporary receipt
-directories are removed.
+directories are removed; that durable gate record is the decision record when
+the choice qualifies, otherwise the owning plan.

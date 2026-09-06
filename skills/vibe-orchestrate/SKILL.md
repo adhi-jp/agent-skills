@@ -219,7 +219,9 @@ Exception: an amend or other history rewrite belongs to the history-mutation gat
 <!-- shared-contract:end commit-selection-gate -->
 
 This gate applies to the round-closing checkpoint commit of the coordination
-phase.
+phase. Before that checkpoint, sweep for unrecorded qualifying decisions and,
+when the round adds a decision record or findings report, ask the
+once-per-repository tracking question.
 
 ## Coordinator Practice Reference
 
@@ -313,6 +315,8 @@ sandbox.
    does not prove that the source is authoritative for the current claim.
    Refresh a cheap attributable tree receipt before every later write-capable
    round; one startup snapshot cannot attribute bytes across a multi-round run.
+   Read the decision index and the open-findings index as part of the baseline
+   and open only the applicable decision records and findings.
 2. **Map the work graph before launching workers.** Identify the coordinator's
    immediate blocker, the tightly coupled sequence that benefits from one
    context owner, and independent units that can run without blocking the next
@@ -445,6 +449,8 @@ When reporting delegated work, keep the coordinator summary evidence-bound:
   fixtures, modes, and known exclusions. Do not report an unbounded "checked"
   or "no fallout" claim from a narrower observation.
 - What findings were accepted, rejected, deferred, blocked, or reversed.
+- The decision records and findings report entries written during the round, by
+  id and path.
 - What remains unverified or outside scope.
 - Whether any direct coordinator intervention happened.
 

@@ -70,11 +70,12 @@ cause and verification path.
 
 Use probes only when they provide better proof than more static work. First run
 bounded triage: nearest code, relevant tests, existing logs, artifacts, and the
-expected-behavior source. After triage, propose the smallest diagnostic probe or
-equivalent runtime observation before changing behavior again when multiple
-live-state hypotheses remain, static proof would sprawl across interacting
-surfaces, evidence contradicts the original approach, or the next source-only
-patch would be a guess.
+expected-behavior source. Read the decision index and the open-findings index at
+the start and open only the applicable decision records and findings. After
+triage, propose the smallest diagnostic probe or equivalent runtime observation
+before changing behavior again when multiple live-state hypotheses remain,
+static proof would sprawl across interacting surfaces, evidence contradicts the
+original approach, or the next source-only patch would be a guess.
 
 Stop before implementation when the current issue lacks any of these:
 
@@ -332,6 +333,9 @@ Before ending:
 
 - Every current-scope ledger item has status `fixed`, `not-reproduced`,
   `deferred`, `accepted-residual`, or `blocked`.
+- Every `deferred`, `accepted-residual`, or `blocked` ledger item has a findings
+  report entry; a repair setting a rule other units follow has a decision
+  record.
 - Every `fixed` item has proof and artifact freshness when runtime artifacts are
   involved.
 - Temporary probes are removed before finishing, or any retained diagnostic

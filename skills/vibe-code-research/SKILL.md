@@ -368,6 +368,9 @@ Shape the findings as:
 - **Possible next steps**: optional, only when a concrete follow-up
   investigation, decision, or later phase obviously helps. Phrase as options,
   not as work you are starting.
+- **Carry-forward packet**: any decision or deferred finding met during the
+  investigation, in the packet shape `Durable Records` defines, marked as
+  unpersisted.
 
 In `Answer` and `Evidence`, phrase source-derived control flow as static
 structure: for example, a caller "statically calls" a callee or "would select"

@@ -232,7 +232,7 @@ Use for the complete creative pass.
 7. Stop before implementation. Ask the user to confirm the selected direction
    before it becomes implementation scope or is handed to another workflow. In
    trusted proxy-selection mode, hand off only an AI-selected
-   direction for later requirements or planning; do not call it user-confirmed
+   direction, as a carry-forward packet, for later requirements or planning; do not call it user-confirmed
    and do not start implementation from it.
 
 ## Convention Grounding
@@ -371,4 +371,6 @@ candidate to implementation planning, plan execution, or ordinary coding as
 appropriate. After a trusted orchestration proxy selection, hand the selected
 checklist or candidate only to later requirements or planning as AI-selected
 input. Without one of those outcomes, do not start implementation, create code,
-stage files, commit, or claim the direction is approved.
+stage files, commit, or claim the direction is approved. Hand the confirmed or
+proxy-selected direction and its rejected candidates forward as a carry-forward
+packet; this phase writes no decision record itself.

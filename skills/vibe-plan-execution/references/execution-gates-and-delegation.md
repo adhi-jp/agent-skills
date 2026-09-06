@@ -33,7 +33,8 @@ A correction classified by the Plan Validity Gate as plan-preserving is not an
 unapproved deviation merely because it changes a lower-level implementation
 detail. A correction classified as plan-changing remains a deviation and needs
 the owning requirements or plan contract to be revised and rebound before
-implementation.
+implementation. An agreed deviation that binds later units is written as a
+decision record before the affected edit.
 
 ## Plan Validity Gate
 
@@ -92,7 +93,8 @@ When the user challenges an in-progress or completed slice with a concrete
 failure mode, run the same gate before arguing from plan text. If the challenge
 is verified and the correction stays within the existing contract, repair it as
 part of the current slice; if it changes the contract, stop for the smallest
-decision needed.
+decision needed. A plan-changing correction that sets a lasting rule is written
+as a decision record once the owning artifact is rebound.
 
 ## Existing-Feature Repair Handoff
 

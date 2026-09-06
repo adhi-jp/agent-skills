@@ -256,7 +256,9 @@ deeper on the judgment calls.
    those cases, keep the receipt compact but explicit about the source target,
    peer concerns and shared contract, type/scope/outcome bases, subject/body
    coverage, one-commit or split decision, supplied-message disposition, and the
-   rule that source-patch drift requires reconciliation again. See
+   rule that source-patch drift requires reconciliation again. When the diff
+   touches an accepted decision record's `paths`, check conformance or the
+   superseding record in the same commit, else report the conflict. See
    `references/history-and-trailers.md`.
 8. **Decide amend vs. new.** Create a NEW commit by default. Only `--amend` to
    fix the immediately preceding, unpushed commit. See
@@ -268,7 +270,9 @@ deeper on the judgment calls.
    labeled bullets that group changes by durable surface, constraint, non-goal,
    or risk. If the message wants a long feature walkthrough, file inventory, or
    manual-test transcript, summarize or split the commit. Detect the repo's
-   trailer convention first: `git log -5 --format='%H%n%B'`.
+   trailer convention first: `git log -5 --format='%H%n%B'`. A new repository
+   convention this phase adopts, and any defect it discovers, go to the closing
+   workflow's carry-forward packet.
 10. **Transport the message safely.** For any multi-line body, use a heredoc
    (`git commit -F - <<'EOF' … EOF`, single-quoted delimiter) or `git commit -F
    <file>`. Add or repair authorship trailers with a `git commit ... --trailer

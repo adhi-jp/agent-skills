@@ -189,6 +189,10 @@ editing, review, planning, debugging, or written deliverables, handle it as
 ordinary behavior or `no matching specialist`; do not create active routing
 state for that request.
 
+A request to create or update a decision record or a findings report entry is a
+text artifact under the record format that `references/durable-records.md`
+carries.
+
 ## Direct Implementation
 
 The router performs this row itself. Establish the surface, the acceptance, and
@@ -201,7 +205,8 @@ verification, and report the result. No requirements spec or implementation
 plan is created for this row, and no `matched-but-unavailable` report is made
 for it. If the edit reveals a defect in existing behavior, a second surface, or
 an unsettled acceptance, stop, report it, and reclassify the next turn to the
-row that owns it.
+row that owns it. Read both indexes before editing, and write a qualifying
+decision record or findings report entry before this row closes.
 
 ## Maintenance
 
@@ -214,7 +219,9 @@ release, version, tag, or push action inside it stays separately consent-bound;
 a chore stays within the paths the request names. Reader-visible coupling the
 repository requires (a changelog or README line, for example) is part of the
 unit. If a maintenance edit reveals a defect in existing behavior, the next
-turn is `debug-and-repair`.
+turn is `debug-and-repair`. Read both indexes before the maintenance edit, and
+write a qualifying decision record or findings report entry before the unit
+closes.
 
 ## Workflow Control
 
@@ -229,4 +236,7 @@ ordinary behavior with no routing state created or retained for it. The
 `no matching specialist` fallback continues with ordinary behavior, states that
 no matching optional specialist was verified when that affects user
 expectations, and likewise creates or retains no active routing state for an
-unrelated ordinary request only because `vibe-coding` was invoked.
+unrelated ordinary request only because `vibe-coding` was invoked. At the
+finish gate, an unpersisted carry-forward packet is reported as unpersisted
+with the one action that would persist it; `workflow-control` itself writes
+nothing.

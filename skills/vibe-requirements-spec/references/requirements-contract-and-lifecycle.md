@@ -6,6 +6,9 @@ Read this reference before drafting, updating, reopening, finishing, or handing 
 
 - Keep the active artifact to one requirements spec unless the user explicitly
   cancels it or replaces it with a new spec effort.
+- Write a resolved decision that sets a durable product constraint or non-goal
+  as a decision record cited from the spec, and a deferred finding the spec
+  cannot carry as a findings report entry.
 - Keep the skill active for related requirement-spec work until the user gives
   an explicit requirements-finished phrase, gives a clear next-phase instruction,
   explicitly cancels the drafting effort, or explicitly replaces it.

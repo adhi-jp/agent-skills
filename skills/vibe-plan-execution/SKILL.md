@@ -204,7 +204,9 @@ points forward to it; disclose both paths. Otherwise stop for authority.
 Complete only a plan-authored reserved decision field. Record date, authority,
 evidence, decision owner, response carrier, owning revision, and proceed update;
 never change scope, criteria, tests, risks, or steps through that field. Batch
-only simultaneously knowable startup decisions.
+only simultaneously knowable startup decisions. A completed reserved-decision
+answer or a dated superseding decision that binds later units is also written as
+a decision record and cited from the plan.
 
 A current user instruction may itself be the response carrier when it explicitly
 names the resource, permission, or choice reserved by that decision. Quote the
@@ -346,7 +348,8 @@ Do not use this skill for:
 - A current-slice implementation assumption the bound plan leaves `Unproven`
   lets that slice proceed only under the Accepted-Risk Semantics section.
 - When the bound plan intentionally includes `Implementation progress`, update
-  only that section with evidence-backed status when safe. Do not edit scope,
+  only that section with evidence-backed status when safe and when no
+  unrecorded qualifying decision remains. Do not edit scope,
   requirements, acceptance criteria, tests, risks, or steps as a status update.
   When the section is absent, keep progress in the execution summary unless
   cross-session/cross-actor resumability or an explicit user/project request

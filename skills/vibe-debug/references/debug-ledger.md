@@ -36,6 +36,9 @@ fields explicit so a later resume cannot silently lose the issue.
   reproducible symptom, artifact, permission, environment, or proof path is
   missing.
 
+The findings report is the durable carrier for `deferred`, `accepted-residual`,
+and `blocked` rows; the ledger cites the entry id instead of restating the item.
+
 ## Failed-Attempt Rules
 
 On repeated reports, add or update a prior-attempt row before proposing another

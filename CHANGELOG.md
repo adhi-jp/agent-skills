@@ -13,6 +13,51 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Added
 
+- Every `vibe-*` package now names the decision, close, or phase-start points
+  that apply to it under the durable-records contract. `vibe-coding`: the
+  router-owned state-changing rows read both indexes and write records before
+  closing, the `allowed_paths` convention lists the two record directories
+  for writer rows, the `writing` row accepts a decision record or findings
+  entry as a text artifact, and the finish gate reports an unpersisted
+  carry-forward packet. `vibe-requirements-spec`: a resolved decision that
+  sets a durable product constraint or non-goal becomes a decision record,
+  an incoming packet is dispatched by kind, and the completion audit sweeps
+  for unrecorded decisions. `vibe-brainstorm`, `vibe-code-research`, and
+  `vibe-goal-alignment` hand decisions and findings forward as carry-forward
+  packets; goal alignment writes no file, the other two write only a saved
+  artifact the user explicitly asks for. `vibe-planning` reads both indexes
+  before investigating, writes qualifying approach decisions, accepted risks,
+  and review dispositions as records the plan cites by id, and sends every
+  material deferred finding to the findings report. `vibe-plan-review` writes
+  a settled held or revise decision that qualifies as a record. `vibe-plan-
+  execution` reads both indexes at bind, writes agreed deviations,
+  plan-changing corrections, reserved-decision answers, and superseding
+  decisions as records, writes `deferred` and `blocked` findings to the
+  report, requires the sweep before a ledger update, and sweeps and asks the
+  tracking question before its checkpoint handoff. `vibe-debug` reads both
+  indexes at preflight and triage, writes a repair that sets a rule for other
+  units as a record before the fix lands, makes the findings report the
+  durable carrier of `deferred`, `accepted-residual`, and `blocked` ledger
+  rows, and asks the tracking question at closure. `vibe-review` reads both
+  indexes at startup, writes accepted divergences and standing dispositions
+  as records, writes deferred, blocked, unresolved, and `accepted-residual`
+  items to the report when dispositioned, and asks the tracking question
+  before the fix-loop handoff. `vibe-orchestrate` reads both indexes at
+  baseline capture, defines the owner of a `DECISION-IMPACT:` entry, writes
+  later-round or dropped contract-blocked items to the report, writes
+  standing dispositions and ruled-out escalation options as records, and
+  asks the tracking question before the round's checkpoint. `vibe-commit`
+  checks a diff against the `paths` of accepted records for conformance or
+  the superseding record in the same commit, follows the repository's
+  tracking answer for a new record, and hands a newly adopted convention or
+  a discovered defect forward as a carry-forward packet. `vibe-writing`
+  treats a record or findings entry as a text deliverable and writes a
+  qualifying format or convention adoption as a record.
+  `vibe-agent-instructions` writes an accepted divergence as a record after
+  the existing-path preview and before the policy is applied. Verification —
+  static: `check --strict` and `audit-names` clean, every routed reading task
+  below baseline; behavior unproven until an authorized eval run.
+
 - `shared/vibe-contract.md`: five new blocks give the family a durable-records
   contract. `decision-records` states when a settled decision that binds work
   beyond the current unit is written as a decision record — at decision time,

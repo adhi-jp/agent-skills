@@ -505,7 +505,9 @@ event whose `source` names the selection — `user-turn` for a direct request,
 state-changing route closing its verified unit — before the command runs;
 `agent-proposed` records a proposal and selects nothing. A route report names
 the record path when the record is created, when the phase changes, and when
-an event is recorded.
+an event is recorded. A router-owned state-changing row reads both indexes,
+writes qualifying decision records and findings entries, and asks the tracking
+question at the first checkpoint including one.
 
 ## Before accepting a handoff or approval
 

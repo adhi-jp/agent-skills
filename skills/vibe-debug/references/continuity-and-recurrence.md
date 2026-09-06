@@ -13,6 +13,8 @@ request:
 4. Identify the next proof/action for each unresolved item.
 5. Check whether any user wording changed the target behavior, environment,
    priority, or accepted risk.
+6. Re-read the decision index and the open-findings index, opening the
+   applicable decision records and findings.
 
 Only then continue implementation. A completed subtask is not the same thing as
 closing the user's reported issue set.

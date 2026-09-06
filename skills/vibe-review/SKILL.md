@@ -288,6 +288,9 @@ premise from the frozen target itself; `Unproven` is that inert state, not a
 
 ## Startup Contract
 
+Read the decision index and the open-findings index at startup and open only
+the applicable decision records and findings.
+
 Propose one review contract from local evidence rather than interviewing each
 field separately. Record:
 

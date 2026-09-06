@@ -159,6 +159,9 @@ Keep alignment concise and operational:
 - For low-risk tasks, a short record and one confirmation line is enough.
 - For risky tasks, include the blocked action and the exact decision needed
   before it can run.
+- Hand a confirmed understanding that settles an ambiguous instruction forward
+  as a carry-forward packet for the next writing phase; this phase still writes
+  no file.
 
 ## Effect And Write Boundaries
 

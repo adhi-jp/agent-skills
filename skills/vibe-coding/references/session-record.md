@@ -65,7 +65,14 @@ the record-state table are in `shared/vibe-contract.md`.
   own text declares and the unit's scratch root. For a read-only row: only a
   saved artifact the user explicitly asked for, else empty. For a
   state-changing row: the surfaces the row's scope declares, plus the scratch
-  root. `workflow-control` records an empty list.
+  root. `workflow-control` records an empty list. For a row that writes
+  records, `allowed_paths` also lists `docs/decisions/` and
+  `docs/reports/findings/` — or the repository's existing record directory —
+  as the declared supporting paths for its decision records and findings
+  report.
+- At the finish gate, an unpersisted carry-forward packet is reported as
+  unpersisted with the one action that would persist it; the record carries no
+  packet fields.
 - `goal` is the current goal in the user's terms and is never empty once a
   workflow exists; `artifact_paths` are the active artifact paths;
   `pending_decision`, `blocker`, and `next_route` are null when none exists.

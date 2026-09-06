@@ -117,6 +117,8 @@ receipts.
    - Re-read the current plan content and stop if authority-bearing semantic
      changes lack clear revision authority. If the named item is absent, rebind
      only through one unique owning candidate plus a clear forward pointer.
+   - Read the decision index and the open-findings index and open only the
+     applicable decision records and findings before editing.
 2. **Run startup consent preflight when needed**
    - Apply the Startup Consent Preflight before editing when the bound plan or
      current instruction contains consent-bound items.
@@ -226,6 +228,8 @@ receipts.
    - Classify material review findings as `corrected`, `rejected`, `deferred`,
      `blocked`, or `reversed`; verify delegated findings as `Local evidence`
      before relying on them, and do not treat the review itself as a pass.
+     `deferred` and `blocked` findings are written to the findings report as
+     their durable carrier.
    - Treat a correction that changes control flow, ordering, lifecycle,
      concurrency, priority, timeout, fallback, or first-winner behavior as a new
      reviewable change. Re-run at least the perspective that found the original
@@ -242,14 +246,16 @@ receipts.
      unverified shared edits as separate facts. Report any skipped check with the
      reason and residual risk.
    - Update an existing intentional `Implementation progress` ledger after the
-     item is verified and reviewed. Otherwise put the evidence-backed status,
+     item is verified and reviewed and no unrecorded qualifying decision
+     remains. Otherwise put the evidence-backed status,
      residual risk, and next item in the execution summary. Never create or
      mutate a progress artifact solely because execution occurred.
    - A planned item that the slice's own scope, allowlist, or delegated contract
      prevented from being delivered is not a completed item. Give it a
      disposition — re-scoped now, scheduled to a named later item, or dropped
-     with the reason — wherever the item's status is recorded. An otherwise
-     verified slice is where such an item disappears unnoticed.
+     with the reason — wherever the item's status is recorded; an item
+     scheduled later or dropped is also written to the findings report. An
+     otherwise verified slice is where such an item disappears unnoticed.
 8. **Hand off the unit's checkpoint commit**
    - Close the unit under the checkpoint default, its suspend conditions, and
      its eligibility and exclusion rules in the `SKILL.md` Commit Selection
@@ -257,6 +263,10 @@ receipts.
    - For every checkpoint, preserve the verified scope, test/review receipt,
      unrelated-path exclusions, and any proposed message, then use the normal
      commit-execution workflow. Do not stage or commit inside plan execution.
+   - Before the handoff, sweep for qualifying decisions without a decision
+     record, ask the once-per-repository tracking question when the unit
+     includes a new record or report, and select no checkpoint while an
+     unrecorded qualifying decision remains.
 
 ## User Communication
 

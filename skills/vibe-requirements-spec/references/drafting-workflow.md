@@ -258,6 +258,12 @@ Read this reference when creating, revising, reopening, finishing, or handing of
    - Put only confirmed first-slice behavior in `Confirmed requirements`.
    - Keep adjacent capabilities in `Out of scope`, `Decisions needed`, or
      `Ideas or options` until the user selects them.
+   - When a resolved `Decisions needed` item sets a durable product constraint
+     or non-goal, write it as a decision record in the shape
+     `Durable Records` defines and cite the record id from the spec
+     instead of restating its rationale; record an incoming carry-forward packet
+     as a decision record when it carries a decision and as a findings report
+     entry when it carries a finding.
    - Explicitly separate the selected or proposed minimal first useful slice
      from later enhancements. When the build-changing scope choice is still
      open, label the minimum slice as a candidate option rather than confirmed
@@ -344,6 +350,9 @@ Read this reference when creating, revising, reopening, finishing, or handing of
      non-dependence, impact, and revisit trigger. Do not return only an
      instruction to record it later; if a required field is unavailable, keep
      the deferral unresolved.
+   - Sweep for qualifying decisions that have no decision record and for
+     deferred findings that have no findings report entry before claiming
+     completion or handoff.
    - If any build-changing decision or required local evidence check remains
      unresolved, keep drafting active and ask the next mode-appropriate question
      instead of claiming completion or handoff readiness.

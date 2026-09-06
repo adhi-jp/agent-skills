@@ -112,7 +112,9 @@ difficulty signal, verified facts with their anchors, what was already changed
 and verified, the open question, and options already ruled out with their
 reasons; it does not carry the accumulated transcript. Do not escalate work
 that is merely large, do not escalate to avoid writing a bounded contract, and
-do not report an escalation as completed work.
+do not report an escalation as completed work. Options already ruled out with
+their reasons are written as a decision record when the choice binds later
+units.
 
 ## Multi-Subagent Decomposition
 

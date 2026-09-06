@@ -78,7 +78,9 @@ recorded; the proceed effect defines what remains blocked or becomes eligible.
 Reserved fields do not amend scope, acceptance criteria, tests, risks, or
 implementation steps. Batch only fields that are low-risk and knowable at the
 same time; permission-protected, evidence-dependent, or other human-risk
-decisions remain at their later gates.
+decisions remain at their later gates. When an answered reserved decision or a
+risk item qualifies as a decision record, the row cites the record id instead of
+restating the rationale.
 
 ## Commit checkpoints
 - [Include only when the current user or an already-approved plan item explicitly

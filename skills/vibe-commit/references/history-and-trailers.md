@@ -162,7 +162,8 @@ Rules that prevent the common corruptions:
 ## Authorship trailer by agent and repo convention
 
 Detect the repo's existing convention before committing and replicate it
-exactly:
+exactly; a convention this phase newly adopts goes to the closing workflow's
+carry-forward packet:
 
 ```sh
 git log -5 --format='%H%n%B'   # see the precise trailer style already in history

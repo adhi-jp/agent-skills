@@ -254,7 +254,9 @@ Review one item at a time. For each item, check:
 - Verifiability.
 
 The user's item decision is the source of truth. AI judgment guides the
-decision but does not override it.
+decision but does not override it. Write a held or revise decision that
+qualifies under the durable-records contract as a decision record once
+settled; plan reflection keeps its consent.
 
 Render each user decision option with the stable numeric identifiers defined in
 `references/localized-labels.md`. Accept either the canonical localized decision

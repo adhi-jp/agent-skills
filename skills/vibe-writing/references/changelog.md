@@ -72,7 +72,8 @@ human-reader convention:
 
 The deferred-version buffer and mechanical accumulation are why these mechanics
 suit an agent workflow. Adoption is the user's decision; present it as a
-proposal, not a change you have already applied.
+proposal, not a change you have already applied. A format adoption that binds
+later changelog entries is written as a decision record.
 
 ## Content Layer: Write For The Next Agent
 

@@ -444,6 +444,9 @@ Resolve a six-item Definition of Done:
 5. Quality bars.
 6. Accepted divergences.
 
+An `Accepted divergences` item or a disposition that sets a standing rule is
+written as a decision record.
+
 Use proposal mode only when evidence is strong. Proposal-mode DoD may use only
 the frozen `review_target` evidence or user-confirmed `plan_context` bound to
 that target. Conversation evidence qualifies only when detected, confirmed,
@@ -559,7 +562,8 @@ Only `reject-out-of-scope` and `reject-noise` entries enter the rejected ledger.
 Keep redacted title/reason, location, count, first/last cycle, and optional
 cluster. Do not expose or require raw fingerprints, source fingerprints, or
 public dedupe tokens. A ledger hit never suppresses a now-valid must-fix,
-security-relevant, or newly required finding.
+security-relevant, or newly required finding. A rejection that establishes a
+standing rule beyond this run is written as a decision record.
 
 ## Stop Signals And Scope Health
 
@@ -648,7 +652,9 @@ cross-file, stateful, security/data-sensitive, or otherwise high-cascade.
 
 `accepted-residual` requires the user to record residuals, accepted surfaces,
 validation limits, and next-cycle attack. After that transition, re-run the
-per-finding and batch gates before edits.
+per-finding and batch gates before edits. Write each `accepted-residual`,
+deferred, or unresolved finding to the findings report when it is
+dispositioned, and cite the entry id in the finding record.
 
 After a high-cascade edit, record the invariant, surfaces checked, verification,
 known residuals, and likely sibling risk. For an ordinary self-evident narrow
@@ -714,7 +720,9 @@ A completed fix loop closes under the commit contract in `SKILL.md`, which
 states what selects the commit, what its scope may cover, what suspends it, and
 what stays separately consent-bound: hand the verified cumulative fix scope,
 terminal audit, isolation status, and conflict-safety evidence to the normal
-commit-execution workflow.
+commit-execution workflow. Before that handoff, sweep for qualifying decisions
+without a decision record and ask the once-per-repository tracking question
+when the fix scope includes a new decision record or findings report.
 
 When the fixes cannot be separated from the pre-existing changes under review,
 keep them uncommitted and say so.
@@ -764,3 +772,4 @@ At the end of a run, summarize:
 - Verification performed and gaps that remain.
 - Terminal audit result.
 - Verified applied fixes as committed with their scope, or their uncommitted working-tree status and the instruction, bound plan, or policy that suspended the default.
+- Deferred, blocked, unresolved, and `accepted-residual` items written to the findings report, with their entry ids and the report path.

@@ -43,7 +43,9 @@ does not become eligible merely because it was created in this session, appears
 under `docs/`, `plans/`, or `specs/`, is relevant to the discussion, is visible
 to tools, or local commit permission exists. Record deliberately untracked
 artifacts in the summary so a later agent does not promote or delete them by
-guessing.
+guessing. A decision record or findings report the closing workflow wrote
+follows the repository's recorded tracking answer; without one it stays an
+untracked artifact that needs explicit tracking intent.
 
 This gate does not eject required support from an otherwise coherent commit.
 Already tracked tests, fixtures, README, changelog, specs, and documentation

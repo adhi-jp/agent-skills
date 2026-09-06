@@ -48,9 +48,10 @@ The artifacts this phase owns are the text deliverables the request names —
 source comments and docstrings, README, docs, guides, and UI copy, a saved
 audit, report, or postmortem, policy or support copy, a changelog or release
 note, a PR description, a progress or final summary, and a commit message —
-including a rewrite, polish, or localization of any of them; its declared
-supporting paths are the decision records and findings reports named under
-`Durable Records`.
+including a rewrite, polish, or localization of any of them. A decision record
+or a findings report entry the request names is a deliverable under the record
+format; its declared supporting paths are the decision records and findings
+reports named under `Durable Records`.
 This skill does not authorize releases, PR submission, template changes, or workflow shortcuts.
 
 ### Durable Records
@@ -265,9 +266,13 @@ keeping a shortened claim.
 Read `references/artifact-guidance.md` when the deliverable is source comments or
 docstrings, README/docs/guides/UI copy, a saved audit/report/postmortem, policy
 or support copy, a changelog/release note, a PR description, a progress/final
-summary, or a commit message. Its applicability routes to
+summary, or a commit message; a decision record or a findings report entry
+follows the `Durable Records` section instead. Its applicability routes to
 `references/changelog.md` and `references/commit-messages.md` where detailed
 format, proof-source, or transport rules are required.
+
+A format or convention adoption that qualifies under the durable-records
+contract is written as a decision record.
 
 Keep these invariants visible even before loading the reference:
 

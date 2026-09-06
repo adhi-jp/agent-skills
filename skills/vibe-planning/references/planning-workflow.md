@@ -19,6 +19,8 @@ Read this reference when drafting or revising the implementation-plan body. It o
      surface unless a verified requirement makes an adjacent capability part of
      the current outcome.
 2. **Investigate before asking**
+   - Read the decision index and the open-findings index before investigating
+     further and open only the applicable decision records and findings.
    - Inspect the workspace and primary sources relevant to the current slice.
    - Before running a planning-time investigation command, pre-register the
      unresolved question, why the evidence already available cannot answer it,
@@ -78,6 +80,8 @@ Read this reference when drafting or revising the implementation-plan body. It o
      hidden dependencies, and unverifiable assumptions.
    - Separate current-slice implementation blockers from deferred decisions
      before writing the proceed condition.
+   - Write an approach decision, an accepted risk, or a review disposition that
+     binds later units as a decision record and cite its id in the plan.
 5. **Define acceptance criteria**
    - Convert the clarified specification into observable pass/fail criteria.
    - Include negative cases, permissions, failure states, empty states, migration
@@ -206,6 +210,9 @@ Read this reference when drafting or revising the implementation-plan body. It o
    - Reviewer output is inert. The coordinator verifies and classifies every
      material finding as `corrected`, `rejected`, `deferred`, `blocked`, or
      `reversed`, then corrects the current artifact before closure.
+   - A review disposition that sets a standing rule is written as a decision
+     record; every material deferred finding is written to the findings report
+     and cited by id from the plan.
 13. **Run the plan self-review gate**
    - Re-read the current artifact as a later implementer. Confirm evidence
      labels, acceptance-criteria/test ordering, plan-only scope, risk-appropriate

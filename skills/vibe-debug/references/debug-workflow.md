@@ -21,6 +21,8 @@ Read this reference when actively diagnosing, repairing, verifying, or handing o
 3. **Optional useful-skill and rule preflight**
    - Check project instructions, local docs, and visible skill metadata for
      task-relevant guidance.
+   - Read the decision index and the open-findings index and open only the
+     applicable decision records and findings.
    - Use matching available skills only when they directly help with the current
      stack, proof method, writing pass, or tool path.
    - If none apply or one is unavailable, continue with this workflow.
@@ -160,6 +162,8 @@ Read this reference when actively diagnosing, repairing, verifying, or handing o
      as evidence that the patch was too small.
 
 11. **Fix the smallest verified slice**
+    - When the repair sets a rule other units must follow, write it as a
+      decision record before the fix lands.
     - Prefer reproduction first. If local reproduction is not feasible, use a
       source trace, isolation proof, or exact manual proof path.
     - Keep edits close to the proven cause and existing local patterns.
@@ -227,6 +231,9 @@ Read this reference when actively diagnosing, repairing, verifying, or handing o
       record the remaining item as `deferred`, `accepted-residual`, or `blocked`.
 
 17. **Close repository operations**
+    - Before the handoff, sweep for qualifying decisions without a decision
+      record and ask the once-per-repository tracking question when the repair
+      includes a new decision record or findings report.
     - Close the repair under the commit contract in `SKILL.md`, which states what
       selects a commit, what the commit may cover, and what stays consent-bound.
       Do not ask for startup commit policy.

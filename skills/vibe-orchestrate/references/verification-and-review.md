@@ -322,7 +322,9 @@ Do not turn routine review narration into artifact history.
 
 For successive reviews under one bound plan, carry a compact
 `standing dispositions` handoff: finding class, disposition, and anchored basis.
-New evidence may reopen it; basis-free repetition is not a new finding.
+New evidence may reopen it; basis-free repetition is not a new finding. A
+standing disposition that qualifies under the durable-records contract is
+written as a decision record.
 
 Do not add success criteria, tests, or implementation work merely because a
 reviewer suggested them. Tie every accepted addition to the plan, a verified
