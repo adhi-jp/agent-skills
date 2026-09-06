@@ -261,6 +261,13 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-code-research`: the findings shape's carry-forward packet bullet now
+  carries the reference's obligation to name the one action that would
+  persist an unpersisted packet — the next writing phase recording it — so
+  the finish summary states it. Verification: codex `gpt-5.6-luna` closing
+  full-suite run after the edit — 24 cells scored, no anomalies, `with_skill`
+  97.5% against `without_skill` 78.5%; the run before it scored 95.6%
+  against 73.1% on the same assertion set.
 - `vibe-brainstorm`: when delegation is unavailable, unrecordable, or not
   authorized, coordinator-separated perspectives are the coordinator's own
   work within the requested mode and need no separate delegation or fallback

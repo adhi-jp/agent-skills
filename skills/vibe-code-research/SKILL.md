@@ -370,7 +370,8 @@ Shape the findings as:
   not as work you are starting.
 - **Carry-forward packet**: any decision or deferred finding met during the
   investigation, in the packet shape `Durable Records` defines, marked as
-  unpersisted.
+  unpersisted and naming the one action that would persist it — the next
+  writing phase recording it.
 
 In `Answer` and `Evidence`, phrase source-derived control flow as static
 structure: for example, a caller "statically calls" a callee or "would select"
