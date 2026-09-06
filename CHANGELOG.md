@@ -261,6 +261,13 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- Repository: after the entry-file additions of this eval cycle
+  (`vibe-coding`, `vibe-commit`, `vibe-debug`, `vibe-plan-execution`,
+  `vibe-plan-review`, `vibe-planning`), `python3 scripts/vibe_shared_contract.py
+  measure` reports four reading tasks above their frozen baselines — T2 by 60
+  words, T3 by 66, T5 by 209, T6 by 167 — so `measure --strict` exits 1;
+  whether to re-freeze those baselines or trim the entry files is left to the
+  maintainer alongside the structure question the same entries raise.
 - `vibe-review` eval suite: the response-only durable-records case E25
   assesses the described record, confirmation, index rows, report, and
   findings entries in hypothetical wording instead of requiring writes the
@@ -404,8 +411,8 @@ use `[Repository] - YYYY-MM-DD`.
   phase label, row id, or abbreviation does not satisfy an expectation that
   names the supplied visible specialist, in either configuration, because
   graders had passed the baseline's abbreviations while failing the
-  candidate's row ids. The two frozen reading tasks that include this entry
-  file now measure 119 words above their baselines. Verification: codex
+  candidate's row ids; the entry-file growth counts toward the frozen
+  reading-task measure noted under Repository below. Verification: codex
   `gpt-5.6-luna` full-suite runs — 52 cells scored, no infrastructure
   anomalies in any run; before the edits 87.4% `with_skill` against 72.3%
   `without_skill`; after the skill edits 89.0% against 76.8% with six
