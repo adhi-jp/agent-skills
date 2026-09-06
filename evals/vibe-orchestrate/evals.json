@@ -652,15 +652,15 @@
       "expected_output": "A coordinator response that states, line by line, where each worker report item lands and with what field values.",
       "files": [],
       "expectations": [
-        "Allocates `ADR-0032` — one more than the highest id present in both `docs/decisions/` and `docs/decisions/README.md` — and writes the adopted content-hash index key at `docs/decisions/0032-<slug>.md` with `status: accepted`, `decided-by: proxy`, `ratified: pending`, a `paths` glob covering the index writers, a one-sentence imperative `summary`, and `## Considered Options` naming the rejected document-path key with the rename-duplication reason.",
-        "Fills that record's `confirmation` with a concrete command or check — `npm run index:rebuild` is available — or with a `manual:` form naming the check and why no automated one exists.",
+        "States that it allocates `ADR-0032` — one more than the highest id present in both `docs/decisions/` and `docs/decisions/README.md` — and would write the adopted content-hash index key at `docs/decisions/0032-<slug>.md` with `status: accepted`, `decided-by: proxy`, `ratified: pending`, a `paths` glob covering the index writers, a one-sentence imperative `summary`, and `## Considered Options` naming the rejected document-path key with the rename-duplication reason.",
+        "Gives that record's `confirmation` as a concrete command or check — `npm run index:rebuild` is available — or with a `manual:` form naming the check and why no automated one exists.",
         "Cites in that record's `sources` the proxy run identity this prompt supplies: Worker A, run id 4718 of 2026-09-06.",
-        "Adds its row to `docs/decisions/README.md` with the columns `id | status | decided-by/ratified | paths | tags | summary | file`.",
+        "Describes the row it would add to `docs/decisions/README.md` with the columns `id | status | decided-by/ratified | paths | tags | summary | file`.",
         "Routes the unanswered storage-tier item to the plan's reserved-decision row, keeping its owner, authority, and proceed effect, and writes no decision record for it.",
-        "Allocates `DF-0010` — one more than the highest id across every report and the index, closed entries included — and writes the dropped `ops/deploy/index.yaml` change into `docs/reports/findings/2026-09-06-<goal-slug>.md` under the heading `## DF-0010 <title>`.",
+        "States that it allocates `DF-0010` — one more than the highest id across every report and the index, closed entries included — and would write the dropped `ops/deploy/index.yaml` change into `docs/reports/findings/2026-09-06-<goal-slug>.md` under the heading `## DF-0010 <title>`.",
         "Gives that report front matter `goal`, `date`, `phases`, and `source_artifacts`.",
         "Gives the `DF-0010` entry `status: blocked`, a severity, scope `ops/deploy/index.yaml`, evidence stating the evidence class, anchor, and date or commit, the allowlist constraint as why it was not addressed, `decided by: agent` for the coordinator's drop, a revisit trigger naming what would unblock it, and a next action and owner (`unassigned` allowed).",
-        "Adds that finding's row to `docs/reports/findings/README.md` with the columns `id | status | severity | scope | title | file`, its file link pointing at the `DF-0010` entry heading rather than at the report file alone.",
+        "Describes the row it would add to `docs/reports/findings/README.md` with the columns `id | status | severity | scope | title | file`, its file link pointing at the `DF-0010` entry heading rather than at the report file alone.",
         "Creates no decision record and no findings entry from Worker B's tokenizer proposal, because a proposal is not a settled decision.",
         "Does not create, modify, or delete any file in this checkout; it states the records, entries, and rows it would write."
       ]

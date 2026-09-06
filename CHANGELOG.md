@@ -261,6 +261,20 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-orchestrate` eval suite: the response-only durable-records case E48
+  describes the record, confirmation, rows, and findings entry it would
+  produce instead of requiring writes the prompt forbids; the substantive
+  predicates (proxy-decided record, `blocked` finding, no record for a bare
+  proposal) are unchanged. No skill text changed. Verification: codex
+  `gpt-5.6-luna` full-suite runs — 96 cells scored, no infrastructure
+  anomalies; 82.6% `with_skill` against 56.2% `without_skill` before the
+  edit and 81.6% against 57.1% after it, with E48 moving from 0.27 to 0.64
+  on its remaining substantive predicates; the seven cases added since the
+  2026-08-15 run average about 0.63 with the skill. Candidate-below-baseline
+  cells were adjudicated as single-run variance (E02, E33, each flipped
+  relative to the previous run) and one stable single-assertion miss (E18,
+  unfilled placeholders as a pre-dispatch blocker); the `without_skill` zero
+  on E09 is the same legitimate zero as in every earlier run.
 - `vibe-goal-alignment`: the output bullet that hands a confirmed
   understanding forward as a carry-forward packet now also carries any
   finding met on the way that another unit must address, in the packet shape
