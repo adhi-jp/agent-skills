@@ -11,6 +11,11 @@ description: Use when debugging or repairing existing features from rough agent-
 Turn rough bug reports into verified repair work. Preserve the user's wording as
 product evidence, then translate it into observable symptoms, expected
 behavior, unknowns, proof paths, and closure criteria before changing code.
+When the diagnosis is recurrent, multi-symptom, multi-environment,
+long-running, interrupted, or dependent on a user or runtime retest, the
+response carries the compact debug ledger rows that Visible Output And Debug
+Ledger defines — one per unresolved symptom, hypothesis, tool failure, or
+closure decision — rather than prose alone.
 
 This skill is self-contained. Use useful project rules, docs, tools, and
 available skills when they clearly apply, but do not require any other skill to

@@ -261,6 +261,23 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-debug`: the overview now states, ahead of the gate blocks, that a
+  recurrent, multi-symptom, multi-environment, long-running, interrupted, or
+  retest-dependent diagnosis carries the compact debug ledger rows in the
+  response — one per unresolved symptom, hypothesis, tool failure, or closure
+  decision — rather than prose alone; the ledger section already said so, but
+  the generated blocks now precede it. Eval suite: the response-only
+  durable-records case E22 and the response-only closure case E13 describe
+  the records, rows, closure, and checkpoint they would produce instead of
+  requiring writes or a commit the prompt forbids. Verification: codex
+  `gpt-5.6-luna` closing full-suite run after the edits — 44 cells scored, no
+  infrastructure anomalies, `with_skill` 91.8% against `without_skill` 64.0%
+  (88.6% against 61.2% before the edits, with E22 and E13 expectations worded
+  differently); one candidate-below-baseline cell, E02, whose skill-following
+  run searched the ambient checkout for a worker that exists only in the
+  represented plan and stopped as blocked, after scoring 1.00 in the two
+  previous runs — single-run variance on a prompt that does not say
+  response-only.
 - `vibe-commit`: the overview now states, ahead of the gate blocks, that a
   commit answer with no blocking condition carries every applicable gate —
   tree inspection, the staged-set gate with the staged diff read, the commit
