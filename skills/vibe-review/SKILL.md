@@ -170,7 +170,8 @@ and halts the run before merge, triage, or user selection.
   - the text it was asked to revise (comments, docstrings, docs);
   - a confirmed reflection into the bound plan;
   - an ignore file it previewed and the user confirmed;
-  - a narrowly confirmed configuration edit its text names.
+  - a narrowly confirmed configuration edit its text names;
+  - a decision record or findings report its own text declares.
 - In an artifact-only phase, leave those verified changes in the working tree.
 - In an artifact-only phase, never implement executable behavior, never edit application code or tests as implementation, never produce an artifact another phase owns, and never perform release work.
 - Never let an artifact-only phase's artifact authorize same-turn implementation.
@@ -181,7 +182,15 @@ and halts the run before merge, triage, or user selection.
 <!-- shared-contract:end effect-write-boundaries -->
 
 The scope this phase declares is the fixes it applies inside the frozen review
-target after the per-finding and batch cascade gates close.
+target after the per-finding and batch cascade gates close, plus the decision
+records and findings reports named under `Durable Records`.
+
+### Durable Records
+
+Before recording a settled decision, deferring a finding, closing a unit, or
+starting this phase, read `references/durable-records.md`. This phase writes
+`docs/decisions/` and `docs/reports/findings/`, or the repository's existing
+record directory, as declared supporting paths.
 
 ### History-Mutation Gate
 

@@ -374,7 +374,8 @@ history action.
   - the text it was asked to revise (comments, docstrings, docs);
   - a confirmed reflection into the bound plan;
   - an ignore file it previewed and the user confirmed;
-  - a narrowly confirmed configuration edit its text names.
+  - a narrowly confirmed configuration edit its text names;
+  - a decision record or findings report its own text declares.
 - In an artifact-only phase, leave those verified changes in the working tree.
 - In an artifact-only phase, never implement executable behavior, never edit application code or tests as implementation, never produce an artifact another phase owns, and never perform release work.
 - Never let an artifact-only phase's artifact authorize same-turn implementation.
@@ -387,7 +388,18 @@ history action.
 Each row's class is stated in its owner cell: the router-owned rows
 `direct-implementation` and `maintenance` are state-changing, and
 `workflow-control` writes nothing. The router records the active row's class as
-`effect_mode` and its declared write boundary as `allowed_paths`.
+`effect_mode` and its declared write boundary as `allowed_paths`. The
+router-owned state-changing rows also write `docs/decisions/` and
+`docs/reports/findings/` under `Durable Records`; `workflow-control` writes
+neither.
+
+## Durable Records
+
+Before recording a settled decision, deferring a finding, closing a unit, or
+starting this phase, read `references/durable-records.md`. The router-owned rows
+`direct-implementation` and `maintenance` write `docs/decisions/` and
+`docs/reports/findings/`, or the repository's existing record directory, as
+declared supporting paths; `workflow-control` writes neither.
 
 ## Before a human-risk decision
 
@@ -519,6 +531,10 @@ Read each reference at its trigger; none is required on every turn.
 - `references/route-selection.md` — the precedence order in detail and each
   row's triggers and exclusions; read when the table's cells do not settle the
   classification, or when a cell defers to it.
+- `references/durable-records.md` — the shared decision-record and
+  deferred-findings obligations and formats; read when a router-owned row
+  records a decision, defers a finding, starts, or closes, and at the finish
+  gate when a carry-forward packet is pending.
 - `references/phase-boundaries.md` — boundary rules, the commit-selection
   boundary, collapsed-phase prevention, sequential coordinator continuation,
   and backtracking; read before combining, continuing, or backtracking routes.

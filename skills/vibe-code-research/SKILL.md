@@ -37,7 +37,8 @@ For every gate and schema block this package carries, here and in its references
   - the text it was asked to revise (comments, docstrings, docs);
   - a confirmed reflection into the bound plan;
   - an ignore file it previewed and the user confirmed;
-  - a narrowly confirmed configuration edit its text names.
+  - a narrowly confirmed configuration edit its text names;
+  - a decision record or findings report its own text declares.
 - In an artifact-only phase, leave those verified changes in the working tree.
 - In an artifact-only phase, never implement executable behavior, never edit application code or tests as implementation, never produce an artifact another phase owns, and never perform release work.
 - Never let an artifact-only phase's artifact authorize same-turn implementation.
@@ -52,6 +53,14 @@ write is the saved research report the current user explicitly asks for,
 placed as the output contract below directs.
 
 Findings are evidence for later phases, never authorization to start them.
+
+### Durable Records
+
+Before recording a settled decision, deferring a finding, or closing a unit,
+read `references/durable-records.md`. This phase ordinarily writes neither
+`docs/decisions/` nor `docs/reports/findings/`; it hands a decision or finding
+forward as the carry-forward packet that reference defines, and a saved
+artifact the user explicitly requests stays within this phase's own boundary.
 
 ### Read-Only-Phase Write Gate
 

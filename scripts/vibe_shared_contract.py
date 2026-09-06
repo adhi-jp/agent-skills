@@ -87,7 +87,9 @@ GATE_BLOCK_IDS = frozenset(
         "read-only-phase-write-gate",
     }
 )
-SCHEMA_BLOCK_IDS = frozenset({"session-record-schema"})
+SCHEMA_BLOCK_IDS = frozenset(
+    {"session-record-schema", "decision-record-schema", "decision-record-index", "deferred-findings-schema"}
+)
 NON_OVERRIDABLE_BLOCK_IDS = GATE_BLOCK_IDS | SCHEMA_BLOCK_IDS
 # The closing sentences the per-package closing block renders, in body order.
 CLOSING_SENTENCES = (CLOSING_PRECEDENCE_SENTENCE, CLOSING_APPLICABILITY_SENTENCE)
@@ -125,6 +127,11 @@ NEGATIVE_LINE_BLOCK_IDS = frozenset(
         "commit-selection-gate",
         "read-only-phase-write-gate",
         "session-record-schema",
+        "decision-records",
+        "decision-record-schema",
+        "decision-record-index",
+        "deferred-findings",
+        "deferred-findings-schema",
     }
 )
 

@@ -106,7 +106,8 @@ For every gate and schema block this package carries, here and in its references
   - the text it was asked to revise (comments, docstrings, docs);
   - a confirmed reflection into the bound plan;
   - an ignore file it previewed and the user confirmed;
-  - a narrowly confirmed configuration edit its text names.
+  - a narrowly confirmed configuration edit its text names;
+  - a decision record or findings report its own text declares.
 - In an artifact-only phase, leave those verified changes in the working tree.
 - In an artifact-only phase, never implement executable behavior, never edit application code or tests as implementation, never produce an artifact another phase owns, and never perform release work.
 - Never let an artifact-only phase's artifact authorize same-turn implementation.
@@ -120,9 +121,17 @@ The artifacts this phase owns are `AGENTS.md`; the derived `CLAUDE.md`, as a
 link, as the documented stub, or as an import plus its Claude-specific
 remainder; the managed block at the top of `AGENTS.override.md`; the derived
 `CLAUDE.local.md`; the reference documents `AGENTS.md` lists with their
-read-when conditions; and the one previewed `.gitignore` or
-`.git/info/exclude` entry that ignores the personal files — and every write to
-a path that already exists is previewed and confirmed before it is applied.
+read-when conditions; the one previewed `.gitignore` or `.git/info/exclude`
+entry that ignores the personal files — and every write to a path that already
+exists is previewed and confirmed before it is applied; its declared supporting
+paths are the decision records and findings reports named under `Durable Records`.
+
+### Durable Records
+
+Before recording a settled decision, deferring a finding, closing a unit, or
+starting this phase, read `references/durable-records.md`. This phase writes
+`docs/decisions/` and `docs/reports/findings/`, or the repository's existing
+record directory, as declared supporting paths.
 
 ### Read-Only-Phase Write Gate
 
@@ -278,6 +287,9 @@ at the top of `AGENTS.override.md`.
 
 ## Reference Routing
 
+- **`references/durable-records.md`** — read it before writing an accepted
+  divergence as a decision record or deferring a finding to the findings
+  report; it carries the shared obligations and formats.
 - **`references/generation-and-update-workflow.md`** — read it before the
   first write of any run: before inventorying, generating, updating, linking,
   writing the managed block, choosing an ignore placement, or composing the

@@ -41,7 +41,7 @@ acting. Repository contributors must also follow [`AGENTS.md`](AGENTS.md).
 | --- | --- | --- | --- |
 | Route an explicitly invoked, multi-turn coding workflow | `vibe-coding` | Classifies each turn into one row of a decision table after a narrowly triggered goal-alignment gate; routes specialist-owned rows to one visible specialist and preserves its gates; performs the router-owned `direct-implementation` and `maintenance` rows itself under the shared effect and commit boundaries; and keeps routing state in a session record under `.plans/vibe-sessions/` that is a record, not authority, while approvals, proceed decisions, and stop boundaries stay in the conversation | [source](skills/vibe-coding/SKILL.md) · [evals](evals/vibe-coding/) |
 | Confirm or correct the agent's understanding before ambiguous or risky work | `vibe-goal-alignment` | Produces an understanding record and stops before action until the user confirms or corrects it | [source](skills/vibe-goal-alignment/SKILL.md) · [evals](evals/vibe-goal-alignment/) |
-| Coordinate bounded subagent research, edits, repairs, or review | `vibe-orchestrate` | The coordinator keeps scope, verification, and consent ownership; treats worker output as non-authorizing; and selects external write lanes by required effects plus isolation and receipts, with free-text residual risk and report/manifest/Git reconciliation before acceptance | [source](skills/vibe-orchestrate/SKILL.md) · [evals](evals/vibe-orchestrate/) |
+| Coordinate bounded subagent research, edits, repairs, or review | `vibe-orchestrate` | The coordinator keeps scope, verification, and consent ownership; treats worker output as non-authorizing; and selects external write lanes by required effects plus isolation and receipts, with free-text residual risk and report/manifest/Git reconciliation before acceptance; qualifying coordinator decisions that bind later rounds become decision records and dropped or later-round items go to `docs/reports/findings/` | [source](skills/vibe-orchestrate/SKILL.md) · [evals](evals/vibe-orchestrate/) |
 
 ### Shape, investigate, and change software
 
@@ -52,9 +52,9 @@ acting. Repository contributors must also follow [`AGENTS.md`](AGENTS.md).
 | Understand, locate, trace, or assess existing code | `vibe-code-research` | Read-only; direct lookups stay concise, and material negative/architecture/risk conclusions receive a disconfirming check | [source](skills/vibe-code-research/SKILL.md) · [evals](evals/vibe-code-research/) |
 | Create or revise an implementation plan from approved or concrete inputs | `vibe-planning` | Writes concise plan artifacts and stops before implementation; reserved decisions stay authority-bounded, and risk-triggered review uses verified-capacity or one bounded optimistic batch before coordinator fallback | [source](skills/vibe-planning/SKILL.md) · [evals](evals/vibe-planning/) |
 | Walk through a saved implementation plan item by item | `vibe-plan-review` | Interactive pre-check; review state stays in chat unless resumability needs persistence, exact target/state mismatches fail closed, and it stops before implementation | [source](skills/vibe-plan-review/SKILL.md) · [evals](evals/vibe-plan-review/) |
-| Implement a concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Binds the current reviewed plan content, keeps material high-risk and out-of-scope constraints visible, checks proceed conditions, and verifies and reviews completed slices, then closes each one with a scoped local checkpoint commit | [source](skills/vibe-plan-execution/SKILL.md) · [evals](evals/vibe-plan-execution/) |
-| Diagnose and repair an existing bug, regression, failed fix, or runtime mismatch | `vibe-debug` | Keeps cause and repair claims evidence-backed; simple bugs close concisely while recurrent or environment-bound work retains a ledger/retest contract | [source](skills/vibe-debug/SKILL.md) · [evals](evals/vibe-debug/) |
-| Review a working tree, branch, base ref, or git-backed document change | `vibe-review` | Requires a non-empty git-backed target; records capability properties separately, quarantines delegated evidence, and omits private backend/source references from public findings while preserving common review gates | [source](skills/vibe-review/SKILL.md) · [evals](evals/vibe-review/) |
+| Implement a concrete plan, specification, acceptance criteria, or task list | `vibe-plan-execution` | Binds the current reviewed plan content, keeps material high-risk and out-of-scope constraints visible, checks proceed conditions, verifies and reviews completed slices, writes qualifying decisions to `docs/decisions/` and deferred findings to `docs/reports/findings/`, then closes each slice with a scoped local checkpoint commit | [source](skills/vibe-plan-execution/SKILL.md) · [evals](evals/vibe-plan-execution/) |
+| Diagnose and repair an existing bug, regression, failed fix, or runtime mismatch | `vibe-debug` | Keeps cause and repair claims evidence-backed; simple bugs close concisely while recurrent or environment-bound work retains a ledger/retest contract; a qualifying repair policy other units must follow becomes a decision record and deferred or accepted-residual items go to `docs/reports/findings/` | [source](skills/vibe-debug/SKILL.md) · [evals](evals/vibe-debug/) |
+| Review a working tree, branch, base ref, or git-backed document change | `vibe-review` | Requires a non-empty git-backed target; records capability properties separately, quarantines delegated evidence, and omits private backend/source references from public findings while preserving common review gates; qualifying accepted divergences and standing dispositions become decision records and deferred items go to `docs/reports/findings/` | [source](skills/vibe-review/SKILL.md) · [evals](evals/vibe-review/) |
 
 ### Write and commit
 
@@ -94,6 +94,14 @@ of truth when a summary and a detailed contract differ.
   artifact whose tracked status would itself be new, or paths outside it.
 - Artifact creation, tracking, staging, commit, release-note inclusion, and
   publishing are separate lifecycle transitions with their own authority.
+- A qualifying decision — one that binds work beyond the current unit and was
+  chosen among alternatives, reverses a prior choice, settles an ambiguous
+  instruction, or was AI-selected — is written as a decision record under
+  `docs/decisions/` when it is settled, and a defect or
+  concern a phase deliberately leaves unaddressed is written to
+  `docs/reports/findings/` before the unit closes; a phase that may not write
+  hands both forward as a carry-forward packet. Each package carries the shared
+  obligations and formats in `references/durable-records.md`.
 - Commit selection never implies push, release preparation, versions, tags,
   history rewriting, destructive cleanup, or unrelated paths.
 - Current versions come from each source `SKILL.md`. Released changes and

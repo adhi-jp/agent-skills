@@ -1035,22 +1035,40 @@ class VibeSharedContractTests(unittest.TestCase):
                 self.assertIn("gate block is 268 words (cap 260)", result.stdout)
 
     def test_check_schema_block_total_cap_is_five_hundred_thirty_words(self):
-        # Synthetic bodies only: the cap must hold independently of the shared source.
+        # Synthetic bodies only: the cap must hold independently of the shared source, and
+        # for every id the script classifies as a schema block, not only the first one.
         bullets = "".join("- " + words(40) + "\n" for _ in range(13)) + "- " + words(2) + "\n"
         at_cap = SHAPE_LEAD + "\n\n" + bullets + APPLICABILITY + "\n"
-        result = self.shape_check(at_cap, block_id="session-record-schema", strict=True, expect=0)
-        self.assertIn("0 error(s), 0 warning(s)", result.stdout)
-        module = load_module()
-        blocks, findings = module.parse_source(self.source)
-        self.assertEqual(findings, [])
-        self.assertEqual(module.block_word_total(blocks[0]), 530)
-        self.assertEqual(module.SCHEMA_BLOCK_WORD_CAP, 530)
         over_cap = SHAPE_LEAD + "\n\n" + bullets + "- " + words(1) + "\n" + APPLICABILITY + "\n"
-        over = self.shape_check(over_cap, block_id="session-record-schema", strict=True, expect=1)
-        self.assertIn("block session-record-schema: schema block is 531 words (cap 530)", over.stdout)
+        module = load_module()
+        self.assertEqual(module.SCHEMA_BLOCK_WORD_CAP, 530)
+        self.assertIn("session-record-schema", module.SCHEMA_BLOCK_IDS)
+        for block_id in sorted(module.SCHEMA_BLOCK_IDS):
+            with self.subTest(block_id=block_id):
+                result = self.shape_check(at_cap, block_id=block_id, strict=True, expect=0)
+                self.assertIn("0 error(s), 0 warning(s)", result.stdout)
+                blocks, findings = module.parse_source(self.source)
+                self.assertEqual(findings, [])
+                self.assertEqual(module.block_word_total(blocks[0]), 530)
+                over = self.shape_check(over_cap, block_id=block_id, strict=True, expect=1)
+                self.assertIn(f"block {block_id}: schema block is 531 words (cap 530)", over.stdout)
         gated = self.shape_check(at_cap, block_id="history-mutation-gate", strict=True, expect=1)
         self.assertIn("gate block is 530 words (cap 260)", gated.stdout)
         self.assertNotIn("schema block is", gated.stdout)
+
+    def test_schema_block_ids_are_declared_by_the_shared_source_as_schema_blocks(self):
+        module = load_module()
+        self.assertEqual(
+            set(module.SCHEMA_BLOCK_IDS),
+            {"session-record-schema", "decision-record-schema", "decision-record-index", "deferred-findings-schema"},
+        )
+        blocks, _findings = module.parse_source(module.DEFAULT_SOURCE)
+        by_id = {block.block_id: block for block in blocks}
+        for block_id in sorted(module.SCHEMA_BLOCK_IDS):
+            with self.subTest(block_id=block_id):
+                self.assertIn(block_id, by_id)
+                self.assertLessEqual(module.block_word_total(by_id[block_id]), module.SCHEMA_BLOCK_WORD_CAP)
+                self.assertTrue(by_id[block_id].body.lstrip().startswith("**"))
 
     def test_check_schema_cap_finding_is_a_warning_outside_strict(self):
         bullets = "".join("- " + words(40) + "\n" for _ in range(13)) + "- " + words(3) + "\n"

@@ -33,7 +33,8 @@ For every gate and schema block this package carries, here and in its references
   - the text it was asked to revise (comments, docstrings, docs);
   - a confirmed reflection into the bound plan;
   - an ignore file it previewed and the user confirmed;
-  - a narrowly confirmed configuration edit its text names.
+  - a narrowly confirmed configuration edit its text names;
+  - a decision record or findings report its own text declares.
 - In an artifact-only phase, leave those verified changes in the working tree.
 - In an artifact-only phase, never implement executable behavior, never edit application code or tests as implementation, never produce an artifact another phase owns, and never perform release work.
 - Never let an artifact-only phase's artifact authorize same-turn implementation.
@@ -46,8 +47,16 @@ For every gate and schema block this package carries, here and in its references
 This phase reviews the saved plan and never executes it; it stops after item
 review and the final plan-reflection confirmation workflow. The artifact it owns
 is the temporary review-state file that §Review State Persistence names and
-places; its one declared supporting path is the target plan file, written only
-as the confirmed reflection that §Reflection Into The Plan governs.
+places; its declared supporting paths are the target plan file, written only
+as the confirmed reflection that §Reflection Into The Plan governs, and the
+record directories named under §Durable Records.
+
+### Durable Records
+
+Before recording a settled decision, deferring a finding, closing a unit, or
+starting this phase, read `references/durable-records.md`. This phase writes
+`docs/decisions/` and `docs/reports/findings/`, or the repository's existing
+record directory, as declared supporting paths.
 
 ### Read-Only-Phase Write Gate
 

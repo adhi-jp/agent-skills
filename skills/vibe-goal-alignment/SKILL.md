@@ -175,7 +175,8 @@ Keep alignment concise and operational:
   - the text it was asked to revise (comments, docstrings, docs);
   - a confirmed reflection into the bound plan;
   - an ignore file it previewed and the user confirmed;
-  - a narrowly confirmed configuration edit its text names.
+  - a narrowly confirmed configuration edit its text names;
+  - a decision record or findings report its own text declares.
 - In an artifact-only phase, leave those verified changes in the working tree.
 - In an artifact-only phase, never implement executable behavior, never edit application code or tests as implementation, never produce an artifact another phase owns, and never perform release work.
 - Never let an artifact-only phase's artifact authorize same-turn implementation.
@@ -189,6 +190,13 @@ Do not run commands, edit files, stage, commit, tag, push, bump versions,
 delete data, or start services from this skill.
 
 This phase owns no artifact and writes no file.
+
+### Durable Records
+
+Before recording a settled decision, deferring a finding, or closing a unit,
+read `references/durable-records.md`. This phase writes neither
+`docs/decisions/` nor `docs/reports/findings/`; it hands a decision or finding
+forward as the carry-forward packet that reference defines.
 
 ### Read-Only-Phase Write Gate
 

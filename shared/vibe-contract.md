@@ -8,7 +8,7 @@ Blocks are heading-free and name no skill package: they speak of phases (require
 
 Each block has one shape: a bold imperative lead sentence, then bullets carrying one obligation each, then at most one line marked `Example:` and at most one line beginning `Exception:`. A block carries no closing sentence of its own.
 
-The host file supplies the heading above each rendered copy and, immediately above its first generated block, one class-declaration line declaring the package's language, commit, and effect classes. Directly under that class line the renderer writes each sentence once per package, not once per block: the precedence sentence that lets a package keep a stricter or narrower rule in its own text, for the consolidation blocks, and the fixed applicability sentence for the session-record schema and the three gate blocks, which are not overridable.
+The host file supplies the heading above each rendered copy and, immediately above its first generated block, one class-declaration line declaring the package's language, commit, and effect classes. Directly under that class line the renderer writes each sentence once per package, not once per block: the precedence sentence that lets a package keep a stricter or narrower rule in its own text, for the consolidation blocks, and the fixed applicability sentence for the schema blocks and the three gate blocks, which are not overridable.
 
 The headings between the blocks below belong to this file, not to the blocks.
 
@@ -113,7 +113,8 @@ The headings between the blocks below belong to this file, not to the blocks.
   - the text it was asked to revise (comments, docstrings, docs);
   - a confirmed reflection into the bound plan;
   - an ignore file it previewed and the user confirmed;
-  - a narrowly confirmed configuration edit its text names.
+  - a narrowly confirmed configuration edit its text names;
+  - a decision record or findings report its own text declares.
 - In an artifact-only phase, leave those verified changes in the working tree.
 - In an artifact-only phase, never implement executable behavior, never edit application code or tests as implementation, never produce an artifact another phase owns, and never perform release work.
 - Never let an artifact-only phase's artifact authorize same-turn implementation.
@@ -246,6 +247,111 @@ Exception: a current no-commit instruction, a bound plan that forbids commits, o
 - Preserve non-secret wording and the anchors needed to verify the finding — paths, line numbers, symbols, commands, API names, field names, and identifiers.
 - Count the redactions and render a compact footer when any occurred.
 <!-- shared-contract:endblock secret-redaction -->
+
+## Decision records
+
+<!-- shared-contract:block decision-records dependents=vibe-agent-instructions,vibe-brainstorm,vibe-code-research,vibe-coding,vibe-commit,vibe-debug,vibe-goal-alignment,vibe-orchestrate,vibe-plan-execution,vibe-plan-review,vibe-planning,vibe-requirements-spec,vibe-review,vibe-writing -->
+**Record a settled decision that binds work beyond the current unit before the next dependent action.**
+
+- A decision qualifies when it constrains work beyond the current unit: structure, interface or contract, data model or persisted format, dependency, build, deployment, security or permission boundary, a convention or policy another unit must follow, or a standing user constraint.
+- Require, in addition, at least one of: a viable alternative was rejected; it reverses or supersedes an earlier decision or a default; it settled an ambiguous instruction or a repeated correction; it was AI-selected or proxy-selected with cross-unit effect.
+- Read the unit as the piece of work the phase closes and checkpoints, and a decision as settled the moment the deciding actor's answer is recorded: the user's turn, the adopted proxy result, or the gate outcome.
+- Never record a choice whose rule and reason are both evident from the code, a choice reversible in one commit with no downstream contract, task sequencing, requirements or acceptance criteria, a residual finding, or a rule with no rationale.
+- Record a bug root cause or repair only when it sets a rule another unit must follow; the commit message and regression test carry the rest. Record a spec item only when it sets a durable product constraint or non-goal.
+- Record a residual finding only when it sets a lasting policy, citing the finding id; put a rule with no rationale in the project instruction file and link it.
+- Treat only the rule as recoverable from the code; rationale, rejected alternatives, and reversals never are, so a decision meeting both criteria is recorded even when its rule is in the diff.
+- Write one decision per record and cite the record id from the spec, plan, or ledger instead of restating its rationale.
+- Write the record immediately after the decision is settled and before the next dependent action; reconcile status, links, index, and consequences at unit close; sweep for unrecorded qualifying decisions at the finish gate.
+- Select a checkpoint or update an implementation progress ledger only when no unrecorded qualifying decision remains.
+- Read the decision index and the open-findings index when a planning, execution, repair, review, orchestration, or router-owned phase starts; open only the applicable records and findings; read an accepted record's considered options before proposing an alternative it covers.
+- Perform the confirmation checks of the applicable records at review or verification; at commit time, check a diff touching an accepted record's paths for conformance or its superseding record in the same commit, and otherwise report the conflict.
+- Hand a decision forward as a carry-forward packet when this phase may not write it: the decision, rejected alternatives, rationale, provenance, scope, and proposed status (`proposed | accepted`); the next writing phase records it.
+- Carry a packet in the phase summary and conversation state; report an unpersisted packet at the finish gate as unpersisted, with the one action that would persist it; never claim a packet is durable.
+- Ask the user once per repository, at the first checkpoint that would include a record or report, whether records and reports join that repository's checkpoints; write the answer as a record and apply it to later checkpoints.
+  - Until the answer exists the file stays untracked and the summary says so; an ignore rule keeps the file local and the summary says so.
+- Treat an unratified agent-selected record as an assumption to surface whenever it would narrow a live user request; it binds nothing the user has not accepted.
+
+Example: choosing UTC for persisted timestamps after rejecting local time is recorded although the rule is visible in the code; one retry added to one call is a commit-message fact unless other call sites must follow it.
+
+Exception: a read-only phase or commit execution writes a record only on the user's explicit saved-artifact request; otherwise it hands the packet forward.
+<!-- shared-contract:endblock decision-records -->
+
+## Decision-record schema
+
+<!-- shared-contract:block decision-record-schema dependents=vibe-agent-instructions,vibe-coding,vibe-commit,vibe-debug,vibe-orchestrate,vibe-plan-execution,vibe-plan-review,vibe-planning,vibe-requirements-spec,vibe-review,vibe-writing -->
+**Write each decision record as one Markdown file with this front matter, these sections, and one index row.**
+
+- Store records at `docs/decisions/NNNN-<slug>.md` with the index at `docs/decisions/README.md`; reuse an existing `docs/adr/`, `doc/adr/`, `adr/`, or `decisions/` directory and its numbering when one exists; convert nothing without an explicit request.
+- Allocate `id` as `ADR-NNNN`, one more than the highest id in the index or directory, never reused; after a merge exposes two records with one id, renumber the one that entered the mainline later and update its references.
+- Front matter: `id`; `title`; `status` (`proposed | accepted | rejected | deprecated | superseded`); `date` (last status change); `decided-by` (`user | agent | proxy`); `ratified` (`user | pending`); `summary` (one imperative sentence, at most 140 characters).
+- Then `paths` (globs the decision binds; empty means repository-wide); `tags`; `supersedes`; `superseded-by`; `confirmation` (a command or check proving compliance, or `manual:` plus the check and why no automated check exists); `revisit-when`; `sources`.
+- Give every `sources` entry its authority: a user-turn date with its deciding phrase, a tracked artifact path with heading, a commit, or the proxy run identity; prefer tracked anchors and cite an ignored artifact only as a supplement.
+- Body sections in order: `# ADR-NNNN. <title>`, `## Context and Problem Statement`, `## Considered Options` (one line per option, rejected ones with the reason), `## Decision Outcome` (chosen option with its reason, then the rule in imperative form).
+- Then `### Consequences` (good and bad, each with its reason), `### Confirmation`, and an optional `### Amendments` list of dated later observations that do not change the decision.
+- Keep each record self-contained, restating the decision and rationale so it stays readable when its sources are gone; target 40 lines and never exceed 120.
+- Write `accepted` with `ratified: user` for a user decision with a recorded acceptance anchor; write `accepted` with `decided-by: agent` or `proxy` and `ratified: pending` for a delegable decision already in effect.
+- Never write `accepted` for a human-risk decision without recorded user acceptance; keep it `proposed`. A user who declines a record makes it `rejected` with `ratified: user` and the reason.
+- Change an accepted record only in `status`, `date`, `ratified`, `superseded-by`, `Amendments`, and typo fixes; a change of meaning is a new superseding record, and supersession is written into both records and the index together.
+- Deviations from MADR 4.0.0: stable ids and two-way supersession links replace the status-string supersession because agents match by id; `paths`, `tags`, and `summary` let the index alone screen relevance.
+- `decided-by` and `ratified` separate AI-selected defaults from human approval; `confirmation` is required so a reader has a check; `decision-makers`, `consulted`, and `informed` fold into `decided-by` and `sources`.
+- `Decision Drivers`, `Pros and Cons of the Options`, and `More Information` are dropped; their content compresses into the outcome clause, the option lines, and `revisit-when`.
+
+Example: front matter `id: ADR-0007`, `status: accepted`, `decided-by: agent`, `ratified: pending`, `paths: ["src/cache/**"]`, `summary: Keep the local cache in one SQLite file.`
+<!-- shared-contract:endblock decision-record-schema -->
+
+## Decision-record index
+
+<!-- shared-contract:block decision-record-index dependents=vibe-agent-instructions,vibe-coding,vibe-commit,vibe-debug,vibe-orchestrate,vibe-plan-execution,vibe-plan-review,vibe-planning,vibe-requirements-spec,vibe-review,vibe-writing -->
+**Read records through the index and apply each by its status and ratification.**
+
+- Index rows: one line per record with columns `id | status | decided-by/ratified | paths | tags | summary | file`; keep superseded and deprecated rows with empty `paths`.
+- A record applies when a `paths` glob matches a file in the unit's scope, a tag equals a topic the unit names, or `paths` is empty and the summary concerns the unit's subject; open every applicable record.
+- Stop with a finding when two applicable accepted records conflict, until one supersedes the other; a record file outranks its index row.
+- Rebuild a missing or disagreeing index from the front matter before proceeding when this phase may write; otherwise reconstruct it in memory, proceed, and report the stale index in the carry-forward packet.
+- Index a legacy record whose front matter is absent or unparseable with its first heading as title, `status` from a status line or section when present and `unknown` otherwise, and empty `paths` and `tags`.
+- Open an `unknown` record when its title or file name names the unit's subject, apply nothing from it automatically, and report it as unclassified.
+- Readers: `accepted` with `ratified: user` binds the unit; `accepted` with `ratified: pending` is applied inside its scope but surfaced as an assumption whenever it would narrow a live user request; `proposed` is not in effect and is reported.
+- `rejected` is not re-proposed without new evidence; `deprecated` is ignored; `superseded` is followed to its replacement.
+- Never apply a `proposed`, `rejected`, or `deprecated` record, and never treat an unratified record as the user's constraint.
+
+Example: `- ADR-0007 | accepted | agent/pending | src/cache/** | storage | Keep the local cache in one SQLite file. | [file](0007-single-sqlite-cache.md)`
+<!-- shared-contract:endblock decision-record-index -->
+
+## Deferred findings
+
+<!-- shared-contract:block deferred-findings dependents=vibe-agent-instructions,vibe-brainstorm,vibe-code-research,vibe-coding,vibe-commit,vibe-debug,vibe-goal-alignment,vibe-orchestrate,vibe-plan-execution,vibe-plan-review,vibe-planning,vibe-requirements-spec,vibe-review,vibe-writing -->
+**Write every defect or concern discovered but deliberately not addressed to the findings report before the unit closes.**
+
+- Count as a finding a deferred or blocked item, an accepted residual, a scope-blocked plan item, a dropped or later-round contracted item, and any defect or concern outside the unit's scope that the phase chose not to fix.
+- Write the entry immediately when the deferral is decided; reconcile entries and the index at unit close and at the finish gate; the chat report names the report path and repeats the open ids.
+- Write the report from every state-changing phase except commit execution and from every artifact-only phase, inside the report directory the phase's own text declares.
+- Hand a finding forward as a carry-forward packet from a read-only phase or commit execution, carrying its title, severity, scope, evidence, why it was not addressed, who decided, and revisit trigger; write a file only on the user's saved-artifact request.
+- Keep the report the one durable carrier for deferred, blocked, unresolved, and accepted-residual items; a plan ledger, debug ledger, review summary, or worker report cites the finding id instead of restating it.
+- Never convert a current blocker into a finding to unblock the unit; a finding records work the unit legitimately does not do.
+- Read the open-findings index when a planning, execution, repair, review, orchestration, or router-owned phase starts and open the findings whose scope names a path or component the unit touches or whose title names its subject.
+- Close a finding by updating its original entry's status and closure fields and its index row when a later unit resolves it; a read-only phase proposes the closure in its packet.
+- Record who decided the deferral (`user`, `agent`, or `proxy`); an accepted residual needs recorded user acceptance, and an agent-deferred item is surfaced to the user in the summary.
+
+Exception: when no material unaddressed finding exists at unit close, no report file is created and the summary says so.
+<!-- shared-contract:endblock deferred-findings -->
+
+## Deferred-findings schema
+
+<!-- shared-contract:block deferred-findings-schema dependents=vibe-agent-instructions,vibe-coding,vibe-commit,vibe-debug,vibe-orchestrate,vibe-plan-execution,vibe-plan-review,vibe-planning,vibe-requirements-spec,vibe-review,vibe-writing -->
+**Write each findings report as one file per workflow with these entry fields and one index row per finding.**
+
+- Store the report at `docs/reports/findings/YYYY-MM-DD-<goal-slug>.md`, adding `-2` on a name collision, with the open-findings index at `docs/reports/findings/README.md`; create the file only when at least one material finding exists.
+- Give the report front matter `goal`, `date`, `phases`, and `source_artifacts`, and head each finding with `## DF-NNNN <title>`.
+- Allocate `DF-NNNN` as one more than the highest id in the index or any report, never reused; after a merge exposes two entries with one id, renumber the later-merged entry and update its references.
+- Fields per finding: status (`deferred | blocked | accepted-residual | resolved | invalidated | duplicate-of DF-NNNN`); severity (`critical | high | medium | low | unknown`); scope (paths or component); evidence (class, anchor, date or commit).
+- Then why not addressed; decided by (`user | agent | proxy`); revisit when; next action and owner (`unassigned` allowed); closure (date, commit, verification), filled on resolution.
+- Index rows: one line per open finding, removed when the entry closes, with columns `id | status | severity | scope | title | file`, the file link pointing at the entry heading.
+- A finding applies to a unit when its scope names a path or component the unit touches or its title names the unit's subject; an index that is missing or disagrees with the reports follows the decision-index rebuild rule.
+- Never delete or rewrite a closed entry; closure appends the closure fields and flips the status, and a duplicate points at its canonical id.
+- Keep entries self-contained: the evidence anchor and the reason it was not addressed stay readable when the workflow's spec or plan is gone.
+
+Example: `- DF-0012 | deferred | high | src/sync/** | Retry loop can starve the writer | [entry](2026-09-06-csv-import.md#df-0012-retry-loop-can-starve-the-writer)`
+<!-- shared-contract:endblock deferred-findings-schema -->
 
 ## History-mutation gate
 
@@ -488,4 +594,77 @@ Example (complete; accepted by the checker with an `artifact-not-readable` note 
   "capability_map": {"checked_at": "2026-09-04T12:40:00Z", "source": "host skill metadata", "phases": {"implementation-planning": "planning-specialist", "commit-execution": "commit-specialist", "review": null}},
   "events": [{"kind": "approval", "source": "user-turn", "at": "2026-09-04T12:58:40Z", "artifact": {"path": "/home/user/repo/docs/specs/2026-09-04-csv-import-spec.md", "sha256": "9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08"}, "status": "current", "note": "spec approved in the user's own words"}]
 }
+```
+
+## Maintainer examples: a decision record and a findings report (not rendered)
+
+A complete record under the `decision-record-schema` block, at `docs/decisions/0007-single-sqlite-cache.md`:
+
+```markdown
+---
+id: ADR-0007
+title: Use a single SQLite file for the local cache
+status: accepted
+date: 2026-09-06
+decided-by: user
+ratified: user
+summary: Keep the local cache in one SQLite file.
+paths: ["src/cache/**", "src/sync/**"]
+tags: [storage, offline]
+supersedes: [ADR-0003]
+superseded-by: null
+confirmation: "pytest tests/cache/test_single_store.py"
+revisit-when: "a second process must share the cache"
+sources: ["user turn 2026-09-06: 'keep one SQLite file'", "docs/plans/2026-09-06-cache-implementation-plan.md#reserved-decisions"]
+---
+# ADR-0007. Use a single SQLite file for the local cache
+
+## Context and Problem Statement
+The sync worker and the UI both cache rows; two stores drifted twice during 2026-08 (commit a1b2c3d).
+
+## Considered Options
+- One SQLite file, chosen.
+- Redis sidecar: rejected, adds a process the CLI install cannot assume.
+- In-process LRU only: rejected, loses the cache across restarts.
+
+## Decision Outcome
+Chosen option: one SQLite file, because it survives restarts without a second process. Keep every cached row in `cache.sqlite`; add no second store.
+
+### Consequences
+- Good, because one file is one backup and one invalidation path.
+- Bad, because concurrent writers need the busy-timeout setting.
+
+### Confirmation
+`pytest tests/cache/test_single_store.py` fails when a second store appears.
+```
+
+Its index row in `docs/decisions/README.md`:
+
+```markdown
+- ADR-0007 | accepted | user/user | src/cache/**, src/sync/** | storage, offline | Keep the local cache in one SQLite file. | [file](0007-single-sqlite-cache.md)
+```
+
+A findings report under the `deferred-findings-schema` block, at `docs/reports/findings/2026-09-06-csv-import.md`, with its index row in `docs/reports/findings/README.md`:
+
+```markdown
+---
+goal: CSV import
+date: 2026-09-06
+phases: [plan-execution]
+source_artifacts: ["docs/plans/2026-09-06-csv-import-implementation-plan.md"]
+---
+## DF-0012 Retry loop can starve the writer
+- Status: deferred
+- Severity: high
+- Scope: src/sync/**
+- Evidence: Local investigation — src/sync/retry.py:41 loops without a backoff cap; observed 2026-09-06 at commit a1b2c3d
+- Why not addressed: outside the bound plan's slice; the plan's out-of-scope list names the sync worker
+- Decided by: user
+- Revisit when: the sync worker slice starts, or a starvation report arrives
+- Next action and owner: add a backoff cap — unassigned
+- Closure: —
+```
+
+```markdown
+- DF-0012 | deferred | high | src/sync/** | Retry loop can starve the writer | [entry](2026-09-06-csv-import.md#df-0012-retry-loop-can-starve-the-writer)
 ```

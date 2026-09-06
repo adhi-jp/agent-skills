@@ -13,6 +13,49 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Added
 
+- `shared/vibe-contract.md`: five new blocks give the family a durable-records
+  contract. `decision-records` states when a settled decision that binds work
+  beyond the current unit is written as a decision record — at decision time,
+  reconciled at unit close, swept at the finish gate, and a precondition of
+  selecting a checkpoint — what does not qualify, the index reads at phase
+  start, the confirmation checks at review, the conformance check at commit
+  time, the carry-forward packet for a phase that may not write, and the
+  once-per-repository question that decides whether records join checkpoints.
+  `decision-record-schema` fixes `docs/decisions/NNNN-<slug>.md`, `ADR-NNNN`
+  ids that are never reused and are renumbered after a merge collision, MADR
+  4.0.0 field names plus `decided-by`, `ratified`, `summary`, `paths`, `tags`,
+  `supersedes`, `superseded-by`, `confirmation`, `revisit-when`, and `sources`,
+  the section order, the 120-line cap, the status writers, immutability, and
+  the deviations from MADR with their reasons. `decision-record-index` fixes
+  the `docs/decisions/README.md` row, matching by paths, tags, or summary, the
+  conflict stop, file-over-index precedence, read-only reconstruction, legacy
+  `unknown` rows, and reader behavior per status and ratification.
+  `deferred-findings` states what counts as a deferred finding, the
+  decision-time write and close reconciliation, the writers per effect class
+  with commit execution excluded, the packet, the one-carrier rule, the index
+  read, closure, and provenance. `deferred-findings-schema` fixes
+  `docs/reports/findings/YYYY-MM-DD-<goal-slug>.md`, `DF-NNNN` ids, the entry
+  fields and statuses, the `docs/reports/findings/README.md` row,
+  applicability, and closed-entry immutability. `effect-write-boundaries`
+  gains one supporting-path sub-bullet: a decision record or findings report
+  the phase's own text declares. Rendered copies: the two obligation blocks in
+  all fourteen dependents — `vibe-agent-instructions`, `vibe-brainstorm`,
+  `vibe-code-research`, `vibe-coding`, `vibe-commit`, `vibe-debug`,
+  `vibe-goal-alignment`, `vibe-orchestrate`, `vibe-plan-execution`,
+  `vibe-plan-review`, `vibe-planning`, `vibe-requirements-spec`,
+  `vibe-review`, `vibe-writing` — and the three schema blocks in the eleven
+  that read or write records (all but `vibe-brainstorm`, `vibe-code-research`,
+  `vibe-goal-alignment`); every package carries them in a new
+  `references/durable-records.md` reached from a `Durable Records` pointer in
+  its `SKILL.md`, every writer's boundary paragraph names `docs/decisions/` and
+  `docs/reports/findings/` as declared supporting paths, and the
+  `effect-write-boundaries` copies re-render in all fourteen.
+  `scripts/vibe_shared_contract.py` registers the five ids and the three
+  schema ids, and the schema-cap test now covers every schema id. A full
+  example record and report sit in the shared source after the appendix,
+  outside every block. Verification — static: `render`, `check --strict` with
+  no finding for all fourteen packages, `audit-names` silent, unit tests pass,
+  every eval suite validates; behavior unproven until an authorized eval run.
 - New `vibe-agent-instructions` skill creates, refreshes, and localizes a
   repository's agent instruction files: `AGENTS.md` is the source; `CLAUDE.md`
   is a relative symlink, the documented `@AGENTS.md` stub when links are

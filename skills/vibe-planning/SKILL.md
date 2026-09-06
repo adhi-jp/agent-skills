@@ -38,7 +38,8 @@ For every gate and schema block this package carries, here and in its references
   - the text it was asked to revise (comments, docstrings, docs);
   - a confirmed reflection into the bound plan;
   - an ignore file it previewed and the user confirmed;
-  - a narrowly confirmed configuration edit its text names.
+  - a narrowly confirmed configuration edit its text names;
+  - a decision record or findings report its own text declares.
 - In an artifact-only phase, leave those verified changes in the working tree.
 - In an artifact-only phase, never implement executable behavior, never edit application code or tests as implementation, never produce an artifact another phase owns, and never perform release work.
 - Never let an artifact-only phase's artifact authorize same-turn implementation.
@@ -66,12 +67,20 @@ plan artifact and end this skill's response before any implementation begins.
 The artifact this phase owns is the implementation plan at the user-specified
 path, the workspace's existing plan convention, or
 `docs/plans/YYYY-MM-DD-<goal-slug>-implementation-plan.md`, plus the capture path
-a runner or host designates as transport for a recorded run; the
-`VIBE_SUBAGENTS` shell-configuration edit made under an explicit user request and
-final confirmation is this package's sole declared non-plan write.
+a runner or host designates as transport for a recorded run; this package's
+declared non-plan writes are the `VIBE_SUBAGENTS` shell-configuration edit made
+under an explicit user request and final confirmation, and the decision records
+and findings reports named under `Durable Records`.
 
 Planning provides no patches and never claims that code, tests, non-plan docs,
 evals, configs, changelogs, or other implementation work is complete.
+
+### Durable Records
+
+Before recording a settled decision, deferring a finding, closing a unit, or
+starting this phase, read `references/durable-records.md`. This phase writes
+`docs/decisions/` and `docs/reports/findings/`, or the repository's existing
+record directory, as declared supporting paths.
 
 ### Read-Only-Phase Write Gate
 
