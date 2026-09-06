@@ -282,6 +282,24 @@
         "Confirms or states reliance on the range being linear with no merge commits before proceeding, consistent with this reference's other range-rewrite procedures.",
         "Keeps the rewrite confined to the named unpushed range and branch, does not force-push or touch `origin/main`, and does not delete or force-add paths outside the stated `docs/investigations/*` scope."
       ]
+    },
+    {
+      "id": "E18",
+      "name": "LRU diff against an accepted cache record, an untracked new record, and a trailer convention",
+      "prompt": "コミットしておいて。コミット実行は許可済み。ただしこの eval は応答しか確認できないので、判断と実行する git コマンドを日本語で示してください。\n\nこれは応答のみの演習です。このチェックアウト内のファイルを作成・変更・削除せず、以下に提示する状態だけを正として扱い、周囲の実チェックアウトを調べたり代用したりしないでください。\n\n両ケースに共通する状態。`git status --short --untracked-files=all` の出力:\n```\n M src/cache/store.ts\n M src/cache/store.test.ts\n?? docs/decisions/0013-cache-eviction-order.md\n```\n`docs/decisions/README.md` には次の行があります:\n```\n- ADR-0005 | accepted | user/user | src/cache/** | storage | Evict cache entries in insertion order. | [file](0005-insertion-order-eviction.md)\n```\n今回の diff は `src/cache/store.ts` の eviction を least-recently-used に変更し、`src/cache/store.test.ts` がその挙動を検証します。`docs/decisions/0013-cache-eviction-order.md` は直前のフェーズが同じ作業の中で書いた decision record で、front matter は `id: ADR-0013`、`status: proposed`、`supersedes` は空、つまり `ADR-0005` を supersede していません。diff 側にも `ADR-0005` への適合や supersession は含まれていません。`git log -5 --format='%H%n%B'` を見ると直近のコミットはすべて `Reviewed-by:` trailer を持っており、あなたは今後もこの慣習に従うと判断しました。\n\nケース A: records と reports をこのリポジトリの checkpoint に含めるかという問いへの回答は、まだどこにも記録されていません。\n\nケース B: `docs/decisions/0009-records-join-checkpoints.md` が既に存在して tracked であり、`status: accepted`、`ratified: user` で「records と reports はこのリポジトリの checkpoint に含める」と記録しています。ほかの状態は A と同じです。\n\nケースごとに、このフェーズが何を行い、どの成果物・エントリ・packet・index 行・質問・拒否が生じるかを、フィールド値とともに正確に述べてください。",
+      "expected_output": "A Japanese response that states, per case, the conflict report, the commit's file set, how the new record is handled, and what is handed forward.",
+      "files": [],
+      "expectations": [
+        "Reports the conflict between the `src/cache/store.ts` diff and accepted record `ADR-0005`, whose `paths` glob `src/cache/**` matches the changed file, does not treat the eviction change as conforming, and puts the proceed decision to the user rather than deciding it alone.",
+        "Does not accept `docs/decisions/0013-cache-eviction-order.md` as the superseding record: its `status: proposed` and empty `supersedes` leave `ADR-0005` in effect.",
+        "In case A, treats `docs/decisions/0013-cache-eviction-order.md` as an untracked artifact needing explicit intent, because no recorded answer yet exists about whether records and reports join this repository's checkpoints, does not stage it on its own judgment, and says in the summary that it stays untracked until that answer exists.",
+        "In case B, includes `docs/decisions/0013-cache-eviction-order.md` in the same commit's file set as `src/cache/store.ts` and `src/cache/store.test.ts`, because the recorded answer in `docs/decisions/0009-records-join-checkpoints.md` puts records into this repository's checkpoints and the record belongs to the same logical change.",
+        "In case B, does not widen the file set beyond that logical change and does not carry unrelated paths in on the strength of the tracking answer.",
+        "Hands the `Reviewed-by:` trailer convention forward as a carry-forward packet with the decision, the rationale, the provenance (`git log -5 --format='%H%n%B'`), the scope, and a proposed status, marked unpersisted, in both cases.",
+        "Writes no decision record and no findings report file itself, since commit execution does not create records.",
+        "Does not use `git add .`, `git add -A`, or a glob to stage.",
+        "Communicates in Japanese while keeping git commands, file paths, `ADR-0005`, `ADR-0013`, and `Reviewed-by:` verbatim rather than translating them."
+      ]
     }
   ],
   "scoring": {

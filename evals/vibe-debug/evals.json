@@ -339,6 +339,27 @@
         "Does not emit a multi-row debug ledger for this simple deterministic repair.",
         "Reports the represented verified changes as uncommitted because this response-only turn cannot run a commit, not because no commit was requested; the response-only sandbox need not contain those edits."
       ]
+    },
+    {
+      "id": "E22",
+      "name": "PDF export repair with a buffer-release rule, a 40-second export time the user waved through, an open font finding, and a live follow-up request",
+      "prompt": "You are repairing a failing PDF export. Today is 2026-09-06. Take the following as supplied state.\n\n- `docs/decisions/` holds `0001-…md` through `0018-…md` and nothing numbered higher; `docs/decisions/README.md` agrees and its highest row is `ADR-0018`.\n- `docs/reports/findings/` holds `2026-07-02-thumbnail-cache.md` and `2026-08-20-pdf-export.md`; across those reports and the index, closed entries included, the highest id is `DF-0021`.\n- `docs/reports/findings/README.md` carries the row `DF-0021 | deferred | medium | src/pdf/fonts.ts | Font fallback silently drops glyphs | [entry](2026-08-20-pdf-export.md#df-0021-font-fallback-silently-drops-glyphs)`.\n- The repository has `npm test -- src/pdf`, whose cases cover both exporters.\n\nFour things came out of the repair:\n\n- The root cause is that `renderPage` reused a stale page buffer after an early return. You fixed it in `src/pdf/render.ts`, added a regression test, and committed both as `3c71de0`; no other call site changes because of it.\n- The fix only holds if every exporter that borrows a page buffer releases it before returning. `src/pdf/render.ts`, `src/pdf/preview.ts`, and any future exporter must follow that rule. You chose it over a reference-counted buffer pool, which you rejected as too large for this repair. The user has not reviewed this choice.\n- Under a 200 MB input the exporter still takes about 40 seconds. The user answered today: \"that's fine for now, ship it\".\n- While fixing `renderPage` you also corrected the font fallback that `DF-0021` describes, verified it with the same regression run, and committed it as `9f2ab41`.\n\nThe user's next request, still live, is: \"add a thumbnail exporter in `src/pdf/thumb.ts` that streams the page buffer straight back to the caller\".\n\nThis is a response-only exercise: do not create, modify, or delete any file in this checkout; describe exactly what you would produce.\n\nState what this phase does and which artifacts, entries, index rows, packets, or refusals come out of it, with their field values, including anything it would deliberately leave unrecorded.",
+      "expected_output": "A response that states the durable artifacts, field values, and index changes this repair produces, and what it deliberately leaves out.",
+      "files": [],
+      "expectations": [
+        "Allocates `ADR-0019` — one more than the highest id present in both `docs/decisions/` and `docs/decisions/README.md` — and writes the release-before-return rule at `docs/decisions/0019-<slug>.md` with `status: accepted`, `decided-by: agent`, `ratified: pending`, a `paths` glob covering `src/pdf/**`, a one-sentence imperative `summary`, and `## Considered Options` naming the rejected reference-counted buffer pool with its reason.",
+        "Fills that record's `confirmation` with a concrete command or check — `npm test -- src/pdf` is available — or with a `manual:` form naming the check and why no automated one exists, and cites in its `sources` the authority anchor this prompt supplies: commit `3c71de0` carrying the fix and its regression test.",
+        "Adds that record's row to `docs/decisions/README.md` with the columns `id | status | decided-by/ratified | paths | tags | summary | file`.",
+        "Surfaces `ADR-0019` as an unratified agent-selected assumption specifically because it would narrow the live thumbnail-exporter request, which streams a page buffer back to the caller, and does not present it to the user as an already-settled constraint on that request.",
+        "Writes no decision record for the stale page buffer root cause itself, leaving it to the commit message and the regression test.",
+        "Allocates `DF-0022` — one more than the highest id across every report and the index, closed entries included — and writes the 40-second export time into `docs/reports/findings/2026-09-06-<goal-slug>.md` under the heading `## DF-0022 <title>`.",
+        "Gives that report front matter `goal`, `date`, `phases`, and `source_artifacts`.",
+        "Gives the `DF-0022` entry `status: accepted-residual`, a severity, a scope, evidence stating the evidence class, anchor, and date or commit, why it was not addressed, `decided by: user`, a revisit trigger, and a next action and owner (`unassigned` allowed).",
+        "Adds that entry's row to `docs/reports/findings/README.md` with the columns `id | status | severity | scope | title | file`, its file link pointing at the `DF-0022` entry heading rather than at the report file alone.",
+        "Closes `DF-0021` by updating its original entry to `status: resolved` with closure date 2026-09-06, commit `9f2ab41`, and the verification, and removes its row from `docs/reports/findings/README.md`.",
+        "Does not delete or rewrite the existing `DF-0021` entry text when closing it, and does not open a new finding id for the same defect.",
+        "Does not create, modify, or delete any file in this checkout; it states the records, entries, and rows it would write."
+      ]
     }
   ],
   "scoring": {

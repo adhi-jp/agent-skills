@@ -122,6 +122,21 @@
         "Keeps push, release/version, rewrite, and unrelated paths outside scope.",
         "Asks only for alignment confirmation or correction that materially affects the edit."
       ]
+    },
+    {
+      "id": "E08",
+      "name": "\"Clean up the old exports\" settled to one directory, with a live import blocking the deletion",
+      "prompt": "The user wrote \"clean up the old exports\" about a repository that has both `src/export/` (current) and `scripts/legacy-export/` (unused since March). You offered two readings, and the user answered today, 2026-09-06: \"delete `scripts/legacy-export/` entirely, leave `src/export/` alone, and that rule holds for any future cleanup request in this repository\". You had offered archiving the legacy directory under `docs/archive/` instead, which the user rejected because git history already keeps it. While confirming the scope you also saw that `src/export/index.ts` still imports one helper from `scripts/legacy-export/`, so deleting the directory as stated would break the current exporter.\n\nThis is a response-only exercise: do not create, modify, or delete any file in this checkout; describe exactly what you would produce.\n\nGive the alignment record for this turn — understood goal, success criteria, non-goals, assumptions, open questions, and next step — and state alongside it what this phase does and which artifacts, entries, packets, index rows, or refusals come out of it, with their field values.",
+      "expected_output": "An alignment record for the settled cleanup scope, stated together with what this phase carries and what it will not do.",
+      "files": [],
+      "expectations": [
+        "Gives the alignment record before anything else: the understood goal, success criteria, non-goals, assumptions with their evidence status, open questions, and the next step after agreement.",
+        "Carries the confirmed cleanup rule as a carry-forward packet with the decision, the rejected alternative (archiving under `docs/archive/`) and its reason, the rationale, the provenance naming the user's 2026-09-06 turn with its deciding phrase, the scope covering future cleanup requests in this repository, and a proposed status of `accepted`.",
+        "Carries the live import from `scripts/legacy-export/` into `src/export/index.ts` as a finding with a title, severity, scope, evidence, why it was not addressed, who decided, and a revisit trigger, and blocks the deletion on it.",
+        "Marks both packets unpersisted and names the one action that would persist them, namely the next writing phase recording them.",
+        "Writes no file at all — no `docs/decisions/NNNN-<slug>.md`, no `docs/reports/findings/YYYY-MM-DD-<goal-slug>.md`, and no index row — because this phase owns no artifact and writes nothing even as a convenience.",
+        "Does not delete `scripts/legacy-export/`, run any command, or treat the confirmed rule as authorization to start the cleanup."
+      ]
     }
   ],
   "scoring": {

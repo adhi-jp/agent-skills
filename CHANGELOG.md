@@ -13,6 +13,28 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Added
 
+- Every `vibe-*` eval suite gains one eval exercising the durable-records
+  behavior its package carries — `vibe-plan-execution` (an agreed deviation
+  becomes a record, a below-trigger choice does not, a deferred finding
+  becomes a report entry, conflicting accepted records stop the phase, no
+  checkpoint while a qualifying decision is unrecorded), `vibe-debug`
+  (accepted residual to the report, repair policy to a record, later closure
+  of an open finding), `vibe-review` (accepted divergence to a record,
+  deferred items to the report), `vibe-orchestrate` (`DECISION-IMPACT:`
+  routed to its owner, dropped contract-blocked item to the report),
+  `vibe-planning` (reserved decision to a record, index read, stale index
+  rebuilt), `vibe-requirements-spec` (durable constraint to a record,
+  completion-audit sweep), `vibe-brainstorm`, `vibe-code-research`, and
+  `vibe-goal-alignment` (carry-forward packet, no file), `vibe-commit`
+  (conformance check, tracking answer, convention packet), `vibe-coding`
+  (router-owned row writes, `allowed_paths`, unpersisted packet report,
+  tracking question once), `vibe-plan-review` (settled held item to a record
+  with plan reflection still requiring consent), `vibe-writing` (record as a text artifact),
+  `vibe-agent-instructions` (accepted divergence to a record after the
+  preview). The `vibe-planning` suite's planning-only common assertion now
+  admits the decision records and findings entries the planning contract
+  declares as supporting paths. Every suite validates statically; behavior
+  unproven until an authorized eval run.
 - Every `vibe-*` package now names the decision, close, or phase-start points
   that apply to it under the durable-records contract. `vibe-coding`: the
   router-owned state-changing rows read both indexes and write records before

@@ -345,6 +345,23 @@
         "Does not apply source-comment removal norms to a decision record.",
         "Leaves the current design entry intact and does not invent new decisions or measurements."
       ]
+    },
+    {
+      "id": "E21",
+      "name": "User dictates two agreed rules and asks for them in the decision-record format",
+      "prompt": "A user says: \"Write these up as decision records. On 2026-09-06 we agreed that all persisted timestamps are stored in UTC and rendered in the viewer's zone; we turned down storing the originating offset alongside because two of our three readers ignore it. That binds anything under `src/` that writes to the database, and you can check it with `npm run lint:timestamps`. Revisit it if we ever need per-tenant reporting zones. Separately, from now on our changelog follows Keep a Changelog with an `Unreleased` section — that is how every future release note gets written, and we rejected free-form release notes because nobody could tell what shipped. We have no automated check for the changelog shape; a reviewer reads it at release time.\"\n\nTake the following as supplied state: `docs/decisions/` holds `0001-…md` through `0009-…md` and nothing numbered higher, and `docs/decisions/README.md` agrees with the directory, its highest row being `ADR-0009`.\n\nThis is a response-only exercise: do not create, modify, or delete any file in this checkout; describe exactly what you would produce.\n\nState what this phase does and which artifacts, index rows, or refusals come out of it, giving each artifact's path, its complete front-matter keys and values, its section headings in order, and its row.",
+      "expected_output": "A response rendering the agreed rules in the decision-record format with complete front matter, ordered sections, and index rows, committing nothing.",
+      "files": [],
+      "expectations": [
+        "Allocates `ADR-0010` — one more than the highest id present in both `docs/decisions/` and `docs/decisions/README.md` — and produces `docs/decisions/0010-<slug>.md` with front matter `id`, `title`, `status: accepted`, `date: 2026-09-06`, `decided-by: user`, `ratified: user`, a `summary` that is one imperative sentence of at most 140 characters, `paths` covering `src/**`, `tags`, `supersedes`, `superseded-by`, `confirmation: npm run lint:timestamps`, `revisit-when` naming per-tenant reporting zones, and `sources` giving the 2026-09-06 user turn with its deciding phrase.",
+        "Uses the body sections in order: `# ADR-0010. <title>`, `## Context and Problem Statement`, `## Considered Options` with the rejected stored-offset option and its reason, `## Decision Outcome` giving the chosen option, its reason, and the rule in imperative form, then `### Consequences` and `### Confirmation`.",
+        "Adds one index row per record to `docs/decisions/README.md` with the columns `id | status | decided-by/ratified | paths | tags | summary | file`.",
+        "Writes the Keep a Changelog adoption as a second record `ADR-0011` with its own file, front matter, sections, and index row, naming the rejected free-form release notes, because it sets a convention later releases must follow.",
+        "Gives `ADR-0011` a `manual:` `confirmation` that names the reviewer's release-time read and states why no automated check exists, and anchors its `sources` to the same 2026-09-06 user turn.",
+        "Does not stage, commit, or push either record.",
+        "Does not let either record exceed 120 lines.",
+        "Does not create, modify, or delete any file in this checkout; it shows the record text and the index rows instead."
+      ]
     }
   ],
   "scoring": {

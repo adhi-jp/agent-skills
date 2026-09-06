@@ -165,6 +165,21 @@
         "Does not narrow the investigation to only `ReportActions.tsx` or conclude from the first matching label that the rename wording is consistent.",
         "Stays read-only and does not apply or start a wording fix, implementation plan, tests, or commit; any follow-up is offered only as an optional later step."
       ]
+    },
+    {
+      "id": "E12",
+      "name": "Session-store eviction question that turns up three disagreeing TTL defaults and a user ruling",
+      "prompt": "The user asked how the session store decides when to evict entries and asked for no saved file. Treat only the material described here as the investigation corpus.\n\nTracing `src/session/store.ts` and `src/session/evict.ts` you established the answer, and two more things came out of it. First, the eviction interval is read from `SESSION_TTL` at three sites with three different defaults: `src/session/store.ts` falls back to 120 seconds, `src/session/evict.ts` to 300, and `src/session/reaper.ts` to 60, so entries outlive the documented one minute; nobody asked you to fix it. Second, the user, reading your trace, said today, 2026-09-06: \"from now on the TTL default lives only in `src/session/config.ts` and every reader imports it\", rejecting per-module defaults enforced by a lint rule as more machinery than the problem needs.\n\nThis is a response-only exercise: do not create, modify, or delete any file in this checkout; describe exactly what you would produce.\n\nState what this phase does and which artifacts, entries, packets, index rows, or refusals come out of it, with their field values.",
+      "expected_output": "An investigation summary that states how the ruling and the defect are carried and what is not written.",
+      "files": [],
+      "expectations": [
+        "Carries the single-source TTL default as a carry-forward packet with the decision, the rejected alternative (per-module defaults enforced by a lint rule) and its reason, the rationale, the provenance naming the user's 2026-09-06 turn with its deciding phrase, the scope covering every `SESSION_TTL` reader under `src/session/`, and a proposed status of `accepted`.",
+        "Carries the three disagreeing `SESSION_TTL` defaults as a finding with a title, severity, scope naming all three read sites — `src/session/store.ts`, `src/session/evict.ts`, and `src/session/reaper.ts` — the evidence anchors, why it was not addressed, `decided by: agent`, and a revisit trigger.",
+        "Marks both packets unpersisted and names the one action that would persist them, namely the next writing phase recording them.",
+        "Writes no file: no `docs/decisions/NNNN-<slug>.md`, no `docs/reports/findings/YYYY-MM-DD-<goal-slug>.md`, and no index row in `docs/decisions/README.md` or `docs/reports/findings/README.md`, because the user asked for no saved artifact.",
+        "Does not call either packet durable, recorded, or already saved.",
+        "Does not edit `src/session/config.ts`, `src/session/evict.ts`, or any other file to consolidate the defaults."
+      ]
     }
   ],
   "scoring": {

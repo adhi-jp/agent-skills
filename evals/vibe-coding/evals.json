@@ -405,6 +405,25 @@
         "Does not infer push, release preparation, a version change, a tag, or a history rewrite from the commit request.",
         "Uses Japanese for the user-facing summaries while preserving skill names, file paths, the record path, and enum values such as `user-turn` verbatim."
       ]
+    },
+    {
+      "id": "E26",
+      "name": "`--json` flag routed to direct implementation, with a mid-work user ruling and an inherited packet",
+      "prompt": "A user asks you to add a `--json` flag to an existing CLI report command, and you route it to the `direct-implementation` row. Today is 2026-09-06. Take the following as supplied state.\n\n- `docs/decisions/` holds `0001-…md` through `0007-…md` and nothing numbered higher; `docs/decisions/README.md` agrees with the directory and its highest row is `ADR-0007`.\n- `docs/reports/findings/README.md` exists with no open findings.\n- Nothing anywhere records whether records and reports join this repository's checkpoints.\n- The repository has `npm run test:cli`, whose stream-routing cases assert which stream each kind of CLI output goes to.\n- During the work the user answers: \"every command's machine output goes to stdout and every human message to stderr — that holds for all commands, not just this one\"; you had offered a `--quiet` flag instead, which they rejected as not addressing where output goes.\n- An earlier read-only investigation in this same session handed you a carry-forward packet about a duplicated argument parser that nobody has persisted.\n- You reach the finish gate with the flag implemented and its tests passing.\n\nThis is a response-only exercise: do not create, modify, or delete any file in this checkout; describe exactly what you would produce.\n\nState what this phase does and which artifacts, entries, packets, index rows, questions, or refusals come out of it, with their field values, for the `direct-implementation` row and for the `workflow-control` row.",
+      "expected_output": "A route response that states the row's effect and paths, the artifacts and field values the situation produces, and what the other row produces.",
+      "files": [],
+      "expectations": [
+        "Reads `docs/decisions/README.md` and `docs/reports/findings/README.md` when the phase starts, before implementing the flag.",
+        "Records `effect_mode` as state-changing for the `direct-implementation` row and includes `docs/decisions/` and `docs/reports/findings/` in the row's `allowed_paths`.",
+        "Allocates `ADR-0008` — one more than the highest id present in both `docs/decisions/` and `docs/decisions/README.md` — and writes the stdout/stderr rule at `docs/decisions/0008-<slug>.md` with `status: accepted`, `decided-by: user`, `ratified: user`, an empty `paths` because it binds every command, a one-sentence imperative `summary`, `revisit-when`, and `## Considered Options` naming the rejected `--quiet` flag with its reason, before the unit closes.",
+        "Fills that record's `confirmation` with a concrete command or check — `npm run test:cli` and its stream-routing cases are available — or with a `manual:` form naming the check and why no automated one exists, and cites in its `sources` the authority anchor this prompt supplies: the user's 2026-09-06 turn with its deciding phrase.",
+        "Adds that record's row to `docs/decisions/README.md` with the columns `id | status | decided-by/ratified | paths | tags | summary | file`.",
+        "Asks the user once for this repository, at the first checkpoint that would include the record, whether records and reports join its checkpoints, and writes that answer as its own record for later checkpoints.",
+        "Reports the inherited duplicated-argument-parser packet at the finish gate as unpersisted, with the one action that would persist it.",
+        "Does not call the inherited carry-forward packet durable or already recorded.",
+        "States that the `workflow-control` row writes nothing — no decision record, no findings report, and no index row.",
+        "Does not create, modify, or delete any file in this checkout; it states the records, rows, and questions it would produce."
+      ]
     }
   ],
   "scoring": {

@@ -173,6 +173,21 @@
         "When role model selection is represented, the output records model choice only for explicit override, degraded capability, cost/performance constraint, or audited external execution instead of using hard-coded model names or one blanket top-tier or cheapest-tier model for every delegated role.",
         "Any model used remains capability-appropriate; a model-choice receipt is required only for explicit override, degraded capability, cost/performance constraint, or audited external execution."
       ]
+    },
+    {
+      "id": "E11",
+      "name": "Confirmed batch-upload exit-code shape alongside an unrelated swallowed timeout, with no file requested",
+      "prompt": "The user asked for ideas on how a CLI should handle partial failures in a batch upload. After the exchange the user confirmed today, 2026-09-06: \"per-item results, and a non-zero exit only when every item fails\". They rejected failing the whole batch on the first error, and rejected a silent exit code, because operators script around the exit code. Every later upload command has to follow the chosen shape. While reading the current uploader to ground the idea you noticed that `src/cli/upload.ts` swallows a network timeout without reporting it; that is a real defect, and nobody asked you to fix it. The user has asked for no saved file.\n\nThis is a response-only exercise: do not create, modify, or delete any file in this checkout; describe exactly what you would produce.\n\nState what this phase does and which artifacts, entries, packets, index rows, or refusals come out of it, with their field values.",
+      "expected_output": "A summary that states how each of the two items is carried and what is not written.",
+      "files": [],
+      "expectations": [
+        "Carries the confirmed exit-code shape as a carry-forward packet with the decision, the rejected alternatives (fail the whole batch on the first error; a silent exit code), the rationale, the provenance naming the user's 2026-09-06 turn, the scope covering later upload commands, and a proposed status of `accepted`.",
+        "Carries the swallowed network timeout as a finding with a title, severity, scope `src/cli/upload.ts`, evidence, why it was not addressed, who decided the deferral, and a revisit trigger.",
+        "Marks both packets unpersisted and names the one action that would persist them, namely the next writing phase recording them.",
+        "Writes no file: no `docs/decisions/NNNN-<slug>.md`, no `docs/reports/findings/YYYY-MM-DD-<goal-slug>.md`, and no index row in `docs/decisions/README.md` or `docs/reports/findings/README.md`, because the user asked for no saved artifact.",
+        "Does not call either packet durable, recorded, or already saved.",
+        "Does not start implementing the exit-code change or the timeout fix."
+      ]
     }
   ],
   "scoring": {
