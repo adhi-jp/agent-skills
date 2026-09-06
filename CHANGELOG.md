@@ -13,6 +13,22 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Added
 
+- `shared/measure-manifest.json`: two reading tasks join the frozen baselines
+  so the durable-records reference text is measured where it is read — T5,
+  reaching a decision record during plan execution (`vibe-coding` and
+  `vibe-plan-execution` entry files, the execution workflow reference, and
+  the execution package's `references/durable-records.md`), and T6, reaching
+  a findings report during debug and repair (`vibe-coding` and `vibe-debug`
+  entry files, the debug workflow reference, and the debug package's
+  `references/durable-records.md`). Their `baseline` is the tree that
+  introduced them and their `pre_change` is the same path measured at
+  `782832f` over the files that existed then; README's measure description
+  names six tasks. Verification — static: `measure` reports T1–T4 below
+  their baselines and T5–T6 exactly at theirs; the manifest test passes.
+  Because `measure --strict` requires every task to be below its baseline,
+  it exits 1 while the two new tasks sit at their frozen introduction size;
+  whether the strict comparison admits equality or the two baselines carry a
+  margin is left to the maintainer.
 - Every `vibe-*` eval suite gains one eval exercising the durable-records
   behavior its package carries — `vibe-plan-execution` (an agreed deviation
   becomes a record, a below-trigger choice does not, a deferred finding
@@ -77,8 +93,8 @@ use `[Repository] - YYYY-MM-DD`.
   qualifying format or convention adoption as a record.
   `vibe-agent-instructions` writes an accepted divergence as a record after
   the existing-path preview and before the policy is applied. Verification —
-  static: `check --strict` and `audit-names` clean, every routed reading task
-  below baseline; behavior unproven until an authorized eval run.
+  static: `check --strict` and `audit-names` clean, T1–T4 below baseline;
+  behavior unproven until an authorized eval run.
 
 - `shared/vibe-contract.md`: five new blocks give the family a durable-records
   contract. `decision-records` states when a settled decision that binds work
@@ -122,7 +138,8 @@ use `[Repository] - YYYY-MM-DD`.
   example record and report sit in the shared source after the appendix,
   outside every block. Verification — static: `render`, `check --strict` with
   no finding for all fourteen packages, `audit-names` silent, unit tests pass,
-  every eval suite validates; behavior unproven until an authorized eval run.
+  every eval suite validates, T1–T4 below baseline; behavior unproven until an
+  authorized eval run.
 - New `vibe-agent-instructions` skill creates, refreshes, and localizes a
   repository's agent instruction files: `AGENTS.md` is the source; `CLAUDE.md`
   is a relative symlink, the documented `@AGENTS.md` stub when links are
@@ -235,7 +252,7 @@ use `[Repository] - YYYY-MM-DD`.
   excluded from rendering and from the block-shape checks exactly as the
   preamble is, while its appendix citations are resolved source-wide. `measure`
   prints per-package entry-file lines and words, in-block words, and reference
-  words, then the four routed reading tasks' line and word sums against the
+  words, then the routed reading tasks' line and word sums against the
   frozen baselines in `shared/measure-manifest.json`; `measure --strict` exits 1
   unless every task is below its baseline words. Verification: unit tests pass;
   `python3 scripts/vibe_shared_contract.py check --strict` reports no finding
@@ -281,8 +298,8 @@ use `[Repository] - YYYY-MM-DD`.
   `vibe-plan-execution`, `vibe-plan-review`, `vibe-planning`,
   `vibe-requirements-spec`, `vibe-review`, and `vibe-writing`. Rendered block
   text falls from 4,938 to about 3,730 words at the source and by about 1,600
-  words across the copies, and every routed reading task measures below its
-  frozen baseline. Verification — static:
+  words across the copies, and every routed reading task of that change (T1–T4)
+  measures below its frozen baseline. Verification — static:
   `python3 scripts/vibe_shared_contract.py check --strict` passes for all
   fourteen packages, `python3 scripts/vibe_shared_contract.py measure` reports
   every task below baseline, and every eval suite validates; behavior unproven

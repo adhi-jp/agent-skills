@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "description": "Frozen load-size baseline for the four routed reading tasks measured by `python3 scripts/vibe_shared_contract.py measure`. Counts are whitespace-token words (`wc -w`) and newline counts (`wc -l`) over each listed file. `baseline` is the state the readability restructure must come in under; `pre_change` records the same tasks before the restructure began, when the router carried a single reference file.",
+  "description": "Frozen load-size baseline for the six routed reading tasks measured by `python3 scripts/vibe_shared_contract.py measure`. Counts are whitespace-token words (`wc -w`) and newline counts (`wc -l`) over each listed file. `baseline` is the state the readability restructure must come in under; `pre_change` records the same tasks before the restructure began, when the router carried a single reference file. T5 and T6 were added with the durable-records contract: their `baseline` is the tree that introduced them (the bytes at introduction) and their `pre_change` is the same reading path measured at commit 782832f, the tree before that contract, over the files that existed then, so the new reference file counts as growth from zero; the top-level `baseline` and `pre_change` commits describe T1–T4 only.",
   "baseline": {
     "commit": "f1b8eedb3aa3a72fd7a23af93dae8f627a223574",
     "label": "S5-end"
@@ -116,6 +116,52 @@
         ],
         "lines": 1630,
         "words": 12727
+      }
+    },
+    {
+      "id": "T5",
+      "title": "Reach a decision record at decision time during plan execution",
+      "files": [
+        "skills/vibe-coding/SKILL.md",
+        "skills/vibe-plan-execution/SKILL.md",
+        "skills/vibe-plan-execution/references/execution-workflow-and-quality.md",
+        "skills/vibe-plan-execution/references/durable-records.md"
+      ],
+      "baseline": {
+        "lines": 1643,
+        "words": 18320
+      },
+      "pre_change": {
+        "files": [
+          "skills/vibe-coding/SKILL.md",
+          "skills/vibe-plan-execution/SKILL.md",
+          "skills/vibe-plan-execution/references/execution-workflow-and-quality.md"
+        ],
+        "lines": 1495,
+        "words": 15822
+      }
+    },
+    {
+      "id": "T6",
+      "title": "Reach a findings report during debug and repair",
+      "files": [
+        "skills/vibe-coding/SKILL.md",
+        "skills/vibe-debug/SKILL.md",
+        "skills/vibe-debug/references/debug-workflow.md",
+        "skills/vibe-debug/references/durable-records.md"
+      ],
+      "baseline": {
+        "lines": 1367,
+        "words": 15239
+      },
+      "pre_change": {
+        "files": [
+          "skills/vibe-coding/SKILL.md",
+          "skills/vibe-debug/SKILL.md",
+          "skills/vibe-debug/references/debug-workflow.md"
+        ],
+        "lines": 1218,
+        "words": 12726
       }
     }
   ]

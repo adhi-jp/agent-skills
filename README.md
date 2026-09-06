@@ -101,7 +101,8 @@ of truth when a summary and a detailed contract differ.
   concern a phase deliberately leaves unaddressed is written to
   `docs/reports/findings/` before the unit closes; a phase that may not write
   hands both forward as a carry-forward packet. Each package carries the shared
-  obligations and formats in `references/durable-records.md`.
+  obligations in `references/durable-records.md`, together with the record and
+  report formats where the phase reads or writes records.
 - Commit selection never implies push, release preparation, versions, tags,
   history rewriting, destructive cleanup, or unrelated paths.
 - Current versions come from each source `SKILL.md`. Released changes and
@@ -183,9 +184,11 @@ rule to it while still resolving every `Appendix S<n>` or `Appendix G<n>`
 citation it carries.
 
 `measure` prints entry-file lines and words, in-block words, and reference words
-per package, then the four routed reading tasks' line and word sums against the
+per package, then the six routed reading tasks' line and word sums against the
 frozen baselines in [`shared/measure-manifest.json`](shared/measure-manifest.json).
-`measure --strict` exits 1 unless every task is below its baseline words.
+`measure --strict` exits 1 unless every task is below its baseline words; the
+two durable-records tasks were frozen at their introduction size, so the strict
+run exits 1 until their text shrinks or the comparison changes.
 
 ## Run Skill Evals
 
@@ -215,7 +218,7 @@ artifacts unless the user explicitly requests otherwise.
 | `skills/<skill-name>/SKILL.md` | Authoritative metadata and workflow contract; released skills also carry their current `version` |
 | `skills/<skill-name>/references/` | Detailed guidance read when the skill routes to it |
 | `shared/vibe-contract.md` | Single source of the contract blocks the `vibe-*` skills share; rendered into each dependent package as marked generated blocks that are never hand-edited |
-| `shared/measure-manifest.json` | Frozen size baselines for the four routed reading tasks that `python3 scripts/vibe_shared_contract.py measure` reports against |
+| `shared/measure-manifest.json` | Frozen size baselines for the six routed reading tasks that `python3 scripts/vibe_shared_contract.py measure` reports against; the two durable-records tasks were frozen at their introduction |
 | `evals/<skill-name>/` | Repository eval definitions, fixtures, and scoring notes |
 | `skills/skill-eval/scripts/eval_runner.py` | Shared `validate` / `run` / `report` CLI |
 | `CHANGELOG.md` | Keep a Changelog history and the current `Unreleased` buffer |
