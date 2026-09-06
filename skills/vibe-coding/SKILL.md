@@ -184,7 +184,13 @@ next required phase, not the eventual end goal. Router-owned rows
 this skill as ordinary behavior under the shared effect and commit boundaries
 below; every other row is routed to the visible specialist whose metadata
 matches it. Read `references/route-selection.md` when the cells do not settle
-the classification.
+the classification. Row ids such as `requirements-specification` are the
+`phase` values the session record stores, not route names: when reporting a
+matched specialist route, name the specialist by the name its visible metadata
+states, with the row id at most alongside it; for a router-owned or
+unavailable route, report the row with its ownership or availability status
+and invent no specialist name. Write every route report under the language
+gate in User-Facing Output.
 
 | Row | Trigger | Exclusions | Owner | Required artifact | Next boundary |
 | --- | --- | --- | --- | --- | --- |
@@ -532,7 +538,8 @@ Read each reference at its trigger; none is required on every turn.
 
 - `references/route-selection.md` — the precedence order in detail and each
   row's triggers and exclusions; read when the table's cells do not settle the
-  classification, or when a cell defers to it.
+  classification, when a cell defers to it, and whenever a commit-execution
+  turn includes preparing or inspecting commit-message wording.
 - `references/durable-records.md` — the shared decision-record and
   deferred-findings obligations and formats; read when a router-owned row
   records a decision, defers a finding, starts, or closes, and at the finish
@@ -611,6 +618,10 @@ Then, in the route report itself:
   continuation later becomes available from recordable boundary evidence.
 - Name approvals, proceed decisions, and stop boundaries as the record names
   them; the record does not relocate them from the conversation.
+- Name the session record path — `.plans/vibe-sessions/<record_id>.json`,
+  the record id defaulting to the workflow id — and the routing fields
+  written, at the write points Session Record lists: record creation, a phase
+  change, and a recorded event.
 - Name the selected route and the deferred downstream routes verbatim from
   visible metadata instead of replacing them with only translated phase labels.
 - Put literal status tokens such as `matched-but-unavailable` or

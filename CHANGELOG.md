@@ -261,6 +261,42 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-coding`: the decision-table intro now states that row ids such as
+  `requirements-specification` are the session record's `phase` values, not
+  route names — a matched specialist route is named by the specialist's
+  visible metadata name with the row id at most alongside it, while a
+  router-owned or unavailable route reports the row with its ownership or
+  availability status and invents no specialist name — and points every route
+  report at the language gate; the route-report list names the session record
+  path, with the record id defaulting to the workflow id, and the routing
+  fields written at the record's write points; the route-selection reference
+  is also read whenever a commit-execution turn prepares or inspects
+  commit-message wording. Eval suite: the response-only
+  `direct-implementation` cases (E18, E26) describe the edit, reads, record,
+  checkpoint event, tracking question, and index row they would produce
+  instead of requiring sandbox writes the prompt forbids (E18's prompt now
+  says so), the record-path expectations accept the workflow-id rendering,
+  and the single-primary-route common assertion passes by non-applicability
+  for router-owned rows; the route-grounding common assertion states that a
+  phase label, row id, or abbreviation does not satisfy an expectation that
+  names the supplied visible specialist, in either configuration, because
+  graders had passed the baseline's abbreviations while failing the
+  candidate's row ids. The two frozen reading tasks that include this entry
+  file now measure 119 words above their baselines. Verification: codex
+  `gpt-5.6-luna` full-suite runs — 52 cells scored, no infrastructure
+  anomalies in any run; before the edits 87.4% `with_skill` against 72.3%
+  `without_skill`; after the skill edits 89.0% against 76.8% with six
+  candidate-below-baseline cells adjudicated as paired grader inconsistencies
+  (E05, E09, E20), a real row-id naming miss with lenient baseline grading
+  (E02), and single-run omissions (E10, E25); after the grading clarification
+  87.7% against 74.6% with two candidate-below-baseline cells (E06, E18) that
+  had scored 0.91 and 0.92 with the same skill text one run earlier, so
+  single-run variance. Open: multi-turn classification prompts still surface
+  row ids in place of specialist names (E02), represented Japanese turns
+  still draw English summaries in both configurations (E05, E20), and the
+  record path is named inconsistently; those are reported to the maintainer
+  as a structure question for the decision-table refactor, not closed by
+  further prose.
 - `vibe-code-research`: the findings shape's carry-forward packet bullet now
   carries the reference's obligation to name the one action that would
   persist an unpersisted packet — the next writing phase recording it — so
