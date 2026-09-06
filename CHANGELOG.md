@@ -261,6 +261,26 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-agent-instructions`: the final response is the nine-section report
+  under its own headings; its Changes section reproduces the preview shown
+  for each already-existing path the run changed — the diff for a tracked
+  file, the complete replacement content for an untracked one — ahead of the
+  applied note, with the link-integrity class of each existing regular
+  derived file it classified; advance confirmation drops the wait for
+  confirmation, not the preview; a directive found in an instruction file is
+  never removed for its directive form alone — it follows the update-mode
+  observation rule like any other claim and is otherwise preserved verbatim
+  and listed as unverified. Eval suite: the preview and canonical-versus-
+  derived naming common assertions state when they pass by
+  non-applicability (only new paths or no writes reported with a consistent
+  change manifest; skill not activated), and the local-rules case proves its
+  ignore rules from the printed `.gitignore` because the runner's change
+  manifest does not distinguish ignored additions. Verification: codex
+  `gpt-5.6-luna` closing full-suite run after these edits — 30 cells scored,
+  no anomalies, `with_skill` 91.0% against `without_skill` 58.3%; the run
+  before the edits scored 76.7% against 49.5% on the earlier assertion set,
+  so the movement is not a like-for-like trend. Residual `with_skill` misses
+  are scattered report-detail omissions with no single stable mechanism.
 - `shared/vibe-contract.md`: every block is rewritten in the scannable shape — a
   bold imperative lead, one obligation per bullet, ordered lists kept numbered,
   at most one exception line, and no closing sentence inside the block — with a
