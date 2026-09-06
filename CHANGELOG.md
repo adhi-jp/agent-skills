@@ -261,6 +261,19 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-plan-review`: the overview now states, ahead of the generated blocks,
+  that the binding information Review Binding Output defines — the target
+  plan, the requirements source or limited-confidence no-spec status, and the
+  persistence state — accompanies review start, resume after interruption,
+  target change, reflection, completion, and a blocker that prevents further
+  review, even before the first item, with not-yet-established binding
+  information reported as such and a persistence path given only when
+  persistence exists or is being selected; Review Binding Output lists that
+  blocker trigger too. Verification: codex `gpt-5.6-luna` closing full-suite
+  run after the edit — 26 cells scored, no anomalies, `with_skill` 94.3%
+  against `without_skill` 63.6%; the run before it scored 89.0% against
+  64.3% on the same assertion set, with the sensitive-literal case E11
+  returning from 0.50 to 1.00.
 - `vibe-plan-execution`: a user-requested response-only analysis of supplied
   plan and repository state is evaluated under the execution phase's normal
   obligations — the response describes the applicable edits, verification,

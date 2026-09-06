@@ -11,7 +11,13 @@ description: Use when the user asks to review, confirm, walk through, or pre-che
 Review a saved Markdown implementation plan with the user before implementation
 begins. The goal is to surface requirement mismatches, ordering problems,
 missing work, ambiguity, risks, and unverifiable items while preserving user
-control over every plan item decision.
+control over every plan item decision. At review start, resume after
+interruption, target change, reflection, completion, or a blocker that
+prevents further review — even before the first item — include the binding
+information that Review Binding Output defines: the target plan, the
+requirements source or limited-confidence no-spec status, and the persistence
+state. Report binding information not yet established as such, and give a
+persistence path only when persistence exists or is being selected.
 
 ### Effect And Write Boundaries
 
@@ -181,9 +187,9 @@ and stop at the user's next decision point.
 ## Review Binding Output
 
 Show the target plan, requirements source or limited-confidence no-spec status,
-and persistence state at review start, resume, target change, reflection, and
-completion. Do not repeat a binding block on every same-session item response
-when nothing changed.
+and persistence state at review start, resume, target change, reflection,
+completion, and any blocker that prevents further review. Do not repeat a
+binding block on every same-session item response when nothing changed.
 
 ## Start Of Review
 
