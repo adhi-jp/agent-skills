@@ -248,6 +248,19 @@ the full plan for the grader or record. If no file was written, state the reason
 and provide the complete plan artifact in the reply using the same English
 artifact structure.
 
+## Response-Only Plan Descriptions
+
+When the user requests a concrete description of this phase's outputs for a
+supplied repository scenario — what it would read, record, cite, and draft —
+apply the relevant phase obligations to that represented state and describe
+the actions and outputs hypothetically, within the requested scope. Supplying
+repository facts alone does not select this mode: a request limited to a
+policy classification stays in the branch below. Do not investigate the
+ambient checkout to establish the represented facts, mutate it, or claim that
+a described action occurred; apply the write permissions within the
+represented scenario when deciding whether the phase would create supporting
+records or carry a decision forward.
+
 ## Response-Only Planning Decisions
 
 When the current request explicitly asks only for a planning-policy

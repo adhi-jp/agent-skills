@@ -261,6 +261,25 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-planning`: a new Response-Only Plan Descriptions section, a peer of
+  Response-Only Planning Decisions, applies the phase's obligations to a
+  supplied repository scenario when the user asks what the phase would read,
+  record, cite, and draft — describing those actions hypothetically within
+  the requested scope, without investigating or mutating the ambient checkout
+  or claiming a described action occurred — while supplied facts alone do not
+  move a policy classification out of its branch. Eval suite: the
+  response-only durable-records case E38 assesses the described reads,
+  record, confirmation, and index row in hypothetical wording instead of
+  requiring sandbox reads and writes the prompt forbids. Verification: codex
+  `gpt-5.6-luna` full-suite runs — 76 cells scored, no infrastructure
+  anomalies; 81.8% `with_skill` against 61.8% `without_skill` before the
+  edits and 84.6% against 61.1% after them, with E38 moving from 0.20 to
+  0.80. Candidate-below-baseline cells were adjudicated as a repeated
+  two-assertion miss (E11, unchanged from the previous run) and a single-run
+  flip (E21); the `without_skill` zero on E01 is a scored zero. Open: twelve
+  older response-only cases each lost about one detail assertion against the
+  2026-08-15 run (93.9% then, 84.6% now), reported as a structure question
+  for the generated-block placement rather than patched with prose.
 - `vibe-plan-review`: the overview now states, ahead of the generated blocks,
   that the binding information Review Binding Output defines — the target
   plan, the requirements source or limited-confidence no-spec status, and the
