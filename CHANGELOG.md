@@ -261,6 +261,16 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-review` eval suite: the response-only durable-records case E25
+  assesses the described record, confirmation, index rows, report, and
+  findings entries in hypothetical wording instead of requiring writes the
+  prompt forbids; substantive predicates are unchanged and no skill text
+  changed. Verification: codex `gpt-5.6-luna` full-suite runs — 50 cells
+  scored, no infrastructure anomalies; 92.2% `with_skill` against 71.9%
+  `without_skill` before the edit and 90.1% against 70.7% after it, with no
+  candidate-below-baseline cell in the closing run; the `without_skill` zero
+  on E20 is the same scored zero as in every earlier run, and E25's remaining
+  misses are content details on a single run.
 - `vibe-planning`: a new Response-Only Plan Descriptions section, a peer of
   Response-Only Planning Decisions, applies the phase's obligations to a
   supplied repository scenario when the user asks what the phase would read,
