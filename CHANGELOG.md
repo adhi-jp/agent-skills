@@ -261,6 +261,15 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-goal-alignment`: the output bullet that hands a confirmed
+  understanding forward as a carry-forward packet now also carries any
+  finding met on the way that another unit must address, in the packet shape
+  the durable-records reference defines, marked unpersisted with the one
+  action that would persist it — the next writing phase recording it.
+  Verification: codex `gpt-5.6-luna` closing full-suite run after the edit —
+  16 cells scored, no anomalies, `with_skill` 95.5% against `without_skill`
+  70.8%; the run before it scored 92.7% against 71.5% on the same assertion
+  set, with the durable-records case rising from 0.77 to 1.00.
 - `vibe-debug`: the overview now states, ahead of the gate blocks, that a
   recurrent, multi-symptom, multi-environment, long-running, interrupted, or
   retest-dependent diagnosis carries the compact debug ledger rows in the

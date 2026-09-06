@@ -160,8 +160,11 @@ Keep alignment concise and operational:
 - For risky tasks, include the blocked action and the exact decision needed
   before it can run.
 - Hand a confirmed understanding that settles an ambiguous instruction forward
-  as a carry-forward packet for the next writing phase; this phase still writes
-  no file.
+  as a carry-forward packet for the next writing phase, together with any
+  finding met on the way that another unit must address, each in the packet
+  shape `Durable Records` defines, marked unpersisted and naming the one
+  action that would persist it — the next writing phase recording it; this
+  phase still writes no file.
 
 ## Effect And Write Boundaries
 
