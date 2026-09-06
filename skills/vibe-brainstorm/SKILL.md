@@ -83,8 +83,12 @@ Before using delegated perspectives:
    observable checks, not private chain-of-thought.
 5. Choose the delegated model for each role under `Model Choice` below.
 6. If delegation is unavailable, unrecordable, or not authorized, continue with
-   coordinator-separated perspectives unless independence is itself material;
-   in that exceptional case, state the limitation and stop or ask about risk.
+   coordinator-separated perspectives unless independence is itself material.
+   Those perspectives are the coordinator's own work within the requested
+   mode and need no separate delegation or fallback authorization; label them
+   coordinator-derived and claim no independent evidence. If independence is
+   material or the user explicitly prohibits coordinator-only work, state the
+   limitation and stop or ask about risk.
 
 ### Model Choice
 
@@ -110,7 +114,11 @@ Each delegated role is one such unit: the judgment-heavy ones here include
 creative synthesis — especially the `Unconventional` and `Challenging`
 generators — convention tradeoffs, selection, broad-context grounding, final
 recommendations, contradiction resolution, and user-risk judgments. A cheaper
-or faster model is eligible here only for bounded low-ambiguity checks.
+or faster model is eligible here only for bounded low-ambiguity checks. In an
+orchestration schedule, explain each role's capability and context needs
+without enumerating routine role-to-tier assignments; include an explicit
+assignment only when one of the four recording conditions above applies, and
+name that condition.
 
 ### Delegation Mechanisms And Evidence
 

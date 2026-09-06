@@ -261,6 +261,22 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-brainstorm`: when delegation is unavailable, unrecordable, or not
+  authorized, coordinator-separated perspectives are the coordinator's own
+  work within the requested mode and need no separate delegation or fallback
+  authorization — they are labeled coordinator-derived and claim no
+  independent evidence — while a material independence requirement or an
+  explicit user prohibition on coordinator-only work still stops the run; an
+  orchestration schedule explains each role's capability and context needs
+  without enumerating routine role-to-tier assignments, and names the
+  recording condition when it includes an explicit assignment. Eval suite:
+  the `diverge` case no longer accepts a block for unavailable delegation and
+  asks for labeled coordinator-derived perspectives instead of an authorized
+  degraded fallback; the scripted-orchestration case description matches the
+  tier-basis contract. Verification: codex `gpt-5.6-luna` closing full-suite
+  run after these edits — 22 cells scored, no anomalies, `with_skill` 98.5%
+  against `without_skill` 72.9%; the run before the edits scored 93.9%
+  against 73.5% with two E03 expectations worded differently.
 - `vibe-agent-instructions`: the final response is the nine-section report
   under its own headings; its Changes section reproduces the preview shown
   for each already-existing path the run changed — the diff for a tracked

@@ -49,13 +49,13 @@
       "expected_output": "The agent uses diverge mode to return idea directions only, preserving the no-critique/no-selection boundary.",
       "files": [],
       "expectations": [
-        "Uses `diverge` mode or explicitly blocks because required delegation capability is unavailable or not authorized.",
+        "Uses `diverge` mode, naming it, and does not block merely because delegation is unavailable; it blocks only when independence is itself material or the user explicitly prohibits coordinator-only work.",
         "Includes `Practical`, `Unconventional`, and `Challenging` idea directions when the mode can run.",
         "Does not discard `Unconventional` or `Challenging` candidates merely because they are unusual.",
         "Does not include actual convention critique, expected-behavior checklist content, gate rejection, creativity ranking, or adoption recommendation.",
         "Does not choose a winning direction.",
         "Does not start implementation or ask to implement a selected option.",
-        "If delegation is unavailable, does not silently replace the three generators with single-agent output unless the user authorized a degraded fallback."
+        "If delegation is unavailable, produces clearly labeled coordinator-derived perspectives rather than silently replacing the three generators with unlabeled single-agent output, and does not claim that local perspectives are independent delegated evidence."
       ]
     },
     {
@@ -158,7 +158,7 @@
       "id": "E10",
       "name": "Scripted orchestration delegation boundary",
       "prompt": "Use `vibe-brainstorm full` for a creative trip-timeline planner feature. For this run, assume the host exposes a scripted orchestration mechanism that can fan out the generator, critic, development, grounding, and selection roles in one deterministic run and records a run identity with per-role task records. Schedule the run however you like, and handle my confirmation of the final direction inside the same run so I do not have to reply again. The orchestration mechanism also lets each delegated role choose a `fast`, `standard`, or `large-context` model tier, and I have not specified which tier to use.",
-      "expected_output": "The output should plan or run the delegated roles through the stated orchestration mechanism while keeping user confirmation in the conversation and delegation claims tied to recordable evidence. It should select or record capability-based, fit-for-purpose role model tiers without using hard-coded model names or one blanket top or cheapest tier; judgment-heavy and creative-synthesis roles should bias to the strongest suitable reasoning/context tier when quality is the priority.",
+      "expected_output": "The output should plan or run the delegated roles through the stated orchestration mechanism while keeping user confirmation in the conversation and delegation claims tied to recordable evidence. It should explain role-specific capability and context requirements, including the upward bias for judgment-heavy and creative-synthesis work when quality is the priority, without enumerating routine tier assignments; any recorded choice must carry one of the four permitted recording bases.",
       "files": [],
       "expectations": [
         "States the `full` mode boundary for the scripted orchestration request.",
