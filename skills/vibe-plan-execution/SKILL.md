@@ -174,6 +174,16 @@ the affected existing-behavior or lifecycle dimensions, current out-of-scope
 items, and explicitly non-selected checks visible when omitting them could make
 the proposed shortcut look authorized.
 
+When the user explicitly asks for a response-only analysis of supplied plan
+and repository state and forbids mutating this checkout, evaluate that
+represented state under this execution phase's normal obligations: describe the
+applicable edits, verification, records, findings entries, index rows, and
+checkpoint decision or handoff without performing any mutation or claiming that
+a described action occurred, and describe the artifacts this phase would itself
+write rather than substituting carry-forward packets merely because delivery is
+response-only. This changes delivery only; during actual execution a
+description satisfies no required write or verification.
+
 If the bound plan says implementation is blocked, do not start coding. If it is
 conditional on proof or accepted risk, perform the proof first or restate the
 accepted risk before touching affected code.

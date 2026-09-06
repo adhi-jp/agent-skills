@@ -261,6 +261,29 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-plan-execution`: a user-requested response-only analysis of supplied
+  plan and repository state is evaluated under the execution phase's normal
+  obligations — the response describes the applicable edits, verification,
+  records, findings entries, index rows, and checkpoint decision without
+  mutating the checkout or claiming completion, and describes the artifacts
+  the phase would itself write rather than substituting carry-forward
+  packets; during actual execution a description satisfies no required write.
+  Eval suite: E23's write expectations assess the described artifacts, and
+  its checkpoint expectation evaluates the supplied state before any described
+  remedial write. Verification: codex `gpt-5.6-luna` full-suite runs — 46
+  cells scored, no infrastructure anomalies; 77.4% `with_skill` against 61.6%
+  `without_skill` before the edits, 78.2% against 65.1% after them, with E23
+  moving from 0.23 to 0.38 (0.69 in the partial diagnostic) on its remaining
+  substantive predicates. Candidate-below-baseline cells were adjudicated as
+  single-run flips (E11, one assertion) and a sandbox confound (E06, whose
+  fixture's Vitest cannot run in the network-disabled sandbox, flipping
+  between 1.00 and 0.40 with unchanged text). Open: the plan-binding
+  preamble — authoritative plan, `Proceed condition`, section mapping,
+  evidence labels, gate names — is omitted more often than in the
+  2026-08-15 run on E02–E07; an overview restatement was tried and reverted
+  after a diagnostic left those cases unchanged, so this is reported as a
+  structure question for the generated-block placement rather than closed
+  by prose.
 - `vibe-orchestrate` eval suite: the response-only durable-records case E48
   describes the record, confirmation, rows, and findings entry it would
   produce instead of requiring writes the prompt forbids; the substantive
