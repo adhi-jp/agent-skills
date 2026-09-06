@@ -261,6 +261,24 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-commit`: the overview now states, ahead of the gate blocks, that a
+  commit answer with no blocking condition carries every applicable gate —
+  tree inspection, the staged-set gate with the staged diff read, the commit
+  command, and verification of the stored message against the exact committed
+  patch and of the remaining tree — whether executed or shown as the command
+  sequence for a "command only" ask or a response-only decision, that a bare
+  commit invocation is not a commit answer, and that an inspection-only
+  request or blocked decision stops at its boundary without a commit command;
+  the narrower-request rules already said so, but the generated gate blocks
+  now precede them. Verification: codex `gpt-5.6-luna` closing full-suite
+  run after the edit — 36 cells scored, no infrastructure anomalies,
+  `with_skill` 91.0% against `without_skill` 74.9%, with one
+  candidate-below-baseline cell: E11, a checkpoint-handoff decision prompt
+  the skill-following run answered with the right selection and file set but
+  no command sequence in three of four runs, while the baseline's
+  ask-for-approval stop passes as a safe stop; the run before the edit scored
+  91.7% against 75.6% with the "command only" case E06 collapsed to a bare
+  commit line, which the edit fixed (0.56 to 1.00).
 - `vibe-coding`: the decision-table intro now states that row ids such as
   `requirements-specification` are the session record's `phase` values, not
   route names — a matched specialist route is named by the specialist's

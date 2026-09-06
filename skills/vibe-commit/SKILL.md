@@ -21,6 +21,17 @@ keeping authorship trailers intact. The guidance here is distilled from real
 agent sessions where these exact steps prevented — or, when skipped, caused —
 commit mistakes.
 
+When a request calls for a commit and no blocking condition remains, the
+deliverable carries every applicable gate whether it is executed or, for a
+"command only" ask or a response-only decision over represented repository
+state, shown as the command sequence: tree inspection, the staged-set gate
+with the staged diff read, the commit command, and verification of the stored
+message against the exact committed patch and of the remaining working-tree
+state. A bare commit invocation is not a commit answer. For an inspection-only
+request or a blocked decision, stop at the applicable boundary and say what
+remains unresolved; add no commit command or post-commit check for an
+operation that will not occur.
+
 ## Message content vs. commit execution
 
 Commit work splits cleanly between message content and execution:
