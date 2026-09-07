@@ -171,10 +171,10 @@ and stop for the user's answer. When no such specialist is visible, ask the one
 confirming question yourself, name the availability source you checked, and
 stop; the gate is not a phase, so it never reports `matched-but-unavailable`.
 In both cases record the user's answer as a `confirmation` event with
-`source: user-turn` after the answer, then classify the instruction. A
-completed gate is not proceed evidence for anything else: it settles the
-reading of the instruction, and every row's own approval, consent, and stop
-boundaries still apply.
+`source: user-turn` and `status: current` after the answer, then classify the
+instruction. A completed gate is not proceed evidence for anything else: it
+settles the reading of the instruction, and every row's own approval, consent,
+and stop boundaries still apply.
 
 ## Workflow Phases
 
@@ -192,7 +192,10 @@ the row with its ownership status and invent no specialist name; for an
 unavailable route, report the row as `matched-but-unavailable` together with
 the specialist name the prompt, user-provided material, or visible metadata
 identifies as absent, and invent none when nothing identifies one. Write every
-route report under the language gate in User-Facing Output.
+route report under the language gate in User-Facing Output: when a task
+enumerates represented turns or scenarios under an English wrapper, each turn's
+language comes from that turn's own request text, and neither the wrapper's
+language nor the number of scenarios changes it.
 
 | Row | Trigger | Exclusions | Owner | Required artifact | Next boundary |
 | --- | --- | --- | --- | --- | --- |
@@ -201,7 +204,7 @@ route report under the language gate in User-Facing Output.
 | `creative-direction-exploration` | Explicit brainstorming, idea generation, alternatives, interaction concepts, or implicit expected-behavior and convention checks before scope hardens, with no saved-requirements ask. | A request to save requirements (`requirements-specification`); a reported defect; an edit, plan, or commit request; a concrete bound plan. | The visible creative-exploration specialist (read-only, chat-first). | None; the deliverable is chat. | A confirmed direction or a trusted proxy selection is input to later requirements or planning work — recorded as AI-selected direction when it came from a proxy — never implementation authorization; a request to capture it durably routes the next instruction to `requirements-specification`. |
 | `code-investigation` | Read-only questions about existing code or behavior — how it works, where it lives, data flow, dependencies, what a change would affect — with no defect report and no edit, plan, or commit request. | A reported symptom or repair request, which outranks investigation (`debug-and-repair`); any edit, plan, spec, or commit request; a bound plan to execute. | The visible code-investigation specialist (read-only). | None; findings are chat evidence; a saved artifact exists only on the user's explicit ask. | Findings are evidence for later phases and authorize no edit, fix, plan, or commit; the next instruction is classified afresh and no commit state is created. |
 | `implementation-planning` | An approval-evidenced or legacy `Approved` spec plus a next related instruction; a supplied spec, acceptance criteria, task list, or multi-surface request needing a plan; create/revise a plan; backtracking the bound plan's acceptance-criteria, proof, schema, test, edit-order, or risk contract. | Concrete bound plan with a ready proceed condition and an execution request (`plan-execution`); item-by-item walkthrough (`plan-pre-check-walkthrough`); git-backed plan diff (`review`); vague goal without approval evidence (`requirements-specification`); single-surface edit needing no plan (`direct-implementation`); "looks good, go ahead" after planning is neither revision nor execution — ask which. | The visible implementation-planning specialist (artifact-only). | The plan artifact it creates or revises, plus the approved spec or concrete inputs bound. | Stops after the plan artifact and its summary; no same-turn implementation and no plan-artifact commit; a ready proceed condition together with an explicit execution request starts a separate `plan-execution` route, and a same-instruction continuation starts only after a concrete reviewed plan with a ready proceed condition or recorded accepted risk. |
-| `plan-execution` | A clear request to execute, implement, apply, or continue a known plan or slice, with a concrete bound plan whose proceed condition is ready or accepted-risk condition is satisfied for that slice; continuation rebinding the slice from the implementation-progress ledger. | Inputs not concrete enough (`implementation-planning`); bare "continue", "go ahead", "ready", "looks good" not clearly asking to execute the known plan; a reported plan-contract defect (backtracking); a new runtime symptom (`debug-and-repair`); a walkthrough (`plan-pre-check-walkthrough`); adjacent work the plan and mandatory repository coupling do not require. | The visible plan-execution specialist (state-changing). | The bound implementation plan, and its implementation-progress ledger when present — plan-execution state, not routing state. | The bound plan's scope, acceptance criteria, documentation/changelog coupling, release policy, verification path, and review; each verified, reviewed slice closes with a checkpoint through `commit-execution` under the commit-selection gate — from a plan `Commit checkpoints` item or the specialist's default — never a commit inside execution; a blocked proceed condition, plan defect, or stop signal ends the route. |
+| `plan-execution` | A clear request to execute, implement, apply, or continue a known plan or slice, with a concrete bound plan whose proceed condition is ready or accepted-risk condition is satisfied for that slice; continuation rebinding the slice from the implementation-progress ledger. | Inputs not concrete enough (`implementation-planning`); bare "continue", "go ahead", "ready", "looks good" not clearly asking to execute the known plan; a reported plan-contract defect (backtracking); a new runtime symptom (`debug-and-repair`); a walkthrough (`plan-pre-check-walkthrough`); adjacent work the plan and mandatory repository coupling do not require. | The visible plan-execution specialist (state-changing). | The bound implementation plan, and its implementation-progress ledger when present — plan-execution state, not routing state, whose recorded completions the execution specialist verifies before a rebinding relies on them. | The bound plan's scope, acceptance criteria, documentation/changelog coupling, release policy, verification path, and review; each verified, reviewed slice closes with a checkpoint through `commit-execution` under the commit-selection gate — from a plan `Commit checkpoints` item or the specialist's default — never a commit inside execution; a blocked proceed condition, plan defect, or stop signal ends the route. |
 | `debug-and-repair` | Bug reports, regressions, failed prior fixes, repeated "still broken" feedback, rough repair requests, tool or automation failures, environment-specific failures, and runtime artifact mismatches; a review fix that regressed a core user journey. | Continuing execution against a bound plan whose contract itself is reported wrong (backtracking to the artifact-owning row); a read-only question with no symptom (`code-investigation`); a request for a spec or plan artifact; a dependency, build, or test edit with no reported defect (`maintenance`). | The visible debug-and-repair specialist (state-changing). | None; the bug report or reproduction is the input; a named plan file is context, not execution authority. | A proven repair closes with a checkpoint of the repair-owned changes through `commit-execution` under the commit-selection gate, without a startup commit question; a diagnosis with no fix commits nothing. |
 | `review` | A git-backed diff, working tree, branch, base ref, or git-backed plan or document change to review; a review/fix loop with scope triage, Definition-of-Done alignment, findings, or gated fixes; continuing a review while excluding a finding, path, package, or subsystem. | Item-by-item walkthrough of a saved plan (`plan-pre-check-walkthrough`); a new runtime symptom or a fix regressing a core user journey (`debug-and-repair`); a repeated finding class past the threshold, a fix needing material architecture expansion, or a repair depth the bound spec or plan cannot decide (artifact-owning row). | The visible review specialist (state-changing). | The frozen git-backed review target; routing state carries the target, primary journey, acceptance sentinels, cycle count, active stop signals, last verified checkpoint, and unverified shared edits. | A completed fix loop closes its own verified fixes through `commit-execution` under the commit-selection gate; a review that applies no fix commits nothing and never commits the changes under review; an excluded surface stays non-editable and outside selectable fixes; an active stop signal routes out to the owning row. |
 | `plan-pre-check-walkthrough` | A request to interactively walk through, pre-check, confirm, or review a saved implementation plan artifact item by item before execution starts, where the target is the saved plan itself. | A git-backed diff, branch, or base-ref target (`review`); revising plan content from new requirements or evidence (`implementation-planning`); executing the plan (`plan-execution`). | The visible plan pre-check specialist (artifact-only; reflects decisions into the plan only with explicit consent). | The saved implementation plan artifact. | Stops before implementation; item decisions and reflection consent stay with the user; completion is neither proceed evidence nor execution authorization; reflected changes stay uncommitted unless the user explicitly selects a commit. Unattended or delegated operation matches this row but is not delegable: report the interactive requirement and stop rather than emulating item decisions. |
@@ -365,7 +368,9 @@ For a router-owned row this skill is the state-changing workflow the contract
 names: its verified edit closes under the checkpoint default, recorded with
 `specialist-checkpoint` as the selection source. For a routed row the checkpoint
 belongs to the specialist; the router records the selection and routes the
-history action.
+history action. When a unit's changes cannot be separated from unrelated
+working-tree state, the router records no new `commit-selection` event for that
+blocked checkpoint, reports the mixed state, and asks instead of committing.
 
 ## What this phase may write
 
@@ -625,7 +630,9 @@ Then, in the route report itself:
   written, at the write points Session Record lists: record creation, a phase
   change, and a recorded event.
 - Name the selected route and the deferred downstream routes verbatim from
-  visible metadata instead of replacing them with only translated phase labels.
+  visible metadata; a row id, phase label, translation, or abbreviation in
+  place of the specialist's name is the degeneration this bullet forbids, for
+  the route taken and for the routes deferred this turn alike.
 - Put literal status tokens such as `matched-but-unavailable` or
   `no matching specialist` in the user-facing route summary or draft reply
   itself, not only in a separate analysis section.
@@ -648,7 +655,7 @@ Ask each question at its point of action:
 - At the route decision: is exactly one row selected against the active routing
   state, with same-turn continuation as a later separate route?
 - Naming a route: did the name come from visible metadata or the cached
-  capability map rather than a memorized roster?
+  capability map rather than a memorized roster or the row id?
 - At every route decision, event, gated action, and bound-artifact write: was
   the record written with the event's `source` and treated as a record, not as
   approval?

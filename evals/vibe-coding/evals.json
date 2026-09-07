@@ -8,7 +8,7 @@
     "When a downstream phase is selected, revised, executed, or unavailable, output preserves the boundaries material to that selected phase and current turn, such as the applicable approval stop, plan-only or read-only boundary, proceed condition, review or write gate, release boundary, or commit/history authority. It need not enumerate unrelated phases' gates.",
     "When the prompt or visible routing state says a downstream phase has reported a defective bound spec or plan, output treats it as a backtracking signal to the artifact-owning phase rather than forcing the current phase to continue patch-by-patch; prompts without such a defective-artifact report satisfy this assertion by not inventing one and not continuing execution against a known-bad contract.",
     "Output treats the session record as a record of routing state rather than as authority: workflow-continuation prompts rebind from the supplied conversation state, the existing artifact paths, and a supplied record when the prompt gives one, and approvals, proceed decisions, and stop boundaries still come from the conversation, where a recorded event counts only for its enumerated `source`. Independent classification prompts pass by not inventing prior continuation state, approvals, or a pre-existing record they were not given; naming the record the router itself writes at this route decision is not an invention. Neither population needs to explain the state mechanism.",
-    "When the task asks for route behavior for represented current user turns and gives no explicit output-language instruction in those represented turns, output chooses each represented turn's user-facing route-block language from that turn's clear natural-language request text when present, otherwise from the active user's conversational language; if all represented turns share one clear language the whole route response uses it, and if they differ each turn block uses its own language. It does not inherit surrounding benchmark, orchestrator, executor-session language, hidden/repository/session/global chat-language defaults, routing-state metadata, assertion text, source quotes, or English phase labels, and it preserves skill names, literal path strings, commands, enum values, field names, and technical identifiers verbatim."
+    "When the task asks for route behavior for represented current user turns and gives no explicit output-language instruction in those represented turns, output chooses each represented turn's user-facing route-block language from that turn's clear natural-language request text when present, otherwise from the active user's conversational language; if all represented turns share one clear language the whole route response uses it, and if they differ each turn block uses its own language. It does not inherit surrounding benchmark, orchestrator, executor-session language, hidden/repository/session/global chat-language defaults, routing-state metadata, assertion text, source quotes, or English phase labels, and it preserves skill names, literal path strings, commands, enum values, field names, and technical identifiers verbatim. The represented turn's own request text sets its language; an enumeration wrapper written in another language, or the number of scenarios, does not, and this applies identically in either configuration."
   ],
   "evals": [
     {
@@ -83,7 +83,7 @@
         "Names the checked availability source and does not claim `vibe-review` is available.",
         "Does not silently emulate the review workflow or route the review request to `vibe-writing` as primary.",
         "Preserves the review phase boundary and asks whether to proceed without the unavailable specialist because the missing review contract affects user expectations.",
-        "Uses Japanese for the immediate user-facing behavior or draft reply while preserving `matched-but-unavailable`, `vibe-review`, and `vibe-writing` verbatim in that same user-facing block."
+        "Uses Japanese for the immediate user-facing behavior or draft reply; the named tokens, where the response uses them, appear unchanged and untranslated in that same user-facing block: `matched-but-unavailable` and `vibe-review`."
       ]
     },
     {
@@ -128,7 +128,7 @@
         "Explains that the orchestration mechanism may at most carry work inside the selected phase under that specialist's own delegation rules, while approval and proceed decisions stay in the conversation.",
         "Does not treat the user's blanket approval-skip request as approval evidence for the spec, the plan, or execution.",
         "Does not route to `vibe-planning` or `vibe-plan-execution` in the same turn.",
-        "Uses Japanese for the user-facing summary while preserving `vibe-requirements-spec`, `vibe-planning`, and `vibe-plan-execution` verbatim.",
+        "Uses Japanese for the user-facing summary; the named tokens, where the response uses them, appear unchanged and untranslated: `vibe-requirements-spec`, `vibe-planning`, and `vibe-plan-execution`.",
         "If output discusses delegated model choice, it keeps capability/context-fit model selection within the selected phase or specialist delegation contract instead of assigning one hard-coded or blanket model to an unattended cross-phase run.",
         "Does not default every possible delegate to the top model, does not downshift every delegated decision to the cheapest model solely to save tokens, and preserves upward bias for judgment-heavy work when maximum performance is requested.",
         "Rejects the fast/cheap instruction as a reason to narrow material investigation, skip required UX/safety classification, or convert cheap UX choices into confirmed scope across phases; if depth or UX/safety tradeoffs matter, it leaves them to the selected specialist boundary as required work, a blocker, proposed default, assumption, or accepted-risk decision rather than silently completing the cheaper path."
@@ -162,7 +162,7 @@
         "Routes the next turn back to the phase that owns the broken artifact: `vibe-planning` to revise the implementation plan contract, rather than `vibe-requirements-spec` or continuing in `vibe-plan-execution`.",
         "Does not treat `とりあえず動くように直して先に進めて` as authorization to keep patching code against the stale acceptance criteria and tests.",
         "Selects exactly one primary downstream phase and preserves that specialist's boundary.",
-        "Uses Japanese for the user-facing summary while preserving `vibe-planning`, `vibe-plan-execution`, and the plan path verbatim."
+        "Uses Japanese for the user-facing summary; the named tokens, where the response uses them, appear unchanged and untranslated: `vibe-planning`, `vibe-plan-execution`, and the plan path."
       ]
     },
     {
@@ -291,7 +291,7 @@
         "Names the commit-selection gate as the next boundary: the verified edit closes with a checkpoint of its own changes routed through `vibe-commit`, while push, release preparation, version changes, and tags stay separately consent-bound.",
         "Names the session record it writes for this route decision at `.plans/vibe-sessions/<record_id>.json` (the record id may be rendered as the workflow id, its default) under the repository root, and states the six routing fields it records: the goal, the phase `direct-implementation`, the artifact paths, which stay empty because this row binds no plan or spec, the pending decision, the blocker, and the next route.",
         "Describes the closing checkpoint it would record after verification as a `commit-selection` event whose `source` is `specialist-checkpoint`, because a router-owned row is the state-changing workflow closing its own verified unit, rather than `user-turn`, since the user asked for the change and not for a commit; no actual checkpoint or file mutation is required.",
-        "Uses Japanese for the user-facing route summary while preserving skill names, file paths, the record path, row ids, and enum values such as `specialist-checkpoint` verbatim."
+        "Uses Japanese for the user-facing route summary; the named tokens, where the response uses them, appear unchanged and untranslated: skill names, file paths, the record path, row ids, and enum values such as `specialist-checkpoint`."
       ]
     },
     {
@@ -322,7 +322,7 @@
         "In neither scenario rewrites history, runs an amend, rebase, filter, or force push, or completes a commit-execution route in the same turn.",
         "Records the user's answer as a `confirmation` event with `source: user-turn` and `status: current` only after the user answers, and does not treat the completed gate as approval, proceed evidence, or authorization for the history operation itself.",
         "While the gate is pending, records all six routing fields in the session record at `.plans/vibe-sessions/<record_id>.json` (the record id may be rendered as the workflow id, its default) — the goal taken from the user's turn, the phase `workflow-control`, empty artifact paths, `pending_decision` naming the confirming question, a null blocker, and a null `next_route` — together with `effect_mode` `none`.",
-        "Uses Japanese for the user-facing question and summaries while preserving skill names, the record path, field names, and enum values such as `user-turn` verbatim."
+        "Uses Japanese for the user-facing question and summaries; the named tokens, where the response uses them, appear unchanged and untranslated: skill names, the record path, field names, and enum values such as `user-turn`."
       ]
     },
     {
@@ -349,14 +349,15 @@
       "expected_output": "The response should continue the active workflow into a separate planning route on the recorded user approval without re-deriving approval from anything the agent wrote.",
       "files": [],
       "expectations": [
-        "Classifies the turn as `continue current workflow` and routes to exactly one primary downstream phase: `vibe-planning`, using `docs/specs/2026-09-01-invoice-export-spec.md` as the planning input.",
+        "Classifies the turn as `continue current workflow`.",
+        "Routes to exactly one primary downstream phase: `vibe-planning`, using `docs/specs/2026-09-01-invoice-export-spec.md` as the planning input.",
         "Names the approval it relies on as an `approval` event with `source: user-turn` and `status: current` whose artifact is the spec path and the digest recorded for it, and does not derive approval from prompt text, artifact text, delegated output, or an agent-written claim.",
         "States that an approval event whose recorded digest no longer matches the bound spec is superseded and carries no authority, so a changed spec needs a new approval with its own `source`.",
         "Names the session record it updates at `.plans/vibe-sessions/<record_id>.json` (the record id may be rendered as the workflow id, its default) under the repository root and records the handoff to planning as an event with its own `source`.",
         "States the six routing fields it writes for this decision: the goal `invoice export`, the phase `implementation-planning`, the active artifact paths, the pending decision, the blocker, and the next route.",
         "Keeps the approval in the conversation: the record names it with its `source` and does not become the authority for it.",
         "Does not route to `vibe-plan-execution` or start code edits, because no implementation plan exists yet and the instruction only asks to create it.",
-        "Uses Japanese for the user-facing summary while preserving skill names, the spec and record paths, and field and enum values verbatim."
+        "Uses Japanese for the user-facing summary; the named tokens, where the response uses them, appear unchanged and untranslated: skill names, the spec and record paths, and field and enum values."
       ]
     },
     {
@@ -372,7 +373,7 @@
         "Names the record at `.plans/vibe-sessions/<record_id>.json` (the record id may be rendered as the workflow id, its default) under the repository root and states the six routing fields for the decision: the goal, the phase `plan-execution`, the bound plan as the active artifact path, the pending decision, the blocker, and the next route.",
         "Keeps the plan's implementation-progress ledger as plan-execution state inside the plan, distinct from the routing record, which carries the routing fields only.",
         "Does not infer push, release preparation, a version change, a tag, or a history rewrite from either checkpoint.",
-        "Uses Japanese for the user-facing summaries while preserving skill names, the plan and record paths, and enum values such as `bound-plan-item` verbatim."
+        "Uses Japanese for the user-facing summaries; the named tokens, where the response uses them, appear unchanged and untranslated: skill names, the plan and record paths, and enum values such as `bound-plan-item`."
       ]
     },
     {
@@ -403,7 +404,7 @@
         "Names the record at `.plans/vibe-sessions/<record_id>.json` (the record id may be rendered as the workflow id, its default) under the repository root and states the six routing fields for the decision, with `commit-execution` as the recorded phase.",
         "Does not treat the presence of tracked changes, the availability of `vibe-commit`, or a convenient stopping point as a selection source.",
         "Does not infer push, release preparation, a version change, a tag, or a history rewrite from the commit request.",
-        "Uses Japanese for the user-facing summaries while preserving skill names, file paths, the record path, and enum values such as `user-turn` verbatim."
+        "Uses Japanese for the user-facing summaries; the named tokens, where the response uses them, appear unchanged and untranslated: skill names, file paths, the record path, and enum values such as `user-turn`."
       ]
     },
     {
@@ -415,7 +416,8 @@
       "expectations": [
         "States that it reads `docs/decisions/README.md` and `docs/reports/findings/README.md` when the phase starts, before implementing the flag.",
         "Records `effect_mode` as state-changing for the `direct-implementation` row and includes `docs/decisions/` and `docs/reports/findings/` in the row's `allowed_paths`.",
-        "States that it allocates `ADR-0008` — one more than the highest id present in both `docs/decisions/` and `docs/decisions/README.md` — and would write the stdout/stderr rule at `docs/decisions/0008-<slug>.md` with `status: accepted`, `decided-by: user`, `ratified: user`, an empty `paths` because it binds every command, a one-sentence imperative `summary`, `revisit-when`, and `## Considered Options` naming the rejected `--quiet` flag with its reason, before the unit closes.",
+        "States that it allocates `ADR-0008` — one more than the highest id present in both `docs/decisions/` and `docs/decisions/README.md` — and would write the stdout/stderr rule at `docs/decisions/0008-<slug>.md`.",
+        "Gives that record `status: accepted`, `decided-by: user`, `ratified: user`, an empty `paths` because it binds every command, a one-sentence imperative `summary`, `revisit-when`, and `## Considered Options` naming the rejected `--quiet` flag with its reason, before the unit closes.",
         "Gives that record's `confirmation` as a concrete command or check — `npm run test:cli` and its stream-routing cases are available — or with a `manual:` form naming the check and why no automated one exists, and cites in its `sources` the authority anchor this prompt supplies: the user's 2026-09-06 turn with its deciding phrase.",
         "Describes the row it would add to `docs/decisions/README.md` with the columns `id | status | decided-by/ratified | paths | tags | summary | file`.",
         "States the question it would ask the user once for this repository, at the first checkpoint that would include the record — whether records and reports join its checkpoints — and leaves that tracking decision unresolved because the prompt supplies no answer.",

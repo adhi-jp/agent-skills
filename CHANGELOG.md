@@ -33,6 +33,19 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-coding`: the route report names a specialist by its visible metadata
+  and treats a row id, phase label, translation, or abbreviation in its place
+  as the forbidden substitution, for deferred routes too; represented turns
+  enumerated under an English wrapper each keep their own request language; a
+  completed goal-alignment gate records its `confirmation` event with
+  `status: current`; a rebinding from a plan's progress ledger has the execution
+  specialist verify recorded completions first; and a unit that cannot be
+  separated from unrelated working-tree state records no `commit-selection`
+  event. Eval maintenance in the same change: eight language expectations
+  grade untranslated tokens only where the response uses them, two long
+  expectations are split, and the common language assertion names the
+  wrapper rule. One three-run closing run followed the change.
+
 - `vibe-planning`: a plan summary written in a recording context still names the
   plan path, current slice, proceed condition, and material blocker; a
   response-only delegated-review description states that no model-choice
