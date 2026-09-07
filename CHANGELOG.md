@@ -13,6 +13,13 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-coding`: when a selected route has no visible specialist, the route
+  report names the specialist the prompt, user-provided material, or visible
+  metadata identifies as absent alongside `matched-but-unavailable`, instead of
+  withholding every specialist name; router-owned rows still invent none. One
+  closing run of the suite after the change measured the target case passing
+  its two naming assertions.
+
 - Eval maintenance: `vibe-planning` E25 and E26 grade the evaluation and the
   rationale the response gives rather than a performed read or a stated
   meta-claim. Skill behavior unchanged; the suite was re-run once.

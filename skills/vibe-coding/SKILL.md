@@ -187,10 +187,12 @@ matches it. Read `references/route-selection.md` when the cells do not settle
 the classification. Row ids such as `requirements-specification` are the
 `phase` values the session record stores, not route names: when reporting a
 matched specialist route, name the specialist by the name its visible metadata
-states, with the row id at most alongside it; for a router-owned or
-unavailable route, report the row with its ownership or availability status
-and invent no specialist name. Write every route report under the language
-gate in User-Facing Output.
+states, with the row id at most alongside it; for a router-owned route, report
+the row with its ownership status and invent no specialist name; for an
+unavailable route, report the row as `matched-but-unavailable` together with
+the specialist name the prompt, user-provided material, or visible metadata
+identifies as absent, and invent none when nothing identifies one. Write every
+route report under the language gate in User-Facing Output.
 
 | Row | Trigger | Exclusions | Owner | Required artifact | Next boundary |
 | --- | --- | --- | --- | --- | --- |
