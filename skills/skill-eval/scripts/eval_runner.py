@@ -39,6 +39,7 @@ import hashlib
 import json
 import os
 import re
+import shlex
 import shutil
 import stat
 import statistics
@@ -1633,6 +1634,494 @@ def collect_executor_evidence(metrics: dict[str, Any], cwd: Path) -> dict[str, A
 
 
 # --------------------------------------------------------------------------- #
+# Runner-sourced executor trace for providers that stream their own tool events.
+#
+# Codex emits a JSONL event stream on stdout that the runner already reads for
+# token usage. The same stream names the commands, file changes, and tool calls
+# the executor actually made, so the runner can record an equivalent trace
+# without any host session transcript. This record is ``source: runner`` because
+# the runner parses the provider's own stream, not host state.
+#
+# Redaction is mandatory and stricter than the record's own shape: the stream
+# also carries the executor's message text, reasoning, full command lines, and
+# command output, none of which may reach the grader. Only bounded program
+# names, conservative path operands, file-change paths, tool names, and
+# provider-issued item ids leave this collector, and the grader prompt is folded
+# with names and ids alone.
+#
+# Every parse here is best-effort by construction: the stream is executor-shaped
+# text, so an unrecognized shape must degrade to a smaller record (dropped token,
+# ``parse_error``, ``truncated``) and never to an exception, a guess about which
+# program ran, or a retained fragment of command text.
+# --------------------------------------------------------------------------- #
+CODEX_TRACE_MAX_PROGRAMS = 8
+CODEX_TRACE_MAX_PATH_OPERANDS = 16
+CODEX_TRACE_MAX_FILE_CHANGES = 32
+CODEX_TRACE_MAX_PATH_CHARS = 256
+CODEX_TRACE_MAX_WRAPPER_DEPTH = 3
+CODEX_EXTERNAL_PATH_MARKER = "<external-path>"
+CODEX_SHELL_WRAPPERS = frozenset({"bash", "sh", "zsh"})
+# Launchers that precede the real program. They are skipped so the recorded name
+# is the thing that ran, but only while their own options stay unambiguous.
+CODEX_COMMAND_PREFIX_WORDS = frozenset(
+    {"sudo", "env", "time", "nice", "nohup", "command", "exec"}
+)
+# Shell options that take no operand, so they cannot hide an inline command.
+CODEX_SHELL_SAFE_LONG_OPTIONS = frozenset(
+    {"--login", "--noprofile", "--norc", "--posix"}
+)
+CODEX_SEGMENT_SEPARATORS = frozenset({"&&", "||", "|", ";", "&"})
+CODEX_ASSIGNMENT_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*=")
+# A program name is recorded only in this bounded ASCII shape. Matching is by
+# ``fullmatch``: ``$`` alone would accept a trailing newline and let command text
+# ride into the record behind a valid-looking name.
+CODEX_PROGRAM_RE = re.compile(r"[A-Za-z0-9_.+@-]{1,64}")
+# ``-c``/``-lc``/``-ec`` introduce a shell's inline command; ``--rcfile`` does not.
+CODEX_SHELL_C_FLAG_RE = re.compile(r"-[A-Za-z]*c")
+# A conservative operand shape: ordinary ASCII path characters only, so anything
+# carrying shell syntax, quotes, whitespace, or non-ASCII text is dropped rather
+# than guessed at.
+CODEX_PATH_OPERAND_RE = re.compile(r"[A-Za-z0-9_.@+~/-]+")
+CODEX_PATH_OPERAND_SUFFIXES = (
+    ".md", ".json", ".jsonl", ".py", ".txt", ".yaml", ".yml",
+    ".toml", ".cfg", ".ini", ".sh", ".js", ".mjs", ".ts",
+)
+# Values that reach the grader prompt are validated on the way out, so a
+# malformed id or tool name can never carry text into the prompt.
+CODEX_RENDERED_ID_RE = re.compile(r"[A-Za-z0-9_.:-]{1,64}")
+CODEX_RENDERED_NAME_RE = re.compile(r"[A-Za-z0-9_.:-]{1,128}")
+CODEX_TRACE_INVALID_TOKEN = "invalid"
+# The grader sees program names only through this closed vocabulary; anything
+# else renders as ``other``. Tokenizer fidelity therefore cannot decide what text
+# reaches the grader -- this list can. The unfiltered names stay in run.json.
+CODEX_GRADER_OTHER_PROGRAM = "other"
+CODEX_GRADER_PROGRAM_VOCABULARY = frozenset(
+    {
+        "cat", "head", "tail", "sed", "awk", "grep", "rg", "find", "ls", "wc",
+        "cut", "sort", "uniq", "diff", "tr", "echo", "printf", "test", "true",
+        "false", "cd", "pwd", "python", "python3", "pytest", "node", "npm",
+        "npx", "pnpm", "yarn", "git", "sh", "bash", "zsh", "make", "cargo",
+        "go", "java", "mvn", "gradle", "ruby", "bundle", "rspec", "jest",
+        "vitest", "tsc", "eslint", "prettier", "ruff", "black", "mypy", "pip",
+        "pip3", "curl", "wget", "jq", "xargs", "mkdir", "cp", "mv", "rm",
+        "touch", "tee", "env", "date", "which", "command", "type", "timeout",
+        "tar", "unzip", "zip", "stat", "du", "df", "basename", "dirname",
+        "realpath", "readlink", "ln",
+    }
+)
+CODEX_TRACE_NOTE = (
+    "Runner-parsed trace of the provider's own JSONL event stream: command program names, "
+    "conservative path operands, file-change paths, and tool names only; command arguments, "
+    "command output, message text, and reasoning are excluded. Names and operands are "
+    "best-effort readings of the reported command, marked by parse_error where the runner could "
+    "not read it confidently, and a path operand proves only that the command named that path, "
+    "not that it was read successfully."
+)
+
+
+def strip_matching_quotes(token: str) -> str:
+    """Drop one layer of matching surrounding quotes from a lexer word token."""
+    if len(token) >= 2 and token[0] == token[-1] and token[0] in ("'", '"'):
+        return token[1:-1]
+    return token
+
+
+def codex_tokenize_command(text: str) -> tuple[list[list[str]], bool]:
+    """Split a command string into segments of literal tokens.
+
+    ``posix=False`` keeps quotes attached to the token, so a quoted ``'|'``
+    argument is never mistaken for a pipe, while ``punctuation_chars`` groups
+    real operators into tokens of their own so a compact ``true&&cat`` still
+    splits. Quotes are stripped only after separator detection, and a ``#``
+    comment is dropped by the lexer while a quoted ``'#'`` stays an argument.
+
+    Unterminated quoting means the runner does not know where the command's
+    words end, so it yields nothing rather than a whitespace-split guess whose
+    fragments could look like programs."""
+    try:
+        lexer = shlex.shlex(text, posix=False, punctuation_chars=True)
+        lexer.whitespace_split = True
+        lexer.commenters = "#"
+        raw = list(lexer)
+    except ValueError:
+        return [], True
+    segments: list[list[str]] = [[]]
+    for token in raw:
+        if token in CODEX_SEGMENT_SEPARATORS:
+            segments.append([])
+            continue
+        segments[-1].append(strip_matching_quotes(token))
+    return [segment for segment in segments if segment], False
+
+
+def codex_command_segments(command: Any) -> tuple[list[list[str]], bool]:
+    """Return the command's segments however the provider reported the command.
+
+    A list is already argv: its elements are literal, so it is one segment and
+    no operator splitting applies."""
+    if isinstance(command, list):
+        tokens = [token for token in command if isinstance(token, str)]
+        return ([tokens] if tokens else []), False
+    if isinstance(command, str):
+        return codex_tokenize_command(command)
+    return [], False
+
+
+def codex_shell_inline_command(rest: list[str]) -> tuple[str, str | None]:
+    """Find a shell's inline command within its leading option prefix.
+
+    Returns ``("inner", command)`` for a ``-c``-family flag, ``("none", None)``
+    when the shell runs a script operand instead, ``("ambiguous", None)`` for a
+    long option that may consume the following token -- which would let a later
+    token be mistaken for the inline command -- and ``("escaped", None)`` when
+    an option in the prefix carries a backslash, so the option boundaries
+    themselves are a guess. The inline command operand is not checked here: it
+    is re-tokenized on its own, where its escapes are handled."""
+    for position, token in enumerate(rest):
+        if not token.startswith("-") or token == "--":
+            return ("none", None)
+        if "\\" in token:
+            return ("escaped", None)
+        if token.startswith("--"):
+            if token in CODEX_SHELL_SAFE_LONG_OPTIONS:
+                continue
+            return ("ambiguous", None)
+        if CODEX_SHELL_C_FLAG_RE.fullmatch(token):
+            if position + 1 < len(rest):
+                return ("inner", rest[position + 1])
+            return ("none", None)
+    return ("none", None)
+
+
+def normalize_codex_path(token: str, sandbox_root: Path) -> str | None:
+    """Reduce a path-shaped token to something safe to record.
+
+    Sandbox-absolute paths become sandbox-relative; home-relative and
+    outside-sandbox paths collapse to a marker so no host layout is recorded; a
+    parent-directory component or an over-long token is dropped rather than
+    normalized into a claim."""
+    if not token or len(token) > CODEX_TRACE_MAX_PATH_CHARS:
+        return None
+    if token.startswith("~"):
+        return CODEX_EXTERNAL_PATH_MARKER
+    text = token
+    while text.startswith("./"):
+        text = text[2:]
+    if not text or ".." in text.split("/"):
+        return None
+    if not text.startswith("/"):
+        return text
+    candidate = Path(text)
+    roots = [sandbox_root]
+    try:
+        resolved_root = sandbox_root.resolve()
+    except OSError:
+        resolved_root = None
+    if resolved_root is not None and resolved_root != sandbox_root:
+        roots.append(resolved_root)
+    for root in roots:
+        try:
+            return str(candidate.relative_to(root))
+        except ValueError:
+            continue
+    return CODEX_EXTERNAL_PATH_MARKER
+
+
+def codex_command_shape(
+    command: Any, sandbox_root: Path
+) -> tuple[list[str], list[str], bool, bool]:
+    """Return (programs, path operands, parse_error, truncated) for one command.
+
+    Backslash escapes are not interpreted. A backslash means the runner cannot
+    tell how the shell would regroup the words, so reading stops there and what
+    was already read is a hint, marked by ``parse_error``."""
+    programs: list[str] = []
+    operands: list[str] = []
+    flags = {"parse_error": False, "truncated": False, "stop": False}
+
+    def add_program(name: str) -> None:
+        if name in programs:
+            return
+        if len(programs) >= CODEX_TRACE_MAX_PROGRAMS:
+            flags["truncated"] = True
+            return
+        programs.append(name)
+
+    def add_operand(value: str) -> None:
+        if value in operands:
+            return
+        if len(operands) >= CODEX_TRACE_MAX_PATH_OPERANDS:
+            flags["truncated"] = True
+            return
+        operands.append(value)
+
+    def program_index(segment: list[str]) -> tuple[int | None, bool]:
+        """Return (program index, escaped) for a segment.
+
+        A launcher's own option consumes an unknown number of following tokens
+        (``sudo -u user cat …``), so anything but a self-delimiting assignment or
+        ``--opt=value`` ends detection instead of promoting the option's value to
+        a program name. Every token read here -- launcher, assignment, option, or
+        the program itself -- is interpreted text, so a backslash in any of them
+        is reported as an escape rather than read past."""
+        index = 0
+        while index < len(segment):
+            token = segment[index]
+            if "\\" in token:
+                return (None, True)
+            if CODEX_ASSIGNMENT_RE.match(token):
+                index += 1
+                continue
+            if token in CODEX_COMMAND_PREFIX_WORDS:
+                index += 1
+                continue
+            if token.startswith("-"):
+                if token.startswith("--") and "=" in token:
+                    index += 1
+                    continue
+                return (None, False)
+            return (index, False)
+        return (None, False)
+
+    def walk(segment: list[str], depth: int) -> None:
+        if flags["stop"]:
+            return
+        index, escaped = program_index(segment)
+        if escaped:
+            # An escape in or before the program name: which token is the
+            # program is a guess, and so is how the rest of the command groups.
+            flags["stop"] = True
+            flags["parse_error"] = True
+            return
+        if index is None:
+            flags["parse_error"] = True
+            return
+        program = segment[index].rsplit("/", 1)[-1] or segment[index]
+        rest = segment[index + 1:]
+        if program in CODEX_SHELL_WRAPPERS and depth < CODEX_TRACE_MAX_WRAPPER_DEPTH:
+            # The wrapper is not the interesting program: parse what it runs. Its
+            # inline command is re-tokenized, so escapes inside it are handled
+            # one level down rather than stopping the read here.
+            kind, inner = codex_shell_inline_command(rest)
+            if kind == "escaped":
+                flags["stop"] = True
+                flags["parse_error"] = True
+                return
+            if kind == "ambiguous":
+                flags["parse_error"] = True
+                return
+            if kind == "inner" and inner is not None:
+                inner_segments, failed = codex_tokenize_command(inner)
+                if failed:
+                    flags["parse_error"] = True
+                for inner_segment in inner_segments:
+                    walk(inner_segment, depth + 1)
+                return
+        for position, token in enumerate(rest):
+            if "\\" in token:
+                # Everything from here on may regroup under a real shell.
+                rest = rest[:position]
+                flags["stop"] = True
+                flags["parse_error"] = True
+                break
+        if CODEX_PROGRAM_RE.fullmatch(program):
+            add_program(program)
+        else:
+            flags["parse_error"] = True
+        for token in rest:
+            if token.startswith("-") or not CODEX_PATH_OPERAND_RE.fullmatch(token):
+                continue
+            if "/" not in token and not token.endswith(CODEX_PATH_OPERAND_SUFFIXES):
+                continue
+            normalized = normalize_codex_path(token, sandbox_root)
+            if normalized is None:
+                continue
+            add_operand(normalized)
+
+    if isinstance(command, str) and "\\" in command:
+        flags["parse_error"] = True
+    elif isinstance(command, list) and any(
+        isinstance(token, str) and "\\" in token for token in command
+    ):
+        flags["parse_error"] = True
+    segments, failed = codex_command_segments(command)
+    if failed:
+        flags["parse_error"] = True
+    for segment in segments:
+        walk(segment, 0)
+    return programs, operands, flags["parse_error"], flags["truncated"]
+
+
+def codex_trace_entry(
+    item: dict[str, Any], sandbox_root: Path, default_status: str
+) -> dict[str, Any] | None:
+    """Reduce one stream item to a record, or None when it carries no evidence.
+
+    ``agent_message``, ``reasoning``, and ``todo_list`` items are the executor's
+    own words; they are skipped entirely so no executor content reaches the
+    grader through this record. An id or tool name the runner cannot validate is
+    replaced by a marker rather than stored, so run.json never carries the raw
+    value either."""
+    raw_id = item.get("id")
+    if not isinstance(raw_id, str) or not raw_id:
+        return None
+    invalid_value = False
+    if CODEX_RENDERED_ID_RE.fullmatch(raw_id):
+        item_id = raw_id
+    else:
+        item_id = CODEX_TRACE_INVALID_TOKEN
+        invalid_value = True
+    status = item.get("status")
+    if not isinstance(status, str) or not status:
+        status = default_status
+    item_type = item.get("type")
+    entry: dict[str, Any] | None = None
+    parse_error = False
+    if item_type == "command_execution":
+        programs, operands, parse_error, truncated = codex_command_shape(
+            item.get("command"), sandbox_root
+        )
+        exit_code = item.get("exit_code")
+        if isinstance(exit_code, bool) or not isinstance(exit_code, int):
+            exit_code = None
+        entry = {
+            "type": "command_execution",
+            "id": item_id,
+            "status": status,
+            "exit_code": exit_code,
+            "programs": programs,
+            "path_operands": operands,
+        }
+        if truncated:
+            entry["truncated"] = True
+    elif item_type == "file_change":
+        changes: list[dict[str, Any]] = []
+        truncated = False
+        raw_changes = item.get("changes")
+        if isinstance(raw_changes, list):
+            for change in raw_changes:
+                if not isinstance(change, dict):
+                    continue
+                path = change.get("path")
+                if not isinstance(path, str) or not path:
+                    continue
+                normalized = normalize_codex_path(path, sandbox_root)
+                if normalized is None:
+                    continue
+                if len(changes) >= CODEX_TRACE_MAX_FILE_CHANGES:
+                    truncated = True
+                    break
+                kind = change.get("kind")
+                changes.append(
+                    {"path": normalized, "kind": kind if isinstance(kind, str) else None}
+                )
+        entry = {"type": "file_change", "id": item_id, "status": status, "changes": changes}
+        if truncated:
+            entry["truncated"] = True
+    elif item_type == "mcp_tool_call":
+        parts = [
+            part for part in (item.get("server"), item.get("tool"))
+            if isinstance(part, str) and part
+        ]
+        name = ".".join(parts)
+        if not CODEX_RENDERED_NAME_RE.fullmatch(name):
+            name = CODEX_TRACE_INVALID_TOKEN
+            invalid_value = True
+        entry = {"type": "mcp_tool_call", "id": item_id, "status": status, "name": name}
+    elif item_type == "web_search":
+        # The query is the executor's own text; only the fact of a search is kept.
+        entry = {"type": "web_search", "id": item_id, "status": status}
+    if entry is None:
+        return None
+    if parse_error or invalid_value:
+        entry["parse_error"] = True
+    return entry
+
+
+def collect_codex_executor_trace(stdout: str, sandbox_root: Path) -> dict[str, Any]:
+    """Return the runner's trace of a Codex executor's own event stream.
+
+    Called only with the executor's stdout, never the grader's, and identically
+    for both configurations. An empty or unparseable stream stays
+    ``captured=false`` with a reason so the grader never reads absence of a
+    record as proof that nothing ran."""
+    entries: dict[str, dict[str, Any]] = {}
+    event_count = 0
+    malformed_lines = 0
+    non_blank_lines = 0
+    complete = False
+    truncated = False
+    for line in (stdout or "").splitlines():
+        if not line.strip():
+            continue
+        non_blank_lines += 1
+        try:
+            event = json.loads(line)
+        except (ValueError, RecursionError):
+            # Deeply nested or invalid JSON is stream noise, not a runner fault.
+            malformed_lines += 1
+            continue
+        if not isinstance(event, dict):
+            malformed_lines += 1
+            continue
+        event_count += 1
+        event_type = event.get("type")
+        if event_type == "turn.completed":
+            complete = True
+        if event_type not in ("item.started", "item.completed"):
+            continue
+        item = event.get("item")
+        if not isinstance(item, dict):
+            continue
+        item_id = item.get("id")
+        if not isinstance(item_id, str) or not item_id:
+            continue
+        if item_id not in entries and len(entries) >= EXECUTOR_EVIDENCE_MAX_ENTRIES:
+            # Past the cap, later items are counted but not parsed.
+            truncated = True
+            continue
+        completed = event_type == "item.completed"
+        entry = codex_trace_entry(
+            item, sandbox_root, "completed" if completed else "in_progress"
+        )
+        if entry is None:
+            continue
+        if item_id in entries:
+            # One entry per item id. The completed record supersedes the started
+            # one in place, so the stream order of first appearance is kept.
+            if completed:
+                entries[item_id] = entry
+            continue
+        entries[item_id] = entry
+    if event_count == 0:
+        reason = (
+            "codex JSONL stream was empty"
+            if non_blank_lines == 0
+            else "codex JSONL stream had no parsable events"
+        )
+        return {
+            "captured": False,
+            "source": "runner",
+            "provider": "codex",
+            "reason": reason,
+            "entries": [],
+        }
+    return {
+        "captured": True,
+        "source": "runner",
+        "provider": "codex",
+        "note": CODEX_TRACE_NOTE,
+        "stream": {
+            "complete": complete,
+            "event_count": event_count,
+            "malformed_lines": malformed_lines,
+            "truncated": truncated,
+        },
+        "entries": list(entries.values()),
+    }
+
+
+# --------------------------------------------------------------------------- #
 # Prompt rendering: executor gets the task only; grader gets output + assertions.
 # --------------------------------------------------------------------------- #
 def render_executor_prompt(
@@ -1746,6 +2235,17 @@ def grader_schema() -> dict[str, Any]:
     }
 
 
+def render_safe_trace_token(value: Any, pattern: re.Pattern[str]) -> str:
+    """Return an evidence value only when it matches its rendering shape.
+
+    Every value that reaches the grader prompt derives from executor activity,
+    so it is validated here as well as at collection: one that fails renders as
+    a marker, never as its raw text."""
+    if isinstance(value, str) and pattern.fullmatch(value):
+        return value
+    return CODEX_TRACE_INVALID_TOKEN
+
+
 def render_grader_prompt(
     suite: EvalSuite,
     case: EvalCase,
@@ -1787,7 +2287,11 @@ def render_grader_prompt(
             "embedded in it."
         )
     evidence_entries = (executor_evidence or {}).get("entries") if executor_evidence else None
-    if executor_evidence is not None and executor_evidence.get("captured"):
+    # Two sources, one contract: a Claude run's evidence is read from the host
+    # session transcript, a Codex run's from the provider's own event stream.
+    # Only the provenance wording differs; the no-fabrication semantics do not.
+    evidence_from_host = (executor_evidence or {}).get("source") != "runner"
+    if executor_evidence is not None and executor_evidence.get("captured") and evidence_from_host:
         boundary_rules.append(
             "- The Executor Tool/Delegation Evidence section below is the runner's own record, read "
             "from the host session transcript, of the tool calls and sub-agents the executor actually "
@@ -1796,6 +2300,20 @@ def render_grader_prompt(
             "that appears there, treat its delegation/tool claim as backed by a real host record. Only "
             "an id or run/task record that appears in NO runner-provided evidence section may be "
             "treated as unproven; executor prose in the recorded output is not runner evidence."
+        )
+    elif executor_evidence is not None and executor_evidence.get("captured"):
+        # The runner source records commands, not delegations, and its ids are
+        # provider-issued: it must claim less than the host transcript rule does.
+        boundary_rules.append(
+            "- The Executor Tool/Delegation Evidence section below is the runner's own record, parsed "
+            "from the executor's own command event stream. It lists program and tool categories and "
+            "provider-recorded item ids, and nothing else. A listed id establishes only that the "
+            "provider recorded that item: not that the command succeeded, not that a file was read, "
+            "and not that any sub-agent or delegation ran. Every id there is provider-issued and "
+            "recorded by the runner, not authored by the executor: do not judge any id in that section "
+            "as fabricated or 'generated-looking'. A delegation or sub-agent claim needs evidence "
+            "beyond a command item, so a command item alone leaves such a claim unproven; executor "
+            "prose in the recorded output is not runner evidence."
         )
     lines = [
         "# Eval Grader Prompt",
@@ -1860,22 +2378,62 @@ def render_grader_prompt(
             lines.append("The agent made no file changes in its sandbox outside the runtime scaffold.")
     if executor_evidence is not None and executor_evidence.get("captured"):
         lines.extend(["", "## Executor Tool/Delegation Evidence", ""])
-        lines.append(
-            "Host-recorded trace of the executor's tool calls and sub-agents (host state, not sandbox "
-            "state). Only tool names and host-issued ids are shown; prompt text, reasoning, and tool "
-            "results are redacted. Every id here is host-issued and must not be judged fabricated:"
-        )
+        if evidence_from_host:
+            lines.append(
+                "Host-recorded trace of the executor's tool calls and sub-agents (host state, not sandbox "
+                "state). Only tool names and host-issued ids are shown; prompt text, reasoning, and tool "
+                "results are redacted. Every id here is host-issued and must not be judged fabricated:"
+            )
+        else:
+            lines.append(
+                "Runner-parsed trace of the executor's own provider event stream (provider-reported "
+                "records, not the executor's narration). Each line gives a program or tool category "
+                "that appeared in a provider-recorded item and that item's provider-issued id; "
+                "command arguments, file paths, command output, message text, and reasoning are "
+                "redacted. A program shown as `other` is one outside the runner's fixed rendering "
+                "vocabulary and `invalid` marks a value the runner could not validate, so neither is "
+                "executor text; an item marked `(in_progress)` was started and never reported "
+                "completed:"
+            )
         lines.append("")
         if evidence_entries:
             for entry in evidence_entries:
                 kind = entry.get("type", "record")
                 name = entry.get("name")
-                name_text = f" {name}" if isinstance(name, str) else ""
-                lines.append(f"- {kind}{name_text}: `{entry.get('id')}`")
-        else:
+                programs = entry.get("programs")
+                if isinstance(name, str) and name:
+                    name_text = f" {render_safe_trace_token(name, CODEX_RENDERED_NAME_RE)}"
+                elif isinstance(programs, list) and programs:
+                    # A closed vocabulary, not the recorded name: whatever the
+                    # command tokenizer produced, only a known tool name or
+                    # `other` reaches the prompt. Operands never do.
+                    shown: list[str] = []
+                    for program in programs:
+                        token = (
+                            program
+                            if isinstance(program, str)
+                            and program in CODEX_GRADER_PROGRAM_VOCABULARY
+                            else CODEX_GRADER_OTHER_PROGRAM
+                        )
+                        if token not in shown:
+                            shown.append(token)
+                    name_text = " " + ", ".join(shown)
+                else:
+                    name_text = ""
+                # An item the provider never reported as completed is shown as
+                # such, so a started command is not read as a finished one.
+                suffix = " (in_progress)" if entry.get("status") == "in_progress" else ""
+                entry_id = render_safe_trace_token(entry.get("id"), CODEX_RENDERED_ID_RE)
+                lines.append(f"- {kind}{name_text}: `{entry_id}`{suffix}")
+        elif evidence_from_host:
             lines.append(
                 "The transcript recorded no tool calls or sub-agents for this run, so any claim that "
                 "sub-agents ran is unproven."
+            )
+        else:
+            lines.append(
+                "The provider event stream recorded no commands, tool calls, or sub-agents for this "
+                "run, so any claim that they ran is unproven."
             )
     lines += [
         "",
@@ -2647,7 +3205,22 @@ def execute_run(
         artifact_info["capture_path"] = artifact_info.get("path")
         artifact_info["path"] = str(output_artifact_file.resolve())
     change_manifest = collect_sandbox_change_manifest(sandbox)
-    executor_evidence = collect_executor_evidence(metrics, sandbox.repo_root)
+    # Config-symmetric executor trace. Codex reports its own tool events on the
+    # executor stream the runner already reads; every other provider falls back
+    # to the host-transcript collector. The grader's stream is never read here.
+    if isinstance(provider, CodexProvider):
+        try:
+            executor_evidence = collect_codex_executor_trace(e_stdout, sandbox.repo_root)
+        except Exception as exc:  # noqa: BLE001 - evidence never fails a run
+            executor_evidence = {
+                "captured": False,
+                "source": "runner",
+                "provider": "codex",
+                "reason": f"codex trace collection failed: {type(exc).__name__}",
+                "entries": [],
+            }
+    else:
+        executor_evidence = collect_executor_evidence(metrics, sandbox.repo_root)
 
     status = "ok"
     grader_inv: Invocation | None = None

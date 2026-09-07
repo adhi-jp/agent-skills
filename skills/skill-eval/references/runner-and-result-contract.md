@@ -210,18 +210,73 @@ Read this reference before executing `run`, diagnosing or reporting an iteration
   use the same collection, and grader prompts receive one line-safe inert JSON
   record per path. Without a sandbox Git baseline, the manifest records
   `captured = false` and the grader prompt omits the section.
-- For Claude runs, the runner also records a redacted host tool/delegation trace
-  as `executor_evidence`. It captures the CLI `session_id`, reads the host
-  transcript under `<CLAUDE_CONFIG_DIR or ~/.claude>/projects/<encoded-cwd>/`,
-  accepts sub-agent records only from layouts bound to that exact executor
-  session, and rejects project-wide aggregate sub-agent directories. It folds
-  only tool names, host-issued tool-use ids, and session-bound host-created
-  sub-agent record ids into the grader prompt under `Executor Tool/Delegation
-  Evidence`. Prompt text, reasoning, and tool results stay redacted. This record
-  is marked `source = host` because it reads host state outside the sandbox. For
-  providers without an equivalent session-bound host transcript the field
-  records `captured = false` with a reason, and the grader prompt omits the
-  section.
+- The runner also records an executor tool/delegation trace as
+  `executor_evidence`, from one of two sources and with identical collection for
+  both configurations. For Claude runs the record is `source = host`: the runner
+  captures the CLI `session_id`, reads the host transcript under
+  `<CLAUDE_CONFIG_DIR or ~/.claude>/projects/<encoded-cwd>/`, accepts sub-agent
+  records only from layouts bound to that exact executor session, and rejects
+  project-wide aggregate sub-agent directories. It folds only tool names,
+  host-issued tool-use ids, and session-bound host-created sub-agent record ids
+  into the grader prompt under `Executor Tool/Delegation Evidence`. Prompt text,
+  reasoning, and tool results stay redacted, and the record is marked
+  `source = host` because it reads host state outside the sandbox.
+- For Codex runs the same field is `source = runner`: the runner parses the
+  executor's own `codex exec --json` event stream — never the grader's — into
+  one entry per item id, in stream order. `command_execution` records the
+  status, exit code, program names, and conservative path operands, unwrapping
+  shell wrappers such as `/bin/bash -lc` (including behind a launcher, as in
+  `env bash -lc …`) and splitting segments on unquoted `&&`, `||`, `|`, `;`,
+  and `&`, so a quoted `'|'` stays an argument. `file_change` records the
+  changed paths and kinds; `mcp_tool_call` records `server.tool`; `web_search`
+  records only that a search ran.
+- Programs, operands, and file-change paths are best-effort readings of the
+  reported command, and the entry's `parse_error` flag marks the ones the
+  runner could not read confidently: a backslash escape, which it does not
+  interpret and after which it stops reading that command, including one in a
+  launcher or shell option prefix; an unterminated quote, which yields no
+  programs or operands from the failed tokenization, though segments parsed
+  before it are kept; a launcher option it cannot delimit (`sudo -u user cat …`);
+  a shell option that may consume the next token (`bash --rcfile …`), so the
+  inline command cannot be identified; a program name outside the bounded ASCII
+  shape the runner will record; or an item id or tool name that fails
+  validation. Read a `parse_error` entry's names as hints, not as claims.
+- Recorded paths are literal tokens, not resolved paths: the runner does not
+  apply a `cd` from earlier in the command, so a relative operand names what
+  the command asked for rather than where it resolved. A sandbox-absolute path
+  becomes sandbox-relative, a path that is absolute outside the sandbox or
+  home-relative (`~/…`) collapses to `<external-path>`, and a path with a `..`
+  component or over 256 characters is dropped. Neither the collapse nor the
+  drop sets `parse_error`; both are ordinary recording rules. Operands are
+  recognized only in a conservative ASCII path shape, so paths with non-ASCII
+  characters or spaces are simply not recorded. Command lines, command output,
+  message text, reasoning, plan items, and search queries are excluded, and a
+  path operand proves only that the command named that path, not that it was
+  read successfully.
+- Four caps bound the record — 200 entries per run, 8 programs and 16 path
+  operands per command entry, and 32 changes per file-change entry — and each
+  reports as a boolean flag rather than a count: `stream.truncated` for the
+  entry cap and an entry's own `truncated` for the per-entry caps. The `stream`
+  block also reports whether a `turn.completed` event was seen plus the event
+  and malformed-line counts.
+- What reaches the grader is closed by construction, independent of how well
+  the runner read the command. Program names render only from a fixed
+  vocabulary of common tool names; any other program renders as `other`,
+  deduplicated within the entry. Item ids and tool names render only when they
+  match a bounded shape and otherwise render as `invalid` — and a value that
+  fails that check at collection is stored as `invalid` in `run.json` too,
+  never as its raw text. Path operands and file-change paths never reach the
+  prompt at all, and an item the provider never reported as completed is marked
+  `(in_progress)`. The runner source carries its own boundary rule: a listed id
+  establishes only that the provider recorded that item, not that the command
+  succeeded, that a file was read, or that any sub-agent or delegation ran, so
+  a delegation claim needs evidence beyond a command item.
+- When no trace can be built — a provider with neither source, an unreadable
+  host transcript, an empty or unparseable event stream, or a fault in
+  collection itself (recorded as `codex trace collection failed:
+  <ExceptionType>`) — the field records `captured = false` with a reason and
+  the grader prompt omits the section, so absence of a record is never read as
+  disproof and the run is still executed, graded, and persisted.
 - The grader returns a structured, schema-constrained verdict. Verdicts are keyed
   by the assertion's 1-based `id` (`{"verdicts": [{"id", "passed", "evidence"}]}`),
   not by an echoed assertion string, so a grader cannot break grading by

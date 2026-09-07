@@ -11,6 +11,26 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Added
+
+- `skill-eval`: a Codex run now records an executor trace in `run.json` under
+  `executor_evidence` with `source = runner`, parsed by the runner from the
+  executor's own event stream: command program names, conservative
+  sandbox-relative path operands, file-change paths, and MCP tool names, one
+  entry per item and collected the same way for `with_skill` and
+  `without_skill`. Command lines, command output, message text, reasoning, and
+  search queries stay out of the record, and an entry the runner could not read
+  confidently — an escape it does not interpret, an unterminated quote, an
+  option it cannot delimit — is marked `parse_error` and records less rather
+  than guessing. What the grader sees is closed by construction: program names
+  come from a fixed vocabulary and anything else shows as `other`, ids and tool
+  names show as `invalid` unless they match a bounded shape, path operands and
+  changed paths never appear, and the grader is told a listed id proves only
+  that the provider recorded that item — not that the command succeeded, that a
+  file was read, or that any sub-agent or delegation ran. An empty or
+  unparseable stream, or a fault in collection itself, records
+  `captured = false` with a reason while the run is still graded and recorded.
+
 ### Changed
 
 - `vibe-coding`: when a selected route has no visible specialist, the route
