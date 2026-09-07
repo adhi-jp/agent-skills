@@ -241,10 +241,10 @@
       "expected_output": "A response that states the artifacts and field values the settled item produces and what it leaves untouched pending confirmation.",
       "files": [],
       "expectations": [
-        "Allocates `ADR-0022` — one more than the highest id present in both `docs/decisions/` and `docs/decisions/README.md` — and writes the record at `docs/decisions/0022-<slug>.md` with `status: accepted`, `decided-by: user`, `ratified: user`, a `paths` value covering payment plans or left empty as repository-wide, a one-sentence imperative `summary`, `revisit-when`, and `## Considered Options` naming the rejected three-retry exponential backoff with its reason.",
-        "Fills that record's `confirmation` with a concrete command or check, or — since this repository verifies retry behaviour by an operator's manual invoice replay — with a `manual:` form that names that check and states why no automated one exists; a bare promise to confirm later does not satisfy it.",
+        "Identifies `ADR-0022` — one more than the highest id present in both `docs/decisions/` and `docs/decisions/README.md` — as the id it would allocate and describes the record it would write at `docs/decisions/0022-<slug>.md` with `status: accepted`, `decided-by: user`, `ratified: user`, a `paths` value covering payment plans or left empty as repository-wide, a one-sentence imperative `summary`, `revisit-when`, and `## Considered Options` naming the rejected three-retry exponential backoff with its reason.",
+        "Gives that record's `confirmation` as a concrete command or check, or — since this repository verifies retry behaviour by an operator's manual invoice replay — with a `manual:` form that names that check and states why no automated one exists; a bare promise to confirm later does not satisfy it.",
         "Anchors that record's `sources` to the authority this prompt supplies: the user's 2026-09-06 turn with its deciding phrase.",
-        "Adds that record's row to `docs/decisions/README.md` with the columns `id | status | decided-by/ratified | paths | tags | summary | file`.",
+        "Describes the row it would add for that record to `docs/decisions/README.md` with the columns `id | status | decided-by/ratified | paths | tags | summary | file`.",
         "Asks for the plan-reflection confirmation as a separate step from writing the record.",
         "Writes nothing into `docs/plans/2026-09-01-billing-retry.md` before the user explicitly confirms that reflection.",
         "Does not create, modify, or delete any file in this checkout; it states the record and the index row it would write."

@@ -13,6 +13,13 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- Eval maintenance: the response-only durable-records cases of
+  `vibe-agent-instructions`, `vibe-plan-review`, `vibe-requirements-spec`, and
+  `vibe-writing` grade the record, confirmation, and index row the response
+  describes rather than a performed write, so `validate` reports no
+  delivery-mode warnings for those suites. Skill behavior unchanged; each suite
+  was re-run once after the rewording.
+
 - Eval maintenance: the `vibe-plan-execution` E06 fixture runs its tests with
   Node's built-in runner and needs no package install, so the checkpoint-commit
   case no longer depends on an install the sandbox cannot perform; the
