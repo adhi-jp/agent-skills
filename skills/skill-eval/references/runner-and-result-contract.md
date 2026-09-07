@@ -267,7 +267,26 @@ Read this reference before executing `run`, diagnosing or reporting an iteration
   fails that check at collection is stored as `invalid` in `run.json` too,
   never as its raw text. Path operands and file-change paths never reach the
   prompt at all, and an item the provider never reported as completed is marked
-  `(in_progress)`. The runner source carries its own boundary rule: a listed id
+  `(in_progress)`. The runner source also drops the executor's reads of its own
+  delivered skill package from the rendered list, because that read is how the
+  eval delivers the skill, not work the task asked for, and listing it lets a
+  response-only assertion such as "does not run commands" fail with the skill
+  and pass without it. It drops an entry only when both hold: the collector
+  classified the command `read_only` — recorded on the entry, decided with the
+  whole command in view, and true only when every segment ran a program from
+  the read-only set with no mutating or executing option (`sed -i`,
+  `find -delete`/`-exec`, `sort -o`, …), nothing redirected a stream, and every
+  token after each program was accounted for as an option, as the program's own
+  pattern or script argument, or as a recorded path operand — and every recorded
+  operand lies inside `skills/<skill_name>/`. Anything else stays listed: a
+  command that writes, executes, or deletes; one whose operand the runner
+  dropped, could not normalize, or placed outside the sandbox; a `parse_error`
+  or truncated entry; and one that named a single path outside the package. The
+  test is by path and never consults the configuration, so both configurations
+  get a byte-identical lead-in, the omitted entries stay in `run.json`, and
+  `executor_evidence.grader_omitted_skill_reads` records how many were omitted
+  (0 when none were, including when no trace was captured). The runner
+  source carries its own boundary rule: a listed id
   establishes only that the provider recorded that item, not that the command
   succeeded, that a file was read, or that any sub-agent or delegation ran, so
   a delegation claim needs evidence beyond a command item.

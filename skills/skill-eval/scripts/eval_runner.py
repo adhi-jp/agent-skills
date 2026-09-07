@@ -1709,6 +1709,43 @@ CODEX_GRADER_PROGRAM_VOCABULARY = frozenset(
         "realpath", "readlink", "ln",
     }
 )
+# Read-only inspection programs. Used only to decide whether a recorded command
+# was the executor reading its own delivered skill package, never to decide what
+# a program is called in the prompt (that is the vocabulary above). Membership
+# is necessary but not sufficient: every one of these can be made to write, run,
+# or delete through an option, so the classifier below checks the options too.
+CODEX_READ_ONLY_PROGRAMS = frozenset(
+    {
+        "cat", "sed", "head", "tail", "grep", "rg", "ls", "find", "wc", "awk",
+        "nl", "cut", "sort", "uniq", "diff", "stat", "tree", "less", "more",
+        "file",
+    }
+)
+# Programs whose first non-option operand is a script or pattern rather than a
+# path. Without this the runner would demand that the pattern be a recorded path
+# and refuse to classify an ordinary `rg PATTERN dir/` as read-only.
+CODEX_READ_ONLY_PATTERN_ARGS = {"sed": 1, "awk": 1, "grep": 1, "rg": 1}
+# Options that take a separate value and so move the pattern out of its usual
+# slot. The runner does not track option values, so their presence means it can
+# no longer say which token is the pattern and which is a path.
+CODEX_READ_ONLY_ARITY_OPTIONS = {
+    "sed": frozenset({"-e", "-f", "--expression", "--file"}),
+    "awk": frozenset({"-f", "--file", "-v", "--assign", "--source"}),
+    "grep": frozenset({"-e", "-f", "--regexp", "--file"}),
+    "rg": frozenset({"-e", "-f", "--regexp", "--file", "-g", "--glob", "--iglob", "--pre"}),
+}
+# `find` options that run or delete rather than report.
+CODEX_FIND_MUTATING_OPTIONS = frozenset(
+    {"-delete", "-exec", "-execdir", "-ok", "-okdir", "-fls"}
+)
+# Programs whose `-o`/`--output` names a file to write. `grep -o` is
+# `--only-matching` and writes nothing, so grep is deliberately not here.
+CODEX_READ_ONLY_OUTPUT_OPTION_PROGRAMS = frozenset({"sort", "uniq", "rg", "tree"})
+# Shell redirection operators as they survive tokenization of an argv list.
+CODEX_REDIRECTION_TOKENS = frozenset(
+    {">", ">>", ">|", ">&", "&>", "&>>", "<", "<<", "<<<", "<>",
+     "1>", "1>>", "2>", "2>>"}
+)
 CODEX_TRACE_NOTE = (
     "Runner-parsed trace of the provider's own JSONL event stream: command program names, "
     "conservative path operands, file-change paths, and tool names only; command arguments, "
@@ -1827,17 +1864,84 @@ def normalize_codex_path(token: str, sandbox_root: Path) -> str | None:
     return CODEX_EXTERNAL_PATH_MARKER
 
 
+def codex_text_has_unquoted_redirection(text: str) -> bool:
+    """Return True when the command text may redirect a stream.
+
+    Read before quote stripping, on the raw text, because a redirection and a
+    quoted ``'>'`` argument reduce to the same token afterwards. Quoting is
+    tracked only well enough to answer conservatively: an unterminated quote, or
+    any ``<``/``>`` the scan sees outside quotes, counts as a redirection rather
+    than as an argument."""
+    quote = ""
+    for char in text:
+        if quote:
+            if char == quote:
+                quote = ""
+            continue
+        if char in ("'", '"'):
+            quote = char
+            continue
+        if char in "<>":
+            return True
+    return bool(quote)
+
+
+def codex_command_has_redirection(command: Any) -> bool:
+    """Return True when the reported command may redirect a stream.
+
+    An argv list is executed without a shell, so a redirection operator in it is
+    an ordinary argument; it is still reported, because a list that carries one
+    is not a shape the runner is confident about."""
+    if isinstance(command, list):
+        return any(
+            isinstance(token, str) and token in CODEX_REDIRECTION_TOKENS
+            for token in command
+        )
+    if isinstance(command, str):
+        return codex_text_has_unquoted_redirection(command)
+    return False
+
+
+def codex_read_only_option_is_mutating(program: str, token: str) -> bool:
+    """Return True when this option makes a read-only program write or execute.
+
+    Short options are read as clusters (``sed -ni`` is ``sed -i``) and long
+    options by prefix (``--in-place=.bak``), so an option cannot slip through by
+    being bundled or by carrying an inline value."""
+    if program == "find":
+        return token in CODEX_FIND_MUTATING_OPTIONS or token.startswith("-fprint")
+    if program in ("sed", "awk"):
+        if token.startswith("--"):
+            return token.startswith("--in-place") or token.startswith("--include")
+        return "i" in token[1:]
+    if program in CODEX_READ_ONLY_OUTPUT_OPTION_PROGRAMS:
+        if token.startswith("--"):
+            return token.startswith("--output")
+        return token.startswith("-o")
+    return False
+
+
 def codex_command_shape(
     command: Any, sandbox_root: Path
-) -> tuple[list[str], list[str], bool, bool]:
-    """Return (programs, path operands, parse_error, truncated) for one command.
+) -> tuple[list[str], list[str], bool, bool, bool]:
+    """Return (programs, path operands, parse_error, truncated, read_only).
 
     Backslash escapes are not interpreted. A backslash means the runner cannot
     tell how the shell would regroup the words, so reading stops there and what
-    was already read is a hint, marked by ``parse_error``."""
+    was already read is a hint, marked by ``parse_error``.
+
+    ``read_only`` is the runner's judgement, made here with the whole command in
+    view rather than later from the program names alone, that this command only
+    read: every segment ran a read-only program with no mutating or executing
+    option, nothing redirected a stream, and every token after each program was
+    accounted for as an option, as the program's own pattern argument, or as a
+    recorded path operand. A token the runner dropped instead of recording could
+    be an unseen path, so it makes the command unclassified, and unclassified
+    means not read-only. Nothing about the answer depends on the configuration
+    that produced the command."""
     programs: list[str] = []
     operands: list[str] = []
-    flags = {"parse_error": False, "truncated": False, "stop": False}
+    flags = {"parse_error": False, "truncated": False, "stop": False, "read_only": True}
 
     def add_program(name: str) -> None:
         if name in programs:
@@ -1911,6 +2015,8 @@ def codex_command_shape(
                 flags["parse_error"] = True
                 return
             if kind == "inner" and inner is not None:
+                if codex_text_has_unquoted_redirection(inner):
+                    flags["read_only"] = False
                 inner_segments, failed = codex_tokenize_command(inner)
                 if failed:
                     flags["parse_error"] = True
@@ -1928,15 +2034,34 @@ def codex_command_shape(
             add_program(program)
         else:
             flags["parse_error"] = True
+        if program not in CODEX_READ_ONLY_PROGRAMS:
+            flags["read_only"] = False
+        arity_options = CODEX_READ_ONLY_ARITY_OPTIONS.get(program, frozenset())
+        pattern_slots = CODEX_READ_ONLY_PATTERN_ARGS.get(program, 0)
         for token in rest:
-            if token.startswith("-") or not CODEX_PATH_OPERAND_RE.fullmatch(token):
+            if token.startswith("-") and token != "-":
+                # An option. Recognized, unless it writes, executes, or moves
+                # the pattern out of the slot the runner expects it in.
+                if codex_read_only_option_is_mutating(program, token):
+                    flags["read_only"] = False
+                if token == "--" or token in arity_options:
+                    flags["read_only"] = False
                 continue
-            if "/" not in token and not token.endswith(CODEX_PATH_OPERAND_SUFFIXES):
+            if pattern_slots > 0:
+                # The program's own script or pattern, not a path.
+                pattern_slots -= 1
                 continue
-            normalized = normalize_codex_path(token, sandbox_root)
-            if normalized is None:
-                continue
-            add_operand(normalized)
+            normalized = None
+            if CODEX_PATH_OPERAND_RE.fullmatch(token) and (
+                "/" in token or token.endswith(CODEX_PATH_OPERAND_SUFFIXES)
+            ):
+                normalized = normalize_codex_path(token, sandbox_root)
+            if normalized is None or normalized == CODEX_EXTERNAL_PATH_MARKER:
+                # Dropped, or placed outside the sandbox: an operand the runner
+                # did not record cannot be shown to lie inside any directory.
+                flags["read_only"] = False
+            if normalized is not None:
+                add_operand(normalized)
 
     if isinstance(command, str) and "\\" in command:
         flags["parse_error"] = True
@@ -1944,12 +2069,20 @@ def codex_command_shape(
         isinstance(token, str) and "\\" in token for token in command
     ):
         flags["parse_error"] = True
+    if codex_command_has_redirection(command):
+        flags["read_only"] = False
     segments, failed = codex_command_segments(command)
     if failed:
         flags["parse_error"] = True
     for segment in segments:
         walk(segment, 0)
-    return programs, operands, flags["parse_error"], flags["truncated"]
+    read_only = bool(
+        flags["read_only"]
+        and programs
+        and not flags["parse_error"]
+        and not flags["truncated"]
+    )
+    return programs, operands, flags["parse_error"], flags["truncated"], read_only
 
 
 def codex_trace_entry(
@@ -1978,7 +2111,7 @@ def codex_trace_entry(
     entry: dict[str, Any] | None = None
     parse_error = False
     if item_type == "command_execution":
-        programs, operands, parse_error, truncated = codex_command_shape(
+        programs, operands, parse_error, truncated, read_only = codex_command_shape(
             item.get("command"), sandbox_root
         )
         exit_code = item.get("exit_code")
@@ -1991,6 +2124,7 @@ def codex_trace_entry(
             "exit_code": exit_code,
             "programs": programs,
             "path_operands": operands,
+            "read_only": read_only,
         }
         if truncated:
             entry["truncated"] = True
@@ -2119,6 +2253,54 @@ def collect_codex_executor_trace(stdout: str, sandbox_root: Path) -> dict[str, A
         },
         "entries": list(entries.values()),
     }
+
+
+def is_skill_package_read(entry: dict[str, Any], skill_package_dir: str) -> bool:
+    """Return True when this trace entry is a read of the delivered skill package.
+
+    Harness scaffolding, not task work: the runner hands the executor a skill
+    package inside the sandbox, so the reads that open it are an artifact of how
+    the eval is delivered. Listing them to the grader makes a response-only
+    assertion such as "does not run commands" fail with the skill and pass
+    without it.
+
+    Two conditions, both decided without reference to the configuration. The
+    entry must carry ``read_only``, the judgement the collector made with the
+    whole command in view -- program, options, redirections, and every token
+    accounted for -- so a command that writes, executes, deletes, or that the
+    runner could not read in full is never mistaken for a read. And every
+    recorded operand must lie inside the package directory, so a command that
+    also named something outside it stays listed. A missing or false
+    ``read_only``, a ``parse_error``, a truncated read, no operand at all, an
+    operand collapsed to ``<external-path>``, or a single operand outside the
+    package all leave the entry listed: what the runner cannot classify, it
+    shows.
+    """
+    if not isinstance(entry, dict) or entry.get("type") != "command_execution":
+        return False
+    if entry.get("read_only") is not True:
+        return False
+    if entry.get("parse_error") or entry.get("truncated"):
+        return False
+    package = (skill_package_dir or "").rstrip("/")
+    if not package:
+        return False
+    programs = entry.get("programs")
+    if not isinstance(programs, list) or not programs:
+        return False
+    for program in programs:
+        if not isinstance(program, str) or program not in CODEX_READ_ONLY_PROGRAMS:
+            return False
+    operands = entry.get("path_operands")
+    if not isinstance(operands, list) or not operands:
+        return False
+    prefix = package + "/"
+    for operand in operands:
+        if not isinstance(operand, str):
+            return False
+        if operand != package and not operand.startswith(prefix):
+            return False
+    return True
 
 
 # --------------------------------------------------------------------------- #
@@ -2254,6 +2436,7 @@ def render_grader_prompt(
     artifact_text: str | None = None,
     change_manifest: dict[str, Any] | None = None,
     executor_evidence: dict[str, Any] | None = None,
+    skill_package_dir: str | None = None,
 ) -> str:
     assertions = assertions_for_case(suite, case)
     boundary_rules = [
@@ -2291,6 +2474,18 @@ def render_grader_prompt(
     # session transcript, a Codex run's from the provider's own event stream.
     # Only the provenance wording differs; the no-fabrication semantics do not.
     evidence_from_host = (executor_evidence or {}).get("source") != "runner"
+    # The executor's reads of its own delivered skill package are how the eval
+    # hands over the skill, not work the task called for. They are dropped from
+    # the rendered list -- by path, so both configurations get the same lead-in
+    # and the same treatment -- while staying in run.json.
+    omit_skill_reads = bool(skill_package_dir) and not evidence_from_host
+    rendered_entries = evidence_entries
+    if omit_skill_reads and evidence_entries:
+        rendered_entries = [
+            entry
+            for entry in evidence_entries
+            if not is_skill_package_read(entry, skill_package_dir or "")
+        ]
     if executor_evidence is not None and executor_evidence.get("captured") and evidence_from_host:
         boundary_rules.append(
             "- The Executor Tool/Delegation Evidence section below is the runner's own record, read "
@@ -2385,7 +2580,7 @@ def render_grader_prompt(
                 "results are redacted. Every id here is host-issued and must not be judged fabricated:"
             )
         else:
-            lines.append(
+            lead_in = (
                 "Runner-parsed trace of the executor's own provider event stream (provider-reported "
                 "records, not the executor's narration). Each line gives a program or tool category "
                 "that appeared in a provider-recorded item and that item's provider-issued id; "
@@ -2393,11 +2588,20 @@ def render_grader_prompt(
                 "redacted. A program shown as `other` is one outside the runner's fixed rendering "
                 "vocabulary and `invalid` marks a value the runner could not validate, so neither is "
                 "executor text; an item marked `(in_progress)` was started and never reported "
-                "completed:"
+                "completed"
             )
+            if omit_skill_reads:
+                # Stated for both configurations, so the lead-in never tells the
+                # grader which one it is reading.
+                lead_in += (
+                    ". Read-only commands whose operands all lie inside the delivered skill "
+                    "package are omitted from this list as harness scaffolding; they remain in "
+                    "the run record"
+                )
+            lines.append(lead_in + ":")
         lines.append("")
-        if evidence_entries:
-            for entry in evidence_entries:
+        if rendered_entries:
+            for entry in rendered_entries:
                 kind = entry.get("type", "record")
                 name = entry.get("name")
                 programs = entry.get("programs")
@@ -2429,6 +2633,14 @@ def render_grader_prompt(
             lines.append(
                 "The transcript recorded no tool calls or sub-agents for this run, so any claim that "
                 "sub-agents ran is unproven."
+            )
+        elif evidence_entries:
+            # Everything recorded was omitted above. Saying nothing was recorded
+            # would be false, so say what is true instead.
+            lines.append(
+                "Every item the provider event stream recorded for this run was a read-only command "
+                "inside the delivered skill package and is omitted above; the stream recorded no "
+                "other commands, tool calls, or sub-agents, so any claim that they ran is unproven."
             )
         else:
             lines.append(
@@ -3221,6 +3433,17 @@ def execute_run(
             }
     else:
         executor_evidence = collect_executor_evidence(metrics, sandbox.repo_root)
+    # The delivered skill package sits at the same sandbox-relative path in both
+    # configurations; only with_skill is told to read it. Counting and omitting
+    # by that path keeps the grader's view configuration-symmetric, and the count
+    # keeps the omission visible in run.json.
+    skill_package_dir = f"skills/{suite.skill_name}"
+    if executor_evidence.get("source") == "runner":
+        executor_evidence["grader_omitted_skill_reads"] = sum(
+            1
+            for entry in (executor_evidence.get("entries") or [])
+            if is_skill_package_read(entry, skill_package_dir)
+        )
 
     status = "ok"
     grader_inv: Invocation | None = None
@@ -3254,7 +3477,8 @@ def execute_run(
 
     if status == "ok":
         grader_prompt = render_grader_prompt(
-            suite, case, config, executor_output, artifact_text, change_manifest, executor_evidence
+            suite, case, config, executor_output, artifact_text, change_manifest,
+            executor_evidence, skill_package_dir=skill_package_dir,
         )
         write_text(run_dir / "grader_prompt.md", grader_prompt)
         grader_cwd = grader_working_dir(

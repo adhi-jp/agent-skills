@@ -33,6 +33,20 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skill-eval`: a Codex run's grader prompt no longer lists the executor's own
+  reads of the delivered skill package, so a response-only assertion such as
+  "does not run commands" is no longer failed by the reads that deliver the
+  skill and passed without it. A command is dropped from the list only when the
+  runner classified it as read-only when it parsed it — a read-only program, no
+  mutating or executing option, no redirection, and every token after the
+  program accounted for — and every path it named lies inside
+  `skills/<skill_name>/`. Anything the runner cannot classify that confidently
+  stays listed, including a command that writes, executes, or deletes, and one
+  that also named a path outside the package. The decision never consults the
+  configuration, so both get a byte-identical lead-in; `run.json` now records
+  each command entry's read-only judgement and how many entries were omitted,
+  and the grader is told that omitted reads remain in the run record.
+
 - `vibe-orchestrate`: the crash-recovery questions now ask whether the product
   itself came back through the runner's result interface, since a terminal
   success can still have lost it, a worker's workspace copy may be absent,

@@ -2887,7 +2887,7 @@ class CodexExecutorTraceTests(unittest.TestCase):
         )
 
     @staticmethod
-    def render_with_evidence(evidence):
+    def render_with_evidence(evidence, skill_package_dir=None):
         suite = eval_runner.EvalSuite(
             path=Path("demo.json"), skill_name="demo", common_assertions=["c1"],
             evals=[], scoring={}, raw={},
@@ -2897,7 +2897,8 @@ class CodexExecutorTraceTests(unittest.TestCase):
             project_class=None, archetype=None, files=[], expectations=["e1"], raw={},
         )
         return eval_runner.render_grader_prompt(
-            suite, case, "with_skill", "out", None, None, evidence
+            suite, case, "with_skill", "out", None, None, evidence,
+            skill_package_dir=skill_package_dir,
         )
 
     def test_recorded_codex_stream_yields_programs_and_path_operands(self):
@@ -3115,6 +3116,194 @@ class CodexExecutorTraceTests(unittest.TestCase):
         self.assertFalse(garbage["captured"])
         self.assertEqual(garbage["source"], "runner")
         self.assertIn("no parsable events", garbage["reason"])
+
+    @staticmethod
+    def read_entry(**overrides):
+        entry = {
+            "type": "command_execution", "id": "item_1", "status": "completed",
+            "exit_code": 0, "programs": ["sed"],
+            "path_operands": ["skills/vibe-planning/SKILL.md"], "read_only": True,
+        }
+        entry.update(overrides)
+        return entry
+
+    def test_read_of_the_delivered_skill_package_is_recognized(self):
+        package = "skills/vibe-planning"
+        self.assertTrue(
+            eval_runner.is_skill_package_read(self.read_entry(), package)
+        )
+        # Several read-only programs, several operands, all inside the package.
+        self.assertTrue(
+            eval_runner.is_skill_package_read(
+                self.read_entry(
+                    programs=["cat", "grep"],
+                    path_operands=[
+                        "skills/vibe-planning/SKILL.md",
+                        "skills/vibe-planning/references/x.md",
+                        "skills/vibe-planning",
+                    ],
+                ),
+                package,
+            )
+        )
+        # A trailing slash on the package directory is not a different package.
+        self.assertTrue(
+            eval_runner.is_skill_package_read(self.read_entry(), package + "/")
+        )
+
+    def test_anything_but_a_confident_in_package_read_stays_listed(self):
+        package = "skills/vibe-planning"
+        cases = {
+            "operand outside the package": self.read_entry(
+                path_operands=["skills/vibe-planning/SKILL.md", "docs/x.md"]
+            ),
+            "program that is not read-only": self.read_entry(
+                programs=["sed", "python3"]
+            ),
+            "no operands": self.read_entry(path_operands=[]),
+            "no programs": self.read_entry(programs=[]),
+            "unreadable command": self.read_entry(parse_error=True),
+            "capped command": self.read_entry(truncated=True),
+            # The collector's judgement is the gate: a program name that looks
+            # read-only is not enough on its own.
+            "not classified read-only": self.read_entry(read_only=False),
+            "no read-only judgement": {
+                "type": "command_execution", "id": "item_1", "status": "completed",
+                "exit_code": 0, "programs": ["sed"],
+                "path_operands": ["skills/vibe-planning/SKILL.md"],
+            },
+            # A sibling directory sharing the package's name as a prefix is a
+            # different directory, so a prefix test alone must not match it.
+            "sibling package": self.read_entry(
+                path_operands=["skills/vibe-planning-extra/SKILL.md"]
+            ),
+            "external operand": self.read_entry(
+                path_operands=[eval_runner.CODEX_EXTERNAL_PATH_MARKER]
+            ),
+            "not a command": {
+                "type": "file_change", "id": "item_2", "status": "completed",
+                "changes": [{"path": "skills/vibe-planning/SKILL.md", "kind": "update"}],
+            },
+        }
+        for label, entry in cases.items():
+            with self.subTest(label):
+                self.assertFalse(eval_runner.is_skill_package_read(entry, package))
+        # Without a package directory there is nothing to recognize.
+        self.assertFalse(eval_runner.is_skill_package_read(self.read_entry(), ""))
+
+    def parsed_entry(self, command, root):
+        record = eval_runner.collect_codex_executor_trace(
+            self.command_event("item_1", f"/bin/bash -lc '{command}'"), root
+        )
+        return record["entries"][0]
+
+    def test_only_a_confidently_read_only_in_package_command_is_omitted(self):
+        # Every case goes through the real tokenizer and classifier, so the
+        # decision is measured on what the runner actually parses rather than on
+        # a hand-written entry.
+        omitted = {
+            "sed -n 1,40p skills/demo/SKILL.md": True,
+            "rg -n foo skills/demo/": True,
+            "cat skills/demo/SKILL.md | head -20": True,
+            "cat skills/demo/SKILL.md skills/demo/references/a.md": True,
+            # Deletes and executes rather than reads.
+            "find skills/demo -delete": False,
+            "find skills/demo -name x -exec rm {} ;": False,
+            # Writes: a redirection, an in-place edit, an output-file option.
+            "cat skills/demo/SKILL.md > skills/demo/out.md": False,
+            "cat skills/demo/SKILL.md >> skills/demo/out.md": False,
+            "sed -i s/a/b/ skills/demo/SKILL.md": False,
+            "sort -o skills/demo/out.md skills/demo/SKILL.md": False,
+            # Named something the runner could not place inside the package.
+            "cat skills/demo/SKILL.md LICENSE": False,
+            "cat skills/demo/SKILL.md ../outside.txt": False,
+            "cat skills/demo/SKILL.md ~/notes.md": False,
+            # Not a read-only program at all.
+            "python3 skills/demo/SKILL.md": False,
+        }
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for command, expected in omitted.items():
+                with self.subTest(command):
+                    entry = self.parsed_entry(command, root)
+                    self.assertEqual(
+                        eval_runner.is_skill_package_read(entry, "skills/demo"),
+                        expected,
+                    )
+                    # The judgement itself is on the record, not inferred later.
+                    if expected:
+                        self.assertIs(entry["read_only"], True)
+
+    def test_read_only_judgement_is_recorded_for_every_command_entry(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            # A read-only pipeline whose operands are outside any package is
+            # still read-only; only the package test separates the two.
+            self.assertIs(self.parsed_entry("cat notes.md", root)["read_only"], True)
+            self.assertIs(self.parsed_entry("rm notes.md", root)["read_only"], False)
+            # A quoted redirection character is an argument, not a redirection,
+            # but the program is not read-only, so the entry is not either.
+            self.assertIs(
+                self.parsed_entry("echo \">\" skills/demo/SKILL.md", root)["read_only"],
+                False,
+            )
+            # A command the runner could not read confidently is never read-only.
+            unreadable = eval_runner.collect_codex_executor_trace(
+                self.command_event("item_1", "zsh -c \"cat 'unbalanced\""), root
+            )["entries"][0]
+            self.assertTrue(unreadable["parse_error"])
+            self.assertIs(unreadable["read_only"], False)
+
+    def test_skill_package_reads_are_dropped_from_the_rendered_list_only(self):
+        evidence = {
+            "captured": True, "source": "runner", "provider": "codex",
+            "entries": [
+                {"type": "command_execution", "id": "item_1", "status": "completed",
+                 "exit_code": 0, "programs": ["sed"],
+                 "path_operands": ["skills/demo/SKILL.md"], "read_only": True},
+                {"type": "command_execution", "id": "item_2", "status": "completed",
+                 "exit_code": 0, "programs": ["cat"], "path_operands": ["notes.md"],
+                 "read_only": True},
+            ],
+        }
+        filtered = self.render_with_evidence(evidence, skill_package_dir="skills/demo")
+        self.assertNotIn("`item_1`", filtered)
+        self.assertIn("- command_execution cat: `item_2`", filtered)
+        self.assertIn(
+            "Read-only commands whose operands all lie inside the delivered skill package are omitted from this list as harness scaffolding; they remain in the run record",
+            filtered,
+        )
+        # The record itself is untouched; only the rendering drops the entry.
+        self.assertEqual([entry["id"] for entry in evidence["entries"]], ["item_1", "item_2"])
+        # Without a package directory the runner has nothing to recognize, so
+        # every entry is listed and the lead-in says nothing about omission.
+        unfiltered = self.render_with_evidence(evidence)
+        self.assertIn("- command_execution sed: `item_1`", unfiltered)
+        self.assertIn("- command_execution cat: `item_2`", unfiltered)
+        self.assertNotIn("Read-only commands whose operands all lie inside the delivered skill package are omitted from this list as harness scaffolding; they remain in the run record", unfiltered)
+
+    def test_a_run_of_nothing_but_skill_package_reads_is_not_reported_as_empty(self):
+        prompt = self.render_with_evidence(
+            {
+                "captured": True, "source": "runner", "provider": "codex",
+                "entries": [
+                    {"type": "command_execution", "id": "item_1", "status": "completed",
+                     "exit_code": 0, "programs": ["sed"],
+                     "path_operands": ["skills/demo/SKILL.md"], "read_only": True},
+                ],
+            },
+            skill_package_dir="skills/demo",
+        )
+        self.assertNotIn("`item_1`", prompt)
+        self.assertIn(
+            "Every item the provider event stream recorded for this run was a read-only "
+            "command inside the delivered skill package and is omitted above",
+            prompt,
+        )
+        self.assertNotIn(
+            "The provider event stream recorded no commands, tool calls, or sub-agents",
+            prompt,
+        )
 
     def test_grader_prompt_folds_codex_names_and_ids_but_no_paths(self):
         suite = eval_runner.EvalSuite(
@@ -3662,11 +3851,33 @@ class CodexExecutorTraceWiringTests(BaseRunnerTest):
         [
             json.dumps({"type": "item.completed", "item": {
                 "id": "item_1", "type": "command_execution",
-                "command": "/bin/bash -lc 'cat skills/demo/SKILL.md'",
+                "command": "/bin/bash -lc 'cat notes.md'",
+                "aggregated_output": "note\n", "exit_code": 0,
+                "status": "completed"}}),
+            # The executor opening its own delivered skill package: recorded in
+            # run.json, kept out of the grader's list.
+            json.dumps({"type": "item.completed", "item": {
+                "id": "item_2", "type": "command_execution",
+                "command": "/bin/bash -lc 'sed -n 1,40p skills/demo/SKILL.md'",
                 "aggregated_output": "# Demo Skill\n", "exit_code": 0,
                 "status": "completed"}}),
             json.dumps({"type": "item.completed", "item": {
-                "id": "item_2", "type": "agent_message", "text": "answer"}}),
+                "id": "item_3", "type": "agent_message", "text": "answer"}}),
+            json.dumps({"type": "turn.completed", "usage": {
+                "input_tokens": 3, "output_tokens": 2}}),
+        ]
+    )
+    # The same run with nothing to omit: the grader's lead-in must not be able
+    # to tell the two streams -- or the two configurations -- apart.
+    NO_OMISSION_STREAM = "\n".join(
+        [
+            json.dumps({"type": "item.completed", "item": {
+                "id": "item_1", "type": "command_execution",
+                "command": "/bin/bash -lc 'cat notes.md'",
+                "aggregated_output": "note\n", "exit_code": 0,
+                "status": "completed"}}),
+            json.dumps({"type": "item.completed", "item": {
+                "id": "item_3", "type": "agent_message", "text": "answer"}}),
             json.dumps({"type": "turn.completed", "usage": {
                 "input_tokens": 3, "output_tokens": 2}}),
         ]
@@ -3687,7 +3898,7 @@ class CodexExecutorTraceWiringTests(BaseRunnerTest):
         ]
     )
 
-    def run_codex_cell(self, config, run_name):
+    def run_codex_cell(self, config, run_name, executor_stream=None):
         suite_path = self.write_suite(
             {
                 "skill_name": "demo",
@@ -3701,7 +3912,9 @@ class CodexExecutorTraceWiringTests(BaseRunnerTest):
         )
         return eval_runner.execute_run(
             suite,
-            _StreamingCodexProvider(self.EXECUTOR_STREAM, self.GRADER_STREAM),
+            _StreamingCodexProvider(
+                executor_stream or self.EXECUTOR_STREAM, self.GRADER_STREAM
+            ),
             task,
             "skills/demo/SKILL.md" if config == "with_skill" else None,
             timeout=60,
@@ -3727,7 +3940,9 @@ class CodexExecutorTraceWiringTests(BaseRunnerTest):
             self.assertEqual(evidence, record["executor_evidence"])
             self.assertTrue(evidence["captured"])
             self.assertEqual(evidence["source"], "runner")
-            self.assertEqual([entry["id"] for entry in evidence["entries"]], ["item_1"])
+            self.assertEqual(
+                [entry["id"] for entry in evidence["entries"]], ["item_1", "item_2"]
+            )
             self.assertEqual(evidence["entries"][0]["programs"], ["cat"])
             # The grader's own stream is never folded into executor evidence.
             blob = json.dumps(evidence)
@@ -3744,6 +3959,73 @@ class CodexExecutorTraceWiringTests(BaseRunnerTest):
         evidence_section = grader_prompt.split("## Executor Tool/Delegation Evidence")[1]
         self.assertIn("- command_execution cat: `item_1`", evidence_section)
         self.assertNotIn("skills/demo/SKILL.md", evidence_section)
+
+    def test_skill_package_reads_are_counted_and_kept_out_of_the_grader_prompt(self):
+        # The delivered skill package is only read in with_skill, so rendering
+        # those reads would let a "does not run commands" assertion fail with
+        # the skill and pass without it. The omission is by path, so the count
+        # and the lead-in are the same for both configurations.
+        for config in ("with_skill", "without_skill"):
+            with self.subTest(config):
+                self.run_codex_cell(config, f"run-omit-{config}")
+                on_disk = self.read_run_json(f"run-omit-{config}")
+                evidence = on_disk["executor_evidence"]
+                self.assertEqual(evidence["grader_omitted_skill_reads"], 1)
+                # Omitted from the prompt, still on the record.
+                self.assertEqual(
+                    [entry["id"] for entry in evidence["entries"]], ["item_1", "item_2"]
+                )
+                self.assertEqual(evidence["entries"][1]["programs"], ["sed"])
+                self.assertEqual(
+                    evidence["entries"][1]["path_operands"], ["skills/demo/SKILL.md"]
+                )
+                prompt = (
+                    self.root / f"run-omit-{config}" / "grader_prompt.md"
+                ).read_text(encoding="utf-8")
+                section = prompt.split("## Executor Tool/Delegation Evidence")[1]
+                self.assertIn("- command_execution cat: `item_1`", section)
+                self.assertNotIn("item_2", section)
+                self.assertIn(
+                    "Read-only commands whose operands all lie inside the delivered skill "
+                    "package are omitted from this list as harness scaffolding; they remain "
+                    "in the run record",
+                    section,
+                )
+
+    def evidence_lead_in(self, run_name):
+        prompt = (self.root / run_name / "grader_prompt.md").read_text(encoding="utf-8")
+        return prompt.split("## Executor Tool/Delegation Evidence\n\n")[1].split("\n\n")[0]
+
+    def test_the_evidence_lead_in_is_identical_for_both_configurations(self):
+        # The lead-in is the one part of the section the grader reads before any
+        # entry. If it differed between configurations -- because one had a
+        # skill package to read and the other did not -- the grader could tell
+        # which configuration it was grading.
+        streams = {"omission": None, "no-omission": self.NO_OMISSION_STREAM}
+        for label, stream in streams.items():
+            with self.subTest(label):
+                for config in ("with_skill", "without_skill"):
+                    self.run_codex_cell(config, f"run-lead-{label}-{config}", stream)
+                lead_ins = [
+                    self.evidence_lead_in(f"run-lead-{label}-{config}")
+                    for config in ("with_skill", "without_skill")
+                ]
+                self.assertEqual(lead_ins[0], lead_ins[1])
+                self.assertIn("omitted from this list as harness scaffolding", lead_ins[0])
+                expected = 1 if stream is None else 0
+                for config in ("with_skill", "without_skill"):
+                    self.assertEqual(
+                        self.read_run_json(f"run-lead-{label}-{config}")[
+                            "executor_evidence"
+                        ]["grader_omitted_skill_reads"],
+                        expected,
+                    )
+        # A run with nothing to omit still says the same thing as one with
+        # something to omit.
+        self.assertEqual(
+            self.evidence_lead_in("run-lead-omission-with_skill"),
+            self.evidence_lead_in("run-lead-no-omission-with_skill"),
+        )
 
     def test_collector_failure_leaves_the_run_recorded_and_graded(self):
         # Evidence collection is an addition to a run, never a precondition for
@@ -3764,6 +4046,9 @@ class CodexExecutorTraceWiringTests(BaseRunnerTest):
             evidence["reason"], "codex trace collection failed: RuntimeError"
         )
         self.assertEqual(evidence["entries"], [])
+        # No trace means nothing was omitted, which is a count of zero rather
+        # than a missing field.
+        self.assertEqual(evidence["grader_omitted_skill_reads"], 0)
         self.assertNotIn(
             "## Executor Tool/Delegation Evidence",
             (self.root / "run-collector-failure" / "grader_prompt.md").read_text(
