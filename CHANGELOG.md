@@ -33,6 +33,12 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-orchestrate`: the crash-recovery questions now ask whether the product
+  itself came back through the runner's result interface, since a terminal
+  success can still have lost it, a worker's workspace copy may be absent,
+  and an oversized product needs a chunked or summarized report. One partial
+  diagnostic and one closing run measured the target case after the change.
+
 - `vibe-coding`: when a selected route has no visible specialist, the route
   report names the specialist the prompt, user-provided material, or visible
   metadata identifies as absent alongside `matched-but-unavailable`, instead of

@@ -382,6 +382,9 @@ be able to answer:
 - If the transport returned a task handle instead of the contracted report, is
   the runner task terminal by its own status, and was the report retrieved
   through its result interface?
+- Did the product itself return through the result interface — a terminal
+  success can still have lost it, the workspace copy may be absent, and an
+  oversized product needs a chunked or summarized report?
 
 Use host-provided task handles, cancellation APIs, or named runner controls when
 available. Do not teach or normalize force-killing arbitrary raw PID lists. If a
