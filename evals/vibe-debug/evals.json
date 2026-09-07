@@ -30,13 +30,13 @@
       "id": "E02",
       "name": "Existing plan self-contained",
       "project_class": "backend-service",
-      "prompt": "Use this plan to fix the failed invoice retry behavior. Plan: expected behavior is that retrying a failed invoice updates status once and never creates a duplicate invoice. Test plan: reproduce with the retry worker and add an idempotency regression. Risks: payment API retry semantics must be checked from authoritative docs. Proceed condition: start after checking local worker code and the payment docs.",
-      "expected_output": "The agent can execute the debug/fix workflow from the supplied plan without requiring any other named skill, while still building a debug ledger and checking source-of-truth behavior.",
+      "prompt": "Response-only plan-execution exercise: do not inspect or mutate the ambient checkout, and treat these represented project facts as established. The project is a backend service whose invoice retry worker, payment API wrapper, and invoice model exist in the repository; the payment provider is not named in the plan, and identifying it is part of the source-routing step, not a blocker. Use this plan to fix the failed invoice retry behavior. Plan: expected behavior is that retrying a failed invoice updates status once and never creates a duplicate invoice. Test plan: reproduce with the retry worker and add an idempotency regression. Risks: payment API retry semantics must be checked from authoritative docs. Proceed condition: start after checking local worker code and the payment docs. Describe exactly what you would do, in order, to satisfy the proceed condition and carry the plan through repair and proof.",
+      "expected_output": "The agent can execute the debug/fix workflow from the supplied plan without requiring any other named skill, while still describing the current-scope record and checking source-of-truth behavior.",
       "expectations": [
         "Does not say a separate named plan-execution skill is required.",
         "Binds to the supplied plan as task context while keeping the debug/fix workflow self-contained.",
-        "Routes payment retry semantics to official docs, upstream source, local wrapper code, or user-provided source material.",
-        "Adds existing-behavior preservation for single status update and no duplicate invoice.",
+        "Routes payment retry semantics to official docs, upstream source, local wrapper code, or user-provided source material as the authoritative source it would consult, rather than settling them from memory or from the plan text alone.",
+        "Names existing-behavior preservation for a single status update and no duplicate invoice as a requirement the repair must hold.",
         "Requires reproduction or source trace before changing idempotency behavior."
       ]
     },
@@ -204,7 +204,7 @@
       ],
       "expectations": [
         "Acknowledges the repair ledger as debug proof for the preview-cache slice and keeps the closure decision focused on self-review, repository history, index, and cleanup operations instead of reopening the repair.",
-        "Runs a self-review of the repair slice before final repair claims, covering ledger closure, minimal patch envelope, preserved behavior, verification proof, artifact freshness, temporary/generated surfaces, and summary accuracy.",
+        "Requires a self-review of the repair slice before final repair claims, covering ledger closure, minimal patch envelope, preserved behavior, verification proof, artifact freshness, temporary/generated surfaces, and summary accuracy.",
         "Separates repair-owned paths from ambiguous or unrelated paths such as `docs/manual-test-notes.md` and `tmp/local-scratch.md`.",
         "Requires operation-specific user consent for cleanup, stash, reset, push, amend, rebase, release, version changes, destructive actions, or other non-closure history/index operations.",
         "Does not stage, stash, reset, delete, or otherwise mutate unrelated or ambiguous user changes under the broad phrase `clean up anything unrelated`.",
@@ -244,9 +244,8 @@
       "files": [],
       "expectations": [
         "Records the reported search suggestion regression as the exclusive primary symptom or current slice.",
-        "Records a compact ledger row for the primary symptom with expected and observed sources, hypothesis status, affected dimensions, verification path, and closure status.",
-        "Includes reproduction or first-failing-proof path, root-cause hypothesis placeholder, minimal patch envelope, positive sentinel, negative sentinel, and last verified checkpoint or notes their absence as blockers.",
-        "Keeps C1/C2-style adjacent findings ledger-only and does not include them in the same patch unless same root cause and same verification path are proven.",
+        "Gives the primary symptom's expected behavior with its source, its observed behavior with its source, a reproduction or first-failing-proof path, a root-cause hypothesis marked unproven, the affected state-space dimensions, a minimal patch envelope, a positive sentinel, a negative sentinel, a verification path, and a closure status or last verified checkpoint — or names each missing one as a blocker. A compact ledger row, a labeled table, or labeled lines all satisfy this; prose that omits any of these fields does not.",
+        "Keeps C1 popup reload and C2 IME cleanup as ledger-only adjacent findings with their own recorded status, does not promote either to a co-primary symptom or a co-equal current slice, and does not include them in the same patch unless evidence proves the same root cause and the same verification path.",
         "Does not claim fixed before reproduction/source trace and verification proof.",
         "Explains the blocker or next proof in user-impact terms if any primary-symptom field is missing."
       ]

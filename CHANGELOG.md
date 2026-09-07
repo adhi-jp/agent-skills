@@ -13,6 +13,12 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- Eval maintenance: `vibe-debug` E02 is a response-only exercise over supplied
+  project facts, E15 grades the primary-symptom record as a field list in any
+  compact form instead of a ledger row the skill does not require for a
+  single-symptom regression, and E13 grades the self-review the response
+  requires. Skill behavior unchanged; the suite was re-run once.
+
 - Eval maintenance: `vibe-commit` E11 asks for the response-only command record
   its assertions grade and states that stopping for a redundant approval fails in
   either configuration; E15 grades the staging the response shows. Skill behavior
