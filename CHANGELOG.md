@@ -13,6 +13,12 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- Eval maintenance: the `vibe-plan-execution` E06 fixture runs its tests with
+  Node's built-in runner and needs no package install, so the checkpoint-commit
+  case no longer depends on an install the sandbox cannot perform; the
+  response-only E23 expectation grades the confirmation the response describes.
+  Skill behavior unchanged; the suite was re-run once after the change.
+
 - Repository maintenance: `AGENTS.md` now names the skill's user as the
   reader of a changelog release section, lists what a release section
   excludes — in-package block, reference, or section narration, eval case and

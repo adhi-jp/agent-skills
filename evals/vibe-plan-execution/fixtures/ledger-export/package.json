@@ -1,0 +1,8 @@
+{
+  "name": "ledger-export-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test src/ledger/*.test.ts"
+  }
+}

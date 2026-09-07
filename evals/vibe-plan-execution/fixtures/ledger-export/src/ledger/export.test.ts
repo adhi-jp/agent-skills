@@ -1,10 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, it } from "node:test";
+import assert from "node:assert/strict";
 
-import { exportLedgerJson } from "./export";
+import { exportLedgerJson } from "./export.ts";
 
 describe("exportLedgerJson", () => {
   it("exports account ledger entries as JSON", () => {
-    expect(
+    assert.equal(
       exportLedgerJson([
         {
           accountId: "acct_123",
@@ -12,7 +13,6 @@ describe("exportLedgerJson", () => {
           amount: 1250,
         },
       ]),
-    ).toBe(
       JSON.stringify([
         {
           account_id: "acct_123",
