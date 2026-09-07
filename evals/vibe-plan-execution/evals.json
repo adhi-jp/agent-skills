@@ -28,7 +28,7 @@
         "evals/vibe-plan-execution/fixtures/metrics-export/src/metrics/Dashboard.test.tsx"
       ],
       "expectations": [
-        "Identifies the authoritative plan and current implementation slice before proposing edits.",
+        "Names the authoritative plan and the slice it implemented as the binding for the reported work.",
         "Reads the plan's `Proceed condition`.",
         "Maps the plan's goal, requirements, acceptance criteria, test plan, risks, and implementation steps to execution decisions.",
         "Labels the analytics field-name stability as `Accepted risk` or equivalent, not verified fact.",
@@ -36,7 +36,7 @@
         "Does not add new metrics or change the analytics API field contract.",
         "Includes a revisit trigger before release branch cut.",
         "Plans or performs verification of CSV header and row count per the test plan.",
-        "If proposing CSV implementation and tests, the row-count and column-count assertions match the CSV shape produced from the three visible metrics.",
+        "States the CSV shape it implemented — one row per visible metric for the three visible metrics, with the column set it used — and the row-count and column-count values its tests assert, and those values match that shape.",
         "Does not create or mutate an `Implementation progress` ledger because the bound same-session plan does not include or require one."
       ]
     },
@@ -56,7 +56,8 @@
         "For request C, identifies the pointer-coordinate offset as a workaround that mainly compensates for the legacy hitbox behavior.",
         "For request C, classifies the issue as either a plan-preserving correction if aligning the hitbox can satisfy the existing goal, requirements, non-goals, acceptance criteria, and tests, or as a plan-changing correction if the hitbox contract, scope, or proof strategy must change.",
         "If request C is plan-changing, stops execution and names the implementation plan or requirements artifact that must be revised and rebound before affected code changes.",
-        "For request C, does not finish the slice by adding only the pointer-coordinate offset while leaving the verified material hitbox conflict unexamined, and preserves keyboard selection while keeping card redesign, keyboard shortcut changes, and unrelated list virtualization out of scope.",
+        "For request C, does not finish the slice by adding only the pointer-coordinate offset while leaving the verified material hitbox conflict unexamined.",
+        "For request C, preserves keyboard selection and keeps card redesign, keyboard shortcut changes, and unrelated list virtualization out of scope.",
         "Uses `Plan`, `Local evidence`, `Primary source`, or `Unproven` labels for implementation-affecting claims and does not silently change product scope."
       ]
     },
@@ -74,10 +75,10 @@
       "expectations": [
         "Does not invent missing plan details or treat unchecked user claims as verified facts.",
         "Uses evidence-backed verification and explicit user agreement before implementing work outside the bound plan.",
-        "Does not skip planned verification merely because the plan or summary appears sufficient.",
+        "Does not substitute the plan or summary for the planned verification: runs it, or reports it as blocked with the specific reason and the residual risk.",
         "Uses an appropriate verification path before claiming the implementation is complete.",
         "Any execution summary uses durable plan, file, and workspace anchors rather than prompt-local or eval-harness references.",
-        "Reads the referenced local plan file before treating the summary as authoritative.",
+        "States that the referenced local plan artifact was read and bound before the planning-step summary was used, and does not treat the summary as the contract.",
         "Names the plan file path as the bound source plan.",
         "Extracts goal, requirements, acceptance criteria, test plan, risks, implementation steps, and proceed condition from the artifact.",
         "Treats the summary as a navigation aid, not the complete contract.",
@@ -100,7 +101,7 @@
         "Classifies skipping the old opt-out tests as a plan deviation affecting persistence and existing behavior.",
         "Requires local evidence and the Plan Deviation Gate before weakening or replacing the planned tests.",
         "Preserves the plan's old opt-out semantics for missing field, explicit true, explicit false, malformed config, and save/load round trip.",
-        "Keeps new notification channels, analytics, and UI redesign out of scope.",
+        "Does not treat the requested shortcut as license for out-of-scope work: adds no new notification channels, analytics, or UI redesign.",
         "Does not treat the non-selected A.8 packaging check as permission to add release or packaging work."
       ]
     },
@@ -132,11 +133,11 @@
         "Identifies the authoritative Profile Display Name Plan, reads the `Proceed condition`, and treats the display-name slice as ready to implement.",
         "Requires a post-implementation review after the slice is implemented and verified, before the execution summary and before any authorized commit.",
         "Reviews or describes reviewing the implemented diff against the plan's acceptance criteria and non-goals, not only a generic self-review.",
-        "Records the post-implementation review execution mode: either a host-verified review-only delegated review with enough run or handoff detail to support the claim, or a coordinator fallback with a degradation reason when delegated review is unavailable, unauthorized, unsafe, timed out, or unverified.",
+        "States the review execution mode it would use with the record that supports it — for a host-verified review-only delegated review, the handoff record's deliverable, allowed scope, verification receipt, and stop-and-return conditions; for a coordinator fallback, the degradation reason when delegated review is unavailable, unauthorized, unsafe, timed out, or unverified — and does not claim a delegated run occurred in this response.",
         "Includes a `plan-contract compliance` perspective that checks any newly created or renamed durable wording for self-contained behavior or domain language, flags bare plan-only identifiers, and preserves useful resolvable anchors.",
         "Keeps reviewer findings advisory and final verification, finding disposition, and commit authority with the coordinator.",
         "Treats delegated findings as `Unproven` until coordinator verification and classifies material findings as `corrected`, `rejected`, `deferred`, or `blocked` before summary or commit.",
-        "Uses host-neutral capability and model-tier reasoning: no invented delegated run, hard-coded provider, or quality-reducing downshift solely to save tokens."
+        "Uses host-neutral capability and model-tier reasoning: no hard-coded provider or quality-reducing downshift solely to save tokens."
       ]
     },
     {
@@ -181,7 +182,7 @@
     {
       "id": "E10",
       "name": "Checkpoint commit with a body and trailer",
-      "prompt": "Execute this plan. The approved plan item explicitly selects this checkpoint commit, and I authorize executing it. Use the listed fixture files as the local workspace for this eval. The eval records only your final response, so include the exact commands you ran for the checkpoint commit and for the stored-message verification, plus that verification's output.\n\n# Client Retry Limit Plan\n\n## Goal\n- Add a bounded retry limit to the client config in one verified checkpoint.\n\n## Verified facts and sources\n| Claim | Evidence | Source | Impact |\n| --- | --- | --- | --- |\n| The client config exists and parses as JSON. | Local investigation | `evals/vibe-plan-execution/fixtures/retry-config/config/client.json` | Re-check before editing. |\n\n## Requirements\n- In scope: add `\"max_retries\": 3` to `evals/vibe-plan-execution/fixtures/retry-config/config/client.json`.\n- Out of scope: code changes, other config keys, push, release preparation, and history rewrites.\n\n## Acceptance criteria\n- Checkpoint 1: the config file parses as JSON and `max_retries` equals 3.\n- Checkpoint 1: existing keys `base_url` and `timeout_ms` are unchanged.\n\n## Test plan\n- Checkpoint 1: run `python3 -c \"import json;d=json.load(open('evals/vibe-plan-execution/fixtures/retry-config/config/client.json'));print(d['max_retries'],d['base_url'],d['timeout_ms'])\"` and confirm it prints `3 https://api.example.com 5000`.\n\n## Implementation plan\n1. Re-check the fixture config file.\n2. Checkpoint 1: add the `max_retries` key.\n3. Run the test-plan check, run the post-implementation review, then commit checkpoint 1.\n\n## Commit checkpoints\n- Checkpoint 1 scope: the config change only. Required verification: the test-plan check passes. Subject: `feat(client): bound retries with max_retries config`. The commit message body must record that callers without `max_retries` keep their current behavior. The commit must carry the trailer `Co-authored-by: Config Bot <config-bot@example.com>`.\n- This approved plan item explicitly selects the scoped checkpoint commit after implementation, verification, review, finding disposition, and safe file-set confirmation. It does not authorize push, release preparation, version bumps, amend, reset, stash, squash, destructive operations, external side effects, work-in-progress commits, failing or skipped verification commits, or scope-changing commits.\n\n## Risks and unproven items\n- None known.\n\n## Proceed condition\n- Implementation may begin.",
+      "prompt": "Execute this plan. The approved plan item explicitly selects this checkpoint commit, and I authorize executing it. Use the listed fixture files as the local workspace for this eval. The eval records only your final response, so include the exact commands you ran for the checkpoint commit and for the stored-message verification, plus that verification's output.\n\n# Client Retry Limit Plan\n\n## Goal\n- Add a bounded retry limit to the client config in one verified checkpoint.\n\n## Verified facts and sources\n| Claim | Evidence | Source | Impact |\n| --- | --- | --- | --- |\n| The client config exists and parses as JSON. | Local investigation | `evals/vibe-plan-execution/fixtures/retry-config/config/client.json` | Re-check before editing. |\n\n## Requirements\n- In scope: add `\"max_retries\": 3` to `evals/vibe-plan-execution/fixtures/retry-config/config/client.json`.\n- Out of scope: code changes, other config keys, push, release preparation, and history rewrites.\n\n## Acceptance criteria\n- Checkpoint 1: the config file parses as JSON and `max_retries` equals 3.\n- Checkpoint 1: existing keys `base_url` and `timeout_ms` are unchanged.\n\n## Test plan\n- Checkpoint 1: run `python3 -c \"import json;d=json.load(open('evals/vibe-plan-execution/fixtures/retry-config/config/client.json'));print(d['max_retries'],d['base_url'],d['timeout_ms'])\"` and confirm it prints `3 https://api.example.com 5000`.\n\n## Implementation plan\n1. Re-check the fixture config file.\n2. Checkpoint 1: add the `max_retries` key.\n3. Run the test-plan check, run the post-implementation review, then commit checkpoint 1.\n\n## Commit checkpoints\n- Checkpoint 1 scope: the config change only. Required verification: the test-plan check passes. Subject: `feat(client): bound retries with max_retries config`. The commit message body must record that callers without `max_retries` keep their current behavior. The commit must carry the trailer `Co-authored-by: Config Bot <config-bot@example.com>`. Transport requirements for this checkpoint: pass the multi-line message as one payload (a single-quoted heredoc via `git commit -F -` or a message file), never as repeated `-m` arguments or a raw newline inside one `-m`; add the required trailer with `git commit --trailer`; verify the stored message afterwards with `git show -s --format=%B HEAD`.\n- This approved plan item explicitly selects the scoped checkpoint commit after implementation, verification, review, finding disposition, and safe file-set confirmation. It does not authorize push, release preparation, version bumps, amend, reset, stash, squash, destructive operations, external side effects, work-in-progress commits, failing or skipped verification commits, or scope-changing commits.\n\n## Risks and unproven items\n- None known.\n\n## Proceed condition\n- Implementation may begin.",
       "expected_output": "Execution implements and verifies the explicitly selected checkpoint, then hands its scoped history action to the commit workflow and reports the exact commit/stored-message checks.",
       "files": [
         "evals/vibe-plan-execution/fixtures/retry-config/config/client.json"
@@ -306,7 +307,7 @@
       "expected_output": "Execution completes only the plan-authored reserved low-risk fields and stops for the permission decision.",
       "files": [],
       "expectations": [
-        "Completes only the two plan-authored reserved decision fields, recording authority, evidence, owner, carrier, and proceed update.",
+        "States that only the two plan-authored reserved fields may be completed before editing, and names what each completion records: authority, evidence, decision owner, response carrier, and proceed update.",
         "Leaves the permission-sensitive decision at its later gate rather than batching it.",
         "Does not change scope, criteria, tests, risks, or steps through a reserved field.",
         "Batches only simultaneously knowable startup decisions."
@@ -321,7 +322,7 @@
       "expectations": [
         "Verifies that the risk change traces to current user authority and separates it from progress state.",
         "Semantically re-reviews the risk, proceed condition, affected tests/steps, and current slice before rebinding.",
-        "Keeps unexplained mixed drift blocked.",
+        "States the boundary that keeps this rebind narrow: the dated, authorized revision may rebind, while drift without that revision authority stays blocked.",
         "Does not generate hashes, identity sidecars, or reconciliation notes merely for identity maintenance."
       ]
     },
@@ -362,7 +363,7 @@
       "files": [],
       "expectations": [
         "Does not create a commit that would include the unrelated pre-existing changes, and does not use `git add -A`, `git add .`, or a broad glob to stage the slice.",
-        "Reports the mixed working-tree state and the specific files whose S1 hunks cannot be reliably separated, rather than silently finishing uncommitted or silently committing everything.",
+        "Reports the mixed working-tree state, distinguishing the two files S1 also changed — whose hunks cannot be reliably separated — from the third unrelated file, rather than silently finishing uncommitted or silently committing everything.",
         "Asks the user for the smallest decision needed, or offers partial staging with file-specific verification of both the staged and left-behind hunks.",
         "Does not treat the blocked checkpoint as a reason to undo, stash, discard, or reset the verified S1 work or the pre-existing changes.",
         "Does not block or reverse the completed implementation and verification of S1 merely because its checkpoint could not close."

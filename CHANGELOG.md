@@ -33,6 +33,13 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-plan-execution`: the evidence-class labels now sit ahead of the core
+  rules and the commit-selection text after them, so the label obligation is
+  read before the rule list; no wording changed. Eval maintenance in the same
+  change: the checkpoint-commit case states its transport requirements in the
+  plan, and ten expectations grade what a response or a path-and-hash change
+  record can show. One three-run closing run followed the change.
+
 - `skill-eval`: a Codex run's grader prompt no longer lists the executor's own
   reads of the delivered skill package, so a response-only assertion such as
   "does not run commands" is no longer failed by the reads that deliver the
