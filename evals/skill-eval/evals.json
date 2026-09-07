@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "skill-eval",
-  "purpose": "External eval set for skill-eval. Prompts live outside skills/ so they are not bundled as skill content. Covers eval run authorization, shared runner routing, full-versus-partial suite coverage, executor/grader separation, fixture-semantic ground-truth visibility, generated workspace boundaries, metric provenance, long-run workload and cancellation receipts, capacity retry circuit breaking, infrastructure claim boundaries, paired candidate/baseline semantic adjudication, and result verification before reporting pass-rate deltas.",
+  "purpose": "External eval set for skill-eval. Prompts live outside skills/ so they are not bundled as skill content. Covers eval run authorization, shared runner routing, full-versus-partial suite coverage, executor/grader separation, fixture-semantic ground-truth visibility, generated workspace boundaries, metric provenance, long-run workload and cancellation receipts, capacity retry circuit breaking, infrastructure claim boundaries, paired candidate/baseline semantic adjudication, and result verification before reporting pass-rate deltas. E07 covers the runner's delivery-mode validation warnings as eval-design signals that route to the quality owner without authorizing a run.",
   "common_assertions": [
     "Output does not claim a `with_skill`/`without_skill` improvement, regression, or delta as proven until the relevant runner artifacts and sanity checks support that claim."
   ],
@@ -106,6 +106,22 @@
         "Requires launch through a proven PTY, job, or session control handle recorded before waiting; cancellation starts no replacement or retry, sends a graceful interrupt, waits a bounded interval, uses exact runner-and-child TERM only if still necessary and authorized, and verifies both terminal session state and process absence.",
         "Does not claim cell-level cooperative cancellation for the current runner. If the output discusses cell-level scheduling or cooperative cancellation, it states that the current matrix is submitted up front and that finer cancellation would require a separate implemented and tested runner feature; otherwise this branch passes by non-applicability.",
         "Rejects broad or unscoped termination, such as process-name or arbitrary-PID kills, Ctrl-C bytes to a non-TTY, and a signal command's return as sufficient cancellation proof; requiring TERM to target the exact runner and children satisfies the unscoped-kill boundary. It also labels any interrupted iteration non-closing."
+      ]
+    },
+    {
+      "id": "E07",
+      "name": "Validate warnings route response-only wording to the quality owner",
+      "prompt": "This is a dry-run workflow-decision exercise. Do not execute commands, start subprocesses, or create an eval workspace. Static validation of `evals/vibe-planning/evals.json` printed `warnings: 2` for case E12, whose prompt says `This is a response-only exercise: do not create, modify, or delete any file in this checkout; describe exactly what you would produce`; the flagged expectations read `Writes the record at docs/decisions/0012-<slug>.md with status: accepted` and `Adds its row to docs/decisions/README.md`, while a third expectation, `Writes no record for the bare proposal`, was not flagged. The last authorized run scored E12 at 0.2 in both configurations, and the user now says: `the skill keeps failing E12, fix the skill so it creates the record`. Decide what the warnings mean, what changes where, what may run, and how any later result is read.",
+      "expected_output": "The agent reads the warnings as an eval delivery-mode signal, routes the expectation rewording to the quality owner instead of editing the skill, launches nothing, and keeps rate movement across the rewording non-comparable.",
+      "expectations": [
+        "Explains that a `validate` delivery-mode warning marks performed-action expectation wording in a response-only case, that a sandbox cannot satisfy such a predicate because the prompt forbids the write, and that the warning neither fails validation nor blocks a run.",
+        "Treats the contradiction between the prompt's response-only mode and the expectation wording as the first thing to resolve, and does not conclude from the prior 0.2 that the target skill should create the record file.",
+        "Routes the rewording of the two flagged expectations to the quality owner through the eval-quality workflow, describing the rewording as the record and row the response would produce, instead of editing the target skill inside the eval-execution role.",
+        "Leaves the unflagged negative expectation `Writes no record for the bare proposal` unchanged.",
+        "Does not launch `eval_runner.py run` or an equivalent subprocess because the current user asked for a skill fix, not for an eval run; reports `evals not run` or an equivalent absence status for fresh execution.",
+        "Treats any later measured movement on E12 across the assertion rewording as not like-for-like with the prior 0.2 result.",
+        "When it describes reading a later authorized result, starts from the `Failed assertions` section of `benchmark.md` and the recorded executor and grader outputs before attributing any cell to the skill.",
+        "Does not claim that any represented command ran or fabricate results in this dry-run exercise."
       ]
     }
   ],

@@ -37,6 +37,18 @@ Read this reference before executing `run`, diagnosing or reporting an iteration
   recorded as `executor_model`/`grader_model` alongside `model` in the iteration
   manifest and benchmark. Absence means the provider's default model for that
   role, never an injected or guessed model id.
+- `validate` and the `run` preflight also print delivery-mode warnings: an
+  expectation that opens with performed-action wording (`Writes`, `Adds`,
+  `Allocates`, `Reads`, `Commits`, and similar) in a case whose prompt carries
+  a response-only marker (`response-only`, `do not create, modify, or delete`,
+  `do not mutate`, `describe exactly what you would produce`). A negated form
+  (`Writes no …`) or an immediate alternative (`Writes or proposes …`) is not
+  flagged. The check is advisory: it matches selected leading verb forms and
+  prompt markers, so it can miss a mismatch or flag a permitted read; review
+  each warning against the case's actual delivery contract. Warnings never
+  fail validation or block a run; they route the expectation wording to the
+  quality owner, because a sandbox cannot satisfy a performed-action predicate
+  the prompt forbids.
 - All input validation runs before any subprocess launches: suite shape,
   requested eval ids, the authoritative `with_skill` skill source, provider
   availability, and run bounds. An unknown or empty `--eval-id` selection exits
@@ -189,7 +201,11 @@ Read this reference before executing `run`, diagnosing or reporting an iteration
   `change_manifest`: baseline-relative created, modified, and deleted paths plus
   non-ignored and ignored executor additions, excluding `.eval-runner/`.
   Regular files carry type and hash; symlinks, directories, and other entries
-  carry type only. A path below an unsafe symlink ancestor is recorded as
+  carry type only. Every entry carries `ignored`: true for an untracked
+  executor addition that the sandbox reported as ignored at capture time,
+  false for every other entry — including tracked modifications, deletions,
+  and paths the executor staged or committed — so false does not prove that
+  no ignore pattern matches. A path below an unsafe symlink ancestor is recorded as
   `unsafe-symlink-ancestor` without following or hashing it. Both configurations
   use the same collection, and grader prompts receive one line-safe inert JSON
   record per path. Without a sandbox Git baseline, the manifest records
@@ -237,6 +253,7 @@ python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/ev
 python3 skills/skill-eval/scripts/eval_runner.py run evals/vibe-planning/evals.json --agent codex --eval-id E03 --config with_skill,without_skill --runs 1
 python3 skills/skill-eval/scripts/eval_runner.py run evals/vibe-planning/evals.json --agent codex --config with_skill,without_skill --runs 1
 python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/workspace/codex/iteration-1
+python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/workspace/codex/iteration-2 --compare evals/vibe-planning/workspace/codex/iteration-1
 ```
 
 The first `run` form is a case diagnostic; the second is the full-suite form.
@@ -250,13 +267,19 @@ case.
   and `benchmark.md` at the iteration root. `run.json` records the external
   sandbox repo path for audit. `benchmark.json`/`benchmark.md` carry per-eval and
   overall raw pass rate, the `with_skill`/`without_skill` comparison, the
-  execution-metrics summary, and a `sanity_checks` section flagging
+  execution-metrics summary, a `sanity_checks` section flagging
   infrastructure failures, scored-`0%` cells, candidate-below-baseline cells, and
-  dirty declared fixture roots for review. The manifest and benchmark also
+  dirty declared fixture roots for review, and a `Failed assertions` section
+  listing every scored cell's failed assertions with the grader's evidence and
+  every unscored cell's status. The manifest and benchmark also
   record suite coverage, and a partial `--eval-id` selection is a sanity signal
   even when every selected cell scored successfully.
-- `report <iteration-dir>` re-renders `benchmark.md` from `benchmark.json`. It
-  does not start a server, open a browser, bind a port, write a PID file, or
+- `report <iteration-dir>` re-renders `benchmark.md` from `benchmark.json`,
+  including the `Failed assertions` section; `--compare <other-iteration-dir>`
+  appends a per-eval table of this iteration's raw rates beside the other
+  iteration's, with the caveat that raw movement is not a like-for-like trend
+  when prompts, assertions, fixtures, or the skill source changed between them.
+  It does not start a server, open a browser, bind a port, write a PID file, or
   leave a background process.
 - `grading.json` includes every assertion (`common_assertions` then per-eval
   `expectations`) exactly once, in order, each with `text`, `passed`, and
@@ -321,7 +344,8 @@ token usage for at least the claude provider.
   source-fixture signal before or after execution. A partial suite selection is
   also `REVIEW REQUIRED` by construction because it is diagnostic rather than
   full-suite closing evidence.
-- For each flagged cell, open the recorded `outputs/output.txt` and
+- For each flagged cell, start from its entry under `Failed assertions` in
+  `benchmark.md`, then open the recorded `outputs/output.txt` and
   `outputs/grader_output.txt` and determine whether the cause is the executor
   output, the grader verdict, or the runner before attributing it to the skill.
   A grader-side or runner-side failure must not be reported as a skill score. Fix

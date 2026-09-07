@@ -24,10 +24,15 @@ explanation:
 | Static validation | `validate <suite-json>` | Forbidden |
 | Partial diagnostic | `run <suite-json> ... --eval-id E17` | Allowed |
 | Full closing run | `run <suite-json> ...` | Omitted; do not enumerate all ids |
-| Existing-result report | `report <iteration-dir>` | Forbidden |
+| Existing-result report | `report <iteration-dir>`, optionally `--compare <other-iteration-dir>` | Forbidden |
 
 There is no `--evals` or `--iteration-dir` alias. `validate ... --eval-id` and
 filtered full-suite substitutes are invalid.
+
+`validate` also prints delivery-mode warnings: performed-action wording such
+as `Writes …` or `Adds …` in an expectation whose prompt is response-only.
+Warnings never fail validation and never block a run; they are eval-design
+signals for the quality owner, not skill defects.
 
 A partial diagnostic must remain visibly non-closing: unknown or empty ids fail
 before iteration creation or provider launch; manifests and benchmarks record
@@ -103,7 +108,8 @@ memory.
 After every authorized run:
 
 1. Read `benchmark.md`, `benchmark.json`, `error_run_count`, and sanity status.
-2. Inspect recorded executor and grader outputs for every flagged cell before
+2. Start from the `Failed assertions` section of `benchmark.md`, then inspect
+   the recorded executor and grader outputs for every flagged cell before
    attributing the failure to the skill.
 3. Keep infrastructure/grader failures and diagnostic corrections separate from
    the official aggregate.

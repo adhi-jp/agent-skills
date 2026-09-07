@@ -3132,3 +3132,143 @@ class MetricsIntegrationTests(BaseRunnerTest):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# --------------------------------------------------------------------------- #
+# Delivery-mode validation warnings, manifest ignored flag, and report sections.
+# --------------------------------------------------------------------------- #
+class DeliveryModeAndReportTests(BaseRunnerTest):
+    def test_validate_warns_on_performed_action_in_response_only_case(self):
+        path = self.write_suite({
+            "schema_version": "1.0.0",
+            "skill_name": "demo",
+            "evals": [
+                {
+                    "id": "E01",
+                    "prompt": "This is a response-only exercise: do not create, modify, or delete "
+                    "any file in this checkout; describe exactly what you would produce.",
+                    "expectations": [
+                        "Writes the record at `docs/decisions/0001-x.md`.",
+                        "Writes no record for the bare proposal.",
+                        "Describes the row it would add to `docs/decisions/README.md`.",
+                    ],
+                },
+                {"id": "E02", "prompt": "Implement the change and commit it.", "expectations": ["Writes the file."]},
+            ],
+        })
+        result = self.run_cli("validate", path, check=True)
+        self.assertIn("warnings: 1", result.stdout)
+        self.assertIn("evals[0].expectations[0]", result.stdout)
+        self.assertIn("'Writes'", result.stdout)
+        self.assertNotIn("expectations[1]", result.stdout)
+        self.assertNotIn("evals[1]", result.stdout)
+
+    def test_validate_reports_zero_warnings_for_ordinary_suite(self):
+        path = self.write_suite()
+        result = self.run_cli("validate", path, check=True)
+        self.assertIn("warnings: 0", result.stdout)
+
+    def test_run_prints_validate_warnings_without_blocking(self):
+        path = self.write_suite({
+            "schema_version": "1.0.0",
+            "skill_name": "demo",
+            "evals": [
+                {
+                    "id": "E01",
+                    "prompt": "Response-only: do not mutate the checkout.",
+                    "expectations": ["Adds the row."],
+                },
+            ],
+        })
+        spec = self.write_stub_spec()
+        result = self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        self.assertIn("validate warnings", result.stderr)
+        self.assertIn("'Adds'", result.stderr)
+        self.assertTrue((self.iteration_dir() / "benchmark.json").is_file())
+
+    def test_change_manifest_marks_ignored_additions(self):
+        (self.root / ".gitignore").write_text("docs/reports/\n", encoding="utf-8")
+        self.init_git_baseline()
+        path = self.write_suite()
+        spec = self.write_stub_spec({
+            "executor_output": "answer",
+            "grading": {"with_skill": {"pass": True}, "without_skill": {"pass": True}},
+            "write_files": {
+                "with_skill": [
+                    {"path": "docs/reports/generated.md", "content": "ignored report\n"},
+                    {"path": "docs/specs/kept.md", "content": "tracked candidate\n"},
+                ],
+            },
+        })
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        run_dir = self.iteration_dir() / "eval-first-eval" / "with_skill" / "run-1"
+        record = json.loads((run_dir / "run.json").read_text())
+        by_path = {entry["path"]: entry for entry in record["change_manifest"]["entries"]}
+        self.assertIs(by_path["docs/reports/generated.md"]["ignored"], True)
+        self.assertIs(by_path["docs/specs/kept.md"]["ignored"], False)
+        grader_prompt = (run_dir / "grader_prompt.md").read_text()
+        self.assertIn('"path":"docs/reports/generated.md","file_type":"regular"', grader_prompt)
+        self.assertIn('"ignored":true', grader_prompt)
+        self.assertIn('"ignored":false', grader_prompt)
+        self.assertIn("reported as ignored at capture time", grader_prompt)
+
+    def test_benchmark_md_lists_failed_assertions_with_evidence(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()  # without_skill fails every assertion
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        markdown = (self.iteration_dir() / "benchmark.md").read_text()
+        self.assertIn("## Failed assertions", markdown)
+        self.assertIn("(`without_skill`, run 1)", markdown)
+        self.assertIn("per-eval assertion", markdown)
+        self.assertIn("- evidence:", markdown)
+        self.assertNotIn("(`with_skill`, run 1)", markdown)
+
+    def test_report_compare_renders_per_eval_table(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        out = self.root / "compare.md"
+        result = self.run_cli(
+            "report", self.iteration_dir(number=2), "--compare", self.iteration_dir(number=1),
+            "--output", out, check=True,
+        )
+        self.assertIn("## Comparison with `iteration-1`", result.stdout)
+        self.assertIn("`with_skill` this | `with_skill` other", result.stdout)
+        self.assertIn("| E01 First eval |", result.stdout)
+        self.assertIn("not a like-for-like trend", result.stdout)
+        self.assertTrue(out.is_file())
+
+    def test_report_compare_rejects_missing_benchmark(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        result = self.run_cli("report", self.iteration_dir(), "--compare", self.root / "nowhere")
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("no benchmark.json to compare against", result.stderr)
+
+    def test_legacy_benchmark_without_run_expectations_renders(self):
+        benchmark = {
+            "skill_name": "demo", "agent": "stub", "configs": ["with_skill"], "run_count": 1,
+            "scored_run_count": 1, "error_run_count": 0, "overall_pass_rate": {"with_skill": 1.0},
+            "evals": [{"eval_id": "E01", "eval_name": "x", "configs": {"with_skill": {"pass_rate": 1.0}}}],
+            "runs": [{"eval_id": "E01", "eval_name": "x", "configuration": "with_skill", "run_number": 1, "status": "ok"}],
+        }
+        iteration = self.root / "legacy-iteration"
+        iteration.mkdir()
+        (iteration / "benchmark.json").write_text(json.dumps(benchmark), encoding="utf-8")
+        result = self.run_cli("report", iteration, "--output", self.root / "legacy.md", check=True)
+        self.assertIn("## Failed assertions", result.stdout)
+        self.assertIn("assertion details unavailable", result.stdout)
+        self.assertNotIn("- none", result.stdout)
+
+    def test_validate_warning_is_case_insensitive(self):
+        path = self.write_suite({
+            "schema_version": "1.0.0",
+            "skill_name": "demo",
+            "evals": [{"id": "E01", "prompt": "Response-only; do not mutate the checkout.",
+                       "expectations": ["writes the record.", "Writes or proposes the record."]}],
+        })
+        result = self.run_cli("validate", path, check=True)
+        self.assertIn("warnings: 1", result.stdout)
+        self.assertIn("expectations[0]", result.stdout)

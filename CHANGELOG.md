@@ -13,6 +13,29 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Added
 
+- `skill-eval`: the runner's `validate` (and the `run` preflight) prints
+  delivery-mode warnings when an expectation opens with performed-action
+  wording (`Writes`, `Adds`, `Allocates`, `Reads`, `Commits`, and similar) in
+  a case whose prompt carries a response-only marker; negated forms and
+  `… or proposes …` alternatives are not flagged, and warnings never fail
+  validation or block a run. Every change-manifest entry now carries
+  `ignored` (true for an executor addition that the sandbox's ignore rules
+  matched), rendered into the grader's inert JSON records with a one-line
+  explanation. `benchmark.md` gains a `Failed assertions` section listing each
+  scored cell's failed assertions with the grader's evidence and each unscored
+  cell's status, and `report --compare <other-iteration-dir>` appends a
+  per-eval table beside another iteration's raw rates with a like-for-like
+  caveat. The SKILL.md CLI table, result-closure steps, runner reference, and
+  README row describe the additions; E07 covers the warnings as eval-design
+  signals that route to the quality owner without authorizing a run. Unit
+  tests cover the lint, the manifest flag, the report section, `--compare`,
+  and a legacy benchmark without run expectations. Verification: the
+  repository unit tests pass; codex `gpt-5.6-luna` closing full-suite run
+  after the last edit — 14 cells scored, no anomalies, `with_skill` 86.6%
+  against `without_skill` 68.5% (the 2026-08-12 run scored 98.1% against
+  71.4% on 12 cells); E07 scored 0.67 in both configurations, so its
+  discrimination is unproven and it stands as a regression guard against
+  editing a skill to satisfy performed-action expectations.
 - `shared/measure-manifest.json`: two reading tasks join the frozen baselines
   so the durable-records reference text is measured where it is read — T5,
   reaching a decision record during plan execution (`vibe-coding` and
