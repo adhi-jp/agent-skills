@@ -13,6 +13,12 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- Eval maintenance: `vibe-commit` E11 asks for the response-only command record
+  its assertions grade and states that stopping for a redundant approval fails in
+  either configuration; E15 grades the staging the response shows. Skill behavior
+  unchanged; the suite was re-run once, and E11 passed in both configurations on
+  that run, so it now acts as a regression guard rather than a discriminator.
+
 - Eval maintenance: the response-only durable-records cases of
   `vibe-agent-instructions`, `vibe-plan-review`, `vibe-requirements-spec`, and
   `vibe-writing` grade the record, confirmation, and index row the response

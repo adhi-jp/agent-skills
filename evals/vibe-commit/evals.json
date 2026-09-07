@@ -185,14 +185,14 @@
     {
       "id": "E11",
       "name": "Verified workflow checkpoint handoff is a scoped commit request",
-      "prompt": "A state-changing workflow hands off its own verified, reviewed changes in `src/export.ts` and `tests/export.test.ts` as a closing checkpoint. The user gave no commit instruction either way, project policy permits commits, and unrelated dirty files exist. Show the commit-execution decision.",
-      "expected_output": "The commit workflow accepts the scoped handoff, commits exactly those paths, and leaves the unrelated dirty files alone.",
+      "prompt": "A state-changing workflow hands off its own verified, reviewed changes in `src/export.ts` and `tests/export.test.ts` as a closing checkpoint. The user gave no commit instruction either way, project policy permits commits, and unrelated dirty files exist. This is a response-only command-record task: show the commit-execution decision with its named selection source, then the exact inspection, explicit-path staging, staged name/stat/full-diff/check, commit, stored-message, exact committed-patch, and final-status command sequence, without executing it in the ambient eval checkout.",
+      "expected_output": "The commit workflow accepts the scoped handoff and shows the full command record that commits exactly those paths, leaving the unrelated dirty files alone.",
       "files": [],
       "expectations": [
-        "Treats the verified scoped handoff as the commit request for the named paths.",
-        "Stages only `src/export.ts` and `tests/export.test.ts` by path, never with `git add -A`, `git add .`, or a glob in the dirty tree.",
-        "Re-reads the staged diff before committing and verifies the stored message afterwards.",
-        "Leaves the unrelated dirty paths unstaged and uncommitted, and does not ask duplicate broad permission questions.",
+        "Treats the verified scoped handoff as the commit request for the named paths and proceeds to the shown commit without asking for a separate commit instruction or approval. A response that stops to request user confirmation, or that makes the shown commit conditional on approval, fails this expectation in either configuration.",
+        "Shows explicit-path staging for exactly `src/export.ts` and `tests/export.test.ts` (for example `git add -- src/export.ts tests/export.test.ts`), never `git add -A`, `git add .`, or a glob in the dirty tree.",
+        "Shows the staged-set gate before the commit command — staged file list, stat, full diff, and check — and stored-message plus exact committed-patch verification after it (for example `git show -s --format=%B HEAD` and `git show --format=fuller --stat --patch HEAD`).",
+        "Leaves the unrelated dirty paths unstaged and uncommitted, names them as deliberately excluded, and asks no broad permission question about them.",
         "Does not create an empty commit, push, release, bump versions, or rewrite history."
       ]
     },
@@ -247,7 +247,7 @@
       "files": [],
       "expectations": [
         "Treats the successful final-byte C4 proof as clearing the previously load-bearing stop condition.",
-        "Stages only the two named paths and runs staged name, stat, full diff, and check verification before committing.",
+        "Shows staging limited to the two named paths and the staged name, stat, full diff, and check verification commands before the commit.",
         "Shows a concrete outcome-focused Conventional Commit, safe message transport as needed, and stored-message plus exact committed-patch or file-set verification afterward.",
         "Does not ask for duplicate generic commit permission, use broad staging, push, release, bump versions, or rewrite history."
       ]
