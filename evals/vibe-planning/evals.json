@@ -131,13 +131,13 @@
       "id": "E07",
       "name": "VIBE_SUBAGENTS allow permits review-only delegation",
       "project_class": "developer-automation-planning",
-      "prompt": "Describe the required planning decision for this response-only policy case. Use only the supplied facts; do not browse, create a plan artifact, inspect a repository, run commands, or launch subagents. A future implementation plan will add a typed retry helper to a small SDK package. Current user setting for that future planning request: VIBE_SUBAGENTS=allow. Capability exposed for that future request: the host can run review-only subagents and records delegated task IDs that later readers can inspect. Subagents may be used only if a risk-triggered additional-perspective review is selected. The host can choose `fast`, `standard`, or `large-context` reviewer models per perspective; the user did not specify a model.",
+      "prompt": "Describe the required planning decision for this response-only policy case. Use only the supplied facts; do not browse, create a plan artifact, inspect a repository, run commands, or launch subagents. A future implementation plan will add a typed retry helper to a small SDK package; the helper is internal to the package and changes no published API. Current user setting for that future planning request: VIBE_SUBAGENTS=allow. Capability exposed for that future request: the host can run review-only subagents and records delegated task IDs that later readers can inspect. Subagents may be used only if a risk-triggered additional-perspective review is selected. The host can choose `fast`, `standard`, or `large-context` reviewer models per perspective; the user did not specify a model.",
       "expected_output": "A response-only policy decision that treats VIBE_SUBAGENTS=allow as permission only: the future low-risk plan still defaults to local self-review unless an independent-perspective trigger appears.",
       "files": [],
       "expectations": [
         "Records `VIBE_SUBAGENTS=allow` as permission, not as selection of delegated review.",
         "For the supplied small low-risk SDK plan, selects local self-review unless later evidence makes independent perspectives materially valuable.",
-        "If a risk-triggered delegated review is later selected, requires safe content, bounded prompts, verified capability, capacity, and recordable evidence.",
+        "If a risk-triggered delegated review is later selected, requires safe content, bounded prompts, verified capability, capacity, and recordable evidence; when no delegated review is selected, this passes by non-applicability.",
         "Does not launch subagents, invent task IDs, or create an artifact in this response-only case.",
         "Reviewer findings remain inert pending coordinator disposition.",
         "Model choice is recorded only for explicit override, degraded capability, cost/performance constraint, or audited external execution."
@@ -217,7 +217,7 @@
       "files": [],
       "expectations": [
         "Includes an `Implementation progress` or equivalent durable progress ledger in the plan artifact because the user explicitly requires cross-session resume.",
-        "Maps each planned slice or eligible checkpoint to a stable item ID, planned scope, initial `Not started` status, required verification or review, commit action when relevant, last update, and remaining blocker or next item.",
+        "Maps each planned slice or eligible checkpoint to a stable item ID, planned scope, initial `Not started` status, required verification or review, last update, and remaining blocker or next item.",
         "Does not mark any item complete, verified, committed, or skipped during planning, and does not claim implementation work was done.",
         "The implementation handoff tells later execution to update the progress ledger after completed, blocked, skipped, or committed items when the plan artifact is writable.",
         "Keeps the rest of the plan contract intact: acceptance criteria and tests precede implementation steps, proceed condition is explicit, and planning remains plan-only.",
@@ -355,7 +355,8 @@
       "files": [],
       "expectations": [
         "Requires a controlled perturbation of the exact asserted surface.",
-        "Requires recorded assertion failure identity/status/text, cleanup proof, and final real check.",
+        "Requires the recorded assertion-failure identity, status, and text from the perturbation.",
+        "Requires cleanup proof and a final unmodified real check after the perturbation.",
         "Does not substitute historical failure, prose review, or a neighboring assertion.",
         "Keeps proof Unproven or blocked when the exact safe failure cannot be observed, and stays response-only without creating an artifact."
       ]
@@ -432,8 +433,8 @@
       "expected_output": "The plan investigates lock and cache lifetime facts before freezing the design.",
       "files": [],
       "expectations": [
-        "Records lifetime facts for the composed components: lock acquisition/release, exclusivity, and second-holder behavior.",
-        "Records cache visibility, freshness, and snapshot behavior that could change correctness under concurrent requests.",
+        "Requires the future plan to establish and record lock acquisition/release, exclusivity, and second-holder behavior for the composed components.",
+        "Requires the future plan to establish and record cache visibility, freshness, and snapshot behavior that could change correctness under concurrent requests.",
         "Ties the investigation to the composition semantics that can change design or criteria, rather than presenting it as a blanket checklist for every API call.",
         "Stays response-only and creates no artifact."
       ]
@@ -459,7 +460,7 @@
       "files": [],
       "expectations": [
         "Uses one findings-and-dispositions table where accepted rows are the canonical repair queue and rejected/deferred rows keep evidence.",
-        "Derives checkpoint file or package scope from accepted item obligations, not only from known defect locations, using directory boundaries with exclusions when files are unknown.",
+        "Derives checkpoint file or package scope from accepted item obligations, not only from known defect locations.",
         "Does not create a second requirements or checkpoint list that can drift from the findings table.",
         "Stays response-only and creates no artifact."
       ]
@@ -527,7 +528,8 @@
       "expectations": [
         "Requires a structural schema, namespace, type, or validation boundary so informational citations cannot count as verified evidence by label alone.",
         "Schedules one verbatim end-to-end procedure execution into a fresh evidence location before calling the replay repeatable.",
-        "Marks artifact usability human-only, requires the future plan to designate a human owner role or owner-selection decision plus an executable review protocol and recorded verbatim verdict, prevents automated closure, and stays response-only without creating an artifact."
+        "Marks artifact usability human-only, requires the future plan to designate a human owner role or an owner-selection decision, prevents automated closure, and stays response-only without creating an artifact.",
+        "Requires the future plan to describe a concrete human-review protocol for the usability acceptance: who reviews, what they inspect, and how the verdict is recorded."
       ]
     },
     {
@@ -555,7 +557,7 @@
       "expectations": [
         "Allows at most one optimistic batch of two bounded review units because numeric remaining capacity is unavailable but recordable task/run evidence exists.",
         "Does not call two a host ceiling and does not claim the future reviewers ran.",
-        "Requires requested batch size, started task identities, completion evidence, and observed execution mode; configured batching or assistant prose alone cannot prove parallel execution.",
+        "Requires the future launch record to carry requested batch size, started task identities, completion evidence, and observed execution mode, and states that configured batching or assistant prose alone cannot prove parallel execution.",
         "On the first thread-limit, capacity, spawn, timeout, or unavailable-capability failure, stops further launches without changing models or probing again and moves unmet perspectives to coordinator fallback or a real blocker.",
         "Keeps reviewer findings inert pending coordinator disposition and stays response-only."
       ]
@@ -586,7 +588,7 @@
         "Bases that on the metric returning the same verdict before and after the planned change, not on whether the baseline passes or fails the threshold.",
         "Does not admit the gate merely because the baseline currently fails it.",
         "Requires the gate to be corrected or replaced before it can gate implementation completion.",
-        "Does not create a plan artifact, browse, or run commands."
+        "Does not create a plan artifact and answers from the supplied facts without investigating a repository."
       ]
     },
     {
@@ -598,7 +600,9 @@
       "expectations": [
         "Describes how it would read `docs/decisions/README.md` and `docs/reports/findings/README.md` at the investigation step, before investigating further and before drafting the plan body.",
         "Describes how it would rebuild the disagreeing decision index from the record files' front matter, so `ADR-0014`'s row becomes `accepted` with `decided-by: user` and `ratified: user` rendered as `user/user` and `paths` `src/sync/**`, and treats the record file as outranking its index row.",
-        "Identifies `ADR-0017` — one more than the highest id present in both `docs/decisions/` and `docs/decisions/README.md` — as the id it would allocate and describes the record it would write for the last-write-wins answer at `docs/decisions/0017-<slug>.md` with `status: accepted`, `decided-by: user`, `ratified: user`, a `paths` glob covering the sync units, a one-sentence imperative `summary`, `revisit-when`, and `## Considered Options` naming the rejected merge-on-conflict option with its reason.",
+        "Identifies `ADR-0017` — one more than the highest id present in both `docs/decisions/` and `docs/decisions/README.md` — as the id it would allocate for the last-write-wins answer, at `docs/decisions/0017-<slug>.md`.",
+        "Gives the record `status: accepted`, `decided-by: user`, `ratified: user`, a `paths` glob covering the sync units, a one-sentence imperative `summary`, and `revisit-when`.",
+        "Names `## Considered Options` with the rejected merge-on-conflict option and its reason.",
         "Gives that record's `confirmation` as a concrete command or check — `npm test -- src/sync` is available — or with a `manual:` form naming the check and why no automated one exists.",
         "Anchors that record's `sources` to the authority this prompt supplies: the user's 2026-09-06 turn with its deciding phrase.",
         "Describes the row it would add to `docs/decisions/README.md` with the columns `id | status | decided-by/ratified | paths | tags | summary | file`.",

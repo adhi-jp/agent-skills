@@ -132,7 +132,9 @@ A later actor must re-read the current plan. If authority-bearing requirements,
 acceptance criteria, scope, risks, tests, or implementation steps changed and the
 authority is unclear, stop for semantic plan review. Progress-only updates to an
 intentional resumable ledger and harmless formatting changes do not by themselves
-invalidate the contract.
+invalidate the contract. Verify the ledger's claims against the current working
+tree before resuming on them; a ledger row is the prior actor's self-report, not
+proof.
 
 ## Quality Checklist
 

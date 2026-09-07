@@ -244,9 +244,10 @@ Do not paste the full plan into chat unless file writing is unavailable, unsafe,
 or explicitly declined. In eval or recording contexts, treat `response.md` or
 any saved primary text answer as the chat response: when `plan.md` or another
 plan artifact was written, that response stays concise and must not duplicate
-the full plan for the grader or record. If no file was written, state the reason
-and provide the complete plan artifact in the reply using the same English
-artifact structure.
+the full plan for the grader or record; it still names the plan path, current
+slice, proceed condition, and material blocker or decision. If no file was
+written, state the reason and provide the complete plan artifact in the reply
+using the same English artifact structure.
 
 ## Response-Only Plan Descriptions
 
@@ -383,7 +384,10 @@ unavailable; observed rather than assumed execution mode; bounded prompts;
 thread/capacity/timeout/unavailable launch failure as a stop for further
 launches with unmet perspectives moved to coordinator fallback; reviewer
 findings remaining inert until coordinator disposition; and per-perspective
-model capability/context fit when the host offers model choice.
+model capability/context fit when the host offers model choice, recording that
+choice only under an explicit override, degraded capability, a cost or
+performance constraint, or audited external execution and otherwise stating
+that no receipt is kept.
 Do not claim that the future review ran or invent its evidence.
 
 ### Model Choice

@@ -33,6 +33,18 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-planning`: a plan summary written in a recording context still names the
+  plan path, current slice, proceed condition, and material blocker; a
+  response-only delegated-review description states that no model-choice
+  receipt is kept unless an override, degraded capability, cost or performance
+  constraint, or audited external execution applies; and a resuming actor
+  verifies a progress ledger's claims against the working tree before relying
+  on them. Eval maintenance in the same change: nine expectations grade what
+  a response-only answer can show, three long ones are split, one prompt
+  states that its helper changes no published API, and two predicates gain
+  the coverage or non-applicability clause they lacked. One three-run closing
+  run followed the change.
+
 - `vibe-plan-execution`: the evidence-class labels now sit ahead of the core
   rules and the commit-selection text after them, so the label obligation is
   read before the rule list; no wording changed. Eval maintenance in the same
