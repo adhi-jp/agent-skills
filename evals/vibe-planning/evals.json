@@ -419,7 +419,7 @@
       "expected_output": "The plan flags the impossible or mislayered operation and corrects the criterion before implementation.",
       "files": [],
       "expectations": [
-        "Reads the criterion against the real actor and flags both that browser JavaScript cannot set an HTTP-only cookie and that it cannot read the client's raw TCP source port.",
+        "Evaluates the criterion against the real actor and flags both that browser JavaScript cannot set an HTTP-only cookie and that it cannot read the client's raw TCP source port.",
         "Identifies the borrowed server-cookie and transport/network-layer vocabulary as incoherent for the client-side mechanism.",
         "Corrects the plan criterion before implementation rather than only weakening the test to pass.",
         "Stays response-only and creates no artifact."
@@ -434,7 +434,7 @@
       "expectations": [
         "Records lifetime facts for the composed components: lock acquisition/release, exclusivity, and second-holder behavior.",
         "Records cache visibility, freshness, and snapshot behavior that could change correctness under concurrent requests.",
-        "Applies this because the composition semantics can change design or criteria, not as a blanket checklist for every API call.",
+        "Ties the investigation to the composition semantics that can change design or criteria, rather than presenting it as a blanket checklist for every API call.",
         "Stays response-only and creates no artifact."
       ]
     },

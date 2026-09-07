@@ -13,6 +13,10 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- Eval maintenance: `vibe-planning` E25 and E26 grade the evaluation and the
+  rationale the response gives rather than a performed read or a stated
+  meta-claim. Skill behavior unchanged; the suite was re-run once.
+
 - Eval maintenance: `vibe-debug` E02 is a response-only exercise over supplied
   project facts, E15 grades the primary-symptom record as a field list in any
   compact form instead of a ledger row the skill does not require for a
