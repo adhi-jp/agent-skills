@@ -11,6 +11,16 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- Repository maintenance: `AGENTS.md` now names the skill's user as the
+  reader of a changelog release section, lists what a release section
+  excludes — in-package block, reference, or section narration, eval case and
+  assertion inventories, per-case scores and diagnoses, rate comparisons, and
+  maintainer structure questions — and adds a matching item to the
+  pre-commit checklist so every release commit is re-read against it. Policy
+  text only; no skill behavior changed.
+
 ## [vibe-coding 4.0.0] - 2026-09-07
 
 ### Added
