@@ -186,9 +186,11 @@ citation it carries.
 `measure` prints entry-file lines and words, in-block words, and reference words
 per package, then the six routed reading tasks' line and word sums against the
 frozen baselines in [`shared/measure-manifest.json`](shared/measure-manifest.json).
-`measure --strict` exits 1 unless every task is below its baseline words; the
-two durable-records tasks were frozen at their introduction size, so the strict
-run exits 1 until their text shrinks or the comparison changes.
+`measure --strict` exits 1 unless every task is below its baseline words. Four
+tasks currently measure above their baselines — T2, T3, and the two
+durable-records tasks T5 and T6, which were frozen at their introduction size —
+so the strict run exits 1 until the entry files shrink, the baselines are
+re-frozen, or the comparison changes.
 
 ## Run Skill Evals
 

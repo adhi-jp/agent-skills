@@ -1,4 +1,5 @@
 ---
+version: 1.0.0
 name: vibe-agent-instructions
 description: Use when the user explicitly invokes this skill to create, refresh, or localize a repository's agent instruction files — AGENTS.md, CLAUDE.md, and personal local rules in AGENTS.override.md and CLAUDE.local.md — or to check that instruction-file policy against current best practice. Do not use for ordinary documentation edits, for implicit mentions of AGENTS.md, or for any request that does not explicitly invoke it.
 ---

@@ -11,1629 +11,466 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [vibe-coding 4.0.0] - 2026-09-07
+
 ### Added
 
-- `skill-eval`: the runner's `validate` (and the `run` preflight) prints
-  delivery-mode warnings when an expectation opens with performed-action
-  wording (`Writes`, `Adds`, `Allocates`, `Reads`, `Commits`, and similar) in
-  a case whose prompt carries a response-only marker; negated forms and
-  `… or proposes …` alternatives are not flagged, and warnings never fail
-  validation or block a run. Every change-manifest entry now carries
-  `ignored` (true for an executor addition that the sandbox's ignore rules
-  matched), rendered into the grader's inert JSON records with a one-line
-  explanation. `benchmark.md` gains a `Failed assertions` section listing each
-  scored cell's failed assertions with the grader's evidence and each unscored
-  cell's status, and `report --compare <other-iteration-dir>` appends a
-  per-eval table beside another iteration's raw rates with a like-for-like
-  caveat. The SKILL.md CLI table, result-closure steps, runner reference, and
-  README row describe the additions; E07 covers the warnings as eval-design
-  signals that route to the quality owner without authorizing a run. Unit
-  tests cover the lint, the manifest flag, the report section, `--compare`,
-  and a legacy benchmark without run expectations. Verification: the
-  repository unit tests pass; codex `gpt-5.6-luna` closing full-suite run
-  after the last edit — 14 cells scored, no anomalies, `with_skill` 86.6%
-  against `without_skill` 68.5% (the 2026-08-12 run scored 98.1% against
-  71.4% on 12 cells); E07 scored 0.67 in both configurations, so its
-  discrimination is unproven and it stands as a regression guard against
-  editing a skill to satisfy performed-action expectations.
-- `shared/measure-manifest.json`: two reading tasks join the frozen baselines
-  so the durable-records reference text is measured where it is read — T5,
-  reaching a decision record during plan execution (`vibe-coding` and
-  `vibe-plan-execution` entry files, the execution workflow reference, and
-  the execution package's `references/durable-records.md`), and T6, reaching
-  a findings report during debug and repair (`vibe-coding` and `vibe-debug`
-  entry files, the debug workflow reference, and the debug package's
-  `references/durable-records.md`). Their `baseline` is the tree that
-  introduced them and their `pre_change` is the same path measured at
-  `782832f` over the files that existed then; README's measure description
-  names six tasks. Verification — static: `measure` reports T1–T4 below
-  their baselines and T5–T6 exactly at theirs; the manifest test passes.
-  Because `measure --strict` requires every task to be below its baseline,
-  it exits 1 while the two new tasks sit at their frozen introduction size;
-  whether the strict comparison admits equality or the two baselines carry a
-  margin is left to the maintainer.
-- Every `vibe-*` eval suite gains one eval exercising the durable-records
-  behavior its package carries — `vibe-plan-execution` (an agreed deviation
-  becomes a record, a below-trigger choice does not, a deferred finding
-  becomes a report entry, conflicting accepted records stop the phase, no
-  checkpoint while a qualifying decision is unrecorded), `vibe-debug`
-  (accepted residual to the report, repair policy to a record, later closure
-  of an open finding), `vibe-review` (accepted divergence to a record,
-  deferred items to the report), `vibe-orchestrate` (`DECISION-IMPACT:`
-  routed to its owner, dropped contract-blocked item to the report),
-  `vibe-planning` (reserved decision to a record, index read, stale index
-  rebuilt), `vibe-requirements-spec` (durable constraint to a record,
-  completion-audit sweep), `vibe-brainstorm`, `vibe-code-research`, and
-  `vibe-goal-alignment` (carry-forward packet, no file), `vibe-commit`
-  (conformance check, tracking answer, convention packet), `vibe-coding`
-  (router-owned row writes, `allowed_paths`, unpersisted packet report,
-  tracking question once), `vibe-plan-review` (settled held item to a record
-  with plan reflection still requiring consent), `vibe-writing` (record as a text artifact),
-  `vibe-agent-instructions` (accepted divergence to a record after the
-  preview). The `vibe-planning` suite's planning-only common assertion now
-  admits the decision records and findings entries the planning contract
-  declares as supporting paths. Every suite validates statically; behavior
-  unproven until an authorized eval run.
-- Every `vibe-*` package now names the decision, close, or phase-start points
-  that apply to it under the durable-records contract. `vibe-coding`: the
-  router-owned state-changing rows read both indexes and write records before
-  closing, the `allowed_paths` convention lists the two record directories
-  for writer rows, the `writing` row accepts a decision record or findings
-  entry as a text artifact, and the finish gate reports an unpersisted
-  carry-forward packet. `vibe-requirements-spec`: a resolved decision that
-  sets a durable product constraint or non-goal becomes a decision record,
-  an incoming packet is dispatched by kind, and the completion audit sweeps
-  for unrecorded decisions. `vibe-brainstorm`, `vibe-code-research`, and
-  `vibe-goal-alignment` hand decisions and findings forward as carry-forward
-  packets; goal alignment writes no file, the other two write only a saved
-  artifact the user explicitly asks for. `vibe-planning` reads both indexes
-  before investigating, writes qualifying approach decisions, accepted risks,
-  and review dispositions as records the plan cites by id, and sends every
-  material deferred finding to the findings report. `vibe-plan-review` writes
-  a settled held or revise decision that qualifies as a record. `vibe-plan-
-  execution` reads both indexes at bind, writes agreed deviations,
-  plan-changing corrections, reserved-decision answers, and superseding
-  decisions as records, writes `deferred` and `blocked` findings to the
-  report, requires the sweep before a ledger update, and sweeps and asks the
-  tracking question before its checkpoint handoff. `vibe-debug` reads both
-  indexes at preflight and triage, writes a repair that sets a rule for other
-  units as a record before the fix lands, makes the findings report the
-  durable carrier of `deferred`, `accepted-residual`, and `blocked` ledger
-  rows, and asks the tracking question at closure. `vibe-review` reads both
-  indexes at startup, writes accepted divergences and standing dispositions
-  as records, writes deferred, blocked, unresolved, and `accepted-residual`
-  items to the report when dispositioned, and asks the tracking question
-  before the fix-loop handoff. `vibe-orchestrate` reads both indexes at
-  baseline capture, defines the owner of a `DECISION-IMPACT:` entry, writes
-  later-round or dropped contract-blocked items to the report, writes
-  standing dispositions and ruled-out escalation options as records, and
-  asks the tracking question before the round's checkpoint. `vibe-commit`
-  checks a diff against the `paths` of accepted records for conformance or
-  the superseding record in the same commit, follows the repository's
-  tracking answer for a new record, and hands a newly adopted convention or
-  a discovered defect forward as a carry-forward packet. `vibe-writing`
-  treats a record or findings entry as a text deliverable and writes a
-  qualifying format or convention adoption as a record.
-  `vibe-agent-instructions` writes an accepted divergence as a record after
-  the existing-path preview and before the policy is applied. Verification —
-  static: `check --strict` and `audit-names` clean, T1–T4 below baseline;
-  behavior unproven until an authorized eval run.
-
-- `shared/vibe-contract.md`: five new blocks give the family a durable-records
-  contract. `decision-records` states when a settled decision that binds work
-  beyond the current unit is written as a decision record — at decision time,
-  reconciled at unit close, swept at the finish gate, and a precondition of
-  selecting a checkpoint — what does not qualify, the index reads at phase
-  start, the confirmation checks at review, the conformance check at commit
-  time, the carry-forward packet for a phase that may not write, and the
-  once-per-repository question that decides whether records join checkpoints.
-  `decision-record-schema` fixes `docs/decisions/NNNN-<slug>.md`, `ADR-NNNN`
-  ids that are never reused and are renumbered after a merge collision, MADR
-  4.0.0 field names plus `decided-by`, `ratified`, `summary`, `paths`, `tags`,
-  `supersedes`, `superseded-by`, `confirmation`, `revisit-when`, and `sources`,
-  the section order, the 120-line cap, the status writers, immutability, and
-  the deviations from MADR with their reasons. `decision-record-index` fixes
-  the `docs/decisions/README.md` row, matching by paths, tags, or summary, the
-  conflict stop, file-over-index precedence, read-only reconstruction, legacy
-  `unknown` rows, and reader behavior per status and ratification.
-  `deferred-findings` states what counts as a deferred finding, the
-  decision-time write and close reconciliation, the writers per effect class
-  with commit execution excluded, the packet, the one-carrier rule, the index
-  read, closure, and provenance. `deferred-findings-schema` fixes
-  `docs/reports/findings/YYYY-MM-DD-<goal-slug>.md`, `DF-NNNN` ids, the entry
-  fields and statuses, the `docs/reports/findings/README.md` row,
-  applicability, and closed-entry immutability. `effect-write-boundaries`
-  gains one supporting-path sub-bullet: a decision record or findings report
-  the phase's own text declares. Rendered copies: the two obligation blocks in
-  all fourteen dependents — `vibe-agent-instructions`, `vibe-brainstorm`,
-  `vibe-code-research`, `vibe-coding`, `vibe-commit`, `vibe-debug`,
-  `vibe-goal-alignment`, `vibe-orchestrate`, `vibe-plan-execution`,
-  `vibe-plan-review`, `vibe-planning`, `vibe-requirements-spec`,
-  `vibe-review`, `vibe-writing` — and the three schema blocks in the eleven
-  that read or write records (all but `vibe-brainstorm`, `vibe-code-research`,
-  `vibe-goal-alignment`); every package carries them in a new
-  `references/durable-records.md` reached from a `Durable Records` pointer in
-  its `SKILL.md`, every writer's boundary paragraph names `docs/decisions/` and
-  `docs/reports/findings/` as declared supporting paths, and the
-  `effect-write-boundaries` copies re-render in all fourteen.
-  `scripts/vibe_shared_contract.py` registers the five ids and the three
-  schema ids, and the schema-cap test now covers every schema id. A full
-  example record and report sit in the shared source after the appendix,
-  outside every block. Verification — static: `render`, `check --strict` with
-  no finding for all fourteen packages, `audit-names` silent, unit tests pass,
-  every eval suite validates, T1–T4 below baseline; behavior unproven until an
-  authorized eval run.
-- New `vibe-agent-instructions` skill creates, refreshes, and localizes a
-  repository's agent instruction files: `AGENTS.md` is the source; `CLAUDE.md`
-  is a relative symlink, the documented `@AGENTS.md` stub when links are
-  unavailable, or a regular file that imports `AGENTS.md` and keeps only
-  Claude-specific content; personal rules live in a Git-ignored
-  `AGENTS.override.md` whose managed block tells agents to read the shared
-  rules first, with `CLAUDE.local.md` linked (or stubbed) to it; detailed
-  procedures go to a pointer-referenced docs folder; every existing path is
-  previewed before a write; and known best-practice divergences are reported
-  before the policy is applied. It never stages or commits. README now
-  includes the source and eval packages without assigning a release version.
-  Validation:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-agent-instructions/evals.json`.
-- `vibe-orchestrate`: a worker report now carries a named section for work the
-  contract itself blocked, and the coordinator must give every such item a
-  disposition — re-contracted, scheduled to a named later round, or dropped with
-  a reason — before accepting the round. An otherwise complete and green round
-  is not evidence that a contracted item was delivered.
-- `vibe-orchestrate`: an external run's product must arrive through the runner's
-  own result interface rather than a filesystem path the runner may not be
-  permitted to write. A file the worker writes is a convenience copy that may be
-  absent, and a terminal successful run can still have lost its output.
-- `vibe-orchestrate`: an isolated workspace's base commit must be verified
-  before the first isolated unit and echoed by each unit, because a host may
-  create the workspace from the repository's default branch rather than the
-  coordinator's head. Facts inlined from the coordinator's tree describe the
-  worker's tree only when the two share a base.
-- `vibe-orchestrate`: repository-wide gates are suspended while an isolated
-  workspace exists inside the repository, and a failure observed in that window
-  is not attributable to a worker's slice.
-- `vibe-orchestrate`: capability fit now applies to the coordinator's own seat,
-  not only to delegated workers. Size and difficulty are separate axes: work
-  that is only large is decomposed and delegated, while work whose difficulty
-  exceeds the current seat is escalated even when it touches few files. A
-  bounded read-only inspection settles which axis applies before the first
-  write-capable round, and the judgment is re-checked at each join gate.
-  Escalation is a stop with a named handoff rather than a background upgrade,
-  and a self-rated success probability does not substitute for the observable
-  signals.
-- `vibe-orchestrate`: a finding that contradicts a passing test is not refuted
-  by it. Adjudication happens at the behavior, and an assertion whose expected
-  value is the reported defect makes the test wrong rather than weak, so
-  repairing it requires explicit repair-contract authorization.
-- `vibe-review`: validity assessment treats a contradicting passing test as a
-  competing claim rather than as authority for marking a finding invalid.
-- `vibe-plan-execution`: a plan item the slice's own scope prevented from being
-  delivered is not a completed item and needs a disposition wherever its status
-  is recorded.
-- `vibe-writing`: comments must not narrate what a change removed; the rule the
-  removal leaves behind is stated positively instead. Decision records —
-  specifications, plans, ledgers, changelogs, commit messages — keep their
-  superseded entries.
-- `vibe-commit`: a scripted or looped multi-commit history rewrite that drops
-  paths must derive each step's deletion list from that commit's own full tree
-  (not just its parent-diff), never from an ambient whole-worktree snapshot such
-  as `git status -uall`; must split preview from execution with an explicit
-  confirmed stop between them; and must use `git rm` rather than a raw
-  filesystem `rm` so an untracked path outside the current replay is refused
-  rather than silently deleted. A backup limits damage but never substitutes
-  for that per-path confirmation. Prompted by an incident where a rewrite script
-  reused a global untracked-file snapshot as its per-commit deletion source and
-  permanently destroyed seven never-committed documents.
-- `vibe-planning`: an investigation whose scope exceeds what the planning phase
-  can read directly now has an explicit route — narrow the current slice, or
-  hand it back to a separate read-only code-investigation phase — because
-  planning delegates only for risk-triggered plan review. Findings returned that
-  way stay `Unproven` until their anchors are re-read during planning.
-- Repository maintenance: `shared/vibe-contract.md` is the single source of the
-  contract blocks the `vibe-*` skills share — evidence classes, accepted-risk
-  semantics, delegated-result proof, chat and document language precedence,
-  effect and write boundaries, commit selection for state-changing and for
-  document-only phases, human-risk decisions, model-tier selection, trusted
-  orchestration evidence, subagent permission, secret redaction, the
-  history-mutation, commit-selection, and read-only-phase write gate wordings,
-  and the session-record schema. `scripts/vibe_shared_contract.py` renders the
-  blocks into dependent packages, checks every copy against the source, lists
-  the blocks, and audits sibling skill names; `scripts/vibe_session_record.py`
-  checks a session record under `.plans/vibe-sessions/` against that schema;
-  `tests/test_vibe_shared_contract.py` and `tests/test_vibe_session_record.py`
-  cover both scripts; README gains the repository-map rows for the three files
-  and a `Check Shared Contract Blocks` section. Session-record events carry a
-  `status` (`current` or `superseded`; an approval, proceed, or handoff event is
-  superseded in place when a digest refresh invalidates its artifact digest),
-  and the router's write of its own record under `.plans/vibe-sessions/` is
-  exempt from the read-only-phase write gate. `render --package <name>` fills
-  only that package's marker pairs, so packages can migrate side by side. A
-  source block whose first non-empty line is a bold lead (`**…**`) is in the
-  scannable shape and is measured against the shape caps — lead 25 words opening
-  with `Never`, `Only`, or a listed imperative verb, bullet 40 words (30 in a
-  gate block), two-space sub-bullet 30, one exception line after the bullets 35,
-  any prose paragraph 60, a gate block 260 words in total, a schema block 530
-  (its smallest lossless size plus a one-bullet margin), a numbered item counted
-  as a bullet with its indented children as sub-bullets, and `Example:` lines
-  excluded from every count and allowed once per block; `check` reports these as
-  warnings and `check --strict` as errors, while a block with no bold lead keeps
-  the legacy shape, is checked as before, and is reported only as a non-strict
-  `legacy-shape` warning. A block that stated a negative rule before the rewrite
-  must still open a lead, bullet, or sub-bullet with `Never` or `Only`, and
-  every `Appendix S<n>` or `Appendix G<n>` citation must resolve to its own
-  heading, and a block that sends the reader to the appendix needs the appendix
-  heading. Once a scannable block drops its closing boilerplate, the closing
-  sentences are rendered once per package as a `closing` block directly below
-  the class line — the precedence sentence, plus the applicability sentence for
-  a package carrying a gate or schema block, each sentence naming the blocks it
-  binds (every consolidation block, or every gate and schema block, the package
-  carries here and in its references), which `render` fills, `check --strict`
-  requires exactly once per package and reports inside any other generated
-  block, and both refuse while the source still closes every block. An appendix
-  outside the block markers, with its headings, tables, and fenced examples, is
-  excluded from rendering and from the block-shape checks exactly as the
-  preamble is, while its appendix citations are resolved source-wide. `measure`
-  prints per-package entry-file lines and words, in-block words, and reference
-  words, then the routed reading tasks' line and word sums against the
-  frozen baselines in `shared/measure-manifest.json`; `measure --strict` exits 1
-  unless every task is below its baseline words. Verification: unit tests pass;
-  `python3 scripts/vibe_shared_contract.py check --strict` reports no finding
-  for all 14 packages after `render`; the contract wording changes are recorded
-  in their own entries.
+- Router-owned state-changing rows read the decision and findings indexes and
+  write qualifying decision records before closing; a carry-forward packet
+  that was never persisted is reported at the finish gate.
 
 ### Changed
 
-- `skill-quality`: failure classification names `delivery-mode
-  reclassification` — a response-only or supplied-state instruction answered
-  as a read-only, blocked, or chat-only phase, or expectations demanding
-  performed reads, writes, or commits the prompt forbids — with the owning
-  boundaries (prompt marker, expectation wording, or a package rule that keeps
-  the phase's obligations under response-only delivery); the context-budget
-  section treats a `with_skill` regression on rules that generated blocks
-  displaced as a placement or answer-time salience gap to verify with a
-  partial diagnostic, fix with a one-sentence top-of-file restatement or
-  reordering, and revert when the diagnostic is flat; the eval-quality
-  reference gives the response-only expectation phrasing, the runner's
-  warnings as the mechanical check, and the either-configuration clause for a
-  baseline-lenient paired inconsistency; session patterns record the four
-  outcomes behind these rules. E30 (generated-block placement regression) and
-  E31 (response-only expectations graded by performed actions) join the
-  suite. Verification: codex `gpt-5.6-luna` closing full-suite run after the
-  last edit — 62 cells scored, no anomalies, `with_skill` 91.9% against
-  `without_skill` 73.8% (the 2026-08-15 run scored 95.8% against 77.4% on 58
-  cells); E30 scored 0.71 against 0.36 and E31 0.64 in both configurations,
-  their remaining `with_skill` misses being detail predicates — the revert
-  rule, the run-authorization statement, the warning semantics — omitted on
-  single runs.
-- Repository: after the entry-file additions of this eval cycle
-  (`vibe-coding`, `vibe-commit`, `vibe-debug`, `vibe-plan-execution`,
-  `vibe-plan-review`, `vibe-planning`), `python3 scripts/vibe_shared_contract.py
-  measure` reports four reading tasks above their frozen baselines — T2 by 60
-  words, T3 by 66, T5 by 209, T6 by 167 — so `measure --strict` exits 1;
-  whether to re-freeze those baselines or trim the entry files is left to the
-  maintainer alongside the structure question the same entries raise.
-- `vibe-review` eval suite: the response-only durable-records case E25
-  assesses the described record, confirmation, index rows, report, and
-  findings entries in hypothetical wording instead of requiring writes the
-  prompt forbids; substantive predicates are unchanged and no skill text
-  changed. Verification: codex `gpt-5.6-luna` full-suite runs — 50 cells
-  scored, no infrastructure anomalies; 92.2% `with_skill` against 71.9%
-  `without_skill` before the edit and 90.1% against 70.7% after it, with no
-  candidate-below-baseline cell in the closing run; the `without_skill` zero
-  on E20 is the same scored zero as in every earlier run, and E25's remaining
-  misses are content details on a single run.
-- `vibe-planning`: a new Response-Only Plan Descriptions section, a peer of
-  Response-Only Planning Decisions, applies the phase's obligations to a
-  supplied repository scenario when the user asks what the phase would read,
-  record, cite, and draft — describing those actions hypothetically within
-  the requested scope, without investigating or mutating the ambient checkout
-  or claiming a described action occurred — while supplied facts alone do not
-  move a policy classification out of its branch. Eval suite: the
-  response-only durable-records case E38 assesses the described reads,
-  record, confirmation, and index row in hypothetical wording instead of
-  requiring sandbox reads and writes the prompt forbids. Verification: codex
-  `gpt-5.6-luna` full-suite runs — 76 cells scored, no infrastructure
-  anomalies; 81.8% `with_skill` against 61.8% `without_skill` before the
-  edits and 84.6% against 61.1% after them, with E38 moving from 0.20 to
-  0.80. Candidate-below-baseline cells were adjudicated as a repeated
-  two-assertion miss (E11, unchanged from the previous run) and a single-run
-  flip (E21); the `without_skill` zero on E01 is a scored zero. Open: twelve
-  older response-only cases each lost about one detail assertion against the
-  2026-08-15 run (93.9% then, 84.6% now), reported as a structure question
-  for the generated-block placement rather than patched with prose.
-- `vibe-plan-review`: the overview now states, ahead of the generated blocks,
-  that the binding information Review Binding Output defines — the target
-  plan, the requirements source or limited-confidence no-spec status, and the
-  persistence state — accompanies review start, resume after interruption,
-  target change, reflection, completion, and a blocker that prevents further
-  review, even before the first item, with not-yet-established binding
-  information reported as such and a persistence path given only when
-  persistence exists or is being selected; Review Binding Output lists that
-  blocker trigger too. Verification: codex `gpt-5.6-luna` closing full-suite
-  run after the edit — 26 cells scored, no anomalies, `with_skill` 94.3%
-  against `without_skill` 63.6%; the run before it scored 89.0% against
-  64.3% on the same assertion set, with the sensitive-literal case E11
-  returning from 0.50 to 1.00.
-- `vibe-plan-execution`: a user-requested response-only analysis of supplied
-  plan and repository state is evaluated under the execution phase's normal
-  obligations — the response describes the applicable edits, verification,
-  records, findings entries, index rows, and checkpoint decision without
-  mutating the checkout or claiming completion, and describes the artifacts
-  the phase would itself write rather than substituting carry-forward
-  packets; during actual execution a description satisfies no required write.
-  Eval suite: E23's write expectations assess the described artifacts, and
-  its checkpoint expectation evaluates the supplied state before any described
-  remedial write. Verification: codex `gpt-5.6-luna` full-suite runs — 46
-  cells scored, no infrastructure anomalies; 77.4% `with_skill` against 61.6%
-  `without_skill` before the edits, 78.2% against 65.1% after them, with E23
-  moving from 0.23 to 0.38 (0.69 in the partial diagnostic) on its remaining
-  substantive predicates. Candidate-below-baseline cells were adjudicated as
-  single-run flips (E11, one assertion) and a sandbox confound (E06, whose
-  fixture's Vitest cannot run in the network-disabled sandbox, flipping
-  between 1.00 and 0.40 with unchanged text). Open: the plan-binding
-  preamble — authoritative plan, `Proceed condition`, section mapping,
-  evidence labels, gate names — is omitted more often than in the
-  2026-08-15 run on E02–E07; an overview restatement was tried and reverted
-  after a diagnostic left those cases unchanged, so this is reported as a
-  structure question for the generated-block placement rather than closed
-  by prose.
-- `vibe-orchestrate` eval suite: the response-only durable-records case E48
-  describes the record, confirmation, rows, and findings entry it would
-  produce instead of requiring writes the prompt forbids; the substantive
-  predicates (proxy-decided record, `blocked` finding, no record for a bare
-  proposal) are unchanged. No skill text changed. Verification: codex
-  `gpt-5.6-luna` full-suite runs — 96 cells scored, no infrastructure
-  anomalies; 82.6% `with_skill` against 56.2% `without_skill` before the
-  edit and 81.6% against 57.1% after it, with E48 moving from 0.27 to 0.64
-  on its remaining substantive predicates; the seven cases added since the
-  2026-08-15 run average about 0.63 with the skill. Candidate-below-baseline
-  cells were adjudicated as single-run variance (E02, E33, each flipped
-  relative to the previous run) and one stable single-assertion miss (E18,
-  unfilled placeholders as a pre-dispatch blocker); the `without_skill` zero
-  on E09 is the same legitimate zero as in every earlier run.
-- `vibe-goal-alignment`: the output bullet that hands a confirmed
-  understanding forward as a carry-forward packet now also carries any
-  finding met on the way that another unit must address, in the packet shape
-  the durable-records reference defines, marked unpersisted with the one
-  action that would persist it — the next writing phase recording it.
-  Verification: codex `gpt-5.6-luna` closing full-suite run after the edit —
-  16 cells scored, no anomalies, `with_skill` 95.5% against `without_skill`
-  70.8%; the run before it scored 92.7% against 71.5% on the same assertion
-  set, with the durable-records case rising from 0.77 to 1.00.
-- `vibe-debug`: the overview now states, ahead of the gate blocks, that a
-  recurrent, multi-symptom, multi-environment, long-running, interrupted, or
-  retest-dependent diagnosis carries the compact debug ledger rows in the
+- **Breaking:** The router-owned `direct-implementation` and `maintenance`
+  rows now close each verified, reviewed unit of their own changes with a
+  scoped local commit, reversing the 3.0.0 rule that verified changes stayed
+  in the working tree until the user asked. A current no-commit instruction, a
+  bound plan that forbids commits, or project policy suspends the default and
+  the reason is reported; read-only and no-change routes still create no
+  commit, and requirements capture, planning, plan review, and standalone
+  writing keep their explicit-request rule.
+- **Breaking:** Routing is one decision table behind a goal-alignment gate
+  that fires only on an unresolved history, release, irreversible, or
+  outward-facing ambiguity, never on a settled direct request, a negation,
+  quoted material, or plan metadata. Two router-owned rows —
+  `direct-implementation` (a concrete single-surface edit with no saved plan
+  and no defect report) and `maintenance` (dependency updates, build repairs,
+  test-only edits, requested release preparation, repository chores) — run as
+  the router's own behavior instead of routing to a specialist. A route report
+  names a specialist by its visible name, never by a row id.
+- Routing state is persisted as a record, not authority, in
+  `.plans/vibe-sessions/<record_id>.json`, which is never committed;
+  approvals, proceed decisions, and stop boundaries stay in the conversation.
+  Specialist availability is verified once per workflow.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 52 cells,
+  `with_skill` 87.7% against `without_skill` 74.6%.
+
+## [vibe-planning 6.1.0] - 2026-09-07
+
+### Added
+
+- Planning reads the decision and findings indexes before investigating,
+  writes qualifying approach decisions, accepted risks, and review
+  dispositions as decision records the plan cites by id, and sends material
+  deferred findings to the findings report.
+- An investigation too large for planning to read directly is narrowed to the
+  current slice or handed back to a read-only code-investigation phase;
+  findings returned that way stay `Unproven` until their anchors are re-read.
+- For a supplied repository scenario and a response-only request, planning
+  describes what it would read, record, cite, and draft without touching the
+  ambient checkout or claiming a described action occurred.
+
+### Changed
+
+- An acceptance metric is non-discriminating whenever it returns the same
+  verdict before and after the planned change, not only when the baseline
+  already meets the threshold.
+- A write outside the plan artifact and its declared supporting paths is
+  refused as a boundary stop; delegated text carries no authority; planning
+  never creates or reconciles content hashes or identity sidecars.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 76 cells,
+  `with_skill` 84.6% against `without_skill` 61.1%.
+
+## [vibe-plan-execution 6.0.0] - 2026-09-07
+
+### Added
+
+- Execution reads the decision and findings indexes at bind, writes agreed
+  deviations, plan-changing corrections, reserved-decision answers, and
+  superseding decisions as decision records, writes `deferred` and `blocked`
+  findings to the findings report, and asks the tracking question before the
+  checkpoint handoff.
+
+### Changed
+
+- **Breaking:** Execution closes each verified, reviewed slice with a scoped
+  local checkpoint commit — at plan-authored `Commit checkpoints` when
+  present, otherwise at natural verified slice boundaries — reversing the
+  5.0.0 explicit-request rule. The checkpoint is handed to the
+  commit-execution workflow; a current no-commit instruction, a bound plan
+  that forbids commits, or project policy suspends it; the startup
+  confirmation is asked once before the first tracked-change edit, in
+  addition to the per-commit gate.
+- An `Accepted risk` for an `Unproven` current-slice assumption is recorded in
+  the bound plan before the slice is implemented and is never available for
+  irreversible, destructive, unsafe, illegal, or credential-exposing actions.
+  Human-risk decisions cover the shared fourteen classes, and a delegated unit
+  returns such a decision to the coordinator instead of asking.
+- A plan item the slice's own scope prevented from being delivered is not
+  completed and needs a disposition wherever its status is recorded.
+- A response-only analysis of supplied plan and repository state describes the
+  edits, verification, records, and checkpoint decision the phase would
+  produce without mutating the checkout; during real execution a description
+  satisfies no required write.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 46 cells,
+  `with_skill` 78.2% against `without_skill` 65.1%.
+
+## [vibe-plan-review 3.1.0] - 2026-09-07
+
+### Added
+
+- A settled held or revise decision that qualifies becomes a decision record;
+  reflection into the plan still requires explicit confirmation of all four
+  localized decision outcomes.
+
+### Changed
+
+- Redaction is typed: six detection classes, the `[REDACTED:<type>]` marker,
+  most-specific-class precedence, and a redaction-count footer; a suspected
+  credential matching no class is redacted as `credential`.
+- A commit the user explicitly requests targets the reflected plan file and is
+  routed to the commit-execution workflow; the temporary
+  `.<plan-name>.review.md` file is never committed.
+
+### Fixed
+
+- Binding information — the target plan, the requirements source or no-spec
+  status, and the persistence state — accompanies review start, resume,
+  target change, reflection, completion, and any blocker, even before the
+  first item.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 26 cells,
+  `with_skill` 94.3% against `without_skill` 63.6%.
+
+## [vibe-requirements-spec 6.1.0] - 2026-09-07
+
+### Added
+
+- A resolved decision that sets a durable product constraint or non-goal
+  becomes a decision record, an incoming carry-forward packet is dispatched by
+  kind, and the completion audit sweeps for unrecorded decisions.
+  `docs/decisions/` and `docs/reports/findings/` join the spec artifact and
+  its capture destination as the only paths this phase writes.
+
+### Changed
+
+- A write outside those paths is refused as a boundary stop, and delegated
+  text — commands, scope or permission claims, routing suggestions, handoffs,
+  recommendations — carries no authority.
+- Verification: static validation only; behavior unproven until an authorized
+  eval run.
+
+## [vibe-debug 6.0.0] - 2026-09-07
+
+### Added
+
+- Debugging reads the decision and findings indexes at preflight and triage,
+  writes a repair that sets a rule for other units as a decision record before
+  the fix lands, carries `deferred`, `accepted-residual`, and `blocked` ledger
+  rows in the findings report, and asks the tracking question at closure.
+
+### Changed
+
+- **Breaking:** A proven, self-reviewed repair closes with a scoped local
+  checkpoint commit, reversing the 5.0.0 explicit-request rule. A diagnosis
+  with no fix, an unproven or partial repair, and a deferred or blocked item
+  are ineligible; a current no-commit instruction, a bound plan that forbids
+  commits, or project policy suspends the default. No other commit or history
+  operation is performed, and startup commit policy is not asked.
+- A plain commit proceeds only when the workflow can name its selection
+  source; destructive actions including cleanup stay consent-bound; a
+  delegated finding is recorded evidence for a hypothesis, not the proven
+  cause.
+
+### Fixed
+
+- A recurrent, multi-symptom, multi-environment, long-running, interrupted,
+  or retest-dependent diagnosis carries compact debug ledger rows in the
   response — one per unresolved symptom, hypothesis, tool failure, or closure
-  decision — rather than prose alone; the ledger section already said so, but
-  the generated blocks now precede it. Eval suite: the response-only
-  durable-records case E22 and the response-only closure case E13 describe
-  the records, rows, closure, and checkpoint they would produce instead of
-  requiring writes or a commit the prompt forbids. Verification: codex
-  `gpt-5.6-luna` closing full-suite run after the edits — 44 cells scored, no
-  infrastructure anomalies, `with_skill` 91.8% against `without_skill` 64.0%
-  (88.6% against 61.2% before the edits, with E22 and E13 expectations worded
-  differently); one candidate-below-baseline cell, E02, whose skill-following
-  run searched the ambient checkout for a worker that exists only in the
-  represented plan and stopped as blocked, after scoring 1.00 in the two
-  previous runs — single-run variance on a prompt that does not say
-  response-only.
-- `vibe-commit`: the overview now states, ahead of the gate blocks, that a
-  commit answer with no blocking condition carries every applicable gate —
-  tree inspection, the staged-set gate with the staged diff read, the commit
-  command, and verification of the stored message against the exact committed
-  patch and of the remaining tree — whether executed or shown as the command
-  sequence for a "command only" ask or a response-only decision, that a bare
-  commit invocation is not a commit answer, and that an inspection-only
-  request or blocked decision stops at its boundary without a commit command;
-  the narrower-request rules already said so, but the generated gate blocks
-  now precede them. Verification: codex `gpt-5.6-luna` closing full-suite
-  run after the edit — 36 cells scored, no infrastructure anomalies,
-  `with_skill` 91.0% against `without_skill` 74.9%, with one
-  candidate-below-baseline cell: E11, a checkpoint-handoff decision prompt
-  the skill-following run answered with the right selection and file set but
-  no command sequence in three of four runs, while the baseline's
-  ask-for-approval stop passes as a safe stop; the run before the edit scored
-  91.7% against 75.6% with the "command only" case E06 collapsed to a bare
-  commit line, which the edit fixed (0.56 to 1.00).
-- `vibe-coding`: the decision-table intro now states that row ids such as
-  `requirements-specification` are the session record's `phase` values, not
-  route names — a matched specialist route is named by the specialist's
-  visible metadata name with the row id at most alongside it, while a
-  router-owned or unavailable route reports the row with its ownership or
-  availability status and invents no specialist name — and points every route
-  report at the language gate; the route-report list names the session record
-  path, with the record id defaulting to the workflow id, and the routing
-  fields written at the record's write points; the route-selection reference
-  is also read whenever a commit-execution turn prepares or inspects
-  commit-message wording. Eval suite: the response-only
-  `direct-implementation` cases (E18, E26) describe the edit, reads, record,
-  checkpoint event, tracking question, and index row they would produce
-  instead of requiring sandbox writes the prompt forbids (E18's prompt now
-  says so), the record-path expectations accept the workflow-id rendering,
-  and the single-primary-route common assertion passes by non-applicability
-  for router-owned rows; the route-grounding common assertion states that a
-  phase label, row id, or abbreviation does not satisfy an expectation that
-  names the supplied visible specialist, in either configuration, because
-  graders had passed the baseline's abbreviations while failing the
-  candidate's row ids; the entry-file growth counts toward the frozen
-  reading-task measure noted under Repository below. Verification: codex
-  `gpt-5.6-luna` full-suite runs — 52 cells scored, no infrastructure
-  anomalies in any run; before the edits 87.4% `with_skill` against 72.3%
-  `without_skill`; after the skill edits 89.0% against 76.8% with six
-  candidate-below-baseline cells adjudicated as paired grader inconsistencies
-  (E05, E09, E20), a real row-id naming miss with lenient baseline grading
-  (E02), and single-run omissions (E10, E25); after the grading clarification
-  87.7% against 74.6% with two candidate-below-baseline cells (E06, E18) that
-  had scored 0.91 and 0.92 with the same skill text one run earlier, so
-  single-run variance. Open: multi-turn classification prompts still surface
-  row ids in place of specialist names (E02), represented Japanese turns
-  still draw English summaries in both configurations (E05, E20), and the
-  record path is named inconsistently; those are reported to the maintainer
-  as a structure question for the decision-table refactor, not closed by
-  further prose.
-- `vibe-code-research`: the findings shape's carry-forward packet bullet now
-  carries the reference's obligation to name the one action that would
-  persist an unpersisted packet — the next writing phase recording it — so
-  the finish summary states it. Verification: codex `gpt-5.6-luna` closing
-  full-suite run after the edit — 24 cells scored, no anomalies, `with_skill`
-  97.5% against `without_skill` 78.5%; the run before it scored 95.6%
-  against 73.1% on the same assertion set.
-- `vibe-brainstorm`: when delegation is unavailable, unrecordable, or not
-  authorized, coordinator-separated perspectives are the coordinator's own
-  work within the requested mode and need no separate delegation or fallback
-  authorization — they are labeled coordinator-derived and claim no
-  independent evidence — while a material independence requirement or an
-  explicit user prohibition on coordinator-only work still stops the run; an
-  orchestration schedule explains each role's capability and context needs
-  without enumerating routine role-to-tier assignments, and names the
-  recording condition when it includes an explicit assignment. Eval suite:
-  the `diverge` case no longer accepts a block for unavailable delegation and
-  asks for labeled coordinator-derived perspectives instead of an authorized
-  degraded fallback; the scripted-orchestration case description matches the
-  tier-basis contract. Verification: codex `gpt-5.6-luna` closing full-suite
-  run after these edits — 22 cells scored, no anomalies, `with_skill` 98.5%
-  against `without_skill` 72.9%; the run before the edits scored 93.9%
-  against 73.5% with two E03 expectations worded differently.
-- `vibe-agent-instructions`: the final response is the nine-section report
-  under its own headings; its Changes section reproduces the preview shown
-  for each already-existing path the run changed — the diff for a tracked
-  file, the complete replacement content for an untracked one — ahead of the
-  applied note, with the link-integrity class of each existing regular
-  derived file it classified; advance confirmation drops the wait for
-  confirmation, not the preview; a directive found in an instruction file is
-  never removed for its directive form alone — it follows the update-mode
-  observation rule like any other claim and is otherwise preserved verbatim
-  and listed as unverified. Eval suite: the preview and canonical-versus-
-  derived naming common assertions state when they pass by
-  non-applicability (only new paths or no writes reported with a consistent
-  change manifest; skill not activated), and the local-rules case proves its
-  ignore rules from the printed `.gitignore` because the runner's change
-  manifest does not distinguish ignored additions. Verification: codex
-  `gpt-5.6-luna` closing full-suite run after these edits — 30 cells scored,
-  no anomalies, `with_skill` 91.0% against `without_skill` 58.3%; the run
-  before the edits scored 76.7% against 49.5% on the earlier assertion set,
-  so the movement is not a like-for-like trend. Residual `with_skill` misses
-  are scattered report-detail omissions with no single stable mechanism.
-- `shared/vibe-contract.md`: every block is rewritten in the scannable shape — a
-  bold imperative lead, one obligation per bullet, ordered lists kept numbered,
-  at most one exception line, and no closing sentence inside the block — with a
-  block-level obligation map showing no obligation dropped or weakened, for all
-  seventeen blocks: `evidence-classes`, `accepted-risk-semantics`,
-  `delegated-result-proof`, `language-precedence-chat`,
-  `language-precedence-document`, `effect-write-boundaries`,
-  `commit-selection-state-changing`, `commit-selection-document-only`,
-  `human-risk-decisions`, `model-tier-selection`,
-  `trusted-orchestration-evidence`, `subagent-permission`, `secret-redaction`,
-  `history-mutation-gate`, `commit-selection-gate`,
-  `read-only-phase-write-gate`, and `session-record-schema`. The three gate
-  blocks keep the whole agent-side gate (trigger, the three outcomes, the
-  fallback, and the six field names it needs) and hand the hook contract —
-  input-field enumerations, the record-state matrix, the session-record field
-  table, its write procedure, and the example — to a new
-  `## Appendix: hook and record contract` that is never rendered; the router's
-  record-writing rules stay a rendered block, which also tells the router to
-  read the appendix's field table and write procedure before the first write of
-  a record, to write `schema_version` as `"1"`, to set `lease.owner` to
-  `workflow_id` and `closed_at` for every terminal status, and to select the
-  record whose `host_session_id` equals the host's rather than prefer it. The
-  commit-selection and history-mutation gate blocks' quoting bullets name the
-  session record under `.plans/vibe-sessions/` as the source of the fields they
-  quote, and every `effect-write-boundaries` bullet names its effect class
-  except the declaration and consent rules, which bind every phase. Two marked
-  `Example:` lines are added, one contrasting a named commit-selection source
-  with a non-source and one showing a write inside and a write outside
-  `allowed_paths`. The precedence and applicability sentences now render once
-  per package as a `closing` block directly below the class line instead of
-  closing every block, each sentence naming the blocks it binds. Rendered copies
-  changed in all fourteen dependents: `vibe-agent-instructions`,
-  `vibe-brainstorm`, `vibe-code-research`, `vibe-coding`, `vibe-commit`,
-  `vibe-debug`, `vibe-goal-alignment`, `vibe-orchestrate`,
-  `vibe-plan-execution`, `vibe-plan-review`, `vibe-planning`,
-  `vibe-requirements-spec`, `vibe-review`, and `vibe-writing`. Rendered block
-  text falls from 4,938 to about 3,730 words at the source and by about 1,600
-  words across the copies, and every routed reading task of that change (T1–T4)
-  measures below its frozen baseline. Verification — static:
-  `python3 scripts/vibe_shared_contract.py check --strict` passes for all
-  fourteen packages, `python3 scripts/vibe_shared_contract.py measure` reports
-  every task below baseline, and every eval suite validates; behavior unproven
-  until an authorized eval run.
-- `vibe-orchestrate`: monitoring guidance now selects a mechanism by what
-  observation costs the coordinator, preferring delivered completion signals and
-  bounded status queries over repeated full reads of a growing artifact. The
-  previous fixed polling-interval suggestion is removed as unestablished;
-  appearance and staleness thresholds are unchanged.
-- `vibe-planning`: an acceptance metric is non-discriminating when it returns
-  the same verdict before and after the planned change, in either direction,
-  not only when the baseline already satisfies the threshold.
-- `vibe-coding`, `vibe-plan-execution`, `vibe-debug`, `vibe-review`,
-  `vibe-orchestrate`, and `vibe-commit`: a state-changing workflow now closes
-  each verified, reviewed unit of its own changes with a scoped local commit
-  instead of waiting for a per-request commit instruction. Recording completed
-  work is part of the selected deliverable, and an unexplained uncommitted pile
-  at the end of a run is a defect rather than a safe default, because the user
-  can neither review nor split it without re-verifying each block. Plan
-  execution uses plan-authored `Commit checkpoints` when present and natural
-  verified slice boundaries otherwise; repair closes a proven fix; a review's
-  fix loop closes its applied fixes; the coordinator closes an accepted
-  integrated round.
-- `vibe-coding` and `vibe-commit`: the selection-versus-permission separation is
-  unchanged for everything the checkpoint does not cover. A checkpoint reaches
-  only that unit's own verified changes and only locally — never pre-existing
-  working-tree changes the workflow did not make, an artifact whose tracked
-  status would itself be new, unverified or undispositioned work, or push,
-  release, version, amend, rebase, reset, or other history operations. A
-  no-commit instruction or project policy suspends the default and its reason is
-  reported, a working tree whose changes cannot be separated is reported instead
-  of committed, and read-only or no-change routes still create no commit.
-  Requirements capture, implementation planning, saved-plan pre-check, and
-  standalone writing deliverables keep their existing explicit-request rule.
-- `vibe-coding`: `## Workflow Phases` is now one decision table — trigger,
-  exclusions, owner, required artifact, next boundary — with a mapping from each
-  precedence item to a row, preceded by a goal-alignment gate that fires only on
-  an unresolved history, release, irreversible, or outward-facing ambiguity and
-  never on a settled direct request, a negation such as "do not push", quoted or
-  background material, plan metadata such as `Commit checkpoints`, or an action
-  the request names as out of scope; the gate routes to the visible
-  goal-alignment specialist or asks the one confirming question itself, records
-  the confirmation with `source: user-turn`, and is not proceed evidence for
-  anything else. Two router-owned rows — `direct-implementation` (a concrete
-  single-surface edit with stated or obvious acceptance and verification, no
-  saved plan, no defect report) and `maintenance` (dependency updates, build
-  repairs without a defect, test-only edits, explicitly requested release
-  preparation, repository chores) — are classified after implementation planning
-  and before requirements specification, are exempt from the availability gate,
-  never report `matched-but-unavailable`, and end at the commit-selection gate.
-  Specialist availability is verified once per workflow and re-verified on
-  invalidation, cached in the session record's `capability_map`. Routing state
-  is persisted as a record, not authority: the router writes
-  `.plans/vibe-sessions/<record_id>.json`, where the router's default record id
-  is the workflow id — the six routing fields; approval, proceed, handoff,
-  commit-selection, and confirmation events, each with its `source`; an 8-hour
-  lease renewed on every write; tombstones on cancel, replace, and completion;
-  never committed — at every route decision, phase boundary, and event,
-  immediately before any gated action, and after any write to a bound artifact,
-  and records a `commit-selection` event naming its source before any plain
-  commit. The router's write of its own record is never a gated write, every
-  event is written with `status: current`, and a digest refresh marks stale
-  approval, proceed, and handoff events `superseded` in place rather than
-  deleting them. Approvals, proceed decisions, and stop boundaries stay in the
-  conversation; the record names them and does not relocate them, replacing the
-  earlier "keep them in the conversation" sentence, and the "no separate
-  persisted ledger file" and "verify before naming a downstream route" sentences
-  are replaced by the record and the once-per-workflow check. The single
-  always-read reference is split into four trigger-indexed references
-  (`route-selection.md`, `phase-boundaries.md`, `delegation-and-proxy.md`,
-  `session-record.md`), and the package carries the generated shared-contract
-  blocks `effect-write-boundaries`, `commit-selection-state-changing`,
-  `human-risk-decisions`, `trusted-orchestration-evidence`,
-  `model-tier-selection`, `history-mutation-gate`, `commit-selection-gate`,
-  `read-only-phase-write-gate`, and `session-record-schema` in place of its
-  hand-written copies. After the shared source's scannable rewrite, the
-  package's own session-record text says the rendered block is the schema while
-  the field table, write procedure, and record-state table stay in
-  `shared/vibe-contract.md`, states that a session-unbound record makes the
-  commit-selection and history-mutation gates answer `ask` and the
-  read-only-phase write gate `allow`, and drops a sentence that restated the
-  block's canonical-path rule. Verification — static:
-  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-coding`
-  passes; a written walk of eval cases E01–E17 finds no contradicted
-  expectation; behavior unproven until an authorized eval run. The eval suite
-  follows: its routing-state common assertion is rewritten in place to the
-  record-not-authority form — a continuation turn rebinds from conversation
-  state, artifact paths, and a supplied record, while approvals, proceed
-  decisions, and stop boundaries come from the conversation and a recorded event
-  counts only for its enumerated `source` — and eight cases are added (E18–E25):
-  a concrete default change with no plan, a dependency bump with lint repair,
-  the goal-alignment gate with and without a visible alignment specialist, the
-  six turns that gate must not stop, an approved spec handing off to planning,
-  an execution slice closing at a checkpoint, a proven repair closing at a
-  checkpoint, and a commit request on a mixed working tree. The seventeen
-  existing cases are unchanged. README gains a boundary bullet stating that the
-  three gates are enforced at the tool call only by user-installed hooks, that
-  without them the instruction-only wording in `shared/vibe-contract.md` is the
-  whole gate, that Codex enforcement is `Unproven` until observed, and that
-  shell write forms can bypass an edit-tool matcher so the read-only-phase write
-  gate is best-effort. Verification:
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-coding/evals.json`
-  passes as static `validate`; the added cases are unexecuted and their behavior
-  stays `Unproven` until an authorized eval run.
-- Repository maintenance: `AGENTS.md` cross-reference rules now govern the
-  generated shared-contract blocks. The blocks inside `skills/vibe-*/` are
-  marked with `shared-contract` begin and end markers and are never
-  hand-edited — change `shared/vibe-contract.md`, re-render, and pass
-  `python3 scripts/vibe_shared_contract.py check --strict` before proposing the
-  change set; that source path is the only cross-package citation a `vibe-*`
-  skill instruction may make, with one class-declaration line above a package's
-  first generated block; naming a sibling specialist outside
-  `skills/vibe-coding/` stays forbidden inside and outside generated blocks,
-  audited by `audit-names`; a change to the shared source needs one
-  `## [Unreleased]` entry naming the block and every dependent skill whose
-  rendered text changed, and couples each dependent's `SKILL.md` or reference;
-  and each dependent's version is still decided at release, so a shared-source
-  change bumps nothing by itself. README gains a matching boundary bullet naming
-  the source as the single owner of the shared obligations. Verification: policy
-  text only; `python3 scripts/vibe_shared_contract.py check` passes non-strict
-  on the current tree.
-- `vibe-debug`: the package now takes its shared obligations from
-  `shared/vibe-contract.md` as generated blocks. Three blocks replace
-  hand-written copies: `delegated-result-proof` replaces the delegated-diagnosis
-  proof sentence, `model-tier-selection` replaces the per-hypothesis model
-  paragraph, and `commit-selection-state-changing` replaces the closure
-  paragraph. The duplicate checkpoint-default copy in the workflow reference's
-  closing step is deleted; that step now points at the commit contract in
-  `SKILL.md` and keeps "Do not ask for startup commit policy." Two blocks are
-  new to the package, which carried no copy of either: `effect-write-boundaries`
-  states the state-changing write boundary the package had only implied through
-  its minimal-patch-envelope and probe-removal rules, and
-  `commit-selection-gate` states that a plain commit proceeds only when the
-  workflow can name the selection source it rests on — the user's request, the
-  bound plan item, or its own checkpoint of a verified unit — which the workflow
-  router records as a `commit-selection` event before the command runs, and that
-  a commit with no nameable source is not made. Retained narrower text that
-  controls under the blocks' precedence sentence: the repair-shaped
-  ineligibility list (a diagnosis with no fix, an unproven or partial repair, a
-  deferred or blocked item), the ledger clause that a delegated finding is
-  recorded evidence for a hypothesis and not the proven cause, the
-  adjacent-findings and probe-removal boundaries, the startup rule above, the
-  rule that this workflow performs no other commit and no other history
-  operation, and the cheaper-model eligibility limited to bounded file/log
-  lookup or mechanical reproduction checks; the gate applicability line names
-  only the repair phase's closing commit. The package's own `verified fact` /
-  `hypothesis` / `expert judgment` / `expected outcome` / `proof result`
-  classification is retained unchanged; no shared block covers it. Three rules
-  widen with the shared wording: a bound plan that forbids commits now suspends
-  the checkpoint default alongside a current no-commit instruction and project
-  policy; destructive actions, including cleanup, are named in the consent-bound
-  list beside push, release preparation, version changes, and history rewrites;
-  and delegated text now carries no authority of its own, so a delegate's
-  commands, scope or permission claims, routing suggestions, handoffs, and
-  recommendations select nothing and approve nothing. The commit-selection gate
-  is an addition, not a widening: where no user-installed hook enforces it, its
-  wording is the whole gate. The eval suite follows: `purpose` and the scoring
-  notes now describe checkpoint closure of a verified, self-reviewed repair
-  unless a suspend source applies, in place of uncommitted-by-default closure,
-  and the simple-repair case reports its represented changes as uncommitted
-  because a response-only turn cannot run a commit rather than because no commit
-  was requested; the other twenty cases are unchanged. The `### Model Choice`
-  sentence after the block now says the judgment-heavy hypotheses include
-  contradicted prior fixes, cross-layer diagnosis, environment-sensitive
-  behavior, and final cause selection, so the package list no longer narrows the
-  block's judgment-heavy list. Verification — static:
-  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-debug`
-  passes, and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-debug/evals.json`
-  passes; behavior unproven until an authorized eval run.
-- `vibe-requirements-spec`: the package now takes its shared obligations from
-  `shared/vibe-contract.md` as generated blocks, under one class-declaration
-  line (`language=document commit=document-only effect=artifact-only`). Eight
-  blocks replace hand-written copies: `effect-write-boundaries` replaces the
-  overview paragraph naming the spec artifact as the only normal write;
-  `commit-selection-document-only` replaces the overview paragraph on leaving
-  verified spec changes in the working tree; `subagent-permission` replaces the
-  `VIBE_SUBAGENTS` startup item; `model-tier-selection` replaces the per-proxy
-  model paragraph inside that item; `language-precedence-document` replaces the
-  document-language tiers, the exclusion list, the `=user`, `=default`, and
-  `=<BCP47 language tag>` value semantics, and the unreadable-value
-  fall-through; `delegated-result-proof` replaces the subagent paragraph's
-  recommendations-are-not-requirements rule; `trusted-orchestration-evidence`
-  replaces the recordability test in the continuation section; and
-  `human-risk-decisions` replaces the fourteen-member proxy prohibition. Two
-  second in-package copies are deleted: the continuation section's eight-member
-  human-risk sentence, whose recorded-acceptance exception the block now states
-  for the current artifact or request, and the drafting reference's restatement
-  of the recordability test, which keeps only its stop-signal list and points at
-  the evidence section of `SKILL.md`; the contract reference's second
-  document-language restatement gives way to a one-line pointer to `SKILL.md`.
-  One block is new to the package, which carried no copy:
-  `read-only-phase-write-gate` states that an artifact-only phase writes only
-  the artifact it owns, the supporting paths its own text declares, and the
-  scratch root recorded for the unit, and that a write outside that boundary is
-  refused by the phase itself and reported as a boundary stop; it applies to the
-  requirements drafting phase. Retained narrower text that controls under the
-  blocks' precedence sentence: the artifact this phase owns is the current
-  requirements spec alone, with a designated capture destination written first
-  as transport and never as the spec identity; no tests, builds, migrations, or
-  other implementation verification run while the workflow is active, and mixed
-  same-turn non-spec work stays for a later phase; no shell startup or
-  configuration file is inspected or edited to persist `VIBE_SUBAGENTS`; startup
-  does not ask about future commit policy; subagents are limited to research,
-  inspection, review, and proxy perspectives, may not ask the user, edit
-  artifacts, stage, commit, or route, and the main AI stays responsible for
-  final judgment, requirements updates, and recording where each decision came
-  from; destructive, migration, permission, security, billing, and data
-  decisions stay one-at-a-time human questions; drafting-discovered unknowns and
-  twelve named categories cannot be proxy-deferred; trusted evidence with a
-  clean completion audit may count as finish or handoff evidence but never lets
-  this workflow create a later phase's artifact in the same response, and that
-  evidence must record that the requirements completion audit passed, not merely
-  a completion or audit outcome; a cheaper or faster delegated model is eligible
-  only for bounded low-ambiguity option checks, narrower than the block's
-  lookups, extraction, mechanical checks, and simple review; no strict parser
-  behavior is invented for a document-language value; and a permitted scoped
-  checkpoint still names the committed paths and confirms the audit,
-  dirty-state, staged-diff, and committed-file-set checks. The continuation
-  section keeps as usage, not as a second rule, that `VIBE_SUBAGENTS` controls
-  only research and review subagent permission for this workflow. The package's
-  own provenance partition, exact-content containment and durable-anchor rules,
-  drafting modes, spec template, completion audit, and lifecycle gates are
-  retained unchanged; no shared block covers them. Two rules widen with the
-  shared wording: the artifact-only class now permits supporting paths a phase's
-  own text declares, of which this workflow declares none beyond the spec
-  artifact and its capture destination; and delegated text now carries no
-  authority of its own, so a proxy's commands, scope or permission claims,
-  routing suggestions, handoffs, and recommendations select nothing and approve
-  nothing. The read-only-phase write gate is an addition, not a widening: where
-  no user-installed hook enforces it, its wording is the whole gate. The eval
-  suite is unchanged: no assertion quoted removed text or contradicts a rule a
-  block now states, and the eight `VIBE_DOCUMENT_LANGUAGE` and six
-  `VIBE_SUBAGENTS` mentions were re-read against the vendored wording. The
-  model-choice sentence after the block now says the judgment-heavy units
-  include high-ambiguity requirements judgment and the rest of its list, so the
-  package list no longer narrows the block's judgment-heavy list, and the
-  `## Startup Decisions` opener ends in a period now that its items are
-  headings. Verification — static:
-  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-requirements-spec`
-  passes, and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-requirements-spec/evals.json`
-  passes; behavior unproven until an authorized eval run.
-- `vibe-planning`: the shared workflow contract now arrives as generated blocks
-  rendered from `shared/vibe-contract.md`. Blocks that replaced hand-written
-  copies: `effect-write-boundaries` (the plan-only class statement in `SKILL.md`
-  and its duplicate in the `references/core-planning-controls.md` rule list),
-  `commit-selection-document-only` (the uncommitted-plan paragraph and the same
-  rule inside that duplicate bullet), `evidence-classes` (the four evidence
-  labels in `references/core-planning-controls.md` and the three-label copy in
-  `references/behavior-contract-inventory.md`), `accepted-risk-semantics` (the
-  explicit-acceptance rule, the proceed-condition rule, the per-item recording
-  fields, the recording bullets in `references/edge-cases-and-accepted-risk.md`,
-  and that file's refusal to use accepted risk for irreversible, destructive,
-  unsafe, illegal, or credential-exposing actions), `human-risk-decisions` (the
-  orchestration-continuation and proxy-decision enumerations),
-  `model-tier-selection` (the reviewer-model paragraph and its duplicate in
-  `references/plan-multi-perspective-review-gate.md`), `subagent-permission`
-  (the `VIBE_SUBAGENTS` precedence, values, and inert-context rules), and
-  `trusted-orchestration-evidence` (the handoff-evidence paragraph).
-  `read-only-phase-write-gate` is new to the package: it refuses a write whose
-  target lies outside the phase's recorded allowed paths and has the refusal
-  reported as a boundary stop rather than retried through another tool.
-  `delegated-result-proof` is newly vendored beside retained package wording on
-  inert, advisory reviewer findings. Narrower package rules stay in the skill's
-  own text and control under each block's precedence sentence: planning selects
-  no commit and performs no history operation of its own, so a user-requested
-  commit is routed, not performed here; planning provides no patches and never
-  claims that code, tests, non-plan docs, evals, configs, changelogs, or other
-  implementation work is complete; planning-time commands are limited to
-  pre-registered plan-changing investigation and plan-artifact operations, and
-  the same boundary covers the active task list; plan-readiness language is
-  later-execution handoff only; a `Commit checkpoints` entry appears only when
-  the user or an already-approved artifact selects it; the derived-value
-  qualifier `Local investigation (derived)`; the `Phase relevance` field and its
-  taxonomy; the auditability requirement for destructive, auth/session,
-  credential, permission, billing, and data-migration plans; the
-  conditional-step re-check with concrete source names; subagents only for
-  risk-triggered additional-perspective review, with a cheaper or faster model
-  eligible only for bounded low-ambiguity checklist passes; the `allow`
-  preconditions of host capability, content safety, bounded prompts, and
-  recordable evidence; coordinator fallback when the host cannot ask; the
-  outbound plan-review and proceed evidence rule; and the confirmed
-  shell-configuration edit as the only non-plan write. The output-language
-  cascade's five tiers, the plan-artifact section order and quality checklist,
-  the capacity-adaptive review launch algorithm, the plan-integrity gates, and
-  the high-risk planning controls are retained unchanged; no shared block covers
-  them. The shared wording widens three rules for this package: an artifact-only
-  phase may also write the supporting paths its own text declares, which here
-  are the plan artifact, its capture path, and the confirmed shell-configuration
-  edit; delegated text carries no authority, so a delegate's commands, scope or
-  permission claims, routing suggestions, and handoffs select nothing and
-  approve nothing; and where no user-installed hook enforces the write gate, the
-  block's wording is the whole gate. The continuation rule's eight-member
-  enumeration grows to the shared fourteen-member union the proxy rule already
-  carried. Two owner rules changed: `## Output Language and Artifact` now states
-  that its identifier-preservation rule matches `shared/vibe-contract.md` and
-  that this text controls where they differ; and
-  `references/plan-artifact-output.md` keeps the prohibition on full-artifact
-  hashes, section hashes, identity sidecars, and stale-digest reconciliation
-  while adding that planning itself never creates or maintains such a record,
-  that session-local identity a host or router holds outside the artifact (path
-  plus digest) is never reconciled as a gate, and that artifacts and templates
-  carry no hash or sidecar. Every case in `evals/vibe-planning/evals.json` was
-  re-read against the vendored wording and stays byte-identical; no assertion
-  quoted removed text or contradicted a rule a block now states. The
-  model-choice sentence after the block now says the judgment-heavy units
-  include plan-contract compliance and the rest of its list, so the package list
-  no longer narrows the block's judgment-heavy list. Verification:
-  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-planning`
-  passes, and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json`
-  passes; the `sha256|digest|sidecar` grep shows only the scoped exception and
-  pre-existing prohibition wording; behavior unproven until an authorized eval
-  run.
-- `vibe-orchestrate`: the shared workflow contract now arrives as generated
-  blocks rendered from `shared/vibe-contract.md`. Blocks that replaced
-  hand-written copies: `delegated-result-proof` (the self-report-is-not-proof
-  sentence in the coordinator-ownership list of `SKILL.md`, and the
-  `COMPILE: PASS` duplicate in `references/verification-and-review.md`, which
-  now points at the `SKILL.md` section and keeps the compile-claim narrowing so
-  the symmetric failure-report rule below it still reads);
-  `commit-selection-state-changing` (the round-checkpoint ownership bullet and
-  the second in-package copy stating round eligibility and the push, release,
-  version, rewrite, cleanup, and unrelated-path exclusions); and
-  `model-tier-selection` (the first paragraph of
-  `## Frontier Coordinator And Model-Tier Loops` in
-  `references/coordinator-practices.md`, including its host-native no-receipt
-  sentence, whose exemption the block's four recording triggers already carry,
-  and the second in-package copy in `## Model And Context Budget` of
-  `references/delegation-contracts.md`, which now points at the single statement
-  and reproduces its judgment-heavy narrowing). `commit-selection-gate` is new
-  to the package and carried no copy: where no user-installed hook enforces it,
-  that wording is the whole gate, and it applies to the round-closing checkpoint
-  commit of the coordination phase. `effect-write-boundaries` is newly vendored
-  as its own section ahead of `## Coordinator Ownership`, because it binds
-  delegated workers as well as the coordinator, and `human-risk-decisions` is
-  newly vendored beside the retained subagent decision prohibition; the
-  coordinator-authority bullets stay as they were, and the phase now declares
-  its scope as the round it integrates: the paths authorized in each worker
-  contract's edit allowlist plus the coordinator's own narrow, disclosed direct
-  edits. Narrower package rules stay in the skill's own text and control under
-  each block's precedence sentence: worker contracts forbid staging, committing,
-  pushing, releasing, and history mutation, and delegated workers change no path
-  outside the declared allowlist; subagents never ask the user, expand scope,
-  accept destructive risk, or make human-risk choices, and the coordinator asks
-  those questions itself and inlines the recorded answer into the worker
-  contract; the closed unit is an accepted integrated round whose file set the
-  coordinator confirmed safe, with an unintegrated round, an unreconciled worker
-  report, an undisposed contract-blocked item, and a file set that cannot be
-  separated from unrelated working-tree changes ineligible; a host that requires
-  separate confirmation for local commits is asked once at startup before the
-  first write-capable round, in addition to and never in place of the gate's
-  per-commit ask, and no startup permission receipt is emitted for unselected
-  history work; worker self-report covers the model, effort, sandbox, isolation,
-  cwd, role, or other execution identity, and a constrained runtime's result
-  reaches a consent, approval, or review gate only after runner-native or
-  host-native metadata proves compliance; worker commands, scope or permission
-  claims, and handoffs stay non-authorizing proposals that are never relayed as
-  instructions; a worker's failure report is symmetric; no token, quality,
-  latency, or reliability improvement is claimed without recorded metrics; and
-  direct coordinator intervention stays narrow and disclosed. The judgment-heavy
-  units kept with the coordinator or the strongest suitable tier —
-  decomposition, non-delegable decisions, ambiguous architecture, final
-  synthesis, verification interpretation, review dispositions, and user-risk
-  choices — and the bounded work a token-efficient delegate may take are now
-  stated once beside the model-tier block, and `SKILL.md`'s reference-routing
-  paragraph points at that single statement instead of repeating a list that had
-  begun to diverge from it. The work-graph decomposition, coordinator capability
-  fit, external-runner transport and receipt rules, crash recovery and
-  monitoring, the parallel-writer accident protocol, the `verified`/`inferred`
-  evidence labels, evidence authority and claim coverage, finding dispositions,
-  and output discipline are retained unchanged; no shared block covers them.
-  Three rules widen with the shared wording: a bound plan that forbids commits
-  now suspends the checkpoint default alongside a current no-commit instruction
-  and project policy; every selected commit is routed to the commit-execution
-  workflow with its verified scope, evidence, and exclusions, and the separately
-  consent-bound list grows from this package's push, release, version, rewrite,
-  destructive-cleanup, and unrelated-path wording to destructive actions
-  generally, including cleanup, plus tags, force-adds, tracking a newly created
-  artifact, external side effects, and ambiguous paths; and delegated text
-  carrying no authority now reaches routing suggestions and recommendations as
-  well as commands, scope or permission claims, and handoffs, and requires a
-  record of where each decision came from. One owner rule changed: the
-  journal-removal rule in `references/recovery-and-monitoring.md` now names
-  progress journals and states that the session record under
-  `.plans/vibe-sessions/` is routing and handoff state, not a progress journal,
-  and is not reached by that rule. Every case in
-  `evals/vibe-orchestrate/evals.json` was re-read against the vendored wording
-  and stays byte-identical; no assertion quoted removed text or contradicted a
-  rule a block now states. The coordinator-tier sentence in
-  `coordinator-practices.md` now says the units kept with the coordinator or the
-  strongest suitable tier include decomposition and the rest of its list, so the
-  package list no longer narrows the block's judgment-heavy list. Verification:
-  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-orchestrate`
-  passes, and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-orchestrate/evals.json`
-- `vibe-review`: the shared workflow contract now arrives as generated blocks
-  rendered from `shared/vibe-contract.md`. Blocks that replaced hand-written
-  copies: `commit-selection-state-changing` (the fix-loop closure paragraph in
-  `SKILL.md`'s overview and its second statement at the end of
-  `references/review-workflow.md`
-  `## Cycles, Terminal Audit, And History Operations`), `model-tier-selection`
-  (the reviewer-model paragraph in `references/review-workflow.md`
-  `## Backends And Review Modes` and the model-receipt sentence duplicated in
-  `SKILL.md`'s startup contract), and `secret-redaction` (the
-  `## Secret Hygiene` overlay: application points, detection classes,
-  replacement marker, count and footer, and most-specific class precedence).
-  Four blocks are new to the package. Two are gates it carried no wording for:
-  where no user-installed hook enforces them, their wording is the whole gate,
-  so a plain commit proceeds only when the workflow can name its selection
-  source — the user's request, the bound plan item, or its own checkpoint of a
-  verified unit — and a matched history mutation stops and asks the user first,
-  with the gates applying to the fix-loop closing commit and to the
-  terminal-audit history operations respectively. `effect-write-boundaries` and
-  `delegated-result-proof` are newly vendored beside retained package wording on
-  coordinator-only edits and the delegated-result trust contract. Narrower
-  package rules stay in the skill's own text and control under each block's
-  precedence sentence: the coordinator is the only actor that may ask the user
-  questions, edit, select and route staging and commits, reset, squash, amend,
-  restore dirty-path isolation, or perform any history operation; delegated
-  reviewers are review-only and any detected mutation or frozen-target drift
-  invalidates the result; edits are forbidden unless both per-finding and batch
-  cascade gates are `closed` or `accepted-residual`; rendered evidence keeps
-  `[REDACTED:apikey]`, `[REDACTED:env-secret]`, and `[REDACTED:jwt]` rather than
-  the generic marker, with the merged-ledger receipt listing contributing child
-  ids; run artifacts stay in a caller-scoped private directory and unavoidable
-  transport-owned persistence is recorded rather than claimed sanitized; fixes
+  decision — rather than prose alone.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 44 cells,
+  `with_skill` 91.8% against `without_skill` 64.0%.
+
+## [vibe-review 4.0.0] - 2026-09-07
+
+### Added
+
+- Review reads the decision and findings indexes at startup, writes accepted
+  divergences and standing dispositions as decision records, writes deferred,
+  blocked, unresolved, and `accepted-residual` items to the findings report
+  when dispositioned, and asks the tracking question before the fix-loop
+  handoff.
+
+### Changed
+
+- **Breaking:** The fix loop closes its applied fixes with a scoped local
+  checkpoint commit, reversing the 3.0.0 explicit-request rule; a current
+  no-commit instruction, a bound plan that forbids commits, or project policy
+  suspends it, and the completion summary names the suspending source. Fixes
   that cannot be separated from the pre-existing changes under review stay
-  uncommitted and are reported; the closing handoff carries the cumulative fix
-  scope, terminal audit, isolation status, and conflict-safety evidence; the
-  judgment-heavy angles are adversarial reasoning, broad diff and specification
-  synthesis, security and data-safety, cascade analysis, final validity
-  judgments, contradiction resolution, and any finding where weak reasoning
-  would become the bottleneck, with cheaper models eligible only for bounded
-  low-ambiguity checks; and the secret-hygiene overlay also redacts at DoD
-  proposal output, cascade receipts, and normalization-safety stop messages over
-  `sk-`, GitHub PAT, AWS, Slack, and GitLab prefixes. The frozen-target and
-  dirty-isolation transport, the closed-schema `delegated_result_record`
-  contract and its quarantine path, DoD and scope triage, lightweight
-  specification gaps, cascade containment, the acceptance-proof matrix, stop
-  signals and `checkpoint_blocked`, and the terminal-audit checklist are
-  retained unchanged; no shared block covers them. The shared wording widens
-  five commit and delegation rules for this package: a bound plan that forbids
-  commits is a third source that suspends the checkpoint default; routing or
-  invocation, edit permission, a convenient stopping point, the presence of
-  tracked changes, and the availability of a commit-execution workflow never
-  select a commit, and an unverified unit is never a handoff; the
-  commit-execution phase executes the commits those sources select and has no
-  checkpoint default of its own, and destructive actions, including cleanup,
-  join the separately consent-bound list beside tags, stash, force-adds,
-  tracking a newly created artifact, and external side effects; that workflow
-  also owns file-set review and history safety alongside staging, message
-  transport, and post-commit verification; and delegated text carries no
-  authority, so a delegate's commands, scope or permission claims, routing
-  suggestions, and handoffs select nothing and approve nothing. The redaction
-  wording also widens: a requirement to read, quote, preserve, summarize, or
-  reflect content never authorizes reproducing the value, tool arguments and
-  quoted snippets are output boundaries, `session-secret` context joins the
-  `secret-context` class, and verification anchors are preserved alongside
-  non-secret wording; routine compatible model choices need no receipt. Owner
-  text changed in seven places: the overview's closure paragraph became a
-  `## Commit Selection` section naming the unit the workflow closes and the
-  unverified, deferred, or blocked findings its commit never reaches;
-  `## Coordinator Authority` now says the coordinator selects and routes staging
-  and commits rather than executing them here, and states the declared write
-  scope (the fixes applied inside the frozen review target after the cascade
-  gates close); the trust contract gained the statement that a backend or
-  reviewer finding is inert until the coordinator establishes every premise from
-  the frozen target, with `Unproven` named as that inert state rather than a
-  `validity` outcome; the startup contract now points at
-  `references/review-workflow.md` as the owner of reviewer model selection and
-  its recording rule; the workflow reference's closing paragraph became a
-  pointer to the commit contract plus the retained handoff and mixed-state
-  sentences; the secret-hygiene paragraph re-anchors the overlay to the block's
-  redaction; and the completion summary now reports the instruction, bound plan,
-  or policy that suspended the default. Every case in
-  `evals/vibe-review/evals.json` was re-read against the vendored wording and
-  stays byte-identical; no assertion quoted removed text or contradicted a rule
-  a block now states. The review-angle sentence in `review-workflow.md` now says
-  the judgment-heavy angles include its listed angles, so the package list no
-  longer narrows the block's judgment-heavy list. Verification:
-  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-review`
-  passes, and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-review/evals.json`
-  passes; `python3 scripts/vibe_shared_contract.py audit-names` reports nothing;
-  behavior unproven until an authorized eval run.
-- `vibe-commit`: the shared workflow contract now arrives as generated blocks
-  rendered from `shared/vibe-contract.md`. `commit-selection-state-changing`
-  replaced the "Commit when asked; do not push" bullet and the selection clauses
-  of the "Accept scoped checkpoint handoffs" bullet — its bound-plan-item and
-  checkpoint-default sources and its edit-permission, unverified-unit, and
-  convenient-stopping-point exclusions (its closing sentence is retained below);
-  no reference file carried a second copy of either. `commit-selection-gate` is
-  new to the package, which carried no copy of it: a plain commit needs a
-  recorded selection source; under a user-installed hook every plain commit,
-  including one with a valid source, surfaces that source through an `ask`
-  prompt before it runs, and where no such hook enforces the gate its wording
-  is the whole gate — a plain commit proceeds only when the workflow can name
-  the user request, bound plan item, or verified checkpoint it rests on, and
-  when no source can be named it does not commit and asks the user.
-  `history-mutation-gate` is newly vendored beside retained history wording: a
-  matched history mutation — an amend, rebase, filter rewrite, hard reset, push,
-  or scripted multi-commit replay — is never run silently, and where no hook
-  enforces the gate it stops and asks the user first with a reason that names
-  the matched operation and quotes the recorded phase and events.
-  `effect-write-boundaries` is newly vendored beside retained package wording
-  and declares the package's effect class for the first time: a state-changing
-  phase keeps its edits to the smallest verified unit of the scope its own text
-  declares, and paths outside that scope, pre-existing working-tree changes it
-  did not make, and runtime state beyond the scope stay unwritten unless the
-  current user selects them. Narrower package rules stay in the skill's own text
-  and control under each block's precedence sentence: every handoff still passes
-  the file-set, verification, message, and history-safety gates, and none of
-  them authorizes broad staging or empty commits; status, diff, path existence,
-  same-session creation, relevance, conventional placement, and commit
-  permission make a path a candidate but never authorize tracking, staging, or
-  commit membership, and a newly selected untracked artifact still needs
-  explicit tracking intent or a mandatory repository or owning-workflow
-  coupling; amend and rebase reach only commits that have not left this machine,
-  and a shared branch is never force-pushed without an explicit, informed
-  request; an ignored path is never force-added until the ignore rule and its
-  risk are surfaced and the user asks for the override, and scope is decided by
-  the user-visible change; versions, releases, and repository hooks are never
-  triggered as a byproduct of committing; and a scripted rewrite that drops
-  paths derives each step's target list from that commit's own tree and deletes
-  only after an explicit confirmed stop. The twelve-step commit workflow, the
-  narrower-request routing list, the message-transport and authorship-trailer
-  rules, the stored-artifact verification rule, and the `file-selection`,
-  `staging-and-recovery`, and `history-and-trailers` references are retained
-  unchanged; no shared block covers them. The shared wording widens these rules
-  for this package: the commit-execution phase executes the commits the three
-  selection sources select and has no checkpoint default of its own; and tags,
-  reset, stash, squash, destructive actions, including cleanup, and external
-  side effects join the operations that stay separately consent-bound even when
-  a checkpoint was selected. The set of things that never select a commit also
-  grows to include routing or invocation, the presence of tracked changes in the
-  working tree, and the availability of a commit-execution workflow. Owner text:
-  the safety boundary became five subsections — effect and write boundaries,
-  commit selection, the two gates, and history safety — so the blocks sit
-  outside list items and each gate section holds only its block and one
-  applicability line, with the retained rules kept as paragraphs; one added
-  sentence declares the scope this phase owns, the index and history of the
-  selected commit and the message it transports, with no source edits; another
-  names this workflow as that commit-execution phase, which keeps no checkpoint
-  default of its own and runs no `git push` unless the current user explicitly
-  asks; a third states that scoped checkpoint handoffs reach it as commit
-  requests for their named paths; the commit-selection gate carries one sentence
-  naming the plain commits it applies to and the history-mutation gate one
-  naming the phase it applies to; and the retained shared-history and
-  scripted-rewrite rules moved under a new `### History Safety` heading. Every
-  case in `evals/vibe-commit/evals.json` was re-read against the vendored
-  wording and stays byte-identical; no assertion quoted removed text or
-  contradicted a rule a block now states. Verification:
-  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-commit`
-  passes, and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-commit/evals.json`
-  passes; behavior unproven until an authorized eval run.
-- `vibe-writing`: the shared workflow contract now arrives as generated blocks
-  rendered from `shared/vibe-contract.md`. Blocks that replaced hand-written
-  copies: `effect-write-boundaries` (the `SKILL.md` class statement that this
-  skill controls wording quality and message content),
-  `commit-selection-document-only` (the two sentences holding a standalone
-  writing deliverable's tracked text edits in the working tree until the user
-  asks for a commit and denying invocation, tracked status, and artifact
-  completion any power to select history work, and the sentence assigning a
-  later commit workflow staging, file-set review, message transport,
-  stored-message verification, and push and history boundaries), and
-  `language-precedence-chat` (the five-tier chat-language precedence, the list
-  of inputs that never infer chat language, and the
-  path/command/identifier/environment-variable/locale-tag/message-key/product-
-  name/canonical-string/code preservation sentence). All three references are
-  unchanged: none carried a second copy of the chat-language precedence, and
-  their commit sentences scope the reference itself rather than defining the
-  phase's commit rule — `references/changelog.md` still says its guidance
-  controls changelog wording only and authorizes no commit, staging, release,
-  version bump, or move of an `Unreleased` entry into a release section, and
-  `references/commit-messages.md` still returns a split-or-stop requirement to
-  the workflow that owns commit execution. `read-only-phase-write-gate` is new
-  to the package, which carried no copy: an artifact-only phase writes only the
-  artifact it owns, the supporting paths its own text declares, and the unit's
-  recorded scratch root, and where no user-installed hook enforces the gate that
-  wording is the whole gate, so the phase itself refuses a write outside that
-  boundary and reports it as a boundary stop rather than retrying through
-  another tool. Narrower package rules stay in the skill's own text and control
-  under each block's precedence sentence: this skill does not authorize
-  releases, PR submission, template changes, or workflow shortcuts; wording the
-  user has not yet read is not a closed unit; when wording is produced inside
-  another active workflow, that workflow's own checkpoint rules govern its
-  changes; chat-language selection controls only wrapper prose, progress
-  updates, summaries, and confirmation questions and never translates the
-  requested artifact or overrides exact-format output; a commit-execution
-  workflow controls staging, authorization, command safety, signing, release
-  processes, and history mutation, while this skill controls the message
-  artifact; and a standalone tracked-text edit under this skill's scoped
-  permission applies the same minimum commit safety of refreshing dirty state,
-  staging only owned paths, inspecting the staged diff, using a Conventional
-  Commit message, and inspecting the stored message and committed file set. The
-  six-tier artifact-language cascade, including its existing-artifact,
-  filename-locale-marker, and project-convention tiers, the exactness boundary
-  that refuses to rewrite verbatim tool or log output, protocol snippets,
-  quoted source, or a bare acknowledgment, the auxiliary-wording-mode section
-  subordinating incidental wording to the active workflow's authority, stop
-  gates, verification, release policy, and commit rules, the reader-priority,
-  evidence-and-meaning, format, durable-reference, common-mistake, and
-  self-check sections, and all three references are retained unchanged; no
-  shared block covers them. The shared wording widens one rule for this
-  package: an artifact-only phase may also write the supporting paths its own
-  text declares, which here reach only the text deliverables the request names
-  and the tracked text this phase was asked to revise. It also reconciles one
-  rule that was already split across the package: a user-requested commit
-  scoped to the owned artifact may be performed by a commit-execution workflow
-  or by this phase itself, which `references/artifact-guidance.md` already
-  required under its minimum commit safety, so `SKILL.md` now states what that
-  reference already governed rather than granting a new permission. Owner text
-  changed in five places: `## Overview` now names the artifacts this phase owns
-  — source comments and docstrings, README, docs, guides, and UI copy, a saved
-  audit, report, or postmortem, policy or support copy, a changelog or release
-  note, a PR description, a progress or final summary, and a commit message,
-  including a rewrite, polish, or localization of any of them; the unread-
-  wording rule now adds that such wording selects no commit; a new sentence
-  names both actors a user-requested commit may take and binds the phase's own
-  execution to the minimum commit safety the artifact guidance states; a new
-  sentence closing the artifact-language section binds the
-  path/command/identifier/environment-variable/locale-tag/message-key/product-
-  name/canonical-string/code preservation rule to artifact and localized output
-  as well as chat, because that rule now lives inside a chat-scoped block; and
-  the sentence withholding release, PR-submission, template-change, and
-  workflow-shortcut authority now names this skill instead of opening with a
-  pronoun. The chat-selection scope sentence moved from the artifact-language
-  passage to sit beside the chat-language block, and new
-  `### Effect And Write Boundaries`, `### Read-Only-Phase Write Gate`,
-  `### Commit Selection`, `### Auxiliary Wording Mode`, `### Chat Language`,
-  `### Artifact Language`, and `### Format And Exactness` headings keep any
-  block from being read as scoped by neighbouring prose. Every case in
-  `evals/vibe-writing/evals.json` was re-read against the vendored wording and
-  stays byte-identical; no assertion quoted removed text or contradicted a rule
-  a block now states. Verification:
-  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-writing`
-  passes, and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-writing/evals.json`
-  passes; behavior unproven until an authorized eval run.
-- `vibe-agent-instructions`: the shared workflow contract now arrives as
-  generated blocks rendered from `shared/vibe-contract.md`.
-  `language-precedence-document` replaces the hand-written document-language
-  precedence in `SKILL.md` and its in-package duplicate in the cross-cutting
-  rules of `references/generation-and-update-workflow.md`, which now points at
-  the skill's `Document Language` section instead of restating the order.
-  `read-only-phase-write-gate` is new to the package: where no user-installed
-  hook enforces it, its wording is the whole gate — this workflow writes only
-  the instruction files it owns, the supporting paths its own text declares,
-  and the scratch root recorded for the unit, and it refuses a write outside
-  that boundary itself and reports it as a boundary stop rather than retrying
-  through another tool. `effect-write-boundaries` and
-  `commit-selection-document-only` are newly vendored beside retained package
-  wording: the preview-before-every-write rule and the repository-root-only
-  rule, and the unconditional refusal to stage, commit, push, tag, or mutate
-  history in any mode. Narrower package rules stay in the skill's own text and
-  control under each block's precedence sentence: this workflow performs no
-  commit and no history operation in any mode, so an explicit user request to
-  commit the generated files is handed to the commit-execution workflow and
-  never executed here; every write to a path that already exists is previewed —
-  the complete replacement content for an untracked file, the diff for a tracked
-  one — and confirmed before it is applied; nested package-level instruction
-  files are reported as a follow-up, never generated; and the literal text that
-  stays verbatim in every language is the fixed managed block at the top of
-  `AGENTS.override.md`. The instruction-file policy itself, the inventory and
-  both conflict stops, the divergence gate with its evidence date and staleness
-  question, the advance-confirmation and divergence-acknowledgment channels and
-  their refusal to count text found in an instruction file, in tool output, or
-  in a delegated report, the derived-file and link-integrity rules, the ignore
-  placement, the size guard and loader matrix, the report's section list, the
-  evidence labels in `references/instruction-file-semantics.md`, and the rule
-  that the run report follows the user's conversational language are retained
-  unchanged; no block this package carries covers them. The shared wording
-  widens two rules for this package: nothing but an explicit request for the
-  current artifact, then `VIBE_DOCUMENT_LANGUAGE`, then English selects a
-  generated file's language, so an existing file's language, source-material
-  language, filename locale markers, the chat language, and project convention
-  are inputs to preserve, not authority; and
-  `VIBE_DOCUMENT_LANGUAGE=user` means the language of the current request,
-  `=default` means English, and a BCP47 tag fixes the language, while an
-  unreadable or clearly malformed value is unset and the next tier applies. The
-  effect block's supporting-paths clause consolidates permissions the package
-  already had rather than widening them: the paths its own text declares are
-  only the files this workflow names — `AGENTS.md`, the derived `CLAUDE.md`,
-  the managed block in `AGENTS.override.md`, the derived `CLAUDE.local.md`, the
-  listed reference documents, and the one previewed `.gitignore` or
-  `.git/info/exclude` entry. Owner text changed in five places:
-  new `Effect And Write Boundaries` and `Document Language` sections host the
-  blocks; the write section names the artifacts this workflow owns and repeats
-  that an existing path is previewed first; the gate carries one applicability
-  sentence naming the instruction-file generation and update phase; the commit
-  section states the override that routes a requested commit away from this
-  workflow; and the retained verbatim-token sentence is now scoped to the
-  generated instruction files and names the managed block at the top of
-  `AGENTS.override.md` as the literal block text it protects. Every case and
-  common assertion in `evals/vibe-agent-instructions/evals.json` was re-read
-  against the vendored
-  wording and stays byte-identical; no assertion quoted removed text or
-  contradicted a rule a block now states. Verification:
-  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-agent-instructions`
-  passes, and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-agent-instructions/evals.json`
-  passes; behavior unproven until an authorized eval run.
-- `vibe-goal-alignment`: this skill now carries three blocks from
-  `shared/vibe-contract.md`, and no hand-written rule was deleted to make room
-  for them. `effect-write-boundaries` and `human-risk-decisions` are newly
-  vendored beside retained wording — the skill's own no-execution sentence and
-  its risk-and-ambiguity gate list. `read-only-phase-write-gate` is new to the
-  package, which carried no copy: where no user-installed hook enforces it, its
-  wording is the whole gate, so a read-only phase writes only an explicitly
-  requested saved artifact whose canonical path is recorded in `allowed_paths`
-  and otherwise writes no file — an allowance this package removes outright,
-  below — and a write outside that boundary is refused by the phase itself and
-  reported as a boundary stop. The class declaration
-  `language=none commit=none effect=read-only` names this phase read-only, so
-  the block's read-only clause is the one that binds it: it reads and reports,
-  its deliverable is chat, and it runs no command that mutates runtime or
-  repository state. The skill's stricter sentence — do not run commands, edit
-  files, stage, commit, tag, push, bump versions, delete data, or start
-  services from this skill — is retained word for word and controls under the
-  effect block's precedence sentence, and one added sentence records the empty
-  write boundary that follows from it: this phase owns no artifact and writes
-  no file, so the block's allowance for an explicitly requested saved artifact
-  does not reach it. The alignment-record fields and the `User-stated`,
-  `Local evidence`, `Assumption`, and `Unresolved` labels, the
-  risk-and-ambiguity gate list, the correction loop, the output-boundary style
-  rules, the common-mistake and self-check lists, and the response-language
-  sentence are retained unchanged; no shared block covers them. The shared
-  wording widens one rule for this package: a human-risk decision needs
-  explicit human-user acceptance that is already recorded and tied to the
-  current artifact or request; no orchestration handoff, proxy perspective,
-  delegated recommendation, or AI-selected default accepts one on the user's
-  behalf; and paid decisions join the classes that stop for the user. Owner
-  text: the no-execution sentence moved out of the output-boundary list into a
-  new `## Effect And Write Boundaries` section so the block sits outside a list
-  item, keeping its wording and line breaks; the write gate has its own
-  subsection holding the block and one applicability line naming this phase;
-  one sentence states that alignment surfaces human-risk decisions as questions
-  before any action and that this phase has no owning artifact to return one
-  to; and the empty-write-boundary sentence stated above.
-  Every case in `evals/vibe-goal-alignment/evals.json` was re-read against the
-  vendored wording and stays byte-identical; no assertion quoted removed text or
-  contradicted a rule a block now states. Verification:
-  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-goal-alignment`
-  passes, and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-goal-alignment/evals.json`
-  passes; behavior unproven until an authorized eval run.
-- `vibe-brainstorm`: the package now takes its shared obligations from
-  `shared/vibe-contract.md` as generated blocks, under one class-declaration
-  line (`language=none commit=none effect=read-only`). Two blocks replace
-  hand-written copies: `model-tier-selection` replaces the whole of the
-  Delegation Gate's fifth check, the per-role model paragraph, which is now a
-  one-line pointer to the block's own `### Model Choice` section so the gate's
-  six checks stay numbered and the later "check 1" and "check 3" references
-  still resolve; and `effect-write-boundaries` replaces the first two sentences
-  of the output contract's opening paragraph, the chat-is-the-default class
-  statement, leaving the rest of that paragraph in place. Neither block had a
-  second in-package copy to delete. `read-only-phase-write-gate` is new to the
-  package, which carried no copy: a read-only phase writes only an explicitly
-  requested saved artifact whose canonical path is recorded in `allowed_paths`
-  and otherwise writes no file, and where no user-installed hook enforces the
-  gate that wording is the whole gate, so the phase itself refuses a write
-  outside that boundary and reports it as a boundary stop rather than retrying
-  through another tool; its applicability line names the brainstorming phase.
-  Retained narrower text that controls under the blocks' precedence sentence: a
-  host or runner that merely designates a path to use if an artifact is written
-  is still not the user's request, so that path stays unwritten; the pre-output
-  gate still requires the explicit persistence request to be identified before
-  any file write and keeps the brainstorm, checklist, orchestration schedule,
-  and confirmation request in chat, and still refuses to treat Markdown headings
-  as evidence that an output is a plan or specification; and a cheaper or faster
-  model stays eligible here only for bounded low-ambiguity checks, narrower than
-  the block's lookups, extraction, mechanical checks, and simple review. The
-  delegation evidence contract (`confirmed` only against a host-issued
-  identifier or record location, otherwise `unproven`, and
-  `unavailable/degraded` with its limitation), the rule that a polished
-  response, role headings, persona separation, runtime summaries, or
-  self-reported token totals are not proof of delegation, the
-  trusted-orchestration proxy selection that is AI-selected input rather than
-  human confirmation, the mode selection table, the scripted orchestration
-  schedule boundary, convention grounding, and the response shape are retained
-  unchanged; no shared block covers them. The shared wording widens two rules
-  for this package: the read-only class now states unconditionally that this
-  phase edits no source, test, config, doc, or other file, runs no command that
-  mutates runtime or repository state, and does not stage, commit, tag, push,
-  change versions, delete data, or start services, where the package had stated
-  only that chat is the default deliverable and that files are created on
-  explicit request, with a narrower prohibition in its handoff boundary; and the
-  bias toward the strongest suitable reasoning and context tier now covers
-  cross-artifact synthesis, adversarial review, security, data-safety and other
-  human-risk reasoning, contract compliance, and final dispositions, beside the
-  creative-synthesis roles the package already listed. Owner text changed in two
-  places: a new sentence in `### Model Choice` names each delegated role as one
-  of the block's units and keeps the package's own judgment-heavy list —
-  creative synthesis, especially the `Unconventional` and `Challenging`
-  generators, convention tradeoffs, selection, broad-context grounding, final
-  recommendations, contradiction resolution, and user-risk judgments — with the
-  narrower cheap-model eligibility above; and a new sentence opening the effect
-  boundary's owner text states that this phase owns no artifact and has no
-  canonical path of its own, so the only file it writes is one the current
-  user's own instruction asks to save, which also restores the antecedent the
-  runner-designated-path sentence had in the deleted class statement. New
-  `### Model Choice`, `### Delegation Mechanisms And Evidence`,
-  `### Effect And Write Boundaries`, `### Read-Only-Phase Write Gate`, and
-  `### Response Shape` headings keep any block from being read as scoped by
-  neighbouring prose and keep the gate section to the block plus its
-  applicability line. Every case in `evals/vibe-brainstorm/evals.json` was
-  re-read against the vendored wording and stays byte-identical; no assertion
-  quoted removed text or contradicted a rule a block now states, and the
-  orchestration case's role-tier expectations keep their basis because the owner
-  sentence maps each delegated role to the block's delegated unit. The
-  `### Model Choice` sentence after the block now says the judgment-heavy units
-  include creative synthesis, so the package list no longer narrows the block's
-  judgment-heavy list. Verification:
-  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-brainstorm`
-  passes, and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-brainstorm/evals.json`
-  passes; behavior unproven until an authorized eval run.
-- `vibe-plan-review`: the shared workflow contract now arrives as generated
-  blocks rendered from `shared/vibe-contract.md`, carried in four new sections —
-  `### Effect And Write Boundaries`, `### Read-Only-Phase Write Gate`, and
-  `### Commit Selection` under `## Overview`, plus the existing
-  `## Sensitive Content Handling` — with a fourth new section,
-  `### Runtime Language`, holding the unchanged runtime-language paragraph so
-  that it no longer reads as part of the commit section. Blocks that replaced
-  hand-written copies: `effect-write-boundaries` (the `## Overview` class
-  statement that the skill reviews the plan, does not execute it, and does not
-  proceed into implementation, tests, releases, or adjacent coding work),
-  `commit-selection-document-only` (one part of the `## Overview` commit
-  paragraph: leaving verified plan changes in the working tree, and invocation,
-  reflection consent, tracked status, and successful verification not selecting
-  a commit; the paragraph's routing sentence is restated as owner text instead,
-  below), and `secret-redaction` (in `## Sensitive Content Handling`, two parts
-  only: the paragraph listing credential, token, password, private key,
-  URL-embedded authentication value, session secret, and env-style secret
-  assignment as the sensitive classes, and the first two bullets, which named
-  the emission surfaces and the path/line/class/marker reference shape; the
-  section's blocker, no-copy-into-the-review-file, and no-reflection bullets and
-  its uncertainty paragraph stay hand-written). `read-only-phase-write-gate` is
-  new to the package, which carried no copy of it: where no user-installed hook
-  enforces it, the block's wording is the whole gate, so this phase writes only
-  the artifact it owns, the supporting paths its own text declares, and the
-  scratch root recorded for the unit, and it refuses a write outside that
-  boundary itself and reports it as a boundary stop instead of retrying through
-  another tool. Narrower package rules stay in the skill's own text and control
-  under each block's precedence sentence: review stops after item review and the
-  final plan-reflection confirmation workflow; a commit the current user
-  explicitly requests is routed to a later commit-execution workflow and is
-  never performed by this phase, where the block would also allow the phase to
-  perform it under the same checks; that commit's target is the reflected plan
-  file, where the block scopes a requested commit to the artifact the phase owns
-  — here the temporary review-state file — which is itself never committed; the
-  temporary review file is stored beside the plan as `.<plan-name>.review.md`
-  and a mismatched, unparseable, externally edited, or unclearly owned one stops
-  the review instead of being overwritten; reflection into the original plan
-  happens only after explicit confirmation that states all four localized
-  decision outcomes, and never while a suspected sensitive literal remains in
-  the target plan or the review state; a live-looking credential in the plan is
-  a blocker whose remedy is removal plus rotation or revocation through a secure
-  process, never a value pasted into the conversation; a sensitive source line
-  is never copied into the review file; an uncertain candidate is redacted and
-  asked about without showing it; redaction authorizes no implementation,
-  rotation, revocation, or secret-store access; and after verification the plan
-  changes are left uncommitted unless the current user explicitly asks, with
-  review-file cleanup a separate user decision. Item extraction and stable item
-  identity, the localized decision labels and their numeric identifiers,
-  requirements-spec discovery and the requirements-plan conflict stop, minimal
-  source inspection, the review binding output, the stop conditions, and the
-  completion summary are retained unchanged; no shared block covers them. The
-  shared wording widens one rule for this package: redaction is now typed, with
-  six detection classes, the `[REDACTED:<type>]` marker, a most-specific-class
-  precedence rule, and a redaction count rendered as a compact footer, where the
-  skill previously listed seven untyped kinds and one example marker. The
-  artifact-only clause permitting the supporting paths a phase's own text
-  declares consolidates a permission this skill already had — the confirmed
-  reflection into the target plan — rather than widening it. Owner text changed
-  in three places: `### Effect And Write Boundaries` now carries the phase's
-  stop point after item review and the final plan-reflection confirmation
-  workflow together with a declaration of the artifact this phase owns and its
-  single
-  supporting path; `### Commit Selection` restates the routed-commit actor and
-  the reflected-plan target; and `## Sensitive Content Handling` keeps plan,
-  requirements-spec, source, temporary-review content, and any commit message
-  this phase drafts or hands on in scope, keeps the plan item anchor among the
-  preserved verification anchors, and keeps a suspected credential that matches
-  none of the typed classes secret-like here, redacted with a `credential` type.
-  Every case in `evals/vibe-plan-review/evals.json` was re-read against the
-  vendored wording and stays byte-identical; no assertion quoted removed text or
-  contradicted a rule a block now states. Verification:
-  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-plan-review`
-  passes, and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-review/evals.json`
-  passes; behavior unproven until an authorized eval run.
-- `vibe-plan-execution`: carries the shared-contract blocks. `evidence-classes`
-  replaces the hand-written `Primary source`, `Accepted risk`, and `Unproven`
-  definitions in `SKILL.md` `## Evidence Classes`; `accepted-risk-semantics`
-  replaces the Core Rules `Unproven`-slice rule;
-  `commit-selection-state-changing` replaces the `## Overview`
-  checkpoint-default, scope, and suspend paragraphs plus both in-package
-  duplicates — the Core Rules checkpoint bullet and step 8 of
-  `references/execution-workflow-and-quality.md`; `human-risk-decisions`
-  replaces the six-member consent-bound operations bullet,
-  `model-tier-selection` the delegated-model paragraph, and
-  `delegated-result-proof` the delegated-results bullet in
-  `references/execution-gates-and-delegation.md`; `language-precedence-chat`
-  replaces the chat-language bullet in
-  `references/execution-workflow-and-quality.md`. `commit-selection-gate` is new
-  to the package and carried no copy: with no user-installed hook its wording is
-  the whole gate, so a plain commit proceeds only when the workflow can name its
-  selection source, and it applies to the plan-execution phase's checkpoint
-  commit; under a user-installed hook every plain commit yields `ask` with its
-  recorded selection source surfaced, never `deny`. `effect-write-boundaries` is
-  newly vendored beside retained wording — the overview's smallest-safe-slice
-  statement and the reference's slice-locking rules stay. Retained narrower text
-  that controls: plan execution neither stages nor commits itself and hands each
-  checkpoint to the commit-execution workflow, which keeps staging, message
-  transport, trailers, and stored-commit inspection; delegated units never
-  commit; an `Accepted risk` for an `Unproven` current-slice assumption must be
-  recorded in the bound plan itself before the affected slice is implemented, so
-  an acceptance given only in conversation is written into the plan first; the
-  `Accepted risk` support limit to the conditional steps the plan tied to it;
-  the plan-authored `Commit checkpoints` boundary; the startup confirmation
-  asked once before the first edit that can produce tracked changes, which is in
-  addition to the gate's per-commit ask and never replaces it. Package-only text
-  retained unchanged, no shared block covers it: the `Plan` and `Local evidence`
-  class definitions, the rule that a planning-owned artifact keeps its
-  `Local investigation` label, the requirement to label evidence even when no
-  files were edited, the verbatim `Do not commit` reason in summaries and the
-  progress ledger, and the light evidence labels for non-technical users.
-  Widened by the shared wording: human-risk decisions grow from six operations
-  to fourteen classes; `Primary source` now includes a known-good historical
-  implementation; `Unproven` now includes stale documentation, training-data
-  recall, and missing access; routing or invocation, edit permission, a
-  convenient stopping point, the presence of tracked changes in the working
-  tree, and the availability of a commit-execution workflow never select a
-  commit, and an unverified unit is never a handoff; a request to commit is not
-  a request to push; the consent-bound list gains `tags` and `force-adds`, and
-  "destructive cleanup" becomes "destructive actions, including cleanup"; the
-  commit-execution phase executes selected commits and has no checkpoint default
-  of its own; routine compatible model choices need no receipt; and the
-  chat-language preserve list grows to environment variables, locale tags,
-  message keys, product names, and canonical strings. Narrowed by the shared
-  wording: accepted risk is never available for irreversible, destructive,
-  unsafe, illegal, or credential-exposing actions, which require proof or a
-  safer alternative. Added: `Local investigation` is now defined in this package
-  rather than only used. The checkpoint default's suspend sources are now three
-  in every suspend enumeration — a current no-commit instruction, a bound plan
-  that forbids commits, or project policy — correcting the Core Rules copy that
-  listed two, and the consent-bound preflight item was reconciled to the same
-  three. Owner text added: the declared write scope (the current slice the bound
-  plan authorizes, implemented as the smallest coherent unit that can be
-  tested); the unit the workflow closes; the requirement that an accepted risk
-  be recorded in the bound plan before the affected slice is implemented; the
-  clause making the startup confirmation additive to the gate's per-commit ask;
-  the statement that a delegated unit never asks a human-risk question itself
-  but stops and returns the decision to the coordinator; the package's
-  judgment-heavy and cheap-model-eligible delegated units; the mapping that a
-  delegated result becomes `Local evidence` only after coordinator verification
-  with the plan's checks; and the execution-output tokens preserved verbatim
-  (identifiers, evidence labels, plan headings, quoted source text). New
-  sections host the blocks: `## Effect And Write Boundaries`,
-  `## Commit Selection` with `### Commit-Selection Gate`, and
-  `## Accepted-Risk Semantics` in `SKILL.md`; `## Human-Risk Decisions`,
-  `### Model Choice`, `### Delegation Contract`, and `## Delegated Result Proof`
-  in the gates reference; `### Chat Language` and
-  `### Progress, Blockers, And Summaries` in the workflow reference.
-  `evals/vibe-plan-execution/evals.json` is unchanged: the full re-read found no
-  assertion quoting deleted text and none contradicting a block rule. The
-  model-choice sentence in `execution-gates-and-delegation.md` now says the
-  judgment-heavy units include implementation, plan-contract judgment, and the
-  rest of its list, so the package list no longer narrows the block's
-  judgment-heavy list. Verification:
-  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-plan-execution`
-  passes, and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-plan-execution/evals.json`
-  passes; behavior unproven until an authorized eval run.
-- `vibe-code-research`: the shared workflow contract now arrives as generated
-  blocks rendered from `shared/vibe-contract.md`, under a
-  `language=none commit=none effect=read-only` class line. Five blocks replaced
-  hand-written copies. `effect-write-boundaries` replaced the overview's class
-  statement ("This skill is read-only. While it is active, do not edit source,
-  tests, configs, docs, or any other file, do not stage or commit, and do not
-  mutate runtime or repository state"). `evidence-classes` replaced the
-  definition part of the `Evidence labels` core rule — its three class names and
-  their member lists — while the rule's inference sentence is retained below.
-  `secret-redaction` replaced the
-  `Redact sensitive literals at output boundaries` core rule, its secret-member
-  and preserve-anchor lists included. `model-tier-selection` replaced the
-  delegated-investigation bullet on choosing a model per investigator.
-  `delegated-result-proof` replaced the first sentence of the delegated-proof
-  bullet ("Delegated output is a claim, not proof"); the bullet's anchor
-  re-reading clause is retained below. The package has one instruction file, so
-  no reference carried a second copy of any of them.
-  `read-only-phase-write-gate` is new to the package, which carried no wording
-  for it: where no user-installed hook enforces it, its wording is the whole
-  gate, so this phase writes only an explicitly requested saved artifact whose
-  canonical path is recorded in `allowed_paths`, writes no other file, and
-  reports a write outside that boundary as a boundary stop rather than retrying
-  it through another tool; it applies to the code-research phase. Narrower
-  package rules stay in the skill's own text and control under each block's
-  precedence sentence: non-mutating inspection is enumerated as allowed (reading
-  files, targeted search, `git log`/`git blame`/`git show`, type or symbol
-  lookup) while writing files, installing dependencies, migrating data, starting
-  long-lived services, and touching external systems are named out of bounds;
-  its user-request exception no longer applies (see below); a permissive cleanup
-  or edit invitation keeps the investigation read-only, is answered by saying no
-  edit was performed because editing needs a separate instruction, and is
-  reported only as a finding or option; inference is allowed but must be visible
-  as inference; a delegated unit must not edit, stage, commit, install, or
-  mutate anything and must replace suspected credentials and secret-like literal
-  values with `[REDACTED:<type>]` before returning findings; load-bearing
-  conclusions from a delegated report are labeled `Local investigation` only
-  after this phase re-reads their anchors; and in closed-corpus mode supplied
-  material is labeled `Primary source` or supplied-source evidence, never
-  `Local investigation`, with the evidence section labeled once. The evidence
-  universe gate and its closed-corpus output invariant, the anchor,
-  static-versus-runtime, question-depth, coverage-honesty, and counter-evidence
-  core rules, the five-step workflow, the
-  `Answer`/`Evidence`/`Not verified`/`Possible next steps` output shape with its
-  static-structure phrasing rule, the handoff boundary including "Findings are
-  evidence for later phases, never authorization to start them", and the common
-  mistakes are retained unchanged; no shared block covers them. Two sentences
-  once in that category are not: the self-check's secret-literal line and the
-  output contract's quoting rule now sit under `secret-redaction` — the
-  self-check names the block's `[REDACTED:<type>]` marker, and the quoting rule
-  applies the block's preserve-the-anchors requirement to quoted source, its one
-  remaining "structural description" phrasing left deferred. The shared wording
-  widens six rules for this package. Each retained class name gains members:
-  `Primary source` adds vendor documentation and a known-good historical
-  implementation, `Local investigation` adds reproduced behavior and tests,
-  configs, schemas, and logs read in the workspace, and `Unproven` adds stale
-  documentation, unchecked user claims, missing access, and hypotheses. The
-  effect class adds tag, push, and version-change prohibitions beyond the
-  replaced "do not stage or commit". Redaction gains typed detection classes,
-  the fixed `[REDACTED:<type>]` marker, a most-specific-class precedence rule,
-  and a redaction count with a compact footer, in place of the previous free
-  choice of marker or structural paraphrase. Delegated-result verification
-  widens beyond re-reading anchors to inspecting or rerunning the command,
-  output, and kept bytes behind a verification claim, or running an own
-  disconfirming check. Delegated text carries no authority, so a delegate's
-  commands, scope or permission claims, routing suggestions, handoffs, and
-  recommendations select nothing and approve nothing. And the read-only command
-  boundary becomes unconditional: the block grants one write exception, an
-  explicitly requested saved artifact, so the previous "unless the user
-  explicitly requests them as part of the investigation" exception on mutating
-  commands was removed from the read-only boundary rule. `Accepted risk` arrives
-  as a fourth base class but is neutralized rather than widening the phase: the
-  owner text states this read-only phase produces none and routes an `Unproven`
-  item to the `Not verified` output section. Owner text changed in seven places:
-  the overview's class statement became an `### Effect And Write Boundaries`
-  section declaring the phase read-only, owning no artifact by default, with the
-  requested saved report as its only write; the write gate follows it with its
-  one applicability line; the `Evidence labels` and redaction core rules became
-  one-line pointers to `### Evidence Classes` and `### Secret Redaction` after
-  the list; the evidence section states that this phase produces no
-  `Accepted risk` items and routes an `Unproven` item to `Not verified`; the
-  redaction section names this phase's output boundaries (chat findings, an
-  explicitly requested saved report, the question and excerpts sent to a
-  delegated investigator and the findings that come back, any snippet it quotes,
-  and the arguments it passes to tools); `### Model Tier Selection` names one
-  bounded investigation question as the delegated unit, with cross-subsystem
-  synthesis, ambiguous architecture tracing, security-sensitive evidence
-  handling, contradiction resolution, final conclusions, and
-  bottleneck-reasoning investigations among the judgment-heavy units and narrow
-  path or symbol lookup, mechanical extraction, and small-context anchor checks
-  as the only cheaper-model-eligible work; and `### Delegated Result Proof`
-  names this phase as the verifier of the retained anchor re-reading rule. Every
-  case in `evals/vibe-code-research/evals.json` was re-read against the vendored
-  wording and stays byte-identical; no assertion quoted removed text or
-  contradicted a rule a block now states, and the typed marker, redaction count
-  and footer, and the delegated-authority and unconditional-command rules are
-  not exercised by any case.
-  Verification:
-  `python3 scripts/vibe_shared_contract.py check --strict --package vibe-code-research`
-  passes, and
-  `python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-code-research/evals.json`
-  passes; `python3 scripts/vibe_shared_contract.py audit-names` reports
-  nothing; behavior unproven until an authorized eval run.
+  uncommitted and are reported; the coordinator selects and routes commits
+  rather than executing them, and terminal-audit history operations stop and
+  ask first.
+- A finding that contradicts a passing test is a competing claim, not
+  authority for marking the finding invalid; adjudication happens at the
+  behavior. A backend or reviewer finding stays inert (`Unproven`) until the
+  coordinator establishes every premise from the frozen target.
+- Redaction treats tool arguments and quoted snippets as output boundaries and
+  adds `session-secret` context; rendered evidence keeps the typed
+  `[REDACTED:apikey]`, `[REDACTED:env-secret]`, and `[REDACTED:jwt]` markers.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 50 cells,
+  `with_skill` 90.1% against `without_skill` 70.7%.
+
+## [vibe-orchestrate 4.0.0] - 2026-09-07
+
+### Added
+
+- A worker report carries a named section for work the contract itself
+  blocked; every such item is re-contracted, scheduled to a named later round,
+  or dropped with a reason before the round is accepted.
+- Capability fit applies to the coordinator's own seat: work that is only
+  large is decomposed and delegated, work whose difficulty exceeds the seat is
+  escalated even when it touches few files, a bounded read-only inspection
+  settles which axis applies, and escalation is a stop with a named handoff.
+- The coordinator reads the decision and findings indexes at baseline capture,
+  owns each `DECISION-IMPACT:` entry, writes standing dispositions and
+  ruled-out escalation options as decision records, and writes later-round or
+  dropped contract-blocked items to the findings report.
+
+### Changed
+
+- **Breaking:** An accepted integrated round closes with a scoped local
+  checkpoint commit, reversing the 3.0.0 rule. An unintegrated round, an
+  unreconciled worker report, an undisposed contract-blocked item, and a file
+  set inseparable from unrelated changes are ineligible; a current no-commit
+  instruction, a bound plan that forbids commits, or project policy suspends
+  the default; a host that needs separate confirmation for local commits is
+  asked once before the first write-capable round.
+- An external run's product arrives through the runner's own result
+  interface; a file the worker writes is a convenience copy that may be
+  absent. An isolated workspace's base commit is verified before the first
+  isolated unit and echoed by each unit, and repository-wide gates are
+  suspended while an isolated workspace exists inside the repository.
+- A finding that contradicts a passing test is adjudicated at the behavior,
+  and repairing a test whose expected value is the defect needs
+  repair-contract authorization. Monitoring is chosen by observation cost;
+  the fixed polling interval is removed. Consent-bound operations now include
+  destructive actions generally, tags, force-adds, tracking a new artifact,
+  external side effects, and ambiguous paths.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 96 cells,
+  `with_skill` 81.6% against `without_skill` 57.1%.
+
+## [vibe-goal-alignment 2.1.0] - 2026-09-07
+
+### Added
+
+- The carry-forward packet that hands a confirmed understanding forward also
+  carries any finding another unit must address, marked unpersisted with the
+  one action that would persist it; this phase writes no file.
+
+### Changed
+
+- A human-risk decision needs explicit, recorded human acceptance tied to the
+  current request, and paid decisions join the classes that stop for the user.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 16 cells,
+  `with_skill` 95.5% against `without_skill` 70.8%.
+
+## [vibe-commit 3.0.0] - 2026-09-07
+
+### Added
+
+- A diff is checked against the `paths` of accepted decision records for
+  conformance or a superseding record in the same commit; a new record
+  follows the repository's tracking answer; a newly adopted convention or a
+  discovered defect is handed forward as a carry-forward packet.
+
+### Changed
+
+- **Breaking:** A commit is selected from exactly three sources — an explicit
+  current-user request, a bound approved plan item, or a state-changing
+  workflow's own checkpoint of a verified, reviewed unit — so scoped
+  checkpoint handoffs arrive as commit requests for their named paths,
+  widening the 2.0.0 rule that accepted only the first two. This phase keeps
+  no checkpoint default of its own. Push, release preparation, version
+  changes, tags, amend, rebase, reset, stash, squash, destructive actions
+  including cleanup, force-adds, tracking a newly created artifact, and
+  external side effects stay separately consent-bound.
+- A plain `git commit` is never run without naming its selection source
+  (`user-turn`, `bound-plan-item`, or `specialist-checkpoint`); an amend,
+  rebase, filter rewrite, hard reset, push, or scripted multi-commit replay is
+  never run silently and stops to ask first. Under a user-installed hook,
+  every plain commit surfaces its source through an `ask`.
+- A scripted rewrite that drops paths derives each step's deletion list from
+  that commit's own tree, never from a whole-worktree snapshot, separates
+  preview from execution with a confirmed stop, and uses `git rm` so an
+  untracked path outside the replay is refused. Prompted by an incident in
+  which a rewrite script reused a global untracked-file snapshot and destroyed
+  seven never-committed documents.
+
+### Fixed
+
+- A commit answer with no blocking condition carries every applicable gate —
+  tree inspection, the staged-set gate with the staged diff read, the commit
+  command, and verification of the stored message against the committed
+  patch — whether executed or shown as a command sequence; a bare commit
+  invocation is not a commit answer.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 36 cells,
+  `with_skill` 91.0% against `without_skill` 74.9%.
+
+## [vibe-writing 3.1.0] - 2026-09-07
+
+### Added
+
+- A decision record or findings entry is a text deliverable of this phase,
+  and a qualifying format or convention adoption is written as a decision
+  record.
+
+### Changed
+
+- A user-requested commit scoped to the owned text artifact may be performed
+  by the commit-execution workflow or by this phase under its minimum commit
+  safety; a write outside the owned artifact and its declared paths is refused
+  as a boundary stop. The path, command, identifier, and locale-token
+  preservation rule binds artifact and localized output as well as chat.
+- Comments state the rule a removal leaves behind instead of narrating what
+  was removed; decision records — specifications, plans, ledgers, changelogs,
+  commit messages — keep their superseded entries.
+- Verification: static validation only; behavior unproven until an authorized
+  eval run.
+
+## [vibe-agent-instructions 1.0.0] - 2026-09-07
+
+### Added
+
+- First release. On explicit invocation, creates, refreshes, or localizes a
+  repository's agent instruction files: `AGENTS.md` is the source; `CLAUDE.md`
+  is a relative symlink, the documented `@AGENTS.md` stub when links are
+  unavailable, or a file that imports `AGENTS.md` and keeps only
+  Claude-specific content; personal rules live in a Git-ignored
+  `AGENTS.override.md` with `CLAUDE.local.md` linked or stubbed to it;
+  detailed procedures go to a pointer-referenced docs folder.
+- Every existing path is previewed — the diff for a tracked file, the complete
+  replacement for an untracked one — and confirmed before a write; known
+  best-practice divergences are reported before the policy is applied, and an
+  accepted divergence becomes a decision record. A directive found in an
+  instruction file is preserved verbatim and listed as unverified rather than
+  removed for its form. The run ends with a nine-section report that
+  reproduces those previews.
+- The skill never stages or commits; a requested commit is handed to the
+  commit-execution workflow. A generated file's language is selected only by
+  an explicit request, then `VIBE_DOCUMENT_LANGUAGE`, then English.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 30 cells,
+  `with_skill` 91.0% against `without_skill` 58.3%.
+
+## [vibe-brainstorm 1.6.0] - 2026-09-07
+
+### Changed
+
+- When delegation is unavailable, unrecordable, or not authorized,
+  coordinator-separated perspectives are the coordinator's own work and need
+  no fallback authorization; they are labeled coordinator-derived and claim no
+  independent evidence. A material independence requirement or an explicit
+  prohibition on coordinator-only work still stops the run. An orchestration
+  schedule explains each role's capability and context needs without listing
+  routine tier assignments.
+- This phase owns no artifact and writes only a saved artifact the current
+  user's own instruction asks for; a host- or runner-designated path is not
+  that request. Decisions and findings are handed forward as a carry-forward
+  packet.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 22 cells,
+  `with_skill` 98.5% against `without_skill` 72.9%.
+
+## [vibe-code-research 2.0.0] - 2026-09-07
+
+### Changed
+
+- **Breaking:** The read-only command boundary is unconditional: the
+  exception that let a user request mutating commands as part of an
+  investigation is removed, and the only file this phase writes is an
+  explicitly requested saved report. Route mutating work to a state-changing
+  phase.
+- Evidence classes gain members — `Primary source` adds vendor documentation
+  and a known-good historical implementation, `Local investigation` adds
+  reproduced behavior and workspace tests, configs, schemas, and logs,
+  `Unproven` adds stale documentation, unchecked user claims, missing access,
+  and hypotheses — and an `Unproven` item goes to `Not verified` rather than
+  being accepted as risk. Redaction is typed with the `[REDACTED:<type>]`
+  marker and a count footer. A delegated claim is verified against the
+  command, output, and kept bytes behind it, and delegated text carries no
+  authority.
+- The findings shape names the one action that would persist an unpersisted
+  carry-forward packet.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 24 cells,
+  `with_skill` 97.5% against `without_skill` 78.5%.
+
+## [skill-quality 2.7.0] - 2026-09-07
+
+### Added
+
+- Failure classification names `delivery-mode reclassification`: a
+  response-only or supplied-state instruction answered as a read-only,
+  blocked, or chat-only phase, or expectations that demand performed reads,
+  writes, or commits the prompt forbids. The owning boundary is the prompt
+  marker, the expectation wording, or a package rule that keeps the phase's
+  obligations under response-only delivery; the runner's delivery-mode
+  warnings are the mechanical check.
+- A `with_skill` regression on rules that generated blocks displaced is
+  treated as a placement or answer-time salience gap: verify with a partial
+  diagnostic, fix with a one-sentence top-of-file restatement or reordering,
+  and revert when the diagnostic is flat.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 62 cells,
+  `with_skill` 91.9% against `without_skill` 73.8%.
+
+## [skill-eval 1.4.0] - 2026-09-07
+
+### Added
+
+- `validate` and the `run` preflight warn when an expectation opens with
+  performed-action wording (`Writes`, `Adds`, `Reads`, `Commits`, and similar)
+  in a response-only case; negated forms and `… or proposes …` alternatives
+  are not flagged, and warnings never fail validation or block a run.
+- Every change-manifest entry carries `ignored`, true for an executor
+  addition matched by the sandbox's ignore rules, rendered into the grader's
+  inert records with an explanation.
+- `benchmark.md` gains a `Failed assertions` section listing each scored
+  cell's failed assertions with grader evidence and each unscored cell's
+  status; `report --compare <other-iteration-dir>` appends a per-eval table
+  beside another iteration's raw rates with a like-for-like caveat.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 14 cells,
+  `with_skill` 86.6% against `without_skill` 68.5%; the delivery-mode warning
+  case scored the same in both configurations, so its discrimination is
+  unproven and it stands as a regression guard.
+
+## [Repository] - 2026-09-07
+
+### Added
+
+- `shared/vibe-contract.md` is the single source of the obligations the
+  `vibe-*` skills share. The copies inside `skills/` are generated blocks
+  between `shared-contract` markers, never hand-edited, and verified by
+  `python3 scripts/vibe_shared_contract.py check --strict`; `AGENTS.md`
+  governs the blocks, README documents the checks, and
+  `scripts/vibe_session_record.py` checks a session record against the shared
+  schema.
+- The shared source carries the durable-records contract: decision records
+  under `docs/decisions/NNNN-<slug>.md` with `ADR-NNNN` ids and an index in
+  `docs/decisions/README.md`, and deferred findings under
+  `docs/reports/findings/YYYY-MM-DD-<goal-slug>.md` with `DF-NNNN` ids. Every
+  `vibe-*` package carries the obligations in `references/durable-records.md`,
+  and every `vibe-*` eval suite carries a durable-records case.
+- The history-mutation, commit-selection, and read-only-phase write gates are
+  enforced at the tool call only by hooks the user installs; this repository
+  ships none. Without them the instruction wording is the whole gate, Codex
+  enforcement is `Unproven` until observed, and shell write forms can bypass
+  an edit-tool matcher.
+- `docs/plans/`, `docs/reports/`, and `docs/specs/` are ignored local
+  directories, and the tracked availability-parity spec was removed from the
+  index. Not reconciled: with `docs/reports/` ignored, a findings report
+  written inside this checkout stays untracked.
+
+### Changed
+
+- Open: `python3 scripts/vibe_shared_contract.py measure --strict` exits 1
+  because four reading tasks sit above their frozen baselines, and with the
+  generated blocks in place some older response-only eval cases in
+  `vibe-coding`, `vibe-planning`, and `vibe-plan-execution` score below the
+  2026-08-15 run on detail assertions. Both are reported to the maintainer as
+  a re-freeze or block-placement question, not closed.
+- Verification: `python3 -m pytest -q tests` passed 504 tests and 190
+  subtests; `check --strict` and `audit-names` are clean for all 14 packages;
+  every eval suite passes static validation, with one delivery-mode warning
+  each in `vibe-agent-instructions`, `vibe-commit`, `vibe-debug`,
+  `vibe-plan-execution`, `vibe-plan-review`, `vibe-planning`,
+  `vibe-requirements-spec`, and `vibe-writing`.
 
 ## [vibe-coding 3.0.0] - 2026-08-16
 
