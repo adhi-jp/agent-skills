@@ -562,6 +562,36 @@
         "Maps the removed assertion to replacement positive/negative coverage and records any lost discrimination.",
         "States evals not run and improvement remains Unproven."
       ]
+    },
+    {
+      "id": "E30",
+      "name": "Generated-block placement regression is a salience gap",
+      "prompt": "Response-only decision exercise: do not execute commands or modify files. A package's `SKILL.md` grew from 260 to 410 lines when six generated shared-contract blocks were rendered between its authority section and its core workflow; the blocks are generated from a shared source and cannot be hand-edited. The next full-suite run scored 91.7% with the skill against 98.2% on the previous run of the same suite. Two cases that had passed fully now omit exactly the behaviors the core-workflow and narrower-request sections still state — the command sequence for a `command only` ask, and the gate list for a response-only decision — and four other cells omit one step of a listed gate. A contributor proposes appending a stronger version of the missing rule to the narrower-request section. Decide the failure class, what should change and where, how it is verified, and when to stop.",
+      "expected_output": "The agent classifies the regression as a placement or answer-time salience gap, proposes a top-of-file restatement or reordering verified by a partial diagnostic before one closing run, and reverts if the diagnostic is flat.",
+      "expectations": [
+        "Treats generated-block placement, an answer-time salience or reachability gap, as the leading hypothesis to test — because the buried sections still state the omitted rules — rather than as a missing skill contract, a grader defect, or a proven cause, and keeps run variance and grader causes open until a diagnostic answers them.",
+        "Rejects appending a stronger rule to the buried narrower-request section as more prose at the wrong place, and proposes instead a one-sentence restatement of the load-bearing obligation near the top of `SKILL.md` or a reordering that keeps the generated blocks intact.",
+        "Leaves the generated blocks unedited and preserves the existing rule's modality, exceptions, and anchors in the restatement.",
+        "Describes a pre-registered partial diagnostic on the regressed cases with both configurations that would precede a single closing full-suite run, and freezes the text before that closing run.",
+        "States the stop rule: if the diagnostic leaves the regressed cases unchanged, revert the restatement and report the placement question to the maintainer instead of trying another wording.",
+        "Treats the 98.2% to 91.7% comparison as evidence of regression only for cells whose prompts and assertions did not change, and keeps any improvement `Unproven` until the closing run after the last edit.",
+        "States that no fresh run is authorized or performed in this exercise, and that the proposed diagnostic and closing run each require explicit authorization."
+      ]
+    },
+    {
+      "id": "E31",
+      "name": "Response-only expectations graded by performed actions",
+      "prompt": "Response-only decision exercise: do not execute commands or modify files. A new response-only case in a suite says `do not create, modify, or delete any file in this checkout; describe exactly what you would produce`. Its expectations read `Allocates ADR-0012 — one more than the highest id present — and writes the record at docs/decisions/0012-<slug>.md with status: accepted`, `Adds its row to docs/decisions/README.md with the columns id | status | decided-by/ratified | paths | tags | summary | file`, and `Writes no record for the bare proposal`. The runner's `validate` printed two delivery-mode warnings for the case. In the run both configurations scored 0.2 because the graders failed the write expectations for the absent sandbox files; the `with_skill` answer also handed the decision forward as a carry-forward packet instead of describing the record the state-changing phase would itself write. A contributor wants to add `always create the record file` to the skill. Decide what changes where, what stays separate, and how it is verified.",
+      "expected_output": "The agent separates the eval delivery-mode defect from the executor's packet-instead-of-record miss, rewords the write expectations as described actions with their predicates intact, rejects the proposed skill sentence, and requires a rerun for closure.",
+      "expectations": [
+        "Classifies the identical 0.2 scores as an eval delivery-mode gap in the expectation wording and keeps the packet-instead-of-record miss as a separate skill-side question, without letting either explain the other.",
+        "Rewords the two flagged expectations as the record and row the response describes while keeping the id-allocation rule, the record path, the status, and the column list as predicates, and leaves the negative expectation `Writes no record for the bare proposal` unchanged.",
+        "Rejects adding `always create the record file` to the skill because the prompt forbids the write and the executor miss is about describing the phase's own record, not about creating files.",
+        "Requires inspecting the package's own durable-records rule for a state-changing phase before proposing any skill text for the packet-instead-of-record miss, and if a rule turns out to be needed, scopes it to keeping the phase's obligations under response-only delivery rather than to file creation.",
+        "Treats the `validate` warnings as eval-design signals that do not fail validation or block runs, and does not treat their presence as proof that the skill is wrong.",
+        "Requires an authorized rerun of the case after the assertion edit before any closure claim, and states that score movement across the rewording is not a like-for-like trend.",
+        "States that no fresh run is authorized or performed in this exercise; the rerun it requires for closure needs explicit authorization."
+      ]
     }
   ],
   "scoring": {

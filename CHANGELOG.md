@@ -284,6 +284,28 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skill-quality`: failure classification names `delivery-mode
+  reclassification` — a response-only or supplied-state instruction answered
+  as a read-only, blocked, or chat-only phase, or expectations demanding
+  performed reads, writes, or commits the prompt forbids — with the owning
+  boundaries (prompt marker, expectation wording, or a package rule that keeps
+  the phase's obligations under response-only delivery); the context-budget
+  section treats a `with_skill` regression on rules that generated blocks
+  displaced as a placement or answer-time salience gap to verify with a
+  partial diagnostic, fix with a one-sentence top-of-file restatement or
+  reordering, and revert when the diagnostic is flat; the eval-quality
+  reference gives the response-only expectation phrasing, the runner's
+  warnings as the mechanical check, and the either-configuration clause for a
+  baseline-lenient paired inconsistency; session patterns record the four
+  outcomes behind these rules. E30 (generated-block placement regression) and
+  E31 (response-only expectations graded by performed actions) join the
+  suite. Verification: codex `gpt-5.6-luna` closing full-suite run after the
+  last edit — 62 cells scored, no anomalies, `with_skill` 91.9% against
+  `without_skill` 73.8% (the 2026-08-15 run scored 95.8% against 77.4% on 58
+  cells); E30 scored 0.71 against 0.36 and E31 0.64 in both configurations,
+  their remaining `with_skill` misses being detail predicates — the revert
+  rule, the run-authorization statement, the warning semantics — omitted on
+  single runs.
 - Repository: after the entry-file additions of this eval cycle
   (`vibe-coding`, `vibe-commit`, `vibe-debug`, `vibe-plan-execution`,
   `vibe-plan-review`, `vibe-planning`), `python3 scripts/vibe_shared_contract.py

@@ -38,6 +38,20 @@ into skill outputs.
   behavior happened, but the proof lived outside the recorded output set. Adding
   recorded host, runner, or equivalent non-response evidence changed the grade
   without proving that skill prose caused the improvement.
+- When generated shared blocks were rendered ahead of a package's workflow
+  sections, several packages lost exactly the behaviors those later sections
+  still stated (a command sequence, a ledger row, a binding block). A
+  one-sentence restatement near the top, checked by a partial diagnostic on the
+  regressed cases, restored them; adding prose to the buried section did not.
+- Response-only cases graded by performed-action wording (`Writes …`,
+  `Adds …`) failed on the absent sandbox file in both configurations; rewording
+  the expectations to the action the response describes, with the substantive
+  predicates kept, made the case measure the skill again and exposed the real
+  executor miss underneath (a packet where the phase's own record was due).
+- Where graders accepted a baseline's abbreviation of a required name while
+  failing the candidate's row id for the same predicate, stating in the
+  assertion that the non-satisfying forms fail in either configuration removed
+  the paired inconsistency without touching the skill.
 - Relayed host-agent eval summaries were safest when treated as pointers into
   runner artifacts. Sessions that verified `benchmark.json`, manifests, run
   statuses, `grading.json`, and recorded outputs before accepting a Claude Code
@@ -213,6 +227,11 @@ into skill outputs.
 - Repeated wording-only contract tightening degraded diagnosis when a stable
   failure was really missing recorded proof, prompt-delivery evidence, grader
   input alignment, assertion-scope clarity, or run-variance analysis.
+- An overview restatement of a multi-item preamble (authoritative plan, proceed
+  condition, section mapping, evidence labels) left a partial diagnostic flat
+  and was reverted; a second wording pass on a rule the first pass had already
+  moved on most cells also changed nothing. Both were stopped and reported as
+  placement questions rather than pursued as prose.
 - In a commit-execution skill convergence session, residual failures that moved
   across evals after local wording patches became clearer when treated as one
   shared invalid-placeholder mechanism rather than separate per-eval fixes. The

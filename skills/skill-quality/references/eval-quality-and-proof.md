@@ -92,7 +92,16 @@ discriminating, observable, and hard to pass with the old failure mode.
   observable in that mode. Do not require performed commands from a
   response-only case unless the prompt explicitly requests the exact command
   sequence; do not require a complete plan body from a closure-only decision;
-  and do not grade a blocked case as completed implementation.
+  and do not grade a blocked case as completed implementation. Phrase a
+  response-only expectation as the action the response describes — `describes
+  the row it would add`, `identifies … as the id it would allocate`, `gives …
+  as` — while keeping its substantive predicates, and treat the runner's
+  advisory `validate` delivery-mode warnings as a first screen for the
+  performed-action form; they match selected leading verbs and prompt markers,
+  so review each against the case's delivery contract. When a candidate-below-baseline cell comes from the
+  grader accepting the baseline's looser form of the same predicate, state in
+  the assertion that the non-satisfying forms fail in either configuration
+  instead of loosening it.
 - Within response-only, closure-only, and blocked modes, separate what the
   current response must instantiate from what it must require a future artifact
   or authorized action to instantiate. If a concrete owner, authority, source,

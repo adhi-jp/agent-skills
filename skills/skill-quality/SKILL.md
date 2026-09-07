@@ -76,6 +76,17 @@ that a later action or lifecycle transition was selected. Fix only the missing
 owner boundary; preserve existing rules and evals that already govern other
 transitions.
 
+Treat `delivery-mode reclassification` as a subtype of the eval delivery-mode
+gap or the represented-workspace mismatch when a response-only or
+supplied-state instruction is answered as a read-only, blocked, or chat-only
+phase, or when expectations demand performed reads, writes, or commits that
+the prompt forbids. Fix the owning boundary: the prompt's mode marker, the
+expectation's wording (the action the response describes), or a package rule
+that keeps the phase's obligations under response-only delivery. The runner's
+`validate` delivery-mode warnings surface the expectation side mechanically;
+the executor side shows as a packet, refusal, or stop where the phase's own
+record or artifact was due.
+
 ## Failure To Contract
 
 Before changing skill text or eval behavior, write a one-sentence contract
@@ -149,6 +160,16 @@ reference that is never routed from `SKILL.md`. Before completing the refactor:
   the routing or behavior contract changed;
 - keep narrow anecdotes and session history out of standing guidance unless
   generalized and independently supported.
+
+When growth comes from generated or shared blocks rendered ahead of a
+package's workflow sections and a `with_skill` regression lands on rules those
+later sections still state, investigate placement or answer-time salience
+before adding a new contract, keeping variance and grader causes open. Test a
+minimal relocation or a one-sentence restatement of the load-bearing obligation
+near the top of the file with an authorized partial diagnostic on the regressed
+cases, rather than adding prose to the buried section; revert a restatement
+the diagnostic does not move and report the placement question to the
+maintainer instead of trying another wording.
 
 A size-only cleanup does not prove behavior improved. If no authorized eval is
 run after a behavior or reachability change, report that effect as `Unproven`.
