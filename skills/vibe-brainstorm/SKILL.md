@@ -187,7 +187,9 @@ Use for idea generation only.
    - `Challenging`: ambitious ideas that stretch implementation or interaction
      assumptions while still targeting the user's goal.
 2. Ask each generator for candidates, fit, tradeoffs, and implementation risks.
-3. Return the ideas grouped by direction.
+3. Return the ideas grouped by direction, under the mode and delegation-state
+   opening of `Response Shape`; when no delegation ran, that opening labels the
+   directions coordinator-derived.
 4. Do not add convention critique, expected-behavior grounding, development,
    selection, ranking, or adoption recommendation unless the user asks for it.
 

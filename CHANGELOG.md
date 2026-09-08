@@ -117,6 +117,14 @@ use `[Repository] - YYYY-MM-DD`.
   describes, one checklist assertion accepts concrete findings, and the
   decision-record assertion is split. One partial diagnostic and one three-run
   closing run followed the change.
+- `vibe-brainstorm`: a `diverge` response opens with the mode and delegation
+  state like every other mode, and labels its directions coordinator-derived
+  when no delegation ran. Eval maintenance in the same change: the diverge
+  case grades mode naming, non-blocking, and the coordinator-derived label
+  separately, and the cheapest-option case accepts any one named tradeoff. One
+  partial diagnostic and one three-run closing run followed the change; a
+  state-vocabulary change tested alongside made the withheld-authorization case
+  worse and was not kept.
 
 - `vibe-planning`: a plan summary written in a recording context still names the
   plan path, current slice, proceed condition, and material blocker; a

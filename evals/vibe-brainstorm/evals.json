@@ -49,13 +49,14 @@
       "expected_output": "The agent uses diverge mode to return idea directions only, preserving the no-critique/no-selection boundary.",
       "files": [],
       "expectations": [
-        "Uses `diverge` mode, naming it, and does not block merely because delegation is unavailable; it blocks only when independence is itself material or the user explicitly prohibits coordinator-only work.",
+        "Names `diverge` as the mode it is running.",
+        "Does not block, or ask for authorization before generating, merely because delegation is unavailable; it blocks only when independence is itself material or the user explicitly prohibits coordinator-only work.",
         "Includes `Practical`, `Unconventional`, and `Challenging` idea directions when the mode can run.",
         "Does not discard `Unconventional` or `Challenging` candidates merely because they are unusual.",
         "Does not include actual convention critique, expected-behavior checklist content, gate rejection, creativity ranking, or adoption recommendation.",
         "Does not choose a winning direction.",
         "Does not start implementation or ask to implement a selected option.",
-        "If delegation is unavailable, produces clearly labeled coordinator-derived perspectives rather than silently replacing the three generators with unlabeled single-agent output, and does not claim that local perspectives are independent delegated evidence."
+        "Unless it cites a host-recorded delegation artifact, it labels the idea directions coordinator-derived and does not present them as independent delegated evidence."
       ]
     },
     {
@@ -136,7 +137,7 @@
         "Includes accessibility, clear labeling, quiet hours, frequency, digest, or per-channel delivery expectations when relevant.",
         "Does not import unrelated niche-domain rules or examples from outside the current prompt.",
         "Separates mandatory notification-settings expectations from optional polish or unknown product choices.",
-        "Despite the request for the fastest/simplest option, still surfaces the tradeoff between an immediate-apply toggle implementation and expected preference-editing behavior such as save/cancel, undo/recovery, persistence confirmation, or clear feedback, instead of silently adopting the requested cheaper path.",
+        "Adopts the requested immediate-apply toggles only after naming at least one preference-editing behavior that choice trades away or must compensate for - any one of save/cancel, undo or recovery, persistence confirmation, or clear feedback satisfies this - and marks that item as a tradeoff, an optional addition, or a point the user must confirm; presenting immediate-apply as a mandatory expectation with no such marked item fails in either configuration.",
         "Stops before implementation and asks the user to confirm the checklist."
       ]
     },
