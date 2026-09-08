@@ -241,10 +241,12 @@
       "expected_output": "The agent produces evidence-bound benchmark triage that keeps official and diagnostic aggregates separate, classifies scored stub cells, and separates proof-path evidence from unisolated skill-contract effects.",
       "files": [],
       "expectations": [
-        "Reports the official runner aggregate first and keeps the REVIEW REQUIRED status visible instead of replacing it with the adjusted aggregate.",
-        "Labels the E07-excluded 127/127 reading as diagnostic only, not the official benchmark result or proof of a clean run.",
-        "Lists the excluded cell identity and criterion, including that E07 with_skill was a scored host/tool placeholder or unresolved skill-call stub rather than an infrastructure-excluded failure.",
-        "Classifies the E07 surface as prompt, invocation, recording, output-set completeness, or run-variance/noise before treating it as a skill-contract failure.",
+        "Presents the official runner result as the primary result, ahead of the adjusted figures; naming it as the official or original aggregate satisfies this without restating its percentages.",
+        "Keeps the `REVIEW REQUIRED` status visible instead of replacing it with the adjusted aggregate.",
+        "Labels the E07-excluded adjusted reading (127/127 = 100.0% candidate, 111/127 = 87.4% baseline) as diagnostic only, not the official benchmark result or proof of a clean run; either the fraction or the percentage identifies the reading.",
+        "Names the excluded cell by identity, E07 with_skill, rather than referring only to the anomalous cell.",
+        "States the exclusion criterion: the cell was scored with a host/tool placeholder or unresolved skill-call output, not an infrastructure-excluded failure.",
+        "Classifies the E07 surface as a prompt, invocation, measurement/recording/proof-transport, output-set completeness, or run-variance/noise problem before treating it as a skill-contract failure; the package's own category names satisfy this.",
         "Does not call the run clean or claim measured improvement solely from an adjusted aggregate that excludes a scored anomalous cell.",
         "Treats the grader's direct citation of `executor_evidence` as proof that the proof path is functioning for those assertions.",
         "Does not attribute the entire iteration delta to the skill contract when runner evidence and skill text changed in the same rerun without isolation.",
@@ -283,7 +285,8 @@
         "Builds a short evidence map that treats iteration 21 and the later safe stop as local investigation, and keeps the effect of the post-run skill/eval edits unproven.",
         "Classifies the surfaces separately as stale closing evidence or measurement epoch, fixture delivery or sandbox-copy boundary, assertion or delivery-mode mismatch, and changed comparison denominator rather than one skill defect.",
         "States that iteration 21 is historical evidence and cannot close the current state because a relevant skill, eval-definition, fixture, delivery-mode, or proof-path surface changed afterward; equivalent grouping such as skill, assertion, delivery-mode, and fixture changes satisfies this predicate without listing every example.",
-        "Requires rerunning the affected suite after the last relevant edit and explicitly requires post-run verification that the iteration manifest or equivalent recorded artifact matches the intended model, configs, run count, and authoritative skill source before making an improvement claim; merely proposing a run or naming flags is insufficient.",
+        "Requires rerunning the affected suite after the last relevant edit before any improvement claim; merely naming runner flags is insufficient.",
+        "Requires post-run verification that the iteration manifest or equivalent recorded artifact matches the intended model, configs, run count, and authoritative skill source before making any improvement claim.",
         "Does not require rerunning unrelated suites as a substitute for the missing affected-suite closing run.",
         "Recognizes the causal link between the fixture remaining untracked and its non-delivery under the runner’s tracked-only sandbox copy, and treats the resulting missing-file response as a fixture-delivery gap rather than a skill failure; an equivalent fixture/sandbox-copy boundary explanation need not repeat the runner’s exact terminology.",
         "Requires checking declared fixtures, source-fixture dirtiness, sandbox copy strategy or excluded-path evidence, and change manifest before attributing missing or substituted artifacts to the skill.",
@@ -335,7 +338,8 @@
         "Keeps chat-first and response-only eval expectations satisfiable without requiring a file artifact.",
         "Uses the affected skill suite plus runner tests as the closing verification surfaces after the final prompt or runner edit, rather than rerunning unrelated suites.",
         "Does not compare pre-change and post-change headline rates as an apples-to-apples skill-only improvement when the runner prompt and assertion boundary changed.",
-        "States that a clean post-edit rerun can prove the final combined contract was measured and that unrequested writes stopped in those cells, but cannot isolate how much score movement came from skill text, runner wording, grader behavior, or variance unless those effects are separately measured.",
+        "States that a clean post-edit rerun can prove the final combined contract was measured and that unrequested writes stopped in those cells.",
+        "States that such a rerun cannot isolate how much score movement came from skill text, runner wording, grader behavior, or variance unless those effects are separately measured.",
         "Updates or proposes the owning runner documentation, focused eval pressure, and Unreleased changelog when tracked behavior changes, without version bumps, snapshot edits, or generated workspace commits."
       ]
     },
@@ -360,7 +364,8 @@
         "Promotes only a concise load-bearing invariant to SKILL.md when repeated shared-mechanism evidence supports promotion, while leaving detailed mechanics in the reference; it rejects both pasting the full checklist and promoting after one noisy miss.",
         "Runs or proposes a contract-collision audit across SKILL.md, references, common and per-eval assertions, README, and current changelog text after changing placement or applicability.",
         "Requires a fresh affected-suite run after the final skill, reference, assertion, or proof-path edit and avoids apples-to-apples claims across changed assertion denominators.",
-        "States that a closing rerun can prove the final combined authority, recording, and applicability contract was measured, but cannot isolate score movement among skill visibility, assertion changes, grader behavior, and variance unless separately measured.",
+        "States that a closing rerun can prove the final combined authority, recording, and applicability contract was measured.",
+        "States that such a rerun cannot isolate score movement among skill visibility, assertion changes, grader behavior, and variance unless those effects are separately measured.",
         "Does not bump versions, edit managed snapshots, commit generated workspaces, or turn the scenario into a requirements-spec-specific checklist."
       ]
     },
@@ -442,7 +447,8 @@
         "Builds a short evidence map separating the recorded candidate wording, assertion and grader verdict, baseline echo, runner subset capability, current contracts, and absent fresh run authorization.",
         "Names the reusable dimensions as semantic predicate versus lexical realization and partial diagnostic versus full-suite closing coverage, or equivalent abstractions.",
         "Classifies the candidate failure as a lexical grader false negative or assertion-boundary defect when explicit permission withholding satisfies the non-exact authorization predicate.",
-        "Compares candidate and baseline outputs plus verdict evidence assertion by assertion under the same authorization predicate, and classifies the candidate-below-baseline result as a paired grader inconsistency when only the preferred literal distinguishes the verdicts.",
+        "Compares the candidate and baseline outputs and their verdict evidence assertion by assertion under the same authorization predicate, rather than comparing the scores alone.",
+        "Classifies the candidate-below-baseline result as a paired grader inconsistency because only the preferred literal distinguishes the verdicts.",
         "Rejects copying the grader's preferred phrase into the target skill or making that literal the contract when exact wording is not independently required.",
         "Requires a paraphrase preflight for non-exact assertions using at least two materially different compliant phrasings and one non-compliant phrasing, while treating illustrative examples as alternatives unless every item is independently required.",
         "Keeps the official aggregate unchanged and labels any semantic artifact-level correction diagnostic until the assertion or grader boundary is repaired and rerun.",
@@ -469,7 +475,7 @@
     {
       "id": "E24",
       "name": "Eval case cohesion audit",
-      "prompt": "You are reviewing a newly written eval case intended to test one decision rule. The draft also leaves commands, subagents, review transport, and repeated artifact rewriting optional even though none is the stated target; a trial run expanded those mechanics until runtime and output size dominated the result. Decide whether the case is cohesive, which checks it must pass, and how to redesign or separate the non-target mechanics before the case is trusted as pressure.",
+      "prompt": "You are reviewing a newly written eval case intended to test one decision rule. The draft also leaves commands, subagents, review transport, and repeated artifact rewriting optional even though none is the stated target; a trial run expanded those mechanics until runtime and output size dominated the result. The expected_output summary shown to the executor names the target decision and the phrase the assertions look for, and one drafted check greps the whole response for that phrase instead of a named field or region. Decide whether the case is cohesive, which checks it must pass, and how to redesign or separate the non-target mechanics before the case is trusted as pressure.",
       "expected_output": "The case is audited for target ownership, observable discrimination, exact proof predicates, and auxiliary-workflow confounds, with overloaded contracts bounded or split before execution.",
       "files": [],
       "expectations": [
@@ -560,7 +566,8 @@
         "Concludes that existing prose and a passing assertion alone are insufficient retention reasons.",
         "Removes, internalizes, or makes the hash conditional while retaining semantic drift detection.",
         "Maps the removed assertion to replacement positive/negative coverage and records any lost discrimination.",
-        "States evals not run and improvement remains Unproven."
+        "States that no evals were run in this turn.",
+        "Labels the effect of the proposed change Unproven until an authorized run exists."
       ]
     },
     {
@@ -571,11 +578,14 @@
       "expectations": [
         "Treats generated-block placement, an answer-time salience or reachability gap, as the leading hypothesis to test — because the buried sections still state the omitted rules — rather than as a missing skill contract, a grader defect, or a proven cause, and keeps run variance and grader causes open until a diagnostic answers them.",
         "Rejects appending a stronger rule to the buried narrower-request section as more prose at the wrong place, and proposes instead a one-sentence restatement of the load-bearing obligation near the top of `SKILL.md` or a reordering that keeps the generated blocks intact.",
-        "Leaves the generated blocks unedited and preserves the existing rule's modality, exceptions, and anchors in the restatement.",
+        "Leaves the generated blocks unedited.",
+        "Preserves the existing rule's modality, exceptions, and local anchors in the restatement.",
         "Describes a pre-registered partial diagnostic on the regressed cases with both configurations that would precede a single closing full-suite run, and freezes the text before that closing run.",
         "States the stop rule: if the diagnostic leaves the regressed cases unchanged, revert the restatement and report the placement question to the maintainer instead of trying another wording.",
-        "Treats the 98.2% to 91.7% comparison as evidence of regression only for cells whose prompts and assertions did not change, and keeps any improvement `Unproven` until the closing run after the last edit.",
-        "States that no fresh run is authorized or performed in this exercise, and that the proposed diagnostic and closing run each require explicit authorization."
+        "Treats the 98.2% to 91.7% comparison as evidence of regression only for cells whose prompts and assertions did not change.",
+        "Keeps any improvement `Unproven` until the closing run after the last edit.",
+        "States that no fresh run is authorized or performed in this exercise.",
+        "States that the proposed diagnostic and the closing run each require explicit authorization."
       ]
     },
     {
@@ -585,7 +595,9 @@
       "expected_output": "The agent separates the eval delivery-mode defect from the executor's packet-instead-of-record miss, rewords the write expectations as described actions with their predicates intact, rejects the proposed skill sentence, and requires a rerun for closure.",
       "expectations": [
         "Classifies the identical 0.2 scores as an eval delivery-mode gap in the expectation wording and keeps the packet-instead-of-record miss as a separate skill-side question, without letting either explain the other.",
-        "Rewords the two flagged expectations as the record and row the response describes while keeping the id-allocation rule, the record path, the status, and the column list as predicates, and leaves the negative expectation `Writes no record for the bare proposal` unchanged.",
+        "Rewords the two flagged expectations as the record and the index row the response describes, rather than as performed writes.",
+        "Keeps the id-allocation rule, the record path, the status, and the column list as predicates of the reworded expectations.",
+        "Leaves the negative expectation `Writes no record for the bare proposal` unchanged.",
         "Rejects adding `always create the record file` to the skill because the prompt forbids the write and the executor miss is about describing the phase's own record, not about creating files.",
         "Requires inspecting the package's own durable-records rule for a state-changing phase before proposing any skill text for the packet-instead-of-record miss, and if a rule turns out to be needed, scopes it to keeping the phase's obligations under response-only delivery rather than to file creation.",
         "Treats the `validate` warnings as eval-design signals that do not fail validation or block runs, and does not treat their presence as proof that the skill is wrong.",

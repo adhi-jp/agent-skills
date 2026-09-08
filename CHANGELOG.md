@@ -143,6 +143,16 @@ use `[Repository] - YYYY-MM-DD`.
   no-command assertion names the grader boundary for the runner's own skill
   reads. One partial diagnostic and one three-run closing run followed the
   change.
+- `skill-quality`: eval maintenance only; the skill package is unchanged.
+  Fifteen conjunctive expectations are split or reworded so each predicate is
+  graded on its own, three grader-boundary wordings are repaired (the official
+  aggregate need not be restated to be primary, an adjusted reading is
+  identified by fraction or percentage, and the failure-classification list
+  carries the package's own measurement category), and one prompt now supplies
+  the leakage and region-scoping pressure its assertions grade. Twenty-six
+  further conjunctive expectations are left for a later batch so the next run
+  stays interpretable. One partial diagnostic and one three-run closing run
+  followed the change.
 
 - `vibe-planning`: a plan summary written in a recording context still names the
   plan path, current slice, proceed condition, and material blocker; a
