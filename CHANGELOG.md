@@ -11,243 +11,219 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [vibe-coding 4.0.1] - 2026-09-08
+
+### Changed
+
+- A route report names a specialist by its visible metadata name, for the
+  route taken and for the routes deferred this turn alike; a row id, phase
+  label, translation, or abbreviation in its place is the forbidden
+  substitution. A selected route with no visible specialist is reported as
+  `matched-but-unavailable` together with the specialist the prompt,
+  user-provided material, or visible metadata identifies as absent, and no name
+  is invented when nothing identifies one.
+- Represented turns enumerated under an English wrapper each keep the language
+  of their own request text.
+- A completed goal-alignment gate records its `confirmation` event with
+  `status: current`; a rebinding from a plan's progress ledger has the
+  execution specialist verify recorded completions first; and a unit that
+  cannot be separated from unrelated working-tree state records no
+  `commit-selection` event — the mixed state is reported and the user asked.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 52 cells,
+  `with_skill` 89.6% against `without_skill` 74.3%; the runner's sanity check
+  flagged two cells as candidate-below-baseline for review.
+
+## [vibe-planning 6.1.1] - 2026-09-08
+
+### Changed
+
+- A plan summary written in a recording context still names the plan path,
+  current slice, proceed condition, and material blocker or decision.
+- A response-only description of a delegated review states that no
+  model-choice receipt is kept unless an explicit override, degraded
+  capability, a cost or performance constraint, or audited external execution
+  applies.
+- A resuming actor verifies a progress ledger's claims against the working
+  tree before relying on them; a ledger row is the prior actor's self-report,
+  not proof.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 76 cells,
+  `with_skill` 87.2% against `without_skill` 60.4%; the runner's sanity check
+  flagged four cells for review.
+
+## [vibe-plan-execution 6.0.1] - 2026-09-08
+
+### Changed
+
+- The evidence-class labels now precede the core rules and the
+  commit-selection text follows them, so the label obligation is read before
+  the rule list; no wording changed.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 46 cells,
+  `with_skill` 83.8% against `without_skill` 65.8%.
+
+## [vibe-plan-review 3.1.1] - 2026-09-08
+
+### Changed
+
+- The binding block gives the temporary review file's exact path whenever one
+  exists or is being selected, and says review state stays in conversation
+  when it does.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 26 cells,
+  `with_skill` 97.6% against `without_skill` 61.7%.
+
+## [vibe-requirements-spec 6.1.1] - 2026-09-08
+
+### Changed
+
+- In explicit chat-only or no-file mode the reply closes by stating that no
+  spec file was written and naming the exact user action that would create or
+  update one; an existing current spec path is named as the unchanged target.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 36 cells,
+  `with_skill` 97.0% against `without_skill` 76.8%.
+
+## [vibe-review 4.0.1] - 2026-09-08
+
+### Changed
+
+- A response-only closure that routes a verified checkpoint to commit
+  execution keeps the review record open on that commit's stored-message and
+  committed-file-set verification, and never reports the run closed while that
+  check is pending or unrun.
+- A finding is `blocked` when the work needs an unavailable external owner,
+  dependency, decision, or environment, and `deferred` when nothing external
+  is missing and the work is scheduled for a later cycle.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 50 cells,
+  `with_skill` 92.9% against `without_skill` 74.0%; the runner's sanity check
+  flagged three cells as candidate-below-baseline for review.
+
+## [vibe-orchestrate 4.0.1] - 2026-09-08
+
+### Changed
+
+- The disjoint generated-output exception for parallel writers also requires
+  a private per-unit journal and scratch root, with foreign content in one a
+  blocker.
+- The worker contract tells the worker that the coordinator's own verification
+  of the kept bytes is the final proof and every status it reports is a claim,
+  not acceptance.
+- Crash recovery asks whether the product itself came back through the
+  runner's result interface: a terminal success can still have lost it, a
+  workspace copy may be absent, and an oversized product needs a chunked or
+  summarized report.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 96 cells,
+  `with_skill` 82.6% against `without_skill` 56.4%.
+
+## [vibe-commit 3.0.1] - 2026-09-08
+
+### Changed
+
+- A consent stop for a rewrite of history that has left this machine states
+  the cost to other clones — divergence, and a rebase, reset, or
+  duplicated-commit reconciliation for collaborators — and names the
+  correction paths offered, including whether a later commit can reach the
+  defect at all.
+- A `Verification:` bullet keeps the exact command as the rerun anchor and
+  says what its proof covers; a command name that matches the changed path is
+  not the coverage by itself, and evidence too thin to say what a run covers
+  is stated as an absence.
+- A staged diff that conflicts with an accepted decision record is reported
+  with the record id, its binding `paths`, and the exact non-conformance, and
+  the stop-or-proceed choice is handed to the user.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 36 cells,
+  `with_skill` 97.9% against `without_skill` 75.0%.
+
+## [vibe-agent-instructions 1.0.1] - 2026-09-08
+
+### Changed
+
+- When the skill declines activation for an ordinary documentation request
+  that names neither the documents to change nor the wording to add, it asks
+  for both instead of promising to update unspecified documents.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 32 cells,
+  `with_skill` 86.2% against `without_skill` 54.0%.
+
+## [vibe-brainstorm 1.6.1] - 2026-09-08
+
+### Changed
+
+- A `diverge` response opens with the mode and delegation state like every
+  other mode, and labels its directions coordinator-derived when no delegation
+  ran.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 22 cells,
+  `with_skill` 95.7% against `without_skill` 74.6%.
+
+## [vibe-code-research 2.0.1] - 2026-09-08
+
+### Changed
+
+- A carry-forward packet names who decided each carried item; only an explicit
+  user turn makes the user the decider, and a finding this phase defers
+  because nobody asked for the repair is decided by the agent.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 24 cells,
+  `with_skill` 94.9% against `without_skill` 77.4%.
+
+## [skill-eval 1.5.0] - 2026-09-08
+
 ### Added
 
-- `skill-eval`: a Codex run now records an executor trace in `run.json` under
+- A Codex run records an executor trace in `run.json` under
   `executor_evidence` with `source = runner`, parsed by the runner from the
-  executor's own event stream: command program names, conservative
-  sandbox-relative path operands, file-change paths, and MCP tool names, one
-  entry per item and collected the same way for `with_skill` and
-  `without_skill`. Command lines, command output, message text, reasoning, and
-  search queries stay out of the record, and an entry the runner could not read
-  confidently — an escape it does not interpret, an unterminated quote, an
-  option it cannot delimit — is marked `parse_error` and records less rather
-  than guessing. What the grader sees is closed by construction: program names
-  come from a fixed vocabulary and anything else shows as `other`, ids and tool
-  names show as `invalid` unless they match a bounded shape, path operands and
-  changed paths never appear, and the grader is told a listed id proves only
-  that the provider recorded that item — not that the command succeeded, that a
-  file was read, or that any sub-agent or delegation ran. An empty or
-  unparseable stream, or a fault in collection itself, records
+  executor's own event stream: program names, conservative sandbox-relative
+  path operands, file-change paths, and MCP tool names, collected the same
+  way for `with_skill` and `without_skill`. Command lines, command output,
+  message text, reasoning, and search queries stay out of the record. An
+  entry the runner could not read confidently — an escape it does not
+  interpret, an unterminated quote, an option after a launcher word, a `$`,
+  backtick, `#`, or newline, a program token outside a plain path shape — is
+  marked `parse_error`, is never read-only, and records less rather than
+  guessing.
+- What the grader sees is closed by construction: program names come from a
+  fixed vocabulary and anything else shows as `other`, ids and tool names show
+  as `invalid` unless they match a bounded shape, path operands never appear,
+  and a listed id proves only that the provider recorded that item — not that
+  the command succeeded, that a file was read, or that any delegation ran. An
+  empty or unparseable stream, or a fault in collection, records
   `captured = false` with a reason while the run is still graded and recorded.
 
 ### Changed
 
-- `vibe-coding`: the route report names a specialist by its visible metadata
-  and treats a row id, phase label, translation, or abbreviation in its place
-  as the forbidden substitution, for deferred routes too; represented turns
-  enumerated under an English wrapper each keep their own request language; a
-  completed goal-alignment gate records its `confirmation` event with
-  `status: current`; a rebinding from a plan's progress ledger has the execution
-  specialist verify recorded completions first; and a unit that cannot be
-  separated from unrelated working-tree state records no `commit-selection`
-  event. Eval maintenance in the same change: eight language expectations
-  grade untranslated tokens only where the response uses them, two long
-  expectations are split, and the common language assertion names the
-  wrapper rule. One three-run closing run followed the change.
+- A Codex run's grader prompt omits the executor's own reads of the delivered
+  skill package — a command the runner classified read-only with every token
+  accounted for, naming only paths inside `skills/<skill_name>/` — so a
+  response-only "runs no command" assertion is no longer failed by the read
+  that delivers the skill and passed without it. The decision never consults
+  the configuration, so both get a byte-identical lead-in; the omitted entries
+  and each entry's read-only judgement stay in `run.json`, and the grader is
+  told they remain there. Accepted risk: a script argument to `sed` or `awk`
+  is not inspected, so an effect hidden there can still be omitted.
+- A rate compared across a changed prompt, assertion, fixture, or skill source
+  is not like-for-like whether or not `report --compare` produced it.
+- Verification: `python3 -m pytest -q tests/test_eval_runner.py` covers the
+  trace parser, the closed rendering vocabulary, and the skill-read omission;
+  closing codex `gpt-5.6-luna` full-suite run, 14 cells, `with_skill` 87.2%
+  against `without_skill` 65.1%.
 
-- `vibe-orchestrate`: the parallel-writer exception lists private per-unit
-  journal and scratch roots among its conditions, and the worker contract
-  template tells the worker that coordinator verification of the kept bytes
-  is the final proof and its own status is a claim. Eval maintenance in the
-  same change: fourteen long assertions are split, five grade what a
-  response-only answer can require rather than a performed action, and
-  several unowned or mutually inconsistent predicates are removed or aligned.
-  One three-run closing run followed the change.
-- `vibe-debug`: eval maintenance only; the skill text is unchanged after a
-  three-run diagnostic left four candidate sentences flat. Long checklist
-  expectations are split into shorter groups, performed-action wording is
-  replaced by what a response-only answer can show, one prompt gains its
-  missing response-only marker, and the self-review and consent expectations
-  name each dimension separately. One three-run closing run followed the
-  change.
-- `vibe-commit`: when a rewrite would touch history that has left this
-  machine, the consent stop now states the cost to other clones and names the
-  correction paths; a `Verification:` bullet keeps the exact command as the
-  rerun anchor and says what its proof covers, and the reference no longer
-  lets a path-matching command name stand in for that coverage; a staged diff
-  that conflicts with an accepted decision record is reported with the
-  record id, its binding paths, and the non-conformance, and the stop-or-
-  proceed choice is handed to the user. Eval maintenance in the same change:
-  two prompts bind the represented state, a docs subject no longer needs a
-  scope or the word README, a safe-path assertion is a true disjunction, a
-  verification assertion can no longer pass by deleting the section, common
-  assertion 4 covers range rewrites, and the trailer-convention assertion is
-  split. Three three-run partial diagnostics and one three-run closing run
-  followed the change.
-- `vibe-review`: a response-only closure that routes a verified checkpoint to
-  commit execution keeps the review record open on that commit's stored-message
-  and committed-file-set verification and never reports the run closed while
-  that check is pending; the durable-records reference says when a deferred
-  finding is `blocked` rather than `deferred`. Eval maintenance in the same
-  change: the model-selection, execution-mode, and closure-precondition
-  assertions grade what the skill and the prompt actually require, two prompts
-  supply the state their assertions grade, and three long assertions are
-  split. One three-run closing run followed the change.
-- `vibe-agent-instructions`: when the skill declines activation for an
-  ordinary documentation request that names neither the documents nor the
-  wording, it asks for both instead of promising to update unspecified
-  documents. Eval maintenance in the same change: the common assertions grade
-  the instruction-file pairs a run acts on and the reproduction of each changed
-  path rather than all four filenames and an unobservable write order, the
-  seven-repository link-integrity case is split in two, nine long assertions
-  are split, and six are reworded to what the prompt supplies. One full
-  three-run re-baseline, one partial diagnostic, and one three-run closing run
-  followed the change.
-- `vibe-requirements-spec`: in explicit chat-only or no-file mode the reply
-  closes by stating that no spec file was written and naming the exact user
-  action that would create or update one, naming an existing spec path as the
-  unchanged target when there is one. Eval maintenance in the same change: a
-  negated mention of the runner's capture path is no longer graded as an
-  exposure, and three compound assertions are split. Two three-run closing
-  runs followed the change; a per-option benefit-and-drawback clause tested in
-  between displaced other content on a strict-mode case and was not kept.
-- `vibe-writing`: eval maintenance only; the skill package is unchanged after a
-  reference narrowing left its target flat and was reverted. The commit-message
-  case no longer grades the message body as text outside the message, requires
-  the verification section the prompt supplies evidence for so a subject-only
-  baseline cannot pass vacuously, and the decision-record case dates the user
-  turn its provenance assertion expects. One three-run closing run followed
-  the change.
-- `vibe-plan-review`: the binding block gives the temporary review file's
-  exact path whenever one exists or is being selected, and says review state
-  stays in conversation when it does. Eval maintenance in the same change: two
-  fixture-free prompts bind their plan path as supplied state so the missing-
-  file stop no longer fires, their expectations grade what a response
-  describes, one checklist assertion accepts concrete findings, and the
-  decision-record assertion is split. One partial diagnostic and one three-run
-  closing run followed the change.
-- `vibe-brainstorm`: a `diverge` response opens with the mode and delegation
-  state like every other mode, and labels its directions coordinator-derived
-  when no delegation ran. Eval maintenance in the same change: the diverge
-  case grades mode naming, non-blocking, and the coordinator-derived label
-  separately, and the cheapest-option case accepts any one named tradeoff. One
-  partial diagnostic and one three-run closing run followed the change; a
-  state-vocabulary change tested alongside made the withheld-authorization case
-  worse and was not kept.
-- `vibe-code-research`: a carry-forward packet names who decided each
-  carried item, and only an explicit user turn makes the user the decider; a
-  finding this phase defers because nobody asked for the repair is decided by
-  the agent. Eval maintenance in the same change: the runtime-claim common
-  assertion no longer punishes restating a symptom the prompt supplies, the
-  invited-cleanup and packet assertions are split, the coverage-limits
-  assertion accepts any rendered-evidence form, and two contradictory
-  persistence predicates are reconciled. One partial diagnostic and one
-  three-run closing run followed the change.
-- `vibe-goal-alignment`: eval maintenance only; the skill package is unchanged
-  after a provenance sentence left its target flat and was reverted. The two
-  common assertions state when a record category is non-applicable while
-  keeping the goal, success criteria, non-goals, and next step mandatory; the
-  deletion-safety checklist that no configuration satisfied becomes one
-  satisfiable assertion; the carry-forward packet assertion is split; and the
-  no-command assertion names the grader boundary for the runner's own skill
-  reads. One partial diagnostic and one three-run closing run followed the
-  change.
-- `skill-quality`: eval maintenance only; the skill package is unchanged.
-  Fifteen conjunctive expectations are split or reworded so each predicate is
-  graded on its own, three grader-boundary wordings are repaired (the official
-  aggregate need not be restated to be primary, an adjusted reading is
-  identified by fraction or percentage, and the failure-classification list
-  carries the package's own measurement category), and one prompt now supplies
-  the leakage and region-scoping pressure its assertions grade. Twenty-six
-  further conjunctive expectations are left for a later batch so the next run
-  stays interpretable. One partial diagnostic and one three-run closing run
-  followed the change.
+## [Repository] - 2026-09-08
 
-- `vibe-planning`: a plan summary written in a recording context still names the
-  plan path, current slice, proceed condition, and material blocker; a
-  response-only delegated-review description states that no model-choice
-  receipt is kept unless an override, degraded capability, cost or performance
-  constraint, or audited external execution applies; and a resuming actor
-  verifies a progress ledger's claims against the working tree before relying
-  on them. Eval maintenance in the same change: nine expectations grade what
-  a response-only answer can show, three long ones are split, one prompt
-  states that its helper changes no published API, and two predicates gain
-  the coverage or non-applicability clause they lacked. One three-run closing
-  run followed the change.
+### Changed
 
-- `vibe-plan-execution`: the evidence-class labels now sit ahead of the core
-  rules and the commit-selection text after them, so the label obligation is
-  read before the rule list; no wording changed. Eval maintenance in the same
-  change: the checkpoint-commit case states its transport requirements in the
-  plan, and ten expectations grade what a response or a path-and-hash change
-  record can show. One three-run closing run followed the change.
-
-- `skill-eval`: a Codex run's grader prompt no longer lists the executor's own
-  reads of the delivered skill package, so a response-only assertion such as
-  "does not run commands" is no longer failed by the reads that deliver the
-  skill and passed without it. A command is dropped from the list only when the
-  runner classified it as read-only when it parsed it — a read-only program, no
-  mutating or executing option, no redirection, and every token after the
-  program accounted for — and every path it named lies inside
-  `skills/<skill_name>/`. Anything the runner cannot classify that confidently
-  stays listed, as does one that also named a path outside the package; listing
-  every command that writes, executes, or deletes is what the rule aims at, not
-  a guarantee it can make. The decision never consults the configuration, so
-  both get a byte-identical lead-in; `run.json` now records each command entry's
-  read-only judgement and how many entries were omitted, and the grader is told
-  that omitted reads remain in the run record.
-
-- `skill-eval`: the runner marks a command `parse_error` and never read-only
-  when its text carries a `$`, a backtick, a `#`, a newline, a program token
-  outside a plain path shape, or an option after a launcher word such as `env`
-  or `sudo`, so those commands stay listed to the grader; a script argument to
-  `sed` or `awk` is still not inspected, and the reference says so. The
-  reference also says that a rate compared across a changed prompt, assertion,
-  fixture, or skill source is not like-for-like whether or not `report
-  --compare` produced it. Eval maintenance in the same change: one prompt asks
-  for the candidate-versus-baseline comparison its assertion grades, and two
-  assertions are split or aligned with the skill's own closure order.
-
-- `vibe-orchestrate`: the crash-recovery questions now ask whether the product
-  itself came back through the runner's result interface, since a terminal
-  success can still have lost it, a worker's workspace copy may be absent,
-  and an oversized product needs a chunked or summarized report. One partial
-  diagnostic and one closing run measured the target case after the change.
-
-- `vibe-coding`: when a selected route has no visible specialist, the route
-  report names the specialist the prompt, user-provided material, or visible
-  metadata identifies as absent alongside `matched-but-unavailable`, instead of
-  withholding every specialist name; router-owned rows still invent none. One
-  closing run of the suite after the change measured the target case passing
-  its two naming assertions.
-
-- Eval maintenance: `vibe-planning` E25 and E26 grade the evaluation and the
-  rationale the response gives rather than a performed read or a stated
-  meta-claim. Skill behavior unchanged; the suite was re-run once.
-
-- Eval maintenance: `vibe-debug` E02 is a response-only exercise over supplied
-  project facts, E15 grades the primary-symptom record as a field list in any
-  compact form instead of a ledger row the skill does not require for a
-  single-symptom regression, and E13 grades the self-review the response
-  requires. Skill behavior unchanged; the suite was re-run once.
-
-- Eval maintenance: `vibe-commit` E11 asks for the response-only command record
-  its assertions grade and states that stopping for a redundant approval fails in
-  either configuration; E15 grades the staging the response shows. Skill behavior
-  unchanged; the suite was re-run once, and E11 passed in both configurations on
-  that run, so it now acts as a regression guard rather than a discriminator.
-
-- Eval maintenance: the response-only durable-records cases of
-  `vibe-agent-instructions`, `vibe-plan-review`, `vibe-requirements-spec`, and
-  `vibe-writing` grade the record, confirmation, and index row the response
-  describes rather than a performed write, so `validate` reports no
-  delivery-mode warnings for those suites. Skill behavior unchanged; each suite
-  was re-run once after the rewording.
-
-- Eval maintenance: the `vibe-plan-execution` E06 fixture runs its tests with
-  Node's built-in runner and needs no package install, so the checkpoint-commit
-  case no longer depends on an install the sandbox cannot perform; the
-  response-only E23 expectation grades the confirmation the response describes.
-  Skill behavior unchanged; the suite was re-run once after the change.
-
-- Repository maintenance: `AGENTS.md` now names the skill's user as the
-  reader of a changelog release section, lists what a release section
-  excludes — in-package block, reference, or section narration, eval case and
-  assertion inventories, per-case scores and diagnoses, rate comparisons, and
-  maintainer structure questions — and adds a matching item to the
-  pre-commit checklist so every release commit is re-read against it. Policy
-  text only; no skill behavior changed.
+- `AGENTS.md` names the skill's user as the reader of a changelog release
+  section, lists what a release section excludes, and adds a matching item to
+  the pre-commit checklist. Policy text only.
+- The `skill-quality`, `vibe-debug`, `vibe-goal-alignment`, and `vibe-writing`
+  eval suites were maintained — conjunctive expectations split per predicate,
+  response-only cases graded on the response they give — with those packages
+  unchanged, so they are not released here. Twenty-six further conjunctive
+  `skill-quality` expectations remain for a later batch.
+- Resolved from the previous section: `python3 scripts/vibe_shared_contract.py
+  measure --strict` exits 0 with all six reading tasks at or above their
+  baselines, and `validate` reports no delivery-mode warning in any suite.
+- Open: in the response-only dry-run cases, the `with_skill` executor skips
+  the skill read in about a quarter of cells; that delivery defect is
+  recorded, not repaired. Two agent-decided decision records written under
+  `docs/decisions/` in this checkout are untracked, with ratification pending.
+- Verification: `python3 -m pytest -q tests` passed 552 tests and 234
+  subtests; `check --strict` and `audit-names` are clean for all 14 packages;
+  every eval suite passes static validation with zero warnings.
 
 ## [vibe-coding 4.0.0] - 2026-09-07
 
