@@ -54,6 +54,13 @@ use `[Repository] - YYYY-MM-DD`.
   response-only answer can require rather than a performed action, and
   several unowned or mutually inconsistent predicates are removed or aligned.
   One three-run closing run followed the change.
+- `vibe-debug`: eval maintenance only; the skill text is unchanged after a
+  three-run diagnostic left four candidate sentences flat. Long checklist
+  expectations are split into shorter groups, performed-action wording is
+  replaced by what a response-only answer can show, one prompt gains its
+  missing response-only marker, and the self-review and consent expectations
+  name each dimension separately. One three-run closing run followed the
+  change.
 
 - `vibe-planning`: a plan summary written in a recording context still names the
   plan path, current slice, proceed condition, and material blocker; a

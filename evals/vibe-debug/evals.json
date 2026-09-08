@@ -107,10 +107,11 @@
       "expected_output": "The agent classifies the worker failure narrowly, looks for usable retries or fallback proof, and does not globally abandon the toolchain without evidence.",
       "expectations": [
         "Distinguishes failed worker invocation from the entire toolchain being unusable.",
-        "Checks logs, command mode, input shape, generated artifact, and official/local tool docs as relevant.",
+        "Checks the failing invocation's logs, command mode, and input shape as relevant.",
+        "Checks the generated artifact and official or local tool documentation as relevant.",
         "Considers a narrower retry, single-file generation, dry run, or source schema proof before hand-editing generated output.",
         "Treats hand-editing generated files as risky unless the generated-artifact contract supports it.",
-        "Records the tool-confidence decision in the debug ledger."
+        "Records the narrow failure classification it chose — failed command, mode, input shape, unavailable service, permission, flaky environment, or stale artifact — as the tool-confidence decision, in a ledger row or in the concise closure record."
       ]
     },
     {
@@ -140,7 +141,7 @@
         "If user retest is the chosen path, names exact setup, action sequence, expected observation, artifact or version freshness marker, and failure evidence to capture.",
         "Maps the retest or residual to a ledger item and leaves it unclosed until evidence returns.",
         "The ledger item records expected and observed sources, prior proof attempts, affected dimensions, verification path, and closure status.",
-        "If user retest is the chosen path, maps each check to the ledger item or matrix row it closes.",
+        "If user retest is the chosen path, identifies the ledger item or matrix row associated with each requested check; checks sharing one item may be grouped explicitly.",
         "Does not claim fixed until the ledger item has proof or an accepted residual."
       ]
     },
@@ -155,7 +156,7 @@
         "Defines an adjacent-surface scan across paths that share the cleanup contract, not just the cited occurrence, without claiming the response-only turn performed it.",
         "Defines a disconfirming or negative check for a neighboring case likely to be missed.",
         "Keeps the fix bounded to the current cleanup class rather than broad unrelated hardening.",
-        "Records any excluded sibling path with a reason or residual risk."
+        "Requires any sibling path excluded from the repair to be recorded with its reason or residual risk before the repair can be called fixed, without claiming this response-only turn already recorded it."
       ]
     },
     {
@@ -181,14 +182,17 @@
       "expected_output": "The agent treats the bounded triage as complete, stops the broad source-only fix loop, records the failed attempts and contradicted renderer hypothesis, and proposes a narrow temporary probe or equivalent runtime observation with exact hypothesis boundary, expected signatures, artifact freshness, user action sequence, evidence capture, and cleanup/removal plan. Any delegated diagnosis should match model tier to hypothesis complexity by capability/context fit instead of reading more source with an overpowered or underpowered delegate; when maximum performance is requested, contradicted runtime hypotheses and final cause selection should bias to the strongest suitable reasoning/context tier.",
       "expectations": [
         "Does not propose another broad static-analysis pass or source-only implementation patch before distinguishing the live runtime hypotheses.",
-        "Acknowledges the bounded triage already checked nearby source, tests, logs, and artifact freshness, and explains why those checks still do not observe the live-state boundary.",
+        "Acknowledges that the bounded triage already covered the nearby renderer and coordinator source, the unit tests, the existing logs, and the built-artifact timestamp.",
+        "Explains why those completed checks still cannot observe the live-state boundary the remaining symptom sits on.",
         "Updates the debug ledger with prior patches, the contradicted initial approach, why unit tests did not prove the streaming symptom, and a probe or instrumentation plan.",
         "The ledger records expected and observed sources, affected runtime dimensions, the focused verification path, and closure status.",
         "Names the probe question in terms of observable runtime boundaries such as update ordering, per-item identity, stream end cleanup, retained state, or artifact freshness.",
         "Specifies a low-friction probe shape such as focused trace labels, counters, compact state logs, test-harness assertions, or runtime artifact inspection, while avoiding broad noisy logging and user-data exposure.",
-        "Provides exact build or freshness steps, action sequence, expected probe signatures, failure evidence to capture, and which ledger item the probe would close.",
+        "Provides exact build or freshness steps and the action sequence that runs the probe.",
+        "Names the expected probe signature for each hypothesis and the failure evidence to capture.",
+        "Names which ledger item the probe result would close.",
         "Includes a cleanup or conversion plan for temporary instrumentation before finalizing the fix.",
-        "If output uses or proposes delegated diagnosis with model choice, it records model choice only for explicit override, degraded capability, cost/performance constraint, or audited external execution; any selected tier remains capability-appropriate.",
+        "If output uses or proposes delegated diagnosis with model choice, any selected tier remains capability-appropriate. It supplies a separate model-choice receipt only for an explicit user override, degraded capability, a cost or performance constraint, or audited external execution; routine compatible choices receive no separate receipt, whether in the response or a durable artifact.",
         "Does not spend the top model on every narrow reader and does not choose the cheapest model solely to save tokens for the remaining complex diagnosis."
       ]
     },
@@ -204,9 +208,13 @@
       ],
       "expectations": [
         "Acknowledges the repair ledger as debug proof for the preview-cache slice and keeps the closure decision focused on self-review, repository history, index, and cleanup operations instead of reopening the repair.",
-        "Requires a self-review of the repair slice before final repair claims, covering ledger closure, minimal patch envelope, preserved behavior, verification proof, artifact freshness, temporary/generated surfaces, and summary accuracy.",
+        "Requires a self-review of the repair slice before any final repair claim, rather than treating the verified ledger as sufficient on its own.",
+        "Requires the self-review to check ledger closure, the minimal patch envelope, and verification proof.",
+        "Requires the self-review to check preserved behavior and artifact freshness.",
+        "Requires the self-review to check temporary/generated surfaces and user-visible summary accuracy.",
         "Separates repair-owned paths from ambiguous or unrelated paths such as `docs/manual-test-notes.md` and `tmp/local-scratch.md`.",
-        "Requires operation-specific user consent for cleanup, stash, reset, push, amend, rebase, release, version changes, destructive actions, or other non-closure history/index operations.",
+        "Requires operation-specific user consent for the cleanup, stash, reset, or deletion the broad phrase would otherwise authorize, naming the operation rather than asking one general question.",
+        "Keeps push, amend, rebase, release, version changes, other destructive actions, and other non-closure history/index operations separately consent-bound.",
         "Does not stage, stash, reset, delete, or otherwise mutate unrelated or ambiguous user changes under the broad phrase `clean up anything unrelated`.",
         "Reports whether non-closure history or cleanup operations were absent or explicitly consented in the finish gate.",
         "Treats review, commit-execution, and message-writing capability use as conditional on visible availability; because none is supplied here, gives a self-contained fallback without claiming an unavailable capability ran or naming another skill as a required dependency.",
@@ -227,8 +235,10 @@
       "expectations": [
         "Keeps the repair scope to the ledger-recorded `REFRESH_SKEW_MS` change from `0` to `30000` in `evals/vibe-debug/fixtures/closure-commit/src/session-refresh.js` and does not invent unrelated edits.",
         "Treats the user's current instruction as explicit selection of a scoped commit after the verified repair, while keeping push, amend, rebase, cleanup, release, and unrelated history operations separately unauthorized.",
-        "Completes or requires the debug-side self-review and verification/freshness check before handing history work off.",
-        "Hands the exact repair path, verified ledger evidence, unrelated-path exclusions, and requested message content to the commit-execution workflow.",
+        "Requires the debug-side self-review of the repair slice before the history handoff, and does not treat the ledger's recorded verification as that review.",
+        "Requires verification and an artifact-freshness check before the history handoff, identifying any supplied evidence that already satisfies those checks without claiming this response-only turn performed them.",
+        "Describes the handoff to commit execution with the exact repair path and the requested message content.",
+        "Includes the verified ledger evidence and the unrelated-path exclusions in that handoff.",
         "Preserves the requested durable body content for root cause and retest evidence plus the `Co-authored-by: Repair Bot <repair@example.com>` trailer as handoff requirements.",
         "Does not stage, commit, invent a commit identifier, or claim stored-message verification occurred in this response-only exercise.",
         "Reports the repair as verified with its commit still pending the history handoff in this response-only exercise, rather than duplicating commit mechanics inside debugging.",
@@ -244,7 +254,10 @@
       "files": [],
       "expectations": [
         "Records the reported search suggestion regression as the exclusive primary symptom or current slice.",
-        "Gives the primary symptom's expected behavior with its source, its observed behavior with its source, a reproduction or first-failing-proof path, a root-cause hypothesis marked unproven, the affected state-space dimensions, a minimal patch envelope, a positive sentinel, a negative sentinel, a verification path, and a closure status or last verified checkpoint — or names each missing one as a blocker. A compact ledger row, a labeled table, or labeled lines all satisfy this; prose that omits any of these fields does not.",
+        "For the primary symptom, gives expected behavior, its source, observed behavior, and its source; explicitly identifies each unavailable field as a blocker. A compact ledger row, a labeled table, or labeled lines all satisfy this.",
+        "Gives a reproduction or first-failing-proof path and a root-cause hypothesis explicitly marked unproven, or names each missing one as a blocker.",
+        "Gives the affected state-space dimensions, a minimal patch envelope, a positive sentinel, and a negative sentinel, or names each missing one as a blocker.",
+        "Gives a verification path and a closure status or last verified checkpoint, or names each missing one as a blocker.",
         "Keeps C1 popup reload and C2 IME cleanup as ledger-only adjacent findings with their own recorded status, does not promote either to a co-primary symptom or a co-equal current slice, and does not include them in the same patch unless evidence proves the same root cause and the same verification path.",
         "Does not claim fixed before reproduction/source trace and verification proof.",
         "Explains the blocker or next proof in user-impact terms if any primary-symptom field is missing."
@@ -253,14 +266,14 @@
     {
       "id": "E16",
       "name": "Repair closes with a checkpoint commit and no startup commit question",
-      "prompt": "Use the debug-and-repair workflow. The user reports a reproducible account-export crash and asks you to fix it. The repair will likely change tracked source and test files. This is the first turn before edits. Describe the startup and closure behavior. Also contrast a diagnosis-only run that changes no files.",
+      "prompt": "Use the debug-and-repair workflow. Response-only exercise: do not inspect or mutate the ambient checkout; describe the behavior the workflow requires. The user reports a reproducible account-export crash and asks you to fix it. The repair will likely change tracked source and test files. This is the first turn before edits. Describe the startup and closure behavior. Also contrast a diagnosis-only run that changes no files.",
       "expected_output": "The debug workflow starts repair without a commit-policy question and closes the proven repair with a local checkpoint commit of the repair-owned changes.",
       "files": [],
       "expectations": [
         "Does not ask a startup commit-confirmation question merely because tracked files may change.",
-        "Runs diagnosis, repair, verification, and self-review under their own gates.",
-        "Closes the proven repair with a local commit of the repair-owned changes without waiting for a separate commit request.",
-        "Routes that commit through the commit-execution workflow rather than performing staging and message transport inside debug.",
+        "States that diagnosis, repair, verification, and self-review run under their own gates.",
+        "States that the proven repair closes with a local commit of the repair-owned changes without waiting for a separate commit request.",
+        "States that the closure commit must be routed through the commit-execution workflow, with staging and message transport handled there.",
         "Diagnosis-only/no-change work creates no empty commit or history state, and an unproven or partial repair is not committed.",
         "Keeps push, release/version, rewrite, cleanup, and unrelated changes separately unauthorized."
       ]
@@ -273,7 +286,7 @@
       "expected_output": "The debug workflow withdraws cause confirmation, records the fixture regime and its representativeness gap, rejects the metric as a discriminator, and stops repeated implementation until a falsifiable representative proof changes the model.",
       "files": [],
       "expectations": [
-        "Records the fixture regime, including per-tick anchoring or constraint, and explains why that condition may not represent a freely moving subject in the user's real-play report.",
+        "Records that the fixture repeatedly repositions the subject to a fixed anchor instead of letting it move freely, and explains why that regime may not represent the user's real-play report.",
         "Downgrades the named cause from confirmed to `Unproven` unless a representative observation or accepted residual closes the regime gap.",
         "Treats the known-bad baseline result of 0 as proof that the tightened solid metric is non-discriminating and refuses to use it as the completion gate.",
         "Applies the two-attempt metric-movement stop rule: after consecutive patches leave the discriminator unchanged, it does not propose a sixth solver implementation against the same cause model.",
@@ -346,12 +359,15 @@
       "expected_output": "A response that states the durable artifacts, field values, and index changes this repair produces, and what it deliberately leaves out.",
       "files": [],
       "expectations": [
-        "States that it allocates `ADR-0019` — one more than the highest id present in both `docs/decisions/` and `docs/decisions/README.md` — and would write the release-before-return rule at `docs/decisions/0019-<slug>.md` with `status: accepted`, `decided-by: agent`, `ratified: pending`, a `paths` glob covering `src/pdf/**`, a one-sentence imperative `summary`, and `## Considered Options` naming the rejected reference-counted buffer pool with its reason.",
+        "States that it allocates `ADR-0019` for the release-before-return rule and would write it at `docs/decisions/0019-<slug>.md`; it does not reuse `ADR-0018` or skip to a higher id.",
+        "Gives that record `status: accepted`, `decided-by: agent`, and `ratified: pending`.",
+        "Gives that record a `paths` glob covering `src/pdf/**`, a one-sentence imperative `summary`, and a `## Considered Options` section naming the rejected reference-counted buffer pool with its reason.",
         "Gives that record's `confirmation` as a concrete command or check — `npm test -- src/pdf` is available — or with a `manual:` form naming the check and why no automated one exists, and cites in its `sources` the authority anchor this prompt supplies: commit `3c71de0` carrying the fix and its regression test.",
         "Describes the row it would add to `docs/decisions/README.md` with the columns `id | status | decided-by/ratified | paths | tags | summary | file`.",
         "Surfaces `ADR-0019` as an unratified agent-selected assumption specifically because it would narrow the live thumbnail-exporter request, which streams a page buffer back to the caller, and does not present it to the user as an already-settled constraint on that request.",
         "Writes no decision record for the stale page buffer root cause itself, leaving it to the commit message and the regression test.",
-        "States that it allocates `DF-0022` — one more than the highest id across every report and the index, closed entries included — and would write the 40-second export time into `docs/reports/findings/2026-09-06-<goal-slug>.md` under the heading `## DF-0022 <title>`.",
+        "States that it allocates `DF-0022` for the 40-second export time; it does not reuse or renumber `DF-0021` and does not skip to a higher id.",
+        "Would write that finding into `docs/reports/findings/2026-09-06-<goal-slug>.md` under the heading `## DF-0022 <title>`.",
         "Gives that report front matter `goal`, `date`, `phases`, and `source_artifacts`.",
         "Gives the `DF-0022` entry `status: accepted-residual`, a severity, a scope, evidence stating the evidence class, anchor, and date or commit, why it was not addressed, `decided by: user`, a revisit trigger, and a next action and owner (`unassigned` allowed).",
         "Describes the row it would add to `docs/reports/findings/README.md` with the columns `id | status | severity | scope | title | file`, its file link pointing at the `DF-0022` entry heading rather than at the report file alone.",
