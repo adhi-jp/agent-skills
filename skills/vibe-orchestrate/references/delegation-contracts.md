@@ -46,7 +46,8 @@ For parallel writers, require separate worktrees, sandboxes, or an equivalent
 enforceable isolation boundary; never run them concurrently in one shared
 working tree, except for the narrowly documented disjoint generated-output
 shape: private per-unit ignored output roots, private materialized read-only
-inputs, no shared mutable cache, bounded concurrency, per-unit receipts, and
+inputs, no shared mutable cache, bounded concurrency, per-unit receipts, private
+per-unit journal and scratch roots with foreign content in one a blocker, and
 tracked-tree cleanliness checks at every batch boundary. Whitelist disjoint
 source and generated-output paths, name the merge order, and reserve integrated
 verification for the coordinator. If neither isolation nor every generated-
@@ -104,6 +105,8 @@ Hard rules:
   operations.
 - Run only these verification commands, if any: [commands]. If blocked by the
   sandbox or host, report `COMPILE: SKIPPED(<reason>)` or equivalent.
+- The coordinator's own verification of the kept bytes is the final proof; every
+  status you report is a claim about your run, not acceptance.
 - If the task needs a non-whitelisted file, broader command, missing fact,
   user decision, credential, destructive action, or invariant change, stop and
   report it under `BLOCKERS:`.

@@ -46,6 +46,15 @@ use `[Repository] - YYYY-MM-DD`.
   expectations are split, and the common language assertion names the
   wrapper rule. One three-run closing run followed the change.
 
+- `vibe-orchestrate`: the parallel-writer exception lists private per-unit
+  journal and scratch roots among its conditions, and the worker contract
+  template tells the worker that coordinator verification of the kept bytes
+  is the final proof and its own status is a claim. Eval maintenance in the
+  same change: fourteen long assertions are split, five grade what a
+  response-only answer can require rather than a performed action, and
+  several unowned or mutually inconsistent predicates are removed or aligned.
+  One three-run closing run followed the change.
+
 - `vibe-planning`: a plan summary written in a recording context still names the
   plan path, current slice, proceed condition, and material blocker; a
   response-only delegated-review description states that no model-choice

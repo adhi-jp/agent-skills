@@ -144,10 +144,11 @@ A narrowly permitted third shape is disjoint generated-output writers in one
 checkout. Use it only when every worker writes to a private per-unit
 untracked/ignored output root, inputs are private materialized read-only copies,
 no mutable cache or generated path is shared, concurrency is bounded, every unit
-returns its own receipt, and the coordinator proves tracked-tree cleanliness at
-each batch boundary. Record which confinement is host-enforced and which is
-instruction-only. Without every condition, the one-shared-tree-writer rule
-stands.
+returns its own receipt, each unit's journal and scratch root is private with
+foreign content in it a blocker, and the coordinator proves tracked-tree
+cleanliness at each batch boundary. Record which confinement is host-enforced
+and which is instruction-only. Without every condition, the
+one-shared-tree-writer rule stands.
 
 Include commit visibility in coupling analysis. An isolated worktree starts from
 some committed state, not necessarily the coordinator's head: a host may create
