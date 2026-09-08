@@ -188,8 +188,11 @@ and stop at the user's next decision point.
 
 Show the target plan, requirements source or limited-confidence no-spec status,
 and persistence state at review start, resume, target change, reflection,
-completion, and any blocker that prevents further review. Do not repeat a
-binding block on every same-session item response when nothing changed.
+completion, and any blocker that prevents further review. When a temporary
+review file already exists or is being selected, give its exact path as that
+persistence state; when review state stays in conversation, say so and give no
+path. Do not repeat a binding block on every same-session item response when
+nothing changed.
 
 ## Start Of Review
 

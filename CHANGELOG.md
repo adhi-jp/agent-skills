@@ -109,6 +109,14 @@ use `[Repository] - YYYY-MM-DD`.
   baseline cannot pass vacuously, and the decision-record case dates the user
   turn its provenance assertion expects. One three-run closing run followed
   the change.
+- `vibe-plan-review`: the binding block gives the temporary review file's
+  exact path whenever one exists or is being selected, and says review state
+  stays in conversation when it does. Eval maintenance in the same change: two
+  fixture-free prompts bind their plan path as supplied state so the missing-
+  file stop no longer fires, their expectations grade what a response
+  describes, one checklist assertion accepts concrete findings, and the
+  decision-record assertion is split. One partial diagnostic and one three-run
+  closing run followed the change.
 
 - `vibe-planning`: a plan summary written in a recording context still names the
   plan path, current slice, proceed condition, and material blocker; a

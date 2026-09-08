@@ -68,7 +68,7 @@
         "Continues only with limited requirement-alignment confidence rather than presenting full requirements confidence.",
         "Does not block the entire review solely because no requirements spec exists.",
         "Reviews only the first detected implementation task before asking for a user decision.",
-        "Checks the first item against at least requirement alignment confidence, ordering, missing work, ambiguity, risk, and verifiability.",
+        "Checks the first item against requirement alignment confidence, ordering, missing work, ambiguity, risk, and verifiability, either explicitly or through concrete findings covering those dimensions.",
         "Does not invent a requirements spec path, product source, new metric behavior, scheduled export behavior, or email delivery behavior.",
         "Does not create or update a temporary review file unless an actual cross-session, context-loss, user-requested, or established-project persistence need applies."
       ]
@@ -190,15 +190,15 @@
     {
       "id": "E10",
       "name": "Confirmed reflection leaves tracked plan uncommitted",
-      "prompt": "Use `vibe-plan-review`. All items in `docs/plans/account-export-implementation-plan.md` have been reviewed, and the user now explicitly confirms reflection into the original plan. Reflection changes the tracked plan. Project policy allows local commits, unrelated dirty files exist, and no temporary review file should be committed. Describe the completion behavior.",
+      "prompt": "Use `vibe-plan-review`. All items in `docs/plans/account-export-implementation-plan.md` have been reviewed, and the user now explicitly confirms reflection into the original plan. Reflection changes the tracked plan.\n\nTake the following as supplied state.\n\n- `docs/plans/account-export-implementation-plan.md` is the bound target plan, and no corresponding requirements spec exists for it.\n- Review state has been kept in this conversation; no temporary review file was created, and none may be committed.\n- Project policy allows local commits, unrelated dirty files exist in the working tree, and no commit has been requested.\n\nThose paths are supplied state, not files in this checkout, so do not look for them. This is a response-only exercise: do not create, modify, or delete any file in this checkout; describe exactly what you would produce, including the completion behavior.",
       "expected_output": "The workflow reflects and verifies the confirmed decisions while leaving the changed tracked plan uncommitted because no commit was explicitly requested.",
       "files": [],
       "expectations": [
         "Requires explicit reflection confirmation and treats it as supplied.",
-        "Verifies the reflected plan.",
+        "Describes verifying the reflected plan before reporting completion; actual file reads or modifications are not required in this response-only exercise.",
         "Does not stage or commit because invocation and reflection do not select history.",
         "Does not commit temporary review state or unrelated files.",
-        "Reports the verified reflected working-tree state and keeps implementation, push, release/version, and history rewrites out of scope."
+        "Describes the closing report it would give after successful reflection and verification: the tracked plan changed and remains uncommitted, and implementation was not started. Keeps push, release/version work, and history rewrites out of scope. A description that omits reflected-plan verification fails in either configuration."
       ]
     },
     {
@@ -223,14 +223,14 @@
     {
       "id": "E12",
       "name": "Long same-session walkthrough stays chat-only without resume risk",
-      "prompt": "Use `vibe-plan-review`. A saved plan at `docs/plans/catalog-migration-implementation-plan.md` has 12 clear items. We will review all items in this same live conversation, I do not want a review file, and there is no expected interruption or project convention requiring one. Describe the persistence decision and first-item behavior; do not implement or modify files.",
+      "prompt": "Use `vibe-plan-review`. A saved plan at `docs/plans/catalog-migration-implementation-plan.md` has 12 clear items. We will review all items in this same live conversation, I do not want a review file, and there is no expected interruption or project convention requiring one.\n\nTake the plan, its path, and its 12 clear items as supplied state; that path is not a file in this checkout, so do not look for it. This is a response-only exercise: do not create, modify, or delete any file in this checkout; describe exactly what you would produce, including the persistence decision and the first-item behavior.",
       "expected_output": "The review binds the plan, keeps state in conversation despite the item count, and reviews only the first item without creating a temporary file.",
       "files": [],
       "expectations": [
         "Binds `docs/plans/catalog-migration-implementation-plan.md` as the target.",
         "Does not create a temporary review file merely because there are 12 items.",
         "Honors the explicit same-session/no-file preference because no cross-session or context-loss risk is supplied.",
-        "Reviews only the first item and asks for its user decision.",
+        "Describes reviewing only the first item and asking for that item's decision before any later item, naming the decision options it would offer; a description that only says review will proceed item by item, without that first-item decision request, fails in either configuration.",
         "Does not implement, test, reflect, commit, or modify files."
       ]
     },
@@ -241,7 +241,8 @@
       "expected_output": "A response that states the artifacts and field values the settled item produces and what it leaves untouched pending confirmation.",
       "files": [],
       "expectations": [
-        "Identifies `ADR-0022` — one more than the highest id present in both `docs/decisions/` and `docs/decisions/README.md` — as the id it would allocate and describes the record it would write at `docs/decisions/0022-<slug>.md` with `status: accepted`, `decided-by: user`, `ratified: user`, a `paths` value covering payment plans or left empty as repository-wide, a one-sentence imperative `summary`, `revisit-when`, and `## Considered Options` naming the rejected three-retry exponential backoff with its reason.",
+        "Identifies `ADR-0022` — one more than the highest id present in both `docs/decisions/` and `docs/decisions/README.md` — as the id it would allocate and describes the record it would write at `docs/decisions/0022-<slug>.md` with `status: accepted`, `decided-by: user`, `ratified: user`, a `paths` value covering payment plans or left empty as repository-wide, a one-sentence imperative `summary`, and `revisit-when`.",
+        "States that the record it would write carries the rejected alternative with its reason — the three-retry exponential backoff, rejected because duplicate charges already cost money — whether it names the `## Considered Options` section or gives that section's content; naming the new rule without the rejected alternative, or the alternative without its reason, fails in either configuration.",
         "Gives that record's `confirmation` as a concrete command or check, or — since this repository verifies retry behaviour by an operator's manual invoice replay — with a `manual:` form that names that check and states why no automated one exists; a bare promise to confirm later does not satisfy it.",
         "Anchors that record's `sources` to the authority this prompt supplies: the user's 2026-09-06 turn with its deciding phrase.",
         "Describes the row it would add for that record to `docs/decisions/README.md` with the columns `id | status | decided-by/ratified | paths | tags | summary | file`.",
