@@ -3254,6 +3254,127 @@ class CodexExecutorTraceTests(unittest.TestCase):
             self.assertTrue(unreadable["parse_error"])
             self.assertIs(unreadable["read_only"], False)
 
+    def raw_entry(self, command, root):
+        """One entry from a command reported exactly as written, unwrapped."""
+        record = eval_runner.collect_codex_executor_trace(
+            self.command_event("item_1", command), root
+        )
+        return record["entries"][0]
+
+    def test_an_expansion_can_stand_for_anything_whatever_the_program_is(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            # A `$` or a backtick stands for text the runner never sees, and
+            # what the shell puts there need not resemble what surrounds it:
+            # the first two write a file with no redirection and no operand in
+            # sight, and with x=-v the third is `printf -v var`. None of them
+            # can be read, so none of them is omitted.
+            for command in (
+                r'printf "$(touch f)"',
+                "echo \"`touch f`\"",
+                "cat skills/demo/SKILL.md; printf \"$x\" var '%s' x",
+                r'echo "${x}"',
+                r"cat skills/demo/$(ls)/SKILL.md",
+                # ANSI-C quoting decodes to `-v` after the runner has read it.
+                r"cat skills/demo/SKILL.md; printf $'\x2dv' var %s x",
+                # The recorded program name is a basename, so an expanded
+                # directory part would have it name `printf` while `rm` runs.
+                r"cat skills/demo/SKILL.md; $x/printf hi",
+            ):
+                with self.subTest(command):
+                    entry = self.raw_entry(command, root)
+                    self.assertTrue(entry["parse_error"])
+                    self.assertIs(entry["read_only"], False)
+                    self.assertFalse(
+                        eval_runner.is_skill_package_read(entry, "skills/demo")
+                    )
+
+    def test_a_comment_or_a_second_line_can_hide_a_command(self):
+        package = "skills/demo"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            # A newline ends a command while the tokenizer reads it as ordinary
+            # whitespace, and a `#` -- mid-word, so the lexer does not even see
+            # a comment -- takes the separator with it. Either way an `rm` rides
+            # along inside something otherwise shaped like a package read.
+            for command in (
+                "cat skills/demo/SKILL.md; printf hi\nrm f",
+                "cat skills/demo/SKILL.md x#; rm f",
+            ):
+                with self.subTest(command):
+                    entry = self.raw_entry(command, root)
+                    self.assertNotIn("rm", entry["programs"])
+                    self.assertTrue(entry["parse_error"])
+                    self.assertIs(entry["read_only"], False)
+                    self.assertFalse(
+                        eval_runner.is_skill_package_read(entry, package)
+                    )
+
+    def test_a_launcher_option_is_not_skipped_over(self):
+        # `env --split-string=rm cat x` runs `rm`, while the token after the
+        # option still looks exactly like the program. A launcher's long option
+        # is self-delimiting but not safe, so it ends the read instead.
+        with tempfile.TemporaryDirectory() as tmp:
+            entry = self.raw_entry(
+                "env --split-string=rm cat skills/demo/SKILL.md", Path(tmp)
+            )
+        self.assertEqual(entry["programs"], [])
+        self.assertTrue(entry["parse_error"])
+        self.assertIs(entry["read_only"], False)
+        self.assertFalse(eval_runner.is_skill_package_read(entry, "skills/demo"))
+
+    def test_a_package_read_is_omitted_only_while_the_command_is_readable(self):
+        package = "skills/demo"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            # The read itself: one read-only program, one operand, inside the
+            # package.
+            plain = self.raw_entry(r"sed -n '1,120p' skills/demo/SKILL.md", root)
+            self.assertEqual(plain["programs"], ["sed"])
+            self.assertEqual(plain["path_operands"], ["skills/demo/SKILL.md"])
+            self.assertNotIn("parse_error", plain)
+            self.assertIs(plain["read_only"], True)
+            self.assertTrue(eval_runner.is_skill_package_read(plain, package))
+            # The same read with a trailing `printf` for spacing is not: the
+            # escape is unreadable and `printf` is not a read-only program, so
+            # the entry stays listed on both counts.
+            for command in (
+                r"sed -n '1,120p' skills/demo/SKILL.md; printf '\n'",
+                r"sed -n '1,5p' skills/demo/SKILL.md \; printf 'x'",
+                r'cat skills/demo/SKILL.md; printf "\""; rm f # "',
+            ):
+                with self.subTest(command):
+                    entry = self.raw_entry(command, root)
+                    self.assertTrue(entry["parse_error"])
+                    self.assertIs(entry["read_only"], False)
+                    self.assertFalse(
+                        eval_runner.is_skill_package_read(entry, package)
+                    )
+            # No escape to stop the read, but `printf` is still not read-only.
+            for command in (
+                r"cat skills/demo/SKILL.md; printf '%'n var",
+                "cat skills/demo/SKILL.md; echo done",
+                "'printf'foo",
+            ):
+                with self.subTest(command):
+                    entry = self.raw_entry(command, root)
+                    self.assertIs(entry["read_only"], False)
+                    self.assertFalse(
+                        eval_runner.is_skill_package_read(entry, package)
+                    )
+            listed = self.raw_entry(
+                r"sed -n '1,5p' skills/demo/SKILL.md \; printf 'x'", root
+            )
+        prompt = self.render_with_evidence(
+            {
+                "captured": True, "source": "runner", "provider": "codex",
+                "entries": [plain, dict(listed, id="item_2")],
+            },
+            skill_package_dir=package,
+        )
+        self.assertNotIn("`item_1`", prompt)
+        self.assertIn("- command_execution sed: `item_2`", prompt)
+
     def test_skill_package_reads_are_dropped_from_the_rendered_list_only(self):
         evidence = {
             "captured": True, "source": "runner", "provider": "codex",

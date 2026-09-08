@@ -1741,6 +1741,23 @@ CODEX_FIND_MUTATING_OPTIONS = frozenset(
 # Programs whose `-o`/`--output` names a file to write. `grep -o` is
 # `--only-matching` and writes nothing, so grep is deliberately not here.
 CODEX_READ_ONLY_OUTPUT_OPTION_PROGRAMS = frozenset({"sort", "uniq", "rg", "tree"})
+# Text the runner will not read past, wherever it sits in the reported command
+# and whatever quotes surround it, because each mark means the words it can see
+# are not the words the shell ran:
+#   `$`  opens command substitution (`$(…)`), parameter expansion (`${…}`,
+#        `$x`), arithmetic (`$((…))`), and ANSI-C quoting (`$'\x2dv'`), each
+#        standing for text this reader never sees;
+#   `` ` `` is the older command substitution;
+#   `#`  starts a comment the tokenizer drops, and mid-word it hides whatever
+#        follows -- including a `; rm f` -- from the split entirely;
+#   a newline or carriage return ends a command as surely as `;` does, while
+#        the tokenizer reads it as ordinary whitespace and takes the next
+#        line's program for an argument of this one.
+CODEX_UNREADABLE_COMMAND_MARKS = ("$", "`", "#", "\n", "\r")
+# The token that names the program, before any basename is taken from it. The
+# recorded name is a basename, so without this a `$x/printf` would be recorded
+# as `printf` while the shell runs whatever `$x` expands to.
+CODEX_EXECUTABLE_TOKEN_RE = re.compile(r"[A-Za-z0-9_./-]+")
 # Shell redirection operators as they survive tokenization of an argv list.
 CODEX_REDIRECTION_TOKENS = frozenset(
     {">", ">>", ">|", ">&", "&>", "&>>", "<", "<<", "<<<", "<>",
@@ -1886,6 +1903,26 @@ def codex_text_has_unquoted_redirection(text: str) -> bool:
     return bool(quote)
 
 
+def codex_command_has_unreadable_mark(command: Any) -> bool:
+    """Return True when the command carries text the runner will not read past.
+
+    A plain search over the reported text, quoted or not, because quoting
+    disables none of these marks and the runner is not trying to work out what
+    the shell would do with them: ``printf "$(touch f)"`` writes a file, and
+    ``printf "$x" var`` is ``printf -v var`` when ``x`` is ``-v``, neither with
+    an option, a redirection, or an operand in sight. Being a search rather
+    than a parse, it also answers True for a single-quoted ``$`` a shell would
+    leave alone -- the runner shows what it cannot rule out."""
+    if isinstance(command, list):
+        return any(
+            isinstance(token, str) and codex_command_has_unreadable_mark(token)
+            for token in command
+        )
+    if isinstance(command, str):
+        return any(mark in command for mark in CODEX_UNREADABLE_COMMAND_MARKS)
+    return False
+
+
 def codex_command_has_redirection(command: Any) -> bool:
     """Return True when the reported command may redirect a stream.
 
@@ -1927,18 +1964,33 @@ def codex_command_shape(
     """Return (programs, path operands, parse_error, truncated, read_only).
 
     Backslash escapes are not interpreted. A backslash means the runner cannot
-    tell how the shell would regroup the words, so reading stops there and what
-    was already read is a hint, marked by ``parse_error``.
+    tell how the shell would regroup the words, so the entry is marked
+    ``parse_error`` and what was read is a hint; collection continues. Other
+    text marks the entry the same way, quoted or not, because the check is a
+    plain scan of the command text: a
+    ``$`` or a backtick, which stand for text this reader never sees (command
+    substitution, parameter expansion, arithmetic, ANSI-C quoting); a ``#``,
+    which starts a comment and mid-word hides the rest of the line, separator
+    and all; a newline, which ends a command while the tokenizer reads it as
+    ordinary whitespace; a program token outside a plain ``[A-Za-z0-9_./-]``
+    shape, since the recorded name is only its basename; and a launcher's own
+    long option (``env --split-string=rm cat x``), self-delimiting but no safer
+    for it, since the next token still looks like the program.
+
+    ``parse_error`` drops nothing. The entry is marked, is never ``read_only``,
+    and stays listed to the grader, while collection continues and keeps
+    whatever it did read; the names on such an entry are hints, not claims.
 
     ``read_only`` is the runner's judgement, made here with the whole command in
     view rather than later from the program names alone, that this command only
-    read: every segment ran a read-only program with no mutating or executing
-    option, nothing redirected a stream, and every token after each program was
-    accounted for as an option, as the program's own pattern argument, or as a
-    recorded path operand. A token the runner dropped instead of recording could
-    be an unseen path, so it makes the command unclassified, and unclassified
-    means not read-only. Nothing about the answer depends on the configuration
-    that produced the command."""
+    read: every segment ran a read-only program, named by a token the runner
+    could read whole and carrying no mutating or executing option, nothing
+    redirected a stream, and every token after each program was accounted for as
+    an option, as the program's own pattern argument, or as a recorded path
+    operand. A token the runner dropped instead of recording could be an unseen
+    path, so it makes the command unclassified, and unclassified means not
+    read-only. Nothing about the answer depends on the configuration that
+    produced the command."""
     programs: list[str] = []
     operands: list[str] = []
     flags = {"parse_error": False, "truncated": False, "stop": False, "read_only": True}
@@ -1963,12 +2015,17 @@ def codex_command_shape(
         """Return (program index, escaped) for a segment.
 
         A launcher's own option consumes an unknown number of following tokens
-        (``sudo -u user cat …``), so anything but a self-delimiting assignment or
-        ``--opt=value`` ends detection instead of promoting the option's value to
-        a program name. Every token read here -- launcher, assignment, option, or
-        the program itself -- is interpreted text, so a backslash in any of them
-        is reported as an escape rather than read past."""
+        (``sudo -u user cat …``), so anything but a self-delimiting assignment
+        ends detection instead of promoting the option's value to a program
+        name. A launcher's long option is no safer for being self-delimiting:
+        ``env --split-string=rm cat x`` runs ``rm`` while the next token still
+        looks like the program, so once a launcher word has been seen a long
+        option ends the read outright. Every token read here -- launcher,
+        assignment, option, or the program itself -- is interpreted text, so a
+        backslash in any of them is reported as an escape rather than read
+        past."""
         index = 0
+        after_prefix_word = False
         while index < len(segment):
             token = segment[index]
             if "\\" in token:
@@ -1977,12 +2034,15 @@ def codex_command_shape(
                 index += 1
                 continue
             if token in CODEX_COMMAND_PREFIX_WORDS:
+                after_prefix_word = True
                 index += 1
                 continue
             if token.startswith("-"):
-                if token.startswith("--") and "=" in token:
+                if token.startswith("--") and "=" in token and not after_prefix_word:
                     index += 1
                     continue
+                if after_prefix_word:
+                    flags["read_only"] = False
                 return (None, False)
             return (index, False)
         return (None, False)
@@ -2000,8 +2060,15 @@ def codex_command_shape(
         if index is None:
             flags["parse_error"] = True
             return
-        program = segment[index].rsplit("/", 1)[-1] or segment[index]
+        executable = segment[index]
+        program = executable.rsplit("/", 1)[-1] or executable
         rest = segment[index + 1:]
+        if not CODEX_EXECUTABLE_TOKEN_RE.fullmatch(executable):
+            # The recorded name is a basename, so a directory part the runner
+            # cannot read leaves it naming one program while the shell runs
+            # another.
+            flags["parse_error"] = True
+            flags["read_only"] = False
         if program in CODEX_SHELL_WRAPPERS and depth < CODEX_TRACE_MAX_WRAPPER_DEPTH:
             # The wrapper is not the interesting program: parse what it runs. Its
             # inline command is re-tokenized, so escapes inside it are handled
@@ -2069,6 +2136,12 @@ def codex_command_shape(
         isinstance(token, str) and "\\" in token for token in command
     ):
         flags["parse_error"] = True
+    if codex_command_has_unreadable_mark(command):
+        # An expansion stands for text the runner never saw, a comment hides
+        # what follows it, and a second line is a second command, so the
+        # program names it read do not describe what the command did.
+        flags["parse_error"] = True
+        flags["read_only"] = False
     if codex_command_has_redirection(command):
         flags["read_only"] = False
     segments, failed = codex_command_segments(command)
@@ -2267,8 +2340,10 @@ def is_skill_package_read(entry: dict[str, Any], skill_package_dir: str) -> bool
     Two conditions, both decided without reference to the configuration. The
     entry must carry ``read_only``, the judgement the collector made with the
     whole command in view -- program, options, redirections, and every token
-    accounted for -- so a command that writes, executes, deletes, or that the
-    runner could not read in full is never mistaken for a read. And every
+    accounted for -- so a command whose write, execution, or deletion the
+    classifier can see, or that the runner could not read in full, is not
+    mistaken for a read; an effect hidden inside a program's own script
+    argument (``sed``, ``awk``) is not inspected. And every
     recorded operand must lie inside the package directory, so a command that
     also named something outside it stays listed. A missing or false
     ``read_only``, a ``parse_error``, a truncated read, no operand at all, an

@@ -236,11 +236,24 @@ Read this reference before executing `run`, diagnosing or reporting an iteration
   interpret and after which it stops reading that command, including one in a
   launcher or shell option prefix; an unterminated quote, which yields no
   programs or operands from the failed tokenization, though segments parsed
-  before it are kept; a launcher option it cannot delimit (`sudo -u user cat …`);
-  a shell option that may consume the next token (`bash --rcfile …`), so the
-  inline command cannot be identified; a program name outside the bounded ASCII
-  shape the runner will record; or an item id or tool name that fails
-  validation. Read a `parse_error` entry's names as hints, not as claims.
+  before it are kept; any option on a launcher word (`sudo -u user cat …`,
+  `env --split-string=rm cat x`), since the token after it still looks like the
+  program while the launcher runs something else; a shell option that may
+  consume the next token (`bash --rcfile …`), so the inline command cannot be
+  identified; a program name outside the bounded ASCII shape the runner will
+  record, or a program token outside a plain `[A-Za-z0-9_./-]` shape, since the
+  recorded name is only its basename (`$x/printf`); an item id or tool name that
+  fails validation; a `$` or a backtick anywhere in the command text, quoted or
+  not — command substitution (`$(…)`), parameter expansion (`${…}`, `$x`),
+  arithmetic, and ANSI-C quoting (`$'\x2dv'`) all stand for text the runner
+  never sees, so the program names it read then describe nothing; a `#`, which
+  starts a comment the tokenizer drops and mid-word (`cat x#; rm f`) hides the
+  rest of the line, separator and all; or a newline, which ends a command while
+  the tokenizer reads it as ordinary whitespace, so the next line's `rm` would
+  be read as an argument. `parse_error` drops nothing: the entry is marked, is
+  never `read_only`, and stays listed to the grader, while collection continues
+  and keeps whatever it did read. Read such an entry's names as hints, not as
+  claims.
 - Recorded paths are literal tokens, not resolved paths: the runner does not
   apply a `cd` from earlier in the command, so a relative operand names what
   the command asked for rather than where it resolved. A sandbox-absolute path
@@ -259,37 +272,48 @@ Read this reference before executing `run`, diagnosing or reporting an iteration
   entry cap and an entry's own `truncated` for the per-entry caps. The `stream`
   block also reports whether a `turn.completed` event was seen plus the event
   and malformed-line counts.
-- What reaches the grader is closed by construction, independent of how well
-  the runner read the command. Program names render only from a fixed
-  vocabulary of common tool names; any other program renders as `other`,
-  deduplicated within the entry. Item ids and tool names render only when they
-  match a bounded shape and otherwise render as `invalid` — and a value that
-  fails that check at collection is stored as `invalid` in `run.json` too,
-  never as its raw text. Path operands and file-change paths never reach the
-  prompt at all, and an item the provider never reported as completed is marked
-  `(in_progress)`. The runner source also drops the executor's reads of its own
-  delivered skill package from the rendered list, because that read is how the
-  eval delivers the skill, not work the task asked for, and listing it lets a
-  response-only assertion such as "does not run commands" fail with the skill
-  and pass without it. It drops an entry only when both hold: the collector
-  classified the command `read_only` — recorded on the entry, decided with the
-  whole command in view, and true only when every segment ran a program from
-  the read-only set with no mutating or executing option (`sed -i`,
-  `find -delete`/`-exec`, `sort -o`, …), nothing redirected a stream, and every
-  token after each program was accounted for as an option, as the program's own
-  pattern or script argument, or as a recorded path operand — and every recorded
-  operand lies inside `skills/<skill_name>/`. Anything else stays listed: a
-  command that writes, executes, or deletes; one whose operand the runner
-  dropped, could not normalize, or placed outside the sandbox; a `parse_error`
-  or truncated entry; and one that named a single path outside the package. The
+- What reaches the grader is closed by construction, independent of how well the
+  runner read the command. Program names render only from a fixed vocabulary of
+  common tool names; any other program renders as `other`, deduplicated within
+  the entry. Item ids and tool names render only when they match a bounded shape
+  and otherwise render as `invalid` — and a value that fails that check at
+  collection is stored as `invalid` in `run.json` too, never as its raw text.
+  Path operands and file-change paths never reach the prompt at all, and an item
+  the provider never reported as completed is marked `(in_progress)`. The runner
+  source also drops the executor's reads of its own delivered skill package from
+  the rendered list, because that read is how the eval delivers the skill, not
+  work the task asked for, and listing it lets a response-only assertion such as
+  "does not run commands" fail with the skill and pass without it. It drops an
+  entry only when both hold: the collector classified the command `read_only` —
+  recorded on the entry, decided with the whole command in view, and true only
+  when every segment ran a program from the read-only set, named by a token the
+  runner could read whole and carrying no mutating or executing option (`sed
+  -i`, `find -delete`/`-exec`, `sort -o`, …), nothing redirected a stream, and
+  every token after each program was accounted for as an option, as the
+  program's own pattern or script argument, or as a recorded path operand — and
+  every recorded operand lies inside `skills/<skill_name>/`. The read the runner
+  is looking for is a plain one: `sed -n 1,120p skills/<skill_name>/SKILL.md` is
+  omitted, while the same read followed by anything the runner cannot vouch for
+  — a second program, an escape, an expansion — is not. Anything else stays
+  listed: a `parse_error` or truncated entry; one whose operand the runner
+  dropped, could not normalize, or placed outside the sandbox; and one that
+  named a single path outside the package. Listing every command that writes,
+  executes, or deletes is what these rules aim at, not a promise they can make —
+  the runner reads the reported command text and nothing else, so a new way to
+  hide an effect in that text is a new way to be omitted, and what bounds a
+  listed entry's content is the closed rendering vocabulary above rather than
+  the classifier. The runner does not inspect a program's own script argument
+  for effects, so `sed '1e rm f' skills/<skill_name>/SKILL.md` or `awk
+  'BEGIN{system("rm f")}' skills/<skill_name>/SKILL.md` can still be classified
+  read-only and omitted; that limitation is known and recorded, not solved. The
   test is by path and never consults the configuration, so both configurations
   get a byte-identical lead-in, the omitted entries stay in `run.json`, and
   `executor_evidence.grader_omitted_skill_reads` records how many were omitted
-  (0 when none were, including when no trace was captured). The runner
-  source carries its own boundary rule: a listed id
-  establishes only that the provider recorded that item, not that the command
-  succeeded, that a file was read, or that any sub-agent or delegation ran, so
-  a delegation claim needs evidence beyond a command item.
+  (0 when none were, including when no trace was captured). The runner source
+  carries its own boundary rule: a listed id establishes only that the provider
+  recorded that item, not that the command succeeded, that a file was read, or
+  that any sub-agent or delegation ran, so a delegation claim needs evidence
+  beyond a command item.
 - When no trace can be built — a provider with neither source, an unreadable
   host transcript, an empty or unparseable event stream, or a fault in
   collection itself (recorded as `codex trace collection failed:
@@ -446,8 +470,11 @@ token usage for at least the claude provider.
   and the sanity-check status with any flagged cells (or an explicit "no
   anomalies"). If any cell was excluded or re-graded, say so and give the
   corrected reading.
-- Do not claim an improvement, regression, or delta as proven from a run that has
-  flagged anomalies or excluded cells until they are explained or the run is
+- Do not claim an improvement, regression, or delta as proven from a run that
+  has flagged anomalies or excluded cells until they are explained or the run is
   repeated cleanly. Explaining a partial-selection signal does not promote that
   subset to full-suite proof; it remains non-closing even when every selected
-  result is valid.
+  result is valid. A rate compared across a changed prompt, assertion, fixture,
+  or skill source is not like-for-like whether or not `report --compare`
+  produced it: say so explicitly, and treat the earlier number as a
+  non-comparator rather than the baseline the new result moved from.

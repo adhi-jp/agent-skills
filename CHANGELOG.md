@@ -181,11 +181,23 @@ use `[Repository] - YYYY-MM-DD`.
   mutating or executing option, no redirection, and every token after the
   program accounted for — and every path it named lies inside
   `skills/<skill_name>/`. Anything the runner cannot classify that confidently
-  stays listed, including a command that writes, executes, or deletes, and one
-  that also named a path outside the package. The decision never consults the
-  configuration, so both get a byte-identical lead-in; `run.json` now records
-  each command entry's read-only judgement and how many entries were omitted,
-  and the grader is told that omitted reads remain in the run record.
+  stays listed, as does one that also named a path outside the package; listing
+  every command that writes, executes, or deletes is what the rule aims at, not
+  a guarantee it can make. The decision never consults the configuration, so
+  both get a byte-identical lead-in; `run.json` now records each command entry's
+  read-only judgement and how many entries were omitted, and the grader is told
+  that omitted reads remain in the run record.
+
+- `skill-eval`: the runner marks a command `parse_error` and never read-only
+  when its text carries a `$`, a backtick, a `#`, a newline, a program token
+  outside a plain path shape, or an option after a launcher word such as `env`
+  or `sudo`, so those commands stay listed to the grader; a script argument to
+  `sed` or `awk` is still not inspected, and the reference says so. The
+  reference also says that a rate compared across a changed prompt, assertion,
+  fixture, or skill source is not like-for-like whether or not `report
+  --compare` produced it. Eval maintenance in the same change: one prompt asks
+  for the candidate-versus-baseline comparison its assertion grades, and two
+  assertions are split or aligned with the skill's own closure order.
 
 - `vibe-orchestrate`: the crash-recovery questions now ask whether the product
   itself came back through the runner's result interface, since a terminal
