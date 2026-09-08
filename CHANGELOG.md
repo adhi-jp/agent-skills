@@ -75,6 +75,15 @@ use `[Repository] - YYYY-MM-DD`.
   assertion 4 covers range rewrites, and the trailer-convention assertion is
   split. Three three-run partial diagnostics and one three-run closing run
   followed the change.
+- `vibe-review`: a response-only closure that routes a verified checkpoint to
+  commit execution keeps the review record open on that commit's stored-message
+  and committed-file-set verification and never reports the run closed while
+  that check is pending; the durable-records reference says when a deferred
+  finding is `blocked` rather than `deferred`. Eval maintenance in the same
+  change: the model-selection, execution-mode, and closure-precondition
+  assertions grade what the skill and the prompt actually require, two prompts
+  supply the state their assertions grade, and three long assertions are
+  split. One three-run closing run followed the change.
 
 - `vibe-planning`: a plan summary written in a recording context still names the
   plan path, current slice, proceed condition, and material blocker; a

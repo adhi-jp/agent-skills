@@ -401,4 +401,8 @@ the scripted run.
 For response-only closure decisions, report the terminal review state. Route
 verified applied fixes to commit execution as the loop's own checkpoint, and
 report fixes as uncommitted when no fix was applied or when the represented
-state suspends the default.
+state suspends the default. A routed checkpoint leaves the review record open
+on that commit's stored-message and committed-file-set verification: name that
+verification as the outstanding condition the record closes on, and never
+report the run closed, completed, or gate-closed while it is only pending or
+unrun.

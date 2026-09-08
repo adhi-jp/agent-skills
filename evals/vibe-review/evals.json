@@ -18,7 +18,7 @@
         "Uses working-tree and adversarial review from the fixture.",
         "Chooses reviewer count and separated angles from target size/risk rather than defaulting to exactly three.",
         "Does not ask for backend selection when the safe path is available.",
-        "Does not require a model-selection field absent explicit override, degradation, cost/performance constraint, or audited external execution."
+        "Absent an explicit override, degradation, cost/performance constraint, or audited external execution, does not require a model-selection receipt or a user choice. Omission or a not-applicable, not-required, or not-recorded value passes in either configuration; routine internal model selection is not graded."
       ]
     },
     {
@@ -175,7 +175,7 @@
       "expectations": [
         "Response is valid JSON only, with no Markdown fence and no prose outside the JSON value.",
         "JSON runs the reviewer fan-out through the scripted orchestration run while keeping `review_mode` `adversarial`; the orchestration mechanism does not appear as a new review mode or replace the mode value.",
-        "JSON records `execution_mode` as `parallel` from how the fixture-selected reviewers execute inside the run, with reviewers limited to review-only inspection.",
+        "JSON records the fixture-selected reviewers' in-run topology as parallel — either as `requested_execution_mode: parallel` with `execution_mode: pending` while no lifecycle evidence exists, or as `execution_mode: parallel` once the record treats the run as observed — and limits reviewers to review-only inspection.",
         "JSON keeps merge, triage, user selection, cascade gates, and fix application outside the orchestrated run with the coordinator, and does not schedule fix application inside the run.",
         "JSON does not schedule the requested squash inside the run; history operations still require operation-specific consent after terminal audit.",
         "JSON records the orchestration run's host-recorded identity, or the requirement to capture it, as backend evidence in the startup contract, and confirms the startup contract before launch.",
@@ -252,28 +252,29 @@
       "id": "E15",
       "name": "Completed fix loop commits its verified fix scope",
       "prompt": "Return JSON only. Produce a response-only terminal decision record for this represented review run; do not inspect the ambient checkout or execute a commit. An explicitly invoked working-tree review/fix run has two selected in-scope tracked fixes. Cascade checks, verification, acceptance proof, terminal audit, cycle ownership, isolation restore, and conflict-safety preconditions have passed. The non-empty staged file set and cumulative fix diff contain only those fixes; unrelated dirty paths remain excluded. Project policy allows local commits and the user gave no commit instruction either way. No post-commit stored-message or committed-file-set check has run yet. No squash, amend, reset, rebase, push, release preparation, version change, or destructive cleanup is requested.",
-      "expected_output": "The JSON reports terminal review closure with the verified fix scope committed as the loop's own checkpoint.",
+      "expected_output": "The JSON routes the verified fix scope to commit execution as the loop's own checkpoint and keeps the closure record open pending post-commit stored-message and committed-file-set verification; it does not claim a commit executed.",
       "files": [],
       "expectations": [
         "Valid JSON only.",
-        "Records passed target, fix, verification, acceptance, terminal-audit, ownership, isolation, and conflict-safety preconditions.",
+        "Records as passed each precondition this prompt supplies: cascade checks, verification, acceptance proof, terminal audit, cycle ownership, isolation restore, and conflict safety; a blanket claim that all preconditions passed, without naming them, fails in either configuration.",
+        "Identifies the represented working-tree review/fix run and its scope of two selected in-scope tracked fixes; it does not require or invent paths, finding ids, or individual fix descriptions absent from the prompt.",
         "Records the verified cumulative fix scope as the loop's own checkpoint commit, handed to commit execution rather than executed inside review.",
         "Preserves the non-empty verified fix scope and excludes the unrelated dirty paths from the commit.",
-        "Requires post-commit stored-message and committed-file-set verification before the record is closed.",
+        "Requires post-commit stored-message and committed-file-set verification before the record is closed; recording those checks only as `pending` or `not_run` while the record reports itself completed or closed does not satisfy this.",
         "Does not authorize squash, amend, reset, rebase, push, release, version changes, or cleanup."
       ]
     },
     {
       "id": "E16",
       "name": "Manual session stops before unsafe delegated fallback",
-      "prompt": "Return JSON only. In a live manual review startup, the preferred adversarial backend can run a native reviewer but cannot isolate its free-form response or prove review-only mutation controls. No unisolated delegated or local fallback has been accepted. Produce the startup decision.",
+      "prompt": "Return JSON only. In a live manual review startup, the preferred adversarial backend can run a native reviewer but cannot isolate its free-form response or prove review-only mutation controls. The review target is already frozen and the review contract already proposed. No unisolated delegated or local fallback has been accepted. Produce the startup decision, including what happens to the frozen target and the proposed review contract while the run waits.",
       "expected_output": "The record should stop for a backend decision rather than silently downgrading.",
       "files": [],
       "expectations": [
         "Records the unavailable properties separately: source-response isolation is not enforced or unverified, and mutation containment is not proven; it does not claim the closed structural adapter path.",
         "Stops for explicit user selection or acceptance before review.",
         "Does not run the unisolated delegated or local coordinator fallback automatically.",
-        "Preserves the frozen target and review contract while waiting."
+        "States that the frozen target and the proposed review contract are held unchanged while the run waits, rather than discarded, re-derived, or advanced."
       ]
     },
     {
@@ -285,8 +286,10 @@
       "expectations": [
         "Records the execution source, `source_response_isolation` as not enforced, `result_shape` as bounded structured with text, mutation-containment evidence, required local premise verification, and observed rather than assumed execution mode.",
         "Does not relabel JSON or schema-conforming reviewer text as the closed `delegated_result_record` path or as response isolation.",
-        "Quarantines raw candidate text and treats only bounded locations or issue classes as private inspection candidates pending coordinator verification from the frozen target.",
-        "Keeps merge, dispositions, edits, and public finding authorship with the coordinator, and records a blocker if quarantine, target receipts, or local premise verification cannot be satisfied."
+        "Keeps raw reviewer-authored candidate text private and quarantined, out of public findings, ledgers, and the user-facing record.",
+        "Treats only bounded locations or issue classes as inspection candidates, each pending the coordinator's own verification against the frozen target.",
+        "Keeps merge, dispositions, edits, and public finding authorship with the coordinator rather than the delegated reviewer.",
+        "States the blocker it would raise if quarantine, target or mutation receipts, or local premise verification cannot be satisfied; a bare `blocker: null` with no such condition stated does not satisfy this."
       ]
     },
     {
@@ -361,7 +364,7 @@
     {
       "id": "E23",
       "name": "Narrow fix needs concise record not high-cascade notes",
-      "prompt": "Return JSON only. One valid finding changes a single typo in a documentation sentence. The fix is one line, stateless, non-security, non-data, and has no sibling or cross-file effect. The corrected text and documentation check pass. Produce the post-fix record.",
+      "prompt": "Return JSON only. One valid finding changes a single typo in a documentation sentence. The fix is one line, stateless, non-security, non-data, and has no sibling or cross-file effect. The corrected text and documentation check pass. Produce the post-fix record, including where the run stands on terminal audit and on commit selection.",
       "expected_output": "The JSON records the finding, one-line fix, and verification without requiring high-cascade note ceremony.",
       "files": [],
       "expectations": [
@@ -369,7 +372,7 @@
         "Records the original finding, applied one-line correction, and passing verification.",
         "Classifies the fix as narrow/local with no material cascade risk.",
         "Does not require sibling matrices, likely-next-attack prose, or detailed post-edit cascade notes for this self-evident fix.",
-        "Preserves terminal audit and explicit commit-selection boundaries."
+        "Gives the run's terminal-audit state and states that this record selects and authorizes no commit; reporting terminal audit as already complete, or authorizing a commit, fails in either configuration."
       ]
     },
     {
@@ -394,16 +397,19 @@
       "expected_output": "A response that states where each review item lands and with what field values, including the items that produce nothing.",
       "files": [],
       "expectations": [
-        "Identifies `ADR-0005` — one more than the highest id present in both `docs/decisions/` and `docs/decisions/README.md` — as the id it would allocate and describes the record it would write for the accepted divergence at `docs/decisions/0005-<slug>.md` with `status: accepted`, `decided-by: user`, `ratified: user`, a `paths` value covering `src/notify/legacy.ts`, a one-sentence imperative `summary`, `revisit-when`, and `## Considered Options` naming the rejected idempotency-key option with its reason.",
+        "Identifies `ADR-0005` — one more than the highest id present in both `docs/decisions/` and `docs/decisions/README.md` — as the id it would allocate, and gives `docs/decisions/0005-<slug>.md` as the record's path.",
+        "Gives that record's front-matter values: `status: accepted`, `decided-by: user`, `ratified: user`, a `paths` value covering `src/notify/legacy.ts`, a one-sentence imperative `summary`, and `revisit-when`.",
+        "Describes the record's considered-options section by name and places the rejected idempotency-key option with its reason inside it; naming the rejected option only in surrounding prose, outside a considered-options section of the described record, does not satisfy this.",
         "Gives that record's `confirmation` as a concrete command or check — `npm test -- src/notify` is available — or with a `manual:` form naming the check and why no automated one exists, and anchors its `sources` to the authority this prompt supplies: the user's 2026-09-06 turn accepting the divergence.",
         "Describes the row it would add to `docs/decisions/README.md` with the columns `id | status | decided-by/ratified | paths | tags | summary | file`.",
-        "Describes the report it would write at `docs/reports/findings/2026-09-06-<goal-slug>.md` with front matter `goal`, `date`, `phases`, and `source_artifacts`, heading each finding `## DF-NNNN <title>`.",
+        "Describes the report it would write at `docs/reports/findings/2026-09-06-<goal-slug>.md` with front matter `goal`, `date`, `phases`, and `source_artifacts`.",
+        "States that each finding in that report is headed with the pattern `DF-NNNN <title>` at the report's top finding-heading level; the heading level the answer itself uses to lay out its own reply is not graded, only the heading pattern it states the report would carry.",
         "Identifies `DF-0001` — the first id, since no report or index entry has used one — as the id it would allocate for the missing timeout, with `status: deferred`, severity `high`, scope `src/notify/http.ts`, evidence stating the evidence class, anchor, and date or commit, why it was not addressed, `decided by: user`, a revisit trigger, and a next action and owner (`unassigned` allowed).",
-        "Describes the unbounded queue as the `DF-0002` entry it would write in the same report with `status: blocked` and `decided by: user`, severity `medium`, scope `src/notify/queue.ts`, and its own evidence stating the evidence class, anchor, and date or commit, why-not-addressed, revisit trigger, and next action and owner.",
+        "Describes the unbounded queue as the `DF-0002` entry it would write in the same report, with severity `medium`, scope `src/notify/queue.ts`, `decided by: user`, and its own evidence stating the evidence class, anchor, and date or commit, why-not-addressed, revisit trigger, and next action and owner.",
+        "Gives that queue entry `status: blocked` rather than `deferred`, because it waits on an owning team outside the unit rather than on the next cycle.",
         "Leaves neither finding without an asserted status: each carries `blocked` or `deferred` explicitly rather than being described as merely open or outstanding.",
         "Describes both findings rows it would add to `docs/reports/findings/README.md` with the columns `id | status | severity | scope | title | file`, each file link pointing at its own entry heading rather than at the report file alone.",
-        "Writes neither a decision record nor a findings entry for the `reject-noise` log-wording item in `src/notify/log.ts`.",
-        "Does not create, modify, or delete any file in this checkout; it states the records, entries, and rows it would write."
+        "Writes neither a decision record nor a findings entry for the `reject-noise` log-wording item in `src/notify/log.ts`, and does not create, modify, or delete any file in this checkout; it states the records, entries, and rows it would write."
       ]
     }
   ],

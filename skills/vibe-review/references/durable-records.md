@@ -106,3 +106,5 @@ Exception: when no material unaddressed finding exists at unit close, no report 
 
 Example: `- DF-0012 | deferred | high | src/sync/** | Retry loop can starve the writer | [entry](2026-09-06-csv-import.md#df-0012-retry-loop-can-starve-the-writer)`
 <!-- shared-contract:end deferred-findings-schema -->
+
+When choosing between `blocked` and `deferred`, use `blocked` when work requires an unavailable external owner, dependency, decision, or environment, and `deferred` when no external prerequisite is missing and the work is simply scheduled for a later cycle.
