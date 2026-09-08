@@ -61,6 +61,20 @@ use `[Repository] - YYYY-MM-DD`.
   missing response-only marker, and the self-review and consent expectations
   name each dimension separately. One three-run closing run followed the
   change.
+- `vibe-commit`: when a rewrite would touch history that has left this
+  machine, the consent stop now states the cost to other clones and names the
+  correction paths; a `Verification:` bullet keeps the exact command as the
+  rerun anchor and says what its proof covers, and the reference no longer
+  lets a path-matching command name stand in for that coverage; a staged diff
+  that conflicts with an accepted decision record is reported with the
+  record id, its binding paths, and the non-conformance, and the stop-or-
+  proceed choice is handed to the user. Eval maintenance in the same change:
+  two prompts bind the represented state, a docs subject no longer needs a
+  scope or the word README, a safe-path assertion is a true disjunction, a
+  verification assertion can no longer pass by deleting the section, common
+  assertion 4 covers range rewrites, and the trailer-convention assertion is
+  split. Three three-run partial diagnostics and one three-run closing run
+  followed the change.
 
 - `vibe-planning`: a plan summary written in a recording context still names the
   plan path, current slice, proceed condition, and material blocker; a

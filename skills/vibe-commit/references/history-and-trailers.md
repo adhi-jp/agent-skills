@@ -448,9 +448,10 @@ skill must satisfy these minimums:
   `- <evidence> passed; covers <changed contract/risk/scope>.` Use explicit
   absence statuses such as `not run`, `not measured`, or `benchmark not durably
   recorded` instead of inventing coverage. Omit the coverage phrase only when
-  the command or suite name already carries the useful scope, the commit is
-  small enough that the proof meaning is obvious, or available evidence is too
-  thin.
+  available evidence is too thin to say what the run covers, and state the
+  absence instead; a command or suite name that matches the changed path is not
+  the coverage by itself — say what contract, risk, or scope the run covers,
+  without claiming more coverage than the available evidence supports.
 - Small/mechanical changes (lock bumps, generated syncs) are often
   subject-only.
 - Keep durable references (issue IDs, error codes, commands, committed paths,

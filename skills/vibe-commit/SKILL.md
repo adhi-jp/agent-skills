@@ -41,7 +41,10 @@ Commit work splits cleanly between message content and execution:
   recover, medium-density body wording that names durable contract surfaces
   without becoming a feature walkthrough, a compact `Verification:` section that
   explains what durable proof covers instead of replaying session commands, no
-  prompt/session/plan labels, and no Markdown wrappers in message bytes.
+  prompt/session/plan labels, and no Markdown wrappers in message bytes. A
+  `Verification:` bullet is that pair, not one half of it: keep the exact
+  command as the rerun anchor and add what its proof covers, so neither deleting
+  the command nor leaving it bare counts as a compact verification section.
 - `vibe-commit` owns the **execution**: staging, exclusion, the pre-commit
   verification gate, command safety, history mutation, message transport, and
   trailers as a transport mechanism.
@@ -207,7 +210,11 @@ This gate applies to the history mutations the commit-execution phase runs.
 **Do not rewrite shared history.** Amending or rebasing an already-pushed
 commit rewrites history other clones depend on. Only amend/rebase commits that
 have not left this machine, and never force-push a shared branch without an
-explicit, informed request.
+explicit, informed request. When you stop for that consent, say in the same
+answer what the rewrite would cost — other clones diverge and collaborators may
+have to rebase, reset, or reconcile duplicated commits — and name the correction
+paths you are offering, including whether a later commit can reach the defect at
+all.
 
 **Never let a scripted rewrite delete live files without a separate confirmed
 stop.** When a scripted or looped multi-commit rewrite drops paths from
@@ -269,8 +276,10 @@ deeper on the judgment calls.
    coverage, one-commit or split decision, supplied-message disposition, and the
    rule that source-patch drift requires reconciliation again. When the diff
    touches an accepted decision record's `paths`, check conformance or the
-   superseding record in the same commit, else report the conflict. See
-   `references/history-and-trailers.md`.
+   superseding record in the same commit, else report the conflict. Report that
+   conflict and ask: name the record id, its binding `paths`, and the exact
+   non-conformance, then ask whether to stop or proceed instead of closing that
+   question yourself. See `references/history-and-trailers.md`.
 8. **Decide amend vs. new.** Create a NEW commit by default. Only `--amend` to
    fix the immediately preceding, unpushed commit. See
    `references/history-and-trailers.md`.
