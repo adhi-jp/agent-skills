@@ -134,6 +134,15 @@ use `[Repository] - YYYY-MM-DD`.
   assertion accepts any rendered-evidence form, and two contradictory
   persistence predicates are reconciled. One partial diagnostic and one
   three-run closing run followed the change.
+- `vibe-goal-alignment`: eval maintenance only; the skill package is unchanged
+  after a provenance sentence left its target flat and was reverted. The two
+  common assertions state when a record category is non-applicable while
+  keeping the goal, success criteria, non-goals, and next step mandatory; the
+  deletion-safety checklist that no configuration satisfied becomes one
+  satisfiable assertion; the carry-forward packet assertion is split; and the
+  no-command assertion names the grader boundary for the runner's own skill
+  reads. One partial diagnostic and one three-run closing run followed the
+  change.
 
 - `vibe-planning`: a plan summary written in a recording context still names the
   plan path, current slice, proceed condition, and material blocker; a
