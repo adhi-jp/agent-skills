@@ -102,6 +102,13 @@ use `[Repository] - YYYY-MM-DD`.
   exposure, and three compound assertions are split. Two three-run closing
   runs followed the change; a per-option benefit-and-drawback clause tested in
   between displaced other content on a strict-mode case and was not kept.
+- `vibe-writing`: eval maintenance only; the skill package is unchanged after a
+  reference narrowing left its target flat and was reverted. The commit-message
+  case no longer grades the message body as text outside the message, requires
+  the verification section the prompt supplies evidence for so a subject-only
+  baseline cannot pass vacuously, and the decision-record case dates the user
+  turn its provenance assertion expects. One three-run closing run followed
+  the change.
 
 - `vibe-planning`: a plan summary written in a recording context still names the
   plan path, current slice, proceed condition, and material blocker; a
