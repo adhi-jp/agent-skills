@@ -11,6 +11,14 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- Repository maintenance: `docs/decisions/` joins `docs/plans/`,
+  `docs/reports/`, and `docs/specs/` as an ignored local directory, so a
+  decision record written inside this checkout stays untracked, as a findings
+  report under `docs/reports/` already does. Ignore rules only; no skill
+  behavior changed.
+
 ## [vibe-coding 4.0.1] - 2026-09-08
 
 ### Changed

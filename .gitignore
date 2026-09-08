@@ -8,6 +8,7 @@
 
 # Local development artifacts
 .local-workspaces/
+docs/decisions/
 docs/plans/
 docs/reports/
 docs/specs/
