@@ -125,6 +125,15 @@ use `[Repository] - YYYY-MM-DD`.
   partial diagnostic and one three-run closing run followed the change; a
   state-vocabulary change tested alongside made the withheld-authorization case
   worse and was not kept.
+- `vibe-code-research`: a carry-forward packet names who decided each
+  carried item, and only an explicit user turn makes the user the decider; a
+  finding this phase defers because nobody asked for the repair is decided by
+  the agent. Eval maintenance in the same change: the runtime-claim common
+  assertion no longer punishes restating a symptom the prompt supplies, the
+  invited-cleanup and packet assertions are split, the coverage-limits
+  assertion accepts any rendered-evidence form, and two contradictory
+  persistence predicates are reconciled. One partial diagnostic and one
+  three-run closing run followed the change.
 
 - `vibe-planning`: a plan summary written in a recording context still names the
   plan path, current slice, proceed condition, and material blocker; a

@@ -373,6 +373,10 @@ Shape the findings as:
   unpersisted and naming the one action that would persist it — the next
   writing phase recording it.
 
+Name who decided each carried item, and let only an explicit user turn make the
+user the decider: a finding this phase defers because no one asked for the
+repair is decided by the agent, not by the user's silence.
+
 In `Answer` and `Evidence`, phrase source-derived control flow as static
 structure: for example, a caller "statically calls" a callee or "would select"
 a branch under the supplied configuration. Do not use unqualified runtime verbs

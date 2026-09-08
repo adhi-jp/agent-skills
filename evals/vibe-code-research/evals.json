@@ -6,7 +6,7 @@
     "Output stays read-only: it performs and claims no file edits, staging, commits, or state mutation, and any defect, smell, or improvement discovered during investigation is reported as a finding instead of being fixed.",
     "Load-bearing claims are anchored to the supplied file paths (with line numbers or symbols where useful) or to named primary sources; claims without inspectable support are explicitly labeled `Unproven` or clearly marked as inference.",
     "Output keeps the represented investigation corpus separate from runner, eval, harness, and unrelated ambient state. Fail this assertion if the answer mentions searching or checking the current repository/workspace/checkout/sandbox, says a represented application path was absent there, cites runner, eval, harness, fixture, or skill files as evidence, or turns represented source paths into links targeting an ambient filesystem or sandbox such as `/tmp/eval-runner-sandboxes/`; gaps must be expressed only as not supplied or unverified.",
-    "Statically traced structure is separated from runtime behavior: claims about what actually happens at runtime are either backed by supplied execution evidence or qualified as expected behavior rather than asserted as fact.",
+    "Statically traced structure is separated from runtime behavior: claims about what actually happens at runtime are either backed by supplied execution evidence or qualified as expected behavior rather than asserted as fact. Restating a runtime symptom, effect, or ruling explicitly established by the prompt is not an unbacked runtime claim. Any added runtime claim, including a causal attribution not established by the prompt, must be backed by supplied execution evidence or clearly qualified as inference or expected behavior. This assertion is satisfied when the answer adds no runtime claim asserted as fact without that support.",
     "The direct answer to the asked question comes before supporting evidence, and the depth and format scale to the question instead of inventorying everything inspected.",
     "Coverage limits are explicit: material that was not supplied or not searched is reported as a limit (for example `not found in the supplied material`), never converted into a claim that the thing does not exist.",
     "Output stops at findings: it does not draft an implementation plan, start a fix, or treat investigation momentum as authorization for later phases; any next steps are phrased as options for the user.",
@@ -66,7 +66,7 @@
         "Answers that no rate-limiter configuration was found in the supplied material, naming what was checked: the router middleware registrations and `config/default.json` sections.",
         "Does not claim the service has no rate limiting; keeps the unsupplied files and layers outside the repository, such as a gateway, proxy, or platform setting, open as possibilities.",
         "Distinguishes the supplied file list from supplied file contents and does not pretend the unsupplied files were read.",
-        "Suggests where to look next as options, such as the unsupplied source files or deployment configuration, without starting that work as if instructed."
+        "Names at least one place beyond the supplied file list that could still hold the configuration — a deployment, environment, or other configuration layer, or a gateway, proxy, or platform setting — and leaves it as an open possibility or an option for the user rather than work it is starting or has begun. A response that stops at `the other listed files were not supplied` without naming any such layer fails this in either configuration; a response that carries the layer inside its coverage limits, with no separate next-steps section, satisfies it."
       ]
     },
     {
@@ -115,8 +115,10 @@
       "files": [],
       "expectations": [
         "Explains how the header row is built: comma-joined `escapeCsv`-escaped column labels via manual string accumulation in `headerRow` at `src/export/csv.ts`.",
-        "Reports the cleanup candidates (manual accumulation versus `join`, `var` usage, the existing TODO) as findings or options only.",
-        "Explicitly does not perform the invited cleanup and states that edits are outside read-only investigation, requiring a separate instruction.",
+        "Reports the manual string accumulation versus a `join`-based construction, and the existing `// TODO use join` comment, as cleanup candidates offered as findings or options only.",
+        "Also reports the legacy `var` declarations in `headerRow` as a cleanup candidate, rather than stopping at the cleanup the code's own TODO already flags; a response that names only the TODO-flagged item fails this in either configuration.",
+        "Explicitly states that the invited cleanup was not performed and that editing is outside this read-only investigation.",
+        "States that performing the cleanup would need a separate instruction or request from the user; a response that gives only the read-only reason, without naming the separate instruction, fails this in either configuration.",
         "Does not present the declined cleanup as blocked or impossible — it is out of scope for investigation, offered as a possible next step."
       ]
     },
@@ -161,7 +163,7 @@
         "Leads with the direct answer that the supplied excerpts show inconsistent user-visible rename wording between the button/accessibility label and the context-menu/i18n label.",
         "Anchors findings to `src/reports/ReportActions.tsx`, `src/reports/contextMenu.ts`, `src/i18n/en.json`, and `tests/reports/actions.test.tsx` or clearly states any of those surfaces as supplied-only evidence.",
         "Labels the component/menu/i18n/test facts as `Primary source` or supplied-source evidence, not runtime proof from the current workspace.",
-        "States coverage limits: no other report surfaces, locales, runtime rendering, or screenshots were inspected or supplied.",
+        "States coverage limits naming the unsupplied material that could change the conclusion: other report surfaces or rename entry points, other locales, and the absence of rendered-UI evidence. Any one form of rendered-UI evidence — runtime rendering, screenshots, or a recorded session — satisfies that third item; a response that states no coverage limit for the surfaces or the locales fails this in either configuration.",
         "Does not narrow the investigation to only `ReportActions.tsx` or conclude from the first matching label that the rename wording is consistent.",
         "Stays read-only and does not apply or start a wording fix, implementation plan, tests, or commit; any follow-up is offered only as an optional later step."
       ]
@@ -173,11 +175,13 @@
       "expected_output": "An investigation summary that states how the ruling and the defect are carried and what is not written.",
       "files": [],
       "expectations": [
-        "Carries the single-source TTL default as a carry-forward packet with the decision, the rejected alternative (per-module defaults enforced by a lint rule) and its reason, the rationale, the provenance naming the user's 2026-09-06 turn with its deciding phrase, the scope covering every `SESSION_TTL` reader under `src/session/`, and a proposed status of `accepted`.",
-        "Carries the three disagreeing `SESSION_TTL` defaults as a finding with a title, severity, scope naming all three read sites — `src/session/store.ts`, `src/session/evict.ts`, and `src/session/reaper.ts` — the evidence anchors, why it was not addressed, `decided by: agent`, and a revisit trigger.",
+        "Carries the single-source TTL default as a carry-forward decision packet holding the decision, the rejected alternative (per-module defaults enforced by a lint rule) with its reason, the rationale, and a proposed status of `accepted`.",
+        "Gives that decision packet provenance and scope: provenance attributing it to the user's 2026-09-06 turn, by its date or its deciding wording in any field of the packet, and a scope covering the `SESSION_TTL` readers under `src/session/`, satisfied either by naming the three read sites or by an equivalent every-reader phrase.",
+        "Carries the three disagreeing `SESSION_TTL` defaults as a deferred-finding packet with a title, severity, scope naming all three read sites — `src/session/store.ts`, `src/session/evict.ts`, and `src/session/reaper.ts` — the evidence anchors, why it was not addressed, and a revisit trigger.",
+        "Attributes the deferral to the investigating agent: nobody asked for the repair, so the packet's who-decided field reads `agent` or equivalent. A packet that records the user as having decided, declined, or waived the repair fails this in either configuration.",
         "Marks both packets unpersisted and names the one action that would persist them, namely the next writing phase recording them.",
         "Writes no file: no `docs/decisions/NNNN-<slug>.md`, no `docs/reports/findings/YYYY-MM-DD-<goal-slug>.md`, and no index row in `docs/decisions/README.md` or `docs/reports/findings/README.md`, because the user asked for no saved artifact.",
-        "Does not call either packet durable, recorded, or already saved.",
+        "Does not call either packet durable, recorded, or already saved in its current state; naming the future writing phase that would record it does not violate this.",
         "Does not edit `src/session/config.ts`, `src/session/evict.ts`, or any other file to consolidate the defaults."
       ]
     }
