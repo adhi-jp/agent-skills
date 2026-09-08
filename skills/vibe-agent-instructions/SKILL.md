@@ -46,7 +46,9 @@ best practice".
 - **An implicit mention is not an invocation.** "Update the docs and mention
   `AGENTS.md` somewhere", a passing reference to `CLAUDE.md`, or general
   documentation work does not activate this skill. Say the skill is not
-  activated and do the ordinary documentation work requested.
+  activated and do the ordinary documentation work requested. When that
+  request names neither the documents to change nor the wording to add, ask
+  for both instead of promising to update unspecified documents.
 - Ordinary editing of a README, a design document, or a reference document
   that this skill did not generate.
 - Committing, releasing, or any history work — that belongs to the

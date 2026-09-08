@@ -84,6 +84,16 @@ use `[Repository] - YYYY-MM-DD`.
   assertions grade what the skill and the prompt actually require, two prompts
   supply the state their assertions grade, and three long assertions are
   split. One three-run closing run followed the change.
+- `vibe-agent-instructions`: when the skill declines activation for an
+  ordinary documentation request that names neither the documents nor the
+  wording, it asks for both instead of promising to update unspecified
+  documents. Eval maintenance in the same change: the common assertions grade
+  the instruction-file pairs a run acts on and the reproduction of each changed
+  path rather than all four filenames and an unobservable write order, the
+  seven-repository link-integrity case is split in two, nine long assertions
+  are split, and six are reworded to what the prompt supplies. One full
+  three-run re-baseline, one partial diagnostic, and one three-run closing run
+  followed the change.
 
 - `vibe-planning`: a plan summary written in a recording context still names the
   plan path, current slice, proceed condition, and material blocker; a
