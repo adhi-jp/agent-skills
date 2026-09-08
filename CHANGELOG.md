@@ -94,6 +94,14 @@ use `[Repository] - YYYY-MM-DD`.
   are split, and six are reworded to what the prompt supplies. One full
   three-run re-baseline, one partial diagnostic, and one three-run closing run
   followed the change.
+- `vibe-requirements-spec`: in explicit chat-only or no-file mode the reply
+  closes by stating that no spec file was written and naming the exact user
+  action that would create or update one, naming an existing spec path as the
+  unchanged target when there is one. Eval maintenance in the same change: a
+  negated mention of the runner's capture path is no longer graded as an
+  exposure, and three compound assertions are split. Two three-run closing
+  runs followed the change; a per-option benefit-and-drawback clause tested in
+  between displaced other content on a strict-mode case and was not kept.
 
 - `vibe-planning`: a plan summary written in a recording context still names the
   plan path, current slice, proceed condition, and material blocker; a

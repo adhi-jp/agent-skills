@@ -27,7 +27,10 @@ completion audit must be run or rerun before finish or handoff can be accepted.
 All drafting modes create or update a requirements spec artifact by default
 unless the user explicitly asks for chat-only or no-file operation. If file
 writing is unavailable or unsafe, use the no-write fallback and state that no
-file changed; do not present that fallback as ordinary chat-only mode.
+file changed; do not present that fallback as ordinary chat-only mode. In
+explicit chat-only or no-file mode, close by stating that no spec file was
+written and naming the exact user action that would create or update one; when
+an existing current spec path is available, name it as the unchanged target.
 
 If the host, harness, or runner designates an artifact-capture destination,
 artifact mode must write the complete primary spec there before any repository
