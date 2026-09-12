@@ -262,7 +262,12 @@ deeper on the judgment calls.
    what you are about to commit: `git diff --cached --name-only` (exact files),
    `git diff --cached --stat` (volume sanity), `git diff --cached` (read the
    hunks), `git diff --cached --check` (whitespace/line-ending errors). In-scope
-   files present, out-of-scope/ignored files absent, diff matches intent. This
+   files present, out-of-scope/ignored files absent, diff matches intent. When
+   the request or owning workflow makes a human-run or deployed test a commit
+   prerequisite, reconcile candidate contents with the consumed-artifact and
+   source/build-input receipt, including partial staging. An incidental test
+   comment does not create that prerequisite; follow
+   `references/staging-and-recovery.md` for drift and missing proof. This
    2–3 second gate is the single highest-leverage habit; see
    `references/staging-and-recovery.md`.
 7. **Reconcile message to the exact target diff (mandatory internal gate).** Read

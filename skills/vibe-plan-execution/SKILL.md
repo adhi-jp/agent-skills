@@ -23,6 +23,11 @@ or implementation contract, return to the owning requirements or planning
 artifact before editing that behavior. Do not turn a stale plan into a series of
 one-off patches.
 
+For human-run or deployed acceptance, bind the loaded artifact and relevant
+source/build inputs to the result and preserve that receipt through commit
+handoff. Apply `references/execution-workflow-and-quality.md` before batching
+user sessions or relying on runtime proof after the inputs change.
+
 If no concrete plan exists, return to planning before coding. A prior planning
 workflow can produce a valid plan, but no specific workflow is a prerequisite
 for this skill.

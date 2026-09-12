@@ -20,6 +20,9 @@ Rules:
 - Never mark an item complete from memory when the journal and working tree do
   not support it.
 - Keep journals untracked unless the user explicitly wants them saved.
+- Put ordinary progress in the journal or host progress channel; reserve a
+  terminal worker report for completion or an actionable blocker. Do not end
+  repeated worker turns only to wake the coordinator with unchanged status.
 - Give every unit a private, disjoint journal and scratch root. Foreign or
   unexplained content in that root invalidates it as trusted scratch; stop and
   reconcile rather than reading, overwriting, or attributing it to the worker.

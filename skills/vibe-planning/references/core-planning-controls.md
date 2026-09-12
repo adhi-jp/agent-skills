@@ -270,6 +270,13 @@ enumeration `Unproven`. Scale effort from current-slice risk, proof, consent,
 and recovery obligations. Repository size or “personal project” signals may
 compress rendering but never remove mandatory high-risk controls.
 
+Use confirmed operating context, exposure, failure consequences, and recovery
+options to distinguish required proof from optional hardening. Keep inferred
+support or failure assumptions explicit. A hobby/production label or a count
+of coincident faults is not a safety policy, and backups must be evidenced
+before they can support a recovery argument. Bound planned tooling and review
+effort to acceptance gaps; optional extensions need scope/cost selection.
+
 Run a criterion-coherence and mechanism-feasibility pass against requirements,
 the target toolchain, earlier/later slice interfaces, and the real actor for
 every operation. Contradictory proof requirements, neighboring-layer

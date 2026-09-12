@@ -88,6 +88,9 @@ coverage after an interrupted round:
 ```markdown
 Mission: [one sentence naming the slice, expected outcome, and starting state]
 
+Scope and effort: [acceptance gap; settled user decisions and support boundary;
+required repair or optional work; round allowance and stop/review checkpoint]
+
 Hard rules:
 - You are not alone in the codebase; other workflow constraints may exist.
 - Use only these tools or command classes: [list].
@@ -105,6 +108,8 @@ Hard rules:
   operations.
 - Run only these verification commands, if any: [commands]. If blocked by the
   sandbox or host, report `COMPILE: SKIPPED(<reason>)` or equivalent.
+- Command effects: [explicit cwd, forbidden implicit-deploy command forms,
+  verified safe alternatives and observed output paths when applicable].
 - The coordinator's own verification of the kept bytes is the final proof; every
   status you report is a claim about your run, not acceptance.
 - If the task needs a non-whitelisted file, broader command, missing fact,

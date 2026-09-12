@@ -40,6 +40,28 @@ This gate appeared as the most universally emphasized discipline across mined
 sessions; commits made *without* it were the most common source of "wrong files
 in history."
 
+When the request or owning workflow makes human-run or deployed verification
+a commit prerequisite, inspect its
+consumed-artifact identity and relevant source/configuration/build-input
+receipt. Compare the contents the actual commit command will record with those
+inputs, not merely the current working tree. Partial staging can omit a tested
+hunk; a consumed untracked helper can leave a required dependency out of the
+candidate. Identify either mismatch before accepting the test as commit proof,
+and never add that helper without ordinary scope and tracking authority.
+
+Missing identity or unexplained relevant drift leaves the candidate unproven:
+obtain provenance or return for affected verification, or carry an exact delta
+and bounded behavior-neutrality argument when the owning acceptance contract
+allows it. Static checks do not retroactively establish runtime identity. Do
+not require another human run for unrelated notes/logs outside the verified
+inputs, and do not claim that changed unexercised bytes were actually tested.
+
+An incidental report that the user tried the app does not itself create a new
+runtime acceptance gate. For an ordinary authorized commit without that
+prerequisite, apply the normal commit checks and qualify any unsupported test
+claim instead of inventing deployment, provenance collection, or retesting.
+Direct commit authority does not waive a prerequisite that is already in force.
+
 ## Partial staging: only some hunks of a file
 
 When one file mixes in-scope and out-of-scope changes, stage just the relevant

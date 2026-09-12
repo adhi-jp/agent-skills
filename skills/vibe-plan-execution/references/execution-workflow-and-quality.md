@@ -242,6 +242,18 @@ receipts.
    - If intentional edits landed after an empirical run, rerun the affected
      empirical gate on final bytes or record the exact delta and bounded
      behavior-neutrality argument. Static reruns do not extend empirical proof.
+   - For user-run or deployed acceptance, record the artifact actually loaded
+     and relevant source/configuration/build inputs, including consumed
+     untracked inputs, with each check's result. A source diff digest alone
+     does not prove which binary ran. Carry this receipt and any exact delta
+     into commit handoff so candidate contents, including partial staging, can
+     be compared with tested inputs. Evidence capture does not authorize
+     tracking an untracked dependency.
+   - Batch user runtime checks only with an explicit non-interference or
+     compatible-state argument and separately attributable outcomes. Reuse
+     existing session consent; expose new material operator burden. Unrelated
+     note/log changes outside the relevant inputs do not invalidate runtime
+     proof or require another human session.
    - Report suite status, acceptance-coverage status, unresolved scope, and any
      unverified shared edits as separate facts. Report any skipped check with the
      reason and residual risk.

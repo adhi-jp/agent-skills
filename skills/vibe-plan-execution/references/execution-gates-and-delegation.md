@@ -89,6 +89,13 @@ below before applying this gate's steps. Complete these steps:
    blocker. Do not complete the known-defective planned implementation and do
    not defend it as "required by the plan".
 
+During review repairs, screen additions to resources, public settings,
+persisted contracts, UI, and timers against the requirement and observed
+failure they serve. These are scope-change signals, not a blanket ban on
+internal implementation details. An internal state field necessary for approved
+recovery can preserve the plan; optional alerts or new controls cannot acquire
+authority from a reviewer's severity label or a later decision record.
+
 When the user challenges an in-progress or completed slice with a concrete
 failure mode, run the same gate before arguing from plan text. If the challenge
 is verified and the correction stays within the existing contract, repair it as

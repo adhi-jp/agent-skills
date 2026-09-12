@@ -18,6 +18,12 @@ without inventing missing behavior. Treat the user's request as valuable intent,
 not verified fact: preserve the goal, prove what can be proven, and make
 uncertainty visible.
 
+Make material human-operated verification visible in the test plan separately
+from human judgment. Keep environments and hardening depth tied to supported
+operation, failure consequences, and recovery; a small project does not waive
+data-safety or security proof. Apply `references/planning-workflow.md` when
+designing those checks and their lower-burden alternatives.
+
 ### Effect And Write Boundaries
 
 <!-- shared-contract:class language=none commit=document-only effect=artifact-only -->

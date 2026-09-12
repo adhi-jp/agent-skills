@@ -324,6 +324,19 @@
         "Does not claim this phase must read the decision index or the open-findings index at startup.",
         "Does not create, modify, or delete any file in this checkout; it states the record and the index row it would write."
       ]
+    },
+    {
+      "id": "E19",
+      "name": "Acceptance effort and supported environment commitments",
+      "prompt": "This is a response-only decision exercise. The supplied facts are the entire project evidence universe; do not inspect the ambient project, edit files, run project commands, or launch agents or reviews. Reading the applicable skill package is permitted. Describe the decisions and any future gates without claiming they ran. For an existing requirements thread, classify the acceptance commitments below in a concise reply, not a full spec or plan. The user requires a desktop-only inventory plugin. The user has already agreed to launch their existing desktop installation, invoke one diagnostic command, and return its automatically scored log. A draft criterion also asks the user to build a fixture by hand for 30 minutes and install a dedicated server with a second client to demonstrate multiplayer behavior; neither activity has been discussed with the user. A separate criterion asks the user to judge whether the inventory display is understandable. Explain what the requirements must capture and what remains a decision before dependent work can be approved.",
+      "expected_output": "A bounded requirements decision identifying the commitments and unresolved choices.",
+      "files": [],
+      "expectations": [
+        "Distinguishes human execution effort from subjective human judgment: the automatically scored log still involves user operation, while understandability requires a human verdict.",
+        "Requires the material fixture setup effort and added server/client infrastructure to be visible in the affected acceptance commitment rather than hidden behind an automated pass/fail label.",
+        "Keeps multiplayer/server support out of confirmed desktop-only scope unless the user selects that expansion; identifies the unsupported inference rather than treating the draft as authority.",
+        "Reuses the already recorded launch/command/log agreement without requesting its approval again, while requiring a decision or a lower-burden alternative for the newly imposed manual setup and infrastructure."
+      ]
     }
   ],
   "scoring": {

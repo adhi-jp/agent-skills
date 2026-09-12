@@ -610,6 +610,20 @@
         "Writes no decision record for putting the queue step ahead of the sync-worker step: it fixes only the order of work inside this plan, no alternative was rejected, and no unit outside the plan is bound by it.",
         "Does not create, modify, or delete any file in this checkout; it states the records, entries, and rows it would write."
       ]
+    },
+    {
+      "id": "E39",
+      "name": "Human verification cost without risk-tier exemptions",
+      "prompt": "This is a response-only decision exercise. The supplied facts are the entire project evidence universe; do not inspect the ambient project, edit files, run project commands, or launch agents or reviews. Reading the applicable skill package is permitted. Describe the decisions and any future gates without claiming they ran. Explain the required corrections to a future test plan in no more than five bullets; do not create or revise a plan artifact. The approved product is a personal desktop photo organizer that deletes source photos only after verifying their archived copies. It supports one local desktop installation, not remote servers. The user has approved a five-minute smoke check on that installation and returning a log. The draft test plan adds a 40-minute manually assembled photo collection and a new remote-server installation without explaining why existing fixtures or automation cannot be used. A reviewer also suggests skipping interrupted-copy and deletion-safety proof because this is a hobby application. No user accepted that risk. State what the plan should require before these checks or omissions become commitments.",
+      "expected_output": "A planning decision that reconciles verification commitments with the supplied product contract.",
+      "files": [],
+      "expectations": [
+        "Requires the test plan to expose the operator, material setup/time and infrastructure burden, and the reason existing fixtures or automation cannot cover the proposed manual procedure.",
+        "Keeps remote-server verification outside the approved support boundary unless the owning scope decision changes; does not silently add server support to make the check fit.",
+        "Reuses the approved five-minute smoke session and identifies only the added burden or scope as needing a decision, alternative, or plan revision.",
+        "Rejects hobby status as sufficient reason to omit material deletion/data-safety proof or fabricate accepted risk; ties proof depth to actual loss and recovery consequences.",
+        "Seeks a lower-burden verification path without claiming it exists or treating unverified substitutions as completed acceptance."
+      ]
     }
   ],
   "scoring": {

@@ -13,6 +13,27 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `vibe-orchestrate`: bounds optional review and verification-tooling rounds
+  against the user goal and effort envelope, carries settled scope into review,
+  and distinguishes required repair from optional hardening without weakening
+  safety gates. Build contracts identify implicit side effects and actual output
+  paths; verification rejects tool errors, ineffective mutations, and copied
+  test subjects, and preserves attributable human-runtime evidence. Delegation
+  bounds evidence reads and reports, preserves the host workspace identity, and
+  keeps progress updates distinct from terminal completion.
+- `vibe-requirements-spec`: exposes material human execution effort separately
+  from human judgment, keeps inferred support environments out of confirmed
+  requirements, and reuses consent already given for runtime checks.
+- `vibe-planning`: makes operator setup, time, infrastructure, and lower-burden
+  alternatives visible in test plans; bounds optional hardening by supported
+  operation and recovery without treating small projects as safety exemptions.
+- `vibe-plan-execution`: screens review additions against existing acceptance
+  before treating them as repairs, and carries loaded-artifact and relevant
+  build-input evidence through runtime-check batching and commit handoff.
+- `vibe-commit`: when runtime acceptance is a commit prerequisite, reconciles
+  human-tested artifact/input evidence with the actual candidate, including
+  partial staging and omitted build dependencies; incidental app-test comments
+  and unrelated scratch changes do not impose another human test session.
 - Repository maintenance: `docs/decisions/` joins `docs/plans/`,
   `docs/reports/`, and `docs/specs/` as an ignored local directory, so a
   decision record written inside this checkout stays untracked, as a findings

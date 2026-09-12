@@ -368,7 +368,12 @@ When an acceptance criterion is satisfiable only by human judgment, label it
 `human-only`; no automated test, model review, or coordinator inference may
 close it. Require the human verdict to be recorded verbatim with its
 qualifications, and make a failed verdict reopen the affected requirement
-contract. When a requirement could be mistaken for a stronger guarantee,
+contract. Separately expose material human execution effort and infrastructure
+for acceptance, even when pass/fail is automated; do not turn inferred support
+environments or new operator burdens into confirmed requirements. Reuse prior
+consent within its recorded scope.
+
+When a requirement could be mistaken for a stronger guarantee,
 require a structural schema, namespace, type, validation, or permission boundary
 rather than relying on a label alone.
 

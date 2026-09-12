@@ -108,6 +108,15 @@ Read this reference when creating, revising, reopening, finishing, or handing of
    - `Open risks and unknowns`: facts needing local evidence, primary-source
      evidence, or user input before implementation planning.
    - Classify every build-changing dimension the user names or implies.
+   - Record supported environments and decision-relevant operating assumptions
+     from user intent or evidence. Agent-inferred server, multiplayer, scale,
+     or infrastructure needs remain assumptions, not product commitments.
+   - For acceptance with material human effort, expose who executes it, setup,
+     expected hands-on time, and required installations/accounts/devices.
+     Distinguish operating a check from judging its result. Prefer existing
+     automation or a launch/trigger/log-return role when feasible; surface new
+     burdens and alternatives before settling dependent requirements, reusing
+     already recorded consent. A product label never accepts data/security risk.
    - For selected creative, visual, formatted, template, prompt, fixture,
      schema, command-output, or other exact-content options, classify the
      payload provenance and authoritative source separately from summaries,

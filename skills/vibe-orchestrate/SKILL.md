@@ -22,6 +22,12 @@ the transport for bounded work.
 The package now ships optional external-runner helper scripts while this skill
 remains reference-first guidance.
 
+Keep each round tied to the user's goal and an explicit effort envelope. Before
+another review or tooling round, distinguish required acceptance work from
+optional hardening; optional work never inherits repair authority from severity
+or an instruction to work autonomously. Apply the goal and effort checkpoints
+in `references/coordinator-practices.md` before extending a round sequence.
+
 ## When to Use
 
 Use this skill when:

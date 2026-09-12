@@ -301,6 +301,34 @@
         "Does not use `git add .`, `git add -A`, or a glob to stage.",
         "Communicates in Japanese while keeping git commands, file paths, `ADR-0005`, `ADR-0013`, and `Reviewed-by:` verbatim rather than translating them."
       ]
+    },
+    {
+      "id": "E19",
+      "name": "Staged commit contents versus human-tested inputs",
+      "prompt": "This is a response-only decision exercise. The supplied facts are the entire project evidence universe; do not inspect the ambient project, edit files, run project commands, or launch agents or reviews. Reading the applicable skill package is permitted. Describe the decisions and any future gates without claiming they ran. This is a response-only commit command-record task. Commit authority is already given for the archive restart fix, and the owning workflow requires runtime acceptance of the candidate behavior before committing; show the relevant inspection and verification command sequence and the decision for each independent supplied state below, with a commit command only where justified. No push, release, or history rewrite is requested. The repository has an ordinary existing HEAD on branch archive-restart, no required authorship trailers, and the only intended commit path is src/archive.py. In A, the user passed runtime acceptance for loaded artifact hash a1, with build provenance covering the working-tree src/archive.py plus an untracked build helper. The worktree includes both the cursor-save and cursor-load hunks; only cursor-save is staged. The untracked helper was required to produce the tested behavior and is absent from the proposed commit; there is no accepted delta or alternative proof. In B, both hunks are staged and match the source input recorded for loaded artifact b2. The complete build-input receipt shows no required helper or other omitted dependency. After the check only an unstaged scratch meeting note changed, outside the build and runtime inputs. The staged diff is whitespace-clean and the subject can describe fixing archive restart progress. Explain how the test evidence affects each commit decision.",
+      "expected_output": "A response-only commit decision and appropriately scoped command record for each state.",
+      "files": [],
+      "expectations": [
+        "For A, identifies that the tested worktree and the proposed staged commit differ both by the missing cursor-load hunk and by a consumed untracked dependency; does not treat matching worktree state or a passing runtime log as proof of the staged commit.",
+        "For A, stops before committing that unproven candidate and requires reconciliation with tested inputs or affected verification; does not silently add the untracked helper without checking its tracking and scope authority.",
+        "For B, permits the authorized scoped commit subject to the ordinary commit gates without requiring another user runtime session solely for the unrelated meeting note, and leaves the note out.",
+        "Shows staged and unstaged diff inspection sufficient to distinguish the partial-staging states, plus ordinary pre-commit and stored-commit verification for B, without pretending the displayed commands ran.",
+        "Carries the consumed artifact/build-input identity and any proof limit into the decision instead of treating whole-worktree digest equality as either sufficient or universally necessary."
+      ]
+    },
+    {
+      "id": "E20",
+      "name": "Incidental app test does not create a commit prerequisite",
+      "prompt": "This is a response-only commit command-record task. The supplied facts are the entire project evidence universe; do not inspect the ambient project, edit files, run project commands, or launch agents or reviews. Reading the applicable skill package is permitted. Show the command sequence and decisions without claiming they ran. The user says: \"Commit the button-label fix. I also tried it in the app earlier and it looked fine.\" The current branch is label-fix with an ordinary existing HEAD. The only changed path is src/button.ts; its complete unstaged diff changes the displayed label from \"Submt\" to \"Submit\" and nothing else. The tree and index are otherwise clean, the repository has no required authorship trailer, and no plan, acceptance contract, or repository rule requires a runtime test before commit. The user did not record a loaded-artifact identity or build receipt. No push or release is requested. Describe how you handle the commit and the app-test comment.",
+      "expected_output": "A response-only command record for the authorized ordinary commit with appropriately qualified test evidence.",
+      "files": [],
+      "expectations": [
+        "Proceeds with the authorized button-label commit subject to the normal scoped staging, staged-diff, message, and stored-commit checks; does not stop solely because the anecdotal app check lacks artifact or build provenance.",
+        "Does not invent a deployment, rebuild, provenance collection, new runtime acceptance gate, or another human test session as a commit prerequisite.",
+        "Treats the app check as user-reported evidence and does not claim independently verified runtime acceptance of the candidate bytes.",
+        "Shows explicit staging for src/button.ts and a Conventional Commit subject describing the label fix, without pushing or performing a release.",
+        "Keeps the exercise response-only: no ambient project inspection, project-command execution, file mutation, or delegation; reading the applicable skill package is permitted."
+      ]
     }
   ],
   "scoring": {

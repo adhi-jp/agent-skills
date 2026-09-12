@@ -122,6 +122,12 @@ or process-spawning lane.
 
 ## Running Bounded Work
 
+For external reviewers, bound the named evidence set, targeted read/output
+budget, and foreground timeout. Exclude unrelated instruction-pack loading and
+bulk dumps or decompilation; enlarge evidence only for a concrete unresolved
+review question. A message waiting on background analysis is non-terminal and
+cannot replace the contracted findings.
+
 Delegate only in a disposable or isolated Git checkout with a clean `HEAD`
 baseline and no credentials or unrelated sensitive data. Keep the artifact
 directory outside the delegated cwd. Do not pipe or redirect caller stdin as

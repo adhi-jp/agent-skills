@@ -1,6 +1,6 @@
 # Coordinator Practices
 
-Read this reference before selecting delegated model tiers, judging the coordinator's own capability fit, decomposing substantial work, writing or auditing worker contracts, inlining facts and protected evidence, directly intervening, or handling multiple/overlapping writers.
+Read this reference before selecting delegated model tiers, judging the coordinator's own capability fit, decomposing substantial work, setting or revisiting the goal and effort envelope, writing or auditing worker contracts, inlining facts and protected evidence, directly intervening, or handling multiple/overlapping writers.
 
 ## Frontier Coordinator And Model-Tier Loops
 
@@ -52,6 +52,41 @@ hard-code vendor model names into the skill contract, inherit the top model for
 every small worker, downshift judgment-heavy work solely to save tokens, or
 claim token, quality, latency, or reliability improvement without recorded
 metrics or review evidence.
+
+## Goal And Effort Checkpoints
+
+At the first material delegation, record the user outcome, remaining acceptance
+gates, planned implementation/review rounds, and a bounded allowance for
+non-shipping verification tooling. Use the existing plan or round ledger when
+provided; otherwise carry this state in the first contract's scope and effort
+section and update it at material joins. Use
+rounds or time when usage metrics are unavailable; label estimates and never
+invent token or monetary measurements. This is workflow state, not a new
+per-commit narrative or a mandatory separate artifact.
+
+At each join, identify which acceptance gap the round closed, whether the next
+round serves the product or its tooling, and cumulative work against that
+envelope. A repeated finding class, exhausted tooling allowance, material
+overrun, or completion of planned acceptance work triggers a scope checkpoint
+before optional follow-up. Preserve safe in-flight work and essential defect
+repair; do not use a budget to certify a broken or unverified unit as complete.
+
+Batch optional proposals with their user impact, estimated remaining effort,
+and a recommendation to continue, trim, or defer. Ask only when additional
+scope, cost, or human-risk acceptance needs the user's decision; reuse recorded
+authorization within its bounds. Autonomy covers authorized work, not unlimited
+optional spending. Agent deferral is not the user's acceptance of residual risk.
+When the user signals drift, revise the remaining verification scope explicitly:
+what is removed, which evidence still covers each criterion, and which gaps
+remain open. Changing required proof follows the artifact owner's boundary.
+
+Bound a review sequence before dispatch: an initial review and a targeted
+corrections pass are a starting shape, not a universal safety ceiling. A further
+pass needs a named unresolved acceptance or safety defect, changed evidence,
+or an authorized new scope. Repeated findings in the same component require
+diagnosis or artifact-owner backtracking, not automatic hardening rounds.
+Reopening a declared final round needs that same basis. Product labels and
+fault counts never waive security, data integrity, or required acceptance.
 
 ## Coordinator Capability Fit
 
@@ -170,6 +205,13 @@ exists: do not run an authoritative gate in that window, and do not attribute a
 failure observed in it to a worker's slice. Remove an isolation worktree
 promptly after extracting and verifying its diff.
 
+Address another checkout through an explicit command workdir or `git -C` rather
+than changing the host session's primary cwd. Verify the checkout identity
+before resuming workers if the host re-seats the session. A host-created tree
+with the wrong base or unusable write boundary is a transport problem; use
+verified coordinator-materialized inputs and a bounded patch handoff when
+needed, without relaxing scope or silently changing the worker's target.
+
 Each parallel unit needs its own mission, allowed paths, expected receipt,
 budget, stop conditions, and verification responsibility. The coordinator must
 continue meaningful non-overlapping local work after launch rather than
@@ -182,6 +224,8 @@ re-run the authoritative integrated gates on the combined bytes.
 Every write-capable delegation contract should include:
 
 - Mission: one sentence with the slice and expected outcome.
+- Scope and effort: the acceptance gap, settled user decisions, supported
+  operation, and the bounded review/tooling allowance.
 - Hard rules: allowed tools, commands, forbidden reads, forbidden git actions,
   and stop-as-blocker behavior.
 - Verified facts: APIs, versions, local patterns, failure logs, environment
@@ -265,9 +309,11 @@ is lost in summary:
 
 After a repair round changes control flow, ordering, lifecycle, or guards, run a
 corrections-complete read-only pass when risk warrants it. Give that pass one
-line per applied correction, require verify-or-refute plus an inverse/symmetric
-failure attack and a new-defect scan, and prefer an identity different from the
-implementer and original finding author when available.
+line per applied correction and require verify-or-refute, an inverse or
+symmetric attack, and new-defect inspection. Bound those checks to the changed
+behavior and its material acceptance, security, or data-safety risks; this is not an invitation
+to open unrelated hardening. Prefer an identity different from the implementer
+and original finding author when available.
 
 ## Direct Coordinator Intervention
 

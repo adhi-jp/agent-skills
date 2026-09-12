@@ -104,6 +104,17 @@ Read this reference when drafting or revising the implementation-plan body. It o
      preserving useful resolvable code and product anchors.
 6. **Design tests before implementation**
    - Derive tests from acceptance criteria.
+   - For checks requiring human operation, record the executor, setup,
+     estimated hands-on time, and infrastructure alongside the criterion.
+     Automated scoring does not make manual fixture construction or another
+     installation free. Explain why existing fixtures or automation cannot
+     cover a material manual procedure, and consider lower-burden evidence
+     without claiming an unverified substitute closes acceptance.
+   - Reuse authorized runtime launch/trigger/log-return sessions. New accounts,
+     devices, installations, or material operator effort require the missing
+     user decision before commitment; do not ask again for settled consent.
+     Check that every proposed environment is actually supported rather than
+     expanding product scope to accommodate a test.
    - For bug fixes, include a failing regression test or reproduction proof
      before production-code changes, and label the reported symptom and
      suspected root cause separately. A visible local defect can be a hypothesis

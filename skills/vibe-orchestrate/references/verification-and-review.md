@@ -16,6 +16,13 @@ cannot reconstruct:
 - hashes, sizes, or decoded summaries for protected binary or generated
   artifacts.
 
+Before authorizing build or test commands, inspect their actual effects and
+output locations: default targets may deploy, install, restart services, move
+outputs, or write live user data. Name unsafe command forms and a verified
+scratch-output alternative in the worker contract, or state that none exists.
+Permission to compile does not authorize an implicit deployment. Record the
+observed artifact path for each configuration the worker will consume.
+
 Run verification in the authoritative environment for the slice:
 
 - Preserve every input-named touched path, source target, test target, and
@@ -59,6 +66,13 @@ printf 'GATES gate_a=%s gate_b=%s\n' "$gate_a_status" "$gate_b_status"
 
 Retain full gate output separately; never put a truncating filter in the
 status-bearing invocation.
+
+Distinguish an expected negative result from a tool error. For example, grep's
+no-match and invalid-pattern exits are different outcomes; negating a pipeline
+must not turn the latter into permission to proceed. Fail the gate on error
+and record positive evidence of the targets and checks actually examined.
+Shell strict modes can help, but do not prove that an empty check ran or that
+conditional/negated commands preserved the intended status.
 
 When a gate is new to the tree or environment, run it against the pre-change
 baseline first. Its first failure may be pre-existing debt rather than a change
@@ -136,11 +150,18 @@ would make it fail. Reject or strengthen proof that relies only on:
 
 - a spy or injected boundary the implementation never consumes;
 - expected values imported from the target under test;
+- a harness executing its own duplicate of the production decision logic;
 - best-case input for a general bound;
 - final-state or directory-list evidence for a claim about calls that must never
   occur;
 - a lifecycle, phase, encoding width, or branch matrix with the relevant path
   absent.
+
+Exercise the shipped unit through import, linking, loading, or its real entry
+point. A reference implementation may supply an independent oracle but is not
+the subject under test. Use representative real artifacts when the claim
+depends on their format and they are available; synthetic shapes alone do not
+establish that coverage.
 
 When an acceptance metric is intended to distinguish a defect, record its
 current/before result. If the known-bad baseline already passes, the metric
@@ -201,6 +222,33 @@ remain, then rerun the real check. If that safe reversible failure cannot be
 observed, keep the proof item blocked/`Unproven`; prose review and historical
 failures are not substitutes.
 
+For any mutation experiment, prove that the intended edit landed with a
+nonempty diff, bind the checker's resolved input root to the mutated copy,
+observe failure of the intended assertion rather than a setup/tool error, and
+compare original bytes afterward. A no-op locator, pristine-tree read, or
+unrelated failure supplies no disconfirmation proof.
+
+## Human Runtime Evidence
+
+When acceptance relies on a user-run or deployed check, capture the identity
+of the artifact actually loaded and its relevant source, configuration, and
+build inputs, including consumed untracked files. Retain the check-specific
+result with that receipt through review and commit handoff. A source diff hash
+alone cannot identify a running binary, and including an input in evidence
+does not authorize tracking it.
+
+Combine pending user checks only when their inputs, state, and guarded behavior
+remain independent or compatible and each result stays attributable. Record
+that basis and reuse existing consent for the session. Minimize manual setup;
+new installations, accounts, equipment, or material hands-on effort need their
+own scope/cost decision when not already authorized.
+
+Compare relevant kept inputs with the tested receipt, not unrelated scratch
+notes or logs. Relevant drift follows the Post-Gate Mutation Check below: rerun
+affected acceptance or retain the exact delta and bounded neutrality argument
+the owning contract permits. Never claim that unexercised changed bytes were
+actually tested, or that static checks identify an earlier loaded artifact.
+
 ## Post-Gate Mutation Check
 
 After suspicious worker death, duplicate launch, delayed callback, or any shared
@@ -242,6 +290,12 @@ For substantial write rounds, use read-only review before repair:
 Reviewers must not edit files, stage, commit, ask the user, update ledgers, or
 launch implementation. Their output is inert until the coordinator decides what
 it means.
+
+Supply the user goal, acceptance criteria, settled scope decisions, supported
+environments, and material exposure/recovery assumptions to reviewers. Require
+a concrete failure trigger and violated requirement or protected invariant for
+proposed repairs. A decision can be challenged with new evidence that its
+premise is false; severity alone cannot reopen settled scope.
 
 When identities permit, assign a perspective to someone who did not author the
 surface under review; otherwise use coordinator fallback. A review contract may
@@ -299,6 +353,15 @@ For every material finding, record these fields separately: verified
 proposition, authority, remaining inference, severity, current-scope basis,
 introduced assumption, disposition, and repair authorization. Validity,
 severity, confidence, or reviewer agreement cannot authorize repair by itself.
+
+Make the current-scope basis identify what acceptance or invariant fails and
+how the failure is reachable in the supported product. Check the base revision
+to distinguish introduced, aggravated, and pre-existing defects; origin is
+separate from disposition, and pre-existing debt is not automatically repair
+scope. New resources, public options, persisted contracts, UI, or timers warrant
+an explicit scope check, not an automatic ban: internal means needed for an
+existing requirement differ from optional new capabilities. Neither a fixed
+fault count nor a low-risk product label dismisses a concrete safety defect.
 
 A finding that contradicts a passing test is not thereby refuted. Both are
 claims about the same behavior, and a test written from the same

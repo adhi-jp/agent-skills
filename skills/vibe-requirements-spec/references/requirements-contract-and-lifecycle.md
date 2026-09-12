@@ -448,6 +448,14 @@ When a criterion can be satisfied only by a human judgment, label it
 close it. Record the human user's verdict verbatim with qualifications and tie
 failure to reopening the affected requirement contract.
 
+The executor and the judge are separate acceptance dimensions. An automated
+verdict may still need a person to construct fixtures, operate a runtime, or
+install infrastructure. Record that burden with the affected criterion when
+material, including uncertainty in time estimates; do not impose a fixed
+taxonomy on ordinary automated criteria. New support scope or material manual
+work needs a user decision or a lower-burden alternative before it becomes a
+commitment. Existing consent remains valid within its stated bounds.
+
 When a requirement distinguishes one capability from a stronger guarantee,
 require a structural boundary that makes the stronger interpretation invalid
 through schema, namespace, validation, type, or permission design. A label or
