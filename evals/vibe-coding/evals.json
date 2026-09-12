@@ -433,5 +433,8 @@
     "per_eval_expectation_weight": 0.5,
     "pass_threshold": 0.8,
     "notes": "Compact suite: cancellation, auxiliary skill-package override, and duplicate commit/investigation/creative cases were removed or merged. Remaining cases preserve core routing boundaries, visible-metadata selection, checkpoint commits inside plan execution, commit-message auxiliary containment, cross-phase orchestration refusal, current-deliverable selection, and artifact-lifecycle authority while reducing executor/grader volume, plus the rule that orchestration quality is not a token-minimization objective when material investigation depth or UX/safety tradeoffs belong to the selected phase."
-  }
+  },
+  "skill_support_files": [
+    "shared/vibe-contract.md"
+  ]
 }

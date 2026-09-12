@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "skill-eval",
-  "purpose": "External eval set for skill-eval. Prompts live outside skills/ so they are not bundled as skill content. Covers eval run authorization, shared runner routing, full-versus-partial suite coverage, executor/grader separation, fixture-semantic ground-truth visibility, generated workspace boundaries, metric provenance, long-run workload and cancellation receipts, capacity retry circuit breaking, infrastructure claim boundaries, paired candidate/baseline semantic adjudication, and result verification before reporting pass-rate deltas. E07 covers the runner's delivery-mode validation warnings as eval-design signals that route to the quality owner without authorizing a run.",
+  "purpose": "External eval set for skill-eval. Prompts live outside skills/ so they are not bundled as skill content. Covers eval run authorization, shared runner routing, full-versus-partial suite coverage, executor/grader separation, fixture-semantic ground-truth visibility, generated workspace boundaries, metric provenance, long-run workload and cancellation receipts, capacity retry circuit breaking, infrastructure claim boundaries, paired candidate/baseline semantic adjudication, and result verification before reporting pass-rate deltas. E07 covers the runner's delivery-mode validation warnings as eval-design signals that route to the quality owner without authorizing a run. E08 and E09 cover case-specific input delivery, inert task context, net-effect evidence limits, measurement identity, and runner-owned offline component runtimes.",
   "common_assertions": [
     "Output does not claim a `with_skill`/`without_skill` improvement, regression, or delta as proven until the relevant runner artifacts and sanity checks support that claim."
   ],
@@ -124,12 +124,42 @@
         "Names the cell's `Failed assertions` entry in `benchmark.md` and then the recorded executor and grader outputs as what must be read before attributing any cell to the skill. Reading `benchmark.md`, `benchmark.json`, `error_run_count`, and the sanity status first matches the skill's closure order and does not fail this expectation.",
         "Does not claim that any represented command ran or fabricate results in this dry-run exercise."
       ]
+    },
+    {
+      "id": "E08",
+      "name": "Task context and delivery identity bound comparison claims",
+      "prompt": "This is a response-only workflow decision. Use only these supplied facts; do not inspect a repository, run commands, create artifacts, or launch agents. Reading the applicable skill package is permitted. A completed benchmark copied the full tracked repository into both configurations, including the suite definitions and all skill packages. One case intentionally asks the executor to edit a skill document supplied as task evidence. Its grader saw the answers and assertions but not the original task; it failed an answer for inventing a capability explicitly supplied in that task. Every retained change manifest is empty. A partial command trace contains python and sed categories but lacks usable operands. A proposed rerun will change input delivery and supply the missing grading facts. Explain what must change in delivery and grading, what the empty manifests and trace establish, and whether old/new rates establish the effect of the skill repair. Limit the response to five bullets.",
+      "expected_output": "A decision about the measurement boundaries and the evidence needed for a later comparison.",
+      "files": [],
+      "expectations": [
+        "Requires case-specific declared fixture roots and explicit symmetric supporting task files, with treatment instructions available only to with_skill; suite definitions and grading context must not be incidental executor inputs.",
+        "Distinguishes a skill document explicitly selected as the object of the task from treatment instructions: a legitimate task-document exception must be supplied symmetrically and its comparison limit retained, not silently removed or counted as isolated treatment.",
+        "Requires the grader to receive the original task as inert context and only necessary missing fixture facts through grader-only context; it does not require the answer to repeat every supplied fact or let grading instructions reach the executor.",
+        "Treats an empty manifest as absence of retained net changes at capture, not proof that no transient write or external effect occurred; incomplete command categories establish neither a successful read nor a forbidden mutation.",
+        "Requires delivery/input measurement identities for the new run, preserves the historical official scores, and treats old/new results with changed inputs as different measurement series rather than proof of the skill repair effect.",
+        "Does not claim that declared-file delivery proves an operating-system read boundary or that the proposed rerun has occurred."
+      ]
+    },
+    {
+      "id": "E09",
+      "name": "Offline component-test runtime is prepared before evaluation",
+      "prompt": "This is a response-only workflow decision; do not run commands, inspect a repository, write files, or launch agents. Reading the applicable skill package is permitted. An authorized future eval must exercise a React form through its real TSX source and interaction tests in offline executor sandboxes. The acceptance gate also requires evidence that these tests catch a broken submit callback. Its case declares the fixture project in npm_projects and the project has a pinned package manifest and lockfile. The maintainer has supplied a private npm cache path, but a fresh coordinator setup using that cache exits ENOTCACHED for a required dependency. A teammate suggests launching the cells anyway so each executor installs whatever it needs, or replacing the interaction assertions with searches of source text. State the required setup, delivery, failure disposition, and proof before this evaluation can run. Do not provide a shell-command sequence.",
+      "expected_output": "A runtime preparation and proof decision for a selected offline fixture.",
+      "files": [],
+      "expectations": [
+        "Binds the declared npm_projects fixture to its package manifest, lockfile, runtime and explicit --npm-cache input, rather than treating an ambient cache or a list of cached names as readiness proof.",
+        "Requires runner-owned dependency preparation before executor and grader cells launch, with offline installation, install scripts disabled, and setup performed uniformly for both configurations.",
+        "Keeps the missing dependency as a setup blocker, obtains a complete cache before retrying the authorized setup, and does not turn it into a skill score or delegate infrastructure repair to evaluated executors.",
+        "Preserves real component imports and interactions; source-text searches or duplicated logic do not replace the selected runtime acceptance.",
+        "Requires sandbox-local prepared dependencies and recorded manifest/lockfile/runtime/dependency identities; generated dependency trees do not become tracked fixture source.",
+        "Requires a fresh offline test run and a failing controlled change to the actually asserted source behavior followed by restoration and a final real pass; it does not claim this evidence already exists."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.4,
     "per_eval_expectation_weight": 0.6,
     "pass_threshold": 0.8,
-    "notes": "These evals test eval-runner operation judgment, especially whether agents distinguish explicit run authorization from inspection or validation, preserve full-versus-partial suite coverage, preserve executor/grader isolation, make fixture-semantic assertions observable without answer leakage, supervise long runs with workload, retry-stop, failure-classification, and cancellation contracts, adjudicate candidate/baseline semantic inconsistencies, and verify runner results before reporting them. E02 through E06 are intentionally non-executing represented-turn exercises so evaluating skill-eval cannot recursively launch another hosted eval suite."
+    "notes": "These evals test eval-runner operation judgment, especially whether agents distinguish explicit run authorization from inspection or validation, preserve full-versus-partial suite coverage, preserve executor/grader isolation, make fixture-semantic assertions observable without answer leakage, supervise long runs with workload, retry-stop, failure-classification, and cancellation contracts, adjudicate candidate/baseline semantic inconsistencies, and verify runner results before reporting them. E02 through E06 are intentionally non-executing represented-turn exercises so evaluating skill-eval cannot recursively launch another hosted eval suite. E08 and E09 are also non-executing decisions; their facts do not authorize nested eval launches."
   }
 }

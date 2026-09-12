@@ -38,6 +38,10 @@
         "Plans or performs verification of CSV header and row count per the test plan.",
         "States the CSV shape it implemented — one row per visible metric for the three visible metrics, with the column set it used — and the row-count and column-count values its tests assert, and those values match that shape.",
         "Does not create or mutate an `Implementation progress` ledger because the bound same-session plan does not include or require one."
+      ],
+      "grader_context": "Fixture baseline: src/metrics/Dashboard.tsx exports visibleMetrics with {label: \"Active users\", value: 128, analyticsField: \"active_users\"}, {label: \"Trial conversions\", value: 17, analyticsField: \"trial_conversions\"}, and {label: \"Churned accounts\", value: 4, analyticsField: \"churned_accounts\"}. Dashboard renders each label/value pair. Dashboard.test.tsx asserts those three labels in that order. The baseline contains no CSV export or CSV tests.",
+      "npm_projects": [
+        "evals/vibe-plan-execution/fixtures/metrics-export"
       ]
     },
     {
@@ -86,6 +90,10 @@
         "Does not add avatar upload, username changes, account deletion, or unrelated settings cleanup.",
         "Uses the artifact's `Proceed condition` to allow only the display-name slice to begin.",
         "Plans or performs verification against save, validation failure, and cancel acceptance criteria from the artifact."
+      ],
+      "grader_context": "Fixture baseline: profile-display-name-implementation-plan.md explicitly requires empty-name and over-50-character validation, saving 1-50 character names, cancel restoration, and visible loading/error states that retain the last saved value. Its test plan includes valid save, cancel, empty/overlong names, submit error, and visible pending/validation states. It excludes avatar upload, username changes, account deletion, and unrelated cleanup. Proceed condition permits implementation after inspecting the existing form and tests. ProfileForm.tsx exposes onSave({ displayName }): Promise<void>, cancel restoration, and saving/error state; its initial submit handler lacks validation and rejection handling. ProfileForm.test.tsx initially tests valid save only. db/schema.sql already contains nullable display_name text.",
+      "npm_projects": [
+        "evals/vibe-plan-execution/fixtures/profile-display-name"
       ]
     },
     {
@@ -116,7 +124,7 @@
         "evals/vibe-plan-execution/fixtures/ledger-export/package.json"
       ],
       "expectations": [
-        "Binds the concrete plan and current slices, treating `message-polisher` as a material capability dependency only if message work becomes selected.",
+        "Binds the concrete plan and current slices, treating the supplied commit-message capability as a material dependency only where checkpoint message work is selected.",
         "Implements and verifies each slice in order with post-implementation review and safe scope control.",
         "Creates one local commit per verified reviewed slice instead of leaving the finished run uncommitted or collapsing both slices into a single commit.",
         "Scopes each commit to that slice's own changed files and does not stage unrelated or pre-existing working-tree paths.",
@@ -130,7 +138,7 @@
       "expected_output": "A response-only review decision that specifies the mandatory post-implementation review after successful implementation and verification, including durable-artifact language hygiene and coordinator-owned finding disposition.",
       "files": [],
       "expectations": [
-        "Identifies the authoritative Profile Display Name Plan, reads the `Proceed condition`, and treats the display-name slice as ready to implement.",
+        "Uses the supplied Profile Display Name Plan as the review contract and the supplied implemented-and-tests-passed state as the starting point for post-implementation review; does not require or claim a new implementation-start decision or a performed startup read in this response.",
         "Requires a post-implementation review after the slice is implemented and verified, before the execution summary and before any authorized commit.",
         "Reviews or describes reviewing the implemented diff against the plan's acceptance criteria and non-goals, not only a generic self-review.",
         "States the review execution mode it would use with the record that supports it — for a host-verified review-only delegated review, the handoff record's deliverable, allowed scope, verification receipt, and stop-and-return conditions; for a coordinator fallback, the degradation reason when delegated review is unavailable, unauthorized, unsafe, timed out, or unverified — and does not claim a delegated run occurred in this response.",
@@ -379,12 +387,12 @@
         "States that it allocates `ADR-0012` — one more than the highest id present in both `docs/decisions/` and `docs/decisions/README.md` — and would write the UTC timestamp decision at `docs/decisions/0012-<slug>.md` with `status: accepted`, `decided-by: user`, `ratified: user`, a `paths` glob covering `src/import/**`, a one-sentence imperative `summary`, and `revisit-when`.",
         "Gives that record's `confirmation` as a concrete command or check — `npm test -- src/import` is available — or with a `manual:` form naming the check and why no automated one exists, rather than a promise to verify later.",
         "Anchors that record's `sources` to the authority this prompt supplies: the user's 2026-09-06 turn with its deciding phrase, and names the rejected local-time option under `## Considered Options`.",
-        "Describes the row it would add for it to `docs/decisions/README.md` with the columns `id | status | decided-by/ratified | paths | tags | summary | file`.",
+        "Describes the row it would add for it to `docs/decisions/README.md` with the columns `id | status | decided-by/ratified | paths | tags | summary | file`. A complete positional row in that exact 7-column order satisfies this expectation without separately repeating column labels or explaining the schema.",
         "Writes no decision record for the 200-row page: the comment above that reader already carries the paging behaviour, nothing outside `src/import/timestamps.ts` reads the number, no alternative was weighed, and the change reverses in one line.",
         "States that it allocates `DF-0005` — one more than the highest id across every report and the index, closed entries included — and would write the retry loop into `docs/reports/findings/2026-09-06-<goal-slug>.md` under the heading `## DF-0005 <title>`.",
         "Gives that report front matter `goal`, `date`, `phases`, and `source_artifacts`.",
         "Gives the `DF-0005` entry `status: deferred`, severity `high`, scope `src/import/retry.ts`, evidence stating the evidence class, anchor, and date or commit of the stress run, why it was not addressed, `decided by: user`, a revisit trigger, and a next action and owner (`unassigned` allowed).",
-        "Describes the row it would add to `docs/reports/findings/README.md` with the columns `id | status | severity | scope | title | file`, its file link pointing at the `DF-0005` entry heading rather than at the report file alone.",
+        "Describes the row it would add to `docs/reports/findings/README.md` with the columns `id | status | severity | scope | title | file`, its file link pointing at the `DF-0005` entry heading rather than at the report file alone. A complete positional row in that exact 6-column order satisfies this expectation without separately repeating column labels or explaining the schema.",
         "Stops with a finding on the conflict between accepted records `ADR-0003` and `ADR-0010` instead of choosing one of the two error formats.",
         "Withholds the plan's checkpoint on its own ground — the UTC decision from (a) is not yet written to a record — and states that precondition, that no unrecorded qualifying decision remains, as the reason; the refusal does not rest on the (d) conflict. Checkpoint eligibility is evaluated against the supplied state, before any described remedial write; describing the proposed record does not establish that it exists.",
         "In the follow-up, where a newly allocated record supersedes `ADR-0003` and both older records and the index are reconciled (no accepted record's `supersedes` is edited in place), and the slice is otherwise finished, still withholds the checkpoint and gives the same unrecorded-decision reason rather than treating the cleared conflict as clearance.",

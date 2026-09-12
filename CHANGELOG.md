@@ -13,6 +13,16 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `skill-eval`: gives graders the original task and bounded fixture facts,
+  restricts executor copies to declared case inputs and the selected treatment
+  package, and identifies changed measurement series. Declared component-test
+  runtimes are prepared from pinned dependencies before offline executors run;
+  missing setup blocks the run. File manifests report retained net differences,
+  and partial command traces do not establish unobserved effects.
+- Repository eval maintenance: corrects supplied-fact and conditional grading
+  for five workflow suites, retains substantive failure predicates, and gives
+  the plan-execution React fixtures pinned, offline-ready test harnesses. The
+  router suite declares its shared contract as treatment-only support.
 - `vibe-orchestrate`: bounds optional review and verification-tooling rounds
   against the user goal and effort envelope, carries settled scope into review,
   and distinguishes required repair from optional hardening without weakening

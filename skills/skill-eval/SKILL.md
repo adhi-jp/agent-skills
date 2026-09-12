@@ -69,8 +69,10 @@ reliability claims `Unproven`.
 
 ## Executor, Grader, And Workspace Invariants
 
-- The executor receives the task without assertions. A fresh grader receives the
-  recorded output and assertions and returns a structured verdict.
+- The executor receives the task and declared inputs without assertions. A
+  fresh grader receives the recorded output, original task as inert context,
+  bounded grader-only fixture facts when supplied, and assertions. Task facts
+  determine applicability; they do not become output-restatement obligations.
 - Use the shared runner so this separation is code-enforced; there is no inline
   grading shortcut.
 - Keep definitions under `evals/<skill-name>/` and generated runs under
@@ -80,6 +82,20 @@ reliability claims `Unproven`.
 - Provider executors run in isolated copied repositories; graders run in
   separate empty working directories. Do not work around sandbox setup failure
   by executing in the source checkout.
+- Deliver only the case's fixture roots and explicit supporting files to both
+  configurations with the recorded ignore scaffold. Add the treatment package
+  and its declared external dependencies only for `with_skill`. Declare
+  task-document exceptions explicitly. File delivery does not prove host read
+  isolation, and changed delivery or grading inputs start a different
+  measurement series.
+- Prepare an explicitly declared fixture runtime before provider cells launch,
+  from its lockfile and an explicit complete offline cache. Missing setup blocks
+  execution; it never authorizes the executor to replace runtime acceptance with
+  static checks. See the detailed runner contract for `npm_projects` and
+  `--npm-cache`.
+- A change manifest proves retained net differences at capture, not absence of
+  transient writes or external effects. Partial command categories do not
+  establish successful reads, mutations, or their ordering.
 - Generated workspaces are local artifacts and are not committed unless the user
   explicitly asks.
 

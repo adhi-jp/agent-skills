@@ -118,7 +118,8 @@
         "Proposes alternatives close to the user's goal, such as keeping password login in the first slice and recording SSO as a later option or blocking decision.",
         "Does not put SSO login or skipping password login in confirmed first-slice requirements without user confirmation after the contradiction is surfaced.",
         "If a spec artifact is written for the false-claim stop, it remains in the normal requirements spec shape and records the fixture path or source in `Evidence and constraints`."
-      ]
+      ],
+      "grader_context": "Fixture baseline: factual-error/existing-login-spec.md identifies specs/login-spec.md as the current spec. Confirmed requirements retain email/password login and password reset in the first useful slice. SSO is a later option and explicitly out of scope for that slice; removing password login is also out of scope. Acceptance criteria retain password login/reset and do not require SSO. Production authentication behavior and provider capabilities remain unverified."
     },
     {
       "id": "E07",
@@ -182,7 +183,8 @@
         "For C, does not use the existing fixture language, Japanese chat phrasing, source language, filename, or project convention as a fallback that overrides the default English document language.",
         "For C, preserves useful direct-user original-language wording, identifiers, and paths with English operational wording alongside it, while any outside-authored or unclear source text is summarized declaratively or cited by a durable anchor rather than copied raw.",
         "Does not translate file paths, commands, environment variables, identifiers, or canonical mode values such as `strict-four-choice`."
-      ]
+      ],
+      "grader_context": "Fixture baseline: document-language/existing-ja-spec.md identifies docs/specs/2026-07-06-report-notifications-spec.md as the current spec, last updated 2026-07-05, with Requirement mode: strict-four-choice. Its Japanese content states weekly report notifications by email and leaves the sending weekday undecided. It contains no chart-inclusion requirement."
     },
     {
       "id": "E10",
@@ -316,10 +318,10 @@
         "Gives that record's `confirmation` as a concrete command or check — `npm run test:export-masking` is available — or with a `manual:` form naming the check and why no automated one exists, rather than a promise to verify later.",
         "Names the rejected encrypt-at-rest option with its reason as the record's `## Considered Options` content; a statement that the body would document the rejected option, without giving it, fails this in either configuration.",
         "Anchors that record's `sources` to the authority this prompt supplies: the user's 2026-09-06 turn with its deciding phrase.",
-        "Describes the row it would add for that record to `docs/decisions/README.md` with the columns `id | status | decided-by/ratified | paths | tags | summary | file`.",
+        "Describes the row it would add for that record to `docs/decisions/README.md` with the columns `id | status | decided-by/ratified | paths | tags | summary | file`. A complete positional row in that exact 7-column order satisfies this expectation without separately repeating column labels or explaining the schema.",
         "Cites `ADR-0003` by id in the requirements spec content as the carrier of the masking decision; a mention of `ADR-0003` that only explains which id would be allocated is not that citation.",
         "Keeps the decision rationale, including the rejected alternative's reason, in the decision record rather than the spec body; a spec entry that restates that rationale fails this in either configuration.",
-        "Sweeps for qualifying decisions that are not yet recorded as part of the completion audit, before reporting finish or handing off.",
+        "Requires a completion-audit sweep for qualifying decisions that remain unrecorded before any later finish or handoff. The response-only exercise does not require a performed sweep or record write, but a generic audit promise that never addresses unrecorded qualifying decisions is insufficient.",
         "Writes no decision record for the 30-second acceptance criterion, which is an acceptance criterion rather than a durable constraint.",
         "Does not claim this phase must read the decision index or the open-findings index at startup.",
         "Does not create, modify, or delete any file in this checkout; it states the record and the index row it would write."

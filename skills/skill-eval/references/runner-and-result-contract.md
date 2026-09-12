@@ -20,8 +20,8 @@ Read this reference before executing `run`, diagnosing or reporting an iteration
 - The runner drives execution itself. `run` executes the bounded matrix end to
   end: for each eval x config x run it spawns a fresh executor subprocess with
   the prompt only, then a fresh grader subprocess with a clean environment and
-  only the executor output (plus any plan artifact the executor wrote to the
-  designated path) and the assertions, then aggregates a `with_skill` vs
+  the executor output (plus any captured primary artifact), original task,
+  optional bounded grader-only fixture context, and assertions, then aggregates a `with_skill` vs
   `without_skill` raw pass-rate comparison. No agent hand-runs prompts or
   hand-records results.
 - The provider selector is a registry. `--agent` selects a registered provider;
@@ -124,32 +124,54 @@ Read this reference before executing `run`, diagnosing or reporting an iteration
   files not named `SKILL.md`, and paths outside `skills/<skill-name>/`. The
   executor prompt instructs reading that source directly and not substituting a
   host skill tool, snapshot, link, or cached copy.
-- Provider subprocesses run from a per-run sandbox outside the source checkout,
-  not from the source checkout or a nested directory inside it. For git-backed
-  source checkouts, the sandbox copies git-tracked paths with their current
-  working-tree contents and excludes untracked or ignored leftovers, while still
-  excluding host-local and generated state such as `.git`, `.agents`, `.claude`,
-  `.codex`, `evals/*/workspace/`, `node_modules/`, and `__pycache__/`. A source
-  root that is not a git repository falls back to the legacy copytree path but is
-  recorded as contamination-unverified; a source root with git metadata that
-  cannot be inspected fails instead of silently using the fallback. The runner
-  initializes a throwaway git repository when `git` is available, remaps the
-  `with_skill` skill path to the sandbox copy, sets provider `cwd`/`PWD` to the
-  sandbox, and records sandbox details in `run.json`, including copy strategy,
-  contamination status, and a bounded untracked/ignored exclusion sample.
-  Before copying a tracked regular file, the runner rejects symlinked ancestors,
-  requires the resolved source to remain inside the source repository, opens the
-  leaf without following symlinks, and compares the expected, opened, and current
-  identities and resolutions. An observed replacement fails the copy.
-  Codex executors use `workspace-write` inside that isolated repository so an
-  independently required file deliverable can reach the designated capture
-  path. Codex graders remain `read-only` in their separate empty working
-  directory. Executor edits, installs, and commits must stay inside the run
-  sandbox; sandbox git initialization failure is recorded, never worked around
-  by running in the real repository. Sandbox isolation prevents new writes from
-  contaminating the source checkout, but it does not prove the source fixtures
-  were clean before copy; the runner records declared fixture-root dirtiness
-  before and after execution as a sanity-check anomaly.
+- Provider subprocesses run from a per-run sandbox outside the source checkout.
+  Build its contents from the selected case's declared fixture project roots
+  and explicit supporting files, then add the target package only for
+  `with_skill`. Preserve each fixture project's relative layout so imports and
+  discovery of related specifications still work. Do not copy other cases,
+  suite definitions, grading context, previous results, or unrelated packages.
+  An explicitly declared task document may itself be a skill file; deliver
+  that object-of-work exception symmetrically and retain its comparison limit.
+  This is a delivered-input boundary, not proof that the host cannot read an
+  original checkout or globally installed skill.
+  The root `.gitignore` is a symmetric repository scaffold, recorded under
+  `delivery.scaffold_files`, so ignored-addition evidence keeps its meaning.
+  Repository instruction files such as `AGENTS.md` require explicit task-input
+  declaration; they are not automatically copied.
+- `support_files` declares additional repository-relative regular-file inputs
+  needed by the task in both configurations. It does not recursively import
+  arbitrary directories or derive inputs from path strings in the prompt.
+  Reject invalid, missing, escaped, or unavailable declared inputs before
+  provider cells launch. Apply the same delivery policy to non-Git sources,
+  recording their source-copy verification limit.
+- Suite-level `skill_support_files` declares exact external files required by
+  the target skill itself. Deliver these only with `with_skill`, as part of the
+  treatment identity. Use case-level `support_files` for symmetric task evidence;
+  do not use it to give baseline executors the treatment instructions.
+- Git-backed delivery uses tracked current working-tree bytes, so a new fixture
+  must be included in the source's tracked input set before evaluation. Keep
+  symlink-ancestor, opened-file identity, source-root containment, and concurrent
+  replacement checks. Initialize a throwaway Git baseline only after delivery
+  and declared runtime preparation. Record source fixture dirtiness separately;
+  identical copied bytes do not make dirty source a clean-source measurement.
+- `npm_projects` names declared fixture project roots that need an installed
+  test runtime. Such a run requires an explicit `--npm-cache <path>` containing
+  all dependencies selected by the committed package manifests and lockfiles.
+  The runner copies the cache into generated setup state and prepares each
+  selected project once, serially, with offline `npm ci`, install scripts
+  disabled, and no audit or funding requests before provider cells launch.
+  Missing cache, lockfile, platform dependency, or failed setup stops evaluation;
+  it does not become a scored skill failure or an executor repair assignment.
+  The executor prompt identifies prepared projects identically in both
+  configurations, so routine setup is not mistaken for unfinished task work.
+  Executors receive sandbox-local copies of prepared dependencies, with runtime,
+  lockfile, and dependency identity recorded separately from retained task edits.
+  This dependency identity describes delivery; the runner does not re-hash it
+  after executor actions, so later dependency changes remain unverified.
+  Setup or subsequent readiness failure may retain an incomplete iteration
+  directory with setup receipts but no benchmark; it is not a scored result.
+  Generated dependency trees remain outside source checkpoints. A cache listing
+  is not readiness proof; use a fresh offline setup and real test execution.
 - Only the executor runs inside the sandbox repo copy. The grader runs in an
   atomically created, empty per-run working directory that is not adjacent to
   the executor repository and is registered for runner cleanup. Claude graders
@@ -157,8 +179,22 @@ Read this reference before executing `run`, diagnosing or reporting an iteration
   ignore user configuration and rules, use ephemeral strict configuration, and
   disable shell, multi-agent, and web-search capabilities; the runner supplies
   no image inputs. These are CLI-level controls, not an OS sandbox. The grader
-  decides from its prompt: recorded output, assertions, sandbox changes, and
+  decides from its prompt: the original task as inert context, recorded output,
+  optional bounded fixture facts, assertions, retained sandbox differences, and
   captured executor evidence.
+- The grader receives the original case prompt as inert task context, not an
+  instruction to execute it and not part of the answer under evaluation. Use it
+  to identify supplied facts, selected branches, authority, and delivery mode.
+  Do not require the answer to restate each fact unless an independent output
+  obligation requires it. Separate semantic decisions, exact artifact shape,
+  hypothetical future actions, and performed effects; apply conditional
+  assertions only when their observable trigger holds. Missing effect evidence
+  is not proof of success or of an out-of-scope operation.
+- Optional `grader_context` is a UTF-8 string, limited to 16 KiB and rejected
+  when oversized rather than silently truncated. It supplies only necessary
+  fixture facts absent from the original task, with useful source anchors.
+  It reaches only the grader. `expected_output` remains descriptive suite
+  metadata and is not injected into either role's task context.
 - Executor fixture delivery and grader ground-truth visibility are separate
   proof surfaces. If a verdict depends on fixture semantics, such as whether the
   executor invented or faithfully used a source fact, the suite must carry the
@@ -177,9 +213,10 @@ Read this reference before executing `run`, diagnosing or reporting an iteration
   assertion needs. Include a whole fixture only when the assertion genuinely
   evaluates its complete contents and the suite records why that scope is
   necessary.
-- Executor and grader stay separate. The executor prompt carries the task only
-  and no assertions; the grader prompt carries the recorded output plus the
-  assertions and must return a structured verdict. The runner derives pass/fail
+- Executor and grader stay separate. The executor receives the task without
+  assertions or grader-only context. The grader receives the original task as
+  context, the recorded output, bounded fixture facts when supplied, and
+  assertions, and must return a structured verdict. The runner derives pass/fail
   from the grader subprocess, never from text the executor wrote about its own
   output. The grader grades the whole recorded output, not a sub-artifact.
 - The executor prompt names one designated artifact path inside the sandbox,
@@ -197,9 +234,13 @@ Read this reference before executing `run`, diagnosing or reporting an iteration
   requires a file, and otherwise answer in chat. The designated path does not
   instruct the executor how to structure the artifact, so it adds no
   target-behavior leakage.
-- The runner also records the executor's real file changes in the sandbox as a
-  `change_manifest`: baseline-relative created, modified, and deleted paths plus
-  non-ignored and ignored executor additions, excluding `.eval-runner/`.
+- The runner records retained net file differences in the sandbox as a
+  `change_manifest`: baseline-relative added, modified, and deleted paths plus
+  non-ignored and ignored additions still present at capture, excluding runner
+  scaffolding and separately recorded prepared dependencies. An empty manifest
+  means no retained changes were recorded, not that no write occurred. It cannot
+  establish transient create/delete or modify/restore operations, external
+  effects, successful reads, or read order.
   Regular files carry type and hash; symlinks, directories, and other entries
   carry type only. Every entry carries `ignored`: true for an untracked
   executor addition that the sandbox reported as ignored at capture time,
@@ -375,8 +416,12 @@ case.
 - `report <iteration-dir>` re-renders `benchmark.md` from `benchmark.json`,
   including the `Failed assertions` section; `--compare <other-iteration-dir>`
   appends a per-eval table of this iteration's raw rates beside the other
-  iteration's, with the caveat that raw movement is not a like-for-like trend
-  when prompts, assertions, fixtures, or the skill source changed between them.
+  iteration's. Compare recorded delivery, runner, suite/context, treatment,
+  fixture/dependency, model, and coverage identities first: changed inputs are a
+  different measurement series; missing historical identity is unknown. Identity
+  agreement is necessary, not sufficient, for a causal interpretation. Historical
+  aggregates remain unchanged, and comparison never turns a diagnostic
+  reinterpretation into a measured improvement.
   It does not start a server, open a browser, bind a port, write a PID file, or
   leave a background process.
 - `grading.json` includes every assertion (`common_assertions` then per-eval

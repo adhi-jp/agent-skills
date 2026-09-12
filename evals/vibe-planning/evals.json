@@ -30,7 +30,8 @@
         "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
         "Capability dependencies are recorded only when absence materially changes feasibility, safety, proof, or method; ordinary steps need no routing table, and the implementation handoff binds later work to the plan and its stop conditions.",
         "Runs local self-review; records additional separated perspectives only when the plan risk triggers them, and resolves or blocks material findings before the proceed condition."
-      ]
+      ],
+      "grader_context": "Fixture baseline: ProfileForm.tsx initializes displayName from profile.displayName ?? \"\", submits onSave({ displayName }), disables Save while saving, and restores the initial display name on Cancel. ProfileForm.test.tsx covers saving Adhi and cancel restoring Adi without calling onSave. db/schema.sql declares nullable display_name text with no length constraint. These fixtures supply no numeric display-name maximum."
     },
     {
       "id": "E02",
@@ -44,7 +45,7 @@
       ],
       "expectations": [
         "Classifies the intermittent immediate-expiry symptom and any timezone, clock-skew, off-by-one, TTL, or unit-mismatch root cause as `Unproven` unless reproduced or fixture-backed.",
-        "Cites `resetToken.ts` and `resetToken.test.ts` as `Local investigation` evidence with substantive facts such as `expiresAtMs: nowMs + ttlMs`, `nowMs >= token.expiresAtMs`, or missing expired-token coverage.",
+        "Cites resetToken.ts and resetToken.test.ts as Local investigation evidence with substantive fixture facts: expiresAtMs is nowMs + ttlMs, expiry uses nowMs >= token.expiresAtMs, and existing tests cover newly issued acceptance and rejection at expiresAtMs + 1. Does not claim expired-token rejection coverage is absent.",
         "Chooses test-driven or spec-driven + test-driven planning with regression tests for just-issued acceptance, expired-token rejection, and a reproduction-targeted immediate-expiry case.",
         "Includes reproduction or isolation proof before production-code changes and keeps implementation conditional on a proven local cause.",
         "Does not broaden into auth redesign, token storage migration, or password policy work.",
@@ -53,7 +54,8 @@
         "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
         "Capability dependencies are recorded only when absence materially changes feasibility, safety, proof, or method; ordinary steps need no routing table, and the implementation handoff binds later work to the plan and its stop conditions.",
         "Runs local self-review; records additional separated perspectives only when the plan risk triggers them, and resolves or blocks material findings before the proceed condition."
-      ]
+      ],
+      "grader_context": "Fixture baseline: evals/vibe-planning/fixtures/password-reset/src/auth/resetToken.ts sets issuedAtMs = nowMs and expiresAtMs = nowMs + ttlMs; isResetTokenExpired returns nowMs >= token.expiresAtMs. tests/resetToken.test.ts already asserts false at token.issuedAtMs for a 15-minute TTL and true at token.expiresAtMs + 1. No fixture test reproduces the reported intermittent immediate-expiry symptom or tests exact equality at expiresAtMs."
     },
     {
       "id": "E03",
@@ -116,9 +118,9 @@
       "files": [],
       "expectations": [
         "Selects `strict`, classifies the request as restoration/replacement rather than net-new preference work, and labels commit `abc1234` plus the named historical test as `Primary source` or `Local investigation` known-good evidence from the prompt.",
-        "Builds a two-column historical/current behavior inventory before implementation, separating absent `email_opt_out`, explicit opt-out, and default notification behavior.",
+        "Builds a two-column historical/current behavior inventory before implementation covering the supplied absent-field enabled/send behavior and explicit true opt-out/no-send behavior; the absent-field row may also represent default notification behavior.",
         "Performs or requires equivalence/recovery analysis anchored to the historical/current inventory.",
-        "Defines tests for existing users with no value, explicitly opted-out users, and the normal enabled path before implementation, and blocks if required historical contract proof is missing.",
+        "Defines tests before implementation for existing users with no email_opt_out value remaining enabled and for email_opt_out: true suppressing email, and blocks if required historical contract proof is missing. The absent-field send test also covers the supplied normal enabled path; a separate explicit-false case is not required by the supplied evidence.",
         "Does not suggest a blind revert or rewrite without inspecting the historical contract and surrounding current code.",
         "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
         "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
@@ -219,7 +221,7 @@
         "Includes an `Implementation progress` or equivalent durable progress ledger in the plan artifact because the user explicitly requires cross-session resume.",
         "Maps each planned slice or eligible checkpoint to a stable item ID, planned scope, initial `Not started` status, required verification or review, last update, and remaining blocker or next item.",
         "Does not mark any item complete, verified, committed, or skipped during planning, and does not claim implementation work was done.",
-        "The implementation handoff tells later execution to update the progress ledger after completed, blocked, skipped, or committed items when the plan artifact is writable.",
+        "The implementation handoff tells later execution to update the intentionally included resumable progress ledger with evidence-backed status when the plan artifact is writable; it need not enumerate completed, blocked, skipped, and committed as separate update categories.",
         "Keeps the rest of the plan contract intact: acceptance criteria and tests precede implementation steps, proceed condition is explicit, and planning remains plan-only.",
         "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
         "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
@@ -355,7 +357,7 @@
       "files": [],
       "expectations": [
         "Requires a controlled perturbation of the exact asserted surface.",
-        "Requires the recorded assertion-failure identity, status, and text from the perturbation.",
+        "Requires the future proof record to identify the exact assertion or predicate that fails under the controlled perturbation and record its observed status or diagnostic. This response-only exercise requires the proof requirement, not a performed perturbation or an invented failure receipt.",
         "Requires cleanup proof and a final unmodified real check after the perturbation.",
         "Does not substitute historical failure, prose review, or a neighboring assertion.",
         "Keeps proof Unproven or blocked when the exact safe failure cannot be observed, and stays response-only without creating an artifact."
@@ -605,7 +607,7 @@
         "Names `## Considered Options` with the rejected merge-on-conflict option and its reason.",
         "Gives that record's `confirmation` as a concrete command or check — `npm test -- src/sync` is available — or with a `manual:` form naming the check and why no automated one exists.",
         "Anchors that record's `sources` to the authority this prompt supplies: the user's 2026-09-06 turn with its deciding phrase.",
-        "Describes the row it would add to `docs/decisions/README.md` with the columns `id | status | decided-by/ratified | paths | tags | summary | file`.",
+        "Describes the row it would add to `docs/decisions/README.md` with the columns `id | status | decided-by/ratified | paths | tags | summary | file`. A complete positional row in that exact 7-column order satisfies this expectation without separately repeating column labels or explaining the schema.",
         "Cites the record from the plan by its `ADR-0017` id instead of restating its rationale in the plan body.",
         "Writes no decision record for putting the queue step ahead of the sync-worker step: it fixes only the order of work inside this plan, no alternative was rejected, and no unit outside the plan is bound by it.",
         "Does not create, modify, or delete any file in this checkout; it states the records, entries, and rows it would write."

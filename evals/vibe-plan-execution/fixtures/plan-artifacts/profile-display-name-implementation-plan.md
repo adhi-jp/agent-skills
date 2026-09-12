@@ -28,6 +28,7 @@
 - Loading and error states remain visible and do not lose the user's last saved value.
 
 ## Test plan
+- Test command: run `npm test` from `evals/vibe-plan-execution/fixtures/profile-display-name/`; the fixture's locked dependencies are prepared before execution.
 - Acceptance tests: save a valid display name and observe the saved value.
 - Regression tests: cancel restores the previous value.
 - Negative and edge cases: empty name, over-50-character name, submit error.

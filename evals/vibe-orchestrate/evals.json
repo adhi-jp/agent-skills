@@ -247,7 +247,7 @@
       "expectations": [
         "Selects a writeback of the supplied verified refuting fact and durable anchor because the bound artifact owns future review context and recurrence is likely; because the prompt supplies no fact or anchor bytes, it does not invent them or claim the artifact was already edited.",
         "Does not copy reviewer prose, vote counts, routine narration, or every rejected finding into the artifact.",
-        "Requires the writeback to keep the rejected disposition and remaining inference explicit.",
+        "Keeps the rejected disposition and any remaining inference explicit in its writeback decision, while limiting artifact writeback to the load-bearing verified refutation and anchor. Does not invent an inference when none is supplied.",
         "Does not authorize unrelated repair work."
       ]
     },
@@ -352,7 +352,7 @@
       "expectations": [
         "Names unit start, a changed actionable blocker, or a changed verified unit boundary as the only update triggers, and identifies this poll as none of them.",
         "Suppresses unchanged polling unless a cadence was requested.",
-        "If an update is sent, it carries proof and review state, preserved safe state, and the exact recovery action."
+        "If it sends an update, that update carries proof and review state, preserved safe state, and the exact recovery action. If it declines to send an update, pass this expectation by non-applicability; a conditional description of a later update is not an update sent now."
       ]
     },
     {
