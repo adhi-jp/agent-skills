@@ -40,6 +40,9 @@ use `[Repository] - YYYY-MM-DD`.
 - `vibe-plan-execution`: screens review additions against existing acceptance
   before treating them as repairs, and carries loaded-artifact and relevant
   build-input evidence through runtime-check batching and commit handoff.
+- `vibe-commit`: stops historical range/tree enumeration failures before
+  consuming their results, uses literal tree prefixes, and keeps unusual path
+  names intact in the separately confirmed rewrite preview.
 - `vibe-commit`: when runtime acceptance is a commit prerequisite, reconciles
   human-tested artifact/input evidence with the actual candidate, including
   partial staging and omitted build dependencies; incidental app-test comments

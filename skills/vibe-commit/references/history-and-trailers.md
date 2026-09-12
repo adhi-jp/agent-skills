@@ -211,14 +211,18 @@ if ! git merge-base --is-ancestor "$base" "$old_head"; then
   echo "base is not an ancestor of the old head: $base" >&2
   exit 1
 fi
-git rev-list --reverse "$base".."$old_head"
+if ! old_commits=$(git rev-list --reverse "$base".."$old_head"); then
+  echo "cannot enumerate the requested range" >&2
+  exit 1
+fi
+printf '%s\n' "$old_commits"
 ```
 
 Inspect existing parsed trailers before deciding which commits need the new
 authorship trailer:
 
 ```sh
-for old_commit in $(git rev-list --reverse "$base".."$old_head"); do
+for old_commit in $old_commits; do
   printf '%s\n' "$old_commit"
   git show -s --format=%B "$old_commit" | git interpret-trailers --parse
 done
@@ -228,19 +232,26 @@ When the requested rule is "add `Co-Authored-By: Codex <noreply@openai.com>` to
 commits without any trailer", leave commits with any parsed trailer unchanged.
 Do not add a second Codex trailer to a commit that already has one.
 
+The loops use the successfully captured `old_commits` above; an empty successful
+range contains no work. Never consume an unchecked range query as a loop list.
+
 Replay on a repair branch with porcelain commands, then replace the original
 unpushed branch only after verification:
 
 ```sh
 git switch -c trailer-repair "$base"
 
-for old_commit in $(git rev-list --reverse "$base".."$old_head"); do
+for old_commit in $old_commits; do
   if ! git diff --quiet || ! git diff --cached --quiet; then
     echo "replay state is dirty before $old_commit" >&2
     exit 1
   fi
 
-  if git rev-list --parents -n 1 "$old_commit" | grep -q ' .* '; then
+  if ! parents=$(git rev-list --parents -n 1 "$old_commit"); then
+    echo "cannot inspect parents: $old_commit" >&2
+    exit 1
+  fi
+  if printf '%s\n' "$parents" | grep -q ' .* '; then
     echo "merge commit requires a separate plan: $old_commit" >&2
     exit 1
   fi
@@ -296,7 +307,11 @@ Verify before moving the original branch name:
 
 ```sh
 git range-diff "$base".."$old_head" "$base"..HEAD
-for new_commit in $(git rev-list --reverse "$base"..HEAD); do
+if ! new_commits=$(git rev-list --reverse "$base"..HEAD); then
+  echo "cannot enumerate the rewritten range" >&2
+  exit 1
+fi
+for new_commit in $new_commits; do
   git show -s --format='%H%n%an <%ae> %aI%n%cn <%ce> %cI%n%B' "$new_commit"
   git show -s --format=%B "$new_commit" | git interpret-trailers --parse
 done
@@ -338,29 +353,43 @@ parent. A path can sit unchanged in a commit's tree, inherited from an earlier
 one, without appearing in that commit's parent-diff at all; if the requirement
 is "this pathspec must not exist in the rewritten history," a diff-based check
 (`git show`, `git diff-tree`) silently leaves those inherited, untouched copies
-in place. Check the full tree instead:
+in place. Query `git ls-tree` recursively with the literal directory prefix
+`docs/investigations/`, not the wildcard `docs/investigations/*`: `ls-tree`
+does not expand that wildcard as a general Git pathspec. Check the command's
+success before interpreting an empty output as absence; invalid trees, ranges,
+or options are errors, not empty target sets.
 
-```sh
-# Does this pathspec exist anywhere in this commit's tree — not just in what
-# this commit's own diff changed?
-git ls-tree -r --name-only -z "$old_commit" -- 'docs/investigations/*'
-```
-
-`-z` NUL-delimits the output so unusual filenames (spaces, newlines) can't
-split incorrectly; read it with a NUL-aware loop (`while IFS= read -r -d ''
-path; do …; done`), not word-splitting on newlines.
+Run the following preview in Bash from the repository root. `-z` keeps filenames
+NUL-delimited in the per-commit files, and the NUL-aware loop preserves spaces
+and newlines. The printed `%q` paths are shell-escaped for human inspection;
+consume the NUL files, not the printed text, when applying the confirmed scope.
 
 Split preview from execution into two separate passes with a hard stop between
 them — a preview a script runs straight past in the same iteration is not a
 gate:
 
-```sh
+```bash
 # Pass 1: resolve and print every target across the whole range. Do not delete.
-for old_commit in $(git rev-list --reverse "$base".."$old_head"); do
-  git ls-tree -r --name-only -z "$old_commit" -- 'docs/investigations/*' |
-    while IFS= read -r -d '' path; do printf '%s\t%s\n' "$old_commit" "$path"; done
-done > /tmp/rewrite-targets.txt
-cat /tmp/rewrite-targets.txt   # get explicit confirmation on this exact list before pass 2 runs at all
+if ! old_commits=$(git rev-list --reverse "$base".."$old_head"); then
+  echo "cannot enumerate the requested range" >&2
+  exit 1
+fi
+rewrite_preview=$(mktemp -d "${TMPDIR:-/tmp}/rewrite-preview.XXXXXX") || exit 1
+for old_commit in $old_commits; do
+  if ! git ls-tree -r --name-only -z "$old_commit" -- 'docs/investigations/' \
+      > "$rewrite_preview/$old_commit.paths"; then
+    echo "cannot enumerate tree: $old_commit; preview incomplete" >&2
+    exit 1
+  fi
+done
+for old_commit in $old_commits; do
+  while IFS= read -r -d '' path; do
+    printf '%s\t%q\n' "$old_commit" "$path"
+  done < "$rewrite_preview/$old_commit.paths"
+done > "$rewrite_preview/targets.txt"
+cat "$rewrite_preview/targets.txt" || exit 1
+printf 'Preview files: %s\n' "$rewrite_preview"
+# STOP: obtain explicit confirmation on this exact list before a separate pass 2.
 ```
 
 Only after that confirmed stop does pass 2 touch anything, and only through

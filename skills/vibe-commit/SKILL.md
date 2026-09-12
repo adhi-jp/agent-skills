@@ -221,8 +221,10 @@ stop.** When a scripted or looped multi-commit rewrite drops paths from
 history, derive each step's target list from that commit's own tree (e.g.
 `git ls-tree`), never from an ambient whole-worktree snapshot (`git status`,
 `-uall`, or similar) — the two are different states, and conflating them
-deletes files unrelated to the commit being rewritten. Print the full
-resolved list first and require an explicit confirmed stop before any
+deletes files unrelated to the commit being rewritten. For a directory target,
+use its literal prefix with `git ls-tree -r`; confirm range and tree queries
+succeeded before consuming their output or treating an empty result as absence.
+Print the full resolved list first and require an explicit confirmed stop before any
 deletion executes; a preview a script can run straight past is not a gate. A
 backup limits damage if something goes wrong — it never substitutes for that
 per-path confirmation, and it does not by itself authorize deleting a live
