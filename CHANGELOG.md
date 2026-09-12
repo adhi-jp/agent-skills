@@ -23,6 +23,10 @@ use `[Repository] - YYYY-MM-DD`.
   for five workflow suites, retains substantive failure predicates, and gives
   the plan-execution React fixtures pinned, offline-ready test harnesses. The
   router suite declares its shared contract as treatment-only support.
+- `vibe-orchestrate`: treats an explicit external-model request as permission
+  to transmit the task materials it needs, carries that authorization into host
+  checks, and stops repeating transmission-consent questions for the same scope.
+  Host denials and unselected data, destinations, or effects remain separate.
 - `vibe-orchestrate`: bounds optional review and verification-tooling rounds
   against the user goal and effort envelope, carries settled scope into review,
   and distinguishes required repair from optional hardening without weakening

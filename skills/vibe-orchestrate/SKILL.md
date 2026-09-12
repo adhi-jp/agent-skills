@@ -262,6 +262,12 @@ required for host-internal subagent work. Read
 `references/external-delegation.md` before launching an external CLI worker,
 choosing profiles, or accepting external-runner receipts.
 
+An explicit user request to use an external model for a task also authorizes
+sending that model the necessary task materials. Preserve that authorization
+across the task and do not request a separate transmission declaration for the
+same scope. Carry the request and input scope into host approval checks; the
+detailed reference distinguishes existing user consent from a host denial.
+
 External helpers accept two task inputs. Closed adapter-generated `inspect` or
 `review` tasks over validated regular-file targets stay read-only. A
 coordinator-authored free-text mission is also supported: the adapter wraps it

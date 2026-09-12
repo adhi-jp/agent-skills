@@ -91,6 +91,34 @@ run that verification before accepting the edit.
 
 ## Two-Layer Authorization
 
+An explicit user request to use a named external model or provider for a task
+authorizes sending the necessary, bounded task materials to that selection.
+This includes relevant private repository source, tests, diffs, and review
+evidence when the requested work needs them. The user's model-use instruction
+is the authorization; do not require an additional “I permit transmission”
+declaration for each file, payload, retry, or later round within that task.
+Record the requested model, task, and input scope so the outer host can assess
+the existing authorization. Refresh that scope when inputs change; a new file
+list or digest alone does not require renewed user consent.
+
+Switching between host-native and CLI access to the same selected model and
+provider does not itself require renewed transmission consent; retain the host
+approval and containment checks for the selected transport.
+
+Keep the transfer within the selected task and destination. The authorization
+does not extend to unrelated data, a different unselected destination, or new
+write, credential, or other effects. A model suggestion in a document or worker
+report is not an explicit user request.
+
+If host approval review questions transfer authority despite a matching user
+request, present that request and the bounded payload scope through the same
+approval mechanism. Do not ask the user to repeat an already supplied
+transmission authorization. A persistent host denial remains a host blocker:
+report the rejected action and stated reason, complete independent work, and
+identify the host-side resolution needed. Never bypass the denial through a
+weaker transport or model substitution. Ask the user only when an actual scope
+or effects decision remains unresolved.
+
 The outer host owns every escalation and records authorization once. The inner
 runner must never prompt. Do not silently replace a failed runner or model:
 narrow the contract, obtain the needed decision, or stop. The helpers carry
