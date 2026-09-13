@@ -11,51 +11,101 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [skill-eval 2.0.0] - 2026-09-13
+
 ### Changed
 
-- `skill-eval`: gives graders the original task and bounded fixture facts,
-  restricts executor copies to declared case inputs and the selected treatment
-  package, and identifies changed measurement series. Declared component-test
-  runtimes are prepared from pinned dependencies before offline executors run;
-  missing setup blocks the run. File manifests report retained net differences,
-  and partial command traces do not establish unobserved effects.
-- Repository eval maintenance: corrects supplied-fact and conditional grading
-  for five workflow suites, retains substantive failure predicates, and gives
-  the plan-execution React fixtures pinned, offline-ready test harnesses. The
-  router suite declares its shared contract as treatment-only support.
-- `vibe-orchestrate`: treats an explicit external-model request as permission
-  to transmit the task materials it needs, carries that authorization into host
-  checks, and stops repeating transmission-consent questions for the same scope.
-  Host denials and unselected data, destinations, or effects remain separate.
-- `vibe-orchestrate`: bounds optional review and verification-tooling rounds
-  against the user goal and effort envelope, carries settled scope into review,
-  and distinguishes required repair from optional hardening without weakening
-  safety gates. Build contracts identify implicit side effects and actual output
-  paths; verification rejects tool errors, ineffective mutations, and copied
-  test subjects, and preserves attributable human-runtime evidence. Delegation
-  bounds evidence reads and reports, preserves the host workspace identity, and
-  keeps progress updates distinct from terminal completion.
-- `vibe-requirements-spec`: exposes material human execution effort separately
-  from human judgment, keeps inferred support environments out of confirmed
-  requirements, and reuses consent already given for runtime checks.
-- `vibe-planning`: makes operator setup, time, infrastructure, and lower-burden
-  alternatives visible in test plans; bounds optional hardening by supported
-  operation and recovery without treating small projects as safety exemptions.
-- `vibe-plan-execution`: screens review additions against existing acceptance
-  before treating them as repairs, and carries loaded-artifact and relevant
-  build-input evidence through runtime-check batching and commit handoff.
-- `vibe-commit`: stops historical range/tree enumeration failures before
-  consuming their results, uses literal tree prefixes, and keeps unusual path
-  names intact in the separately confirmed rewrite preview.
-- `vibe-commit`: when runtime acceptance is a commit prerequisite, reconciles
-  human-tested artifact/input evidence with the actual candidate, including
-  partial staging and omitted build dependencies; incidental app-test comments
-  and unrelated scratch changes do not impose another human test session.
-- Repository maintenance: `docs/decisions/` joins `docs/plans/`,
-  `docs/reports/`, and `docs/specs/` as an ignored local directory, so a
-  decision record written inside this checkout stays untracked, as a findings
-  report under `docs/reports/` already does. Ignore rules only; no skill
-  behavior changed.
+- **Breaking:** executors receive declared case inputs instead of the whole
+  repository. Declare additional task files with `support_files` and external
+  treatment dependencies with `skill_support_files`; repository instructions
+  are no longer implicit inputs. Changed delivery and grading inputs start a
+  different measurement series, so historical rates are not directly comparable.
+- Graders receive the original task and bounded fixture facts without imposing
+  redundant restatement obligations. File manifests prove retained net changes;
+  partial command traces do not establish unobserved effects or their ordering.
+- Declared `npm_projects` receive pinned offline test runtimes before execution.
+  Supply a complete `--npm-cache`; missing dependencies or failed setup block
+  the run instead of becoming scored skill failures.
+- Verification: runner regression tests and suite validation pass; no fresh
+  hosted evaluation was run for this release.
+
+## [vibe-orchestrate 4.1.0] - 2026-09-13
+
+### Changed
+
+- Bounds optional review and verification-tooling rounds by the user goal,
+  acceptance gaps, and an explicit effort allowance. Carries settled scope into
+  review and distinguishes required repair from optional hardening while
+  preserving safety gates.
+- Reuses an explicit external-model request as authorization for necessary task
+  materials across in-scope rounds and transport changes. Carries that consent
+  into host checks; host denials, unrelated data, and unselected effects remain
+  separate boundaries.
+- Checks implicit build effects and actual output paths, rejects tool errors,
+  ineffective mutations, and copied test subjects, and preserves attributable
+  human-runtime evidence. Bounds delegated evidence reads and reports, preserves
+  workspace identity, and distinguishes progress from terminal completion.
+- Verification: shared-contract and naming checks plus suite validation pass;
+  no fresh hosted evaluation was run for this release.
+
+## [vibe-requirements-spec 6.1.2] - 2026-09-13
+
+### Changed
+
+- Exposes material human execution effort separately from human judgment,
+  including setup, time, and infrastructure. Keeps inferred support environments
+  out of confirmed requirements and reuses consent already given for checks.
+- Verification: shared-contract and naming checks plus suite validation pass;
+  no fresh hosted evaluation was run for this release.
+
+## [vibe-planning 6.1.2] - 2026-09-13
+
+### Changed
+
+- Makes operator setup, time, infrastructure, and lower-burden alternatives
+  visible in test plans, reusing authorized runtime sessions. Bounds optional
+  hardening by supported operation, failure consequences, and evidenced recovery
+  without treating small projects as safety exemptions.
+- Verification: shared-contract and naming checks plus suite validation pass;
+  no fresh hosted evaluation was run for this release.
+
+## [vibe-plan-execution 6.0.2] - 2026-09-13
+
+### Changed
+
+- Screens review additions against existing acceptance before treating them as
+  repairs. Carries loaded-artifact and relevant build-input evidence through
+  runtime-check batching and commit handoff, preserving separately attributable
+  results without retesting for unrelated note or log changes.
+- Verification: shared-contract and naming checks plus suite validation pass;
+  no fresh hosted evaluation was run for this release.
+
+## [vibe-commit 3.0.2] - 2026-09-13
+
+### Changed
+
+- Stops failed historical range and tree queries before consuming their results,
+  uses literal tree prefixes, and preserves unusual path names in the separately
+  confirmed rewrite preview.
+- When runtime acceptance is a commit prerequisite, reconciles tested artifact
+  and input evidence with the actual candidate, including partial staging and
+  omitted build dependencies. Incidental app-test comments and unrelated scratch
+  changes do not impose another human test session.
+- Verification: executable history-preview regressions, shared-contract and
+  naming checks, and suite validation pass; no fresh hosted evaluation was run
+  for this release.
+
+## [Repository] - 2026-09-13
+
+### Changed
+
+- Eval maintenance aligns grading with supplied facts and applicable branches,
+  retains substantive failure predicates, and provides pinned offline React
+  fixture harnesses. Router evaluations declare treatment-only shared support.
+- `docs/decisions/` is ignored as a local directory, alongside plans, reports,
+  and specifications; local decision records remain untracked.
+- Existing measurement limitations and residual contract-following failures
+  remain open; this release claims no causal improvement over prior series.
 
 ## [vibe-coding 4.0.1] - 2026-09-08
 

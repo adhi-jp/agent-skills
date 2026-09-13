@@ -71,6 +71,13 @@ acting. Repository contributors must also follow [`AGENTS.md`](AGENTS.md).
 | Decide what to change in a skill or eval from benchmark, grader, review, or regression evidence | `skill-quality` | Makes evidence-bound quality decisions, including transition-authority, artifact-lifecycle, delivery-mode, and generated-block placement failures; release and version changes still need explicit instruction | [source](skills/skill-quality/SKILL.md) · [evals](evals/skill-quality/) |
 | Validate, run, grade, aggregate, or report repository skill evals | `skill-eval` | Separates declared executor inputs from grading evidence, supplies graders with task context and bounded fixture facts, provisions declared offline test runtimes, records measurement identity and the limits of net-change and command evidence, and owns bounded execution, cancellation, metrics, failed-assertion review, and comparisons | [source](skills/skill-eval/SKILL.md) · [evals](evals/skill-eval/) |
 
+For `skill-eval` 2.x, declare additional task inputs with case-level
+`support_files` and external treatment dependencies with suite-level
+`skill_support_files`; repository-wide files and `AGENTS.md` are no longer
+implicit executor inputs. Cases declaring `npm_projects` also require a complete
+`--npm-cache` for pinned offline setup. Delivery and grading changes begin a
+new measurement series; do not interpret older rates as a like-for-like trend.
+
 ### Domain-specific work
 
 | Task | Skill | Important boundary | Package |
