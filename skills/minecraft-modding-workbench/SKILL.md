@@ -22,10 +22,10 @@ working code and assets.
 - Supports Fabric, NeoForge, and Architectury.
 - Requires the `minecraft-modding` MCP server from `@adhisang/minecraft-modding-mcp`.
 - Prefer project-aware MCP calls when a workspace exists. Reuse the repository root as `projectPath`.
-- Use the high-level MCP 6.3.0 workflow tools first: `inspect-minecraft`,
+- Use the high-level MCP workflow tools first: `inspect-minecraft`,
   `analyze-symbol`, `compare-minecraft`, `validate-project`, `analyze-mod`,
   and `manage-cache`.
-- Also use the MCP 6.3.0 validation and batch helpers when they fit:
+- Also use the MCP validation and batch helpers when they fit:
   `verify-mixin-target` for one-call Mixin owner/member checks and
   accessor/invoker advice, and `batch-class-source`, `batch-class-members`,
   `batch-symbol-exists`, or `batch-mappings` for fixed shortlists that share
@@ -100,9 +100,12 @@ Run this once near the start of a Minecraft modding task, before the first MCP-d
 3. If neither `inspect-minecraft` nor `analyze-symbol` is available, say
    `minecraft-modding MCP unavailable` once and switch to
    `references/mcp-unavailable-fallback.md`.
-4. If a named MCP 6.3.0 tool or argument from this skill is rejected as unknown, treat
-   the installed MCP as older than these recipes or version-skewed and use the nearest
-   older-compatible path or workspace fallback. Do not keep guessing tool names.
+4. If a tool or argument this skill names is rejected as unknown, first rule
+   out server-disabled `verify-mixin-target` / `batch-*` tools and a failed
+   start after an MCP upgrade (`references/mcp-unavailable-fallback.md`);
+   otherwise treat the installed MCP as older than the MCP surface these
+   recipes target or version-skewed and use the nearest older-compatible path
+   or workspace fallback. Do not keep guessing tool names.
 5. If MCP is available, prefer project-aware calls with `projectPath`,
    `preferProjectVersion`, and `preferProjectMapping` when the current tool
    accepts those fields.
@@ -158,8 +161,8 @@ whole reference bundle just because this skill triggered.
     budget routes to fallback.
   - Read `references/validator-fallbacks.md` only after `validate-project`,
     `validate-mixin`, `validate-access-widener`, or
-    `validate-access-transformer` is unavailable, restarts, times out, or cannot
-    answer.
+    `validate-access-transformer` is unavailable, restarts, times out, cannot
+    answer, refuses for runtime-jar context, or returns an approximate verdict.
 - Task-specific route:
   - Read `references/dependency-jars.md` for dependency API source lookup.
   - Read `references/rendering-hud.md` for HUD overlays, screens, projection,
@@ -193,7 +196,7 @@ visible:
 
 - Do not silently treat Quilt or legacy Forge as Fabric, NeoForge, or Architectury.
 - For legacy Forge-only or other unsupported loaders, limit help to verified workspace facts, logs, and migration boundaries. Say that full guidance is outside this skill.
-- If MCP is unavailable, misconfigured, or stale, say so immediately, fall back to workspace and log inspection, and keep any fix narrow. The same rule covers version skew: if an MCP 6.3.0 tool, task, response-shaping argument, or input shape this skill names (for example, `detail` / `include[]`, `manage-cache` `action: "verify"`, `validate-project` task `access-transformer`, `analyze-symbol` lifecycle range controls, `get-class-source` / `get-class-members` `target.kind`, or the NBT helpers) is rejected as unknown, treat it as evidence that the installed MCP is older than what this skill's recipes target, say so explicitly, and route the request through the nearest older-compatible tool or a workspace-only fallback rather than fabricating a different payload shape.
+- If MCP is unavailable, misconfigured, or stale, say so immediately, fall back to workspace and log inspection, and keep any fix narrow. The same rule covers version skew: if a tool, task, response-shaping argument, or input shape this skill names (for example, `detail` / `include[]`, `manage-cache` `action: "verify"`, `validate-project` task `access-transformer`, `analyze-symbol` lifecycle range controls, `get-class-source` / `get-class-members` `target.kind`, or the NBT helpers) is rejected as unknown, apply MCP Preflight step 4, including its disabled-tool and post-upgrade checks, before calling it version skew; say which conclusion applies, and route the request through the nearest older-compatible tool or a workspace-only fallback rather than fabricating a different payload shape.
 - If workspace files contradict the prompt, call out the contradiction and resolve it from checked files before coding.
 - If the request depends on a symbol, event, registry entry, or vanilla hook you cannot verify, say that it is unverified or unsupported instead of inventing it. Offer the closest verified alternative.
 

@@ -13,11 +13,17 @@ NeoForge, or another mod dependency.
    - Use `analyze-mod` for a dependency jar summary, metadata, search,
      bytecode-only `members`, class source, or remap preview.
    - Use direct `target` on `find-class`, `search-class-source`,
-     `get-artifact-file`, and `list-artifact-files` when the dependency target
-     is self-contained. `find-class` can also take top-level `projectPath` for
-     `target.kind="workspace"` and dependency targets using
-     `versionFromProject`; for the other flat artifact tools, resolve first and
-     pass `artifactId` when workspace context is needed.
+     `get-artifact-file`, `list-artifact-files`, and `index-artifact`. Add
+     top-level `projectPath` when the dependency target has no explicit
+     version (such as `versionFromProject`); resolving first to an `artifactId`
+     is optional.
+   - Dependency reads honor a non-obfuscated `mapping` only for source-backed
+     jars (`qualityFlags` includes `"source-backed"`). Otherwise the response
+     reports `mappingApplied: "obfuscated"`, the
+     `"dependency-mapping-unverified"` flag, and a warning, and the names are
+     the jar's compiled names; do not present them as remapped.
+     `context.minecraftVersion: "unknown"` is expected for dependency
+     artifacts, and `"binary-jar-no-classes"` marks a jar without classes.
    - Use workspace-aware symbol lookup for Minecraft classes that dependency
      APIs reference. If `analyze-symbol` infers `version` from `projectPath`,
      record the returned `versionInference` block and warning.
@@ -33,8 +39,11 @@ NeoForge, or another mod dependency.
    - Prefer `*-sources.jar` over bytecode.
    - Use the binary jar only when source is absent.
 4. Confirm the exact class, method, or resource.
-   - MCP `ERR_CLASS_NOT_FOUND.didYouMean[]` entries are candidate hints; verify
-     any chosen class before editing imports or descriptors.
+   - MCP `ERR_CLASS_NOT_FOUND` `error.didYouMean[]` entries are candidate
+     hints; verify any chosen class before editing imports or descriptors.
+     Candidates come from the requested artifact and the artifact the lookup
+     ended on; an entry carrying its own `artifactId` was found in that other
+     artifact, so query it there.
    - `jar tf <jar>` checks whether a class or resource exists.
    - `javap -classpath <jar> -p <fqcn>` checks signatures when source is not
      available.
@@ -54,7 +63,7 @@ NeoForge, or another mod dependency.
 
 - Fabric API is modular. Verify that the module providing an event or helper is
   present and declared in `fabric.mod.json` dependencies when required.
-- Fabric API umbrella artifacts may resolve as Jar-in-Jar shell jars. When MCP reports `qualityFlags: ["shell-jar"]`, use `provenance.nestedJars`; run `find-class` on the shell to search nested `.class` inventories for simple or qualified names before manual cache scanning. If `ERR_NESTED_JAR_AMBIGUOUS` returns `nestedJarCandidates`, choose the module jar explicitly instead of guessing. A shell or dependency miss is not evidence that Minecraft runtime names are obfuscated.
+- Fabric API umbrella artifacts may resolve as Jar-in-Jar shell jars. When MCP reports `qualityFlags: ["shell-jar"]`, use `provenance.nestedJars`; run `find-class` on the shell to search nested `.class` inventories for simple or qualified names before manual cache scanning. A class miss on a shell includes `error.nestedJars` (inner jar entry names to target next); `error.nestedJarsTruncated: true` means that list was shortened, so absence from it is not proof. `ERR_NESTED_JAR_AMBIGUOUS` means several inner jars contain the class and publishes no candidate-list field: pick the `resolve-artifact` entry in `error.exampleCalls[]` (or `error.suggestedCall`) whose jar target and reason match the intended module, resolve that nested jar as its own artifact, and query against the returned `artifactId` instead of guessing. A shell or dependency miss is not evidence that Minecraft runtime names are obfuscated.
 - GameTest support is tied to Fabric API test configuration and entrypoints; see
   `gametest.md` before changing test wiring.
 - Prefer Fabric events over Mixins when an event exists for the target behavior.
@@ -71,7 +80,7 @@ NeoForge, or another mod dependency.
 
 ## Resource Files in Dependency or Mod Jars
 
-`get-artifact-file` can read exact text entries under `assets/**` and `data/**` directly from a backing jar even when `list-artifact-files` shows only Java source paths. Treat `deliveryMode: "jar-read-through"` as jar-backed evidence. Binary assets return metadata with `contentOmittedReason`, not file content.
+`get-artifact-file` can read exact entries directly from a backing jar even when `list-artifact-files` shows only Java source paths: `assets/**`, `data/**`, root-level files, and `META-INF/**` entries such as `fabric.mod.json`, `META-INF/MANIFEST.MF`, `<mod>.mixins.json`, and license files. Treat `deliveryMode: "jar-read-through"` as jar-backed evidence. Read-through text is capped at 512 KiB and flagged `truncated` when cut; binary entries return metadata with `contentOmittedReason`, not file content; traversal-shaped paths fail with `ERR_INVALID_INPUT`. A miss publishes no structured nearby-path field; any nearby paths appear only as `error.hints` text.
 
 ## Reporting
 

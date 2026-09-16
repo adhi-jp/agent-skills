@@ -1,7 +1,8 @@
 # Validator Fallbacks
 
-Use this file when MCP validators are unavailable, restart, timeout, or are too
-old for the requested validation task.
+Use this file when MCP validators are unavailable, restart, timeout, are too
+old for the requested validation task, refuse for runtime-jar context, or
+return an approximate verdict.
 
 ## General Rule
 
@@ -12,10 +13,27 @@ reading `meta.timeout.phase`, `retryRecommendation`, and `workerRestartInitiated
 narrow or split the request if another MCP validation attempt is still useful,
 and do not infer worker replacement completion from `workerRestartInitiated`.
 
-MCP 6.3.0 validator output defaults to `summary-first`. Missing per-result
+Validator output defaults to `summary-first`. Missing per-result
 `resolvedMembers`, `toolHealth`, or `resolutionTrace` in that default shape is
-not validator absence. When exact per-result detail matters, retry once with
-`reportMode: "full"` or `explain: true` before using these manual checks.
+not validator absence. When exact per-result detail matters, retry once before
+using these manual checks: `reportMode: "full"` or `explain: true` returns
+per-result `resolvedMembers` and `toolHealth`, and only `explain: true` collects
+`resolutionTrace`. Access transformer validation does not use `explain`, so it
+provides no per-issue `suggestedCall` hints.
+
+`validate-access-widener` and `validate-access-transformer` refuse to judge
+entries against a different loader's runtime jar. `ERR_CONTEXT_UNRESOLVED` whose
+`error.hints` say to point `gradleUserHome` at the Gradle home holding the
+workspace's own loader runtime jars is a context problem, not a defect in the
+AW/AT entries: do not edit entries for it. Fix `gradleUserHome` (or generate
+those runtime jars) and re-run once, or run the matching manual checks below.
+`validate-project` `task="project-summary"` counts that refusal as invalid and
+carries its message in warnings, so read the warnings before blaming the
+entries. A verdict marked `approximate: true` was checked against a different
+Minecraft version of the same loader; read `approximationReasons` and report it
+as approximate, not as exact validation for the requested version. Artifact
+provenance (`requestedVersion`, `versionApproximated`, `servedLoader`,
+`expectedLoader`, `loaderMismatch`) describes the jar actually served.
 
 ## Mixin Fallback
 

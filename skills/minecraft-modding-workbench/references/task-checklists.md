@@ -289,7 +289,7 @@ Checklist:
 - **Stop on `.mca` region containers.** These helpers operate on raw NBT payloads, not Anvil region files. If the target is an `.mca`, extract the chunk payload with a region tool first, or abort and say the input is unsupported.
 - Preserve `DataVersion` unless the edit is a deliberate upgrade. A mismatched `DataVersion` triggers Minecraft's auto-upgrade path, which may rewrite nearby fields.
 - For level.dat and playerdata, expect `gzip` compression. For `/data` command output, expect plain (no compression).
-- Preserve the typed-JSON envelope `{ "rootName", "root": { "type", "value" } }` returned by `nbt-to-json`. `json-to-nbt` rejects a bare `{ type, value }` document, and `nbt-apply-json-patch` paths must start at `/root/...`.
+- Preserve the typed-JSON document `{ "rootName", "root": { "type", "value" } }` returned by `nbt-to-json` (the root is usually a compound). `json-to-nbt` rejects a bare `{ type, value }` node, and `nbt-apply-json-patch` tag edits use paths under `/root/value/...`; see the NBT Helpers section of `mcp-recipes.md` for typed value rules such as `long` values as decimal strings.
 - When building test fixtures, check in the typed JSON form and re-encode at runtime or build time instead of committing binary NBT blobs.
 - For registry-shaped data (items, blocks, biome feature keys), cross-check against `get-registry-data` for the same version before writing non-trivial values.
 
@@ -297,7 +297,7 @@ Common misses:
 
 - Editing the raw NBT binary by hand instead of round-tripping through typed JSON
 - Re-encoding without matching the source compression
-- Dropping the `rootName` / `root` envelope when editing typed JSON
+- Dropping the `rootName` / `root` document fields when editing typed JSON
 - Running helpers directly on `.mca` region files
 - Editing live save data without a pre-edit backup
 - Bumping `DataVersion` silently during an unrelated edit

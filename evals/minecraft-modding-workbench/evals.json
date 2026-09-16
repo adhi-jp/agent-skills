@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "minecraft-modding-workbench",
-  "purpose": "External eval set for the minecraft-modding-workbench skill. Covers MCP availability preflight, MCP 6.3.0 response contracts, bounded MCP failure handling, dependency source lookup, resource codec validation, HUD projection/FOV checks, GameTest/access-widener wiring, and narrow reference routing.",
+  "purpose": "External eval set for the minecraft-modding-workbench skill. Covers MCP availability preflight, current MCP response contracts, bounded MCP failure handling, dependency source lookup, resource codec validation, HUD projection/FOV checks, GameTest/access-widener wiring, access validation runtime context and approximation, owner-strict method mapping, returned member namespaces, and narrow reference routing.",
   "common_assertions": [
     "Output treats minecraft-modding MCP as the preferred source of truth when available, but does not invent MCP results when tools are missing or failing.",
     "Output records a project profile or explicitly identifies missing profile facts before making version, loader, mapping, or Java-version-sensitive claims.",
@@ -133,7 +133,7 @@
       "expectations": [
         "Classifies `ERR_INVALID_INPUT` as invalid payload shape, not MCP unavailability.",
         "Uses only the relevant current payload-shape and error-recovery guidance without requiring the internal reference filename in the answer.",
-        "Corrects the old-shape request toward the current MCP 6.3.0 high-level shape, such as replacing unsupported `compact` response shaping with `detail` and `include[]` where needed.",
+        "Corrects the old-shape request toward the current MCP high-level shape, such as replacing unsupported `compact` response shaping with `detail` and `include[]` where needed.",
         "Corrects the payload once and retries the same high-level `inspect-minecraft` path before changing tools.",
         "Does not switch to `references/mcp-unavailable-fallback.md` unless the corrected call also fails under the stated failure budget.",
         "Does not guess alternate tool names or drop to low-level tools before the corrected high-level retry.",
@@ -143,11 +143,11 @@
     {
       "id": "E09",
       "name": "Older MCP fallback route",
-      "prompt": "The host exposes `inspect-minecraft`, but it rejects a named MCP 6.3.0 argument from the current recipes as unknown while inspecting a Fabric 1.21.x workspace. Explain how to proceed.",
-      "expected_output": "The agent treats the installed MCP as older than the current MCP 6.3.0 recipes or version-skewed, says so once, uses the nearest older-compatible tool shape or workspace/source fallback, and avoids random tool-name guessing or unrelated recipe restatement.",
+      "prompt": "The host exposes `inspect-minecraft`, but it rejects an argument named by the current recipes as unknown while inspecting a Fabric 1.21.x workspace. Explain how to proceed.",
+      "expected_output": "The agent explains that the installed MCP appears older than the MCP surface the current recipes target or version-skewed, notes this once, and describes the nearest older-compatible tool shape or workspace/source fallback without random tool-name guessing or unrelated recipe restatement.",
       "files": [],
       "expectations": [
-        "States that the installed MCP appears older than the current MCP 6.3.0 recipes, version-skewed, or does not support the named argument.",
+        "States that the installed MCP appears older than the MCP surface the current recipes target, version-skewed, or does not support the named argument.",
         "Does not keep guessing random `minecraft-modding` tool names or argument names.",
         "Uses the nearest older-compatible path when one is known, otherwise switches to workspace/source fallback.",
         "Labels facts from the fallback path as workspace/source-jar fallback, not MCP-verified.",
@@ -157,18 +157,19 @@
     },
     {
       "id": "E10",
-      "name": "MCP 6.3 response shape and server retry posture",
-      "prompt": "A Minecraft 1.21.x workspace is being debugged with MCP 6.3.0 tools exposed. While checking a Mixin target, an old note says to read `result.summary.subject.requested`, read warning text from `meta.warningDetails[].message`, call `get-class-members` with `compact: false` and `target: { type: \"artifact\", artifactId }`, then retry an `ERR_INTERNAL` response because it used to be transient. The default validator summary also omits per-result `resolvedMembers` and `resolutionTrace`. Explain the next MCP and fallback steps.",
-      "expected_output": "The agent updates stale response-shape assumptions to MCP 6.3.0, requests exact detail only where needed, and avoids retrying deterministic server faults while preserving fallback labels.",
+      "name": "Current MCP response shape and server retry posture",
+      "prompt": "A Minecraft 1.21.x workspace is being debugged with the current MCP tools exposed. While checking a Mixin target, an old note says to read `result.summary.subject.requested`, read warning text from `meta.warningDetails[].message`, call `get-class-members` with `compact: false` and `target: { type: \"artifact\", artifactId }`, then retry an `ERR_INTERNAL` response because it used to be transient. The default validator summary also omits per-result `resolvedMembers` and `resolutionTrace`. Explain the next MCP and fallback steps.",
+      "expected_output": "The agent explains the current MCP response contract, requests validator member details and traces with the appropriate options, and describes a narrow fallback for deterministic server faults while preserving verification-source labels.",
       "files": [],
       "expectations": [
         "Inspects or relies on the exposed callable schema before sending the corrected MCP payload.",
         "Uses `detail` plus `include[]` instead of expert or batch `compact` for response shaping.",
-        "Reads inspect request correlation from top-level `subject.requested` or `subject.resolved`, not `result.summary.subject.requested`.",
+        "Locates inspect-minecraft request correlation in the result object's own subject block (`result.subject.requested` / `result.subject.resolved`), not `result.summary.subject.requested`; equivalent wording clearly placing subject directly under result is sufficient.",
         "Reads warning text via `meta.warningDetails[].index` into `meta.warnings[]`, not `warningDetails[].message`.",
         "Uses `target: { kind: \"artifact\", artifactId }` for `get-class-members`, not `target: { type: \"artifact\", artifactId }`.",
         "Mentions the 150-member default page size, `nextCursor`, `members.ownerFqn`, `javaSignature` modifiers, and `include: [\"descriptors\"]` or `includeDescriptors: true` when field descriptors are needed.",
-        "Treats missing default validator per-result detail as `summary-first` projection and requests `reportMode: \"full\"` or `explain: true` before manual validator fallback.",
+        "Explains that default validator summaries omit per-result `resolvedMembers` and directs requesting `reportMode: \"full\"` or `explain: true` to obtain them before manual validator fallback.",
+        "States that validator `resolutionTrace` requires `explain: true`; claiming that `reportMode: \"full\"` alone supplies the trace fails this expectation.",
         "Does not retry the identical `ERR_INTERNAL` call when the envelope has `retryClass: \"server\"`; records MCP unable to verify that fact or switches to a narrow fallback.",
         "Keeps `Verified by MCP`, `Verified by workspace/source jar fallback`, `Runtime/user-observed`, and `Unverified` labels distinct.",
         "Does not restate unrelated loader, HUD, GameTest, NBT, worldgen, or dependency-jar guidance."
@@ -176,17 +177,18 @@
     },
     {
       "id": "E11",
-      "name": "MCP 6.3 dependency and artifact ergonomics",
-      "prompt": "A Fabric API class lookup in the workspace fails because the umbrella dependency jar is a Jar-in-Jar shell. The agent also needs to read an exact `assets/fabric/...json` text file from the dependency jar, and an old class FQCN returns `ERR_CLASS_NOT_FOUND` with `didYouMean`. Explain the MCP-first lookup route without manual Gradle cache spelunking.",
-      "expected_output": "The agent uses MCP 6.3.0 dependency targets, shell-jar/nested-jar evidence, nested class search, jar read-through for exact assets/data text files, and didYouMean only as verified candidate hints before falling back to manual cache inspection.",
+      "name": "Current MCP dependency and artifact ergonomics",
+      "prompt": "A Fabric API class lookup in the workspace fails because the umbrella dependency jar is a Jar-in-Jar shell. The agent also needs to read an exact `assets/fabric/...json` text file from the dependency jar, and an old class FQCN returns `ERR_CLASS_NOT_FOUND` with `didYouMean`. A follow-up class lookup against the shell jar returns `ERR_NESTED_JAR_AMBIGUOUS`. Explain the MCP-first lookup route without manual Gradle cache spelunking.",
+      "expected_output": "The agent describes current MCP dependency and artifact target routes, shell-jar/nested-jar evidence, nested class search, jar read-through for exact assets/data text files, and didYouMean as candidate hints requiring verification before manual cache inspection.",
       "files": [],
       "expectations": [
         "Uses `get-class-source` or `get-class-members` with `target: { kind: \"dependency\", group, name, versionFromProject: true }` and `projectPath` before manual Gradle cache scanning.",
         "Uses `find-class` with `target.kind=\"workspace\"` or a dependency target plus top-level `projectPath` when only a simple or qualified dependency class name is known, before manual Gradle cache scanning.",
-        "If a non-`find-class` flat artifact lookup needs workspace context, says to resolve first and pass `artifactId`; otherwise uses exactly one of `artifactId` or the shared `target` shape.",
+        "Describes using a direct workspace or dependency `target` with top-level `projectPath` on a flat artifact tool such as `get-artifact-file`, `search-class-source`, or `find-class` when workspace context is needed.",
+        "Does not state that flat artifact tools other than `find-class` must first resolve an `artifactId` before they can use workspace or dependency context.",
         "Recognizes `qualityFlags: [\"shell-jar\"]` and `provenance.nestedJars` as Jar-in-Jar shell evidence instead of treating the umbrella jar as a decompiler failure.",
         "Recognizes that `find-class` searches nested `.class` inventories in Jar-in-Jar shells and that dotted inner-class matches can continue to `get-class-source`.",
-        "Handles `ERR_NESTED_JAR_AMBIGUOUS` by choosing from `nestedJarCandidates` or resolving a nested jar directly, not by guessing a module jar.",
+        "Describes recovering from `ERR_NESTED_JAR_AMBIGUOUS` through the returned `error.exampleCalls` / `suggestedCall` for `resolve-artifact`, or by resolving the intended nested jar as its own artifact and querying its `artifactId`, rather than guessing a module jar.",
         "Uses `get-artifact-file` for exact `assets/**` or `data/**` text entries and treats `deliveryMode: \"jar-read-through\"` as backing-jar evidence.",
         "Does not claim `list-artifact-files` proves assets or data files are absent, because it indexes Java source paths only.",
         "Treats `ERR_CLASS_NOT_FOUND.didYouMean[]` entries as hints that require verification before changing imports, descriptors, or mappings.",
@@ -196,7 +198,7 @@
     },
     {
       "id": "E12",
-      "name": "MCP 6.3 mixin and validator timeout route",
+      "name": "Current MCP mixin and validator timeout route",
       "prompt": "A single Mixin accessor target may be wrong in a Minecraft 1.21.10 workspace. `validate-project` first returns `ERR_TOOL_TIMEOUT` with `meta.timeout.phase=\"running\"` and `workerRestartInitiated=true`; a teammate wants to call it again unchanged and then infer the worker recovered. Explain the next MCP and fallback steps.",
       "expected_output": "The agent uses `verify-mixin-target` for the single owner/member probe when possible, treats validate-project timeout metadata as unavailable validation evidence, narrows or falls back instead of looping, and does not infer replacement completion from workerRestartInitiated.",
       "files": [],
@@ -213,18 +215,53 @@
     },
     {
       "id": "E13",
-      "name": "MCP 6.3 inspect workspace focus recovery",
-      "prompt": "`inspect-minecraft` is exposed in a Fabric 1.21.x workspace. A teammate sends `subject: { kind: \"workspace\", projectPath: \"/mod\", focus: \"net.minecraft.world.item.Item\" }` with `task: \"auto\"`; MCP returns `ERR_INVALID_INPUT` with `exampleCalls` for class, search, and file focus shapes. Explain the retry without changing to Gradle cache fallback.",
-      "expected_output": "The agent treats string focus as invalid payload shape, uses a structured workspace `subject.focus` object from the schema-validated `exampleCalls`, retries `inspect-minecraft`, and keeps target facts unverified until the corrected MCP call succeeds.",
+      "name": "Current MCP inspect workspace focus recovery",
+      "prompt": "`inspect-minecraft` is exposed in a Fabric 1.21.x workspace. A teammate sends `subject: { kind: \"workspace\", projectPath: \"/mod\", focus: \"net.minecraft.world.item.Item\" }` with `task: \"auto\"`; MCP returns `ERR_INVALID_INPUT` with `error.exampleCalls` for class, search, and file focus shapes; the class example contains `focus: { kind: \"class\", className: \"<fully-qualified-class-name>\" }`. Explain the retry without changing to Gradle cache fallback.",
+      "expected_output": "The agent explains the invalid string focus, describes a structured workspace focus retry with concrete known values substituted into any returned template, and keeps target facts unverified until the corrected MCP call succeeds.",
       "files": [],
       "expectations": [
         "Classifies the response as invalid payload shape, not MCP unavailability.",
         "States that workspace `subject.focus` must be an object, not a string.",
         "Uses one of the schema-validated `exampleCalls` or equivalent structured shapes such as `{ kind: \"class\", className: \"net.minecraft.world.item.Item\" }` for the retry.",
+        "Does not direct sending a returned `<...>` placeholder template verbatim in the retry.",
         "States that `task=\"auto\"` dispatches from `subject.kind` and `focus.kind`, not from natural-language prose.",
         "Directs one corrected retry of the same high-level `inspect-minecraft` path before Gradle cache or source-jar fallback; the explanation task does not require actually invoking MCP.",
         "Keeps Minecraft class facts unverified until the corrected MCP call or later fallback actually verifies them.",
         "Does not guess alternate tool names or restate unrelated loader, HUD, GameTest, NBT, dependency-jar, or validator recipes."
+      ]
+    },
+    {
+      "id": "E14",
+      "name": "Access validation runtime context and approximate verdicts",
+      "prompt": "In our Architectury 1.21.x workspace, the Fabric module's `validate-access-widener` call with `scope: \"merged\"` failed with `ERR_CONTEXT_UNRESOLVED` and `detail: \"Access Widener validation resolved a neoforge runtime jar for a fabric workspace\"`, and the `validate-project` project summary now counts that access widener as invalid. A teammate wants to delete or rewrite the flagged access widener entries. Separately, the NeoForge module's access transformer check returned `valid: true` with `approximate: true`, and its provenance shows `requestedVersion: \"1.21.1\"`, `version: \"1.21\"`, and `versionApproximated: true`. Explain the next MCP and fallback steps.",
+      "expected_output": "The agent explains the runtime context refusal and approximate verdict, describes restoring the appropriate loader/version context before validation, and keeps any fallback evidence and remaining uncertainty clearly attributed.",
+      "files": [],
+      "expectations": [
+        "Identifies the refused access widener check as a runtime-jar environment/context problem rather than evidence of defective access widener entries.",
+        "Does not direct deleting or rewriting access widener entries on the basis of that refusal.",
+        "Directs fixing `gradleUserHome` to locate the workspace's own Fabric runtime jars, or supplying equivalent explicit same-loader runtime context, before re-validating.",
+        "Does not classify the `ERR_CONTEXT_UNRESOLVED` refusal as an invalid payload shape (an `ERR_INVALID_INPUT`-style field error) or as MCP unavailability; supplying runtime context such as `gradleUserHome` and re-running once does not violate this.",
+        "Does not treat the sibling module's `valid: true` verdict with `approximate: true` as exact validation for the requested version.",
+        "Records served versus requested version/loader provenance, or explicitly leaves version-sensitive access validation facts unverified by MCP for the requested version.",
+        "Explains that the project summary's invalid count comes from the same runtime-context refusal rather than from a separately verified defect in the access widener entries.",
+        "Does not restate unrelated HUD, NBT, GameTest, worldgen, or dependency-jar recipes."
+      ]
+    },
+    {
+      "id": "E15",
+      "name": "Inherited exact method mapping and returned member namespace",
+      "prompt": "In a NeoForge 1.21.x workspace, our Mixin into `net.minecraft.world.entity.LivingEntity` shadows `getX()`. `analyze-symbol` with task `\"exact-map\"`, owner `\"net.minecraft.world.entity.LivingEntity\"`, name `\"getX\"`, and descriptor `\"()D\"` returns `status: \"not_found\"`; the response also has a non-empty `warnings` array that the teammate did not read. The teammate says getX must have been removed in this version and wants to remove the shadow. Separately, `get-class-members` was called without `mapping` and returned Mojang-looking names, although the tool's advertised schema description says the default mapping is obfuscated, so the teammate wants to rerun it with `mapping: \"obfuscated\"` to match that default. Explain what these results mean and the next MCP steps.",
+      "expected_output": "The agent explains the owner-strict lookup miss and the unread warnings, describes a corrected mapping lookup before Mixin edits, and reads the member namespace from the response while keeping unresolved facts and verification sources distinct.",
+      "files": [],
+      "expectations": [
+        "Does not treat the owner-strict `not_found` result as proof that `getX` is absent or removed from the requested version.",
+        "Explains that an owner-strict exact lookup can return `not_found` when `LivingEntity` does not itself declare `getX` (for example when it is declared on a superclass such as `net.minecraft.world.entity.Entity`), and directs reading the unread `warnings` before concluding.",
+        "Directs re-querying the declaring owner or using owner-agnostic `find-mapping` before editing the Mixin.",
+        "Any exact method-mapping re-query it describes uses the fully qualified declaring owner (such as `net.minecraft.world.entity.Entity`) with the `()D` descriptor; an owner-agnostic `find-mapping` route may be name-based and does not fail this expectation.",
+        "Does not direct removing the shadow based on that `not_found` result alone.",
+        "Explains that with `mapping` omitted the returned member names follow the resolved artifact's mapping, so the namespace should be read from the response (for example `context.mappingNamespace` or `returnedNamespace`) rather than from the schema description's stated default.",
+        "Does not direct forcing `mapping: \"obfuscated\"` merely to match the schema description.",
+        "Presents the declaring-owner re-query or `find-mapping` result as a pending next step and does not claim that the corrected lookup has already succeeded or that `getX()D` is verified to exist."
       ]
     }
   ],
@@ -232,6 +269,6 @@
     "common_assertion_weight": 0.4,
     "per_eval_expectation_weight": 0.6,
     "pass_threshold": 0.8,
-    "notes": "These evals target workflow discipline rather than generated code. Baseline failures are expected to include repeated MCP tool guessing, unlabelled fallback facts, treating build as runtime proof, bytecode cache spelunking before source jars, incomplete HUD/FOV checks, confusing GameTest wiring with gameplay logic, broad reference routing, or restating unrelated recipes."
+    "notes": "These evals target workflow discipline rather than generated code. Baseline failures are expected to include repeated MCP tool guessing, unlabelled fallback facts, treating build as runtime proof, bytecode cache spelunking before source jars, incomplete HUD/FOV checks, confusing GameTest wiring with gameplay logic, broad reference routing, or restating unrelated recipes. Additional failures include mistaking loader runtime context refusals for access-entry defects, treating approximate validation as exact, treating an owner-strict mapping miss as method removal, and trusting a stale schema namespace default over returned metadata."
   }
 }
