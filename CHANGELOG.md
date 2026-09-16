@@ -11,25 +11,23 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [minecraft-modding-workbench 2.2.0] - 2026-09-16
+
 ### Changed
 
 - `minecraft-modding-workbench` now follows the current `minecraft-modding` MCP
-  surface. Exact method-mapping `not_found` and partial `find-class` coverage no
+  surface. Exact method-mapping `not_found` and partial `find-class` results no
   longer count as proof of absence; all flat artifact tools take `projectPath`;
-  `retryClass` and `issueOrigin` are read separately; `exampleCalls` templates
-  are filled before retrying; and loader-mismatch AW/AT refusals, size caps,
-  disabled tools, and post-upgrade re-indexing are no longer mistaken for entry
-  defects, retryable limits, version skew, or stale cache. Recovery uses only
-  published error fields. Verification: the updated suite passed static
-  validation and a full Codex `with_skill`/`without_skill` run with no runner
-  anomalies.
-
-### Fixed
-
-- `minecraft-modding-workbench` now states that validator `resolutionTrace`
-  requires `explain: true`, missing-jar errors are `ERR_JAR_NOT_FOUND`, access
-  transformer validation provides no per-issue `suggestedCall`, and typed NBT
-  patch tag edits target `/root/value/...`.
+  recovery reads `retryClass` and `issueOrigin` separately, fills
+  `exampleCalls` templates, and uses only published error fields; and
+  loader-mismatch AW/AT refusals, approximate verdicts, size caps, disabled
+  tools, and post-upgrade re-indexing are no longer mistaken for entry defects,
+  exact validation, retryable limits, version skew, or stale cache. Stale
+  guidance is corrected: `resolutionTrace` needs `explain: true`, missing jars
+  report `ERR_JAR_NOT_FOUND`, access transformer validation gives no per-issue
+  `suggestedCall`, and NBT tag patches target `/root/value/...`.
+  Verification: the suite passed static validation and a full Codex
+  `with_skill`/`without_skill` run with no runner anomalies.
 
 ## [skill-eval 2.0.0] - 2026-09-13
 
