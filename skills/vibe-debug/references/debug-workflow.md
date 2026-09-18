@@ -58,7 +58,13 @@ Read this reference when actively diagnosing, repairing, verifying, or handing o
    - Treat an `unknown` dimension that affects the current fix as a blocker
      until source trace, local reproduction, or accepted residual resolves it.
    - Add at least one verification item for every `preserve` or
-     `change intentionally` dimension that can regress.
+     `change intentionally` dimension that can regress. One check may verify
+     several dimensions. An existing or shared check counts for a dimension
+     only when it runs against the fixed code and proves that dimension's
+     required behavior through its own path, channel, and a discriminating
+     assertion; add tests for the obligations such checks leave open. This
+     reuse never waives the required reproduction, regression, or recurrence
+     proof.
 
 6. **Route sources and tool confidence**
    - Before editing unfamiliar external API, framework, protocol, data contract,

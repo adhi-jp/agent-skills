@@ -46,7 +46,14 @@ Default perspectives:
   checks with recorded residual risk. It also asks which wrong implementation
   would still pass each load-bearing assertion, whether an observation seam is
   actually consumed, whether expectations come from an independent source, and
-  whether lifecycle, encoding, failure, or ordering branches are missing.
+  whether lifecycle, encoding, failure, or ordering branches are missing. A
+  request for more tests is material only when it names an open item: a plan
+  criterion, a proof obligation from Execution Workflow step 5 or 7 (including
+  same-channel positive controls, production-path reachability, and mutation
+  proof), plan-named preserved behavior, or a reachable failure mode of the
+  changed code; a variant that an executed test, or an existing test run
+  against the changed code, already closes through the same path, channel, and
+  oracle is not.
 
 Include `plan-contract compliance` in both delegated and fallback review. When
 capacity allows, include the other perspectives; if capacity is limited, choose
@@ -182,6 +189,14 @@ receipts.
      acceptance sentinels before edge hardening when the plan contains paired
      gates; a broad green suite does not prove completion if the core positive
      path is missing.
+   - Add a test beyond the plan only for an open item: a plan criterion, a proof
+     obligation in this step or in step 7, plan-named preserved behavior, or a
+     reachable failure mode of the changed code, including inverse or symmetric
+     cases after ordering or lifecycle changes. Add a test for a plan criterion
+     that no planned or existing test covers as a visible Plan Validity Gate
+     plan-preserving correction (the criterion, non-goals, and product behavior
+     stay unchanged; only the proof set grows), never silently. Do not add tests
+     beyond these for extra assurance.
    - For bug fixes, reproduce the failure or add a regression test when feasible.
    - For an acceptance metric intended to distinguish the defect, record its
      current or known-bad baseline before relying on it. If the baseline already

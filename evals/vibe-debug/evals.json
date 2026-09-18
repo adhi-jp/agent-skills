@@ -375,6 +375,20 @@
         "Does not delete or rewrite the existing `DF-0021` entry text when closing it, and does not open a new finding id for the same defect.",
         "Does not create, modify, or delete any file in this checkout; it states the records, entries, and rows it would write."
       ]
+    },
+    {
+      "id": "E23",
+      "name": "Duration parser seconds-suffix repair",
+      "prompt": "This is a response-only repair exercise. The supplied facts are the entire project evidence universe; do not inspect or mutate the ambient checkout, create files, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the repair and its proof without claiming any of it ran.\n\n`parseDuration(\"90s\")` in `src/util/duration.ts` returns 5,400,000 ms instead of 90,000 ms. Its unit map contains `ms`, `m`, `h`, and `d`; when the suffix is not in the map (including no suffix), it falls back to minutes. The current table-driven test in `src/util/duration.test.ts` passes and has the rows `250ms`, `5m`, `2h`, `1d`, and `7`. Negative values and whitespace are rejected by a separate, unchanged validation step that runs before the unit lookup and has its own passing tests. The specification allows lowercase units only.\n\nThe user writes: \"Fix it, and make sure the other units, negative values, whitespace, and uppercase units still work.\"\n\nDescribe the repair and its proof; do not edit anything.",
+      "expected_output": "A unit-map repair whose proof is a `90s` regression row observed failing before the fix plus the existing table rows and validation tests rerun against the fixed code, without new tests for the unchanged validation step or for uppercase units outside the specification.",
+      "files": [],
+      "expectations": [
+        "Proposes a `90s` regression case and requires observing it fail on the current code before the fix.",
+        "Places that case as a row in the existing table-driven test rather than in a new test file or suite.",
+        "Requires the existing table rows and the existing validation tests to run against the fixed code as preservation proof for the other units, the no-suffix fallback, negative values, and whitespace.",
+        "Proposes no new negative-value or whitespace tests beyond the existing validation tests, and treats uppercase units as outside the specification or as an open question for the user without adding tests for them.",
+        "Keeps any dimension mapping compact and does not turn each dimension into a separate new test or a multi-row ledger."
+      ]
     }
   ],
   "scoring": {

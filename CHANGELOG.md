@@ -11,6 +11,24 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- `vibe-planning`: selects tests instead of enumerating them — starts from
+  current passing tests and required proof, adds a test only for an obligation
+  that existing and already-selected tests leave open, drops a candidate only
+  by naming the test that already covers it, lists reused tests, and never
+  drops required proof or caps the count; test-plan entries name what they
+  close.
+- `vibe-plan-execution`: adds a test beyond the plan only for an open
+  criterion, proof obligation, preserved behavior, or reachable failure mode;
+  dropping a planned test that looks redundant stays a plan deviation that
+  needs local evidence and the Plan Deviation Gate; reviewer requests for more
+  tests are material only when they name such an item.
+- `vibe-debug`: one check may verify several state-space dimensions; an
+  existing check counts only when it runs against the fixed code and proves
+  that dimension's behavior through its own path and channel, and
+  reproduction, regression, and recurrence proof stay required.
+
 ## [vibe-coding 4.1.0] - 2026-09-18
 
 ### Changed

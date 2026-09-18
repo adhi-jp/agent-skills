@@ -319,6 +319,9 @@ plan or on checked facts.
   implementation work is a plan-change request, not evidence. Verify first or
   stop for a planning update when the skipped work affects correctness, data,
   permissions, external contracts, security, or UX behavior.
+- Test selection bounds only additions and gives no ground to remove, narrow,
+  or skip a planned test. Dropping a planned test that looks redundant is a
+  plan deviation: it needs local evidence and the Plan Deviation Gate.
 - Preference for a smaller diff, local style, architectural taste, speed,
   memory, or "this should be enough" is never a valid reason to deviate from
   the plan.

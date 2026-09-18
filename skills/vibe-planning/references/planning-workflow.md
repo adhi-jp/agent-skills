@@ -85,7 +85,9 @@ Read this reference when drafting or revising the implementation-plan body. It o
 5. **Define acceptance criteria**
    - Convert the clarified specification into observable pass/fail criteria.
    - Include negative cases, permissions, failure states, empty states, migration
-     or compatibility expectations, and UX states when relevant. For visibility,
+     or compatibility expectations, and UX states when the changed code can
+     produce or receive that state; keep a category whose reachability is
+     unknown. For visibility,
      permission, unlock, feature-flag, and state-transition behavior, define the
      positive success path and the matching negative or before-state path as a
      pair; a hide/deny test without the corresponding show/allow/unlocked proof
@@ -103,7 +105,23 @@ Read this reference when drafting or revising the implementation-plan body. It o
      behavior or domain wording rather than plan-only identifiers, while
      preserving useful resolvable code and product anchors.
 6. **Design tests before implementation**
-   - Derive tests from acceptance criteria.
+   - Select tests; do not enumerate them. Start from what current passing tests
+     and fixtures already prove for the touched behavior (by read-only
+     inspection) and the tests the bullets below and the integrity gates
+     require. Add each further candidate only when it closes an acceptance
+     criterion, required proof obligation, plan-named preserved behavior, or
+     reachable failure mode left open by existing and already-selected tests;
+     one test may close several obligations, and one obligation may need
+     several tests. Drop or merge a candidate only by naming, in one line beside
+     the retained entry, the retained or existing test that closes the same
+     obligation through the same behavior, state, path, observation channel,
+     test level, and oracle; do not list dropped candidates as separate
+     entries, and when no covering test can be named, keep the candidate. List
+     a reused test as reused and run it. A historical,
+     skipped, or failing test is contract evidence, not current coverage. Never
+     drop required proof to reach a smaller count; there is no count limit.
+   - Derive candidate tests from acceptance criteria and select them by the
+     rule above.
    - For checks requiring human operation, record the executor, setup,
      estimated hands-on time, and infrastructure alongside the criterion.
      Automated scoring does not make manual fixture construction or another
@@ -134,7 +152,12 @@ Read this reference when drafting or revising the implementation-plan body. It o
      preservation contract.
    - When high-risk controls apply, include tests or proof checks for the
      selected equivalence dimensions, recovery comparisons, diagnostic-finding
-     correction, and failure-pattern checklist answers.
+     correction, and failure-pattern checklist answers. Select these by the rule
+     above: an `Equivalent` `must preserve` dimension may cite a current passing
+     test or source evidence; a non-equivalent `must preserve` or
+     `Changed (in scope)` dimension needs a test — reused, extended, or new —
+     for its open obligation; source evidence never replaces separately
+     required executable proof.
    - For a newly authored procedure that the plan will call repeatable, schedule
      one verbatim end-to-end execution into a fresh evidence location before
      that claim is accepted. Prose review or parser acceptance is not

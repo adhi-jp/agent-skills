@@ -62,5 +62,9 @@ For non-trivial fixes, record a compact matrix with the abstract dimension first
 | Representation | Raw ID, encoded display label | Preserve both | Parser and serializer tests |
 | Lifecycle | First save, retry, cancel | Change retry only | Regression plus negative cancel case |
 
+A row's Proof may cite a shared or existing check that runs against the fixed
+code and proves that row's behavior through its own path, channel, and a
+discriminating assertion; rows are proof obligations, not one new test each.
+
 Do not create exhaustive matrices for tiny fixes. The point is to prevent
 single-example repair when adjacent cases are likely to share the same contract.

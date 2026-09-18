@@ -274,8 +274,11 @@ Use confirmed operating context, exposure, failure consequences, and recovery
 options to distinguish required proof from optional hardening. Keep inferred
 support or failure assumptions explicit. A hobby/production label or a count
 of coincident faults is not a safety policy, and backups must be evidenced
-before they can support a recovery argument. Bound planned tooling and review
-effort to acceptance gaps; optional extensions need scope/cost selection.
+before they can support a recovery argument. Bound planned tests, tooling, and
+review effort to open acceptance criteria and the proof this workflow requires
+(this reference's gates and the planning workflow's test-design step); required
+proof is never optional hardening, and optional extensions need scope/cost
+selection.
 
 Run a criterion-coherence and mechanism-feasibility pass against requirements,
 the target toolchain, earlier/later slice interfaces, and the real actor for
@@ -308,7 +311,8 @@ proof strategy, or the proceed condition.
   diagnostic/review/audit/analyzer findings, recovery or replacement work,
   auth/security/billing boundaries, data migrations, or unresolved
   current-slice implementation blockers. When a `must preserve` equivalence
-  dimension becomes non-equivalent, escalate to `strict`.
+  dimension becomes non-equivalent, escalate to `strict`. `strict` adds the
+  controls its triggers require, not a larger default test inventory.
 
 Compact rendering is allowed only for `light` plans:
 

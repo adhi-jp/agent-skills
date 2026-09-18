@@ -45,6 +45,10 @@ needs durable mapping.]
 [Include only selected high-risk sections and near-miss non-selections.]
 
 ## Test plan
+[List only buckets that have entries. Each entry names what it proves and the
+criterion, required proof, or failure mode it closes, marked `new`,
+`extends <test>`, or `reuses <test>`; cite a reused or extended test from local
+evidence. Keep manual or visual checks visible with their executor and burden.]
 - Acceptance tests:
 - Regression tests:
 - Negative and edge cases:
@@ -145,6 +149,9 @@ Before finalizing:
 - Requirements and observable acceptance criteria precede tests and steps.
 - Tests can falsify the important behavior and include positive controls where
   absence assertions could pass vacuously.
+- Every new test closes an obligation that existing and other selected tests
+  leave open, every dropped candidate names its covering test, and required
+  proof is retained.
 - High-risk inventories, equivalence, recovery, security/data, migration, or
   human-review controls appear only when applicable and remain strong.
 - `Capability dependencies` is omitted when empty and contains only material

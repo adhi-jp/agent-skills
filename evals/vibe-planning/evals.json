@@ -626,6 +626,37 @@
         "Rejects hobby status as sufficient reason to omit material deletion/data-safety proof or fabricate accepted risk; ties proof depth to actual loss and recovery consequences.",
         "Seeks a lower-burden verification path without claiming it exists or treating unverified substitutions as completed acceptance."
       ]
+    },
+    {
+      "id": "E40",
+      "name": "About dialog release-notes disclosure plan",
+      "prompt": "Create an implementation plan for this approved low-risk requirement: the About dialog gets a `Show release notes` disclosure that expands an inline list of the entries returned by `getReleaseNotes()`.\n\nLocal evidence from the repo scan:\n- `src/about/AboutDialog.tsx` renders the version text and a Close button.\n- `src/about/releaseNotes.ts` exports `getReleaseNotes()`, which returns a static array bundled at build time.\n- Current passing tests: `src/about/AboutDialog.test.tsx` asserts the version text and that Close dismisses the dialog; `src/about/releaseNotes.test.ts` asserts the array is non-empty and each entry has a title.\n- The About dialog is available to every user with no sign-in, and nothing in the About area calls a server.\n\nNo fixture files are provided. Treat these supplied scan facts as the complete represented project evidence; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
+      "expected_output": "A plan artifact and concise summary whose Test plan proves the disclosure's list fidelity, expand-collapse interaction, and keyboard and assistive state, reruns the existing About dialog test, and carries no tests for states the dialog cannot reach or for oracles another planned test already asserts.",
+      "files": [],
+      "expectations": [
+        "The plan tests the expanded list against `getReleaseNotes()` for exact count, text, and order.",
+        "The plan tests that activating the disclosure expands the list inline and activating it again collapses it, with the dialog still open.",
+        "The plan includes a keyboard-operation and expanded/collapsed assistive-state check, either automated or manual with its executor named.",
+        "The plan lists the existing `AboutDialog` test (`src/about/AboutDialog.test.tsx`) as reused or extended, and as run, for the unchanged version text and Close behavior.",
+        "The plan adds no separate test or edge case asserting no extra, missing, or duplicate rows when the exact comparison already covers it, unless it names an obligation that comparison leaves open.",
+        "The plan adds no empty or missing release-notes test or edge case (the array is static and its existing test asserts it is non-empty) unless it names an obligation that test leaves open.",
+        "The plan includes no tests or edge cases for sign-in state, permissions, network, or server requests, which the About dialog cannot produce.",
+        "The plan adds no separate dialog-stays-open or no-navigation test apart from the expand-collapse interaction test unless it names what the separate test adds.",
+        "Each Test plan entry names what it closes and whether it is new, extends an existing test, or reuses one.",
+        "The plan gives no numeric cap or test budget as a reason to omit a test."
+      ]
+    },
+    {
+      "id": "E41",
+      "name": "Reviewer comment on a token-expiry test plan",
+      "prompt": "This is a response-only planning exercise. The supplied facts are the entire project evidence universe; do not inspect the ambient project, create or edit files, run project commands, or launch agents or reviews. Reading the applicable skill package is permitted. Describe the decisions without claiming any check ran; do not create or revise a plan artifact.\n\nA draft implementation plan for a bug fix is under review. `isExpired` in `src/auth/token.ts` currently compares `nowMs > expiresAtMs`; the specification says a token is expired when `nowMs >= expiresAtMs`. An existing passing test accepts a token 60 seconds before expiry; it passes on both the current and the fixed comparison.\n\nThe draft `Test plan` lists:\n- T1: a token presented at exactly `expiresAtMs` is rejected as expired (fails on the current code).\n- T2: on a rejection, a spy on the audit log asserts that no token value appears in the audit log.\n- T3: through the same audit-log spy, asserts that a rejection writes one audit entry.\n\nA reviewer comments on the `Test plan`: \"Drop T1, it duplicates the existing expiry test. Drop T3, it duplicates T2. Let's keep the plan lean.\"\n\nGive the disposition of the reviewer's comment on the `Test plan`.",
+      "expected_output": "A disposition that keeps T1 and T3 and states what each distinguishes: the boundary comparison the existing test cannot tell apart, and a working audit-log capture behind T2's absence check.",
+      "files": [],
+      "expectations": [
+        "Keeps T1 because only it fails on the known-bad `nowMs > expiresAtMs` comparison.",
+        "Keeps T3 as the same-channel positive control for T2, so T2 cannot pass vacuously.",
+        "Rejects keeping the plan lean as a reason to drop required proof, and names what each kept test distinguishes."
+      ]
     }
   ],
   "scoring": {

@@ -498,10 +498,12 @@ rules, high-risk controls, plan depth, evidence labels, integrity gates, and
 method selection.
 
 Keep these non-negotiable boundaries visible here: planning is plan-only,
-acceptance criteria and tests precede implementation steps, unsupported facts
-stay `Unproven`, explicit `Accepted risk` is required for current-slice
-implementation blockers, and optional skill routing must not weaken the core
-plan contract.
+acceptance criteria and tests precede implementation steps, tests are selected
+rather than enumerated (each new test closes an obligation that current tests
+and required proof leave open, and required proof is never dropped),
+unsupported facts stay `Unproven`, explicit `Accepted risk` is required for
+current-slice implementation blockers, and optional skill routing must not
+weaken the core plan contract.
 When concise output surfaces an unsupported assumption as a blocker, explain
 its practical impact and fastest proof path instead of returning only the
 `Unproven` label; the plan artifact retains the reference-owned phase-relevance

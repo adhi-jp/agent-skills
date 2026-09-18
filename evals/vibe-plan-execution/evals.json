@@ -426,6 +426,20 @@
         "Requires the commit handoff to carry the tested identity and any exact relevant delta or proof limit so the receiving workflow can assess its proposed contents; does not claim the missing evidence was collected.",
         "Keeps the exercise response-only: does not inspect the ambient project, edit files, execute project commands, or launch agents or reviews. Reading the applicable skill package is allowed; described future actions are not treated as performed actions."
       ]
+    },
+    {
+      "id": "E26",
+      "name": "CSV export slice with review proposals and a skip request",
+      "prompt": "This is a response-only execution exercise. The supplied facts are the entire project evidence universe; do not inspect the ambient project, create or edit files, run project commands, or launch agents or reviews. Reading the applicable skill package is permitted. Describe the decisions and next actions without claiming they ran.\n\nYou are executing the bound implementation plan \"Ledger CSV export\"; slice 1 is current. Its acceptance criteria:\n- AC1: an empty ledger exports a header line only.\n- AC2: a ledger with one entry exports one data row.\n- AC3: the header columns are `date,description,amount_cents`, in that order.\n- AC4: values containing commas or quotes are escaped.\n\nAmounts are stored and exported as integer cents.\n\nThe plan's `Test plan`:\n- T1: empty ledger; asserts the output line count only.\n- T2: one entry; asserts the field values of the data row.\n- T3: a table-driven test with descriptions containing a comma only, a quote only, and both; each row asserts the escaped field.\n- T4: export-then-import round trip through the existing importer, which reads columns by header name.\n\nThe slice's code is implemented. T1-T3 are implemented and pass; T4 has not run yet.\n\nThe post-implementation reviewer proposes:\n- R1: an `.xlsx` export test.\n- R2: locale decimal-separator tests.\n- R3: a description-with-comma test.\n- R4: a one-million-row performance test.\n- R5: a header-order test.\n\nThe user says T4 looks redundant with T2 and asks to skip it.\n\nDescribe the disposition of each review proposal and of the user's request, and the next actions for slice 1, without editing anything.",
+      "expected_output": "Per-item dispositions that bring the header-order test in as a visible plan-preserving correction, reject or defer the out-of-criteria and already-covered proposals, keep T4 against the skip request, and leave slice 1 open until T4 and the header-order test have run.",
+      "files": [],
+      "expectations": [
+        "Treats R5 as material because no executed or planned test checks AC3, and brings the header-order test in as a visible plan-preserving correction rather than adding it silently or omitting it.",
+        "Rejects or defers R1 and R4 as outside the plan's criteria, without implementing them.",
+        "Rejects R2 because integer-cent amounts cannot produce decimal separators, and R3 because T3's comma-only row already covers a comma in a quoted value, without adding either test.",
+        "Keeps T4 under the Plan Deviation Gate because the round trip observes the importer path that T2 does not.",
+        "Does not mark slice 1 complete until T4 and the header-order test have run."
+      ]
     }
   ],
   "scoring": {
