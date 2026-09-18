@@ -11,12 +11,29 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [vibe-coding 4.1.0] - 2026-09-18
+
 ### Changed
 
-- `vibe-coding`: before any step relies on domain, stack, or toolchain facts,
-  loads the visible skills that supply them as subordinate auxiliary guidance,
-  follows their verification path or states the facts unverified with the
-  reason, and names them in route reports and delegation handoffs.
+- Before any step relies on domain, stack, or toolchain facts, loads each
+  visible skill whose description states it supplies those facts, references,
+  or verification, and follows its verification path. When that path is
+  unavailable or the phase's effect class disallows it, the facts are stated as
+  unverified with the reason and the phase's proof requirement stays in force.
+  This applies to every row except `workflow-control`, including the
+  router-owned rows.
+- A loaded skill stays auxiliary: it is never a primary route or a
+  `matched-but-unavailable` subject, and it stays subordinate to the selected
+  phase's effect class, artifact, consent, and stop gates. The route report
+  names each skill on the turn it is loaded. A delegated unit that relies on
+  the skill's facts receives in its delegation record the skill's name, how to
+  reach its content, the instruction to load it, and the verified or unresolved
+  facts.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 60 cells,
+  `with_skill` 89.7% against `without_skill` 70.5%. Its one
+  candidate-below-baseline flag did not recur when that case was rerun three
+  times per configuration. The evals are response-only, so live skill loading
+  in a real host is unverified.
 
 ## [minecraft-modding-workbench 2.2.0] - 2026-09-16
 
