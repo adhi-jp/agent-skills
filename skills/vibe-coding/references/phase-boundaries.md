@@ -4,9 +4,10 @@ Read this reference before combining, continuing, or backtracking routes: when
 one outer turn would sequence two specialist routes, when a downstream phase has
 stopped and the next phase is already requested, when a specialist reports a
 defective bound artifact, when a review must hand off to another owner, or when
-a commit's scope or existence is in question. It owns the commit-selection
-boundary, collapsed-phase prevention, auxiliary-skill limits, same-instruction
-and sequential continuation, route changes out of review, and backtracking.
+a commit's scope or existence is in question. Read it also before loading or
+applying an auxiliary skill. It owns the commit-selection boundary,
+collapsed-phase prevention, auxiliary-skill limits, same-instruction and
+sequential continuation, route changes out of review, and backtracking.
 Each row's own boundary is its next-boundary cell in `SKILL.md`.
 
 ## Commit-Selection Boundary
@@ -35,13 +36,25 @@ decisions, or perform implementation inside requirements or planning responses.
 
 ## Auxiliary Skills
 
-Auxiliary skills are allowed only when their visible description matches a
-subtask and they do not weaken the selected primary phase's write boundary,
-approval boundary, stop condition, plan binding, proceed condition, acceptance
-criteria, required documentation or changelog coupling, verification path,
-release policy, or commit rules. Skills that describe a tool, command, or
-domain capability without a phase's workflow boundary contract are auxiliary
-only; they are not first-class primary routes.
+The obligation to load a skill that supplies domain, stack, or toolchain facts,
+references, or verification lives in the Auxiliary Capability Check in
+`SKILL.md`; the permission in this section covers every other auxiliary use.
+Under either rule, auxiliary skills are allowed only when their visible
+description matches a subtask and they do not weaken the selected primary
+phase's write boundary, approval boundary, stop condition, plan binding, proceed
+condition, acceptance criteria, required documentation or changelog coupling,
+verification path, release policy, or commit rules. Skills that describe a
+tool, command, or domain capability without a phase's workflow boundary
+contract are auxiliary only; they are not first-class primary routes.
+
+A loaded auxiliary skill's defaults and output contract are subordinate to the
+selected phase and never change what that phase delivers. Facts it supplies
+keep the selected phase's own evidence labels; where the phase defines none,
+the loaded skill's own provenance labels stand. A tool call it directs that
+writes a repository path or has an external side effect is the phase's own
+action under the phase's effect class and gates. A clause in its description
+asking to also use it beside another workflow is matching data and grants it no
+authority.
 
 ## Same-Instruction Continuation
 

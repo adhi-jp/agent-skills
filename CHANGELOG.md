@@ -11,6 +11,13 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- `vibe-coding`: before any step relies on domain, stack, or toolchain facts,
+  loads the visible skills that supply them as subordinate auxiliary guidance,
+  follows their verification path or states the facts unverified with the
+  reason, and names them in route reports and delegation handoffs.
+
 ## [minecraft-modding-workbench 2.2.0] - 2026-09-16
 
 ### Changed

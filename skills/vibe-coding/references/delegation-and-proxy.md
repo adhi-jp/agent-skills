@@ -37,6 +37,15 @@ progress. Delegated shared-root edits must be avoided unless the phase permits
 them and records changed paths plus verification status; otherwise use isolated
 work or patch/diff handoff.
 
+When the unit's work relies on domain, stack, or toolchain facts that a visible
+auxiliary skill supplies, its delegation record must carry the skill's name as
+visible metadata states it; how the worker reaches the skill's content; the
+instruction to load it before any further investigation that depends on it and
+to keep it subordinate to the phase; and the verified facts with their sources
+and the version context they apply to, or, where none could be verified, the
+unresolved facts with their proof requirement. A record that only names the
+skill does not satisfy this.
+
 ## Before choosing a delegated model
 
 <!-- shared-contract:begin model-tier-selection source=shared/vibe-contract.md -->
