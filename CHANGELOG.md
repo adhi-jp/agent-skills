@@ -11,32 +11,75 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [vibe-planning 6.1.3] - 2026-09-19
+
 ### Changed
 
-- `vibe-planning`: selects tests instead of enumerating them — starts from
-  current passing tests and required proof, adds a test only for an obligation
-  that existing and already-selected tests leave open, drops a candidate only
-  by naming the test that already covers it, lists reused tests, and never
-  drops required proof or caps the count; test-plan entries name what they
-  close.
-- `vibe-plan-execution`: adds a test beyond the plan only for an open
-  criterion, proof obligation, preserved behavior, or reachable failure mode;
-  dropping a planned test that looks redundant stays a plan deviation that
-  needs local evidence and the Plan Deviation Gate; reviewer requests for more
-  tests are material only when they name such an item.
-- `vibe-debug`: one check may verify several state-space dimensions; an
-  existing check counts only when it runs against the fixed code and proves
-  that dimension's behavior through its own path and channel, and
-  reproduction, regression, and recurrence proof stay required.
-- `skill-eval`: treats a user-stated `--concurrency` as the total across
-  simultaneous runner invocations, starts a closing run only after pending
-  diagnostics have finished and been read, and runs a base comparison from the
-  base checkout's own suite path, confirming the recorded skill source before
-  using the result.
-- `skill-quality`: credits an edit only after new targeted cases run on the
-  unchanged skill text in the scope where the failure occurred, treats drops
-  against older iterations as leads, and compares fresh runs of the unchanged
-  and changed skill text on a fixed set when cases were chosen for low scores.
+- Selects tests instead of enumerating them: starts from current passing tests
+  and required proof, adds a test only for an obligation that existing and
+  already-selected tests leave open, drops a candidate only by naming the test
+  that already covers it, lists reused tests, and never drops required proof or
+  caps the count. Test-plan entries name what they close.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 82 cells,
+  `with_skill` 83.1% against `without_skill` 65.2%, with no change-attributable
+  regression. The evals do not show a reduction in test volume.
+
+## [vibe-plan-execution 6.0.3] - 2026-09-19
+
+### Changed
+
+- Adds a test beyond the plan only for an open criterion, proof obligation,
+  preserved behavior, or reachable failure mode. Dropping a planned test that
+  looks redundant stays a plan deviation that needs local evidence and the Plan
+  Deviation Gate; reviewer requests for more tests are material only when they
+  name such an item.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 52 cells,
+  `with_skill` 81.6% against `without_skill` 72.2%, with no change-attributable
+  regression. The evals do not show a reduction in test volume.
+
+## [vibe-debug 6.0.1] - 2026-09-19
+
+### Changed
+
+- One check may verify several state-space dimensions. An existing check counts
+  only when it runs against the fixed code and proves that dimension's behavior
+  through its own path and channel; reproduction, regression, and recurrence
+  proof stay required.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 46 cells,
+  `with_skill` 76.2% against `without_skill` 64.1%, with no change-attributable
+  regression. The evals do not show a reduction in test volume.
+
+## [skill-eval 2.0.1] - 2026-09-19
+
+### Changed
+
+- Treats a user-stated `--concurrency` as the total across simultaneous runner
+  invocations and starts a closing run only after pending diagnostics have
+  finished and been read. Runs a base comparison from the base checkout's own
+  suite path and confirms the recorded skill source before using the result.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 22 cells,
+  `with_skill` 81.0% against `without_skill` 62.3%, with no change-attributable
+  regression. The concurrency and freeze rules are not measurable by
+  response-only evals.
+
+## [skill-quality 2.7.1] - 2026-09-19
+
+### Changed
+
+- Credits an edit only after new targeted cases run on the unchanged skill text
+  in the scope where the failure occurred. Treats drops against older
+  iterations as leads, and compares fresh runs of the unchanged and changed
+  skill text on a fixed set when cases were chosen for low scores.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, 66 cells,
+  `with_skill` 87.3% against `without_skill` 76.0%, with no change-attributable
+  regression.
+
+## [Repository] - 2026-09-19
+
+### Changed
+
+- Open: the direct-implementation route still has no test-selection rule, and
+  the route that produced the reported over-testing is unverified.
 
 ## [vibe-coding 4.1.0] - 2026-09-18
 
