@@ -604,6 +604,28 @@
         "Requires an authorized rerun of the case after the assertion edit before any closure claim, and states that score movement across the rewording is not a like-for-like trend.",
         "States that no fresh run is authorized or performed in this exercise; the rerun it requires for closure needs explicit authorization."
       ]
+    },
+    {
+      "id": "E32",
+      "name": "Delta cited for a skill edit with a new case",
+      "prompt": "Response-only decision exercise. The supplied facts are the whole evidence universe; do not inspect or modify the ambient checkout, run commands, create files, or launch agents. Reading the applicable skill package is permitted. Describe the decisions without claiming that anything ran. One commit changed a planning skill and its eval suite together: it added a sentence telling the skill to list in a plan's Test plan section only the tests that cover an open obligation instead of enumerating every existing test, and it added one new response-only case for that behavior. The over-enumeration the sentence targets was seen in complete implementation plans the skill drafted. The new case asks the model to draft only the Test plan section of a plan for a small change. The only run of the new case so far happened after that commit: `with_skill` 100%, `without_skill` 40%. The maintainer cites the 60-point delta as the effect of the new sentence and asks you to confirm it. Assess the claim and state the next step.",
+      "expected_output": "An assessment of the cited delta and the next measurement step for the new case.",
+      "files": [],
+      "expectations": [
+        "States that the 60-point `with_skill`/`without_skill` delta measures the presence of the skill rather than the effect of the edit, and keeps the edit's effect unproven until the new case is measured on the unchanged skill text, either before the edit or from a base checkout.",
+        "States that a predicate the unchanged skill text already passes cannot show the edit's effect, proposes an authorized run of the case on the unchanged text in the scope where the over-enumeration occurred (a complete plan rather than only the Test plan section), and classifies predicates as non-discriminating only if the unchanged text passes them."
+      ]
+    },
+    {
+      "id": "E33",
+      "name": "Revert proposal after flagged closing-run cases",
+      "prompt": "Response-only decision exercise. The supplied facts are the whole evidence universe; do not inspect or modify the ambient checkout, run commands, create files, or launch agents. Reading the applicable skill package is permitted. Describe the decisions without claiming that anything ran. After a wording change to a skill, the closing full-suite run of its suite (one run per cell) flagged the cases below, each scoring under its `with_skill` minimum from a three-run iteration of the same suite six days earlier. The prompts and assertions of these cases did not change between the two iterations.\n\n| Case | with_skill now | with_skill minimum, six days earlier | without_skill now | without_skill minimum, six days earlier |\n| --- | --- | --- | --- | --- |\n| E03 | 71% | 86% | 43% | 57% |\n| E07 | 75% | 88% | 50% | 50% |\n| E11 | 67% | 83% | 33% | 50% |\n| E13 | 80% | 100% | 60% | 80% |\n| E18 | 78% | 89% | 56% | 56% |\n| E24 | 70% | 90% | 40% | 60% |\n\nLater the same day, the maintainer reran only these six cases with `with_skill` on the base skill text, one run each, and compared them with the `with_skill now` scores above: the base scored 86%, 88%, 83%, 80%, 89%, and 60% in table order, higher on four of the six. The maintainer proposes reverting the wording change. Assess the proposal.",
+      "expected_output": "An assessment of the revert proposal against the supplied closing-run table and rerun scores.",
+      "files": [],
+      "expectations": [
+        "Treats the cases flagged against the six-day-old iteration as leads to investigate rather than as regressions caused by the change, because executor, grader, or runner drift between the two iterations can lower scores on predicates the change did not touch; citing the lower `without_skill` rates in several rows as a sign of that drift is consistent with this but not required.",
+        "Names the bias from choosing the cases by their low candidate scores in the closing run (cases selected for low scores tend to score higher on any rerun, so the fresh base scores are being compared with the selecting run), and requires fresh runs of the unchanged and the changed skill text in the same window on the fixed set of cases before reverting, or else labels the current comparison exploratory; requiring a fresh changed-text run on the same fixed set in the same window, paired with the maintainer's same-day unchanged-text rerun, satisfies this."
+      ]
     }
   ],
   "scoring": {

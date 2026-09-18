@@ -154,6 +154,28 @@
         "Requires sandbox-local prepared dependencies and recorded manifest/lockfile/runtime/dependency identities; generated dependency trees do not become tracked fixture source.",
         "Requires a fresh offline test run and a failing controlled change to the actually asserted source behavior followed by restoration and a final real pass; it does not claim this evidence already exists."
       ]
+    },
+    {
+      "id": "E10",
+      "name": "Run sequence for a pending wording decision",
+      "prompt": "This is a response-only workflow decision. The supplied facts are the whole evidence universe; do not inspect or modify the ambient checkout, run commands, create files, or launch agents. Reading the applicable skill package is permitted. Describe the decisions without claiming that any command ran. The current user has authorized eval runs for a skill repair on the 21-case suite `evals/example-skill/evals.json` with `--agent codex --model gpt-5.6-luna --config with_skill,without_skill --runs 1 --concurrency 8 --timeout 3600`, but no run should occur inside this exercise. A one-case diagnostic, `--eval-id E17 --runs 3`, run once on the base skill text and once on the candidate skill text, will decide whether a wording change in the candidate text stays. The suite's full closing run is also still due. To save wall time, the operator proposes starting both diagnostic invocations and the full closing run right now, as three runner invocations launched together. Describe the run sequence you would use, including the options each runner invocation carries.",
+      "expected_output": "A run-sequence decision covering the diagnostic invocations and the closing run, with each invocation's options.",
+      "files": [],
+      "expectations": [
+        "Describes a run sequence in which the concurrent provider work of all runner invocations running at the same time stays within the authorized 8, either by running the invocations one at a time or by splitting the cap among invocations that run together (for example 4 and 4); simultaneous invocations that each carry `--concurrency 8` do not satisfy this.",
+        "Describes starting the suite's full closing run only after both diagnostic invocations have finished and their results have been read, rather than launching it together with them; deferring the closing run until the wording decision is made from the diagnostic results satisfies this."
+      ]
+    },
+    {
+      "id": "E11",
+      "name": "Base comparison launched from a script",
+      "prompt": "This is a response-only workflow decision. The supplied facts are the whole evidence universe; do not inspect or modify the ambient checkout, run commands, create files, or launch agents. Reading the applicable skill package is permitted. Describe the decisions without claiming that any command ran. The candidate skill text is edited but uncommitted in the working tree of the repository checkout; the base is the committed `HEAD`. Two cases of `evals/example-skill/evals.json`, E07 and E12, need a base comparison run now; the current user has authorized it with `--agent codex --model gpt-5.6-luna --config with_skill,without_skill --runs 1 --concurrency 8 --timeout 3600`, but no run should occur inside this exercise. The operator has a clone of the repository, made from `HEAD`, at `/tmp/base-clone`, and plans to launch the base run with the script below from the root of the working-tree checkout, where `RUNNER` holds the absolute path of that checkout's eval runner script:\n\n```sh\n( cd /tmp/base-clone && python3 \"$RUNNER\" validate evals/example-skill/evals.json ) &\npython3 \"$RUNNER\" run evals/example-skill/evals.json --eval-id E07,E12 --agent codex --model gpt-5.6-luna --config with_skill,without_skill --runs 1 --concurrency 8 --timeout 3600 &\nwait\n```\n\nDescribe how you would run the base comparison and how you would verify its result before using it.",
+      "expected_output": "A run-and-verification decision for the base comparison of two cases.",
+      "files": [],
+      "expectations": [
+        "Describes running the base against a base checkout (a clone or a worktree) outside the working tree at the base commit, with the runner pointed at that checkout's own suite path, either as a path into that checkout or as a relative path used from inside that checkout in the same shell as the runner command; a described runner invocation whose suite path resolves inside the edited working tree does not satisfy this.",
+        "Requires, before the result is used as base evidence, confirming that the recorded skill path lies inside the base checkout and that the checkout's skill package matches the base commit with no uncommitted changes. Checking only that the run completed or scored its cells fails."
+      ]
     }
   ],
   "scoring": {

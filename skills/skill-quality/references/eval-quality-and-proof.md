@@ -216,7 +216,12 @@ discriminating, observable, and hard to pass with the old failure mode.
   global skill lists, fake baselines, universal checklists, weak proof
   substitutes, unsupported claims, stale assumptions, or overfit fixture names.
 - Keep baselines meaningful. A 100 percent pass rate for both `with_skill` and
-  `without_skill` usually means the assertion is not discriminating.
+  `without_skill` usually means the assertion is not discriminating. Likewise, a
+  predicate the unchanged skill text already passes cannot show an edit's
+  effect. When runs are authorized, measure a new targeted case on the unchanged
+  text (before the edit or from a base checkout) in the scope where the failure
+  occurred; to save cost, trim inputs and steps around the task, not the
+  deliverable scope where the failure occurred.
 - Do not hide grader ambiguity by loosening expectations. Clarify the assertion
   or add a programmatic check when the property is mechanical. When you relax or
   delete an assertion or a both-config-pass eval to clear a failure, record the
@@ -398,6 +403,15 @@ Compare behavior before declaring improvement:
 
 - Which failures changed from fail to pass, and which old passes stayed intact?
 - Did the baseline also pass? If yes, the eval may not prove the skill helped.
+- Is a suspected regression measured against an older iteration? Executor,
+  grader, and runner drift move untouched predicates, so treat it as a lead.
+  Cases chosen because they scored low tend to score higher on any rerun, so
+  compare fresh same-window runs of the unchanged and the changed skill text on
+  that fixed case set, with the requested configurations, rather than the
+  selecting run's scores; otherwise report the result as exploratory. A
+  placement or restatement diagnostic is such a fix check: run the regressed
+  cases on the text with and without the restatement, and still revert a
+  restatement that does not move them.
 - Did a new or targeted eval show any of these? If so, inspect prompt leakage,
   expected-output summaries, named capability hints, assertion applicability,
   and whether the eval is regression-only before claiming skill value.

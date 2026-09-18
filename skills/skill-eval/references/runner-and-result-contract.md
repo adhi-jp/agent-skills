@@ -71,21 +71,24 @@ Read this reference before executing `run`, diagnosing or reporting an iteration
   probe launches.
 - Total work is bounded. `--runs` is capped at 1..5 (default 1), `--timeout`
   bounds each subprocess (default 600s), and `--concurrency` caps concurrent
-  provider subprocesses (1..16, default 4). A timed-out or failed executor is
-  recorded as a failed run, not a pass, and the grader is skipped for it; there
-  are no retries.
+  provider subprocesses within one invocation (1..16, default 4); simultaneous
+  invocations add up, so a user-stated concurrency is the total across them
+  unless the user allows more; split the cap between invocations, never the
+  requested configs. A timed-out or failed executor is recorded as a failed run,
+  not a pass, and the grader is skipped for it; there are no retries.
 - Before launching a full matrix whose recent relevant diagnostics or prior
   runs show material time or token cost, record and surface a pre-run execution
   receipt. It states the cell count (`selected evals x configs x runs`),
-  requested concurrency, per-subprocess timeout, delivery/workload classes
-  such as full-artifact versus response-only, a wall-time range or lower bound
-  derived from recorded runner durations, the worst recent successful cell and
-  the supported count of similarly expensive cells or an explicit `unknown`
-  pending artifact inspection, the infrastructure stop trigger, and the tested
-  cancellation handle. This is an operational forecast, not a benchmark metric:
-  do not hand-enter it into result artifacts or present it as measured eval
-  output. If it materially exceeds the user's apparent time budget or prior
-  expectation, obtain the user's decision before launch.
+  requested concurrency as the total across simultaneous invocations,
+  per-subprocess timeout, delivery/workload classes such as full-artifact versus
+  response-only, a wall-time range or lower bound derived from recorded runner
+  durations, the worst recent successful cell and the supported count of
+  similarly expensive cells or an explicit `unknown` pending artifact
+  inspection, the infrastructure stop trigger, and the tested cancellation
+  handle. This is an operational forecast, not a benchmark metric: do not
+  hand-enter it into result artifacts or present it as measured eval output. If
+  it materially exceeds the user's apparent time budget or prior expectation,
+  obtain the user's decision before launch.
 - Start a long run only through a host mechanism with a proven control handle,
   such as an interactive PTY or a job/session identifier whose interrupt
   behavior is known. Record the handle before waiting. On cancellation, do not
@@ -123,7 +126,18 @@ Read this reference before executing `run`, diagnosing or reporting an iteration
   every provider, rejects `.agents/skills` snapshots, `.claude/skills` links,
   files not named `SKILL.md`, and paths outside `skills/<skill-name>/`. The
   executor prompt instructs reading that source directly and not substituting a
-  host skill tool, snapshot, link, or cached copy.
+  host skill tool, snapshot, link, or cached copy. The runner resolves the
+  suite path and takes the repository root from the nearest ancestor holding
+  both `evals/` and `AGENTS.md`, falling back to the current directory when
+  none does; the skill source and fixtures come from that root, and the
+  default workspace sits next to the suite unless `--workspace` is given. For
+  a base comparison, point the run at the base checkout's own suite path (a
+  clone or worktree at the base commit, outside the working tree, with any
+  copied inputs tracked there). Before using the result as base evidence,
+  confirm that the recorded `skill_path` in `benchmark.json` lies inside that
+  checkout and that the checkout's skill package matches the base commit with
+  no uncommitted changes; a `skill_path` inside the working tree means the
+  candidate was measured.
 - Provider subprocesses run from a per-run sandbox outside the source checkout.
   Build its contents from the selected case's declared fixture project roots
   and explicit supporting files, then add the target package only for

@@ -28,6 +28,15 @@ use `[Repository] - YYYY-MM-DD`.
   existing check counts only when it runs against the fixed code and proves
   that dimension's behavior through its own path and channel, and
   reproduction, regression, and recurrence proof stay required.
+- `skill-eval`: treats a user-stated `--concurrency` as the total across
+  simultaneous runner invocations, starts a closing run only after pending
+  diagnostics have finished and been read, and runs a base comparison from the
+  base checkout's own suite path, confirming the recorded skill source before
+  using the result.
+- `skill-quality`: credits an edit only after new targeted cases run on the
+  unchanged skill text in the scope where the failure occurred, treats drops
+  against older iterations as leads, and compares fresh runs of the unchanged
+  and changed skill text on a fixed set when cases were chosen for low scores.
 
 ## [vibe-coding 4.1.0] - 2026-09-18
 

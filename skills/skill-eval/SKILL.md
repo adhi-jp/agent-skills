@@ -37,9 +37,10 @@ signals for the quality owner, not skill defects.
 A partial diagnostic must remain visibly non-closing: unknown or empty ids fail
 before iteration creation or provider launch; manifests and benchmarks record
 selected ids and full-suite size; `benchmark.md` says `REVIEW REQUIRED`; and the
-skill, prompt, assertions, fixtures, and proof path must be frozen before a later
-unfiltered closing run. Keep the earlier official aggregate unchanged when an
-artifact-level correction is only diagnostic.
+skill, prompt, assertions, fixtures, and proof path must be frozen before a
+later unfiltered closing run starts; frozen means no diagnostic that could still
+change them is running or unread. Keep the earlier official aggregate unchanged
+when an artifact-level correction is only diagnostic.
 
 ## When To Use
 
