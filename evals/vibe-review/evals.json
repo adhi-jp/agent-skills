@@ -33,7 +33,7 @@
         "JSON does not use ambient repository state, filenames, or the candidate finding as DoD anchors; it may retain the finding only as the object awaiting triage.",
         "JSON falls back to DoD interview or another valid confirmed DoD source before triage.",
         "JSON identifies item 4 as weak specifically because it lacks at least three sibling-framed finding-type rejections.",
-        "JSON enters degraded mode or asks for an explicit weak-item override and does not silently use `admin stuff later` for `reject-out-of-scope` decisions."
+        "Suppresses `reject-out-of-scope` while item 4 (`admin stuff later`) remains weak unless the user explicitly approves a narrow override; a blocking or do-not-disposition state pending clarification satisfies this without a specific mode label."
       ]
     },
     {
@@ -98,7 +98,10 @@
         "Treats only host-validated structural records as isolated-path inputs; original reviewer responses remain unavailable to the coordinator.",
         "Reports three accepted records without reserializing the adapter input arrays.",
         "Leaves public finding titles and recommendations missing or pending until local premise verification.",
-        "Keeps the unlocated reviewer's missing location, severity, confidence, and source id explicit rather than borrowing them from another record.",
+        "Explicitly marks the unlocated reviewer candidate's location as missing rather than borrowing it from another record.",
+        "Explicitly marks the unlocated reviewer candidate's severity as missing rather than borrowing it from another record.",
+        "Explicitly marks the unlocated reviewer candidate's confidence as missing rather than borrowing it from another record.",
+        "Explicitly marks the unlocated reviewer candidate's source finding id as missing rather than borrowing it from another record.",
         "Places normalization before validity and subsequent scope/selection gates.",
         "Records that opaque host provenance is retained internally.",
         "Omits host_source_ref, source_backend_ref, and other adapter-private provenance from the public record.",
@@ -224,7 +227,7 @@
         "Records local-coordinator backend, source-response isolation not applicable, local result shape and mutation containment, and single execution mode without claiming delegation occurred.",
         "Preserves the common DoD/scope, cascade, acceptance, residual, and terminal gates on the local path.",
         "Keeps public finding authorship with the coordinator and local evidence.",
-        "Discloses any material coverage degradation from the unavailable delegated path.",
+        "Discloses any material required coverage the selected local path leaves unmet; delegation unavailability alone does not establish degradation, and when none is established, omitting a degradation statement passes.",
         "Treats one proportional pass as sufficient for this small unchanged target.",
         "Requires terminal audit and verification before closure.",
         "Does not schedule another cycle without fixes, changed evidence, drift, or a new-angle request.",

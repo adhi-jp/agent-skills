@@ -533,7 +533,9 @@ operation. It checks:
 - For all scopes: finding/fix/verification records, plus detailed cascade notes
   and batch envelopes when the fix was cross-file, stateful, security/data
   sensitive, or otherwise high-cascade.
-- Dirty-isolation refresh and recovery status.
+- Dirty-isolation refresh and recovery status, carrying the retained isolation
+  metadata (recovery reference such as the stash entry, and its digest)
+  verbatim while a restore is pending.
 
 A completed fix loop closes under the commit contract in `SKILL.md`, which
 states what selects the commit, what its scope may cover, what suspends it, and
