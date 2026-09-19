@@ -61,9 +61,10 @@ research without a bound target, ask for it.
   branch, not undisclosed overrides or deployment replacement.
 - Match the depth to the question. For broad behavior, impact, negative,
   architecture, security, or data-loss conclusions, trace relevant callers,
-  configuration, tests, data boundaries, and a plausible counterexample.
-  Name material surfaces not inspected. A failed search means only not found
-  where searched, never does not exist.
+  configuration, tests, data boundaries, and a plausible counterexample. Name
+  material surfaces not inspected — other callers or UI surfaces, locales, or
+  runtime rendering — rather than one generic limitation. A failed search means
+  only not found where searched, never does not exist.
 - Keep all checks inside the bound corpus. In closed-corpus output, cite only
   supplied paths and describe gaps as not supplied or unverified.
 
