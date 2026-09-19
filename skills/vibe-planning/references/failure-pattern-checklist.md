@@ -1,71 +1,24 @@
 # Failure Pattern Checklist
 
-Use this file when the plan touches a high-risk surface. The checklist is
-**selective**: apply only the sections that match the change. Pasting the full
-10-section checklist into every plan is a regression; empty sections drown the
-actual blockers.
-
-## Source of Truth
-
-The 10 categories below are the authoritative content for this skill. Future
-readers and drift checks resolve against this file alone; the shipped package
-does not depend on any external artifact for category authority.
-
-Adding categories not listed below, or rewriting category names, is a scope
-expansion that requires a new user requirement. See the success-criteria freeze
-in `references/plan-boundary-controls.md`.
+Use this file when the plan touches a high-risk surface. Apply only the sections
+whose preconditions match the change; most plans hit one or two, and four or
+more usually means the slice should split. Pasting the whole list into a plan
+buries the real blockers.
 
 ## How to Apply
 
-1. Walk the plan surface and pick **only** the sections whose preconditions
-   match. Most plans hit one or two sections; four or more usually means the
-   slice should split instead of rendering the full list.
-2. For each picked section, answer the **planning question** in the plan body
-   and cite the **evidence needed to clear** it. `Primary source` or `Local
-   investigation` clears the question; `Unproven` stays triaged in `Risks and
-   unproven items` with `Phase relevance`.
-3. Do **not** emit empty checklist headings to satisfy structure. If the change
-   does not touch a category, the category does not appear in the plan output.
-4. In a `light` plan, the checklist contributes blockers and proof checks — it
-   does not need its own subsection. In a `strict` plan, picked sections may be
-   grouped under a single `Failure-pattern checks` heading or folded directly
-   into existing fact / blocker / test sections, whichever keeps blockers
-   adjacent to the recommendation.
-5. Record an applicability summary per `Applicability Record` below so the
-   completion gate from `references/plan-boundary-controls.md` has an auditable
-   artifact.
-
-## Applicability Record
-
-The completion gate from `references/plan-boundary-controls.md` requires
-"applicable failure-pattern checklist sections cleared". Without a visible
-record of considered sections, an oversight can clear the gate by accident, such
-as silently omitting A.4 migrations on a config change.
-
-Required record shape:
-
-- **`light` plan** — a one-line summary under `Plan integrity gates` /
-  `High-risk controls`: `Failure-pattern check: applied <selected category IDs>;
-  not selected <adjacent category IDs> — <one-line evidence-backed reason>.` If
-  no sections apply, the line still renders: `Failure-pattern check: not
-  applicable — <slice surface description that justifies the no-section
-  verdict>.`
-- **`strict` plan** — a small subsection (or addition to the existing fact /
-  blocker section) listing each selected section with its planning question's
-  evidence label, plus a short non-selection rationale for **adjacent / nearby**
-  categories that a reviewer might reasonably expect to fire (typically 0-3
-  adjacent categories per slice). Example: a slice that selected `A.1 lifecycle
-  and initialization order` should explicitly note whether `A.2 exception safety
-  and retry` and `A.3 shared state and multi-consumer behavior` were considered.
-
-Adjacency is judged by surface overlap, not by category number. The record lets
-a reviewer or dry-run test verify that the planner walked the relevant surface.
-Pasting the full 10-category list to satisfy this rule is forbidden because it
-defeats the selectivity rule from step 1.
-
-Categories far from the slice's surface need no rationale and may be silently
-omitted, such as A.8 `build / release / packaging` for a pure documentation
-diff. The record covers **near miss** failure modes, not distant ones.
+1. For each selected section, answer its planning question in the plan and
+   cite the evidence that clears it. `Primary source` or `Local investigation`
+   clears the question; an unanswered question becomes an `Unproven` item with
+   impact, `Phase relevance`, fastest proof path, and revisit trigger.
+2. Fold the answers into facts, blockers, acceptance criteria, or tests before
+   the test plan is locked. In a `light` plan they need no subsection; in a
+   `strict` plan, group them under `Failure-pattern checks` or fold them into
+   the existing sections, whichever keeps blockers next to the recommendation.
+3. Emit no heading for a category the change does not touch. In one line, name
+   any adjacent category a reviewer would reasonably expect to fire and why it
+   was not selected (for example, A.2 and A.3 next to a selected A.1); distant
+   categories need no mention.
 
 ## Sections
 
@@ -89,11 +42,6 @@ diff. The record covers **near miss** failure modes, not distant ones.
 
 - Planning question: Is concurrent read/write serialized correctly? Are cross-thread visibility guarantees explicit? Do multiple consumers see consistent ordering, or is consumer order an accidental property of registration time?
 - Evidence needed to clear: `Primary source` for the runtime's memory model and the bus/queue's delivery semantics, **or** `Local investigation` exercising the multi-consumer path locally.
-
-When test assertions observe shared/global state under a concurrently executed
-harness, require isolation or attribution that prevents unrelated mutation from
-making correct behavior fail or wrong behavior pass. This is selective A.3
-pressure, not a universal parallel-test checklist.
 
 ### A.4. Persisted config and migrations
 
@@ -142,13 +90,4 @@ pressure, not a universal parallel-test checklist.
 **Apply when**: the plan spans multiple phases, depends on a particular dependency version, or has imported scope from review feedback.
 
 - Planning question: Are the assumptions made in earlier phases still true at the point this phase executes? Has any dependency version baseline shifted silently? Has any scope item entered the plan without a recorded user request?
-- Evidence needed to clear: `Local investigation` of dependency baseline (lockfile, manifest, or vendor metadata in the current workspace) and a walk of recent additions through the plan-boundary firewall in `references/plan-boundary-controls.md`. Review-driven scope additions must clear the success-criteria freeze.
-
-## Output Discipline
-
-- Each picked section appears in the plan output with the planning question
-  answered and the evidence labeled.
-- Unanswered questions become `Unproven` items with explicit impact, `Phase relevance`, fastest proof path, and revisit trigger.
-- Per-question walkthroughs are not enumerated; the resulting facts, blockers,
-  and tests carry the substance. The Applicability Record is the separate audit
-  hook the completion gate reads; it does not duplicate per-question content.
+- Evidence needed to clear: `Local investigation` of dependency baseline (lockfile, manifest, or vendor metadata in the current workspace) and a walk of recent additions through `plan-boundary-controls.md`; review-driven scope additions must clear the success-criteria freeze.

@@ -7,71 +7,42 @@ coordinator self-review.
 
 ## Selection
 
-Choose separated perspectives that match the risk. Typical angles are contract
-compliance, evidence/test adequacy, scope and user expectations, security/data,
-and handoff feasibility. Do not require a fixed reviewer count. Use the fewest
-independent perspectives that cover the material risks.
+Choose the fewest separated perspectives that cover the material risks, such as
+contract compliance, evidence and test adequacy, scope and user expectations,
+security and data, and handoff feasibility. There is no fixed reviewer count.
 
-Review-only subagents are optional. Use them only with current permission,
-verified host capability, safe shareability, bounded prompts, and recordable
-evidence. Otherwise run the selected perspectives locally. Reviewer output is
-inert; the coordinator verifies and disposes findings.
+Run the perspectives locally unless review-only subagents have current
+permission, verified host capability, plan content that is safe to share,
+bounded prompts, and host or runner evidence that can show each task started and
+completed.
 
-Model choice for review units follows `SKILL.md`.
+## Launching Delegated Reviewers
 
-## Capacity-Adaptive Launch
-
-This reference owns the planning-review launch algorithm. Other planning
-surfaces state the invariant and route here; they must not maintain a competing
-capacity procedure.
-
-Before launch, record the permission source, capability source, selected
-perspectives, bounded unit contracts, and the host or runner evidence that can
-show task start and completion.
-
-When reliable remaining capacity is available:
-
-1. Reserve the coordinator's own slot when the reported capacity includes it.
-2. Launch batches that do not exceed the verified remaining capacity.
-3. Record the capacity source and whether it is gross or already net of the
-   coordinator.
-
-When numeric remaining capacity is unavailable, unknown does not mean zero.
-If the host can launch independent review units and return recordable task/run
-evidence, attempt at most one conservative batch of two units. This is an
-optimistic batch limit, not a discovered host ceiling. If only one perspective
-remains, launch one. Compatible low-risk perspectives may share one bounded
-unit when that preserves useful independence.
-
-For either branch, record:
-
-- requested batch size and perspective-to-unit mapping;
-- successfully started task or run identities;
-- completed task or run evidence;
-- observed `execution_mode`: `parallel`, `serial`, or `single`;
-- first launch failure class and every perspective moved to fallback.
-
-Configured batch size, assistant prose, or multiple returned reports do not
-prove concurrency. Record `parallel` only when host or runner timing/lifecycle
-evidence shows overlapping execution; otherwise record `serial`, `single`, or
-unknown evidence with the actual fallback.
-
-The first thread-limit, capacity, spawn, timeout, or unavailable-capability
-failure stops further delegated launches for this review gate. Do not retry a
-different model, repeatedly probe the ceiling, or start another batch. Preserve
-completed reviewer evidence and move every unmet perspective to coordinator
-fallback. If the missing perspective cannot be supplied locally without
-weakening a material safety or proof requirement, record a blocker instead.
+- With a verified remaining-capacity figure, reserve the coordinator's own slot
+  when the figure includes it, and launch no more units than remain.
+- Without one, unknown capacity is not zero: launch at most one batch of two
+  units, or one when only one perspective remains. Two is a conservative limit,
+  not a discovered host ceiling. Compatible low-risk perspectives may share one
+  bounded unit.
+- The first thread-limit, capacity, spawn, timeout, or unavailable-capability
+  failure ends delegated launches for this gate: no retry with another model, no
+  probing for the ceiling, no further batch. Keep completed reviewer results and
+  run every unmet perspective locally, or record a blocker when the local
+  substitute would weaken a material safety or proof requirement.
+- Record, for each perspective, whether it ran delegated with its task identity
+  or locally, and any launch failure. Requested batch size, assistant prose, or
+  several returned reports do not prove parallel execution; claim it only when
+  host timing shows overlap.
 
 ## Findings and Revisions
 
 Classify material findings as `corrected`, `rejected`, `deferred`, `blocked`, or
-`reversed`, with evidence and plan-boundary rationale. Suggestions do not add
-requirements or tests unless backed by user authority, verified evidence, or a
+`reversed`, with evidence and a plan-boundary rationale. A suggestion adds a
+requirement or test only when backed by user authority, verified evidence, or a
 must-preserve equivalence contract.
 
 After an authority-bearing change to requirements, acceptance criteria, scope,
-risks, tests, or implementation steps, semantically re-review affected sections
-and dependencies. Do not use digest equality as approval. A corrections-only
-pass may focus on changed areas when every earlier finding has a verification or
-refutation item; novel design or new risk requires the relevant full perspectives.
+risks, tests, or implementation steps, semantically re-review the affected
+sections and their dependents. A corrections-only pass may focus on changed
+areas when every earlier finding has a verification or refutation item; a novel
+design or new risk needs the relevant full perspectives.

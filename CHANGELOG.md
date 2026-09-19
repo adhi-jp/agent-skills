@@ -52,6 +52,10 @@ use `[Repository] - YYYY-MM-DD`.
   constraints`, now one section. The five-option brainstorming cap is gone,
   and a response-only proxy deferral no longer has to be emitted at once as a
   complete record.
+- `vibe-planning`: plans drop the optional acceptance-proof matrix and
+  quality checklist; delegated plan review records only how each perspective
+  ran and any launch failure; a planning-time command notes the question it
+  answers instead of a six-field receipt.
 - Verification: evals were not re-run after this trim, so every behavior
   delta above is `Unproven`. Suite `validate`, `vibe_shared_contract.py check
   --strict` and `audit-names`, and `python3 -m pytest tests` passed. Most eval

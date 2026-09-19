@@ -1,127 +1,107 @@
 # Behavioral Equivalence Analysis
 
-Use this file when a change touches existing behavior, whether the change is
-intended to preserve, modify, or replace that behavior.
+Use this file when a change touches existing behavior, whether it is meant to
+preserve, modify, or replace that behavior: refactors, migrations, replacements,
+internal implementation changes, and explicit behavior changes. A user-requested
+change can still affect other dimensions, and "the new code uses the same API",
+"the user asked for this change", or "the immediate output looks the same" are
+not reasons to skip it.
 
-## When to Apply
+## Behavior Contract Inventory
 
-Apply this analysis to **any change that touches existing behavior**, including
-replacement, refactoring, migration, internal implementation change, and
-explicit specification change.
+Write the current contract down before classifying any dimension; otherwise
+equivalence reasoning anchors on memory. Populate three separately labeled
+buckets, compactly in a `light` plan but never merged into one paragraph:
 
-This analysis is not limited to changes that claim to preserve contracts. Even
-when the user explicitly requests a behavior change, other dimensions may be
-unintentionally affected.
+1. **Immediate observable behavior** — inputs, outputs, return values, visible
+   state changes, user-facing effects, and documented contracts such as API
+   response shape, command output, UI rendering, and error messages.
+2. **Internal state transition** — what the operation does to the source object,
+   container, cache, or context: mutation, ownership transfer, observer
+   notifications, intermediate flags, reentrancy, and ordering against
+   neighboring state changes that downstream consumers see.
+3. **Persistent / lifecycle behavior** — what survives persistence round-trips,
+   restart, reload, cache invalidation, garbage collection, or migration:
+   on-disk schema, serialized envelope, identity keys, version markers, cleanup
+   obligations, reload reconstruction, and packaging behavior when the change
+   crosses a build artifact boundary.
 
-The following are **not** valid reasons to skip this analysis:
+Label every entry `Primary source`, `Local investigation`, or `Unproven`; an
+`Unproven` entry is triaged like any other `Unproven` item. For replacement,
+restoration, rollback, or rewrite, give each bucket two columns — historical or
+known-good, and current — and treat a historical column that cannot be sourced
+as a recovery blocker (`change-recovery-checklist.md`).
 
-- "The new code uses the same API as the old code."
-- "The user requested this specific change, so other dimensions are fine."
-- "The immediate output looks the same."
-
-## Build the Inventory First
-
-Before classifying dimensions, build the behavior contract inventory from
-`references/behavior-contract-inventory.md`. The inventory pins each bucket to
-`Primary source`, `Local investigation`, or `Unproven`: immediate observable
-behavior, internal state transition, and persistent / lifecycle behavior.
-
-Dimension classification anchors on the inventory rows. A dimension cannot be
-classified `Equivalent` against an `Unproven` inventory entry; it is `Unknown`
-until the entry is proven. A dimension the change clearly affects must also have
-a corresponding inventory entry; missing inventory rows are not a free pass.
-
-## Mapping Inventory Buckets to Dimensions
-
-Use the bucket to dimension mapping below as a starting point. Buckets feed
-multiple dimensions; the mapping is informative, not exhaustive.
-
-| Inventory bucket | Primary dimensions | Secondary dimensions |
-| --- | --- | --- |
-| Immediate observable behavior | 1 (Immediate observable result), 9 (External contracts and guarantees) | 7 (Error and edge cases) |
-| Internal state transition | 2 (Ownership and reference semantics), 3 (Internal state changes), 4 (Side effects and events) | 7 (Error and edge cases), 9 (External contracts and guarantees) |
-| Persistent / lifecycle behavior | 5 (Persistence and serialization), 6 (Lifecycle and reload behavior), 8 (Resource cleanup and disposal) | 9 (External contracts and guarantees) |
-
-Examples:
-
-- An inventory row "FIFO eviction removes the least-recently-inserted entry on `put` overflow — `Local investigation`" feeds dimension 1 (output of `evict()`), dimension 3 (internal state of the cache after overflow), and dimension 9 (the documented eviction guarantee).
-- An inventory row "On reload, the cache rebuilds from the persisted ordering log — `Primary source`: schema doc" feeds dimension 5 (round-trip preservation), dimension 6 (reload reconstruction), and possibly dimension 8 (cleanup of stale log entries).
-- An inventory row "Late subscribers registered after `start()` miss the initial event — `Unproven`" leaves dimension 6 (lifecycle and reload behavior) at `Unknown` until the contract is verified.
+The inventory appears in the plan before the equivalence analysis, and the
+analysis cites its rows. Omit it only when source evidence shows the slice adds
+a new code path with no existing-behavior intersection, and say so.
 
 ## Scope Separation
 
-Before classifying dimensions, separate each into one of two scopes:
-
-- **In scope for change**: The user's request or requirements explicitly allow
-  this dimension to change. Requires a clear, traceable basis in the user's
-  stated requirements.
-- **Must preserve** (default): Every dimension not explicitly marked as in scope
-  for change. When in doubt, classify as must preserve.
-
-Do not classify a dimension as in scope for change without an explicit basis in
-the user's requirements. "It seems reasonable to change this" is not sufficient.
+Every dimension is `must preserve` by default. Mark a dimension `in scope for
+change` only with a clear, traceable basis in the user's stated requirements;
+"it seems reasonable to change this" is not one.
 
 ## Dimension Classification
 
 Classify every dimension with exactly one of:
 
-- **`Equivalent`** — Verified by `Primary source` or `Local investigation`.
-  Expected classification for `must preserve` dimensions.
-- **`Changed (in scope)`** — Allowed only for `in scope for change` dimensions,
-  and only when all of the following are present:
-  1. The user's request explicitly places this dimension in scope for change.
-  2. Changed success criteria are documented.
-  3. A test for the new behavior exists.
-  - If any of these are missing, classify as `Unknown` instead.
-- **`Not applicable`** — This dimension does not apply to the operation being
-  changed. Requires a short rationale with an evidence class.
-- **`Unknown`** — Not yet verified. Treat as `Unproven` and resolve before implementation.
+- **`Equivalent`** — verified by `Primary source` or `Local investigation`
+  against the inventory. A dimension resting on an `Unproven` inventory entry is
+  `Unknown`, not `Equivalent`.
+- **`Changed (in scope)`** — only for an `in scope for change` dimension with
+  the user's explicit basis, documented changed success criteria, and a test for
+  the new behavior; missing any of these makes it `Unknown`.
+- **`Not applicable`** — the dimension does not apply to the operation; give a
+  short rationale with an evidence class.
+- **`Unknown`** — not yet verified; treat it as `Unproven` and resolve it before
+  implementation.
 
-### When a Must Preserve Dimension Is Not Equivalent
+A dimension the change clearly affects needs an inventory entry; a missing entry
+is not a free pass.
 
-If analysis reveals that a `must preserve` dimension is not equivalent:
-
-1. **Stop and report to the user.** State that this dimension was not explicitly
-   in scope for change but is not equivalent.
-2. Do not self-classify the difference as intentional or acceptable. Discovery
-   of a non-equivalent `must preserve` dimension is a stop signal.
-3. If the user approves reclassifying the dimension to `in scope for change`,
-   update the classification to `Changed (in scope)` and provide the required
-   success criteria and test.
-4. When any `must preserve` dimension is reclassified to `in scope for change`
-   during analysis, **automatically escalate to a `strict` plan** and update the
-   plan's success criteria to reflect the expanded scope of change.
+When a `must preserve` dimension is not equivalent, stop and report it to the
+user; do not self-classify the difference as intentional or acceptable. If the
+user approves making it `in scope for change`, classify it `Changed (in scope)`
+with its success criteria and test, and escalate the plan to `strict`.
 
 ## Comparison Dimensions
 
-For each operation being changed, compare old and new implementations across these nine dimensions:
+For each changed operation, compare old and new implementations across:
 
-1. **Immediate observable result** — Output, return value, or visible state change.
-2. **Ownership and reference semantics** — Does the operation move, copy, alias, or create? Does it transfer ownership or produce a new independent instance?
-3. **Internal state changes** — What happens to the source object, container, or context after the operation? Is it consumed, marked, hidden, or left unchanged?
-4. **Side effects and events** — Does the operation fire events, send notifications, write logs, update counters, or trigger observers? Do the side effects match?
-5. **Persistence and serialization** — If the affected state is saved and reloaded, does the result survive identically? Are there dangling references, orphaned copies, or duplicate entries after a round-trip?
-6. **Lifecycle and reload behavior** — What happens on process restart, session reconnect, context reload, cache invalidation, view reconstruction, or garbage collection?
-7. **Error and edge cases** — What happens with invalid input, missing prerequisites, concurrent access, partial failure, or resource exhaustion? Do failure modes match?
-8. **Resource cleanup and disposal** — Does the replacement leave the same cleanup obligations? Are there leaked resources, unclosed handles, or orphaned state?
-9. **External contracts and guarantees** — Consumer-visible wire contracts (API response structure, event schemas), execution ordering guarantees, input validation rules, authorization and access control behavior, idempotency, atomicity, consistency guarantees, rate limiting, and retry semantics.
+1. **Immediate observable result** — output, return value, or visible state
+   change.
+2. **Ownership and reference semantics** — move, copy, alias, or create; whether
+   ownership transfers.
+3. **Internal state changes** — whether the source object, container, or context
+   is consumed, marked, hidden, or left unchanged.
+4. **Side effects and events** — events, notifications, logs, counters, and
+   observers.
+5. **Persistence and serialization** — whether a save/reload round-trip
+   preserves the result without dangling references, orphans, or duplicates.
+6. **Lifecycle and reload behavior** — restart, reconnect, context reload, cache
+   invalidation, view reconstruction, and garbage collection.
+7. **Error and edge cases** — invalid input, missing prerequisites, concurrent
+   access, partial failure, and resource exhaustion.
+8. **Resource cleanup and disposal** — cleanup obligations, leaked handles, and
+   orphaned state.
+9. **External contracts and guarantees** — wire contracts and event schemas,
+   ordering, input validation, authorization, idempotency, atomicity,
+   consistency, rate limiting, and retry semantics.
 
-Not every dimension applies to every change. Use `Not applicable` with a rationale for irrelevant dimensions, but do not skip classification.
+Classify every dimension, using `Not applicable` with a rationale rather than
+skipping one.
 
 ## Surface Equivalence Warning
 
-When the new code has a similar API name, similar parameter shape, or similar immediate output to the old code, treat this as a **risk signal** rather than evidence of equivalence.
-
-Before classifying a dimension as `Equivalent`:
-
-- Read the implementation or documentation of both old and new code to understand internal behavior, not just the input/output contract.
-- For each dimension, identify at least one way the old and new implementations could plausibly differ.
-- If you cannot identify any plausible difference for a dimension, state that explicitly as a verified claim with evidence, not as an assumption.
+A similar API name, parameter shape, or immediate output is a risk signal, not
+evidence of equivalence. Before classifying a dimension `Equivalent`, read the
+implementation or documentation of both old and new code and name at least one
+plausible way they could differ; if none exists, state that as a verified claim
+with evidence.
 
 ## Output Requirement
 
-The equivalence analysis must appear in the plan output. Internal consideration alone is not sufficient.
-
-Once this analysis has been performed for a change, the analysis section must
-remain in the output regardless of subsequent plan-depth changes, scope
-reclassification, or any other plan updates.
+The inventory and the equivalence analysis appear in the plan output; internal
+consideration is not enough. Once performed, the analysis stays in the plan
+through later depth changes, scope reclassification, or other updates.

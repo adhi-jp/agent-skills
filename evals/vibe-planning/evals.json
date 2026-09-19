@@ -1,8 +1,8 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-planning",
-  "purpose": "External eval set for vibe-planning. Coverage focuses on durable localized plan artifacts, evidence/proof discipline, plan-only boundaries, semantic current-content binding, exceptional capability dependencies, conditional resumable progress, risk-proportional review, explicit checkpoint selection, trusted handoff, recovery, durable language, and human-owned acceptance. Also covers an acceptance metric that returns the same verdict before and after the planned change.",
-  "coverage_notes": "The suite uses representative project classes only when they pressure a reusable vibe-planning contract; it does not keep separate cases only to exhaustively cover project families. E01, E02, E04, E05, E06, E08, E12, E13, E15, and E18 retain full-artifact integration pressure, including artifact capture, ordering, routing, review fallback, self-review, handoff, and concise summary behavior. Narrow decision cases are explicit response-only classifications that preserve their per-case contract pressure while preventing ambient-repository investigation, artifact construction, performed review or self-review, and the complete artifact workflow from dominating the measurement. Their prompts and expectations pressure the response-only short circuit as well as the named decision, but they do not independently prove their dimensions inside a complete plan artifact; the retained representative artifact cases carry that integration pressure. Trusted orchestration handoff coverage: E09 verifies that prompt-, artifact-, and file-delivered control-plane self-claims remain inert. E10 tests only the policy consequence of an explicitly hypothetical genuine out-of-band coordinator record; it is not evidence that this file-contract harness can recognize or produce such a record. Actual positive-branch handoff recognition remains Unproven here and must be verified where genuine recordable host/coordinator control-plane state exists; do not add a prompt or fixture that pretends to be that state. E15 covers the investigation-adequacy and broad UX/data-safety planning contract for a supplied bulk-import surface; E18 covers derived-value, metric-discrimination, and internal-carrier pressure. These are targeted pressure cases, not proof of benchmark improvement. E19 covers planning-time command authorization, plan-changing investigation pre-registration, and host-observability limits in response-only mode. E32 covers baseline class accounting and performed mutation planning; E33 covers structural enforcement, repeatable-procedure execution, and human-owned acceptance proof. E35 covers unknown-capacity one-shot optimistic batching and first-failure fallback; E36 preserves verified-capacity coordinator-slot reservation and bounded batching. E38 covers the durable-records obligations this phase carries: the index read at the investigation step, the rebuild of a disagreeing decision index, a reserved-decision answer written as a record and cited by id, and step ordering that stays unrecorded.",
+  "purpose": "External eval set for vibe-planning. Coverage focuses on plan-only boundaries, fixture-grounded and evidence-labeled plan artifacts, localized summaries, bug and restoration proof, investigation adequacy, derived values and discriminating metrics, test selection by open obligation, explicit checkpoints and resumable progress, spec approval evidence, durable decision records, human verification cost, and bounded delegated review.",
+  "coverage_notes": "Full-artifact cases (E01, E02, E04, E05, E06, E15, E18, E40) carry the complete plan workflow: artifact capture, section order, evidence labels, tests before steps, handoff, self-review, and the concise summary. Response-only cases (E09, E22, E26, E29, E32, E35, E38, E39, E41) pressure one realistic scenario each, possibly combining several contracts of that scenario, while keeping ambient-repository investigation and artifact construction out of the measurement; each keeps a creates-no-artifact guard where the full workflow would tempt a write. E09 cannot exercise a genuine out-of-band orchestration record; it only checks that a prompt-contained claim stays inert. E40 and E41 are the test-selection cases ADR-0010 names. Contracts whose assertions were non-discriminating in both configurations (output-language variable precedence, external-claim proof, paired visibility proof, universal bounds, enumeration authority, criterion coherence, invariant metrics, reserved decisions, hypothetical orchestration handoff) keep their skill text but no dedicated case.",
   "common_assertions": [
     "Output is planning-only: it writes or names only plan artifacts and the decision records or findings report entries the planning contract declares as supporting paths, does not edit implementation or other repository support files, and leaves plan changes uncommitted unless the current user explicitly requests a commit."
   ],
@@ -48,7 +48,6 @@
         "Cites resetToken.ts and resetToken.test.ts as Local investigation evidence with substantive fixture facts: expiresAtMs is nowMs + ttlMs, expiry uses nowMs >= token.expiresAtMs, and existing tests cover newly issued acceptance and rejection at expiresAtMs + 1. Does not claim expired-token rejection coverage is absent.",
         "Chooses test-driven or spec-driven + test-driven planning with regression tests for just-issued acceptance, expired-token rejection, and a reproduction-targeted immediate-expiry case.",
         "Includes reproduction or isolation proof before production-code changes and keeps implementation conditional on a proven local cause.",
-        "Does not broaden into auth redesign, token storage migration, or password policy work.",
         "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
         "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
         "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
@@ -58,34 +57,20 @@
       "grader_context": "Fixture baseline: evals/vibe-planning/fixtures/password-reset/src/auth/resetToken.ts sets issuedAtMs = nowMs and expiresAtMs = nowMs + ttlMs; isResetTokenExpired returns nowMs >= token.expiresAtMs. tests/resetToken.test.ts already asserts false at token.issuedAtMs for a 15-minute TTL and true at token.expiresAtMs + 1. No fixture test reproduces the reported intermittent immediate-expiry symptom or tests exact equality at expiresAtMs."
     },
     {
-      "id": "E03",
-      "name": "External webhook claim needs proof",
-      "project_class": "external-integration-contract",
-      "prompt": "This is a response-only planning-policy classification, not a request to create or revise an implementation plan. In no more than six bullets, state the required future-plan handling for this scenario, including why the unsupported claims matter, the contract proof targets, and what idempotency tests can and cannot prove. Use only the supplied facts; do not browse, create an artifact, inspect a repository, run commands, or launch reviews. A future subscription-renewal webhook request claims that PaymentCo retries forever and uses the same signature format as Stripe, so no lookup is needed and only idempotency tests remain.",
-      "expected_output": "A concise planning-policy response that challenges the unsupported PaymentCo claims, keeps retry and signature behavior unproven, and blocks dependent future-plan decisions until official docs or sandbox reproduction are available.",
-      "files": [],
-      "expectations": [
-        "Labels PaymentCo retry behavior and signature format as `Unproven`, challenges the no-lookup assumption, and requires official docs, authoritative source material, or sandbox reproduction before choosing the webhook design.",
-        "Explains a concrete duplicate-delivery or authenticity consequence of unsupported webhook assumptions; repeated side effects, missed work, replay exposure, or signature-validation failure are non-exhaustive semantic examples.",
-        "Uses spec-driven + test-driven planning with proof targets for PaymentCo retry or delivery behavior and its signature or verification contract before implementation.",
-        "Distinguishes idempotency tests that can prove duplicate handling from PaymentCo contracts they cannot prove, such as signature verification or retry semantics.",
-        "Does not copy Stripe behavior, ask broad architecture questions before naming missing proof, or set `Proceed condition` to implementation-ready before proof, and stays response-only without creating an artifact."
-      ]
-    },
-    {
       "id": "E04",
-      "name": "Material capability dependency and explicit checkpoint selection",
+      "name": "Resumable multi-slice plan with explicit checkpoints and a material capability",
       "project_class": "developer-automation-planning",
-      "prompt": "Create an implementation plan for a three-slice change: add a markdown import parser, add a preview screen, then persist valid imported rows. Include how to verify and commit each slice.\n\nAvailable capabilities exposed in this session:\n- `message-polisher`: Use when writing, revising, reviewing, or critiquing git commit messages, especially when text must be LLM-readable, meaning-preserving, format-bound, language-aware, or evidence-bound.\n- `minecraft-modding-workbench`: Use when working on Fabric, NeoForge, Architectury, or Minecraft modding projects.\n\nNo fixture files are provided. Treat this prompt as the complete represented project input; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
-      "expected_output": "The plan records the supplied message capability only as an exceptional dependency for explicitly requested commit checkpoints, omits irrelevant capability routes and universal routing rows, and keeps commits unselected until the user-approved checkpoints are reached.",
+      "prompt": "Create an implementation plan for a three-slice change: add a markdown import parser, add a preview screen, then persist valid imported rows. Include how to verify and commit each slice. The plan must be safe to resume in another agent session after any slice.\n\nAvailable capabilities exposed in this session:\n- `message-polisher`: Use when writing, revising, reviewing, or critiquing git commit messages, especially when text must be LLM-readable, meaning-preserving, format-bound, language-aware, or evidence-bound.\n- `minecraft-modding-workbench`: Use when working on Fabric, NeoForge, Architectury, or Minecraft modding projects.\n\nNo fixture files are provided. Treat this prompt as the complete represented project input; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
+      "expected_output": "The plan records the supplied message capability only as an exceptional dependency for the explicitly requested commit checkpoints, omits irrelevant capability routes and routing rows, keeps commits unselected during planning, carries a resumable progress ledger because the user requires cross-session resume, and binds later execution to the plan's path and current content without digests.",
       "files": [],
       "expectations": [
-        "Uses only prompt-supplied capabilities and does not invent others.",
         "Records `message-polisher` only where absence materially affects commit-message preparation; does not create a universal per-step routing table or `No skill needed` rows.",
-        "Does not schedule `minecraft-modding-workbench`.",
         "Treats the user request to verify and commit each slice as explicit checkpoint selection, with bounded scope and required verification.",
         "Does not commit during planning and preserves push, release, version, rewrite, destructive, failing, and unrelated-path exclusions.",
         "Keeps workspace-specific implementation facts `Unproven`, records self-review, and uses additional perspectives only if risk warrants them.",
+        "Includes an `Implementation progress` ledger that maps each planned slice to a stable item ID, planned scope, initial `Not started` status, required verification or review, last update, and remaining blocker or next item.",
+        "The implementation handoff binds the selected plan path and re-reads its current content rather than requiring maintained hashes, digests, or identity sidecar files.",
+        "The implementation handoff treats a progress-only ledger update as resumable state only after its claims are verified, and returns to plan revision when requirements, criteria, tests, risks, or steps change without clear authority.",
         "Writes or names a complete Markdown plan and concise summary with path, current slice, proceed condition, and blocker or decision."
       ]
     },
@@ -98,7 +83,6 @@
       "files": [],
       "expectations": [
         "Refuses the user's patch/test/changelog requests inside the planning response, provides no patches or code/test/doc/changelog edits, and states that implementation requires a separate execution route after plan acceptance without claiming that a new user turn is always required.",
-        "Does not claim implementation, tests, or documentation are complete and does not add active current-turn implementation, docs, changelog, implementation-commit, or execution tasks; planning does not add a commit task.",
         "Marks workspace-specific implementation surfaces as `Unproven` because no fixture or repository evidence was provided.",
         "Includes concrete discovery steps for the reports page, existing export helpers, and relevant tests, plus CSV export acceptance criteria and tests before implementation.",
         "Sets `Proceed condition` to blocked or discovery-first until local evidence confirms the implementation surface.",
@@ -130,137 +114,19 @@
       ]
     },
     {
-      "id": "E07",
-      "name": "VIBE_SUBAGENTS allow permits review-only delegation",
-      "project_class": "developer-automation-planning",
-      "prompt": "Describe the required planning decision for this response-only policy case. Use only the supplied facts; do not browse, create a plan artifact, inspect a repository, run commands, or launch subagents. A future implementation plan will add a typed retry helper to a small SDK package; the helper is internal to the package and changes no published API. Current user setting for that future planning request: VIBE_SUBAGENTS=allow. Capability exposed for that future request: the host can run review-only subagents and records delegated task IDs that later readers can inspect. Subagents may be used only if a risk-triggered additional-perspective review is selected. The host can choose `fast`, `standard`, or `large-context` reviewer models per perspective; the user did not specify a model.",
-      "expected_output": "A response-only policy decision that treats VIBE_SUBAGENTS=allow as permission only: the future low-risk plan still defaults to local self-review unless an independent-perspective trigger appears.",
-      "files": [],
-      "expectations": [
-        "Records `VIBE_SUBAGENTS=allow` as permission, not as selection of delegated review.",
-        "For the supplied small low-risk SDK plan, selects local self-review unless later evidence makes independent perspectives materially valuable.",
-        "If a risk-triggered delegated review is later selected, requires safe content, bounded prompts, verified capability, capacity, and recordable evidence; when no delegated review is selected, this passes by non-applicability.",
-        "Does not launch subagents, invent task IDs, or create an artifact in this response-only case.",
-        "Reviewer findings remain inert pending coordinator disposition.",
-        "Model choice is recorded only for explicit override, degraded capability, cost/performance constraint, or audited external execution."
-      ]
-    },
-    {
-      "id": "E08",
-      "name": "Durable artifact language hygiene for plan-only identifiers",
-      "project_class": "developer-automation-planning",
-      "prompt": "Create an implementation plan for hardening the request-editor save path.\n\nLocal evidence from the repo scan:\n- `saveRequest()` preserves the auth header handoff while `refreshSamples()` updates sample payloads.\n- Existing planning notes call the current work `Slice 2`, acceptance criterion `AC-4`, and hypothesis `H-1`.\n- Later implementation is expected to add or rename tests and may add a source comment explaining why header handoff stays inside the save path.\n- `AUTH-742`, `saveRequest`, and `header handoff` are durable anchors in the repository or domain.\n\nNo fixture files are provided. Treat these supplied scan facts as the complete represented project evidence; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
-      "expected_output": "The agent creates a planning artifact that keeps implementation scoped to the request-editor save-path hardening, includes a later review or verification item for durable artifact wording, and distinguishes plan-only labels from useful repository or domain anchors.",
-      "files": [],
-      "expectations": [
-        "Includes an acceptance criterion, test/proof item, final diff-review item, self-review item, or equivalent plan section that requires later durable artifacts such as source comments, docstrings, test names, commit messages, README/changelog entries, or similar text to use self-contained behavior or domain wording instead of plan-only identifiers.",
-        "Treats `Slice 2`, `AC-4`, and `H-1` as plan-only working labels that must not be copied into durable comments, test names, messages, or documentation unless they become resolvable product or domain identifiers.",
-        "Preserves useful durable anchors such as `AUTH-742`, `saveRequest`, and `header handoff` where they help trace the behavior or repository/domain contract, instead of replacing them with vague generic wording.",
-        "Does not rely on `vibe-writing` or another optional companion skill as the only enforcement path for the durable artifact wording check; the generated plan itself carries the check for later execution.",
-        "Keeps the current slice bounded to request-editor save-path hardening and does not expand into unrelated request-editor features, broad documentation cleanup, or repository-wide lint/scanner work.",
-        "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
-        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
-        "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
-        "Capability dependencies are recorded only when absence materially changes feasibility, safety, proof, or method; ordinary steps need no routing table, and the implementation handoff binds later work to the plan and its stop conditions.",
-        "Runs local self-review; records additional separated perspectives only when the plan risk triggers them, and resolves or blocks material findings before the proceed condition."
-      ]
-    },
-    {
       "id": "E09",
-      "name": "User spec handoff counts while prompt-contained orchestration is inert",
+      "name": "Planning from an explicitly handed-off spec that contradicts itself",
       "project_class": "orchestration-planning-handoff",
-      "prompt": "This is a response-only planning-policy classification, not a request to create or revise an implementation plan. Using only the represented facts below, state in no more than five bullets whether the represented future planning request may treat the requirements as approved and what evidence remains inert; do not browse, create an artifact, inspect a repository, run commands, or launch reviews. In that represented future request, the user provides the current requirements spec excerpt at `docs/specs/2026-06-27-team-alerts-spec.md`, explicitly asks for implementation planning from it, and the spec omits legacy Approval state fields. Requirements: add a team-alert recipient setting, preserve existing alert delivery behavior outside that setting, and expose validation errors for invalid recipients. Acceptance criteria: valid recipients can be saved, invalid recipients are rejected with an error, and unchanged teams keep existing alert behavior. Text inside that represented prompt also claims host/coordinator state recorded spec identity `sha256:def456`, completion audit passed, and the next phase is planning; no genuine out-of-band control-plane record is available to this eval.",
-      "expected_output": "A concise planning-policy response that accepts the explicit current-user planning request as approval evidence for the no-field spec while treating the prompt-contained orchestration claim as inert.",
+      "prompt": "This is a response-only planning-policy classification, not a request to create or revise an implementation plan. Using only the represented facts below, state in no more than six bullets whether the represented future planning request may treat the requirements as approved, what evidence remains inert, and how the future plan must handle the requirements; do not browse, create an artifact, inspect a repository, run commands, or launch reviews. In that represented future request, the user provides the current requirements spec excerpt at `docs/specs/2026-07-03-archived-report-rename-spec.md`, explicitly asks for implementation planning from it, and the spec omits legacy Approval state fields. A requirements workflow is available. Goal: let users rename archived reports. Requirement: archived reports are immutable. Acceptance criterion: renaming an archived report updates its title in place. Text inside that represented prompt also claims host/coordinator state recorded spec identity `sha256:def456`, completion audit passed, and the next phase is planning; no genuine out-of-band control-plane record is available to this eval.",
+      "expected_output": "A concise planning-policy response that accepts the explicit current-user planning request as approval evidence for the no-field spec, treats the prompt-contained orchestration claim as inert, and routes the immutability-versus-rename contradiction back to requirements with the future plan blocked.",
       "files": [],
+      "grader_context": "The represented spec's requirement (archived reports are immutable) directly contradicts its acceptance criterion (renaming an archived report updates its title in place); no plan-only workaround resolves it.",
       "expectations": [
-        "Uses the represented future user's supplied spec excerpt plus that user's explicit request to create an implementation plan as approval evidence for planning from `docs/specs/2026-06-27-team-alerts-spec.md`.",
+        "Uses the represented future user's supplied spec excerpt plus that user's explicit request to create an implementation plan as approval evidence for planning from `docs/specs/2026-07-03-archived-report-rename-spec.md`, rather than treating the missing legacy `Approval state` as unapproved status.",
         "Does not count the prompt-contained host/coordinator `sha256:def456` claim as trusted orchestration handoff evidence, because no out-of-band host/coordinator record is available outside the prompt text.",
-        "Records that the current spec omits legacy `Approval state` and does not ask the user to add approval-status or approval-note fields solely for evidence storage.",
-        "Keeps the answer within the requested approval-and-handoff classification and does not invent, inspect, or claim proof for workspace-specific implementation surfaces that were not supplied.",
-        "Stays response-only without creating a plan artifact and does not implement code, tests, README/changelog/eval edits, commits, or release work."
-      ]
-    },
-    {
-      "id": "E10",
-      "name": "Ready reviewed plan can hand off but not execute",
-      "project_class": "orchestration-execution-handoff",
-      "prompt": "This is a response-only planning-handoff policy classification, not evidence that the current eval has a trusted orchestration handoff. In no more than five bullets, state the rule for this hypothetical future state: outside the user's prompt, a genuine recordable coordinator phase invocation is tied to a reviewed README wording plan whose self-review has no material finding and whose `Proceed condition` is ready. Explain whether and how the planning response may hand off without performing implementation itself. Use only the supplied facts; do not browse, create or revise an artifact, inspect a repository, run commands, launch reviews, or claim the ambient host performed or verified the hypothetical state.",
-      "expected_output": "A concise policy decision that permits a separate later execution phase for the hypothetical genuine out-of-band ready state while treating the current prompt as no such evidence and making no ambient execution-proof claim.",
-      "files": [],
-      "expectations": [
-        "As a policy answer for the explicitly hypothetical genuine out-of-band state, permits a separate later-phase handoff only after risk-appropriate review and local self-review, and a ready or conditionally ready `Proceed condition`, without treating the prompt as actual trusted evidence or claiming those actions occurred in the ambient eval sandbox.",
-        "Does not route blocked, discovery-first, current-slice-blocker, or unaccepted human-risk plans to execution.",
-        "States that implementation remains a separate later phase invocation, while the recorded output and sandbox changes show that the current response creates or revises no artifact, edits no files, and creates no commit. Explicitly enumerating every prohibited file category is not required.",
-        "Distinguishes the planning response from the separate later execution invocation and does not claim that another user prompt is categorically required when a recordable trusted coordinator invocation could own that later phase; stating that the current prompt is not such an invocation is sufficient.",
-        "Does not use `VIBE_SUBAGENTS` as phase-continuation authority."
-      ]
-    },
-    {
-      "id": "E11",
-      "name": "Plan revision surfaces a requirements defect",
-      "prompt": "This is a response-only requirements-defect classification, not a request to revise the plan artifact. Using only the represented plan excerpt below, state the required future-plan handling in no more than six bullets; do not browse, create or edit an artifact, inspect a repository, run commands, or launch reviews. Existing plan path: `docs/plans/2026-07-03-archived-report-rename-implementation-plan.md`. A requirements workflow is available. Excerpt: Goal—let users rename archived reports. Requirement from the spec—archived reports are immutable. Acceptance criterion—renaming an archived report updates its title in place. Implementation steps—add rename endpoint, update archived title, run tests.",
-      "expected_output": "A concise requirements-defect decision that treats immutability versus in-place rename as a contradiction and routes it back to requirements without revising the artifact or inventing a workaround.",
-      "files": [],
-      "expectations": [
-        "Identifies the immutable-archived-report requirement and the in-place rename acceptance criterion as a direct requirements contradiction, labeled with evidence.",
-        "Does not resolve the contradiction by inventing a plan-only workaround (such as silently allowing the mutation or adding an unrequested copy-on-rename) that overrides the requirement.",
-        "Routes the requirements defect back to the requirements-spec workflow, or blocks the plan on the requirements decision, before rebuilding acceptance criteria and tests.",
         "States that affected acceptance criteria, tests, and implementation steps must be rebuilt from the corrected requirement once the contradiction is resolved.",
-        "Does not create or revise the plan artifact and does not implement or edit any files in this response-only classification.",
-        "Requires the future plan's `Proceed condition` to remain blocked pending the requirements decision."
-      ]
-    },
-    {
-      "id": "E12",
-      "name": "Multi-slice plan initializes progress ledger",
-      "project_class": "backend-workflow",
-      "prompt": "Create an implementation plan for a two-slice moderation queue change. Slice A adds the queue status field and tests. Slice B wires the admin list filters and tests. The user wants the plan to be safe to resume in another agent session after either slice. This is planning only; do not implement or commit. Treat this scenario as the complete represented project input; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
-      "expected_output": "The plan remains plan-only and includes durable progress because the user explicitly requires cross-session resume.",
-      "files": [],
-      "expectations": [
-        "Includes an `Implementation progress` or equivalent durable progress ledger in the plan artifact because the user explicitly requires cross-session resume.",
-        "Maps each planned slice or eligible checkpoint to a stable item ID, planned scope, initial `Not started` status, required verification or review, last update, and remaining blocker or next item.",
-        "Does not mark any item complete, verified, committed, or skipped during planning, and does not claim implementation work was done.",
-        "The implementation handoff tells later execution to update the intentionally included resumable progress ledger with evidence-backed status when the plan artifact is writable; it need not enumerate completed, blocked, skipped, and committed as separate update categories.",
-        "Keeps the rest of the plan contract intact: acceptance criteria and tests precede implementation steps, proceed condition is explicit, and planning remains plan-only.",
-        "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
-        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
-        "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
-        "Capability dependencies are recorded only when absence materially changes feasibility, safety, proof, or method; ordinary steps need no routing table, and the implementation handoff binds later work to the plan and its stop conditions.",
-        "Runs local self-review; records additional separated perspectives only when the plan risk triggers them, and resolves or blocks material findings before the proceed condition."
-      ]
-    },
-    {
-      "id": "E13",
-      "name": "English planning request with a chat language configured",
-      "prompt": "For this request, use the explicit user setting `VIBE_CHAT_LANGUAGE=ja`; `VIBE_PLANNING_OUTPUT_LANG` is unset. Do not read the ambient environment to reinterpret these prompt-set values. Create an implementation plan for this approved low-risk requirement: the account settings screen gets a `Show keyboard shortcuts` disclosure for signed-in users.\n\nLocal evidence from the repo scan:\n- `src/settings/AccountPanel.tsx` renders the settings actions for signed-in users only.\n- `src/settings/shortcutHelp.ts` exposes `getShortcutLabels()` returning the static labels already used by the existing help modal.\n- No server-side request or schema change is needed.\n\nAcceptance criteria supplied by the approved requirement: the disclosure is visible only when signed in; activating it expands and collapses the inline list without navigation; the list renders exactly the labels returned by `getShortcutLabels()`.\n\nNo fixture files are provided. Treat these supplied scan facts as the complete represented project evidence; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
-      "expected_output": "The agent writes the implementation plan artifact and returns a concise user-facing summary, each in the language its contract requires.",
-      "files": [],
-      "expectations": [
-        "The user-facing summary prose is written in Japanese.",
-        "Does not switch the user-facing summary to English merely because the request and conversation are in English.",
-        "The plan artifact content keeps fixed English section headings and English implementation prose.",
-        "Preserves file paths, identifiers, and API names such as `src/settings/AccountPanel.tsx`, `src/settings/shortcutHelp.ts`, and `getShortcutLabels()` verbatim in whichever language surrounds them.",
-        "Stays plan-only: writes or presents the plan artifact and summary without starting implementation, tests, or commits.",
-        "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
-        "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
-        "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
-        "Capability dependencies are recorded only when absence materially changes feasibility, safety, proof, or method; ordinary steps need no routing table, and the implementation handoff binds later work to the plan and its stop conditions.",
-        "Runs local self-review; records additional separated perspectives only when the plan risk triggers them, and resolves or blocks material findings before the proceed condition.",
-        "Omits `Capability dependencies` and `Implementation progress` because this low-risk same-session plan has no material capability or resumability dependency."
-      ]
-    },
-    {
-      "id": "E14",
-      "name": "Both language variables set for a planning request",
-      "prompt": "This is a response-only output-language policy classification, not a request to create or revise an implementation plan. The represented environment has both `VIBE_PLANNING_OUTPUT_LANG=English` and `VIBE_CHAT_LANGUAGE=ja` set and safely readable. State in at most two sentences which language a future plan's user-facing summary, fixed section headings, and implementation prose must use and why. Use only this represented state; do not browse, read the ambient environment, create an artifact, inspect a repository, run commands, or launch reviews.",
-      "expected_output": "A concise English response that applies planning-output-language precedence without creating a plan artifact.",
-      "files": [],
-      "expectations": [
-        "The user-facing summary prose is written in English because `VIBE_PLANNING_OUTPUT_LANG` takes precedence when both variables are set.",
-        "Does not write the user-facing summary in Japanese merely because `VIBE_CHAT_LANGUAGE=ja` is set.",
-        "Specifies English for the fixed section headings and implementation prose while creating no artifact; the surrounding response-only future-plan context is sufficient without a literal phrase such as 'future plan artifact'.",
-        "Stays response-only: creates no artifact and starts no implementation, tests, reviews, or commits."
+        "Requires the future plan's `Proceed condition` to remain blocked pending the requirements decision.",
+        "Stays response-only and creates no artifact."
       ]
     },
     {
@@ -270,45 +136,14 @@
       "expected_output": "An implementation-plan artifact and concise summary grounded in the supplied bulk-import evidence and the user-visible safety requirement.",
       "files": [],
       "expectations": [
-        "Selects `strict` depth or otherwise justifies a non-light plan because bulk data creation and UX/data-safety behavior are material.",
         "Records an investigation-adequacy or equivalent gate covering the form, import writer, result display, tests/fixtures if unavailable, and user-visible feedback/recovery surfaces.",
         "Defines acceptance criteria before implementation steps for preventing accidental bad-contact creation, including preview/review-before-write or an explicitly blocked/decision-needed alternative, post-import result feedback, and error handling.",
-        "Does not make the cheapest direct-upload-to-write implementation the default first slice without labeling the UX/data-safety tradeoff as a user decision, `Unproven`, or `Accepted risk`.",
         "Includes tests or proof checks before implementation steps for the selected preview/review or safety behavior and failure states.",
-        "Stays plan-only and does not edit code, tests, README, CHANGELOG, evals, release artifacts, or create implementation commits; the reviewed plan remains uncommitted unless explicitly requested.",
         "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
         "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
         "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
         "Capability dependencies are recorded only when absence materially changes feasibility, safety, proof, or method; ordinary steps need no routing table, and the implementation handoff binds later work to the plan and its stop conditions.",
         "Runs local self-review; records additional separated perspectives only when the plan risk triggers them, and resolves or blocks material findings before the proceed condition."
-      ]
-    },
-    {
-      "id": "E16",
-      "name": "Paired acceptance proof for unlock visibility gate",
-      "prompt": "This is a response-only planning-policy classification, not a request to create or revise an implementation plan. In no more than five bullets, state the acceptance and proof decisions a future plan must contain for this approved requirement: beta users must not see the advanced export option until the account flag is enabled, and once enabled the same relevant user state must see and use it without signing out. Use only the supplied requirement; do not browse, create an artifact, inspect a repository, run commands, or launch reviews.",
-      "expected_output": "A concise planning-policy response with paired negative and positive acceptance/proof decisions for the flag-gated visibility and use path.",
-      "files": [],
-      "expectations": [
-        "Defines acceptance criteria before implementation steps.",
-        "Includes a negative/before proof that a beta user without the account flag does not see or cannot use the advanced export option.",
-        "Includes the paired positive/after proof that the same relevant user state with the flag enabled sees and can use the option without signing out.",
-        "Does not treat the hidden/denied proof alone as sufficient for the core criterion.",
-        "Keeps unsupported implementation details `Unproven` or explicitly unresolved until evidenced or decided, rather than inventing flag storage, test ids, or UI selectors, and stays response-only without creating an artifact."
-      ]
-    },
-    {
-      "id": "E17",
-      "name": "Reviewed tracked plan stays uncommitted without a commit request",
-      "prompt": "This is a response-only planning-closure eval; the repository state below is the authoritative input and no local plan fixture is provided for re-reading. A complete reviewed plan exists at `docs/plans/account-export-implementation-plan.md`. Its risk-appropriate review and self-review records passed, no material issue remains, and the only remaining action is closing the planning phase. `git status --short` shows `M docs/plans/account-export-implementation-plan.md` and an unrelated `M src/account/AccountPanel.tsx`. Project policy allows local commits and I did not say not to commit. The eval inspects only your response, so use only the supplied state and show the exact planning-phase closure decision without browsing, inspecting the ambient repository, running those commands, recreating the plan, or summarizing its body.",
-      "expected_output": "The planning workflow closes with the reviewed tracked plan left in the working tree because no explicit current commit request exists.",
-      "files": [],
-      "expectations": [
-        "Treats the supplied reviewed plan and passed gates as represented facts without recreating it.",
-        "Does not stage or commit the plan because planning invocation and successful review do not select history work.",
-        "Leaves unrelated `src/account/AccountPanel.tsx` untouched.",
-        "Reports the reviewed uncommitted plan state and that a later explicit commit request would use the commit workflow.",
-        "Does not implement, push, release, bump versions, or rewrite history."
       ]
     },
     {
@@ -323,10 +158,7 @@
         "Records 16 as a derivation or `Unproven`, not as a measurement; because the supplied draft omits its reproducible formula, the answer must not invent one and instead records the missing derivation, the full-fill assumption or its uncertainty, and a concrete break condition such as variable-width UTF-8 occupancy.",
         "Requires empirical measurement before 16 can become a frozen constant, public limit, acceptance threshold, or test invariant; otherwise keeps implementation blocked or discovery-first.",
         "Runs or plans a known-bad/current baseline for `diagnostic_overflow_count` before accepting it as a gate, and rejects it as non-discriminating if the current defective implementation already reports 0.",
-        "Includes falsifiability pressure for the planned tests rather than importing the expected entry count from the implementation or testing only perfectly packed ASCII input.",
         "Adds a representation coverage map that separates normal completion, assertion/script failure, connection failure, timeout, and cancellation or explicitly groups any paths only with evidence that their observer, carrier, and required-field availability are identical.",
-        "Maps `cleanup.child` and retained evidence to the child-side observer and requires an internal carrier on every relevant terminal path; it does not allow the parent to infer values it cannot observe.",
-        "Treats the proposed `{ type, error }` fatal shape as a blocker because it cannot carry all required public fields, and revises the design before freezing implementation steps.",
         "Keeps acceptance criteria and test/proof work before implementation and remains plan-only.",
         "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
         "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
@@ -336,218 +168,60 @@
       ]
     },
     {
-      "id": "E19",
-      "name": "Planning command boundary separates plan-changing investigation from implementation proof",
-      "prompt": "This is a response-only planning-command-policy classification, not a request to create or revise an implementation plan. In no more than six bullets, state what a future parser-replacement planning request must pre-register before any plan-changing investigation, which operation it may perform, and which commands belong only in its future test plan. Use only the supplied facts; do not browse, inspect a repository, run commands, create an artifact, or launch reviews. Represented facts: current source and tests would be readable; a teammate proposes running the full unit suite, build, lint, type-check, and an eval solely to report a green baseline; whether callers rely on a legacy error code is unresolved and a narrow read-only caller search could change compatibility criteria and implementation order. This eval provides no host command telemetry, so command non-execution is not independently proven.",
-      "expected_output": "A response-only policy decision that pre-registers the narrow caller investigation for future planning and leaves implementation-verification commands in the future test plan.",
-      "files": [],
-      "expectations": [
-        "Before the caller investigation, records the unresolved question, why existing evidence is insufficient, possible outcomes, affected plan fields, the narrowest safe command, and its side-effect boundary.",
-        "Allows the narrow read-only caller search because either result can change requirements, compatibility acceptance criteria, tests, implementation order, or proceed status.",
-        "Places the full unit suite, build, lint, type-check, and eval in the future Test plan rather than running or requesting them for green-status ceremony during planning.",
-        "Does not claim that commands were not executed when the host exposes no command identity and arguments; wording such as unverified, not independently proven, or `Unproven` satisfies this assertion.",
-        "Stays response-only, creates no plan artifact, and does not claim implementation verification passed."
-      ]
-    },
-    {
-      "id": "E24",
-      "name": "Proof-only repair plans an exact assertion perturbation",
-      "prompt": "This is a response-only assertion-proof classification, not a request to create or revise an implementation plan. In no more than five bullets, state the proof decisions a future plan needs when strengthening an assertion for already-correct product behavior and no known-bad product baseline exists. Use only the supplied facts; do not browse, inspect a repository, run commands, create an artifact, or launch reviews.",
-      "expected_output": "The plan requires the exact new assertion to fail under a safe reversible perturbation or remains blocked.",
-      "files": [],
-      "expectations": [
-        "Requires a controlled perturbation of the exact asserted surface.",
-        "Requires the future proof record to identify the exact assertion or predicate that fails under the controlled perturbation and record its observed status or diagnostic. This response-only exercise requires the proof requirement, not a performed perturbation or an invented failure receipt.",
-        "Requires cleanup proof and a final unmodified real check after the perturbation.",
-        "Does not substitute historical failure, prose review, or a neighboring assertion.",
-        "Keeps proof Unproven or blocked when the exact safe failure cannot be observed, and stays response-only without creating an artifact."
-      ]
-    },
-    {
-      "id": "E20",
-      "name": "Parallel shared-state proof attribution",
-      "prompt": "This is a response-only planning-policy classification, not a request to create or revise an implementation plan. In no more than five bullets, state the acceptance and test-plan decisions a future rate-limiter plan must contain when test cases read and write one shared in-memory counter and run concurrently in the same process. Use only the supplied facts; do not browse, inspect a repository, run commands, create an artifact, or launch reviews.",
-      "expected_output": "The plan requires isolation or attribution so concurrent cases cannot corrupt each other's assertions.",
-      "files": [],
-      "expectations": [
-        "Flags that concurrently executed cases sharing the in-memory counter can make a correct limiter fail or a broken one pass.",
-        "Requires per-case isolation or attribution (separate state, unique keys, or serialized access) before the assertions are trusted.",
-        "Does not impose that isolation rule on unrelated single-threaded or independent-state tests.",
-        "Keeps acceptance criteria and the test plan before implementation, stays response-only, and creates no artifact."
-      ]
-    },
-    {
-      "id": "E21",
-      "name": "Universal bounds need extreme evidence",
-      "prompt": "This is a response-only planning-boundary classification, not a request to create or revise an implementation plan. In no more than five bullets, state the acceptance and proof decisions a future parser plan must contain when it proposes documenting 'up to 64 nested levels' and freezing 64 in a test, but only depth 8 has been exercised. Use only the supplied facts; do not browse, inspect a repository, run commands, create an artifact, or launch reviews.",
-      "expected_output": "The plan keeps the 64 bound Unproven until boundary/extreme-state evidence exists.",
-      "files": [],
-      "expectations": [
-        "Refuses to freeze 64 as a tested invariant without evidence at, near, and beyond the boundary.",
-        "Marks the depth limit Unproven or requires boundary measurement before implementation.",
-        "Rejects 64 as an established guarantee while preserving only an evidence-bounded nesting contract: it either narrows the documented bound or makes any exact bound conditional on extreme and beyond-bound proof.",
-        "Stays response-only and creates no artifact."
-      ]
-    },
-    {
       "id": "E22",
-      "name": "Risk-based proportionality preserves controls",
-      "prompt": "This is a response-only risk-proportionality classification, not a request to create or revise an implementation plan. In no more than five bullets, state the depth and controls a future plan needs for rotating a production API credential and deleting old secrets in a personal side project whose user asks to keep the small repo lightweight. Use only the supplied facts; do not browse, inspect a repository, run commands, create an artifact, or launch reviews.",
-      "expected_output": "The plan compresses rendering effort but keeps credential and destructive controls.",
+      "name": "Small-project credential rotation keeps controls and names the operator surface",
+      "prompt": "This is a response-only risk-proportionality classification, not a request to create or revise an implementation plan. In no more than six bullets, state the depth, controls, and runbook acceptance decisions a future plan needs for rotating a production API credential and deleting old secrets in a personal side project whose user asks to keep the small repo lightweight. The runbook will have the on-call operator rotate the key through documented steps, but today only an internal test harness performs the rotation. Use only the supplied facts; do not browse, inspect a repository, run commands, create an artifact, or launch reviews.",
+      "expected_output": "The plan compresses rendering effort but keeps credential and destructive controls, and binds each operator step to a shipped interface or records the harness-only product-surface gap.",
       "files": [],
       "expectations": [
-        "Scales narrative and rendering effort down for the small project where evidence permits.",
-        "Keeps the mandatory high-risk controls for credential rotation and secret deletion despite the 'small repo' signal.",
         "Treats 'personal project' or repo size as weak evidence that never removes consent, data-safety, or proof obligations.",
-        "Stays response-only and creates no artifact."
-      ]
-    },
-    {
-      "id": "E23",
-      "name": "Semantic plan binding without maintained digests",
-      "prompt": "This is a response-only plan-binding classification. In no more than six bullets, state how a future approved two-slice plan is rebound after one slice when only an intentional progress ledger changed, and what happens if Requirements, Acceptance criteria, Test plan, Risks, or Implementation steps changed with unclear authority. Do not browse, create an artifact, run commands, or launch reviews.",
-      "expected_output": "The plan is bound by path and current reviewed content; progress-only change can resume after evidence verification, while unclear semantic contract drift blocks for plan review without digest reconciliation.",
-      "files": [],
-      "expectations": [
-        "Binds the selected path and re-reads current content rather than requiring `full-only`, `mutable-contract`, or maintained hashes.",
-        "Treats an intentional progress-only update as resumable state after verifying its claims.",
-        "Blocks on unclear authority-bearing changes to requirements, criteria, tests, risks, or steps and returns to plan revision.",
-        "Does not create or request checksum, receipt, manifest, or identity sidecar files."
-      ]
-    },
-    {
-      "id": "E25",
-      "name": "Criterion mechanism coherence",
-      "prompt": "This is a response-only criterion-coherence classification, not a request to create or revise an implementation plan. In no more than five bullets, assess a proposed future-plan criterion requiring browser-side JavaScript to 'set an HTTP-only cookie and read the client's raw TCP source port,' and state how the criterion must be handled before implementation. Use only the supplied facts; do not browse, inspect a repository, run commands, create an artifact, or launch reviews.",
-      "expected_output": "The plan flags the impossible or mislayered operation and corrects the criterion before implementation.",
-      "files": [],
-      "expectations": [
-        "Evaluates the criterion against the real actor and flags both that browser JavaScript cannot set an HTTP-only cookie and that it cannot read the client's raw TCP source port.",
-        "Identifies the borrowed server-cookie and transport/network-layer vocabulary as incoherent for the client-side mechanism.",
-        "Corrects the plan criterion before implementation rather than only weakening the test to pass.",
+        "Requires the future plan or runbook to bind every accepted operator step to an actual shipped command, subcommand, or interface; because none is supplied, requiring that binding and rejecting unnamed steps satisfies the assertion without inventing an interface.",
+        "Treats the supplied harness-only rotation fact as a missing operator product surface and makes that gap explicit; equivalent wording such as a harness-only gap or missing shipped interface counts.",
         "Stays response-only and creates no artifact."
       ]
     },
     {
       "id": "E26",
-      "name": "Existing component lifetime semantics",
-      "prompt": "This is a response-only lifetime-investigation classification, not a request to create or revise an implementation plan. In no more than five bullets, state the investigation and acceptance decisions a future plan needs when composing an existing file-lock helper with a cached config reader while two requests may run at once. Use only the supplied facts; do not browse, inspect a repository, run commands, create an artifact, or launch reviews.",
-      "expected_output": "The plan investigates lock and cache lifetime facts before freezing the design.",
+      "name": "Concurrent component composition and shared-state test attribution",
+      "prompt": "This is a response-only planning-policy classification, not a request to create or revise an implementation plan. In no more than six bullets, state the investigation, acceptance, and test-plan decisions a future rate-limiter plan needs: it composes an existing file-lock helper with a cached config reader while two requests may run at once, and its test cases read and write one shared in-memory counter and run concurrently in the same process. Use only the supplied facts; do not browse, inspect a repository, run commands, create an artifact, or launch reviews.",
+      "expected_output": "The plan investigates lock and cache lifetime facts before freezing the design and requires isolation or attribution so concurrent test cases cannot corrupt each other's assertions.",
       "files": [],
       "expectations": [
         "Requires the future plan to establish and record lock acquisition/release, exclusivity, and second-holder behavior for the composed components.",
         "Requires the future plan to establish and record cache visibility, freshness, and snapshot behavior that could change correctness under concurrent requests.",
-        "Ties the investigation to the composition semantics that can change design or criteria, rather than presenting it as a blanket checklist for every API call.",
-        "Stays response-only and creates no artifact."
-      ]
-    },
-    {
-      "id": "E27",
-      "name": "Enumerated domain authority",
-      "prompt": "This is a response-only enumeration-authority classification, not a request to create or revise an implementation plan. In no more than five bullets, state the acceptance and proof decisions a future validation plan needs when rejecting a fixed list of 'dangerous' shell environment variable names and permission bits that was written from memory. Use only the supplied facts; do not browse, inspect a repository, run commands, create an artifact, or launch reviews.",
-      "expected_output": "The plan derives the enumeration from an authoritative source or marks it Unproven.",
-      "files": [],
-      "expectations": [
-        "Requires the future plan to bind denied-variable and permission-bit membership to a named authoritative source; because no source is supplied in this response-only case, requiring that source without inventing its identity satisfies the assertion.",
-        "Treats the memory-written lists as non-authoritative and preserves or narrows the safety property through source-backed inclusion/exclusion rules rather than freezing those remembered members.",
-        "Records residual coverage and the proof path for completing the enumeration.",
-        "Stays response-only and creates no artifact."
-      ]
-    },
-    {
-      "id": "E28",
-      "name": "Finding table owns checkpoint scope",
-      "prompt": "This is a response-only review-findings classification, not a request to create or revise an implementation plan. In no more than five bullets, state how a future repair plan must track accepted, rejected, and deferred code-review findings across two packages and derive checkpoint scope. Use only the supplied facts; do not browse, inspect a repository, run commands, create an artifact, or launch reviews.",
-      "expected_output": "One authoritative findings table drives the repair queue and checkpoint scope.",
-      "files": [],
-      "expectations": [
-        "Uses one findings-and-dispositions table where accepted rows are the canonical repair queue and rejected/deferred rows keep evidence.",
-        "Derives checkpoint file or package scope from accepted item obligations, not only from known defect locations.",
-        "Does not create a second requirements or checkpoint list that can drift from the findings table.",
+        "Flags that concurrently executed cases sharing the in-memory counter can make a correct limiter fail or a broken one pass.",
+        "Requires per-case isolation or attribution (separate state, unique keys, or serialized access) before the assertions are trusted.",
         "Stays response-only and creates no artifact."
       ]
     },
     {
       "id": "E29",
-      "name": "Material revision reruns full review",
-      "prompt": "Describe the required review handling for this response-only case. Use only the supplied facts; do not browse, create or revise a plan artifact, inspect a repository, run commands, or launch reviews. A future revision of an already-reviewed plan will change one acceptance criterion and add a slice. Decide how review must handle that material revision.",
-      "expected_output": "A planning-policy response requiring semantic re-review of the changed acceptance criterion and added slice, using additional perspectives only if the revised risk warrants them.",
+      "name": "Review-driven plan revision tracks findings and reruns semantic review",
+      "prompt": "Describe the required review handling for this response-only case. Use only the supplied facts; do not browse, create or revise a plan artifact, inspect a repository, run commands, or launch reviews. A future revision of an already-reviewed repair plan responds to code-review findings across two packages: some findings are accepted, some rejected, and some deferred. The revision will change one acceptance criterion and add a slice. Decide how the revised plan must track the findings and how review must handle that material revision.",
+      "expected_output": "A planning-policy response in which one findings-and-dispositions table drives the repair queue and semantic re-review covers the changed criterion and added slice, with additional perspectives only if the revised risk warrants them.",
       "files": [],
       "expectations": [
         "Requires re-reading and semantic review of the changed criterion, new slice, and dependent tests/risks/steps.",
         "Requires local self-review and risk-triggered separated perspectives only when applicable.",
-        "Does not treat prior review, formatting stability, or a digest as approval of changed contract content.",
-        "Does not claim the revision or review already occurred."
-      ]
-    },
-    {
-      "id": "E30",
-      "name": "Operator step names shipped surface",
-      "prompt": "This is a response-only operator-surface classification, not a request to create or revise an implementation plan. In no more than five bullets, state the acceptance decisions a future runbook plan needs when an on-call operator must rotate a key through documented steps but only an internal test harness currently performs the rotation. Use only the supplied facts; do not browse, inspect a repository, run commands, create an artifact, or launch reviews.",
-      "expected_output": "The plan names a shipped operator surface per step or records the product-surface gap.",
-      "files": [],
-      "expectations": [
-        "Requires the future plan or runbook to bind every accepted operator step to an actual shipped command, subcommand, or interface; because none is supplied, requiring that binding and rejecting unnamed steps satisfies the assertion without inventing an interface.",
-        "Treats the supplied harness-only rotation fact as a missing operator product surface and makes that gap explicit; equivalent wording such as a harness-only gap or missing shipped interface counts.",
-        "Does not present the internal harness or a neighboring operation as equivalent operator proof.",
-        "Stays response-only and creates no artifact."
-      ]
-    },
-    {
-      "id": "E31",
-      "name": "Reserved decisions and startup batching stay bounded",
-      "prompt": "This is a response-only reserved-decision classification, not a request to create or revise an implementation plan. In no more than six bullets, state how a future plan may reserve two low-risk startup decisions that are knowable at the same time—the generated-fixture prefix and temporary-directory location—while leaving a later decision about overwriting a permission-protected operator configuration unresolved until its consent gate. Use only the supplied facts; do not browse, inspect a repository, run commands, create an artifact, or launch reviews.",
-      "expected_output": "The plan defines reserved fields and batches only the safe startup decisions.",
-      "files": [],
-      "expectations": [
-        "Requires each of the two future plan-authored reserved fields to declare its owner, allowed authority, response carrier, and proceed effect; the response need not invent unavailable concrete values for those fields.",
-        "Limits the later startup batch to the two explicitly reserved fields and prevents it from mutating undeclared scope, criteria, tests, risks, or implementation steps.",
-        "Does not change scope, acceptance criteria, tests, risks, or implementation steps through reserved fields.",
-        "Batches only simultaneously knowable startup decisions and leaves evidence-dependent or human-risk decisions at their later gates.",
-        "Stays response-only and creates no artifact."
+        "Uses one findings-and-dispositions table where accepted rows are the canonical repair queue and rejected/deferred rows keep evidence.",
+        "Does not claim the revision or review already occurred and creates no artifact."
       ]
     },
     {
       "id": "E32",
-      "name": "Plan exact baseline replay and falsifiability",
+      "name": "Migration proof: exact replay, repeatable procedure, and assertion perturbation",
       "project_class": "measurement-protocol",
-      "prompt": "This is a response-only planning-policy classification, not a request to create or revise an implementation plan. Begin with `Response-only: no artifact or review performed.` Then, in no more than three bullets, state the required future-plan decision for each concern below, including the concrete proof mechanism rather than merely saying one is required. Use only the supplied facts; do not browse, create a plan artifact, inspect a repository, run commands, or launch reviews. A future migration must preserve captured wire behavior. The baseline coverage classes are ordinary HTTP request/response, streaming retry, and a manual-only hardware handshake. The old capture harness will not run after the migration, the hardware-handshake class has no automated replay path, and the future plan must prove that its load-bearing preservation assertions can actually detect a wrong implementation.",
-      "expected_output": "At most three concise planning-policy bullets that make exact baseline preservation, manual proof ownership, and assertion falsifiability executable without pretending a plan artifact or proof already exists.",
+      "prompt": "This is a response-only planning-policy classification, not a request to create or revise an implementation plan. Begin with `Response-only: no artifact or review performed.` Then, in no more than five bullets, state the required future-plan decision for each concern below, including the concrete proof mechanism rather than merely saying one is required. Use only the supplied facts; do not browse, create a plan artifact, inspect a repository, run commands, or launch reviews. A future migration must preserve captured wire behavior. The baseline coverage classes are ordinary HTTP request/response, streaming retry, and a manual-only hardware handshake. The old capture harness will not run after the migration, and the hardware-handshake class has no automated replay path. The team wants to call its new replay procedure repeatable. Current product behavior is correct, so no known-bad product baseline exists, yet the plan must prove that its strengthened load-bearing preservation assertions can actually detect a wrong implementation.",
+      "expected_output": "At most five concise planning-policy bullets that make exact baseline preservation, manual proof ownership, performed repeatability proof, and exact-assertion falsifiability executable without pretending a plan artifact or proof already exists.",
       "files": [],
       "expectations": [
-        "Stays response-only without creating an artifact and plans exact recorded-input replay with the original ids, session shape, and normalization instead of regenerating cases through the migrated stack.",
+        "Plans exact recorded-input replay with the original ids, session shape, and normalization instead of regenerating cases through the migrated stack.",
         "Enumerates the supplied baseline coverage classes and keeps the manual-only hardware-handshake class as a named proof hole with a future-plan owner requirement or owner-selection decision plus an explicit manual-proof or future-automation path, without inventing a person or presenting it as automated coverage.",
-        "Plans a reversible mutation or equivalent controlled falsifiability check for the load-bearing preservation assertions."
-      ]
-    },
-    {
-      "id": "E33",
-      "name": "Plan evidence authority and human-owned proof",
-      "project_class": "measurement-protocol",
-      "prompt": "This is a response-only planning-policy classification, not a request to create or revise an implementation plan. In no more than three bullets, state the required future-plan decision for each concern below, including the concrete enforcement or review protocol rather than merely saying one is required. Use only the supplied facts; do not browse, create a plan artifact, inspect a repository, run commands, or launch reviews. In a future migration plan, a new “informational citation” must not be mistaken for verified evidence, the team wants to call a new replay procedure repeatable, and final artifact usability can be judged only by a human reviewer.",
-      "expected_output": "At most three concise planning-policy bullets that make structural evidence authority, performed repeatability proof, and human-owned usability acceptance executable without pretending a plan artifact or proof already exists.",
-      "files": [],
-      "expectations": [
-        "Requires a structural schema, namespace, type, or validation boundary so informational citations cannot count as verified evidence by label alone.",
         "Schedules one verbatim end-to-end procedure execution into a fresh evidence location before calling the replay repeatable.",
-        "Marks artifact usability human-only, requires the future plan to designate a human owner role or an owner-selection decision, prevents automated closure, and stays response-only without creating an artifact.",
-        "Requires the future plan to describe a concrete human-review protocol for the usability acceptance: who reviews, what they inspect, and how the verdict is recorded."
-      ]
-    },
-    {
-      "id": "E34",
-      "name": "New plan stays untracked and identity stays inline",
-      "project_class": "developer-workflow-planning",
-      "prompt": "Create the implementation plan for a small notification-cleanup change. Project policy explicitly says that newly created local plans under `docs/plans/` remain untracked unless the user separately asks to version them. Write exactly one plan artifact, do not implement, do not commit, and do not create checksum, receipt, manifest, or other sidecar files. Treat this prompt as the complete represented project input; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review.",
-      "expected_output": "A complete reviewed planning artifact is created without tracking, committing, or identity sidecars.",
-      "files": [],
-      "expectations": [
-        "Writes or names exactly one Markdown implementation-plan artifact under the normal plan path and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
-        "Treats the explicit project rule as denying tracking and checkpoint eligibility for this newly created plan even though planning was explicitly invoked and planning invocation does not select a commit.",
-        "Does not stage, commit, or propose a planning-artifact checkpoint for the new plan, and does not create an empty commit.",
-        "Does not create or maintain a plan digest and does not create a `.sha256`, receipt, manifest, or other auxiliary identity file.",
-        "Does not modify `.gitignore`, repository policy, code, tests, README, CHANGELOG, evals, release artifacts, or managed snapshots.",
-        "Records local self-review without inventing additional perspectives or claiming implementation or provider verification occurred."
+        "Requires a controlled perturbation of the exact asserted surface.",
+        "Requires cleanup proof and a final unmodified real check after the perturbation.",
+        "Keeps the preservation proof `Unproven` or blocked when the exact assertion cannot be observed failing under the controlled perturbation.",
+        "Stays response-only and creates no artifact."
       ]
     },
     {
@@ -558,39 +232,9 @@
       "files": [],
       "expectations": [
         "Allows at most one optimistic batch of two bounded review units because numeric remaining capacity is unavailable but recordable task/run evidence exists.",
-        "Does not call two a host ceiling and does not claim the future reviewers ran.",
-        "Requires the future launch record to carry requested batch size, started task identities, completion evidence, and observed execution mode, and states that configured batching or assistant prose alone cannot prove parallel execution.",
+        "Requires the future plan to record, for each perspective, whether it ran delegated with its task identity or locally, and states that requested batch size or assistant prose alone cannot prove parallel execution.",
         "On the first thread-limit, capacity, spawn, timeout, or unavailable-capability failure, stops further launches without changing models or probing again and moves unmet perspectives to coordinator fallback or a real blocker.",
         "Keeps reviewer findings inert pending coordinator disposition and stays response-only."
-      ]
-    },
-    {
-      "id": "E36",
-      "name": "Verified capacity still bounds planning review batches",
-      "prompt": "This is a response-only planning-review scheduling decision. A future plan needs three separated perspectives. The host provides an authoritative gross capacity of four active agents including the coordinator, plus recordable start/completion receipts. State the future batching contract in no more than six bullets. Do not browse, create an artifact, run commands, or launch reviewers.",
-      "expected_output": "A verified-capacity schedule that reserves the coordinator and records observed execution.",
-      "files": [],
-      "expectations": [
-        "Reserves the coordinator slot and permits a batch of at most three review units from the authoritative gross capacity of four.",
-        "Records the capacity source and gross-versus-net interpretation rather than treating a coordinator-authored number as measurement.",
-        "Requires started/completed task evidence and records parallel, serial, or single from observed lifecycle overlap rather than requested topology.",
-        "Stops further launches on the first capacity-class failure and moves unmet perspectives to coordinator fallback without model retries.",
-        "Stays response-only and does not claim the review occurred."
-      ]
-    },
-    {
-      "id": "E37",
-      "name": "Invariant metric is non-discriminating in either direction",
-      "project_class": "frontend-product-ui",
-      "prompt": "This is a response-only planning decision. A plan proposes an acceptance gate: a lint rule's violation count must be zero after the change. On the pre-change baseline that count is already non-zero, and the change is not expected to move it because the rule fires only on a directory the change does not touch. State whether the gate is admissible and why, in no more than five bullets. Do not create an artifact, browse, or run commands.",
-      "expected_output": "A rejection of the gate on the grounds that it returns the same verdict before and after the change.",
-      "files": [],
-      "expectations": [
-        "Rejects the metric as non-discriminating.",
-        "Bases that on the metric returning the same verdict before and after the planned change, not on whether the baseline passes or fails the threshold.",
-        "Does not admit the gate merely because the baseline currently fails it.",
-        "Requires the gate to be corrected or replaced before it can gate implementation completion.",
-        "Does not create a plan artifact and answers from the supplied facts without investigating a repository."
       ]
     },
     {
@@ -621,9 +265,6 @@
       "files": [],
       "expectations": [
         "Requires the test plan to expose the operator, material setup/time and infrastructure burden, and the reason existing fixtures or automation cannot cover the proposed manual procedure.",
-        "Keeps remote-server verification outside the approved support boundary unless the owning scope decision changes; does not silently add server support to make the check fit.",
-        "Reuses the approved five-minute smoke session and identifies only the added burden or scope as needing a decision, alternative, or plan revision.",
-        "Rejects hobby status as sufficient reason to omit material deletion/data-safety proof or fabricate accepted risk; ties proof depth to actual loss and recovery consequences.",
         "Seeks a lower-burden verification path without claiming it exists or treating unverified substitutions as completed acceptance."
       ]
     },
@@ -643,7 +284,8 @@
         "The plan includes no tests or edge cases for sign-in state, permissions, network, or server requests, which the About dialog cannot produce.",
         "The plan adds no separate dialog-stays-open or no-navigation test apart from the expand-collapse interaction test unless it names what the separate test adds.",
         "Each Test plan entry names what it closes and whether it is new, extends an existing test, or reuses one.",
-        "The plan gives no numeric cap or test budget as a reason to omit a test."
+        "The plan gives no numeric cap or test budget as a reason to omit a test.",
+        "Omits `Capability dependencies` and `Implementation progress` because this low-risk same-session plan has no material capability or resumability dependency."
       ]
     },
     {
@@ -663,6 +305,6 @@
     "common_assertion_weight": 0.5,
     "per_eval_expectation_weight": 0.5,
     "pass_threshold": 0.8,
-    "notes": "Compact suite: overlapping accepted-risk, destructive-risk, public-API normalization, diagnostic-restraint, selective failure-pattern, duplicate requirements-readiness, and prompt-injected orchestration cases were removed or folded into retained pressure cases. Representative cases keep full-artifact integration coverage; narrow policy cases are response-only so unrelated repository, artifact, and review execution does not dominate their measurement. This preserves the targeted per-case dimensions while accepting that narrow cases do not duplicate full-artifact pressure. Raw pass rates from earlier assertion or delivery-mode sets are not directly comparable. E32-E33 add report-derived plan pressure without claiming measured improvement; E34 separates requested plan creation from tracking, checkpoint, and sidecar authority."
+    "notes": "Compact suite: cases whose assertions did not discriminate with versus without the skill were removed, and cases sharing one realistic scenario were merged (E04 with E12/E23, E09 with E11, E22 with E30, E26 with E20, E29 with E28, E32 with E24/E33). Raw pass rates from the earlier 41-case suite are not directly comparable."
   }
 }
