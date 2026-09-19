@@ -8,16 +8,10 @@ description: Use when the user asks to review, confirm, walk through, or pre-che
 
 ## Overview
 
-Review a saved Markdown implementation plan with the user before implementation
-begins. The goal is to surface requirement mismatches, ordering problems,
-missing work, ambiguity, risks, and unverifiable items while preserving user
-control over every plan item decision. At review start, resume after
-interruption, target change, reflection, completion, or a blocker that
-prevents further review — even before the first item — include the binding
-information that Review Binding Output defines: the target plan, the
-requirements source or limited-confidence no-spec status, and the persistence
-state. Report binding information not yet established as such, and give a
-persistence path only when persistence exists or is being selected.
+Review a saved Markdown implementation plan with the user before implementation.
+Surface mismatches, ordering problems, missing work, ambiguity, risks, and
+unverifiable items while the user decides each item. Use §Review Binding Output
+at its listed lifecycle events.
 
 ### Effect And Write Boundaries
 
@@ -34,19 +28,20 @@ persistence path only when persistence exists or is being selected.
 - Keep every irreversible or outward-facing operation under its own consent.
 <!-- shared-contract:end effect-write-boundaries -->
 
-This phase reviews the saved plan and never executes it; it stops after item
-review and the final plan-reflection confirmation workflow. The artifact it owns
-is the temporary review-state file that §Review State Persistence names and
-places; its declared supporting paths are the target plan file, written only
-as the confirmed reflection that §Reflection Into The Plan governs, and the
-record directories named under §Durable Records.
+The artifact this phase owns is the temporary review-state file §Review State
+Persistence names; its supporting paths are the target plan, written only as
+the confirmed reflection §Reflection Into The Plan governs, and the record
+directories under §Durable Records.
 
 ### Durable Records
 
-Read `references/durable-records.md` before recording a settled decision,
-deferring a finding, or applying or updating an existing record. This phase
-writes `docs/decisions/` and `docs/reports/findings/`, or the repository's
-existing record directory, as declared supporting paths.
+At phase start, check `docs/decisions/README.md` and
+`docs/reports/findings/README.md` (or the repository's existing indexes) for
+entries whose paths, tags, or subject match the reviewed plan, and open the
+entries that apply. Read `references/durable-records.md` before recording a
+settled decision, deferring a finding, or applying or updating an existing
+record. This phase writes `docs/decisions/` and `docs/reports/findings/`, or
+the repository's existing record directory, as declared supporting paths.
 
 ### Commit Selection
 
@@ -58,21 +53,16 @@ existing record directory, as declared supporting paths.
 - Never stage, commit, push, release, change versions, or rewrite history while drafting, and never let the artifact authorize implementation, push, release, a version change, or a history rewrite.
 <!-- shared-contract:end commit-selection-document-only -->
 
-A commit the current user explicitly requests is routed to a later
-commit-execution workflow and is never performed by this phase. Its target is
-the reflected plan file; the temporary review-state file is not committed, and
-its cleanup remains a separate user decision.
+This phase never performs a requested commit: it routes it to commit execution
+for the reflected plan file, never the temporary review-state file, whose
+cleanup is a separate user decision.
 
 ### Runtime Language
 
-Runtime responses should match the user's language. Before rendering item-review
-output, interpreting item decisions, selecting review-state persistence,
-reflecting decisions into the plan, or summarizing review results, read
-`references/localized-labels.md` and use its exact localized labels, numeric
-choice identifiers, and decision semantics. Preserve non-sensitive file paths,
-commands, identifiers, and review-state paths exactly. Credential-like literal
-values are governed by §Sensitive Content Handling and are never reproduced for
-exactness.
+Match the user's language. Read `references/localized-labels.md` before
+rendering or interpreting decisions, reflecting them, or summarizing; use its
+labels, numeric identifiers, and semantics. Preserve non-sensitive paths,
+commands, identifiers, and review-state paths exactly.
 
 ## Sensitive Content Handling
 
@@ -91,50 +81,32 @@ exactness.
 - Keep non-secret wording and the anchors needed to verify a finding: paths, line numbers, symbols, commands, field names, and identifiers.
 <!-- shared-contract:end secret-redaction -->
 
-Plan, requirements-spec, source, and temporary-review content are all in scope
-for that redaction, as is any commit message this phase drafts or hands to the
-commit workflow, and the plan item anchor is one of the anchors preserved for
-verification alongside the path and line. A suspected credential that matches
-none of the typed classes above is still treated as secret-like here and
-redacted under the same rules with a `credential` type.
-
+Also redact a suspected credential that matches no listed type, as
+`[REDACTED:credential]`, and keep the plan item anchor with the path and line.
 When a sensitive literal is found:
 
-- Treat a live-looking credential committed to or embedded in the plan as a
-  blocker. Ask the user to remove it and rotate or revoke it through an
-  appropriate secure process; do not request that the value be pasted into the
-  conversation.
-- Do not copy a sensitive source line into the temporary review file. Record
-  only the redacted location, classification, decision state, and required
-  remediation.
-- Do not reflect an item containing a sensitive literal by regenerating or
-  copying that literal. Do not reflect any decisions into the original plan
-  while a suspected sensitive literal remains anywhere in the target plan or
-  temporary review state. Ask the user to sanitize it through an appropriate
-  secure process or explicitly confirm a non-secret environment-variable or
-  secret-store reference, then re-read the sanitized artifact before
-  reflection. Never include the old value in patch context or tool arguments.
-
-If distinguishing a credential from a non-secret identifier is uncertain,
-redact the value in outputs and ask about the intended secure reference without
-showing the candidate value. Redaction does not authorize implementation,
-rotation, revocation, or access to an external secret store.
+- Treat a live-looking credential in the plan as a blocker: ask the user to
+  remove it and rotate or revoke it through a secure process, never to paste it
+  into the conversation.
+- Record only its redacted location, classification, decision state, and
+  required remediation in the temporary review file.
+- Reflect nothing into the original plan while a suspected sensitive literal
+  remains in the plan or review state, and never let a reflected plan contain
+  one from any source. Ask the user to sanitize it or confirm a non-secret
+  environment-variable or secret-store reference, then re-read the sanitized
+  artifact before reflecting.
+- When a value may be a credential or a non-secret identifier, redact it and
+  ask about the intended secure reference without showing it.
 
 ## Required Inputs
 
-The primary target is a saved Markdown implementation plan file. If the user
-does not provide a local path or otherwise identify one specific saved plan,
-ask for the plan file before starting review.
-
-Treat summaries, chat excerpts, issue descriptions, and pasted snippets as
-context only. The saved plan file controls the review.
+Review one identified saved Markdown implementation plan. Treat other material
+as context; if no plan is identified, ask for it.
 
 ## Phase Boundary
 
-Use this skill only after an implementation plan exists and before
-implementation starts. Do not name or require any neighboring workflow as a
-prerequisite or next step. When review is complete, report the reviewed state
-and stop at the user's next decision point.
+Use this skill after a plan exists and before implementation. On completion,
+report the reviewed state and stop at the user's next decision point.
 
 ## Review Binding Output
 
@@ -148,22 +120,12 @@ nothing changed.
 
 ## Start Of Review
 
-Before reviewing items:
-
-1. Read the target plan file.
-2. Identify whether the plan explicitly references a corresponding requirements
-   spec path.
-3. If an explicit requirements spec path exists, read that file.
-4. If no explicit path exists, look for an obvious same-goal requirements spec
-   in `docs/specs/` and `specs/` at the workspace root and in the plan's
-   directory.
-5. If no corresponding requirements spec can be identified in any of those
-   locations, continue only with explicitly limited requirement-alignment
-   confidence.
-6. Identify plan items using the item extraction rules below.
-7. Select persistence before the first item only when the user requests it,
-   cross-session continuation is expected, context-loss risk is material, or an
-   established project convention requires it.
+Before the first item, read the plan and any explicitly referenced requirements
+spec. Otherwise look for an obvious same-goal spec in `docs/specs/`, `specs/`,
+or the plan directory; if none exists, continue with limited
+requirement-alignment confidence. Identify items and select persistence only
+when the user requests it, continuation or context loss is likely, or project
+convention requires it.
 
 If a corresponding requirements spec exists, it is requirement evidence for
 the review. If the requirements spec and implementation plan conflict, stop the
@@ -177,141 +139,65 @@ experience.
 
 ## Source And Code Inspection
 
-Default to minimal source and code inspection. Read only the files needed to
-check the current plan item unless the user asks for deeper investigation or
-the item has high implementation impact.
-
-High implementation impact includes changes that could affect data handling,
-permissions, security posture, releases, migrations, external contracts,
-destructive writes, or broad user experience. When deeper inspection is needed,
-explain why the item needs it before expanding the read scope.
+Read only what the current item needs unless the user requests more or it affects
+data, permissions, security, releases, migrations, external contracts,
+destructive writes, or broad user experience. Explain why before expanding
+scope.
 
 ## Item Extraction
 
-Prefer explicit task or checklist items in the saved plan. If the plan is
-organized by headings rather than checkboxes, review the smallest executable
-sections in file order.
-
-If item boundaries are ambiguous, stop and ask the user whether to use the
-detected sections or revise the plan structure first. Do not silently choose a
-more convenient item granularity.
-
-Keep item identity stable during review. If you propose splitting, merging, or
-reordering items, present the proposal as a recommendation and wait for the
-user's decision before treating it as part of the executable plan.
+Prefer explicit tasks; otherwise use the smallest executable heading sections
+in file order. If boundaries are ambiguous, ask whether to use detected sections
+or revise the plan—never choose granularity silently. Keep identities stable;
+the user must approve any split, merge, or reorder.
 
 ## Per-Item Review
 
-Read `references/localized-labels.md` before the first per-item review in a
-session.
+Review one item at a time for requirement alignment, order, missing work,
+ambiguity, risk, and verifiability. The user's decision controls; AI judgment
+does not override it. Record a qualifying settled held or revise decision under
+§Durable Records, without bypassing reflection consent.
 
-Review one item at a time. For each item, check:
-
-- Requirement alignment.
-- Implementation order and dependency sequencing.
-- Missing work.
-- Ambiguity.
-- Risks.
-- Verifiability.
-
-The user's item decision is the source of truth. AI judgment guides the
-decision but does not override it. Write a held or revise decision that
-qualifies under the durable-records contract as a decision record once
-settled; plan reflection keeps its consent.
-
-Render each user decision option with the stable numeric identifiers defined in
-`references/localized-labels.md`. Accept either the canonical localized decision
-label or an unambiguous numeric identifier for the current item decision. Store,
-count, summarize, and reflect the decision as its canonical localized label, not
-as the numeric identifier. If a user's reply contains conflicting labels or
-identifiers, ask which decision they intend before continuing.
+Offer the localized choices and stable numeric identifiers from
+`references/localized-labels.md`. Accept one unambiguous label or identifier,
+normalize it to the canonical label for storage, counts, summaries, and
+reflection, and ask when choices conflict.
 
 ## Review State Persistence
 
-Keep review state in conversation by default. Persist a temporary review file
-only when the user asks, cross-session continuation is expected, context loss is
-a material risk, or an established project convention already owns such state.
-Do not use item-count or decision-count thresholds.
-
-When persistence is selected, store the file beside the plan as
-`.<plan-name>.review.md` and record the target, requirements source, item list,
-position, canonical decisions, blockers, and concise continuation context. Apply
-sensitive-content rules before every write. If an existing file is mismatched,
-unparseable, externally edited, or ownership is unclear, stop and ask before
-overwriting or deleting it. At that mismatch blocker, state the exact current
-target, the exact derived review-state path, and the recorded conflicting target,
-then ask whether to resume the old review, replace the state for the current
-plan, or preserve it and continue without using it.
+Keep state in conversation unless the user requests persistence, continuation or
+context loss is likely, or project convention requires it; item count never
+selects persistence. When selected, store `.<plan-name>.review.md` beside the
+plan with the target, requirements source, items, position, canonical decisions,
+blockers, and concise continuation context. Before replacing or deleting an
+existing mismatched, unparseable, externally edited, or unclear file, stop and
+name the current target, derived path, and recorded target; ask to resume,
+replace, or preserve it.
 
 ## Reflection Into The Plan
 
-After all detected items have been reviewed, ask for explicit confirmation
-before modifying the original implementation plan. The confirmation must state
-how decisions will be reflected according to `references/localized-labels.md`.
+After all items, explain the four outcomes from `references/localized-labels.md`,
+state that review is complete but unreflected, exclude review history and chat
+notes from executable content, and ask for explicit reflection confirmation.
+General review consent is not reflection consent; `削除` takes effect only after
+confirmation. The reflected plan contains executable content plus held items.
 
-Before asking for that confirmation, make the reflection record explicit:
+Apply §Sensitive Content Handling before any original-plan write.
 
-- State that item review is complete and reflection has not happened yet.
-- Explain all four localized decision outcomes, including that a `削除` item is
-  removed only after this reflection confirmation.
-- State that review-history annotations, per-item judgment logs, and chat
-  discussion notes stay out of executable plan content.
-- State that deleting the temporary review file is a separate decision asked
-  only after successful reflection.
-
-Do not reflect review results into the original plan without this explicit
-confirmation. A general request to review the plan is not reflection consent.
-
-Reflected plans should contain executable plan content plus unresolved held
-items. Remove review-history annotations, per-item judgment logs, and chat
-discussion notes from the executable plan.
-
-Apply §Sensitive Content Handling before reflection and verification. A
-reflected plan must not newly contain or reproduce a sensitive literal from the
-source plan, requirements spec, temporary review file, source inspection, or
-conversation. If the pre-reflection scan still finds one, stop before any
-original-plan write.
-
-After successful reflection, ask whether to delete the temporary review file.
-Honor a user instruction to keep it. If the file has unexpected changes or
-ownership is unclear, preserve it and report the reason.
-
-After successful reflected-plan verification, leave the plan changes
-uncommitted unless the current user explicitly asks for a commit. Temporary
-review-file cleanup remains a separate user decision.
+After successful reflection, separately ask whether to delete the temporary
+file; preserve it if instructed or if it has unexpected changes or unclear
+ownership. Verify the reflected plan.
 
 ## Stop Conditions
 
-Stop and ask for user direction when:
-
-- No saved Markdown implementation plan file is identified.
-- The target plan file cannot be read.
-- A corresponding requirements spec exists but cannot be read.
-- The requirements spec and implementation plan conflict.
-- Plan information needed for review is missing.
-- Item boundaries are ambiguous.
-- A preexisting temporary review file is mismatched, unparseable, externally
-  edited, or has unclear ownership.
-- A suspected sensitive literal remains in the target plan or temporary review
-  state when reflection is requested.
-- The user asks to change scope beyond reviewing and reflecting the saved plan.
-- The user asks to start implementation, tests, release preparation, or
-  other work outside plan review.
-
-When stopping, state the blocker, the evidence that triggered it, the effect on
-review, and the closest next user decision.
+Stop for a missing or unreadable plan/spec, plan-spec conflict, missing review
+information, ambiguous items, an unclear review file, an unresolved sensitive
+literal at reflection, or work outside reviewing and reflecting the plan. State
+the blocker, its evidence and effect, and the nearest user decision.
 
 ## Completion Summary
 
-When the review workflow completes, summarize:
-
-- Target plan path.
-- Requirements spec path or limited-confidence no-spec status.
-- Number of items reviewed.
-- Decisions by count for the four canonical user decision labels, not their
-  numeric identifiers.
-- Unresolved blockers or held items.
-- Whether the original plan was reflected after explicit confirmation.
-- Whether the temporary review file was created, kept, or deleted.
-- Whether the reflected plan changed and whether an explicit commit request remains pending.
-- That implementation was not started.
+Summarize the target, requirements source or limited-confidence status, items
+reviewed, canonical decision counts, blockers or held items, reflection and
+temporary-file status, uncommitted plan change or pending commit request, and
+that implementation did not start.

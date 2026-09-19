@@ -64,6 +64,9 @@ use `[Repository] - YYYY-MM-DD`.
   budgets or runtime-evidence receipts, or asks at startup for host commit
   confirmation; it carries only the tested artifact and its build inputs into
   the commit handoff.
+- `vibe-plan-review`: checks the decision and open-findings indexes when the
+  walkthrough starts; its instructions are otherwise consolidated with no
+  intended behavior change.
 - Verification: evals were not re-run after this trim, so every behavior
   delta above is `Unproven`. Suite `validate`, `vibe_shared_contract.py check
   --strict` and `audit-names`, and `python3 -m pytest tests` passed. Most eval

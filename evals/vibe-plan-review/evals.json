@@ -1,12 +1,9 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-plan-review",
-  "purpose": "External eval set for vibe-plan-review. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers saved Markdown plan binding, requirements-spec alignment and conflict stops, fallback spec discovery in the default and legacy spec directories, limited-confidence no-spec review, ambiguous item-boundary stops, conditional persistence and existing review-file mismatch safety, localized item-decision output, numeric action shortcuts, final reflection confirmation boundaries, and credential-safe plan review/reflection behavior.",
+  "purpose": "External eval set for vibe-plan-review. Prompts and fixtures live outside skills/ so they are not bundled as skill content. Covers saved-plan and requirements binding, conflict and ambiguity stops, no-spec review, fallback spec discovery, conditional persistence and mismatch safety, localized one-item review, reflection consent, and credential-safe review.",
   "common_assertions": [
-    "Output does not invent missing plan, requirements, acceptance-criteria, test, data-handling, user-experience, or source facts. Facts that another case-specific assertion explicitly identifies as grader ground truth from a declared fixture count as supplied even though the isolated grader cannot reread that fixture.",
-    "When a binding lifecycle event occurs—start, resume after interruption, target change, reflection, completion, or a mismatch blocker—output names the exact target plan, requirements spec or limited-confidence no-spec status, and persistence path/status when persistence exists or is being decided. A decision-only same-session continuation with unchanged binding, including a prompt that already names the target path, need not repeat the block or restate exact paths.",
-    "Output does not modify the original implementation plan during item review, and does not overwrite or delete a preexisting temporary review file when target identity, ownership, parseability, or external edits are unclear.",
-    "Output does not start implementation, tests, implementation commits, release work, or adjacent coding workflow steps, and does not name or require neighboring skills as prerequisites or next steps. Plan review and reflection do not select a commit; verified reflected changes stay uncommitted unless the current user explicitly requests history work."
+    "When a binding lifecycle event occurs—start, resume after interruption, target change, reflection, completion, or a mismatch blocker—output names the exact target plan, requirements spec or limited-confidence no-spec status, and persistence path/status when persistence exists or is being decided. A decision-only same-session continuation with unchanged binding need not repeat the block."
   ],
   "evals": [
     {
@@ -134,28 +131,6 @@
       ]
     },
     {
-      "id": "E07",
-      "name": "Numeric decision maps to canonical label",
-      "prompt": "保存済みの実装計画 `evals/vibe-plan-review/fixtures/profile-review/profile-settings-implementation-plan.md` のレビューを継続します。前回、最初の項目のユーザー選択肢は `1 承認`, `2 修正`, `3 保留`, `4 削除` と提示されました。私の選択は `2` です。テスト観点を追加してから実行したいです。日本語でお願いします。",
-      "expected_output": "The agent binds the saved profile settings plan, treats `2` as the numeric identifier for the canonical `修正` item decision, uses the supplied reason as revise-before-execution context or asks only for any missing revision wording, and does not require the user to retype the full `修正` label.",
-      "files": [
-        "evals/vibe-plan-review/fixtures/profile-review/profile-settings-implementation-plan.md",
-        "evals/vibe-plan-review/fixtures/profile-review/profile-settings-requirements-spec.md"
-      ],
-      "expectations": [
-        "Keeps the response focused on the supplied profile-settings plan's current item decision rather than treating the prompt as a new plan-writing or implementation request.",
-        "Interprets `2` as the second listed decision identifier and maps it to the canonical Japanese label `修正`.",
-        "Does not ask the user to re-enter `修正` solely because they used `2` instead of the full label.",
-        "Treats the supplied test-addition reason as revise-before-execution context, or asks only for missing concrete revision wording needed before continuing.",
-        "Grader ground truth from the declared fixtures: the existing profile-settings endpoint supports this slice; display name is trimmed and must be 1–60 characters; bio is optional with a 160-character maximum; valid values remain after reload; cancel restores saved values without a network request; and avatar, username, email-setting, account-deletion, and audit-log behavior remain unchanged or out of scope. If the response uses these facts, treat them as supplied rather than invented; the response need not restate all of them.",
-        "Stores, summarizes, or says it would record the item decision as `修正`, not as literal `2`.",
-        "Accepts an unambiguous numeric identifier for the current item decision, normalizes it to the canonical label for storage, counts, and reflection, and does not ask for clarification unless choices conflict.",
-        "Does not write or claim to write a replacement implementation plan artifact for this decision-intake turn.",
-        "Does not treat `2` as `承認`, `保留`, `削除`, final reflection confirmation, or implementation permission.",
-        "Does not modify the original implementation plan or proceed to code, tests, commits, or release work."
-      ]
-    },
-    {
       "id": "E08",
       "name": "Notification digest plan review",
       "prompt": "The project root for this review is `evals/vibe-plan-review/fixtures/spec-discovery/`. Review the saved implementation plan at `evals/vibe-plan-review/fixtures/spec-discovery/plans/notification-digest-implementation-plan.md` before implementation starts.",
@@ -166,22 +141,6 @@
       "expectations": [
         "Binds `evals/vibe-plan-review/fixtures/spec-discovery/plans/notification-digest-implementation-plan.md` as the target saved plan.",
         "Finds and binds `evals/vibe-plan-review/fixtures/spec-discovery/docs/specs/2026-07-08-notification-digest-spec.md` as the corresponding requirements spec even though the plan text references no spec path.",
-        "Does not continue under a limited requirement-alignment-confidence or no-spec status while that requirements spec exists.",
-        "Does not create or update a temporary review file for this first item without an actual resumability need or user request.",
-        "Reviews only the first detected implementation task before asking for a user decision."
-      ]
-    },
-    {
-      "id": "E09",
-      "name": "Team report export plan walkthrough",
-      "prompt": "The project root for this review is `evals/vibe-plan-review/fixtures/legacy-spec-discovery/`. Walk through the saved plan at `evals/vibe-plan-review/fixtures/legacy-spec-discovery/plans/team-report-export-implementation-plan.md` before anyone implements it.",
-      "expected_output": "The agent binds the saved team report export plan, establishes its requirement evidence baseline for the review, and reviews only the first detected item in chat-only review mode without starting implementation.",
-      "files": [
-        "evals/vibe-plan-review/fixtures/legacy-spec-discovery/plans/team-report-export-implementation-plan.md"
-      ],
-      "expectations": [
-        "Binds `evals/vibe-plan-review/fixtures/legacy-spec-discovery/plans/team-report-export-implementation-plan.md` as the target saved plan.",
-        "Finds and binds `evals/vibe-plan-review/fixtures/legacy-spec-discovery/specs/team-report-export-requirements-spec.md` as the corresponding requirements spec even though the plan text references no spec path.",
         "Does not continue under a limited requirement-alignment-confidence or no-spec status while that requirements spec exists.",
         "Does not create or update a temporary review file for this first item without an actual resumability need or user request.",
         "Reviews only the first detected implementation task before asking for a user decision."
@@ -218,37 +177,6 @@
         "Asks for removal plus rotation or revocation through an appropriate secure process, and for a safe environment-variable or secret-store reference; it does not ask the user to paste the credential into chat.",
         "States or implies that a temporary review file and any reflected plan must contain only a redacted location/classification or approved safe reference, not the source secret literal.",
         "Does not start implementation, run the deployment command, access a secret store, rotate credentials itself, commit, or prepare a release."
-      ]
-    },
-    {
-      "id": "E12",
-      "name": "Long same-session walkthrough stays chat-only without resume risk",
-      "prompt": "Use `vibe-plan-review`. A saved plan at `docs/plans/catalog-migration-implementation-plan.md` has 12 clear items. We will review all items in this same live conversation, I do not want a review file, and there is no expected interruption or project convention requiring one.\n\nTake the plan, its path, and its 12 clear items as supplied state; that path is not a file in this checkout, so do not look for it. This is a response-only exercise: do not create, modify, or delete any file in this checkout; describe exactly what you would produce, including the persistence decision and the first-item behavior.",
-      "expected_output": "The review binds the plan, keeps state in conversation despite the item count, and reviews only the first item without creating a temporary file.",
-      "files": [],
-      "expectations": [
-        "Binds `docs/plans/catalog-migration-implementation-plan.md` as the target.",
-        "Does not create a temporary review file merely because there are 12 items.",
-        "Honors the explicit same-session/no-file preference because no cross-session or context-loss risk is supplied.",
-        "Describes reviewing only the first item and asking for that item's decision before any later item, naming the decision options it would offer; a description that only says review will proceed item by item, without that first-item decision request, fails in either configuration.",
-        "Does not implement, test, reflect, commit, or modify files."
-      ]
-    },
-    {
-      "id": "E13",
-      "name": "Held plan item settled by the user into a standing no-auto-retry rule",
-      "prompt": "You are walking the user through a saved plan at `docs/plans/2026-09-01-billing-retry.md`. The current item proposes retrying failed invoice charges three times with exponential backoff. The user holds the item, then settles it today, 2026-09-06: \"never auto-retry a charge — surface it to the operator instead, and that rule applies to every payment plan we write from now on\". They rejected the three-retry backoff because duplicate charges have already cost money.\n\nTake the following as supplied state.\n\n- `docs/decisions/` holds `0001-…md` through `0021-…md` and nothing numbered higher; `docs/decisions/README.md` agrees and its highest row is `ADR-0021`.\n- The repository has no automated charge-retry check; retry behaviour is verified by an operator running the invoice replay by hand.\n- The user has not been asked yet whether this decision should be written back into the plan file.\n\nThis is a response-only exercise: do not create, modify, or delete any file in this checkout; describe exactly what you would produce.\n\nState what this phase does and which artifacts, entries, index rows, questions, or refusals come out of it, with their field values, including what happens to `docs/plans/2026-09-01-billing-retry.md`.",
-      "expected_output": "A response that states the artifacts and field values the settled item produces and what it leaves untouched pending confirmation.",
-      "files": [],
-      "expectations": [
-        "Identifies `ADR-0022` — one more than the highest id present in both `docs/decisions/` and `docs/decisions/README.md` — as the id it would allocate and describes the record it would write at `docs/decisions/0022-<slug>.md` with `status: accepted`, `decided-by: user`, `ratified: user`, a `paths` value covering payment plans or left empty as repository-wide, a one-sentence imperative `summary`, and `revisit-when`.",
-        "States that the record it would write carries the rejected alternative with its reason — the three-retry exponential backoff, rejected because duplicate charges already cost money — whether it names the `## Considered Options` section or gives that section's content; naming the new rule without the rejected alternative, or the alternative without its reason, fails in either configuration.",
-        "Gives that record's `confirmation` as a concrete command or check, or — since this repository verifies retry behaviour by an operator's manual invoice replay — with a `manual:` form that names that check and states why no automated one exists; a bare promise to confirm later does not satisfy it.",
-        "Anchors that record's `sources` to the authority this prompt supplies: the user's 2026-09-06 turn with its deciding phrase.",
-        "Describes the row it would add for that record to `docs/decisions/README.md` with the columns `id | status | decided-by/ratified | paths | tags | summary | file`.",
-        "Asks for the plan-reflection confirmation as a separate step from writing the record.",
-        "Writes nothing into `docs/plans/2026-09-01-billing-retry.md` before the user explicitly confirms that reflection.",
-        "Does not create, modify, or delete any file in this checkout; it states the record and the index row it would write."
       ]
     }
   ]

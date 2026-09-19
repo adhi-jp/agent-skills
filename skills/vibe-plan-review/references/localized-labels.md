@@ -1,23 +1,13 @@
 # Localized Labels
 
-Use this reference when rendering item-review output, interpreting user item
-decisions or identifier shortcuts, reflecting
-decisions into the plan, or summarizing review results.
+Use this reference for item output, decisions, reflection, and summaries.
 
 ## Language Selection
 
-Match the user's active language for prose. Preserve non-sensitive file paths,
-commands, identifiers, and review-state paths exactly. Suspected credential or
-secret-like literal values are an explicit exception: use the redaction and
-safe-reference contract in the main skill instead of reproducing them.
-
-When the user's active language is Japanese, use the exact labels in the
-Japanese label set below. When the user's active language is not Japanese, use a
-natural translation for prose and keep the four decision states semantically
-equivalent to approved, revise-before-execution, held, and deleted. Do not
-translate non-sensitive file paths, commands, identifiers, or
-`.<plan-name>.review.md`.
-Use the same stable choice identifiers in every language.
+Match the user's language. Preserve non-sensitive paths, commands, identifiers,
+and `.<plan-name>.review.md`. In Japanese use the exact labels below; otherwise
+translate prose naturally while keeping approved, revise-before-execution, held,
+and deleted equivalent. Choice identifiers stay stable in every language.
 
 ## Japanese Label Set
 
@@ -35,42 +25,18 @@ Use this exact per-item output shape:
 - 4 削除: <meaning for this item>
 ```
 
-AI judgment labels:
+Judgments: `問題なし` (no material issue), `要修正` (revise before execution),
+`要確認` (user decision or clarification needed), and `ブロッカー` (cannot safely
+continue).
 
-- `問題なし`: no material issue found for this item.
-- `要修正`: the item should be revised before execution.
-- `要確認`: the item needs a user decision or clarification before execution.
-- `ブロッカー`: review cannot safely continue for this item until a blocking
-  conflict or missing information is resolved.
-
-User decision labels:
-
-- `承認`: keep the item for execution.
-- `修正`: keep the item only after revision before execution.
-- `保留`: keep the item visible as unresolved after final plan reflection.
-- `削除`: remove the item from the executable plan only after final reflection
-  confirmation.
-
-User decision identifiers:
-
-- `1`: `承認`.
-- `2`: `修正`.
-- `3`: `保留`.
-- `4`: `削除`.
-
-Accept surrounding prose or punctuation when exactly one label or identifier is
-unambiguous, such as `2でお願いします`. If a reply contains multiple choices or a
-label and identifier that map to different decisions, ask the user to clarify.
-Identifiers are shortcuts only for the current item decision; they are not final
-reflection confirmation, scope approval, or permission to start implementation.
+Decisions: `1` `承認` (keep), `2` `修正` (keep after revision), `3` `保留`
+(keep unresolved), and `4` `削除` (remove only after reflection confirmation).
+Accept one unambiguous label or identifier, including surrounding prose such as
+`2でお願いします`; ask when choices conflict. An identifier only decides the
+current item, never reflection, scope, or implementation.
 
 ## Reflection Semantics
 
-For every language, final reflection semantics are:
-
-- Approved items remain executable plan content.
-- Revise-before-execution items remain only with the accepted revision or with a
-  clear revise-before-execution marker if the user has not supplied final
-  wording.
-- Held items remain visible as unresolved.
-- Deleted items are removed from the executable plan.
+On reflection, approved items remain executable; revised items carry their
+accepted revision or a revise marker; held items stay unresolved; deleted items
+are removed.
