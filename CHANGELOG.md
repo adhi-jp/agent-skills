@@ -91,6 +91,8 @@ use `[Repository] - YYYY-MM-DD`.
 - `vibe-goal-alignment`: a confirmed deletion, release, or cleanup decision
   is handed forward and never executed or treated as permission during
   alignment.
+- `vibe-code-research`: instructions are cut to evidence binding, anchors,
+  and the output contract, with no intended behavior change.
 - Verification: evals were not re-run after this trim, so every behavior
   delta above is `Unproven`. Suite `validate`, `vibe_shared_contract.py check
   --strict` and `audit-names`, and `python3 -m pytest tests` passed. Most eval
