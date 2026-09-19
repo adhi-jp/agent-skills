@@ -79,6 +79,13 @@ use `[Repository] - YYYY-MM-DD`.
   confirmation or prescribes a fixed history-authority summary.
 - `vibe-writing`: reference playbooks and examples are cut to the rules
   they illustrate, with no intended behavior change.
+- `vibe-agent-instructions`: the size report gives two measurements (the
+  `AGENTS.md` line count and Codex auto-loaded bytes against
+  `project_doc_max_bytes`); the run report has seven sections, empty ones
+  optional; a link replacement is previewed by its link target; advance
+  confirmation never overrides a conflict stop; an accepted divergence is
+  recorded with the confirmed change set; the decision and open-findings
+  indexes are checked at phase start.
 - Verification: evals were not re-run after this trim, so every behavior
   delta above is `Unproven`. Suite `validate`, `vibe_shared_contract.py check
   --strict` and `audit-names`, and `python3 -m pytest tests` passed. Most eval
