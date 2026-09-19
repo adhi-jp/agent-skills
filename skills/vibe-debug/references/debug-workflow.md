@@ -32,8 +32,11 @@ checks live in `continuity-and-recurrence.md`; output and scope rules live in
    or explicit risk acceptance resolves the gap.
 
 4. **Escalate proof, not speculation.** Start with bounded triage: nearest code,
-   tests, existing logs, artifacts, and expected-behavior source. Read
-   `source-routing.md` for unfamiliar external contracts or tool failures. If
+   tests, existing logs, artifacts, and expected-behavior source. Before changing
+   unfamiliar external, protocol, or permission behavior, name its authoritative
+   source (official docs, upstream spec or source, local contract code, or
+   supplied material); read `source-routing.md` for how to find it and for tool
+   failures. If
    triage leaves multiple live-state hypotheses, sprawling static investigation,
    a contradicted approach, or another source-only guess, read
    `probe-escalation.md`. For repeated failures use `debug-ledger.md` before

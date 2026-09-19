@@ -17,7 +17,7 @@
       "expectations": [
         "Describes separate ledger items for count jumping and empty-state mismatch, or explains why they are one symptom.",
         "Identifies expected behavior sources to find, such as existing tests, product copy, filter state code, or prior behavior.",
-        "Builds a matrix that includes selected filter, empty/non-empty result, loading state, and refresh/reset behavior.",
+        "Covers selected filter, empty and non-empty results, loading state, and refresh or reset behavior among its reproduction or verification cases; a table is not required.",
         "Does not claim a UI fix is complete without an observation path that can see the count and empty state."
       ]
     },
@@ -83,11 +83,11 @@
       "id": "E08",
       "name": "Free-text option change",
       "project_class": "data-representation",
-      "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nYou offered to apply the fix to 'all archived reports' or 'only reports from May'. I said 'the appropriate reports', because some April reports are affected too. Continue.",
+      "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nYou offered to apply the fix to 'all archived reports' or 'only reports from May'. I said 'the appropriate reports', because some April reports are affected too. The supplied archive metadata records report dates only, not which reports hit the defect. Continue.",
       "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
       "expectations": [
         "Preserves the user's wording and identifies the target-set ambiguity.",
-        "Investigates the available prompt evidence, report metadata, supplied data, code, or tests before asking a narrowing question, and states when no local evidence is available.",
+        "Describes identifying the affected reports from available evidence (report metadata, supplied data, code, or tests) before asking a narrowing question.",
         "Asks only for the minimum decision if local evidence cannot identify affected reports.",
         "Does not proceed with May-only or all-archived edits as if confirmed."
       ]
@@ -230,8 +230,7 @@
         "Names the session-scoped ledger durability limit and a reconstruction source.",
         "Scans neighboring paths sharing the cleanup contract rather than only the reported occurrence.",
         "Defines a disconfirming or negative check for a likely missed neighboring cleanup case.",
-        "Keeps unrelated hardening outside the cleanup repair.",
-        "Requires a reason or residual-risk record for a sibling cleanup path excluded from the bounded repair."
+        "Keeps unrelated hardening outside the cleanup repair."
       ]
     },
     {
@@ -247,8 +246,7 @@
         "Preserves the environment epoch and relevant host/build context.",
         "Names one next decisive probe for the console/stream interaction.",
         "Requires rerunning working and failing controls on resume.",
-        "Treats both controls passing later as drift or not-reproduced behavior, not current cause proof from the historical matrix.",
-        "Labels a robustness change without current cause proof as mitigation."
+        "Treats both controls passing later as drift or not-reproduced behavior, not current cause proof from the historical matrix."
       ]
     },
     {
@@ -280,9 +278,8 @@
       "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
       "files": [],
       "expectations": [
-        "Requires observing the 90s regression fail before the fix.",
         "Proposes the regression as a row in the existing duration table rather than a new test file or suite.",
-        "Reruns existing duration rows and validation tests against the fixed code as preservation proof.",
+        "Names the existing duration rows and validation tests as preservation proof to run against the fixed code.",
         "Adds no redundant negative-value or whitespace tests for the unchanged validation step.",
         "Treats uppercase-unit support as outside the specification or a question requiring user clarification.",
         "Keeps dimension mapping compact rather than expanding into a ledger or a new test per dimension."

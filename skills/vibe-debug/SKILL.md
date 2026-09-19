@@ -19,7 +19,8 @@ Inspect available evidence before asking questions; ask only what changes the
 repair, proof, scope, or accepted risk. Treat free-text corrections to offered
 options as changed intent, not as the closest original option.
 
-Make a concrete runtime regression the exclusive primary symptom until it is
+When the user reports a concrete runtime regression during other work or while
+adjacent findings are pending, make it the exclusive primary symptom until it is
 fixed, not reproduced, deferred, accepted as residual, or blocked. Keep adjacent
 findings in the ledger and outside the patch unless they share the proven cause
 and verification path. For that primary symptom, identify the reproduction or
