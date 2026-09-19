@@ -1,83 +1,38 @@
 # Verification Handoff
 
-Use this when local proof is incomplete, runtime artifacts are involved, or the
-user must verify behavior in their own environment.
+Read for runtime artifacts, incomplete local proof, or user-environment retests.
 
 ## Artifact-Freshness Gate
 
-Before declaring a runtime issue fixed or asking the user to retest, prove the
-tested artifact includes the change. Pick the artifact that matches the user's
-actual observation path:
-
-- Source-to-build: package, binary, bundle, generated asset, compiled schema, or
-  lockfile includes the changed source.
-- Build-to-runtime: server restarted, dev server refreshed, worker reloaded,
-  container rebuilt, migration applied, cache cleared, or deployed version
-  updated.
-- Runtime-to-user: the user-visible environment, tenant, host, device, account,
-  or feature flag points at the fresh artifact.
-
-If freshness cannot be proven, leave the ledger item `blocked` or provide a
-user retest contract that includes a freshness marker.
+Before declaring a runtime fix or requesting retest, trace the change through
+source-to-build, build-to-running-process, and runtime-to-user environment. Use
+observable version/hash, package contents, process, cache, migration, or deployment
+evidence appropriate to that path. If freshness is unproven, keep the item blocked
+or include a freshness marker in the user retest.
 
 ## Verification-Degradation Gate
 
-Skipped, unavailable, flaky, environment-limited, and manual-only checks are
-non-proof. For each degraded check, choose exactly one:
-
-- Alternate proof: another automated or source-trace check observes the same
-  contract.
-- Narrow local proof plus residual: local proof covers part of the matrix, and
-  the uncovered part is stated as residual risk.
-- User retest contract: the user can observe the missing environment or device.
-- Accepted residual: the user explicitly accepts the remaining risk.
-- Blocker: no credible proof path exists yet.
-
-Choose the strongest proof path that can observe the current contract now:
-alternate proof first, then narrow local proof plus residual, then a user
-retest contract when the user can observe the missing behavior, otherwise
-blocker. Accepted residual requires explicit user acceptance. Do not hand the
-user a menu of proof paths when the available evidence already determines the
-least risky path.
-
-Do not mark a check as passed because it was skipped or impossible in the
-current environment.
+Skipped, unavailable, flaky, environment-limited, and unperformed manual checks
+are non-proof. Choose the strongest credible path now: alternate proof of the
+same contract; narrow local proof with explicit uncovered risk; a user retest
+when only their environment can observe it; otherwise a blocker. An accepted
+residual requires explicit user acceptance. Do not offer a proof-path menu or
+promise instructions later when the available evidence determines the path.
 
 ## User Retest Contract
 
-When local proof cannot observe current-scope behavior, choose now: alternate
-proof, blocker, accepted residual, or a concrete user retest contract. Do not
-defer with "if needed".
+If the user asks what to test and only their environment can observe the behavior,
+give the contract now and keep the item blocked until evidence returns:
 
-If the user asks what to test and their environment is the only credible
-observation path, select the user retest contract now and keep the ledger item
-blocked until evidence returns.
+1. Setup, including environment/version, artifact freshness marker, and relevant
+   account, data, cache, or restart conditions.
+2. Exact action sequence and relevant variants.
+3. Expected output, state, or absence that would prove the symptom closed.
+4. Failure evidence to capture: logs, screenshot, IDs, timestamps, or inputs.
 
-1. Setup: environment, version, account, feature flag, data, artifact freshness
-   marker, and any cache/restart condition.
-2. Actions: exact sequence to perform, including variants if the matrix needs
-   more than one case.
-3. Expected observation: what should be visible, logged, persisted, or absent.
-4. Failure evidence: screenshot, log line, request ID, timestamp, input value,
-   exported file, artifact hash, or reproduction notes to capture.
-5. Ledger closure: which symptom or matrix row each check closes.
+Unknown commands or paths may use labeled assumptions or placeholders with
+adaptation instructions; never present a bare placeholder as a runnable command.
+Tie the retest to the unresolved symptom without requiring a ledger id for every
+step. "Please retest" alone is insufficient.
 
-The contract is incomplete if it only says what needs proof. Include all five
-fields in the same handoff, or keep the ledger item `blocked` until a credible
-proof path exists.
-
-When exact specifics such as the command, prompts, inputs, or paths are unknown,
-fill the contract now with explicit stated assumptions or clearly labeled
-placeholders and say how to adapt them, rather than asking the user to supply
-those specifics before you write it. Placeholders must not stand alone as
-copyable commands; they still need expected observation, failure evidence, and
-the ledger item or matrix row they would close.
-
-Avoid "please retest", "try it again", and promises to provide steps later. The
-user should know exactly what to do and what result would prove or reopen the
-fix.
-
-For a retained probe, include opt-in/default-off state, stable field allowlist,
-comparable regime, count/filter method, expected bad-signature count,
-privacy/cardinality/cost receipts, and the single mechanism it can close. A zero
-count closes only that mechanism.
+Retained diagnostics must satisfy `probe-escalation.md` before shipping.

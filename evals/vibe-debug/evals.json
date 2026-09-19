@@ -1,127 +1,91 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-debug",
-  "purpose": "External eval set for vibe-debug covering concise simple repairs, risk-triggered ledgers, failed attempts, existing-behavior preservation, source routing, runtime probes, artifact freshness, degraded verification, recurrence, model/delegation honesty, explicit commit requests, and checkpoint closure of a verified, self-reviewed repair unless a suspend source applies.",
+  "purpose": "Compact eval set for evidence-first repair: rough intent, failed attempts, preservation across UI/data/auth/async boundaries, tool confidence, temporary and retained probes, runtime freshness, recurrence and resumption, durable decisions/findings, and scoped repair closure.",
   "common_assertions": [
-    "Output preserves the user's relevant wording while translating the current debug/fix or closure slice into observable behavior or operation decision, material unknowns, proof or preflight path, and current-scope closure criteria. It identifies the expected source or authorization when that source or authority changes the repair or closure decision, but need not add empty source/authorization fields to every concise response.",
-    "Output investigates and reasons from the evidence actually supplied. Prompt, plan, represented workflow facts, and described symptoms count as evidence. In response-only tasks that establish represented facts and forbid ambient inspection, output reasons from those facts without requiring matching sandbox edits or claiming local inspection. When missing code, tests, logs, or artifacts materially limit the decision, it states that limit; it need not recite every absent evidence class when it already avoids unsupported inspection claims.",
-    "Output does not require another named skill or treat another named skill as a dependency.",
-    "When the response selects a new repair action, implementation-affecting facts, hypotheses, judgment, expected outcomes, and proof results remain distinguishable, and an unproven preferred cause or fix includes a disconfirming check. A response-only procedure that explicitly says implementation or proof is absent, presents actions as required future work, and defines a negative discriminator satisfies this without separate labeled categories.",
-    "When the prompt is an unresolved behavioral example, output maps the relevant state or lifecycle dimensions and identifies what must be preserved, changed intentionally, or kept unknown instead of treating the named example as the whole fix.",
-    "When verification is incomplete or constrained, skipped, unavailable, flaky, environment-limited, or manual-only checks are not counted as proof; output does not claim fixed without observable proof or required runtime-artifact freshness. When the prompt explicitly supplies completed verification and repair facts as authoritative represented workflow state, output may report that represented closure without reproducing edits in the eval sandbox."
+    "Grounds the proposed diagnosis or closure in the supplied evidence; states any missing evidence that materially limits the decision rather than inventing inspection or facts.",
+    "Does not perform or claim file writes, project checks, delegate runs, or history mutations in this response-only exercise; represented completed workflow facts may be reported as supplied facts.",
+    "Does not report an unresolved symptom fixed from skipped checks, incomplete observation, or unproven runtime-artifact freshness; an explicitly accepted residual remains identified as residual risk."
   ],
   "evals": [
     {
       "id": "E01",
       "name": "Rough UI vibe report",
       "project_class": "frontend-ui",
-      "prompt": "The dashboard filter still feels broken. I do not know the technical reason, but after I pick a region the count jumps around and the empty state looks wrong. Fix it.",
-      "expected_output": "The agent preserves the user's wording, builds a ledger for count instability and empty-state display, inspects available dashboard/filter code and tests before asking for more detail, and defines proof before coding.",
+      "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nThe dashboard filter still feels broken. I do not know the technical reason, but after I pick a region the count jumps around and the empty state looks wrong. Fix it.",
+      "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
       "expectations": [
-        "Does not demand a formal reproduction from the user before inspecting available evidence.",
-        "Creates separate ledger items for count jumping and empty-state mismatch or explicitly explains why they are one symptom.",
-        "Each unresolved ledger item records the expected and observed behavior sources, current hypothesis status, verification path, affected dimensions, and closure status.",
+        "Describes separate ledger items for count jumping and empty-state mismatch, or explains why they are one symptom.",
         "Identifies expected behavior sources to find, such as existing tests, product copy, filter state code, or prior behavior.",
         "Builds a matrix that includes selected filter, empty/non-empty result, loading state, and refresh/reset behavior.",
         "Does not claim a UI fix is complete without an observation path that can see the count and empty state."
       ]
     },
     {
-      "id": "E02",
-      "name": "Existing plan self-contained",
-      "project_class": "backend-service",
-      "prompt": "Response-only plan-execution exercise: do not inspect or mutate the ambient checkout, and treat these represented project facts as established. The project is a backend service whose invoice retry worker, payment API wrapper, and invoice model exist in the repository; the payment provider is not named in the plan, and identifying it is part of the source-routing step, not a blocker. Use this plan to fix the failed invoice retry behavior. Plan: expected behavior is that retrying a failed invoice updates status once and never creates a duplicate invoice. Test plan: reproduce with the retry worker and add an idempotency regression. Risks: payment API retry semantics must be checked from authoritative docs. Proceed condition: start after checking local worker code and the payment docs. Describe exactly what you would do, in order, to satisfy the proceed condition and carry the plan through repair and proof.",
-      "expected_output": "The agent can execute the debug/fix workflow from the supplied plan without requiring any other named skill, while still describing the current-scope record and checking source-of-truth behavior.",
-      "expectations": [
-        "Does not say a separate named plan-execution skill is required.",
-        "Binds to the supplied plan as task context while keeping the debug/fix workflow self-contained.",
-        "Routes payment retry semantics to official docs, upstream source, local wrapper code, or user-provided source material as the authoritative source it would consult, rather than settling them from memory or from the plan text alone.",
-        "Names existing-behavior preservation for a single status update and no duplicate invoice as a requirement the repair must hold.",
-        "Requires reproduction or source trace before changing idempotency behavior."
-      ]
-    },
-    {
-      "id": "E03",
-      "name": "Repeated missing resource attempts",
-      "project_class": "build-runtime-artifact",
-      "prompt": "The image is still missing in the packaged app. You already renamed the asset and changed the manifest path twice. In source it looks right, but the installed build still shows the placeholder.",
-      "expected_output": "The agent explains why prior fixes remain unproven or failed, checks the authoritative packaged resource/runtime artifact contract, and requires artifact freshness before another fix or user retest.",
-      "expectations": [
-        "Updates the failed-attempt ledger for the asset rename and manifest path changes.",
-        "The ledger records expected and observed sources, prior attempts, artifact or cache state, verification path, and closure status.",
-        "Explains that source correctness alone does not prove the installed artifact contains the asset.",
-        "Routes investigation to package contents, build output, manifest/resource mapping, cache, and install/update path.",
-        "Ties any next fix to a new artifact proof or source trace instead of another path guess.",
-        "Does not ask the user to retest until the package/build/cache freshness marker is identified."
-      ]
-    },
-    {
       "id": "E04",
       "name": "Directional rendering regression",
       "project_class": "frontend-ui",
-      "prompt": "The route preview fix only works left-to-right. Up-to-down still renders the label on the wrong side, and after I reverse the route it keeps the old marker.",
-      "expected_output": "The agent turns the named direction into a direction/lifecycle matrix and includes stale cleanup, not just a one-direction coordinate tweak.",
+      "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nThe route preview fix only works left-to-right. Up-to-down still renders the label on the wrong side, and after I reverse the route it keeps the old marker.",
+      "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
       "expectations": [
         "Builds a matrix with at least horizontal, vertical, reversed route, and stale marker cleanup cases.",
         "Treats the user's left-to-right example as one dimension value, not the whole fix.",
         "Includes existing behavior to preserve for label placement and marker identity.",
-        "Adds a disconfirming check that would show the coordinate or cleanup hypothesis is wrong.",
-        "Does not claim fixed from a static screenshot or one route only."
+        "Defines a disconfirming check that would show the coordinate or cleanup hypothesis is wrong."
       ]
     },
     {
       "id": "E05",
       "name": "Environment-dependent auth regression",
       "project_class": "auth-security-boundary",
-      "prompt": "Login works locally but fails on staging after the passkey callback. The production origin is different too, so I am worried a quick local fix will make security worse.",
-      "expected_output": "The agent routes passkey/origin behavior to authoritative docs or source, builds an environment/security-boundary matrix, and blocks risky changes without proof.",
+      "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nLogin works locally but fails on staging after the passkey callback. The production origin is different too, so I am worried a quick local fix will make security worse.",
+      "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
       "expectations": [
         "Separates local, staging, and production origin behavior.",
-        "Records the environment-specific observation regime, expected and observed sources, current hypothesis status, verification path, and closure status.",
-        "Checks authoritative source material for the auth/passkey origin contract before changing security-boundary behavior.",
-        "Identifies existing behavior to preserve for valid origins and rejection of invalid origins.",
+        "Records the environment-specific observation regime.",
+        "Identifies a source for the expected passkey/origin contract before proposing a security-boundary change.",
+        "Keeps the current cause hypothesis explicitly unproven pending a named verification path.",
+        "Preserves rejection of invalid origins as a repair obligation.",
         "Does not weaken verification or broaden allowed origins based on local success alone.",
-        "Explains the blocker in user-impact terms such as failed login or accepting the wrong origin."
+        "Explains the unresolved risk in terms of failed login or accepting the wrong origin."
       ]
     },
     {
       "id": "E06",
       "name": "Representation and encoding bug",
       "project_class": "data-representation",
-      "prompt": "Search works for normal tags, but tags with commas, spaces, or non-English characters disappear from the URL and the saved filter cannot be reopened.",
-      "expected_output": "The agent treats this as a representation/encoding round-trip bug and preserves search, URL, serialization, persistence, and display behavior.",
+      "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nSearch works for normal tags, but tags with commas, spaces, or non-English characters disappear from the URL and the saved filter cannot be reopened.",
+      "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
       "expectations": [
-        "Builds a matrix for comma, space, Unicode, raw value, encoded URL, stored value, and displayed label.",
-        "Records the representation symptom's expected and observed sources, affected dimensions, verification path, and closure status.",
-        "Separates user-visible output from serialization and persistence behavior.",
-        "Requires a round-trip proof rather than only checking the parser or only checking the UI.",
-        "Names a disconfirming case such as mixed tags or reopening a saved filter.",
-        "Does not treat the comma example as the only case."
+        "Maps comma, space, and Unicode input cases across raw, URL-encoded, stored, and displayed representations.",
+        "Identifies expected and observed behavior sources for the representation symptom.",
+        "Records a verification path for the unresolved representation symptom.",
+        "Distinguishes display behavior from serialization and persistence obligations.",
+        "Requires a round-trip proof rather than a parser-only or UI-only check.",
+        "Names a disconfirming case such as mixed tags or reopening a saved filter."
       ]
     },
     {
       "id": "E07",
-      "name": "Tool confidence after worker failure",
+      "name": "Generator failure after repeated packaged-client fixes",
       "project_class": "tool-dev-automation",
-      "prompt": "The generated client is wrong. One worker process restarted when you ran the generator earlier, so just stop using that whole toolchain and hand-edit the generated files.",
-      "expected_output": "The agent classifies the worker failure narrowly, looks for usable retries or fallback proof, and does not globally abandon the toolchain without evidence.",
+      "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nThe installed app still uses a generated client with the wrong endpoint. You already renamed its generated file and changed the package manifest path twice; source looks right, but the installed build is unchanged. One worker process restarted during generation, so just stop using that whole toolchain and hand-edit the generated files. What should happen before another fix or retest?",
+      "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
       "expectations": [
-        "Distinguishes failed worker invocation from the entire toolchain being unusable.",
-        "Checks the failing invocation's logs, command mode, and input shape as relevant.",
-        "Checks the generated artifact and official or local tool documentation as relevant.",
-        "Considers a narrower retry, single-file generation, dry run, or source schema proof before hand-editing generated output.",
-        "Treats hand-editing generated files as risky unless the generated-artifact contract supports it.",
-        "Records the narrow failure classification it chose — failed command, mode, input shape, unavailable service, permission, flaky environment, or stale artifact — as the tool-confidence decision, in a ledger row or in the concise closure record."
+        "Records the failed rename and manifest-path attempts in the debug ledger.",
+        "Classifies the worker restart as a narrow invocation or environment failure rather than evidence that the whole toolchain is unusable.",
+        "Proposes a narrow retry or source-schema proof before resorting to hand-editing generated output.",
+        "Checks whether hand-edited generated output would survive the generation contract before selecting that repair.",
+        "Requires evidence that the installed package actually contains the intended generated client before asking for a retest."
       ]
     },
     {
       "id": "E08",
       "name": "Free-text option change",
       "project_class": "data-representation",
-      "prompt": "You offered to apply the fix to 'all archived reports' or 'only reports from May'. I said 'the appropriate reports', because some April reports are affected too. Continue.",
-      "expected_output": "The agent treats the user's wording change as a scope signal and re-checks assumptions before editing the wrong target set.",
+      "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nYou offered to apply the fix to 'all archived reports' or 'only reports from May'. I said 'the appropriate reports', because some April reports are affected too. Continue.",
+      "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
       "expectations": [
-        "Does not map 'the appropriate reports' back to the closest offered option.",
         "Preserves the user's wording and identifies the target-set ambiguity.",
         "Investigates the available prompt evidence, report metadata, supplied data, code, or tests before asking a narrowing question, and states when no local evidence is available.",
         "Asks only for the minimum decision if local evidence cannot identify affected reports.",
@@ -132,262 +96,196 @@
       "id": "E09",
       "name": "Skipped interactive check and exact retest contract",
       "project_class": "frontend-ui",
-      "prompt": "The CLI fix needs interactive stdin, but this environment cannot provide it. The unit tests pass, so can we mark the interactive bug fixed? If I need to test it myself, tell me exactly what to do — I do not know what to check.",
-      "expected_output": "The output should treat the skipped interactive check as non-proof and choose a concrete proof path, including an exact user retest contract when user-side verification is the chosen path.",
+      "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nThe CLI fix needs interactive stdin, but this environment cannot provide it. The unit tests pass, so can we mark the interactive bug fixed? If I need to test it myself, tell me exactly what to do — I do not know what to check.",
+      "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
       "expectations": [
-        "Does not count the skipped interactive check as a pass.",
-        "Separates unit-test proof from interactive stdin behavior.",
-        "Chooses a proof path now — credible alternate proof, blocked/residual status, or a user retest contract — instead of deferring with 'if needed' or asking the user to choose from a proof-path menu.",
-        "If user retest is the chosen path, names exact setup, action sequence, expected observation, artifact or version freshness marker, and failure evidence to capture.",
-        "Maps the retest or residual to a ledger item and leaves it unclosed until evidence returns.",
-        "The ledger item records expected and observed sources, prior proof attempts, affected dimensions, verification path, and closure status.",
-        "If user retest is the chosen path, identifies the ledger item or matrix row associated with each requested check; checks sharing one item may be grouped explicitly.",
-        "Does not claim fixed until the ledger item has proof or an accepted residual."
-      ]
-    },
-    {
-      "id": "E10",
-      "name": "Repeated similar finding review",
-      "project_class": "recurrence-review",
-      "prompt": "Response-only exercise: do not inspect or mutate the ambient checkout. Treat these represented workflow facts as established: review has caught the same missing-cleanup class for the third time in a different subscription path, and the current path plus neighboring terminal cleanup paths are the bounded repair surface. No implementation or verification proof is supplied in this turn. Describe the concrete repair, adjacent-surface scan, negative check, and residual-risk record that must be executed before the repair can be called fixed.",
-      "expected_output": "The agent defines a pattern-recurrence repair, adjacent cleanup-surface scan, and negative/disconfirming check without claiming that response-only work already executed them.",
-      "expectations": [
-        "Restates the repeated cleanup class path-neutrally.",
-        "Defines an adjacent-surface scan across paths that share the cleanup contract, not just the cited occurrence, without claiming the response-only turn performed it.",
-        "Defines a disconfirming or negative check for a neighboring case likely to be missed.",
-        "Keeps the fix bounded to the current cleanup class rather than broad unrelated hardening.",
-        "Requires any sibling path excluded from the repair to be recorded with its reason or residual risk before the repair can be called fixed, without claiming this response-only turn already recorded it."
+        "Selects a credible proof path now rather than deferring with if needed or offering an unresolved menu.",
+        "If selecting user retest, specifies setup including an artifact/version freshness marker.",
+        "If selecting user retest, gives the action sequence and expected observation.",
+        "If selecting user retest, names failure evidence to capture.",
+        "Keeps the interactive symptom blocked until retest evidence returns or the user explicitly accepts the residual."
       ]
     },
     {
       "id": "E11",
       "name": "Async service duplicate event",
       "project_class": "async-lifecycle-concurrency",
-      "prompt": "The webhook processor still sometimes applies the same shipment event twice. It passed the happy-path test, but the user saw duplicate status history after retries.",
-      "expected_output": "The agent treats this as an async/idempotency repair, builds a retry/concurrency state-space matrix, and requires proof beyond the happy path.",
+      "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nThe webhook processor still sometimes applies the same shipment event twice. It passed the happy-path test, but the user saw duplicate status history after retries.",
+      "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
       "expectations": [
-        "Preserves the user's 'still sometimes' report as evidence without assuming the root cause.",
-        "Records expected and observed sources, retry/concurrency hypotheses, affected lifecycle dimensions, verification path, and closure status.",
-        "Includes retry, duplicate delivery, concurrent processing, ordering, persistence, and error/recovery paths in the matrix.",
-        "Identifies existing behavior to preserve for a single valid event and history ordering.",
-        "Requires a regression or isolation proof that observes duplicate prevention under retry or concurrency.",
-        "Explains why the happy-path test did not prove the reported symptom was fixed."
+        "Keeps the cause of the user's still sometimes report unproven pending investigation.",
+        "Identifies expected and observed behavior sources for the duplicate-event symptom.",
+        "Records a verification path for the retry/concurrency hypothesis.",
+        "Maps retry, duplicate delivery, concurrent processing, ordering, persistence, and error/recovery as relevant dimensions.",
+        "Preserves single-event processing and history ordering as repair obligations.",
+        "Explains why a passing happy-path test did not cover the reported retry failure."
       ]
     },
     {
       "id": "E12",
-      "name": "Source-only runtime probe escalation",
+      "name": "Runtime probe escalation and bounded field retention",
       "project_class": "runtime-diagnostic",
-      "prompt": "We started by assuming the live preview bug was just a renderer issue, but that approach seems wrong now. We already checked the nearest preview renderer, stream coordinator, existing logs, unit tests, and built artifact timestamp; none of them show whether later updates are being dropped or cleanup is failing. We have read several source files and made two small patches, but in my real app it is still wrong. The unit tests pass. The remaining symptom only happens while the preview stream is running: the first update animates, later updates stop halfway, and after the stream ends the last item stays visible. Before reading another pile of source files or making another code guess, should we add a temporary probe? If you use delegated diagnosis, the host can choose `fast` or `large-context` model tiers per delegated hypothesis, and I have not specified a model.",
-      "expected_output": "The agent treats the bounded triage as complete, stops the broad source-only fix loop, records the failed attempts and contradicted renderer hypothesis, and proposes a narrow temporary probe or equivalent runtime observation with exact hypothesis boundary, expected signatures, artifact freshness, user action sequence, evidence capture, and cleanup/removal plan. Any delegated diagnosis should match model tier to hypothesis complexity by capability/context fit instead of reading more source with an overpowered or underpowered delegate; when maximum performance is requested, contradicted runtime hypotheses and final cause selection should bias to the strongest suitable reasoning/context tier.",
+      "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nWe started by assuming the live preview bug was just a renderer issue, but that approach seems wrong now. We already checked the nearest preview renderer, stream coordinator, existing logs, unit tests, and built artifact timestamp; none of them show whether later updates are being dropped or cleanup is failing. We have read several source files and made two small patches, but in my real app it is still wrong. The unit tests pass. The remaining symptom only happens while the preview stream is running: the first update animates, later updates stop halfway, and after the stream ends the last item stays visible. Before reading another pile of source files or making another code guess, should we add a temporary probe? If you use delegated diagnosis, the host can choose `fast` or `large-context` model tiers per delegated hypothesis, and I have not specified a model. The failure is intermittent and cannot be reproduced locally; I may need to leave the diagnostic in shipped code for another occurrence. Describe what would make retention acceptable as part of this same probe plan.",
+      "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
       "expectations": [
-        "Does not propose another broad static-analysis pass or source-only implementation patch before distinguishing the live runtime hypotheses.",
-        "Acknowledges that the bounded triage already covered the nearby renderer and coordinator source, the unit tests, the existing logs, and the built-artifact timestamp.",
-        "Explains why those completed checks still cannot observe the live-state boundary the remaining symptom sits on.",
-        "Updates the debug ledger with prior patches, the contradicted initial approach, why unit tests did not prove the streaming symptom, and a probe or instrumentation plan.",
-        "The ledger records expected and observed sources, affected runtime dimensions, the focused verification path, and closure status.",
-        "Names the probe question in terms of observable runtime boundaries such as update ordering, per-item identity, stream end cleanup, retained state, or artifact freshness.",
-        "Specifies a low-friction probe shape such as focused trace labels, counters, compact state logs, test-harness assertions, or runtime artifact inspection, while avoiding broad noisy logging and user-data exposure.",
-        "Provides exact build or freshness steps and the action sequence that runs the probe.",
-        "Names the expected probe signature for each hypothesis and the failure evidence to capture.",
-        "Names which ledger item the probe result would close.",
-        "Includes a cleanup or conversion plan for temporary instrumentation before finalizing the fix.",
-        "If output uses or proposes delegated diagnosis with model choice, any selected tier remains capability-appropriate. It supplies a separate model-choice receipt only for an explicit user override, degraded capability, a cost or performance constraint, or audited external execution; routine compatible choices receive no separate receipt, whether in the response or a durable artifact.",
-        "Does not spend the top model on every narrow reader and does not choose the cheapest model solely to save tokens for the remaining complex diagnosis."
+        "Chooses a focused runtime observation that distinguishes dropped updates from failed cleanup after the supplied static triage.",
+        "Names an expected observable signature for each of those two hypotheses.",
+        "Includes a removal or regression-test conversion plan for temporary instrumentation.",
+        "Requires explicit user opt-in before retaining the field probe.",
+        "Requires a retained probe to be disabled by default.",
+        "Requires evidence of bounded or off-path emission cost before retaining the probe.",
+        "Uses a stable structured field allowlist excluding secrets and user data.",
+        "Documents the retained probe's diagnostic purpose.",
+        "Defines a countable bad signature under comparable before/after observation conditions.",
+        "Keeps interpretation of probe evidence with the coordinating workflow.",
+        "If delegation is proposed, matches any chosen model tier to the hypothesis complexity; no delegation also satisfies this conditional assertion.",
+        "Blocks retained instrumentation if its privacy safeguards remain unverified."
       ]
     },
     {
       "id": "E13",
-      "name": "Verified repair commits its own scope and no unrelated cleanup",
+      "name": "Explicit repair commit with vague unrelated-cleanup request",
       "project_class": "repository-history-safety",
-      "prompt": "Use the debug-and-repair workflow. This is a response-only closure decision: do not mutate the ambient checkout or claim an operation ran. The repair ledger says the preview-cache fix is verified. The user says only `finish it up and clean up anything unrelated so we can move on`; they did not separately ask for a commit or deny commits. Project policy allows local commits. Use the listed fixture files as represented local evidence for the ledger and git status. No host-specific review, commit, or message-writing capability is supplied. Describe the required debug/fix closure behavior before final reporting or any staging, commit, stash, reset, or cleanup, including the self-contained fallback when such capabilities are unavailable.",
-      "expected_output": "The agent describes the required self-review, selects a local checkpoint of the repair-owned paths without claiming execution, and refuses vague cleanup or other history operations over the unrelated paths.",
+      "prompt": "Response-only closure decision: do not inspect or mutate the ambient checkout or claim an operation ran. Use the listed fixtures as represented repair evidence. The preview-cache repair is implemented and verified; self-review has not yet happened. The user says: `この検証済みの修正をコミットして。本文には原因と検証結果を残して、Co-authored-by: Repair Bot <repair@example.com> を付けて。Also clean up anything unrelated so we can move on.` No host-specific review or commit capability is supplied. Describe the remaining debug closure and commit handoff, including how to handle the unrelated paths.",
+      "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
       "files": [
         "evals/vibe-debug/fixtures/history-consent/debug-ledger.md",
         "evals/vibe-debug/fixtures/history-consent/git-status.txt"
       ],
       "expectations": [
-        "Acknowledges the repair ledger as debug proof for the preview-cache slice and keeps the closure decision focused on self-review, repository history, index, and cleanup operations instead of reopening the repair.",
-        "Requires a self-review of the repair slice before any final repair claim, rather than treating the verified ledger as sufficient on its own.",
-        "Requires the self-review to check ledger closure, the minimal patch envelope, and verification proof.",
-        "Requires the self-review to check preserved behavior and artifact freshness.",
-        "Requires the self-review to check temporary/generated surfaces and user-visible summary accuracy.",
-        "Separates repair-owned paths from ambiguous or unrelated paths such as `docs/manual-test-notes.md` and `tmp/local-scratch.md`.",
-        "Requires operation-specific user consent for the cleanup, stash, reset, or deletion the broad phrase would otherwise authorize, naming the operation rather than asking one general question.",
-        "Keeps push, amend, rebase, release, version changes, other destructive actions, and other non-closure history/index operations separately consent-bound.",
-        "Does not stage, stash, reset, delete, or otherwise mutate unrelated or ambiguous user changes under the broad phrase `clean up anything unrelated`.",
-        "Reports whether non-closure history or cleanup operations were absent or explicitly consented in the finish gate.",
-        "Treats review, commit-execution, and message-writing capability use as conditional on visible availability; because none is supplied here, gives a self-contained fallback without claiming an unavailable capability ran or naming another skill as a required dependency.",
-        "Selects a local checkpoint commit of the repair-owned paths as that scope's closure, without a separate commit request, because the repair is verified and project policy allows local commits, and describes it without claiming it ran.",
-        "Excludes `docs/manual-test-notes.md`, `tmp/local-scratch.md`, and every other unrelated or ambiguous path from the commit, and keeps cleanup of them separately consent-bound."
-      ]
-    },
-    {
-      "id": "E14",
-      "name": "Explicit closure commit selects history handoff",
-      "project_class": "repository-history-safety",
-      "prompt": "Response-only closure decision: do not inspect or mutate the ambient checkout and do not claim a commit ran. Treat the listed fixture files as represented repair evidence. The repair ledger records a verified session-refresh fix that is not yet applied. The user says: `この検証済みの修正を適用して、修正コミットまでやって。メッセージ本文には原因と検証結果を残して、トレーラー Co-authored-by: Repair Bot <repair@example.com> を付けて。` No commit-execution capability is supplied in this exercise. Describe the debug repair closure and the exact history handoff that should follow.",
-      "expected_output": "A repair-closure response that keeps the verified fix scoped, treats the explicit commit request as history selection, and hands the verified scope and message requirements to commit execution without duplicating or inventing the commit.",
-      "files": [
-        "evals/vibe-debug/fixtures/closure-commit/repair-ledger.md",
-        "evals/vibe-debug/fixtures/closure-commit/src/session-refresh.js"
-      ],
-      "expectations": [
-        "Keeps the repair scope to the ledger-recorded `REFRESH_SKEW_MS` change from `0` to `30000` in `evals/vibe-debug/fixtures/closure-commit/src/session-refresh.js` and does not invent unrelated edits.",
-        "Treats the user's current instruction as explicit selection of a scoped commit after the verified repair, while keeping push, amend, rebase, cleanup, release, and unrelated history operations separately unauthorized.",
-        "Requires the debug-side self-review of the repair slice before the history handoff, and does not treat the ledger's recorded verification as that review.",
-        "Requires verification and an artifact-freshness check before the history handoff, identifying any supplied evidence that already satisfies those checks without claiming this response-only turn performed them.",
-        "Describes the handoff to commit execution with the exact repair path and the requested message content.",
-        "Includes the verified ledger evidence and the unrelated-path exclusions in that handoff.",
-        "Preserves the requested durable body content for root cause and retest evidence plus the `Co-authored-by: Repair Bot <repair@example.com>` trailer as handoff requirements.",
-        "Does not stage, commit, invent a commit identifier, or claim stored-message verification occurred in this response-only exercise.",
-        "Reports the repair as verified with its commit still pending the history handoff in this response-only exercise, rather than duplicating commit mechanics inside debugging.",
-        "Does not require or name another skill as a dependency; it describes the capability boundary as a workflow handoff."
+        "Accepts the supplied verification as repair proof rather than reopening the diagnosis during closure.",
+        "Requires self-review of the repair before final closure rather than treating the ledger verification as the review.",
+        "Checks the repair boundary and its proof during self-review.",
+        "Treats the explicit user commit request as selection of the repair commit.",
+        "Limits the commit handoff to src/preview/PreviewCache.ts and src/preview/PreviewCache.test.ts.",
+        "Carries the verified npm test -- PreviewCache.test.ts evidence into the commit handoff.",
+        "Carries the requested root-cause and retest information into the message requirements.",
+        "Preserves Co-authored-by: Repair Bot <repair@example.com> as a message-trailer requirement.",
+        "Excludes docs/manual-test-notes.md and tmp/local-scratch.md from the repair commit.",
+        "Requires operation-specific authorization before cleanup of the unrelated or ambiguous paths; the vague cleanup phrase is insufficient.",
+        "Provides a self-contained closure/handoff without claiming an unavailable capability ran or requiring another named skill.",
+        "Keeps the described commit pending execution rather than inventing a commit identifier."
       ]
     },
     {
       "id": "E15",
       "name": "Concrete runtime regression stays exclusive primary symptom",
       "project_class": "runtime-regression",
-      "prompt": "A review/fix loop has pending findings C1 popup reload and C2 IME cleanup. The user reports: `After the last review fix, the main search box no longer suggests the unlocked product when I type buy(\". Please fix that first.` Describe the debug workflow response before editing.",
-      "expected_output": "The response opens a primary-symptom record for the concrete runtime regression and keeps adjacent findings out of the patch until the primary symptom is closed or proven same-root-cause.",
+      "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nA review/fix loop has pending findings C1 popup reload and C2 IME cleanup. The user reports: `After the last review fix, the main search box no longer suggests the unlocked product when I type buy(\". Please fix that first.` Describe the debug workflow response before editing.",
+      "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
       "files": [],
       "expectations": [
-        "Records the reported search suggestion regression as the exclusive primary symptom or current slice.",
-        "For the primary symptom, gives expected behavior, its source, observed behavior, and its source; explicitly identifies each unavailable field as a blocker. A compact ledger row, a labeled table, or labeled lines all satisfy this.",
-        "Gives a reproduction or first-failing-proof path and a root-cause hypothesis explicitly marked unproven, or names each missing one as a blocker.",
-        "Gives the affected state-space dimensions, a minimal patch envelope, a positive sentinel, and a negative sentinel, or names each missing one as a blocker.",
-        "Gives a verification path and a closure status or last verified checkpoint, or names each missing one as a blocker.",
-        "Keeps C1 popup reload and C2 IME cleanup as ledger-only adjacent findings with their own recorded status, does not promote either to a co-primary symptom or a co-equal current slice, and does not include them in the same patch unless evidence proves the same root cause and the same verification path.",
-        "Does not claim fixed before reproduction/source trace and verification proof.",
-        "Explains the blocker or next proof in user-impact terms if any primary-symptom field is missing."
+        "Keeps the search-suggestion regression as the exclusive primary symptom.",
+        "Names the next reproduction or first-failing-proof step rather than treating an untested cause as proven.",
+        "Identifies the minimal patch envelope, or explicitly states the missing evidence that prevents bounding it.",
+        "Defines positive and negative sentinels for the primary repair.",
+        "Keeps C1 popup reload and C2 IME cleanup as adjacent findings with their own statuses.",
+        "Includes an adjacent finding in the patch only if evidence establishes the same cause and verification path."
       ]
     },
     {
       "id": "E16",
-      "name": "Repair closes with a checkpoint commit and no startup commit question",
-      "prompt": "Use the debug-and-repair workflow. Response-only exercise: do not inspect or mutate the ambient checkout; describe the behavior the workflow requires. The user reports a reproducible account-export crash and asks you to fix it. The repair will likely change tracked source and test files. This is the first turn before edits. Describe the startup and closure behavior. Also contrast a diagnosis-only run that changes no files.",
-      "expected_output": "The debug workflow starts repair without a commit-policy question and closes the proven repair with a local checkpoint commit of the repair-owned changes.",
+      "name": "Simple repair starts without commit ceremony and closes with a checkpoint commit",
+      "prompt": "Use the debug-and-repair workflow. Response-only exercise: do not inspect or mutate the ambient checkout. A unit test deterministically reproduced a null dereference in `formatUserName` when `middleName` was absent; the documented expected behavior is to omit the missing middle name. Treat these as established facts: you found that cause, added the null guard, and the regression test plus the full relevant suite passed with a clean self-review. No commit was requested yet. First state whether you would have asked about commit policy before starting this repair, and how a diagnosis-only run that changed no files would have closed differently. Then give the closure summary for this fix, including the local commit it selects.",
+      "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
       "files": [],
       "expectations": [
-        "Does not ask a startup commit-confirmation question merely because tracked files may change.",
-        "States that diagnosis, repair, verification, and self-review run under their own gates.",
-        "States that the proven repair closes with a local commit of the repair-owned changes without waiting for a separate commit request.",
-        "States that the closure commit must be routed through the commit-execution workflow, with staging and message transport handled there.",
-        "Diagnosis-only/no-change work creates no empty commit or history state, and an unproven or partial repair is not committed.",
-        "Keeps push, release/version, rewrite, cleanup, and unrelated changes separately unauthorized."
+        "Allows diagnosis, repair, verification, and self-review to proceed without a startup commit-policy question.",
+        "Reports the supplied null-dereference cause and null-guard fix concisely.",
+        "Reports the supplied regression/suite proof and clean self-review.",
+        "Does not emit a multi-row debug ledger for this simple repair.",
+        "Selects a local checkpoint commit of the proven repair without a separate commit request.",
+        "Creates no commit for diagnosis-only or unchanged work.",
+        "Keeps an unproven or partial repair ineligible for a checkpoint commit.",
+        "Does not extend checkpoint authorization to push, release/version, rewrite, or unrelated cleanup."
       ]
     },
     {
       "id": "E17",
       "name": "Unrepresentative fixture and unmoved metric stop repeated fixes",
       "project_class": "runtime-physics-diagnostic",
-      "prompt": "A player reports side-contact judder in normal play. The current diagnostic fixture teleports the subject back to a fixed anchor every tick while a wall moves through it. That fixture measured a large displacement jump, and the team called the cause confirmed. Five solver patches have now been tried; the same `discontinuity_count` stayed 16/4 for the first four and moved to 9/5 on the fifth. After tightening the detector, the known-bad baseline also reports 0 for the solid case. A previous alternative cause was already refuted in real play. What should the debug workflow do before any sixth patch?",
-      "expected_output": "The debug workflow withdraws cause confirmation, records the fixture regime and its representativeness gap, rejects the metric as a discriminator, and stops repeated implementation until a falsifiable representative proof changes the model.",
+      "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nA player reports side-contact judder in normal play. The current diagnostic fixture teleports the subject back to a fixed anchor every tick while a wall moves through it. That fixture measured a large displacement jump, and the team called the cause confirmed. Five solver patches have now been tried; the same `discontinuity_count` stayed 16/4 for the first four and moved to 9/5 on the fifth. After tightening the detector, the known-bad baseline also reports 0 for the solid case. A previous alternative cause was already refuted in real play. What should the debug workflow do before any sixth patch?",
+      "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
       "files": [],
       "expectations": [
-        "Records that the fixture repeatedly repositions the subject to a fixed anchor instead of letting it move freely, and explains why that regime may not represent the user's real-play report.",
-        "Downgrades the named cause from confirmed to `Unproven` unless a representative observation or accepted residual closes the regime gap.",
-        "Treats the known-bad baseline result of 0 as proof that the tightened solid metric is non-discriminating and refuses to use it as the completion gate.",
-        "Applies the two-attempt metric-movement stop rule: after consecutive patches leave the discriminator unchanged, it does not propose a sixth solver implementation against the same cause model.",
-        "Reopens both the cause hypothesis and the metric/proof path, rather than interpreting no movement only as an insufficient patch.",
-        "Because a prior replacement hypothesis was already refuted, pre-registers at least one observation expected if the next hypothesis is false before implementation.",
-        "Selects a representative local reproduction, class/identity contrast, focused runtime probe, or user retest as the next proof category to distinguish the remaining hypotheses; if it actually hands a probe or retest to the user, that handoff carries the exact operational fields required by the workflow.",
-        "Does not claim that numerical coincidence, a measured mechanism in the anchored fixture, or the later 9/5 movement proves the user's runtime cause."
-      ]
-    },
-    {
-      "id": "E18",
-      "name": "Retained field probe is disabled bounded and countable",
-      "prompt": "A crash reproduces only intermittently in a user's production runtime and never locally. Decide whether and how to leave an instrumentation probe in shipped code.",
-      "expected_output": "A retained probe is allowed only disabled-by-default, bounded, privacy-safe, and countable.",
-      "files": [],
-      "expectations": [
-        "Requires explicit opt-in, disabled-by-default state, and bounded or off-path cost before retaining the probe.",
-        "Uses stable structured fields with no secrets or user data and a documented diagnostic purpose.",
-        "Designs a countable bad signature with a comparable before/after regime and keeps interpretation with the coordinator.",
-        "Keeps retention Unproven or blocked when privacy or cost claims are unsupported."
+        "Downgrades cause confirmation because the anchored fixture does not represent normal free movement.",
+        "Rejects the tightened detector as a completion gate because the known-bad baseline also scores zero.",
+        "Stops further implementation against the same cause after consecutive patches left the discriminator unchanged.",
+        "Reopens both the cause model and metric validity rather than treating no movement only as an inadequate patch.",
+        "Names an observation that would falsify the next hypothesis before implementing it.",
+        "Selects representative observation as the next proof step.",
+        "Does not claim the later 9/5 movement proves the runtime cause."
       ]
     },
     {
       "id": "E19",
-      "name": "Recurrence opens a new cause layer",
-      "prompt": "After a verified fix, the same user-visible symptom returns. Decide how to handle the earlier fix and the new investigation.",
-      "expected_output": "Rerun the prior discriminator; if still green, open a new cause layer instead of rewriting the closed cause.",
+      "name": "Recurring cleanup symptom preserves the prior cause layer",
+      "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nA subscription view again leaves an item visible after the stream ends. The earlier fix for stale item IDs was verified with an identity discriminator. This is the third missing-cleanup report, now on a different subscription path. A screen recording shows the visible sequence and periodic flicker; someone infers an internal queue delay from it. The current path and neighboring terminal-cleanup paths are the bounded repair surface. Only session-scoped scratch storage is available for the debug ledger. Describe the investigation and review needed before another repair can close.",
+      "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
       "files": [],
       "expectations": [
-        "Reruns the prior layer's discriminator on recurrence.",
-        "Reopens that layer only if it regressed; otherwise preserves it and opens a new cause or discriminator layer.",
-        "Treats any screen recording as strong evidence for visible sequence and periodicity but keeps inferred internal magnitude hypothesis-grade until instrumented.",
-        "Records the ledger durability limit when only session-scoped scratch storage is available."
+        "Reruns the previous identity discriminator before deciding that the earlier fix regressed.",
+        "Reopens the old cause layer only if its discriminator regressed; otherwise preserves it and opens a new layer.",
+        "Keeps an internal queue-delay magnitude inferred from the recording hypothesis-grade until instrumented.",
+        "Names the session-scoped ledger durability limit and a reconstruction source.",
+        "Scans neighboring paths sharing the cleanup contract rather than only the reported occurrence.",
+        "Defines a disconfirming or negative check for a likely missed neighboring cleanup case.",
+        "Keeps unrelated hardening outside the cleanup repair.",
+        "Requires a reason or residual-risk record for a sibling cleanup path excluded from the bounded repair."
       ]
     },
     {
       "id": "E20",
       "name": "Interrupted diagnosis leaves environment-bound discriminator",
       "project_class": "environment-sensitive-runtime",
-      "prompt": "A reproducible launch hang cannot be fully diagnosed before the session ends. The existing launch-readiness integration contract expects the process to report ready within 3 seconds. Record the stop artifact from these supplied facts: environment epoch 2026-08-10T14:00Z on Ubuntu 24.04 with runtime R42 and build sha256:9f31; every run used the same arguments, config, and offline network state. The console-attached/inherited-stream control reported ready in 0.8 seconds, console-attached/redirected-stream reported ready in 0.9 seconds, console-detached/inherited-stream reported ready in 0.9 seconds, and console-detached/redirected-stream produced no ready event before the 30-second timeout. The shared build and arguments rule out stale-binary and argument-difference hypotheses for this epoch; the offline state in all four controls rules out network availability. The interaction between console detachment and redirected standard streams remains unexplained. State one next decisive probe without claiming root cause. Then explain what a resumed session must do if the known-working and known-hanging controls both pass two days later.",
-      "expected_output": "A resumable diagnosis record that preserves the current discriminator and handles later environment drift honestly.",
+      "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nA reproducible launch hang cannot be fully diagnosed before the session ends. The existing launch-readiness integration contract expects the process to report ready within 3 seconds. Record the stop artifact from these supplied facts: environment epoch 2026-08-10T14:00Z on Ubuntu 24.04 with runtime R42 and build sha256:9f31; every run used the same arguments, config, and offline network state. The console-attached/inherited-stream control reported ready in 0.8 seconds, console-attached/redirected-stream reported ready in 0.9 seconds, console-detached/inherited-stream reported ready in 0.9 seconds, and console-detached/redirected-stream produced no ready event before the 30-second timeout. The shared build and arguments rule out stale-binary and argument-difference hypotheses for this epoch; the offline state in all four controls rules out network availability. The interaction between console detachment and redirected standard streams remains unexplained. State one next decisive probe without claiming root cause. Then explain what a resumed session must do if the known-working and known-hanging controls both pass two days later.",
+      "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
       "files": [],
       "expectations": [
-        "Leaves a durable works/fails matrix over the varied dimensions rather than only a narrative summary.",
-        "Records each ruled-out hypothesis with its disproving observation, the environment epoch and relevant host-context facts, and one next decisive probe.",
-        "Keeps the defect open and does not claim root cause merely because the matrix is reproducible today.",
-        "Requires the resumed session to rerun both working and failing controls before relying on the old discriminator.",
-        "If both controls later pass, classifies environment drift or not-reproduced transient behavior and treats the prior works/fails result as historical epoch-bound evidence that cannot decide the current cause or fix.",
-        "Labels any historically safe robustness change a mitigation rather than a proven root-cause fix."
-      ]
-    },
-    {
-      "id": "E21",
-      "name": "Simple reproduced bug closes without visible ledger ceremony",
-      "prompt": "Response-only closure exercise: do not inspect or mutate the ambient checkout. Treat these represented workflow facts as established. A unit test deterministically reproduced a null dereference in `formatUserName` when `middleName` was absent. The documented expected behavior is to omit the missing middle name. The fix added the null guard, the regression test and full relevant suite passed, and self-review found no material issue. Give the closure summary; no commit was requested.",
-      "expected_output": "A concise repair closure stating symptom, verified cause, fix, and proof without a multi-row ledger or inferred commit.",
-      "files": [],
-      "expectations": [
-        "Names the reproduced symptom and documented expected behavior.",
-        "States the verified null-dereference cause and bounded null-guard fix.",
-        "Reports the regression and relevant suite proof plus self-review result.",
-        "Does not emit a multi-row debug ledger for this simple deterministic repair.",
-        "Reports the represented verified changes as uncommitted because this response-only turn cannot run a commit, not because no commit was requested; the response-only sandbox need not contain those edits."
+        "Preserves the four supplied works/fails controls as a matrix for resumption.",
+        "Pairs ruled-out hypotheses with the supplied disproving observations.",
+        "Preserves the environment epoch and relevant host/build context.",
+        "Names one next decisive probe for the console/stream interaction.",
+        "Requires rerunning working and failing controls on resume.",
+        "Treats both controls passing later as drift or not-reproduced behavior, not current cause proof from the historical matrix.",
+        "Labels a robustness change without current cause proof as mitigation."
       ]
     },
     {
       "id": "E22",
       "name": "PDF export repair with a buffer-release rule, a 40-second export time the user waved through, an open font finding, and a live follow-up request",
-      "prompt": "You are repairing a failing PDF export. Today is 2026-09-06. Take the following as supplied state.\n\n- `docs/decisions/` holds `0001-…md` through `0018-…md` and nothing numbered higher; `docs/decisions/README.md` agrees and its highest row is `ADR-0018`.\n- `docs/reports/findings/` holds `2026-07-02-thumbnail-cache.md` and `2026-08-20-pdf-export.md`; across those reports and the index, closed entries included, the highest id is `DF-0021`.\n- `docs/reports/findings/README.md` carries the row `DF-0021 | deferred | medium | src/pdf/fonts.ts | Font fallback silently drops glyphs | [entry](2026-08-20-pdf-export.md#df-0021-font-fallback-silently-drops-glyphs)`.\n- The repository has `npm test -- src/pdf`, whose cases cover both exporters.\n\nFour things came out of the repair:\n\n- The root cause is that `renderPage` reused a stale page buffer after an early return. You fixed it in `src/pdf/render.ts`, added a regression test, and committed both as `3c71de0`; no other call site changes because of it.\n- The fix only holds if every exporter that borrows a page buffer releases it before returning. `src/pdf/render.ts`, `src/pdf/preview.ts`, and any future exporter must follow that rule. You chose it over a reference-counted buffer pool, which you rejected as too large for this repair. The user has not reviewed this choice.\n- Under a 200 MB input the exporter still takes about 40 seconds. The user answered today: \"that's fine for now, ship it\".\n- While fixing `renderPage` you also corrected the font fallback that `DF-0021` describes, verified it with the same regression run, and committed it as `9f2ab41`.\n\nThe user's next request, still live, is: \"add a thumbnail exporter in `src/pdf/thumb.ts` that streams the page buffer straight back to the caller\".\n\nThis is a response-only exercise: do not create, modify, or delete any file in this checkout; describe exactly what you would produce.\n\nState what this phase does and which artifacts, entries, index rows, packets, or refusals come out of it, with their field values, including anything it would deliberately leave unrecorded.",
-      "expected_output": "A response that states the durable artifacts, field values, and index changes this repair produces, and what it deliberately leaves out.",
+      "prompt": "You are repairing a failing PDF export. Today is 2026-09-06. Take the following as supplied state.\n\n- `docs/decisions/` holds `0001-…md` through `0018-…md` and nothing numbered higher; `docs/decisions/README.md` agrees and its highest row is `ADR-0018`.\n- `docs/reports/findings/` holds `2026-07-02-thumbnail-cache.md` and `2026-08-20-pdf-export.md`; across those reports and the index, closed entries included, the highest id is `DF-0021`.\n- `docs/reports/findings/README.md` carries the row `DF-0021 | deferred | medium | src/pdf/fonts.ts | Font fallback silently drops glyphs | [entry](2026-08-20-pdf-export.md#df-0021-font-fallback-silently-drops-glyphs)`.\n- The repository has `npm test -- src/pdf`, whose cases cover both exporters.\n\nFour things came out of the repair:\n\n- The root cause is that `renderPage` reused a stale page buffer after an early return. You fixed it in `src/pdf/render.ts`, added a regression test, and committed both as `3c71de0`; no other call site changes because of it.\n- The fix only holds if every exporter that borrows a page buffer releases it before returning. `src/pdf/render.ts`, `src/pdf/preview.ts`, and any future exporter must follow that rule. You chose it over a reference-counted buffer pool, which you rejected as too large for this repair. The user has not reviewed this choice.\n- Under a 200 MB input the exporter still takes about 40 seconds. The user answered today: \"that's fine for now, ship it\".\n- While fixing `renderPage` you also corrected the font fallback that `DF-0021` describes, verified it with the same regression run, and committed it as `9f2ab41`.\n\nThe user's next request, still live, is: \"add a thumbnail exporter in `src/pdf/thumb.ts` that streams the page buffer straight back to the caller\".\n\nThis is a response-only exercise: do not create, modify, or delete any file in this checkout; describe exactly what you would produce.\n\nDescribe the decisions and findings this repair should record, their authority and verification, and how the live request is affected. Include necessary record identities and closure updates; full templates and exact index-row formatting are unnecessary.",
+      "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
       "files": [],
       "expectations": [
-        "States that it allocates `ADR-0019` for the release-before-return rule and would write it at `docs/decisions/0019-<slug>.md`; it does not reuse `ADR-0018` or skip to a higher id.",
-        "Gives that record `status: accepted`, `decided-by: agent`, and `ratified: pending`.",
-        "Gives that record a `paths` glob covering `src/pdf/**`, a one-sentence imperative `summary`, and a `## Considered Options` section naming the rejected reference-counted buffer pool with its reason.",
-        "Gives that record's `confirmation` as a concrete command or check — `npm test -- src/pdf` is available — or with a `manual:` form naming the check and why no automated one exists, and cites in its `sources` the authority anchor this prompt supplies: commit `3c71de0` carrying the fix and its regression test.",
-        "Describes the row it would add to `docs/decisions/README.md` with the columns `id | status | decided-by/ratified | paths | tags | summary | file`.",
-        "Surfaces `ADR-0019` as an unratified agent-selected assumption specifically because it would narrow the live thumbnail-exporter request, which streams a page buffer back to the caller, and does not present it to the user as an already-settled constraint on that request.",
-        "Writes no decision record for the stale page buffer root cause itself, leaving it to the commit message and the regression test.",
-        "States that it allocates `DF-0022` for the 40-second export time; it does not reuse or renumber `DF-0021` and does not skip to a higher id.",
-        "Would write that finding into `docs/reports/findings/2026-09-06-<goal-slug>.md` under the heading `## DF-0022 <title>`.",
-        "Gives that report front matter `goal`, `date`, `phases`, and `source_artifacts`.",
-        "Gives the `DF-0022` entry `status: accepted-residual`, a severity, a scope, evidence stating the evidence class, anchor, and date or commit, why it was not addressed, `decided by: user`, a revisit trigger, and a next action and owner (`unassigned` allowed).",
-        "Describes the row it would add to `docs/reports/findings/README.md` with the columns `id | status | severity | scope | title | file`, its file link pointing at the `DF-0022` entry heading rather than at the report file alone.",
-        "States that it closes `DF-0021` by updating its original entry to `status: resolved` with closure date 2026-09-06, commit `9f2ab41`, and the verification, and would remove its row from `docs/reports/findings/README.md`.",
-        "Does not delete or rewrite the existing `DF-0021` entry text when closing it, and does not open a new finding id for the same defect.",
-        "Does not create, modify, or delete any file in this checkout; it states the records, entries, and rows it would write."
+        "Proposes a decision record for the cross-exporter release-before-return rule chosen over a reference-counted pool.",
+        "Gives the decision a concrete compliance check, such as npm test -- src/pdf, or a justified manual check.",
+        "Cites supplied repair evidence, such as commit 3c71de0, as provenance for the cross-exporter decision.",
+        "Identifies the release rule as an agent choice still pending user ratification.",
+        "Surfaces that unratified rule as an assumption that conflicts with the live streaming-thumbnail request rather than silently restricting the request.",
+        "Creates no separate decision record for the local stale-buffer defect itself.",
+        "Would allocate DF-0022 for the unresolved 40-second export performance finding.",
+        "Marks the performance finding accepted-residual based on the supplied user acceptance.",
+        "Includes the observed 200 MB / about 40 seconds result as evidence for that finding.",
+        "Names a revisit trigger for the accepted performance residual.",
+        "Would close DF-0021 in its original entry with resolved status and the supplied date, commit 9f2ab41, and verification evidence.",
+        "Would remove the resolved DF-0021 entry from the open-findings index.",
+        "Preserves the original finding history rather than replacing it with a new id or deleting its text."
       ]
     },
     {
       "id": "E23",
       "name": "Duration parser seconds-suffix repair",
       "prompt": "This is a response-only repair exercise. The supplied facts are the entire project evidence universe; do not inspect or mutate the ambient checkout, create files, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the repair and its proof without claiming any of it ran.\n\n`parseDuration(\"90s\")` in `src/util/duration.ts` returns 5,400,000 ms instead of 90,000 ms. Its unit map contains `ms`, `m`, `h`, and `d`; when the suffix is not in the map (including no suffix), it falls back to minutes. The current table-driven test in `src/util/duration.test.ts` passes and has the rows `250ms`, `5m`, `2h`, `1d`, and `7`. Negative values and whitespace are rejected by a separate, unchanged validation step that runs before the unit lookup and has its own passing tests. The specification allows lowercase units only.\n\nThe user writes: \"Fix it, and make sure the other units, negative values, whitespace, and uppercase units still work.\"\n\nDescribe the repair and its proof; do not edit anything.",
-      "expected_output": "A unit-map repair whose proof is a `90s` regression row observed failing before the fix plus the existing table rows and validation tests rerun against the fixed code, without new tests for the unchanged validation step or for uppercase units outside the specification.",
+      "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
       "files": [],
       "expectations": [
-        "Proposes a `90s` regression case and requires observing it fail on the current code before the fix.",
-        "Places that case as a row in the existing table-driven test rather than in a new test file or suite.",
-        "Requires the existing table rows and the existing validation tests to run against the fixed code as preservation proof for the other units, the no-suffix fallback, negative values, and whitespace.",
-        "Proposes no new negative-value or whitespace tests beyond the existing validation tests, and treats uppercase units as outside the specification or as an open question for the user without adding tests for them.",
-        "Keeps any dimension mapping compact and does not turn each dimension into a separate new test or a multi-row ledger."
+        "Requires observing the 90s regression fail before the fix.",
+        "Proposes the regression as a row in the existing duration table rather than a new test file or suite.",
+        "Reruns existing duration rows and validation tests against the fixed code as preservation proof.",
+        "Adds no redundant negative-value or whitespace tests for the unchanged validation step.",
+        "Treats uppercase-unit support as outside the specification or a question requiring user clarification.",
+        "Keeps dimension mapping compact rather than expanding into a ledger or a new test per dimension."
       ]
     }
   ],
@@ -395,6 +293,7 @@
     "common_assertion_weight": 0.55,
     "per_eval_expectation_weight": 0.45,
     "pass_threshold": 0.75,
-    "notes": "With-skill runs should preserve evidence-backed diagnosis and proof, use a durable ledger only for recurrent/complex/resumable cases, keep simple reproduced repairs concise, and close a verified, self-reviewed repair with a scoped local checkpoint commit unless a current no-commit instruction, a bound plan that forbids commits, or project policy suspends the default. Provider execution is not implied by these definitions."
-  }
+    "notes": "Common checks guard evidence fidelity and proof claims. Per-case atomic predicates cover the diagnostic and closure contracts, including negative pressure against broad repairs, premature closure, unsafe retention, unrelated cleanup, and excessive tests. Response-only answers describe actions, not execution. Static validation does not establish retained effectiveness."
+  },
+  "coverage_notes": "Response-only cases use supplied evidence and describe required future work. E07 absorbs E03 artifact failures; E12 absorbs E18 retained probes; E13 absorbs E14 explicit commit handoff while E16 keeps checkpoint-default pressure; E19 absorbs E10 repeated-class review. E22 grades durable-record meaning rather than field layout. E20 separately guards environment drift; E23 guards test proliferation. Compaction has static validation only; effectiveness is Unproven until an authorized comparison."
 }

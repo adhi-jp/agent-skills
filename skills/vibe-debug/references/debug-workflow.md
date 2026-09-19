@@ -1,245 +1,59 @@
 # Debug Workflow Reference
 
-Read this reference when actively diagnosing, repairing, verifying, or handing off a debug task. It owns the detailed loop ordering and proof requirements.
+Use this loop before source edits or final repair claims. Resume and recurrence
+checks live in `continuity-and-recurrence.md`; output and scope rules live in
+`SKILL.md`.
 
 ## Workflow
 
-1. **Continuity preflight**
-   - After resume, interruption, context compaction, or a "continue" request,
-     re-read the latest user request, outstanding symptoms, ledger statuses,
-     and next proof/action before doing new work.
-   - Do not drop unresolved symptoms because a prior subtask was completed.
+1. **Establish the symptom and intended behavior.** Translate the user's report
+   into observable behavior, affected contexts, unknowns, and closure criteria.
+   Identify expected and observed behavior sources. Check relevant project rules
+   and evidence; missing evidence is a limit, not permission to invent a cause.
 
-2. **Capture vibe intent**
-   - Preserve the user's wording for symptoms, UX concerns, "feels wrong"
-     observations, and corrections to offered choices.
-   - Translate the wording into observable behavior, expected behavior,
-     unknowns, affected users or contexts, and current-scope closure criteria.
-   - Treat user free-text changes to offered options as signal. Re-check what
-     changed instead of mapping the answer back to the closest original option.
+2. **Map preservation obligations.** Identify behavior the repair could affect:
+   output, state, persistence, external contracts, and runtime artifacts. Mark
+   relevant dimensions `preserve`, `change intentionally`, `unknown`, or
+   `not applicable`; unresolved current-scope unknowns block implementation.
+   For non-trivial fixes use `state-space-matrix.md`, including ordering,
+   overlap, identity, and cleanup when relevant. Keep tiny fixes compact.
 
-3. **Optional useful-skill and rule preflight**
-   - Check project instructions, local docs, and visible skill metadata for
-     task-relevant guidance.
-   - Read the decision index and the open-findings index and open only the
-     applicable decision records and findings.
-   - Use matching available skills only when they directly help with the current
-     stack, proof method, writing pass, or tool path.
-   - If none apply or one is unavailable, continue with this workflow.
+3. **Test a cause before repairing it.** Keep facts, hypotheses, judgments,
+   expected outcomes, and proof distinguishable. An unproven cause calls for a
+   proof step, not implementation, unless the user explicitly accepts the
+   residual risk. Prefer reproduction; otherwise use source trace, isolation,
+   or an exact manual proof path. Name a fast observation that could disprove
+   the preferred cause. If a previous hypothesis was refuted, name what would
+   falsify its replacement before another patch.
 
-4. **Open the debug ledger when applicable**
-   - Use the ledger for recurrent, multi-symptom, multi-environment,
-     long-running, interrupted, or user-retest-dependent diagnosis. A simple
-     reproduced bug may keep the same facts in a concise direct record.
-   - When a concrete runtime regression needs ledger continuity, open a
-     primary-symptom record first: reported symptom, reproduction or first
-     failing proof, root-cause hypothesis, minimal patch envelope, positive
-     sentinel, negative sentinel, last verified checkpoint, adjacent findings
-     held as ledger-only, and the closure status.
-   - Maintain a ledger with these fields for each current-scope symptom:
-     reported symptom; expected behavior and source; observed behavior and
-     source; observation regime and representativeness; prior attempts and why
-     each failed or remains unproven; suspected causes; probe or instrumentation
-     plan and result when source-only evidence cannot distinguish live-state
-     hypotheses; proven cause; affected state-space dimensions; verification
-     path; acceptance discriminator with before/current result; closure status.
-   - Closure status is exactly one of `fixed`, `not-reproduced`, `deferred`,
-     `accepted-residual`, or `blocked`.
-   - Do not claim "fixed" until every current-scope item has proof and a closure
-     status, whether recorded in a ledger or concise direct form.
+   A mechanism measured in a fixture confirms the user's cause only if its
+   constraints, initial state, environment, identity, and timing represent the
+   reported path. Otherwise keep it `Unproven` until representative observation
+   or explicit risk acceptance resolves the gap.
 
-5. **Analyze existing behavior**
-   - Identify current behavior to preserve before changing code.
-   - Split it into user-visible output, internal state transition,
-     persistence/lifecycle behavior, external contracts, and
-     operational/runtime artifacts.
-   - Mark each dimension as `preserve`, `change intentionally`, `unknown`, or
-     `not applicable`.
-   - Treat an `unknown` dimension that affects the current fix as a blocker
-     until source trace, local reproduction, or accepted residual resolves it.
-   - Add at least one verification item for every `preserve` or
-     `change intentionally` dimension that can regress. One check may verify
-     several dimensions. An existing or shared check counts for a dimension
-     only when it runs against the fixed code and proves that dimension's
-     required behavior through its own path, channel, and a discriminating
-     assertion; add tests for the obligations such checks leave open. This
-     reuse never waives the required reproduction, regression, or recurrence
-     proof.
+4. **Escalate proof, not speculation.** Start with bounded triage: nearest code,
+   tests, existing logs, artifacts, and expected-behavior source. Read
+   `source-routing.md` for unfamiliar external contracts or tool failures. If
+   triage leaves multiple live-state hypotheses, sprawling static investigation,
+   a contradicted approach, or another source-only guess, read
+   `probe-escalation.md`. For repeated failures use `debug-ledger.md` before
+   another implementation attempt. If diagnosis must pause, leave the resumable
+   discriminator described in `continuity-and-recurrence.md`.
 
-6. **Route sources and tool confidence**
-   - Before editing unfamiliar external API, framework, protocol, data contract,
-     permission, build, deploy, or tool behavior, check the authoritative
-     source: official docs, upstream source, local project code, CLI help,
-     changelog, useful available skill, or user-provided source material.
-   - If a tool fails, classify the failure narrowly: failed command, failed
-     mode, failed input shape, unavailable service, missing permission, stale
-     artifact, or flaky environment.
-   - Choose a narrower retry, fallback proof, or blocker. Do not abandon all
-     related tools because one mode or invocation failed.
+5. **Repair the smallest proven slice.** Follow local patterns and keep adjacent
+   hardening out unless it shares the primary symptom's proven cause and proof
+   path. Record any rule binding other units before dependent work, under the
+   Durable Records gate in `SKILL.md`.
 
-7. **Build the state-space matrix**
-   - For non-trivial fixes, convert user examples into domain-general dimensions
-     before naming domain-specific cases.
-   - Put an abstract dimension label beside every domain-specific case, probe,
-     retest step, or closure criterion. Use labels such as representation,
-     runtime artifact, lifecycle, ordering, identity, environment, permission,
-     and cleanup. Domain tools may fit the report, but they must not read as
-     universal requirements outside that domain.
-   - Include relevant dimensions such as input representation, encoding,
-     environment/origin, platform/runtime, direction, lifecycle state,
-     cache/artifact freshness, permission/role, sync/async path, and
-     error/cancel path.
-   - For dynamic, visual, streaming, event-driven, queue, cache, or lifecycle
-     bugs, include temporal sequence, ordering, overlapping events, per-entity
-     identity, reset/cancel behavior, and stale-state cleanup after the final
-     event.
+6. **Verify the repair and preserved behavior.** Run proof for every relevant
+   preserved or intentionally changed dimension. Existing checks may cover
+   several obligations when they run against the fixed code and observe each
+   behavior through its own path and assertion; add tests only for remaining
+   gaps. Reuse does not waive reproduction, regression, or recurrence proof.
+   Read `verification-handoff.md` for runtime freshness, degraded checks, or a
+   user retest. Choose a credible proof path now rather than offering a menu
+   or promising steps later.
 
-8. **Control speculation**
-   - Classify each implementation-affecting statement as `verified fact`,
-     `hypothesis`, `expert judgment`, `expected outcome`, or `proof result`.
-   - Do not act on a `hypothesis`, `expert judgment`, or `expected outcome`
-     unless the next step is explicitly a proof step, the user accepts the
-     residual risk, or the item is outside the current fix.
-   - Convert optimistic language into proof requirements. "This should fix it"
-     becomes "the proof needed is ..."; "looks fixed" becomes a recorded manual
-     or automated observation.
-   - Name one fast disconfirming check that could show the chosen cause or fix
-     is wrong.
-   - A cause is not confirmed merely because a measured mechanism exists in a
-     fixture. Record the measurement regime and why it represents the reported
-     user path. If constraint, initial state, external force, environment,
-     identity/class, or timing differs materially, keep the cause `Unproven`
-     until a representative observation or explicit residual closes the gap.
-   - After a prior cause hypothesis is refuted for the same symptom, pre-register
-     at least one observation expected if the replacement hypothesis is false
-     before implementing against it. A numerical coincidence or source-level
-     difference is not that falsification proof.
-
-9. **Choose diagnostic probes at the right time**
-   - Run bounded static triage first: nearest source path, relevant tests,
-     existing logs, artifact freshness, expected-behavior source, and one fast
-     disconfirming check when available.
-   - Do not propose a probe solely because the bug is dynamic. Prefer a failing
-     regression test, local reproduction, source trace, existing log, or
-     artifact inspection when it answers the current question.
-   - Trigger this gate before another fix only when bounded triage still leaves
-     multiple live-state explanations, static proof would sprawl across many
-     files or runtime paths, the original approach is contradicted, or a repeated
-     source-only fix comes back "still broken".
-   - If the probe needs the user's real environment, compare that burden with
-     the value of the observation. Prefer local or artifact-level proof when it
-     answers the same question.
-   - State the probe question: what branch, state transition, payload,
-     artifact, timestamp, ordering, identity, cleanup, or runtime boundary the
-     probe must observe to separate the hypotheses.
-
-   - When diagnosis must stop for budget, access, environment, or a needed
-     decision, leave a durable discriminator record rather than a narrative:
-     the works/fails matrix over the varied dimension, every ruled-out
-     hypothesis with its disproving observation, the environment epoch and
-     control cases, and the single next decisive probe.
-   - On resume, rerun the works and fails controls before relying on the old
-     discriminator. If the defect no longer reproduces, record
-     `not-reproduced` or transient behavior and label any robustness change a
-     mitigation, not a proven root-cause fix.
-   - Prefer low-friction probes that fit the user's real observation path:
-     existing logger calls, focused trace labels, counters, debug-only dumps,
-     test-harness assertions, artifact/package inspection, or narrow runtime
-     logs.
-   - Avoid broad noisy logging, secret or user-data exposure, expensive startup
-     requirements, and permanent diagnostic behavior unless the user accepts the
-     retained surface.
-   - Before asking the user to run a probe, provide exact build or freshness
-     steps, action sequence, expected log or trace signatures, failure evidence
-     to capture, and cleanup criteria.
-   - Do not make another implementation guess until the probe result,
-     equivalent source trace, or accepted residual resolves the unknown.
-
-10. **Handle failed attempts**
-   - On repeated reports or "still broken" feedback, explain why the last fix
-     did not address the symptom before proposing another fix.
-   - The next fix must be tied to new proof, a source trace, or a state-space
-     finding. Do not make another independent guess.
-   - If two consecutive attempts under the same cause hypothesis do not
-     materially move the acceptance discriminator, stop implementation. Before
-     a third attempt, prove that the discriminator fails on the known-bad
-     baseline or replace it, and re-open the cause hypothesis or observation
-     regime. Treat no movement as evidence against the current model, not only
-     as evidence that the patch was too small.
-
-11. **Fix the smallest verified slice**
-    - When the repair sets a rule other units must follow, write it as a
-      decision record before the fix lands.
-    - Prefer reproduction first. If local reproduction is not feasible, use a
-      source trace, isolation proof, or exact manual proof path.
-    - Keep edits close to the proven cause and existing local patterns.
-    - Preserve unrelated behavior and defer adjacent hardening unless it is
-      needed to close the primary symptom or a current ledger item with the same
-      proven root cause and verification path.
-
-12. **Prove artifact freshness**
-    - Before asking the user to retest or declaring a runtime issue fixed,
-      prove the tested artifact includes the change: rebuilt package or binary,
-      refreshed dev-server bundle, migrated local data, regenerated assets,
-      updated lockfile, restarted process, cleared stale cache, or equivalent.
-
-13. **Handle degraded verification**
-    - Skipped, unavailable, flaky, environment-limited, or manual-only checks
-      are not proof.
-    - For each degraded check, choose alternate proof, narrower local proof plus
-      explicit residual, user retest contract, accepted residual, or blocker.
-      Choose the strongest path that can observe the current contract now:
-      alternate proof first, then narrower proof with stated residual, then a
-      user retest contract when the user can observe the missing behavior,
-      otherwise blocker. Use accepted residual only when the user explicitly
-      accepts that risk.
-    - Do not count "manual smoke skipped", "not locally reproducible", or "test
-      environment cannot observe this" as a pass.
-
-14. **Use a concrete user retest contract when needed**
-    - When local proof cannot observe current-scope behavior, choose now:
-      alternate proof, blocker, accepted residual, or a full user retest
-      contract. Do not defer with "if needed" or promise steps later.
-    - Do not present the proof paths as a menu for the user to choose when the
-      available evidence already determines the least risky path. If the user
-      asks what to test and their environment is the only credible observation
-      path, select a user retest contract and leave the ledger item blocked
-      until evidence returns.
-    - A user retest contract names exact setup, action sequence, expected
-      observation, artifact/version freshness marker, failure evidence to
-      capture, and the ledger item or matrix row each check closes.
-    - The contract is incomplete if it only names what to verify. Include all
-      of those fields in the same handoff or keep the item blocked.
-    - When exact specifics such as the command, prompts, inputs, or paths are
-      unknown, deliver the contract now with explicit stated assumptions or
-      clearly labeled placeholders and say how to adapt them. Do not gate the
-      contract on clarifying questions the user cannot answer; asking for those
-      specifics before writing it is the same banned defer. Do not hand over
-      bare `<placeholder>` commands or omit failure evidence and ledger closure
-      mapping because a local detail is unknown.
-    - Avoid vague requests such as "please retest" or "try it again".
-
-15. **Review recurrence before finishing**
-    - If the same class of bug, review finding, or user complaint appears at
-      least twice, scan adjacent surfaces for the class of omission before
-      finishing.
-    - Add at least one disconfirming or negative check for the neighboring case
-      most likely to have been missed.
-
-16. **Self-review before closure**
-    - After implementation and verification, review the repair slice before
-      final repair claims. Use a matching available review workflow when one is
-      visible and applicable; otherwise run the review directly in this workflow.
-    - Check the ledger closure, minimal patch envelope, preserved behavior,
-      verification proof, artifact freshness, temporary or generated surfaces,
-      and user-visible summary.
-    - Resolve material findings and rerun affected proof before closure, or
-      record the remaining item as `deferred`, `accepted-residual`, or `blocked`.
-
-17. **Close repository operations**
-    - Before the handoff, sweep for qualifying decisions without a decision
-      record and ask the once-per-repository tracking question when the repair
-      includes a new decision record or findings report.
-    - Close the repair under the commit contract in `SKILL.md`, which states what
-      selects a commit, what the commit may cover, and what stays consent-bound.
-      Do not ask for startup commit policy.
+7. **Close.** Apply the recurrence check when needed, then the self-review,
+   durable-record, and checkpoint gates in `SKILL.md`. Report proof and limits
+   accurately; implementation alone is not closure.

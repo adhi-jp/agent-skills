@@ -1,63 +1,38 @@
 # Debug Ledger
 
-Use this visible ledger only for recurrent, multi-symptom, multi-environment, long-running, interrupted, or user-retest-dependent diagnosis. Simple reproduced bugs may close with symptom, cause, fix, and proof directly.
+Use this for the complex-diagnosis branch defined in `SKILL.md`. Keep compact
+rows for current-scope symptoms and unresolved hypotheses or tool failures:
 
-When this ledger is applicable, use one row for every current-scope symptom. Keep it compact, but keep the
-fields explicit so a later resume cannot silently lose the issue.
-
-| Field | Purpose |
+| Field | Content |
 | --- | --- |
-| Reported symptom | Preserve the user's wording, including "still broken" or "feels wrong". |
-| Expected behavior and source | State the intended behavior and cite user requirement, product spec, official docs, local code, tests, logs, or accepted residual. |
-| Observed behavior and source | State what was observed and where: local reproduction, user screenshot, log, test failure, runtime trace, or prompt report. |
-| Observation regime and representativeness | Record the fixture or runtime conditions that can change the mechanism: constrained/free subject, initial state, external forces, environment, identity/class, timing, and why this regime represents the reported symptom. Name any mismatch that prevents cause confirmation. |
-| Prior attempts | List each prior fix or hypothesis and why it failed, remains unproven, or did not reach the tested artifact. |
-| Suspected causes | Hypotheses still under investigation. Do not treat these as facts. |
-| Probe or instrumentation plan/result | For stalled source-only debugging, state the temporary log, trace, assertion, dump, artifact inspection, or runtime observation that distinguishes hypotheses and its observed signature. |
-| Proven cause | The cause backed by reproduction, source trace, primary source, or targeted negative check. |
-| Affected state-space dimensions | The dimensions that can change the symptom or regress nearby behavior. |
-| Verification path | Automated test, manual observation, source trace, artifact-freshness proof, or user retest contract. |
-| Acceptance discriminator | Record the before/current result for any metric used as a fix gate and the after result required. A metric that already passes on the known-bad baseline is not a discriminator. |
-| Closure status | `fixed`, `not-reproduced`, `deferred`, `accepted-residual`, or `blocked`. |
-| Cause layer | Preserve prior closed discriminator layers and name the new recurrence layer. |
-| Storage lifetime | Match storage to workflow duration; record scratch durability limits and reconstruction source. |
+| Symptom | User's wording |
+| Expected vs. observed | Behavior and sources; observation regime and any representativeness gap |
+| Hypothesis / prior attempts | Suspected or proven cause; failed attempts and the proof they lacked |
+| Proof path | Reproduction, source trace, artifact check, probe, or user retest; last verified checkpoint and next discriminator |
+| Closure status | One of the statuses below |
+
+For a returning symptom retain closed cause layers; for interrupted diagnosis
+preserve controls and storage limits (`continuity-and-recurrence.md`).
 
 ## Status Meanings
 
-- `fixed`: The symptom is closed by proof that observes the behavior, and the
-  tested artifact includes the change when runtime artifacts are involved.
-- `not-reproduced`: The symptom was actively checked in the relevant state-space
-  and not observed. Include the checked dimensions and residual risk.
-- `deferred`: The user or plan moved the item out of current scope. Include the
-  revisit trigger.
-- `accepted-residual`: The user accepted a known remaining risk or unproven
-  dimension. Include impact and what would reopen the item.
-- `blocked`: The item cannot close because an expected-behavior source,
-  reproducible symptom, artifact, permission, environment, or proof path is
-  missing.
+- `fixed`: Proof observes the repaired behavior; runtime artifacts include the change.
+- `not-reproduced`: Checked but absent in named dimensions; state residual risk.
+- `deferred`: User or plan moved it out of scope; name the revisit trigger.
+- `accepted-residual`: User accepted the remaining risk; name impact and reopening trigger.
+- `blocked`: A necessary source, artifact, permission, environment, or proof is missing.
 
-The findings report is the durable carrier for `deferred`, `accepted-residual`,
-and `blocked` rows; the ledger cites the entry id instead of restating the item.
+Deferred, accepted-residual, and blocked rows cite their durable findings entry
+instead of repeating it (`durable-records.md`). Recording a blocker does not
+resolve it.
 
 ## Failed-Attempt Rules
 
-On repeated reports, add or update a prior-attempt row before proposing another
-fix:
+Before another fix, explain what changed, what proof was claimed, what still
+failed, and why that proof missed the symptom. If unknown, gather proof first;
+use a focused probe when live state is the missing evidence.
 
-- What changed.
-- What proof was claimed.
-- What the user or local evidence still observed.
-- Why the proof did not cover the failing state-space, runtime artifact, source
-  of truth, or expected behavior.
-- What new proof will distinguish the next attempt from another guess.
-
-If the answer is "unknown", the next step is proof gathering, not another fix.
-When the missing proof is live runtime state, prefer a focused diagnostic probe
-or equivalent trace over another source-only patch.
-
-When two consecutive repair attempts under the same cause hypothesis leave the
-acceptance discriminator materially unchanged, do not make a third
-implementation attempt against that target. Re-check whether the metric can
-distinguish the defect and whether the observation regime represents the user
-report. Continue only after new proof changes the cause model, discriminator, or
-relevant state-space boundary.
+After two consecutive repairs under the same cause hypothesis leave the
+acceptance discriminator materially unchanged, stop implementation. Revalidate
+both metric discrimination and the observation regime. Resume only when new
+proof changes the cause model, discriminator, or relevant state-space boundary.

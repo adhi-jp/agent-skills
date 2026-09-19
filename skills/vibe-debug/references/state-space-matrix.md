@@ -1,70 +1,34 @@
 # State-Space Matrix
 
-Convert examples into dimensions. The named example is a clue about where the
-bug was noticed, not the full boundary of the fix.
-
-## Generality Guard
-
-Name the abstract dimension before the concrete domain example. UI, web, asset,
-animation, tooling, backend, data, CLI, library, and runtime examples are
-pressure cases, not universal requirements. Specialize only after naming the
-underlying contract: representation, runtime artifact, lifecycle, ordering,
-identity, environment, permission, cleanup, or another relevant dimension.
-
-When proof uses domain-specific tools, keep the abstract contract beside the
-tool: browser cache -> runtime-artifact freshness; animation trace -> ordering
-or cleanup. A tool can be required for this report without becoming a
-requirement for other domains.
+Convert the reported example into relevant dimensions; it is evidence of where
+the bug appeared, not the repair's full boundary. Name the abstract contract
+before domain cases. Domain tools serve that contract, not every debug task.
 
 ## Common Dimensions
 
-Use only dimensions relevant to the report:
+Choose only dimensions the repair could affect:
 
-- Input representation: raw value, parsed value, normalized value, display
-  label, alias, ID, slug, filename, cache key, serialized form.
-- Encoding and syntax: spaces, commas, quotes, slashes, Unicode, escaping,
-  case-folding, path separators, query encoding, JSON/XML/CSV forms.
-- Environment and origin: local, staging, production, tenant, host, protocol,
-  browser, platform, loader, region, clock, feature flag.
-- Permission and trust boundary: user role, session state, token scope, signed
-  data, cross-origin boundary, caller identity, confirmed destination.
-- Direction or route: forward/back, source/target, import/export, read/write,
-  request/response, client/server, primary/fallback.
-- Lifecycle state: first load, refresh, save, cancel, retry, delete, undo,
-  restart, migration, cleanup, rollback.
-- Cache and artifact: stale cache, generated asset, built bundle, package,
-  binary, database migration, lockfile, running process.
-- Error and cancel path: validation failure, exception, timeout, retry, partial
-  write, cancellation, teardown, recovery.
+| Dimension | Example boundaries |
+| --- | --- |
+| Representation/encoding | Raw, parsed, normalized, URL/serialized/stored/displayed; commas, spaces, Unicode, escaping |
+| Environment | Local/staging/production, host/origin, platform, tenant, clock, feature flag |
+| Permission/trust | Role, token scope, caller identity, cross-origin boundary |
+| Direction/route | Forward/reverse, source/target, import/export, primary/fallback |
+| Lifecycle/error | Load, save, retry, cancel, timeout, partial write, rollback, recovery |
+| Runtime artifact | Cache, bundle, binary, migration, package, running process |
 
-## Dynamic and Concurrent Dimensions
-
-For visual, async, streaming, event-driven, queue, cache, or lifecycle bugs,
-include:
-
-- Temporal sequence: before, during, after, delayed, retried, interrupted.
-- Ordering: first/last, adjacent updates, sorted vs arrival order, reverse
-  application, same-parent mutations.
-- Overlap: multiple simultaneous items, concurrent users, in-flight requests,
-  duplicate events, racing timers.
-- Identity: per-entity state, stable IDs, alias/canonical identity, stale
-  references, reused objects.
-- Reset/cancel: rollback, aborted work, navigation away, retry after failure.
-- Final cleanup: stale rendering, leftover locks, retained subscriptions,
-  cached errors, leaked temp files.
+For dynamic or concurrent bugs also consider sequence and ordering, overlapping
+work, per-entity identity and stale references, reset/cancel, and final cleanup.
+These expose failures hidden by static screenshots or single happy-path tests.
 
 ## Matrix Output
 
-For non-trivial fixes, record a compact matrix with the abstract dimension first:
+For non-trivial fixes, use compact rows:
 
-| Abstract dimension | Domain cases in scope | Preserve/change | Proof |
+| Abstract dimension | Cases in scope | Preserve/change | Proof |
 | --- | --- | --- | --- |
-| Representation | Raw ID, encoded display label | Preserve both | Parser and serializer tests |
-| Lifecycle | First save, retry, cancel | Change retry only | Regression plus negative cancel case |
+| Representation | Raw ID, encoded label, persisted value | Preserve round trip | Save/reopen test |
+| Lifecycle | First save, retry, cancel | Change retry only | Regression and cancel check |
 
-A row's Proof may cite a shared or existing check that runs against the fixed
-code and proves that row's behavior through its own path, channel, and a
-discriminating assertion; rows are proof obligations, not one new test each.
-
-Do not create exhaustive matrices for tiny fixes. The point is to prevent
-single-example repair when adjacent cases are likely to share the same contract.
+Rows are proof obligations, not separate new tests. Apply the proof-reuse rule
+in `debug-workflow.md`; tiny fixes need no exhaustive matrix.
