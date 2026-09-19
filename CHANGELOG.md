@@ -73,6 +73,8 @@ use `[Repository] - YYYY-MM-DD`.
   diff.
 - `vibe-debug`: the debug ledger keeps five core fields, and retest and
   delegation handoffs drop per-step ledger ids and budget fields.
+- `vibe-review`: no longer records a per-unit delegation budget before
+  launching reviewers.
 - Verification: evals were not re-run after this trim, so every behavior
   delta above is `Unproven`. Suite `validate`, `vibe_shared_contract.py check
   --strict` and `audit-names`, and `python3 -m pytest tests` passed. Most eval

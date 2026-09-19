@@ -52,6 +52,21 @@
             "secret-context"
           ]
         }
+      },
+      {
+        "backend_id": "delegated-reviewer-unlocated",
+        "reviewer_angle": "scope-specification",
+        "source_finding_id": "missing",
+        "issue_class": "specification",
+        "target_location": "missing",
+        "severity": "missing",
+        "confidence": "missing",
+        "host_source_ref": "opaque:unlocated",
+        "validation_status": "accepted",
+        "redaction_state": {
+          "count": 0,
+          "categories": []
+        }
       }
     ],
     "rejected_source_results": [
