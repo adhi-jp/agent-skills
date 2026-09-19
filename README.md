@@ -68,7 +68,7 @@ acting. Repository contributors must also follow [`AGENTS.md`](AGENTS.md).
 
 | Task | Skill | Important boundary | Package |
 | --- | --- | --- | --- |
-| Decide what to change in a skill or eval from benchmark, grader, review, or regression evidence | `skill-quality` | Makes evidence-bound quality decisions, including transition-authority, artifact-lifecycle, delivery-mode, and generated-block placement failures; release and version changes still need explicit instruction | [source](skills/skill-quality/SKILL.md) · [evals](evals/skill-quality/) |
+| Decide what to change in a skill or eval from benchmark, grader, review, or regression evidence | `skill-quality` | Makes evidence-bound quality decisions, including transition-authority, artifact-lifecycle, delivery-mode, and generated-block placement failures, and sizes eval suites by with/without-skill discrimination evidence; release and version changes still need explicit instruction | [source](skills/skill-quality/SKILL.md) · [evals](evals/skill-quality/) |
 | Validate, run, grade, aggregate, or report repository skill evals | `skill-eval` | Separates declared executor inputs from grading evidence, supplies graders with task context and bounded fixture facts, provisions declared offline test runtimes, records measurement identity and the limits of net-change and command evidence, and owns bounded execution, cancellation, metrics, failed-assertion review, and comparisons | [source](skills/skill-eval/SKILL.md) · [evals](evals/skill-eval/) |
 
 For `skill-eval` 2.x, declare additional task inputs with case-level

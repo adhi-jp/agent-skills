@@ -93,6 +93,11 @@ use `[Repository] - YYYY-MM-DD`.
   alignment.
 - `vibe-code-research`: instructions are cut to evidence binding, anchors,
   and the output contract, with no intended behavior change.
+- `skill-quality`: sizes eval suites by with/without-skill discrimination
+  evidence. One realistic prompt may combine contracts, assertions stay
+  atomic, and a non-discriminating assertion is deleted unless it guards a
+  harm the skill could induce, is the only remaining guard for a known
+  incident, or guards a destructive or consent boundary.
 - Verification: evals were not re-run after this trim, so every behavior
   delta above is `Unproven`. Suite `validate`, `vibe_shared_contract.py check
   --strict` and `audit-names`, and `python3 -m pytest tests` passed. Most eval
