@@ -77,6 +77,8 @@ use `[Repository] - YYYY-MM-DD`.
   launching reviewers.
 - `vibe-orchestrate`: no longer asks at startup for local-commit
   confirmation or prescribes a fixed history-authority summary.
+- `vibe-writing`: reference playbooks and examples are cut to the rules
+  they illustrate, with no intended behavior change.
 - Verification: evals were not re-run after this trim, so every behavior
   delta above is `Unproven`. Suite `validate`, `vibe_shared_contract.py check
   --strict` and `audit-names`, and `python3 -m pytest tests` passed. Most eval
