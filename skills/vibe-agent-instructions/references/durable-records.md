@@ -86,6 +86,7 @@ Exception: a read-only phase or commit execution writes a record only when the u
 ```
 
 - Use `blocked` when the work waits on an unavailable owner, dependency, decision, or environment, and `deferred` when it is simply scheduled later; `accepted-residual` needs recorded user acceptance, and an agent-deferred item is surfaced to the user.
+- Set `Decided by` to `agent` when the phase deferred the item without being asked, and to `user` or `proxy` only when that party chose the deferral.
 - Index each open finding in `docs/reports/findings/README.md` as `- DF-NNNN | <status> | <severity> | <scope> | <title> | [entry](<report>.md#<entry-anchor>)`, rebuilding a missing or disagreeing index from the reports.
 - Close a finding by updating its original entry's status and closure and removing its index row; never delete or rewrite a closed entry, and point a duplicate at its canonical id.
 - Cite finding ids from plans, ledgers, reviews, and worker reports instead of restating them; the chat summary names the report path and the open ids, or says that no report was needed.

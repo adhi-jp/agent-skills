@@ -27,7 +27,8 @@ use `[Repository] - YYYY-MM-DD`.
   `decision-record-schema` and `decision-record-index`, and `deferred-findings`
   absorbs `deferred-findings-schema`, dropping legacy `unknown`-record
   indexing, duplicate-id renumbering, and the checkpoint hold for unrecorded
-  decisions. The other blocks are shorter with no intended behavior change.
+  decisions; a finding the phase deferred unasked records `Decided by:
+  agent`. The other blocks are shorter with no intended behavior change.
   Rendered text changed in all 14 dependents: `vibe-agent-instructions`,
   `vibe-brainstorm`, `vibe-code-research`, `vibe-coding`, `vibe-commit`,
   `vibe-debug`, `vibe-goal-alignment`, `vibe-orchestrate`,
