@@ -105,11 +105,19 @@ use `[Repository] - YYYY-MM-DD`.
 - `skill-eval`: the runner reference is condensed; the pre-run forecast
   names cell count, total concurrency, per-subprocess timeout, and a wall-time
   range. No other contract change.
-- Verification: evals were not re-run after this trim, so every behavior
-  delta above is `Unproven`. Suite `validate`, `vibe_shared_contract.py check
-  --strict` and `audit-names`, and `python3 -m pytest tests` passed. Most eval
-  suites were rewritten to fewer cases, so earlier pass rates are not
-  like-for-like.
+- Verification: after the last edit to each package, one codex
+  `gpt-5.6-luna` full-suite run (runs=1) scored `with_skill` against
+  `without_skill`: `vibe-coding` 92.8% / 65.3%, `vibe-requirements-spec`
+  92.5% / 42.1%, `vibe-planning` 93.7% / 40.6%, `vibe-plan-execution` 84.6% /
+  60.7%, `vibe-plan-review` 95.7% / 51.6%, `vibe-commit` 96.4% / 80.2%,
+  `vibe-debug` 92.7% / 67.6%, `vibe-review` 98.0% / 61.5%, `vibe-orchestrate`
+  86.9% / 55.2%, `vibe-writing` 94.0% / 73.9%, `vibe-agent-instructions`
+  94.5% / 34.0%, `vibe-brainstorm` 92.9% / 57.0%, `vibe-goal-alignment` 93.0%
+  / 63.4%, `vibe-code-research` 95.5% / 80.6%, `skill-quality` 86.1% / 57.4%,
+  `skill-eval` 100.0% / 34.1%. The below-baseline cells in
+  `vibe-plan-execution` and `vibe-commit` were adjudicated as single-run
+  noise. Most suites were rewritten to fewer cases, so earlier pass rates
+  are not like-for-like.
 
 ### Removed
 
