@@ -8,51 +8,17 @@ description: Use when the user asks to commit, stage, or "save" agent-assisted c
 
 ## Overview
 
-A vague "commit please" is a request to turn a messy working tree into one
-clean, correctly scoped commit — not a request to run `git add -A && git
-commit`. The instruction is underspecified on purpose: the user trusts the agent
-to decide what belongs in the commit, keep junk out, and leave a message and
-history a future maintainer can use.
-
-This skill governs the *execution* of that: which files to stage, what to keep
-out, how to re-verify the staged set before committing, how to transport a
-multi-line message without corruption, and how to amend or repair a commit while
-keeping authorship trailers intact. The guidance here is distilled from real
-agent sessions where these exact steps prevented — or, when skipped, caused —
-commit mistakes.
-
-When a request calls for a commit and no blocking condition remains, the
-deliverable carries every applicable gate whether it is executed or, for a
-"command only" ask or a response-only decision over represented repository
-state, shown as the command sequence: tree inspection, the staged-set gate
-with the staged diff read, the commit command, and verification of the stored
-message against the exact committed patch and of the remaining working-tree
-state. A bare commit invocation is not a commit answer. For an inspection-only
-request or a blocked decision, stop at the applicable boundary and say what
-remains unresolved; add no commit command or post-commit check for an
-operation that will not occur.
+A commit request means one clean, correctly scoped commit, not `git add -A &&
+git commit`. Select the user-visible change, exclude unrelated or unsafe paths,
+read the staged diff, transport the message safely, and inspect the stored
+commit. For a command-only or represented-state request, show the applicable
+sequence without claiming it ran; for a blocked request, stop at the blocker.
 
 ## Message content vs. commit execution
 
-Commit work splits cleanly between message content and execution:
-
-- The commit message content must stand on its own: an outcome-focused
-  Conventional Commit subject, body only for durable context the diff cannot
-  recover, medium-density body wording that names durable contract surfaces
-  without becoming a feature walkthrough, a compact `Verification:` section that
-  explains what durable proof covers instead of replaying session commands, no
-  prompt/session/plan labels, and no Markdown wrappers in message bytes. A
-  `Verification:` bullet is that pair, not one half of it: keep the exact
-  command as the rerun anchor and add what its proof covers, so neither deleting
-  the command nor leaving it bare counts as a compact verification section.
-- `vibe-commit` owns the **execution**: staging, exclusion, the pre-commit
-  verification gate, command safety, history mutation, message transport, and
-  trailers as a transport mechanism.
-
-Apply the compact message rules in `references/history-and-trailers.md` whenever
-this skill prepares, inspects, amends, or repairs a commit message. The commit's
-*bytes* — file set, message transport, trailer footer, and stored message — are
-this skill's responsibility, and you verify them after committing.
+This skill owns staging, verification, message transport, trailers, and history
+safety. Use `references/history-and-trailers.md` whenever preparing, inspecting,
+amending, or repairing a message.
 
 ## Authority and safety boundary
 
@@ -74,23 +40,19 @@ of that line unless the user says otherwise.
 - Keep every irreversible or outward-facing operation under its own consent.
 <!-- shared-contract:end effect-write-boundaries -->
 
-The scope this workflow declares is the commit it executes — the index and
-history of that commit and the message it transports — and it makes no source
-edits.
+The scope this workflow declares is the commit it executes — that commit's
+index, history, and message — and it makes no source edits.
 
 **Honor `.gitignore` and the agreed scope.** Never `git add -f` an ignored
 path, and never stage files outside the change being committed, unless the
 user explicitly asks to include that ignored path after you have surfaced why
-it is ignored and what risk that creates. Decide scope by the user-visible
-change, not by whatever happens to be dirty.
-
-**No surprise side effects.** Do not bump versions, cut releases, or trigger
-hooks the repo did not ask for as a byproduct of committing.
+it is ignored and what risk that creates.
 
 ### Durable Records
 
-Before committing, check `docs/decisions/README.md`, when it exists, for
-accepted records whose `paths` the staged diff touches. Read
+Before committing, check `docs/decisions/README.md`, or the records themselves
+when `docs/decisions/` exists but the index is missing, for accepted records
+whose `paths` the staged diff touches. Read
 `references/durable-records.md` when one does, when the file set includes a
 decision record or findings report, and before handing a decision or finding
 forward. This phase ordinarily writes neither `docs/decisions/` nor
@@ -116,45 +78,27 @@ Example: "the user asked for a commit this turn" names a source; "this is a good
 Exception: a current no-commit instruction, a bound plan that forbids commits, or project policy suspends the default; leave the verified changes in the working tree and report why.
 <!-- shared-contract:end commit-selection-state-changing -->
 
-This workflow is that commit-execution phase. Scoped checkpoint handoffs reach
-it as commit requests for their named paths; each still passes this skill's
-file-set, verification, message, and history-safety gates and authorizes no
-broad staging, empty commit, push, release work, version change, or history
-rewrite.
-
-**Separate discovery from lifecycle authority.** Status, diff, path
-existence, same-session creation, logical relevance, conventional repository
-placement, and commit permission make a path a candidate; they do not by
-themselves authorize tracking, staging, or commit membership. A newly
-selected untracked artifact needs explicit tracking intent or an applicable
-mandatory repository/owning-workflow coupling. Already tracked coupled tests,
-docs, specs, README, and changelog changes may remain part of the selected
-logical change when their owning contract requires them.
+This workflow is that commit execution; a scoped checkpoint handoff arrives as a
+commit request for its named paths and passes every gate below.
 
 ### History Safety
 
-**Do not rewrite shared history.** Amending or rebasing an already-pushed
-commit rewrites history other clones depend on. Only amend/rebase commits that
-have not left this machine, and never force-push a shared branch without an
-explicit, informed request. When you stop for that consent, say in the same
-answer what the rewrite would cost — other clones diverge and collaborators may
-have to rebase, reset, or reconcile duplicated commits — and name the correction
-paths you are offering, including whether a later commit can reach the defect at
-all.
+**Do not rewrite shared history.** Amend or rebase only commits that have not
+left this machine. When you stop for consent to rewrite pushed history or
+force-push a shared branch, say in the same answer what it would cost — other
+clones diverge and collaborators may have to rebase, reset, or reconcile
+duplicated commits — and name the correction paths you offer, including whether
+a later commit can reach the defect at all.
 
 **Never let a scripted rewrite delete live files without a separate confirmed
 stop.** When a scripted or looped multi-commit rewrite drops paths from
-history, derive each step's target list from that commit's own tree (e.g.
-`git ls-tree`), never from an ambient whole-worktree snapshot (`git status`,
-`-uall`, or similar) — the two are different states, and conflating them
-deletes files unrelated to the commit being rewritten. For a directory target,
-use its literal prefix with `git ls-tree -r`; confirm range and tree queries
-succeeded before consuming their output or treating an empty result as absence.
-Print the full resolved list first and require an explicit confirmed stop before any
-deletion executes; a preview a script can run straight past is not a gate. A
-backup limits damage if something goes wrong — it never substitutes for that
-per-path confirmation, and it does not by itself authorize deleting a live
-working-tree file. See `references/history-and-trailers.md`.
+history, derive each commit's target list from its own tree (`git ls-tree -r`
+with a directory's literal prefix), never from `git status` or another
+worktree snapshot, which deletes files unrelated to that commit. Confirm range
+and tree queries succeeded before trusting an empty result. Print the full
+resolved list and require an explicit confirmed stop before any deletion; a
+preview a script can run past is not a gate, and a backup is never deletion
+authority. Follow `references/history-and-trailers.md`.
 
 ## Core workflow: "commit please" → one clean commit
 
@@ -172,9 +116,11 @@ deeper on the judgment calls.
 3. **Classify and select.** Sort every changed path into (a) the core
    deliverable that forms ONE logical change — implementation plus its tests and
    the docs/CHANGELOG/spec it fulfills — versus (b) out-of-scope edits or
-   generated artifacts. For every newly selected untracked artifact, verify
-   tracking intent or mandatory coupling before staging it. Split unrelated
-   concerns into separate commits. See `references/file-selection.md`.
+   generated artifacts. A newly selected untracked artifact needs explicit
+   tracking intent or a mandatory repository or owning-workflow coupling;
+   relevance, placement, same-session creation, or commit permission only makes
+   it a candidate. Split unrelated concerns into separate commits. See
+   `references/file-selection.md`.
 4. **Exclude deliberately.** Leave generated, scratch, unowned plan/spec, build,
    unrelated lock, agent-state (`.agents/`, `.claude/`, `.codex/`), and secret
    paths unstaged. A verified requirements or plan artifact named by an owning
@@ -190,42 +136,21 @@ deeper on the judgment calls.
    what you are about to commit: `git diff --cached --name-only` (exact files),
    `git diff --cached --stat` (volume sanity), `git diff --cached` (read the
    hunks), `git diff --cached --check` (whitespace/line-ending errors). In-scope
-   files present, out-of-scope/ignored files absent, diff matches intent. When
-   the request or owning workflow makes a human-run or deployed test a commit
-   prerequisite, reconcile candidate contents with the consumed-artifact and
-   source/build-input receipt, including partial staging. An incidental test
-   comment does not create that prerequisite; follow
-   `references/staging-and-recovery.md` for drift and missing proof. This
-   2–3 second gate is the single highest-leverage habit; see
-   `references/staging-and-recovery.md`.
+   files present, out-of-scope/ignored files absent, and the diff matches intent.
+   A declared verification prerequisite must cover candidate bytes; an incidental
+   test report creates no new prerequisite.
 7. **Reconcile message to the exact target diff (mandatory internal gate).** Read
    the complete final staged patch and map every material concern to the proposed
-   type, scope, outcome, body coverage, and one-commit or split decision. Bind
-   the decision to the current staged bytes; source drift invalidates it. Show a
-   detailed public receipt only for complex or multi-package changes,
-   reword/amend work, a supplied-message conflict, or a user-requested audit. In
-   those cases, keep the receipt compact but explicit about the source target,
-   peer concerns and shared contract, type/scope/outcome bases, subject/body
-   coverage, one-commit or split decision, supplied-message disposition, and the
-   rule that source-patch drift requires reconciliation again. When the diff
-   touches an accepted decision record's `paths`, check conformance or the
-   superseding record in the same commit, else report the conflict. Report that
-   conflict and ask: name the record id, its binding `paths`, and the exact
-   non-conformance, then ask whether to stop or proceed instead of closing that
-   question yourself. See `references/history-and-trailers.md`.
+   type, scope, outcome, body coverage, and one-commit or split decision. Source
+   drift requires reconciliation again. If an accepted decision record binds the
+   changed path, stop and report any non-conformance.
 8. **Decide amend vs. new.** Create a NEW commit by default. Only `--amend` to
    fix the immediately preceding, unpushed commit. See
    `references/history-and-trailers.md`.
 9. **Compose the message.** Conventional Commits `type(scope): summary`
    (imperative, ≤72 chars) naming the outcome, blank line, then a body only when
-   it preserves durable context the diff cannot recover. For body-worthy
-   commits, use a medium-density shape: one to three short paragraphs or a few
-   labeled bullets that group changes by durable surface, constraint, non-goal,
-   or risk. If the message wants a long feature walkthrough, file inventory, or
-   manual-test transcript, summarize or split the commit. Detect the repo's
-   trailer convention first: `git log -5 --format='%H%n%B'`. A new repository
-   convention this phase adopts, and any defect it discovers, go to the closing
-   workflow's carry-forward packet.
+   it preserves durable context the diff cannot recover. Detect the repo's
+   trailer convention first: `git log -5 --format='%H%n%B'`.
 10. **Transport the message safely.** For any multi-line body, use a heredoc
    (`git commit -F - <<'EOF' … EOF`, single-quoted delimiter) or `git commit -F
    <file>`. Add or repair authorship trailers with a `git commit ... --trailer
@@ -233,19 +158,9 @@ deeper on the judgment calls.
    commit -C <ref> --trailer ...` for local rewrites — not by typing them into
    the body or a synthesized message payload. Never embed raw newlines in a
    single `-m`. See `references/history-and-trailers.md`.
-11. **Post-verify the stored commit.** `git show -s --format=%B HEAD` confirms
-    subject/body/trailer landed byte-correct and the trailer parsed as a footer;
-    for newly added or repaired authorship trailers, also confirm the command
-    path used `git commit ... --trailer`. For body messages, inspect the stored
-    message for low-signal verification dumps, bullets that only list session
-    commands without review meaning, and local-only proof-source leakage such as
-    git-unmanaged local generated artifacts, ignored result files, local-only
-    run IDs, or private tool-session records. Compare the stored message with
-    the exact committed patch and the internal pre-commit reconciliation;
-    `git show --stat HEAD` is only an auxiliary file-set check. A semantic
-    mismatch remains incomplete and is repaired only within existing
-    unpushed-history authority. `git status --short` confirms only
-    intentionally-left files remain and nothing leaked.
+11. **Post-verify the stored commit.** Read `git show -s --format=%B HEAD` and
+    the committed patch; use `git status --short` to confirm only intended files
+    remain. Repair a mismatch only within existing unpushed-history authority.
 12. **Recover reversibly if wrong.** Prefer the least-destructive fix:
     `git restore --staged <file>` to unstage, `git reset --soft HEAD~1` to undo
     a commit while keeping changes, `git commit --amend --no-edit --trailer …`
@@ -299,66 +214,8 @@ Not every invocation is a full "commit please." Jump to the relevant reference:
   `git diff --cached <file>` for the committed hunk and `git diff <file>` for
   the intentionally-left local hunk. Show both as explicit verification
   commands before committing; a prose note or `git status` is not a substitute.
-- an amend/rebase would touch pushed history → name the concrete collaboration
-  risk: other clones can diverge and collaborators may have to rebase, reset, or
-  reconcile duplicated commits.
 - a user-named path is absent from `git status` → check `git check-ignore -v
   <path>` before deciding. If it is ignored, especially local config or
   secret-like data, do not force-add it merely because the path was named; state
   that the requested scope cannot be fully committed without an explicit
   override after the ignore rule is known.
-
-## Common mistakes
-
-- `git add .` / `-A` / a glob in a dirty tree, sweeping in unrelated edits,
-  generated output, lock files, or secrets.
-- Committing immediately after `git add` without re-reading the staged diff.
-- Force-adding or accidentally committing ignored/scratch content (eval
-  workspaces, `plans/`, `.codex/`, `.env`).
-- Committing a whole generated directory instead of just its durable spec
-  (`evals/<name>/` vs. `evals/<name>/evals.json`).
-- Multi-line message corruption from a single `-m` with embedded newlines, or a
-  double-quoted heredoc that lets the shell expand `$`/backticks.
-- Trailer corruption: trailers typed into the body, added through
-  `git interpret-trailers --trailer` plus plumbing or a synthesized message
-  file, dropped when rewording with `--amend -m` (re-add with `--trailer`),
-  wrong capitalization, or a stray `Key: value` body line folding into the
-  footer.
-- Mixing unrelated concerns into one commit so blame, bisect, and revert get
-  messy.
-- Destructive recovery without a plan (`git reset --hard`, force-push) that
-  loses work or rewrites shared history.
-- A scripted rewrite deriving its deletion targets from a global `git status`
-  snapshot, or deleting right after printing a preview with no confirmed stop
-  in between — see `references/history-and-trailers.md`.
-
-## Self-check
-
-Before reporting the commit done:
-
-- Does the staged set match the user-visible change, with no out-of-scope,
-  generated, ignored, or secret files?
-- Did every newly selected untracked artifact have explicit tracking intent or
-  mandatory coupling, rather than only relevance, path placement, or commit
-  permission?
-- Did you read `git diff --cached` (not just the file list) and run `--check`?
-- Did internal message-to-diff reconciliation cover every material concern and
-  invalidate on source drift? When the change is complex, multi-package,
-  reword/amend, conflicted with a supplied message, or audit-requested, did the
-  public receipt expose that decision clearly?
-- Is the subject a Conventional Commit naming the outcome, with the body kept to
-  context the diff cannot recover?
-- Did you verify the **stored** commit (`git show -s --format=%B HEAD` and
-  the exact committed patch, with `git show --stat HEAD` as auxiliary), not just
-  the command you ran?
-- If a trailer was required, did it land as a parsed footer in the exact
-  authorship form for the agent that wrote the commit and the repo's existing
-  convention?
-- If an authorship trailer was newly added or repaired, did the transport path
-  use `git commit --trailer`, `git commit --amend ... --trailer`, or `git commit
-  -C ... --trailer`, never a hand-edited footer, raw append, or plumbing-created
-  message?
-- Did anything outside the agreed scope get committed, pushed, or rewritten?
-- If the rewrite deleted any path, did it pass the commit-scoped, confirmed-stop
-  gate in `references/history-and-trailers.md` rather than an ambient snapshot
-  or an unconfirmed preview?

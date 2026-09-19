@@ -19,10 +19,8 @@ git diff --cached --check       # trailing whitespace / line-ending / conflict m
 git status --short              # what remains unstaged, and is that intentional?
 ```
 
-The file list alone is not enough — read the actual staged diff. A rename, a
-partial hunk, or an accidental deletion shows up in the diff, not the name list.
-`--check` is worth the half-second: trailing whitespace and CRLF issues
-otherwise surface at a commit hook or in review and force an amend cycle.
+The file list alone is not enough: read the staged diff. A rename, partial hunk,
+or accidental deletion appears there, not in the names.
 
 When the final command will use pathspecs, `--only`, or another option that
 could change what `git commit` records, add a command-shape dry run after the
@@ -36,31 +34,10 @@ Use this as a safety cross-check for the commit command, not as a substitute for
 reading `git diff --cached`; a dry-run summary cannot prove the hunks are the
 intended ones.
 
-This gate appeared as the most universally emphasized discipline across mined
-sessions; commits made *without* it were the most common source of "wrong files
-in history."
-
-When the request or owning workflow makes human-run or deployed verification
-a commit prerequisite, inspect its
-consumed-artifact identity and relevant source/configuration/build-input
-receipt. Compare the contents the actual commit command will record with those
-inputs, not merely the current working tree. Partial staging can omit a tested
-hunk; a consumed untracked helper can leave a required dependency out of the
-candidate. Identify either mismatch before accepting the test as commit proof,
-and never add that helper without ordinary scope and tracking authority.
-
-Missing identity or unexplained relevant drift leaves the candidate unproven:
-obtain provenance or return for affected verification, or carry an exact delta
-and bounded behavior-neutrality argument when the owning acceptance contract
-allows it. Static checks do not retroactively establish runtime identity. Do
-not require another human run for unrelated notes/logs outside the verified
-inputs, and do not claim that changed unexercised bytes were actually tested.
-
-An incidental report that the user tried the app does not itself create a new
-runtime acceptance gate. For an ordinary authorized commit without that
-prerequisite, apply the normal commit checks and qualify any unsupported test
-claim instead of inventing deployment, provenance collection, or retesting.
-Direct commit authority does not waive a prerequisite that is already in force.
+If a test or deployment is already a commit prerequisite, compare the candidate
+bytes with its inputs; partial staging can otherwise make the evidence inapplicable.
+An incidental test report creates no new prerequisite or claim of final-byte
+coverage.
 
 ## Partial staging: only some hunks of a file
 
@@ -79,21 +56,6 @@ landed, and `git diff <file>` to confirm the rest stayed out. Put both commands
 in the verification sequence before committing; do not replace the unstaged diff
 with a prose note or `git status`, because those do not prove the local-only
 hunk still has the intended content.
-
-## Know your branch and base
-
-Before committing, confirm context so you do not land on the wrong branch or
-amend the wrong base:
-
-```sh
-git branch --show-current
-git log -1 --oneline                              # the commit you might extend
-git rev-list --left-right --count <base>...HEAD   # prints "<behind>  <ahead>"; right column = your commits past base (0 = nothing to amend)
-```
-
-If HEAD is 0 commits ahead of the branch base, there is nothing of yours to
-amend — a new commit is the only option. (See `history-and-trailers.md` for the
-amend-vs-new decision.)
 
 ## Recovery ladder — least destructive first
 
@@ -126,55 +88,9 @@ Guidance:
 - `git reset --hard` and force-push *discard* work. Use `--hard` only to return
   to a SHA you captured beforehand and the user confirmed, and never force-push
   a shared branch (see the safety boundary in `SKILL.md`).
-- Before any complex or risky operation, capture the current state so you can
-  return to it: note `git rev-parse HEAD`, or `git branch backup/<name>` /
-  `git stash push -u`.
-
-## Stash hazards
-
-Stash is useful for isolating or parking work, but it has sharp edges seen
-repeatedly in the data:
-
-```sh
-git stash push -u -m 'wip: <marker>'   # include untracked (-u); label it
-git stash list                         # confirm what exists before pop/drop
-git stash pop stash@{0}                # apply + drop the top stash
-```
-
-- `git stash push` with no local changes prints "No local changes to save" and
-  creates **nothing**. If you assume a new stash exists and then operate on
-  `stash@{0}`, you act on the wrong (older) stash. Capture
-  `git rev-parse refs/stash` before, compare after, and verify your message
-  marker.
-- When resolving a conflict from `git stash pop` (or a rebase), you must
-  `git add <file>` the resolved file *before* dropping the stash — otherwise the
-  resolution is lost. Resolve, add, verify, then drop.
-- Applying several stashes during a restore: apply all and verify all before you
-  drop any. Dropping as you go leaves asymmetric loss if a later apply fails.
-
 ## Transient errors are not fatal
 
 A transient `index.lock: Read-only file system`, a momentary permission error,
 or a sandbox I/O hiccup is retryable. Retry the same command (escalating
 environment permissions if the setup requires it) rather than deleting
 `index.lock` by hand or hacking the index — those workarounds can corrupt state.
-
-## Merge semantics, when relevant
-
-If the task involves integrating a branch, choose the merge shape on purpose
-rather than accepting the default:
-
-```sh
-git merge --ff-only <branch>     # keep history linear; fails safely if it can't
-git merge --no-ff <branch>       # preserve the feature-branch structure
-git diff --stat <base>..<head>   # confirm the merge carried all intended changes
-```
-
-A silent fast-forward can erase branch structure you wanted; an accidental merge
-commit can clutter a history you wanted linear. Pick one and verify.
-
-## Verify after every mutating step
-
-Do not assume a git operation succeeded silently. After staging, committing,
-resetting, stashing, or merging, confirm with `git status -s`, `git show --stat`,
-or `git log -1` that the result matches what you intended.

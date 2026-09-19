@@ -7,20 +7,8 @@ bytes, then verify what git stored.
 
 ## Message-to-diff reconciliation
 
-Before executing a freshly composed or reworded message, inspect the complete
-exact target patch and create an internal reconciliation. Render this detailed
-receipt only for complex or multi-package changes, reword/amend work, a supplied-
-message conflict, or a user-requested audit:
-
-- `source target`: base commit plus index tree or exact staged-patch identity;
-  for reword/amend, the source commit, parent, tree, and exact source patch;
-- `material concerns`: every separately reader-visible behavior or contract
-  delta in the patch;
-- `shared contract`: the subsystem, workflow, public contract, rollback path,
-  review finding, or verification surface that makes one commit coherent;
-- `type basis`, `scope basis`, and `outcome basis`;
-- `coverage`: how every material concern appears in the subject or body;
-- `decision`: one commit, split, or stop.
+Before composing or rewording, read the exact target patch and ensure the
+subject, scope, and body cover every material concern.
 
 The scope is the owner of the combined contract, not automatically the last
 package processed, the path with the most files, or any convenient constituent.

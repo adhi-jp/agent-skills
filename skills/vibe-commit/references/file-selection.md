@@ -7,8 +7,7 @@ not by directory or file type.
 
 ## See the whole picture first
 
-A commit decision made from a partial view is a guess. Surface every category in
-one pass:
+A commit decision needs the full tree:
 
 ```sh
 git status --short --branch --untracked-files=all   # modified, staged, untracked
@@ -17,46 +16,19 @@ git diff --stat                                      # size/shape of tracked edi
 git ls-files --others --exclude-standard             # untracked, ignoring ignored
 ```
 
-`--untracked-files=all` matters: a default `git status` collapses untracked
-directories to one line, hiding files inside. `--ignored` matters because an
-ignored directory is invisible otherwise and easy to confuse with "untracked but
-should be added."
-
-For anything new or surprising, read it before judging — `git diff -- <file>`
-for tracked edits, and open untracked files directly. You cannot classify a path
-you have not looked at.
+Read new or surprising files before classifying them.
 
 ## Separate candidate discovery from lifecycle authority
 
-Status and diff inspection enumerate candidates; they do not decide that every
-candidate belongs in version control or this commit. Classify these transitions
-separately:
-
-1. The artifact may be created or edited.
-2. The artifact is eligible to be tracked.
-3. The artifact is eligible to be staged for this logical change.
-4. The artifact is eligible to be committed now.
-
-For a newly selected untracked artifact, require explicit current tracking
-intent or an applicable mandatory repository/owning-workflow coupling. A file
-does not become eligible merely because it was created in this session, appears
-under `docs/`, `plans/`, or `specs/`, is relevant to the discussion, is visible
-to tools, or local commit permission exists. Record deliberately untracked
-artifacts in the summary so a later agent does not promote or delete them by
-guessing. A decision record or findings report the closing workflow wrote
-follows the repository's recorded tracking answer; without one it stays an
-untracked artifact that needs explicit tracking intent.
-
-This gate does not eject required support from an otherwise coherent commit.
-Already tracked tests, fixtures, README, changelog, specs, and documentation
-remain eligible when the selected implementation or repository contract
-requires their coupled update. A verified owning-workflow handoff that names
-specific eligible tracked paths is also sufficient provenance for those paths.
+Discovery makes a path a candidate, not commit-authorized. A new untracked file
+needs explicit tracking intent or a mandatory repository/workflow coupling;
+relevance, location, or same-session creation is not enough. Keep required
+tracked tests, docs, and dependency support with their logical change. State any
+deliberately untracked ambiguous path in the summary.
 
 ## Select one logical change
 
-A good commit is one logical, user-visible change that a reviewer can read,
-bisect, and revert as a unit. Group the parts that move together:
+A commit is one logical, user-visible change. Group the parts that move together:
 
 - implementation **and** its tests,
 - the docs, CHANGELOG, README, or spec the change fulfills,
@@ -75,59 +47,27 @@ Stage by explicit full path so the set is exactly what you chose:
 git add -- src/feature.ts src/feature.test.ts CHANGELOG.md
 ```
 
-Avoid `git add .`, `git add -A`, and globs while the tree is dirty — they sweep
-in whatever else changed (generated output, lock files, an editor's scratch
-file, a secret) without you seeing it. If you want to derive the list from git
-rather than hand-type it (and risk a stale list), generate it:
-
-```sh
-git add -- $(git diff --name-only HEAD)   # all tracked edits, still reviewed after
-```
-
-Then always confirm with `git diff --cached --name-only` before committing.
+Avoid `git add .`, `git add -A`, and globs while the tree is dirty. Then confirm
+with `git diff --cached --name-only` before committing.
 
 ## Exclude deliberately
 
 Some dirty paths almost never belong in a feature/fix commit. Recognize and
 leave them unstaged:
 
-- **Generated / build output:** `dist/`, `build/`, compiled bundles, coverage
-  reports, `__pycache__/`.
-- **Eval / run workspaces:** a generated `evals/<name>/workspace/…` is an
-  artifact; the durable `evals/<name>/evals.json` spec is not. Stage the spec,
-  not the workspace.
-- **Lock files:** include a lockfile when the dependency change is part of this
-  commit. If `package.json` or another dependency manifest is in-scope because
-  the selected implementation needs a new or changed dependency, the matching
-  lockfile belongs with that same commit. Leave a lockfile out only when it is
-  unrelated to the selected change.
-- **Plans and specs in progress:** `plans/`, `specs/`, scratch notes — commit
-  only when they are already tracked as owned changes or the user/project
-  independently authorizes or requires tracking. Creation, location, or
-  relevance is not enough.
-- **Agent / tool state:** `.agents/`, `.claude/`, `.codex/`, local snapshot
-  copies, editor caches.
-- **Secrets:** `.env`, key files, anything with credentials. These should be
-  ignored already; if one shows up untracked, do not commit it — flag it.
+- generated/build output and run workspaces (stage durable specs, not output);
+- agent/tool state, scratch material, and secrets;
+- plans and specs unless already tracked as owned changes or independently
+  authorized; and
+- unrelated lockfiles (keep a matching lockfile with its dependency change).
 
-Respect `.gitignore`. Never `git add -f` an ignored path to force it in merely
-because the user named the path. First show the matching ignore rule and the
-risk. Force-add only after the user explicitly confirms that ignored path should
-be committed despite the rule; for local config or secret-like paths, treat the
-missing file as a scope blocker until that confirmation exists. When unsure why
-a path is or isn't showing up, ask git directly:
+Respect `.gitignore`. Never force-add an ignored path merely because it was
+named; show the matching rule and get explicit confirmation first. For local
+config or secret-like data, this blocks including that path. Check with:
 
 ```sh
 git check-ignore -v <path>     # prints the .gitignore rule and line, or nothing
 ```
-
-## State what you left out
-
-A file you deliberately left untracked is a decision the next agent cannot see.
-If you leave plans, specs, generated dirs, or anything ambiguous out of the
-commit, say so in your summary ("left `specs/` and `evals/<name>/workspace/`
-untracked"). Otherwise a later step may commit it blindly — or delete it
-thinking it was junk.
 
 ## If a stray slipped into the index
 
@@ -138,15 +78,5 @@ git restore --staged <path>          # repo has commits (HEAD exists)
 git rm --cached -r -- <path>         # unborn repo (no HEAD yet), or remove from index
 ```
 
-`git rm --cached` removes the path from the index but keeps the file on disk —
-the right tool for "I accidentally staged a generated dir." Re-inspect with
-`git diff --cached --name-only` afterward.
-
-## Quick checklist
-
-- Looked at every category, including `--ignored` and `--untracked-files=all`?
-- Does the staged set form one logical change, with tests/docs included and
-  unrelated edits split out?
-- Are generated, workspace, lock, plan/spec, agent-state, and secret paths kept
-  out (and not force-added)?
-- Did you note any deliberately-left-untracked paths in your summary?
+`git rm --cached` removes a path from the index but keeps it on disk. Re-inspect
+with `git diff --cached --name-only` afterward.

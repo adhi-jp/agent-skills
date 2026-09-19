@@ -67,6 +67,10 @@ use `[Repository] - YYYY-MM-DD`.
 - `vibe-plan-review`: checks the decision and open-findings indexes when the
   walkthrough starts; its instructions are otherwise consolidated with no
   intended behavior change.
+- `vibe-commit`: no longer renders a detailed message-reconciliation receipt
+  or carries its own stash and merge procedures; when `docs/decisions/` exists
+  without an index, it checks the records themselves against the staged
+  diff.
 - Verification: evals were not re-run after this trim, so every behavior
   delta above is `Unproven`. Suite `validate`, `vibe_shared_contract.py check
   --strict` and `audit-names`, and `python3 -m pytest tests` passed. Most eval
