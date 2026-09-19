@@ -81,7 +81,9 @@ relaying a worker's prose as instructions.
 
 Subagents must not ask the user, expand scope, stage, commit, push, release,
 decide credentials or permissions, accept destructive risk, mutate history, or
-make human-risk choices for the coordinator.
+make human-risk choices for the coordinator. Every worker contract states that
+it forbids staging, committing, pushing, releasing, and history mutation;
+history stays with the coordinator.
 
 ### Human-Risk Decisions
 
@@ -130,8 +132,12 @@ file set confirmed safe and separable from unrelated working-tree changes.
    the work graph, capability fit, effort envelope, and writer isolation.
    Keep the immediate blocker local unless delegation is the safest next step;
    parallelize independent, separately verifiable units, not tightly coupled
-   decisions or files.
-3. Read `references/delegation-contracts.md` when drafting a worker contract.
+   decisions or files. Settle size versus difficulty from a bounded read-only
+   inspection of code, tests, tree, and dependencies before the first write
+   round and again at each join; when a load-bearing judgment exceeds this
+   seat, stop and hand off instead of continuing.
+3. Read `references/delegation-contracts.md` when drafting a worker contract or
+   reconciling a returned worker report.
    Give one bounded mission, verified facts and anchors, protected evidence,
    read/write paths, command effects, stop conditions, and a report contract.
    Missing facts or contradicted premises are blockers, not permission to guess.

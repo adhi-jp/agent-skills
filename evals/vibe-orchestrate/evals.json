@@ -29,8 +29,7 @@
       "expected_output": "A bounded coordinator decision or contract covering the supplied scenario, with evidence, scope, and stop conditions kept explicit.",
       "files": [],
       "expectations": [
-        "Uses both the journal and `git status` as evidence rather than restarting blindly from the original prompt.",
-        "Classifies item 1 as likely completed or needing verification, item 2 as partial, and item 3 as untouched or remaining.",
+        "Requires every contract item to be classified as completed, partial, untouched, or blocked after that inspection; listing the required classification scheme per item is sufficient in this response-only case.",
         "Tells the next worker not to repeat completed work and to focus only on remaining or partial items.",
         "Keeps editable paths and report sections bounded in the recovery prompt.",
         "Requires coordinator verification of the final kept bytes after recovery.",
@@ -151,12 +150,12 @@
     {
       "id": "E18",
       "name": "Delegation source binding and budget contract",
-      "prompt": "Draft a bounded delegation contract from a long normative source and an interleaved shared-file checkpoint. The worker may edit generated output but must not control the characterization baseline.",
+      "prompt": "Draft a bounded delegation contract, including a changed-line budget, from a long normative source and an interleaved shared-file checkpoint. The worker may edit generated output but must not control the characterization baseline.",
       "expected_output": "The contract uses stable item/source/budget/ownership markers without making worker paraphrase authoritative.",
       "files": [],
       "expectations": [
         "Defines bindings for normative-source path, section, digest, binding force, and read/ignore boundaries.",
-        "If a changed-line budget applies, defines included/excluded changed-line budget classes and a reproducible breakdown.",
+        "Defines included/excluded changed-line budget classes and a reproducible per-path breakdown.",
         "Assigns file ownership and reserves narrow shared-file staging to the coordinator.",
         "Keeps protected baselines and characterization oracles outside worker-writable paths."
       ]
@@ -318,9 +317,9 @@
       "expectations": [
         "Treats the runner status interface as liveness authority while the task is running and does not treat the result lookup as proof of task loss.",
         "Keeps the write-capable slot active and does not relaunch, start final authoritative verification, or treat the tree as final.",
-        "Fetches the contracted result only after observed terminal status and treats contradictory status/result evidence through the contradictory-receipt path.",
+        "Fetches the contracted result only after observed terminal status and keeps the slot held while status and result lookup disagree, rather than trusting either receipt alone.",
         "Uses named status, attach, resume, or cancellation controls rather than raw PID killing.",
-        "Requires a round-boundary tree receipt and final quiescence audit before releasing the slot.",
+        "Requires a baseline-to-current tree reconciliation and a descendant/process quiescence audit before releasing the slot.",
         "On handle loss uses named recovery controls and does not infer quiescence from elapsed time, forwarder completion, or tree quietness."
       ]
     },
@@ -369,7 +368,7 @@
     {
       "id": "E43",
       "name": "External run product travels by the result interface",
-      "prompt": "Use `vibe-orchestrate`. You are writing the contract for a read-only external analysis unit on a runner whose sandbox policy has varied between invocations; an earlier unit on the same runner wrote its report to a scratch path successfully. State how the analysis must be delivered and how you will treat any file the unit writes.",
+      "prompt": "Use `vibe-orchestrate`. You are writing the contract for a read-only external analysis unit on a runner whose sandbox policy has varied between invocations; an earlier unit on the same runner wrote its report to a scratch path successfully. The analysis may exceed the runner's final-message limit. State how the analysis must be delivered and how you will treat any file the unit writes.",
       "expected_output": "A delivery contract that binds the product to the runner's own result interface and treats a written file as optional.",
       "files": [],
       "expectations": [
@@ -377,7 +376,7 @@
         "Treats any file the worker writes as a convenience copy that may be absent.",
         "States that the earlier successful write does not predict the next invocation, and does not offer a preflight write check as sufficient.",
         "Distinguishes this from receipt verification by noting that a terminal, successful run can still have lost its output.",
-        "If the product might exceed the result interface, contracts a chunked or summarized final message instead of making the file the delivery."
+        "Contracts a chunked or summarized final message instead of making the file the delivery."
       ]
     },
     {
@@ -423,7 +422,6 @@
         "Describes escalation as a stop with a handoff rather than a background upgrade, and specifies bounded handoff content — at minimum the goal, the observed difficulty signal, verified facts with their anchors, and the open question — while excluding the accumulated transcript. Equivalent wording for those elements satisfies this expectation.",
         "Keeps difficulty re-evaluation open after the first round by naming observable triggers such as contradicting delegated receipts, a premise turning out false, the same contract failing twice, a repair producing a new defect, or scope growing past the contracted round.",
         "Uses capability or seat language without vendor model IDs, and does not offer a self-rated success-probability threshold as the escalation criterion.",
-        "Provides a bounded routine-worker contract with mission, paths, context digest, receipt, and stop conditions.",
         "Keeps judgment-heavy auth/session decisions with a capable coordinator/stronger seat, using economical delegates only for bounded low-ambiguity work."
       ]
     },
