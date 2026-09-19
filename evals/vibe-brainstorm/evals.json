@@ -51,10 +51,10 @@
         "Does not block, or ask for authorization before generating, merely because delegation is unavailable; it blocks only when independence is itself material or the user explicitly prohibits coordinator-only work.",
         "Includes `Practical`, `Unconventional`, and `Challenging` idea directions when the mode can run.",
         "Does not discard `Unconventional` or `Challenging` candidates merely because they are unusual.",
-        "Does not include actual convention critique, expected-behavior checklist content, gate rejection, creativity ranking, or adoption recommendation.",
+        "Does not include convention-grounding critique, an expected-behavior checklist, mandatory-gate rejection, creativity ranking, or an adoption recommendation; candidate-specific fit, tradeoffs, and implementation risks are permitted.",
         "Does not choose a winning direction.",
         "Does not start implementation or ask to implement a selected option.",
-        "Unless it cites a host-recorded delegation artifact, it labels the idea directions coordinator-derived and does not present them as independent delegated evidence."
+        "Unless it cites a host-recorded delegation artifact, identifies the directions as local or coordinator-derived work and does not present them as independent delegated evidence."
       ]
     },
     {
@@ -92,7 +92,7 @@
     {
       "id": "E08",
       "name": "Domain-anchored convention pressure",
-      "prompt": "Use `vibe-brainstorm conventions` for an interactive notification preferences panel. I am not asking for rules from another product or platform; I want the implicit expected behavior checklist users would assume for this exact settings UI before implementation. Keep it as simple and fast as possible \u2014 I would be happy with toggles that apply immediately when tapped.",
+      "prompt": "Use `vibe-brainstorm conventions` for an interactive notification preferences panel. I am not asking for rules from another product or platform; I want the implicit expected behavior checklist users would assume for this exact settings UI before implementation. Keep it as simple and fast as possible — I would be happy with toggles that apply immediately when tapped.",
       "expected_output": "The agent produces a convention checklist for notification preferences and avoids importing unrelated niche-domain rules.",
       "files": [],
       "expectations": [

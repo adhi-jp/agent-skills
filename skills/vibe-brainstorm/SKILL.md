@@ -35,14 +35,15 @@ claim delegation from headings or polished prose. Call it `confirmed` only
 with a citable host record; otherwise say `unproven` or unavailable.
 
 Delegated prompts request concise candidates, tradeoffs, risks, or checks, not
-private reasoning. If a scripted run is available, it may cover generation,
-critique, development, grounding, and selection, but final confirmation stays
-in chat. If the current host cannot actually invoke or record that run, do not
-replace it with coordinator-generated brainstorm results. Return the planned
-stages, role-specific capability-tier basis, required run/task evidence, and
-the post-run conversation confirmation boundary instead. For ordinary
-perspective gathering, give local coordinator-derived perspectives unless
-independence itself is required; then state the limitation.
+private reasoning. A user-stated scripted orchestration mechanism is sufficient
+to plan its bounded schedule. If a scripted run is available, it may cover
+generation, critique, development, grounding, and selection, but final
+confirmation stays in chat. If the current host cannot actually invoke or record
+that run, do not replace it with coordinator-generated brainstorm results.
+Return the planned stages, role-specific capability-tier basis, required
+run/task evidence, and the post-run conversation confirmation boundary instead.
+For ordinary perspective gathering, give local coordinator-derived perspectives
+unless independence itself is required; then state the limitation.
 
 ### Model Choice
 
@@ -56,7 +57,10 @@ independence itself is required; then state the limitation.
 <!-- shared-contract:end model-tier-selection -->
 
 Creative synthesis, convention tradeoffs, selection, and final recommendations
-need the stronger suitable capability; cheap tiers fit only bounded checks.
+need the stronger suitable capability; cheap tiers fit only bounded checks. In
+an orchestration schedule, explain each role's capability and context needs;
+name a tier or model only under one of the block's recording conditions, and
+name that condition.
 
 ## Modes
 
