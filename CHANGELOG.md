@@ -46,6 +46,12 @@ use `[Repository] - YYYY-MM-DD`.
   `scripts/vibe_shared_contract.py` drops the closing-block, gate and schema
   cap, and appendix checks, treats a block without a bold lead as a shape
   finding, and `list` prints each block's dependents.
+- `vibe-requirements-spec`: an ordinary draft no longer loads the detailed
+  references. A contradiction stop records the request in the spec as an
+  unresolved decision, with the contradiction under `Evidence and
+  constraints`, now one section. The five-option brainstorming cap is gone,
+  and a response-only proxy deferral no longer has to be emitted at once as a
+  complete record.
 - Verification: evals were not re-run after this trim, so every behavior
   delta above is `Unproven`. Suite `validate`, `vibe_shared_contract.py check
   --strict` and `audit-names`, and `python3 -m pytest tests` passed. Most eval
