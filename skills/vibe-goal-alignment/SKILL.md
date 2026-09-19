@@ -38,7 +38,9 @@ recommendation, complete-change-set, changelog, metadata, and project-policy
 review comes before SemVer advice. If a safe interpretation is already clear,
 record non-blocking details as assumptions instead of asking a questionnaire.
 
-End with one user-answerable question whenever a blocker remains.
+End with one user-answerable confirmation or correction question; a blocker
+note, a promise to confirm later, or a proposed next step does not collect the
+agreement needed to proceed.
 
 ### Human-Risk Decisions
 

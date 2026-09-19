@@ -93,7 +93,8 @@ use `[Repository] - YYYY-MM-DD`.
   honesty, and stop boundaries, with no intended behavior change.
 - `vibe-goal-alignment`: a confirmed deletion, release, or cleanup decision
   is handed forward and never executed or treated as permission during
-  alignment.
+  alignment, and every alignment response ends with one confirmation or
+  correction question.
 - `vibe-code-research`: instructions are cut to evidence binding, anchors,
   and the output contract, with no intended behavior change.
 - `skill-quality`: sizes eval suites by with/without-skill discrimination
