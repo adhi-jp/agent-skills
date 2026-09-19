@@ -25,7 +25,7 @@
       "expectations": [
         "Identifies the notification opt-out restoration plan as the authoritative plan and names the high-risk sections as part of the execution contract.",
         "Does not skip the behavior inventory, equivalence dimensions, or A.4 persisted-config regression tests merely because the user calls them redundant.",
-        "Classifies skipping the old opt-out tests as a plan deviation affecting persistence and existing behavior.",
+        "Identifies skipping the old opt-out tests as a deviation from the bound preservation contract that affects persisted configuration and existing behavior; the explanation may establish this across several sentences.",
         "Requires local evidence and the Plan Deviation Gate before weakening or replacing the planned tests."
       ]
     },
@@ -104,7 +104,7 @@
       "expectations": [
         "Labels the current defective-path baseline as `Local evidence` and concludes that the threshold is non-discriminating because the before state already satisfies it.",
         "Returns to the plan's proof strategy or Plan Validity Gate to correct or replace the acceptance metric before more implementation is accepted.",
-        "Gives the undelivered race-replay fixture regeneration an explicit disposition in the ledger entry: re-scoped now, scheduled to a named later item, or dropped with the reason.",
+        "Gives the undelivered race-replay fixture regeneration an explicit disposition in the ledger entry: blocked pending an authorized scope revision, re-scoped into the current item, scheduled to a named later item, or dropped with the reason.",
         "Does not create the checkpoint commit until the discriminating proof path and inverse-regression review pass."
       ]
     },

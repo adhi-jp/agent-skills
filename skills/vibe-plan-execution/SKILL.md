@@ -148,7 +148,10 @@ load-bearing claims even in responses that edit nothing.
 7. **Report** the bound plan, the slice, the verification and its result (suite
    status and acceptance coverage separately; a skipped check with its reason
    and residual risk), the review mode and finding dispositions, deviations or
-   blockers, commits made, and the remaining plan steps.
+   blockers, commits made, and the remaining plan steps. For committed
+   checkpoints, show the verification that cleared each checkpoint before the
+   commit, and carry forward any accepted assumption the slice relies on as
+   still unverified, with its revisit trigger.
 
 ## Commit Selection
 
