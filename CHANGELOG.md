@@ -75,6 +75,8 @@ use `[Repository] - YYYY-MM-DD`.
   delegation handoffs drop per-step ledger ids and budget fields.
 - `vibe-review`: no longer records a per-unit delegation budget before
   launching reviewers.
+- `vibe-orchestrate`: no longer asks at startup for local-commit
+  confirmation or prescribes a fixed history-authority summary.
 - Verification: evals were not re-run after this trim, so every behavior
   delta above is `Unproven`. Suite `validate`, `vibe_shared_contract.py check
   --strict` and `audit-names`, and `python3 -m pytest tests` passed. Most eval

@@ -14,13 +14,6 @@ Read this reference before selecting delegated model tiers, judging the coordina
 - Record the choice only for a user override, degraded capability, a cost or performance constraint, or audited external execution.
 <!-- shared-contract:end model-tier-selection -->
 
-The judgment-heavy units this workflow keeps with the coordinator or the
-strongest suitable tier include decomposition, non-delegable decisions,
-ambiguous architecture, final synthesis, verification interpretation, review
-dispositions, and user-risk choices; a token-efficient delegate is eligible only
-for low-ambiguity lookup, extraction, mechanical checks, fixture comparisons,
-and narrow read-only review.
-
 ### Token-Saving Loop
 
 Good token-saving loops reduce repeated context, not proof. Prefer this loop:
@@ -29,324 +22,137 @@ Good token-saving loops reduce repeated context, not proof. Prefer this loop:
    and decision criteria that a worker would otherwise rediscover.
 2. Each delegated unit receives a compact context digest, one question or work
    item, explicit allowed paths/tools, expected receipt, and escalation triggers.
-3. Token-efficient or previous-generation workers handle low-ambiguity lookup,
-   extraction, mechanical checks, simple fixture comparisons, or narrow
-   read-only review.
-4. The coordinator verifies load-bearing anchors, reconciles contradictions,
+3. The coordinator verifies load-bearing anchors, reconciles contradictions,
    and decides whether to close, split, retry with a narrower contract, or
    escalate to a stronger reasoning/context tier.
-5. Later loop iterations send only the changed facts, unresolved blockers, and
+4. Later loop iterations send only the changed facts, unresolved blockers, and
    latest verified state instead of the full parent transcript unless full
    context is necessary and the reason is recorded.
 
-Escalate instead of repeatedly retrying a cheap delegate when the worker reports
-uncertainty, hits a scope blocker, produces contradictory findings, needs
-cross-artifact synthesis, touches security/data-safety or user-risk judgment,
-would make a final recommendation, or fails the same contract twice. Do not
-hard-code vendor model names into the skill contract, inherit the top model for
-every small worker, downshift judgment-heavy work solely to save tokens, or
-claim token, quality, latency, or reliability improvement without recorded
-metrics or review evidence.
+Escalate instead of retrying a cheap delegate when it reports uncertainty, hits
+a scope blocker, returns contradictory findings, fails the same contract twice,
+or the unit turns out to need the strongest tier. Do not give every small worker
+the top model, and claim no token, quality, latency, or reliability gain without
+recorded metrics or review evidence.
 
 ## Goal And Effort Checkpoints
 
-At the first material delegation, record the user outcome, remaining acceptance
-gates, planned implementation/review rounds, and a bounded allowance for
-non-shipping verification tooling. Use the existing plan or round ledger when
-provided; otherwise carry this state in the first contract's scope and effort
-section and update it at material joins. Use
-rounds or time when usage metrics are unavailable; label estimates and never
-invent token or monetary measurements. This is workflow state, not a new
-per-commit narrative or a mandatory separate artifact.
+At first material delegation, put the user outcome, remaining acceptance gates,
+planned rounds, and bounded optional-tooling allowance in the existing plan,
+round ledger, or first contract. Use rounds/time if measured usage is unavailable;
+label estimates. No separate artifact is required.
 
-At each join, identify which acceptance gap the round closed, whether the next
-round serves the product or its tooling, and cumulative work against that
-envelope. A repeated finding class, exhausted tooling allowance, material
-overrun, or completion of planned acceptance work triggers a scope checkpoint
-before optional follow-up. Preserve safe in-flight work and essential defect
-repair; do not use a budget to certify a broken or unverified unit as complete.
+At joins, compare progress and cumulative effort with that envelope. Repeated
+findings, an overrun, exhausted tooling allowance, or completed acceptance work
+trigger a scope checkpoint before optional follow-up. Preserve authorized
+in-flight work and essential repairs; budgets never certify broken work.
+Batch optional proposals with impact, remaining effort, and a continue/trim/defer
+recommendation. Ask only for additional scope, cost, or human-risk decisions;
+autonomy does not authorize unlimited optional work or accept residual risk.
 
-Batch optional proposals with their user impact, estimated remaining effort,
-and a recommendation to continue, trim, or defer. Ask only when additional
-scope, cost, or human-risk acceptance needs the user's decision; reuse recorded
-authorization within its bounds. Autonomy covers authorized work, not unlimited
-optional spending. Agent deferral is not the user's acceptance of residual risk.
-When the user signals drift, revise the remaining verification scope explicitly:
-what is removed, which evidence still covers each criterion, and which gaps
-remain open. Changing required proof follows the artifact owner's boundary.
-
-Bound a review sequence before dispatch: an initial review and a targeted
-corrections pass are a starting shape, not a universal safety ceiling. A further
-pass needs a named unresolved acceptance or safety defect, changed evidence,
-or an authorized new scope. Repeated findings in the same component require
-diagnosis or artifact-owner backtracking, not automatic hardening rounds.
-Reopening a declared final round needs that same basis. Product labels and
-fault counts never waive security, data integrity, or required acceptance.
+A further review after initial review and targeted correction needs a named
+unresolved acceptance/safety defect, changed evidence, or authorized scope.
+Repeated findings in one component call for diagnosis or artifact-owner
+backtracking. On user-reported drift, state removed verification work, surviving
+coverage, and open gaps; changing required proof belongs to the owning artifact.
 
 ## Coordinator Capability Fit
 
-Tier choice applies to the coordinator's own seat, not only to delegates. A
-coordinator running on a mid-capability or economy seat is a legitimate
-configuration when its work is decomposition, contracting, receipt
-verification, and integration. It becomes a defect when a load-bearing judgment
-silently stays in a seat that cannot support it.
+Separate size from difficulty using bounded read-only inspection of affected
+code, call sites, tests, tree, and dependencies before the first write round.
+Decompose large routine work. Escalate difficult load-bearing judgments even
+when few files change; volume alone is not an escalation reason.
 
-Separate two axes before routing:
+Reassess at each join. Observable difficulty signals include costly-to-reverse
+architecture or data decisions; central authorization, privacy, payment, or
+migration questions; concurrency/ordering defects; unexplained cross-layer
+causes or design intent; ambiguous requirements; contradictory receipts; a
+false premise; two failures of the same contract; repair-induced defects; or
+scope exceeding the contract. Self-rated confidence does not replace evidence.
 
-- Size is the volume of bounded work. Work that is only large is decomposed
-  into separately verifiable delegated units; volume alone never justifies
-  moving it to a stronger seat.
-- Difficulty is the reasoning the decision itself requires. Work that is small
-  but hard is escalated even when it touches few files and cannot be
-  decomposed.
-
-When difficulty is not yet established, run a bounded read-only reconnaissance
-before the first write-capable contract: read the named files, locate the
-affected call sites, check the existing tests, and inspect working-tree and
-dependency state. Change nothing during it, and bound it by what the routing
-decision needs rather than by what a full investigation would want. A request
-that reads as routine in prose is often not routine in the repository, so
-decide the shape from observed code rather than from the request text alone.
-
-Escalate the coordinator seat, instead of continuing, on observable signals:
-
-- an architecture, interface, or data-model decision whose reversal would be
-  expensive, or competing approaches where the wrong choice is costly to undo;
-- authorization, secrets, cryptography, payment, privacy, or data migration as
-  the central question rather than an incidental surface;
-- concurrency, distributed state, cache coherence, or ordering as the defect
-  mechanism;
-- a cause that spans layers no single unit observed, or an existing design
-  whose intent the coordinator cannot reconstruct from the code and its
-  history;
-- material ambiguity or contradiction in the requirement itself;
-- delegated results that contradict each other on a load-bearing fact;
-- the same contract failing twice, a premise the round was built on turning out
-  false, a repair producing a new defect, or scope growing past what the round
-  was contracted for.
-
-Re-evaluate at every join gate, not only at intake. Difficulty that surfaces
-after the first round is the ordinary case, and an intake judgment does not
-license finishing a round whose own evidence has contradicted it.
-
-A self-rated success probability may support the decision but does not replace
-these signals, because it is an estimate produced with the same limits it is
-meant to detect. Prefer the observable combination — unreconstructed design
-intent, a migration with no stated rollback, two contradicting receipts — over
-a number or a threshold.
-
-Escalation is a stop, not a background upgrade. When the host cannot re-seat
-the current session at a stronger tier, say so and hand off rather than
-proceeding at the current seat. The handoff carries the goal, the observed
-difficulty signal, verified facts with their anchors, what was already changed
-and verified, the open question, and options already ruled out with their
-reasons; it does not carry the accumulated transcript. Do not escalate work
-that is merely large, do not escalate to avoid writing a bounded contract, and
-do not report an escalation as completed work. Options already ruled out with
-their reasons are written as a decision record when the choice binds later
-units.
+If the current seat cannot support the judgment, stop for a stronger seat.
+When the host cannot re-seat this session, hand off the goal, observed signal,
+anchored facts, changed/verified state, open question, and rejected options with
+reasons. Exclude accumulated transcript and do not claim escalation completed
+the work. Record rejected alternatives when they qualify under Durable Records.
 
 ## Multi-Subagent Decomposition
 
-For substantial work, record a compact work graph before delegation:
+For substantial work, record the critical path, independent units, coupling
+(files, interfaces, decisions, generated outputs), serial/parallel/hybrid shape
+with reason, and coordinator join gate. Keep tightly coupled work with one
+context owner; use multiple workers when material units are independent and
+separately verifiable. Continue non-overlapping local work after dispatch.
 
-- `critical_path`: the next coordinator-owned step or delegated unit whose
-  result is required before later decisions can be made;
-- `parallel_units`: independent research, implementation, test, migration,
-  documentation, or review units that do not block that next step;
-- `coupling`: shared APIs, files, schemas, generated artifacts, decisions, or
-  verification gates that constrain execution order;
-- `execution_shape`: serial, parallel, or hybrid, with a short reason;
-- `join_gate`: the coordinator check that reconciles results before dependent
-  work, final verification, or user-facing claims.
+One shared tree permits one source-writing worker. Concurrent source writers
+require isolated workspaces or an equivalent enforceable boundary, disjoint
+write/generated paths, explicit merge order, and integrated verification.
+Read-only investigation and review may run alongside the writer.
 
-Prefer a hybrid shape for large refactors: keep the immediate load-bearing
-decision or tightly coupled core local or with one context-owning worker, while
-launching other material independent units to separate subagents. Use multiple
-read-only workers freely when their questions and evidence surfaces are
-distinct. Use multiple write-capable workers only when their write sets and
-generated outputs are disjoint and the host provides isolated workspaces or an
-equivalent enforceable isolation boundary. Otherwise keep one shared-root
-writer and parallelize read-only investigation, test design, review, or other
-non-writing units.
+The same-checkout generated-output exception requires all of: private per-unit
+ignored/untracked output roots, private materialized read-only inputs, no shared
+mutable cache or generated path, bounded concurrency, individual receipts,
+private journals/scratch with foreign content a blocker, and tracked-tree clean
+checks at baseline and every batch boundary. Record host-enforced versus
+instruction-only confinement; absent an adequate boundary, use isolation or
+one writer.
 
-A narrowly permitted third shape is disjoint generated-output writers in one
-checkout. Use it only when every worker writes to a private per-unit
-untracked/ignored output root, inputs are private materialized read-only copies,
-no mutable cache or generated path is shared, concurrency is bounded, every unit
-returns its own receipt, each unit's journal and scratch root is private with
-foreign content in it a blocker, and the coordinator proves tracked-tree
-cleanliness at each batch boundary. Record which confinement is host-enforced
-and which is instruction-only. Without every condition, the
-one-shared-tree-writer rule stands.
+Verify an isolated workspace's resolved commit and ref decoration before the
+first unit and after host/isolation/default-base changes. Put the expected base
+in each contract and require its observed base in the report. Inlined facts
+about the coordinator's tree describe the worker's only at a matching base.
+A mismatch is the coordinator's blocker: supply the right base, materialize
+inputs, or use a bounded patch handoff/shared-tree writer; the worker must not
+switch its workspace. Units needing uncommitted predecessor output are serial
+unless the coordinator materializes that input.
 
-Include commit visibility in coupling analysis. An isolated worktree starts from
-some committed state, not necessarily the coordinator's head: a host may create
-it from the repository default, leaving the worker without the files, fixtures,
-and line positions the contract describes and unable to tell a wrong contract
-from a wrong workspace. Verify that base before the first isolated unit with a
-read-only check reporting the workspace's resolved commit and ref decoration,
-and re-verify when the isolation mechanism, host, or repository default changes.
-State the expected base in every isolated unit's contract and require the worker
-to echo the base observed; a mismatch is a coordinator blocker — supply the
-correct base, materialize the inputs, or move the unit to the shared tree under
-single-writer rules — never a worker-side workspace mutation. A unit that needs
-another unit's uncommitted output is not independent and must run serially or
-receive a coordinator-materialized input.
-Avoid placing temporary worktrees below the repository root because glob-driven
-tests, linters, formatters, and file counters can traverse the duplicate tree.
-Expect repository-wide gates to fail or double-count while such a workspace
-exists: do not run an authoritative gate in that window, and do not attribute a
-failure observed in it to a worker's slice. Remove an isolation worktree
-promptly after extracting and verifying its diff.
-
-Address another checkout through an explicit command workdir or `git -C` rather
-than changing the host session's primary cwd. Verify the checkout identity
-before resuming workers if the host re-seats the session. A host-created tree
-with the wrong base or unusable write boundary is a transport problem; use
-verified coordinator-materialized inputs and a bounded patch handoff when
-needed, without relaxing scope or silently changing the worker's target.
-
-Each parallel unit needs its own mission, allowed paths, expected receipt,
-budget, stop conditions, and verification responsibility. The coordinator must
-continue meaningful non-overlapping local work after launch rather than
-launching the immediate blocker and waiting reflexively. At the join gate,
-verify each receipt, reconcile contradictions and interface assumptions, and
-re-run the authoritative integrated gates on the combined bytes.
+Keep temporary worktrees outside the repository: recursive gates may traverse
+a duplicate tree. While one remains inside, suspend authoritative repository-wide
+gates and do not attribute their failures to a slice. Remove temporary worktrees
+promptly after extracting and verifying their work, within cleanup authority.
+Use explicit command workdir or `git -C`, not the host's primary cwd; verify
+checkout identity after host re-seating.
 
 ## Worker Contract Minimums
 
-Every write-capable delegation contract should include:
-
-- Mission: one sentence with the slice and expected outcome.
-- Scope and effort: the acceptance gap, settled user decisions, supported
-  operation, and the bounded review/tooling allowance.
-- Hard rules: allowed tools, commands, forbidden reads, forbidden git actions,
-  and stop-as-blocker behavior.
-- Verified facts: APIs, versions, local patterns, failure logs, environment
-  constraints, invariants, measured versus derived values, source provenance,
-  and unverified limits.
-- Design contract: exact behavior, semantics, public names, or invariants that
-  matter.
-- Protected evidence: external parity tests, vendor artifacts, independently
-  sourced fixtures, or other evidence the worker must not update, delete, or
-  ignore to make the change pass.
-- Numbered work items with done criteria.
-- Editable file whitelist and explicit out-of-scope paths.
-- Optional progress journal path.
-- Fixed report sections: `FILES:`, `COMPILE:`, `DECISIONS:`, `BLOCKERS:`;
-  add `DECISION-IMPACT:`, `DEVIATIONS:`, and `VERIFICATION BOUNDARY:` when
-  decisions, challengeable constraints, or environment-specific proof are
-  material, and `DIAGNOSIS:` for repair or investigation tasks.
-
-If a worker needs a non-whitelisted file, broader command, credential,
-permission, destructive action, or user decision, it must stop and report a
-blocker instead of proceeding.
-
-The same stop rule applies when evidence found during the task contradicts a
-contract premise presented as verified. A worker may report the contradiction
-and its anchors; it must not silently decide that the premise, external evidence,
-or protected parity test is wrong. Revising the contract premise belongs to the
-coordinator.
+Use `delegation-contracts.md` for the single contract template and variants.
+For multiple units, give each its own mission, paths, receipt, effort bound,
+stop conditions, and verification responsibility. At the join, reconcile
+receipts and shared assumptions before integrated verification.
 
 ## Fact Inlining And Local Precedent
 
-Before delegating implementation or repair, verify facts that would be expensive
-or error-prone for a worker to rediscover:
+Inline correctness-critical APIs, versions, local patterns, failure logs,
+environment limits, and invariants with anchors. Label measured, source-read,
+and derived claims; derived values need assumptions and a break condition.
+Separate specification invariants from configurable defaults and local choices.
+Keep coordinator inference and provisional design bounds outside Verified facts.
+Workers report contradictions rather than weaken protected evidence.
 
-- framework and API signatures;
-- version-specific behavior;
-- lifecycle, storage, or test-harness rules;
-- test and runtime environment limits, accepted inputs, resource ceilings, and
-  helper assumptions;
-- local patterns to mirror;
-- failing logs and observed-versus-expected differences;
-- invariants that must not change.
-
-Use local precedent as an anchor: point to the specific file or method pattern to
-mirror. For repairs, name protected invariants such as test expectations,
-coordinates, budgets, ticks, fixture semantics, public behavior, data shape, and
-compatibility. If those invariants appear wrong, the worker reports a blocker;
-it does not weaken them to pass.
-
-Facts remain challengeable. Attach a cheap verification anchor when available,
-and instruct the worker to report a mismatch rather than inventing a correction.
-For a value calculated from measured inputs, include the assumptions and a
-condition that would break the derivation; do not present it as a measured fact.
-
-Before sending the contract, demote any coordinator inference, provisional
-design bound, or untested brief clause out of `Verified facts`. Validate a brief
-against the measured product or its own examples before treating delegate
-failures as a capability signal; uniform failure across independent workers is a
-reason to inspect the shared brief first, not proof that every worker lacks the
-capability.
-
-When protected artifact or parity evidence contradicts a contract premise, use
-one coordinator acceptance checklist before another worker starts: rank the
-authority for the claim, separate the observed mismatch from the correctness
-inference, restore protected evidence, compare named sentinels rather than pass
-counts, reconcile the round snapshot with the worker receipt, classify opaque
-artifacts and their generator/inspection path, check command effects against the
-editable whitelist, then rerun authoritative coordinator verification. Until
-all applicable items are resolved, the round remains blocked.
-
-Record that disposition under four headings so none of the evidence boundaries
-is lost in summary:
-
-- `authority`: observed disagreement versus correctness inference, with corpus,
-  normative source, and implementation ranked for the claim;
-- `protected_proof`: restored parity sentinel and named-test comparison;
-- `attribution`: round snapshot versus receipt, opaque-artifact classification,
-  authoritative generation plus semantic inspection, and command-effect
-  whitelist;
-- `reverification`: coordinator-run authoritative gates before any serializer
-  repair is accepted.
-
-After a repair round changes control flow, ordering, lifecycle, or guards, run a
-corrections-complete read-only pass when risk warrants it. Give that pass one
-line per applied correction and require verify-or-refute, an inverse or
-symmetric attack, and new-defect inspection. Bound those checks to the changed
-behavior and its material acceptance, security, or data-safety risks; this is not an invitation
-to open unrelated hardening. Prefer an identity different from the implementer
-and original finding author when available.
+Uniform worker failure calls for checking the shared brief against measured
+behavior and examples before blaming capability. If protected corpus/parity
+proof contradicts a premise, block acceptance until the coordinator ranks
+source authority, separates observation from inference, restores protected
+proof, compares named sentinels, reconciles snapshots with reports, classifies
+opaque artifacts, checks command effects, and reruns authoritative gates.
+The detailed proof rules live in `verification-and-review.md`.
 
 ## Direct Coordinator Intervention
 
-Delegation is the default, but direct coordinator edits are allowed when they
-are narrow and disclosed:
+Direct edits are allowed for a mechanical micro-fix, repeated transport failure
+on a fully specified task, temporary measurement-driven diagnosis, a fully
+diagnosed bounded repair, or coordinator-only verification. They must be
+behavior-neutral or apply an already-proven correction. Small line count does
+not authorize new design, unresolved causes, or human-risk choices.
 
-1. Mechanical micro-fix: trivial, well-understood, and cheaper than a delegation
-   round.
-2. Transport failure fallback: the same fully specified delegation fails
-   repeatedly for runner or forwarding reasons.
-3. Measurement-driven diagnosis: temporary instrumentation is needed to collect
-   evidence before deciding a fix.
-
-Disclose every direct intervention in the summary, run normal verification, and
-remove temporary diagnostics before final handoff or commit.
-
-Direct intervention must be behavior-neutral or apply one already-proven
-correction. If it introduces a new design choice, or the coordinator cannot
-explain why the current behavior occurs, stop and write the design evidence or
-delegate the bounded change instead of treating its small line count as a
-micro-fix.
+Disclose reason, scope, why delegation was not used, and verification; remove
+temporary diagnostics. Apply normal review/gates. After a deep invariant,
+control-flow, ordering, lifecycle, or guard correction, use a focused read-only
+corrections pass when risk warrants: verify/refute each correction, attack its
+inverse or symmetric failure, and inspect new defects. Prefer a reviewer other
+than the implementer/finding author; keep it inside material acceptance risks.
 
 ## Parallel-Writer Accident Protocol
 
-The default in one shared working tree is one source-writing worker at a time.
-Concurrent source writers are an advanced isolated-workspace shape: they require
-separate worktrees or sandboxes, disjoint write and generated-output paths,
-explicit merge order, and an integrated verification gate before any result is
-accepted into the coordinator's tree. The only same-checkout exception is the
-guarded disjoint generated-output shape defined above; it never permits
-concurrent source edits. If a duplicate, stale, or unexpectedly overlapping
-writer may have touched the same tree:
-
-1. Stop launching new write work and cancel every unintended overlapping writer
-   with the host's named task control. A warning-only loop is not containment.
-2. Identify the one intended worker and every unexpected worker handle.
-3. Inspect status, diffs, journals, and file timestamps or hashes when useful.
-4. Do not discard unexpected diffs blindly.
-5. Adopt useful changes only after they fit the contract and pass normal gates.
-6. Revert or replace unsuitable changes after inspection.
-7. Re-check that no post-gate mutation happened before declaring verification.
+For overlapping, duplicate, or stale writers, use the quarantine and recovery
+procedure in `recovery-and-monitoring.md` before accepting or discarding diffs.
