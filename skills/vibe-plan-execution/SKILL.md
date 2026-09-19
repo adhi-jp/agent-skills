@@ -8,29 +8,10 @@ description: Use when the user asks to execute, implement, continue, or apply an
 
 ## Overview
 
-Execute an existing implementation plan without inventing missing behavior. Bind
-to the plan, verify the facts it depends on, implement the smallest safe current
-slice, and stop when reality contradicts the plan.
-
-Questioning a plan is required when its sections conflict or implementation
-reveals a defect. The plan is authority for scope and intent, not proof that
-every implementation instruction is correct. Deviating from it is not allowed
-until verified evidence proves the plan is incorrect, stale, impossible, unsafe,
-or already satisfied. Treat "this looks redundant" as a hypothesis, not as
-permission to skip planned API, specification, implementation, or test work.
-When the defect changes the requirements, acceptance criteria, proof strategy,
-or implementation contract, return to the owning requirements or planning
-artifact before editing that behavior. Do not turn a stale plan into a series of
-one-off patches.
-
-For human-run or deployed acceptance, bind the loaded artifact and relevant
-source/build inputs to the result and preserve that receipt through commit
-handoff. Apply `references/execution-workflow-and-quality.md` before batching
-user sessions or relying on runtime proof after the inputs change.
-
-If no concrete plan exists, return to planning before coding. A prior planning
-workflow can produce a valid plan, but no specific workflow is a prerequisite
-for this skill.
+Execute a concrete implementation plan slice by slice without inventing
+behavior, and stop when current evidence contradicts it. The plan governs scope
+and intent, not known-bad implementation details. If no concrete plan exists,
+return to planning before coding; this skill does not create or review plans.
 
 ## Effect And Write Boundaries
 
@@ -48,155 +29,62 @@ for this skill.
 <!-- shared-contract:end effect-write-boundaries -->
 
 The scope this phase declares is the current slice the bound plan authorizes,
-implemented as the smallest coherent unit of that slice that can be tested,
-plus the decision records and findings reports named under `Durable Records`.
+implemented as its smallest coherent testable unit, plus the decision records
+and findings reports named under `Durable Records`.
+
+## Chat Language
+
+<!-- shared-contract:begin language-precedence-chat source=shared/vibe-contract.md -->
+**Resolve the language of user-facing chat text separately from any artifact's language, in this order:**
+
+1. An explicit current-user instruction for chat, response, or output language.
+2. `VIBE_CHAT_LANGUAGE`, a language name or BCP47 tag such as `ja` or `pt-BR`, when readable or set by the user for this request; an empty or invalid value is unset.
+3. The user's active conversational language, else the last clear one in this workflow.
+4. English.
+
+- Never infer chat language from artifacts, file contents, paths, commands, code, skill invocations, or host-wrapper text unless the user makes them the language contract.
+- Keep paths, commands, identifiers, environment variables, locale tags, message keys, product names, and code verbatim unless the user asks to translate them.
+<!-- shared-contract:end language-precedence-chat -->
+
+Also keep evidence labels and plan headings verbatim.
 
 ## Durable Records
 
-When the phase starts, check `docs/decisions/README.md` and
+At phase start, check `docs/decisions/README.md` and
 `docs/reports/findings/README.md` (or the repository's existing indexes) for
-entries whose paths, tags, scope, or subject match this unit. Read
+entries whose paths, tags, or subject match this unit. Read
 `references/durable-records.md` before applying such an entry, recording a
 settled decision, deferring a finding, or handing either forward. This phase
-writes `docs/decisions/` and `docs/reports/findings/`, or the repository's
-existing record directory, as declared supporting paths.
+may write `docs/decisions/` and `docs/reports/findings/` (or the repository's
+existing record directories).
 
 ## Plan Sources
 
-This skill executes any concrete bound implementation plan. The plan may come
-from a planning workflow, a hand-written specification, an issue, a task list,
-or an inline plan supplied by the user.
+Bind one plan before editing and name it in the first progress note: its path
+when it is a file, otherwise its title. When a local plan artifact exists, read
+it; a chat summary is only a navigation aid, so follow the artifact and flag
+anything the summary adds or contradicts. Read the current slice's scope,
+acceptance criteria, non-goals, verification, risks, and proceed condition.
+High-risk sections such as a behavior inventory, equivalence analysis,
+recovery evidence, or selected failure-pattern checks are contract too; a
+stale or missing one whose precondition still applies is a plan problem, never
+permission for weaker proof. Treat user claims as intent until checked.
 
-Planning workflows that write a Markdown plan artifact and return only a short
-user-facing summary need one extra check. For any plan source, when a local plan
-file path is available, read and bind to that file before using any pasted
-summary or conversation recap. When the plan has these sections, read them
-directly:
-
-- `Goal`, `Requirements`, and `Acceptance criteria` define the behavior
-  contract for the current slice.
-- `Verified facts and sources` is reusable plan evidence. Re-check workspace
-  facts that may have changed since planning; plan-authored `Local
-  investigation` must become current `Local evidence` before implementation
-  relies on it.
-- `Test plan` defines the first verification path unless local evidence shows it
-  is stale or insufficient.
-- `Capability dependencies`, when present, names exceptional capabilities whose
-  absence materially changes feasibility, safety, proof strength, or method.
-  Re-check availability and use the recorded fallback or blocker.
-- `Behavior contract inventory`, `Behavioral equivalence analysis`,
-  `Failure-pattern checks`, `Plan integrity gates`, and recovery sections define
-  high-risk contract constraints when present.
-- `Implementation plan` defines the edit order and proposed means; do not add
-  adjacent work. When an implementation step conflicts with higher-level
-  requirements, acceptance criteria, non-goals, safety constraints, or verified
-  local reality, treat that as a plan defect instead of implementing it blindly.
-- `Implementation progress`, when present, is an intentional durable resume
-  ledger. Read and verify it before choosing the current item. Its absence is
-  normal for same-session work and does not authorize creating one.
-- `Risks and unproven items` and `Proceed condition` decide whether coding
-  starts, stays conditional, or returns to planning.
-
-When the current task is an execution/deviation decision rather than editing,
-name the bound plan and the material sections that control the decision. Keep
-the affected existing-behavior or lifecycle dimensions, current out-of-scope
-items, and explicitly non-selected checks visible when omitting them could make
-the proposed shortcut look authorized.
-
-When the user explicitly asks for a response-only analysis of supplied plan
-and repository state and forbids mutating this checkout, evaluate that
-represented state under this execution phase's normal obligations: describe the
-applicable edits, verification, records, findings entries, index rows, and
-checkpoint decision or handoff without performing any mutation or claiming that
-a described action occurred, and describe the artifacts this phase would itself
-write rather than substituting carry-forward packets merely because delivery is
-response-only. This changes delivery only; during actual execution a
-description satisfies no required write or verification.
-
-If the bound plan says implementation is blocked, do not start coding. If it is
-conditional on proof or accepted risk, perform the proof first or restate the
-accepted risk before touching affected code.
-
-Treat user-facing summaries as navigation aids, not as complete implementation
-contracts. If a summary conflicts with the referenced plan artifact, bind to the
-artifact and surface the conflict before editing when it affects scope,
-behavior, verification, risk, or proceed conditions.
-
-Before reporting completion, make the binding visible: name the authoritative
-plan path and the current slice, then summarize the acceptance and verification
-gates that controlled the kept changes. A final reply that only lists edited
-files and behavior is not proof that the referenced artifact was read or that
-summary-only scope additions were rejected.
-
-Bind the selected plan path and re-read its current content before choosing an
-item. Existing commit, revision, or host evidence may help identify the reviewed
-state when already available, but execution does not require plan-maintained
-hashes. Compare current authority-bearing requirements, acceptance criteria,
-scope, risks, tests, and steps with the reviewed contract. Unclear semantic drift
-blocks and returns to plan revision; an intentional progress-only update or
-harmless formatting change does not require identity reconciliation.
-
-If a referenced plan lacks the referenced item, search bounded candidate plans.
-Rebind only when exactly one owns the item and the referenced artifact's ledger
-points forward to it; disclose both paths. Otherwise stop for authority.
-
-Complete only a plan-authored reserved decision field. Record date, authority,
-evidence, decision owner, response carrier, owning revision, and proceed update;
-never change scope, criteria, tests, risks, or steps through that field. Batch
-only simultaneously knowable startup decisions. A completed reserved-decision
-answer or a dated superseding decision that binds later units is also written as
-a decision record and cited from the plan.
-
-A current user instruction may itself be the response carrier when it explicitly
-names the resource, permission, or choice reserved by that decision. Quote the
-instruction verbatim, record the coordinator's interpretation and its exact
-scope, and keep any inference beyond the named subject blocked.
-
-If faithful execution proves a recorded human-selected mechanism unavailable,
-unsafe, or contradictory, return to that decision owner with evidence and
-bounded alternatives. Do not silently substitute or erase it; record a dated
-superseding decision through the owning artifact revision.
-
-## Concrete Plan Requirements
-
-A plan is concrete enough to execute only when the current slice has:
-
-- A goal and user-visible outcome.
-- In-scope and out-of-scope behavior.
-- Acceptance criteria or equivalent pass/fail checks.
-- A test, proof, or manual verification path.
-- Implementation steps or a named code area to inspect first.
-- Open risks, unproven items, or a statement that none are known.
-
-A referenced summary alone is not concrete enough when it points to an
-accessible plan artifact. Read the artifact first. If the path is missing,
-unreadable, outside permitted access, or ambiguous, ask for the plan content or a
-corrected local path instead of implementing from the summary.
-
-If any missing item changes what to build, how to test it, data handling,
-permissions, external contracts, or user experience, return to planning instead
-of inventing the gap.
-
-When execution stops because the target source or proof surface is absent, keep
-the bound plan intact. Report the current plan item, the exact missing local
-evidence, the verification or review that could not run, the evidence-backed
-progress status, any current no-commit instruction, and the path or artifact
-needed to resume. Do not rewrite requirements, acceptance criteria, or plan
-steps merely to create a progress artifact.
-
-When a current instruction says `Do not commit`, preserve that exact reason in
-the execution summary and, when an intentional progress ledger exists, in its
-commit-action field. Do not replace it with `No commit requested`, missing
-verification, or another inferred reason.
-
-## When Not to Use
-
-Do not use this skill for:
-
-- Creating the initial plan, specification, acceptance criteria, or test plan.
-- Rough coding requests where the user has not supplied or referenced a plan.
-- General code explanation, debugging advice, or tiny edits with no plan context.
-- Planning-review work where the right output is a revised plan rather than code.
+- Complete only a plan-authored `Reserved decisions` row within its stated
+  carrier; never change scope, criteria, tests, risks, or steps through it.
+- Satisfy a blocked or conditional proceed condition first; a request to
+  implement anyway does not satisfy it.
+- A slice is concrete when it has a goal, scope, acceptance checks, a
+  verification path, and an implementation direction. If a missing element
+  could change behavior, proof, data, permissions, contracts, or UX, return to
+  planning instead of inventing it, and report the plan item, the missing
+  evidence, and what is needed to resume.
+- If the plan's contract changed since it was last reviewed or bound, rebind
+  only a change with clear user or revision authority, after re-reading the
+  sections it affects; otherwise stop for plan revision. Progress-ledger edits
+  are status, never contract authority.
+- If the named item is missing, rebind only when exactly one plan owns it, such
+  as the one the named plan's ledger points to, and disclose both paths.
 
 ## Evidence Classes
 
@@ -211,136 +99,56 @@ Do not use this skill for:
 - Never rename or redefine these classes; a package may add its own disjoint labels or freshness qualifiers in its own text.
 <!-- shared-contract:end evidence-classes -->
 
-The two labels below are this phase's own:
+This phase adds two labels: `Plan` (stated by the bound plan, specification,
+acceptance criteria, or task list) and `Local evidence` (verified in the
+current workspace by reading code, tests, configs, schemas, or logs, or by
+running checks). Implementation may rely only on `Plan`, `Local evidence`,
+`Primary source`, and `Accepted risk` as Accepted-Risk Semantics allows. Label
+load-bearing claims even in responses that edit nothing.
 
-- `Plan`: stated by the bound implementation plan, specification, acceptance
-  criteria, or task list.
-- `Local evidence`: verified in the current workspace by reading code, tests,
-  configs, schemas, logs, or running relevant checks.
+## Execution Loop
 
-Use all six labels internally and in user-facing blockers, questions, plan
-deviation notices, commit-checkpoint decisions, and execution summaries when
-provenance affects scope, behavior, verification, risk, commit authorization,
-or whether implementation may proceed. Label the load-bearing claims; do not
-list unused classes merely to satisfy a template.
+1. **Bind** the plan under Plan Sources; when the plan or instruction touches
+   consent-bound work, run the Startup Consent Preflight before the first edit.
+2. **Verify before editing.** Inspect the files, tests, configs, and schemas
+   the slice touches; re-check the plan facts and capability dependencies it
+   relies on; check external APIs and other unstable facts against official
+   docs or upstream source. If a required inspection cannot be done, stop at
+   that blocker and draft no code or tests for the slice. When evidence
+   conflicts with a planned step, run the Plan Validity Gate.
+3. **Implement only the current slice**, reusing local conventions and leaving
+   future phases, extras, and adjacent cleanup out. A request to add, skip,
+   narrow, or replace planned work, including planned tests called redundant,
+   is a deviation: run the Plan Deviation Gate before acting on it. Start a
+   slice the plan marks atomic (non-green inside, green at its end) only with
+   enough session and context runway to reach its verification gate;
+   otherwise stop at the preceding verified checkpoint, record the no-start
+   decision there, and do not split the slice to fit the session.
+4. **Prove it** with the plan's verification and the repository's relevant
+   lint, type, and build checks. A metric is evidence only if it separates the
+   required result from the known-bad baseline: record the baseline first, and
+   if it already passes, stop and correct the proof strategy through the Plan
+   Validity Gate. A green broad suite does not complete a slice whose planned
+   acceptance check is missing or unrun.
 
-Implementation steps may rely only on `Plan`, `Local evidence`, or `Primary
-source`, and on `Accepted risk` only as Accepted-Risk Semantics below allows.
+   - Preserve every gate's exit status independently; never let a truncating
+     filter carry the gate status or a later successful gate mask a failure.
+   - Reconcile every named frozen baseline class as verified now, deferred to
+     a named later gate, or a manual-only hole with an owner and residual risk.
+     If intentional edits land after an empirical run, rerun the affected
+     empirical gate on final bytes or record the exact delta; static reruns
+     do not extend empirical proof.
 
-When execution writes verified facts back into a planning-owned artifact, keep
-that artifact's `Local investigation` label and add the verification date and
-source. Use `Local evidence` for execution receipts, summaries, blockers, and
-current-session decisions; do not introduce a second taxonomy into the plan.
-
-Do not omit evidence labels only because no files were edited. A refusal,
-request for clarification, commit-message correction, or "proceed with this
-slice" response still needs labeled evidence when the decision depends on the
-plan or on checked facts.
-
-## Core Rules
-
-- Identify the implementation plan before editing files. If the user references
-  a local plan file path, read it before editing. If multiple plans could apply,
-  ask the user which one is authoritative.
-- Treat the user's words as intent, not verified fact. Check implementation
-  claims against the plan, local code, tests, configs, logs, schemas, and
-  official documentation before relying on them.
-- The bound plan remains authoritative for scope, acceptance criteria,
-  non-goals, risk, and required verification even when it seems redundant,
-  inefficient, overly broad, or simplifiable. It is not a shield for known-bad
-  implementation details. Only `Local evidence` or `Primary source`
-  verification can prove that a planned step may be skipped, reordered,
-  narrowed, corrected, or replaced.
-- Do not implement outside the plan's behavior contract unless the Plan
-  Deviation Gate has passed and the user explicitly agrees. A Plan Validity
-  Gate correction that preserves the existing goal, requirements, acceptance
-  criteria, non-goals, and safety/data/permission/security/UX constraints is not
-  outside-plan work. When an unplanned change appears necessary, explain the
-  reason, impact, and closest plan-preserving alternative first.
-- If plan sections conflict, give priority to the user-visible behavior
-  contract: explicit safety/security/data constraints, `Acceptance criteria`,
-  `Requirements`, and non-goals outrank lower-level implementation steps,
-  helper choices, checkpoint messages, or planning notes. Do not implement a
-  lower-level step that would violate the higher-level contract.
-- Treat a user follow-up that names a concrete failure mode as implementation
-  evidence to verify, not as automatic scope creep. Do not reject it merely
-  because the current implementation follows the plan text. Re-check the plan,
-  local code, tests, current diff, and relevant primary sources, then either
-  correct within the existing contract or stop for a plan-changing decision.
-- Do not treat a plan's status-quo or out-of-scope statement as proof that a
-  locally surprising existing behavior should be preserved. If implementation
-  relies on a workaround for that behavior, or current evidence shows it
-  conflicts with the higher-level behavior contract, run the Plan Validity Gate
-  instead of finishing the workaround because the plan scoped the behavior out.
-- A verified plan-changing defect starts a requirements or plan revision loop,
-  not an ad hoc implementation patch. Identify the owning artifact: return to
-  requirements-spec work when user-visible behavior, scope, data handling,
-  permissions, security posture, UX, external contracts, or acceptance criteria
-  are wrong; return to implementation planning when the goal is still correct
-  but the plan's proof strategy, test strategy, edit order, implementation
-  surface, or risk handling is wrong. Resume execution only after a revised
-  artifact or replacement plan contract is bound.
-- A Plan Validity stop is visible in the handoff: name the conflicting `Plan`
-  claim, the `Local evidence` or `Primary source` that contradicts it, the
-  contract surfaces affected, the owning artifact to revise, and the condition
-  for rebinding execution. Do not silently rewrite the plan and report only the
-  corrected conclusion.
-- Each verified, reviewed, self-contained unit closes under the checkpoint
-  default in the Commit Selection section; staging, message transport,
-  trailers, and stored-commit inspection stay with the commit-execution
-  workflow.
-- An acceptance metric is executable proof only after current `Local evidence`
-  shows it distinguishes the before state from the required after state. A
-  known-bad baseline that already passes the metric blocks completion and
-  returns to the plan's proof strategy.
-- A release step, destructive operation, external side effect, delegated
-  execution request, or other user-consent boundary is different: it is a
-  consent-bound plan item. If exact authorization is missing, run the Startup
-  Consent Preflight before editing the affected slice. Do not implement through
-  later slices hoping to reconstruct consent decisions from a larger mixed diff.
-- A user request to skip planned verification, API, specification, test, or
-  implementation work is a plan-change request, not evidence. Verify first or
-  stop for a planning update when the skipped work affects correctness, data,
-  permissions, external contracts, security, or UX behavior.
-- Test selection bounds only additions and gives no ground to remove, narrow,
-  or skip a planned test. Dropping a planned test that looks redundant is a
-  plan deviation: it needs local evidence and the Plan Deviation Gate.
-- Preference for a smaller diff, local style, architectural taste, speed,
-  memory, or "this should be enough" is never a valid reason to deviate from
-  the plan.
-- Do not silently "fix" an incorrect or impossible plan. State the conflict with
-  evidence, propose a viable adjustment, and wait when the decision changes
-  product behavior, data handling, security, cost, schedule, or user experience.
-- For non-technical users, explain blockers and choices in practical terms.
-  Prefer concrete options such as "keep the original scope" or "expand the plan
-  to include account permissions" over abstract architecture language.
-- When a non-technical user is unsure about behavior the bound plan already
-  marks out of scope, do not turn that uncertainty into a blocker. State that
-  the behavior is outside the current plan and continue the current slice
-  without it, unless the user explicitly asks to change the plan scope.
-- Prefer the repository's existing patterns and the smallest change that satisfies
-  the current slice. Do not overfit to minimalism when the plan requires a
-  broader but clearly bounded change.
-- Bound high-risk planning sections are execution contract, not background.
-  Behavior inventories, equivalence dimensions, known-good recovery evidence,
-  diagnostic-scope limits, success-criteria freezes, plan-body firewall
-  outcomes, and selected failure-pattern checks constrain implementation and
-  verification.
-- A current-slice implementation assumption the bound plan leaves `Unproven`
-  lets that slice proceed only under the Accepted-Risk Semantics section.
-- When the bound plan intentionally includes `Implementation progress`, update
-  only that section with evidence-backed status when safe and when no
-  unrecorded qualifying decision remains. Do not edit scope,
-  requirements, acceptance criteria, tests, risks, or steps as a status update.
-  When the section is absent, keep progress in the execution summary unless
-  cross-session/cross-actor resumability or an explicit user/project request
-  requires returning to planning to add durable progress state.
-- A progress update is evidence-backed status, not proof by itself. Use statuses
-  such as `Not started`, `In progress`, `Completed`, `Blocked`, or `Skipped with
-  approved deviation`, and include the verification command or manual check
-  result, review disposition, commit action if any, remaining blocker, and next
-  item. Do not mark an item `Completed` when verification was skipped, failing,
-  unavailable, only self-reported by delegated output, or when any core acceptance sentinel from the bound plan is missing, failed, stale, or unmapped even though the broader suite is green.
+5. **Review** the verified slice under the Post-Implementation Review Gate
+   before its summary, the next slice, or any commit.
+6. **Close the checkpoint**: update an existing `Implementation progress`
+   ledger, then select the unit's commit under Commit Selection. When a defect
+   in existing behavior that the plan does not own blocks verification, use
+   the Existing-Feature Repair Handoff.
+7. **Report** the bound plan, the slice, the verification and its result (suite
+   status and acceptance coverage separately; a skipped check with its reason
+   and residual risk), the review mode and finding dispositions, deviations or
+   blockers, commits made, and the remaining plan steps.
 
 ## Commit Selection
 
@@ -361,14 +169,11 @@ Example: "the user asked for a commit this turn" names a source; "this is a good
 Exception: a current no-commit instruction, a bound plan that forbids commits, or project policy suspends the default; leave the verified changes in the working tree and report why.
 <!-- shared-contract:end commit-selection-state-changing -->
 
-The unit this workflow closes is a verified, reviewed execution unit of the
-bound plan; this phase hands it to the commit-execution workflow and neither
-stages nor commits itself. Use plan-authored `Commit checkpoints` when they
-exist; otherwise close on the natural independently verified slice boundaries.
-
-If the host or harness requires separate confirmation for local commits, ask
-once at startup before the first edit that can produce tracked changes, not
-again at each checkpoint.
+Close units on the plan's `Commit checkpoints` when it has them; otherwise on
+the natural independently verified slice boundaries. When a runtime or user
+test of a built/deployed artifact is a checkpoint prerequisite, carry which
+artifact was tested and the inputs it was built from into the commit handoff
+so a partially staged checkpoint can be matched to them.
 
 ## Accepted-Risk Semantics
 
@@ -381,25 +186,16 @@ again at each checkpoint.
 - Never use it for irreversible, destructive, unsafe, illegal, or credential-exposing actions: those need proof, a safer alternative, or the user's explicit human-risk decision.
 <!-- shared-contract:end accepted-risk-semantics -->
 
-Here the acceptance must be recorded in the bound plan itself before the
-affected slice is implemented; an acceptance given only in conversation is
-written into the plan first.
+Record an acceptance given only in conversation in the bound plan before
+implementing the slice it supports.
 
-## Execution Gates And Delegation Reference
+## References
 
-Before deviating from a bound plan, correcting a plan defect, crossing a consent
-boundary, or delegating execution or review work, read
-`references/execution-gates-and-delegation.md`. That reference owns the Plan
-Deviation Gate, Plan Validity Gate, Existing-Feature Repair Handoff, Startup
-Consent Preflight, human-risk decisions, Delegated Execution Support, and
-delegated-result proof rules.
-
-## Execution Workflow, Review, And Quality Reference
-
-Before executing a bound plan slice, launching post-implementation review,
-updating an applicable resumable-progress ledger, communicating completion or
-blockers, or applying final quality checks, read
-`references/execution-workflow-and-quality.md`. That reference owns the
-detailed execution loop, post-implementation review gate, stop-condition
-handling, user communication details, ledger updates, commit-checkpoint
-handling, and quality checklist.
+- `references/execution-workflow-and-quality.md` (proof rules,
+  Post-Implementation Review Gate, progress ledger): read when
+  proving, reviewing, or closing a slice.
+- `references/execution-gates-and-delegation.md` (Plan Deviation Gate, Plan
+  Validity Gate, Existing-Feature Repair Handoff, Startup Consent Preflight,
+  delegation): read before deviating from or correcting the plan, handling a
+  defect in existing behavior, crossing a consent boundary, or delegating
+  work.

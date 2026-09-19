@@ -56,6 +56,14 @@ use `[Repository] - YYYY-MM-DD`.
   quality checklist; delegated plan review records only how each perspective
   ran and any launch failure; a planning-time command notes the question it
   answers instead of a six-field receipt.
+- `vibe-plan-execution`: a plan-chosen workaround no longer triggers a stop
+  just because the underlying behavior looks material, and a chat summary that
+  differs from the plan artifact is flagged rather than stopping unless the
+  contract changed without authority. It no longer narrates the proceed
+  condition, runs a durable-language review perspective, records delegation
+  budgets or runtime-evidence receipts, or asks at startup for host commit
+  confirmation; it carries only the tested artifact and its build inputs into
+  the commit handoff.
 - Verification: evals were not re-run after this trim, so every behavior
   delta above is `Unproven`. Suite `validate`, `vibe_shared_contract.py check
   --strict` and `audit-names`, and `python3 -m pytest tests` passed. Most eval

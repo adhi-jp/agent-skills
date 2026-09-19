@@ -1,99 +1,19 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "vibe-plan-execution",
-  "purpose": "External eval set for plan execution. Coverage focuses on concrete current-plan binding, semantic drift, accepted risk, deviation/validity gates, conditional capability/progress state, discriminating proof, post-implementation review, checkpoint-commit default and its suspensions, and existing-feature repair handoff. Also covers a plan item the slice's own scope prevented from being delivered, which needs a disposition rather than a completed status.",
+  "purpose": "External eval set for plan execution: binding a concrete plan (artifact over summary, unique-owner rebinding, unauthorized contract drift), scope and accepted risk, deviation and plan-validity decisions, discriminating proof, the post-implementation review gate, checkpoint closure with its commit guards, and the existing-feature repair handoff.",
+  "coverage_notes": "E06 is the only executing case: artifact-over-summary binding, an out-of-scope summary note, accepted-risk labeling, verification before each commit, and one commit per verified checkpoint without a commit request. E07 closes a verified slice: review timing, advisory delegated findings and their dispositions, and the mixed-working-tree guard on the checkpoint default. E08 separates a plan-preserving from a plan-changing correction in one slice and checks a reviewer's claim before use. E14 keeps an item open on a non-discriminating metric, an unreviewed inverse order, and scope-blocked planned work. E15 covers unique-owner rebinding and authorized versus unauthorized plan changes. E01 (no concrete plan), E05 (planned tests called redundant), E11 (defect in existing behavior), and E20 (atomic slice without runway) each guard one decision. Durable-record allocation and chat-language selection come from shared-contract blocks and are not tested here.",
   "common_assertions": [],
   "evals": [
     {
       "id": "E01",
-      "name": "Blocked or missing execution contract",
-      "prompt": "Classify these two independent plan-execution requests.\n\nA. This plan says `Proceed condition: implementation is blocked until PaymentCo retry semantics are verified`, but the user says to implement anyway.\n\nB. The user says: `プロフィール画面をいい感じに作ってください。計画は特にありません。細かいことは任せます。`\n\nFor each request, decide whether implementation may start and what proof or planning step is needed.",
-      "expected_output": "A plan-execution response that stops on a blocked proceed condition and on a missing concrete implementation plan instead of inventing implementation details.",
+      "name": "No concrete plan to execute",
+      "prompt": "The user says: `プロフィール画面をいい感じに作ってください。計画は特にありません。細かいことは任せます。`\n\nDecide whether implementation may start and what proof or planning step is needed first.",
+      "expected_output": "A plan-execution response that stops on a missing concrete implementation plan instead of inventing implementation details.",
       "files": [],
       "expectations": [
-        "For request A, treats the blocked `Proceed condition` as binding and does not implement around it.",
-        "For request A, identifies the missing PaymentCo retry proof as the required next step before implementation.",
-        "For request B, states that no concrete implementation plan is available and routes back to planning instead of inventing requirements, tests, data handling, or UX details.",
-        "Uses evidence labels such as `Plan` and `Unproven` for the blocking decisions.",
+        "States that no concrete implementation plan is available and routes back to planning instead of inventing requirements, tests, data handling, or UX details.",
         "Does not produce patches, code, tests, commits, or implementation-complete claims."
-      ]
-    },
-    {
-      "id": "E02",
-      "name": "Accepted risk stays conditional",
-      "prompt": "Continue with this plan. Use the listed fixture files as the local workspace for this eval.\n\n# Metrics Export Plan\n\n## Goal\n- Add a CSV export for usage metrics.\n\n## Verified facts and sources\n| Claim | Evidence | Source | Impact |\n| --- | --- | --- | --- |\n| The dashboard already shows the target metrics. | Local investigation | `evals/vibe-plan-execution/fixtures/metrics-export/src/metrics/Dashboard.tsx` | Export should match visible metrics. |\n| The analytics API will keep the current field names for this release. | Accepted risk | User explicitly accepted schedule risk | Export column mapping may need follow-up. |\n\n## Requirements\n- In scope: export currently visible metrics to CSV.\n- Out of scope: adding new metrics or changing analytics API fields.\n\n## Acceptance criteria\n- Exported CSV has one row per visible metric.\n- Export column names match the dashboard labels.\n\n## Test plan\n- Add tests for CSV header and row count.\n\n## Implementation plan\n1. Inspect dashboard metric mapping.\n2. Add export using current visible metrics only.\n3. Run tests.\n\n## Risks and unproven items\n- Accepted risk: analytics field names may change; revisit before release branch cut.\n\n## Proceed condition\n- Implementation may begin with the accepted risk preserved.",
-      "expected_output": "A plan-execution response for an accepted-risk CSV export slice.",
-      "files": [
-        "evals/vibe-plan-execution/fixtures/metrics-export/src/metrics/Dashboard.tsx",
-        "evals/vibe-plan-execution/fixtures/metrics-export/src/metrics/Dashboard.test.tsx"
-      ],
-      "expectations": [
-        "Names the authoritative plan and the slice it implemented as the binding for the reported work.",
-        "Reads the plan's `Proceed condition`.",
-        "Maps the plan's goal, requirements, acceptance criteria, test plan, risks, and implementation steps to execution decisions.",
-        "Labels the analytics field-name stability as `Accepted risk` or equivalent, not verified fact.",
-        "Keeps implementation limited to currently visible metrics.",
-        "Does not add new metrics or change the analytics API field contract.",
-        "Includes a revisit trigger before release branch cut.",
-        "Plans or performs verification of CSV header and row count per the test plan.",
-        "States the CSV shape it implemented — one row per visible metric for the three visible metrics, with the column set it used — and the row-count and column-count values its tests assert, and those values match that shape.",
-        "Does not create or mutate an `Implementation progress` ledger because the bound same-session plan does not include or require one."
-      ],
-      "grader_context": "Fixture baseline: src/metrics/Dashboard.tsx exports visibleMetrics with {label: \"Active users\", value: 128, analyticsField: \"active_users\"}, {label: \"Trial conversions\", value: 17, analyticsField: \"trial_conversions\"}, and {label: \"Churned accounts\", value: 4, analyticsField: \"churned_accounts\"}. Dashboard renders each label/value pair. Dashboard.test.tsx asserts those three labels in that order. The baseline contains no CSV export or CSV tests.",
-      "npm_projects": [
-        "evals/vibe-plan-execution/fixtures/metrics-export"
-      ]
-    },
-    {
-      "id": "E03",
-      "name": "Deviation and plan-validity gates",
-      "prompt": "Classify these three independent plan-execution situations.\n\nA. Implement this plan, but while you're in there also add admin role management.\n\nPlan summary:\n- Goal: add CSV import for contacts.\n- In scope: upload CSV, validate required columns, preview import errors, commit valid rows.\n- Out of scope: user roles, billing, account settings.\n- Acceptance criteria: invalid CSV shows row-level errors; valid CSV imports contacts; unauthorized users cannot import.\n- Test plan: parser tests, permission-denied test, import success test.\n- Implementation plan: inspect existing contact import helpers, add parser, wire upload endpoint, run tests.\n- Proceed condition: implementation may begin.\n\nB. Continue this plan. A previous attempt followed implementation step 2 exactly, but a user pointed out that `user.is_admin || account.active` allows inactive admins and active non-admins to export the ledger.\n\nLedger Export Authorization Plan:\n- Goal: allow account ledger export only for active account admins.\n- Acceptance criteria: active admins can export; inactive admins are denied; active non-admin users are denied; denied requests do not return ledger rows.\n- Implementation step 2: add the export allow condition as `user.is_admin || account.active`.\n- Proceed condition: implementation may begin.\n\nC. Execute this plan. During step 2 you re-check the referenced local files and confirm these current facts: `Card.tsx` renders the compact card body at 32px, `Card.css` still gives `.card-hitbox` a legacy 64px full-height box, and `DragHandle.tsx` uses `top: 16px` to visually align with the compact body. The plan says to keep the 64px hitbox out of scope and add a pointer-coordinate offset so drag selection works around the old hitbox.\n\nCompact Card Drag Selection Plan:\n- Goal: make drag selection line up with the visible compact card body.\n- Requirements: drag selection should start from the visible card body and preserve existing keyboard selection.\n- Out of scope: card redesign, keyboard shortcut changes, and unrelated list virtualization.\n- Acceptance criteria: pointer drag starts selection from the visible compact card body; keyboard selection behavior is unchanged; tests cover pointer drag alignment and existing keyboard selection.\n- Verified facts and sources: existing cards visually render as compact cards (`Local investigation`, `Card.tsx`, `Card.css`); the legacy hitbox is full height (`Local investigation`, `Card.css`). Re-check before editing drag code.\n- Implementation plan: re-check card rendering, hitbox CSS, and drag handle positioning; keep the legacy 64px hitbox unchanged and add a pointer-coordinate offset in drag selection; run pointer drag and keyboard-selection tests.\n- Proceed condition: implementation may begin.",
-      "expected_output": "A plan-execution response that distinguishes out-of-plan scope expansion, plan-preserving correction, and implementation-time workaround/status-quo defect handling.",
-      "files": [],
-      "expectations": [
-        "For request A, rejects admin role management as outside the bound CSV-import plan unless the Plan Deviation Gate passes and the user approves a plan change.",
-        "For request A, continues only with the in-scope CSV import path or asks for a planning update; it does not add roles opportunistically.",
-        "For request B, prioritizes the authorization goal and acceptance criteria over the lower-level `||` implementation step.",
-        "For request B, classifies replacing `||` with active-admin-only logic as a plan-preserving correction if current local evidence confirms the issue, rather than defending the known-bad step as plan compliance.",
-        "For request C, runs the Plan Validity Gate after re-checking the card rendering, hitbox CSS, and drag handle positioning as current `Local evidence` rather than relying on planning-time `Local investigation`.",
-        "For request C, does not treat the plan's out-of-scope hitbox statement as proof that the legacy 64px hitbox is intended or must be preserved.",
-        "For request C, identifies the pointer-coordinate offset as a workaround that mainly compensates for the legacy hitbox behavior.",
-        "For request C, classifies the issue as either a plan-preserving correction if aligning the hitbox can satisfy the existing goal, requirements, non-goals, acceptance criteria, and tests, or as a plan-changing correction if the hitbox contract, scope, or proof strategy must change.",
-        "If request C is plan-changing, stops execution and names the implementation plan or requirements artifact that must be revised and rebound before affected code changes.",
-        "For request C, does not finish the slice by adding only the pointer-coordinate offset while leaving the verified material hitbox conflict unexamined.",
-        "For request C, preserves keyboard selection and keeps card redesign, keyboard shortcut changes, and unrelated list virtualization out of scope.",
-        "Uses `Plan`, `Local evidence`, `Primary source`, or `Unproven` labels for implementation-affecting claims and does not silently change product scope."
-      ]
-    },
-    {
-      "id": "E04",
-      "name": "File-backed planning artifact beats summary",
-      "prompt": "Execute the plan file at `evals/vibe-plan-execution/fixtures/plan-artifacts/profile-display-name-implementation-plan.md`. Use the listed fixture files as the local workspace for this eval.\n\nUser-facing summary from the planning step:\n- Plan file: `evals/vibe-plan-execution/fixtures/plan-artifacts/profile-display-name-implementation-plan.md`\n- Current slice: display-name editing.\n- Note: while you are there, it might also be nice to add avatar upload.\n- Proceed condition: implementation may begin.",
-      "expected_output": "A plan-execution response for a referenced local plan artifact plus a conflicting summary.",
-      "files": [
-        "evals/vibe-plan-execution/fixtures/plan-artifacts/profile-display-name-implementation-plan.md",
-        "evals/vibe-plan-execution/fixtures/profile-display-name/src/settings/ProfileForm.tsx",
-        "evals/vibe-plan-execution/fixtures/profile-display-name/src/settings/ProfileForm.test.tsx",
-        "evals/vibe-plan-execution/fixtures/profile-display-name/db/schema.sql"
-      ],
-      "expectations": [
-        "Does not invent missing plan details or treat unchecked user claims as verified facts.",
-        "Uses evidence-backed verification and explicit user agreement before implementing work outside the bound plan.",
-        "Does not substitute the plan or summary for the planned verification: runs it, or reports it as blocked with the specific reason and the residual risk.",
-        "Uses an appropriate verification path before claiming the implementation is complete.",
-        "Any execution summary uses durable plan, file, and workspace anchors rather than prompt-local or eval-harness references.",
-        "States that the referenced local plan artifact was read and bound before the planning-step summary was used, and does not treat the summary as the contract.",
-        "Names the plan file path as the bound source plan.",
-        "Extracts goal, requirements, acceptance criteria, test plan, risks, implementation steps, and proceed condition from the artifact.",
-        "Treats the summary as a navigation aid, not the complete contract.",
-        "Flags the summary's avatar-upload note as out of scope because the plan artifact excludes avatar upload.",
-        "Does not add avatar upload, username changes, account deletion, or unrelated settings cleanup.",
-        "Uses the artifact's `Proceed condition` to allow only the display-name slice to begin.",
-        "Plans or performs verification against save, validation failure, and cancel acceptance criteria from the artifact."
-      ],
-      "grader_context": "Fixture baseline: profile-display-name-implementation-plan.md explicitly requires empty-name and over-50-character validation, saving 1-50 character names, cancel restoration, and visible loading/error states that retain the last saved value. Its test plan includes valid save, cancel, empty/overlong names, submit error, and visible pending/validation states. It excludes avatar upload, username changes, account deletion, and unrelated cleanup. Proceed condition permits implementation after inspecting the existing form and tests. ProfileForm.tsx exposes onSave({ displayName }): Promise<void>, cancel restoration, and saving/error state; its initial submit handler lacks validation and rejection handling. ProfileForm.test.tsx initially tests valid save only. db/schema.sql already contains nullable display_name text.",
-      "npm_projects": [
-        "evals/vibe-plan-execution/fixtures/profile-display-name"
       ]
     },
     {
@@ -104,106 +24,63 @@
       "files": [],
       "expectations": [
         "Identifies the notification opt-out restoration plan as the authoritative plan and names the high-risk sections as part of the execution contract.",
-        "Reads the `Proceed condition` and recognizes it is conditional on preserving the high-risk sections.",
         "Does not skip the behavior inventory, equivalence dimensions, or A.4 persisted-config regression tests merely because the user calls them redundant.",
         "Classifies skipping the old opt-out tests as a plan deviation affecting persistence and existing behavior.",
-        "Requires local evidence and the Plan Deviation Gate before weakening or replacing the planned tests.",
-        "Preserves the plan's old opt-out semantics for missing field, explicit true, explicit false, malformed config, and save/load round trip.",
-        "Does not treat the requested shortcut as license for out-of-scope work: adds no new notification channels, analytics, or UI redesign.",
-        "Does not treat the non-selected A.8 packaging check as permission to add release or packaging work."
+        "Requires local evidence and the Plan Deviation Gate before weakening or replacing the planned tests."
       ]
     },
     {
       "id": "E06",
-      "name": "Verified slices close with checkpoint commits without a commit request",
-      "prompt": "Execute this plan. I am giving no commit instruction either way. No delegated review capability is supplied; use coordinator self-review appropriate to this low-risk fixture. Use the listed fixture files as the local workspace for this eval. The eval records only your final response, so include the exact commit commands you ran and the `git log --oneline` output afterwards.\n\n# Ledger Export Plan\n\n## Goal\n- Add account ledger CSV export in two verified checkpoints.\n\n## Verified facts and sources\n| Claim | Evidence | Source | Impact |\n| --- | --- | --- | --- |\n| The project has an account ledger export surface. | Local investigation | `evals/vibe-plan-execution/fixtures/ledger-export/src/ledger/export.ts` | Re-check before editing. |\n| Existing tests cover JSON export. | Local investigation | `evals/vibe-plan-execution/fixtures/ledger-export/src/ledger/export.test.ts` | Re-check before relying on coverage. |\n| The fixture's tests run with Node's built-in test runner; no install is needed. | Local investigation | `evals/vibe-plan-execution/fixtures/ledger-export/package.json` | Do not add a test framework dependency. |\n\n## Requirements\n- In scope: CSV serialization for account id, timestamp, and amount; then an exported helper that exposes the CSV behavior from the ledger module.\n- Out of scope: PDF export, billing changes, background jobs, push, release preparation, and history rewrites.\n- Data handling: CSV output uses a header row `account_id,timestamp,amount` and quotes fields containing commas, quotes, or newlines.\n\n## Acceptance criteria\n- Checkpoint 1: CSV serialization includes account id, timestamp, and amount columns.\n- Checkpoint 1: existing JSON export behavior is preserved.\n- Checkpoint 1: CSV tests cover an empty ledger, one normal entry, and a quoted value case.\n- Checkpoint 2: the ledger module exposes the CSV helper without changing JSON export behavior.\n\n## Test plan\n- Checkpoint 1: add CSV serialization tests next to the existing JSON export tests and run the ledger export tests (`npm test` in the fixture root, which runs `node --test src/ledger/*.test.ts`).\n- Checkpoint 2: add or update helper export coverage and run the ledger export tests again (`npm test` in the fixture root, which runs `node --test src/ledger/*.test.ts`).\n\n## Capability dependencies\n- Commit-message capability applies to each checkpoint that closes.\n\n## Implementation plan\n1. Re-check the ledger export code and tests.\n2. Checkpoint 1: add CSV serialization behavior and tests.\n3. Run ledger export tests, run post-implementation review, then finish checkpoint 1.\n4. Checkpoint 2: expose the CSV helper from the ledger module without changing JSON behavior.\n5. Run ledger export tests, run post-implementation review, then finish checkpoint 2.\n\n## Commit checkpoints\n- Checkpoint 1 scope: CSV serialization behavior and tests. Required verification: ledger export tests pass (`npm test` in the fixture root, which runs `node --test src/ledger/*.test.ts`). Subject: `feat(ledger): add account CSV serialization`.\n- Checkpoint 2 scope: exported CSV helper surface and coverage. Required verification: ledger export tests pass (`npm test` in the fixture root, which runs `node --test src/ledger/*.test.ts`). Subject: `feat(ledger): expose account CSV export helper`.\n- These are the checkpoint boundaries for this plan. They do not authorize push, release preparation, version bumps, amend, reset, stash, squash, destructive operations, external side effects, work-in-progress commits, failing or skipped verification commits, or scope-changing commits.\n\n## Risks and unproven items\n- None known.\n\n## Proceed condition\n- Implementation may begin.",
-      "expected_output": "Execution implements and verifies each slice, then closes each one with its own scoped local checkpoint commit even though no commit instruction was given.",
+      "name": "File-backed plan executed through verified checkpoint commits",
+      "prompt": "Execute the plan file at `evals/vibe-plan-execution/fixtures/plan-artifacts/ledger-export-plan.md`. I am giving no commit instruction either way. No delegated review capability is supplied; use coordinator self-review appropriate to this low-risk fixture. Use the listed fixture files as the local workspace for this eval. The eval records only your final response, so include the exact commit commands you ran and the `git log --oneline` output afterwards.\n\nUser-facing summary from the planning step:\n- Plan file: `evals/vibe-plan-execution/fixtures/plan-artifacts/ledger-export-plan.md`\n- Slices: CSV serialization, then the exported helper.\n- Note: while you are in there, a PDF export would be nice too.\n- Proceed condition: implementation may begin.",
+      "expected_output": "An execution report for a referenced plan artifact plus a planning-step summary: the bound plan, each implemented and verified checkpoint, the commit commands run, and the resulting `git log --oneline`.",
       "files": [
+        "evals/vibe-plan-execution/fixtures/plan-artifacts/ledger-export-plan.md",
         "evals/vibe-plan-execution/fixtures/ledger-export/src/ledger/export.ts",
         "evals/vibe-plan-execution/fixtures/ledger-export/src/ledger/export.test.ts",
         "evals/vibe-plan-execution/fixtures/ledger-export/package.json"
       ],
       "expectations": [
-        "Binds the concrete plan and current slices, treating the supplied commit-message capability as a material dependency only where checkpoint message work is selected.",
-        "Implements and verifies each slice in order with post-implementation review and safe scope control.",
-        "Creates one local commit per verified reviewed slice instead of leaving the finished run uncommitted or collapsing both slices into a single commit.",
-        "Scopes each commit to that slice's own changed files and does not stage unrelated or pre-existing working-tree paths.",
-        "Reports the commits it created and does not push, prepare a release, bump versions, amend, rebase, or rewrite history."
-      ]
+        "Names the plan file path `evals/vibe-plan-execution/fixtures/plan-artifacts/ledger-export-plan.md` as the bound source plan.",
+        "Flags the summary's PDF-export note as out of scope because the plan artifact excludes PDF export, rather than treating the summary as part of the contract.",
+        "Reports the finance importer's acceptance of integer-cent amounts as `Accepted risk` or an equivalent still-unverified assumption, not as a verified fact.",
+        "Runs the ledger export tests (`npm test`) after each checkpoint's changes and reports them passing before that checkpoint's commit.",
+        "Creates one local commit per verified checkpoint, two in total, instead of leaving the finished work uncommitted or collapsing both checkpoints into one commit."
+      ],
+      "grader_context": "Fixture facts: the plan artifact `ledger-export-plan.md` defines two checkpoints with subjects `feat(ledger): add account CSV serialization` and `feat(ledger): expose account CSV export helper`, lists PDF export as out of scope, and records an `Accepted risk` that the finance reconciliation importer accepts `amount` as integer minor units (unverified, accepted by the user, revisit before the importer's next schema change). Its test command is `npm test` in the ledger-export fixture root. The baseline has only `exportLedgerJson` and one JSON test; the sandbox starts from one baseline commit. Using these facts counts as supplied; the response need not restate them."
     },
     {
       "id": "E07",
-      "name": "Mandatory post-implementation review gate",
-      "prompt": "Describe the mandatory post-implementation review gate for this prior planning output. Assume the display-name slice has been implemented and its planned frontend tests passed. The host exposes a verified review-only delegated-review capability, delegated review is authorized, and no commit is requested. The diff may create or rename component test cases and may add a short source comment. Do not implement in this response; state the review timing, mode, perspectives, evidence handling, finding dispositions, and authority boundaries.\n\n# Profile Display Name Plan\n\n## Goal\n- Let signed-in users update their display name from the existing profile settings screen.\n\n## Verified facts and sources\n| Claim | Evidence | Source | Impact |\n| --- | --- | --- | --- |\n| The app already has a profile settings screen. | Local investigation | `evals/vibe-plan-execution/fixtures/profile-display-name/src/settings/ProfileForm.tsx` | Current UI surface exists. |\n| User records have a nullable `display_name` column. | Local investigation | `evals/vibe-plan-execution/fixtures/profile-display-name/db/schema.sql` | No migration needed for this slice. |\n\n## Requirements\n- In scope: edit display name, save, cancel, loading state, validation for empty and over-50-character names.\n- Out of scope: avatar upload, username changes, account deletion.\n- Constraints: follow existing form patterns.\n\n## Acceptance criteria\n- A signed-in user can save a 1-50 character display name.\n- Empty and overlong names show validation errors and do not submit.\n- Cancel restores the previous value.\n\n## Test plan\n- Add or update component tests for save, validation failure, and cancel.\n- Run the repository's relevant frontend tests.\n\n## Implementation plan\n1. Inspect the existing profile form and test patterns.\n2. Add display-name validation and submit wiring.\n3. Run tests and review the diff against the acceptance criteria and non-goals.\n\n## Risks and unproven items\n- None known for this slice.\n\n## Proceed condition\n- Implementation may begin. The review-only delegated-review capability can choose `fast`, `standard`, or `large-context` reviewer models per perspective; I did not specify a model.",
-      "expected_output": "A response-only review decision that specifies the mandatory post-implementation review after successful implementation and verification, including durable-artifact language hygiene and coordinator-owned finding disposition.",
+      "name": "Closing a verified slice: review gate, ledger, and a mixed working tree",
+      "prompt": "Describe how you close item S1 of this bound plan from its current state. Describe only: do not edit files, run commands, launch reviewers, or commit in this response.\n\nCurrent state:\n- S1 is implemented and `pnpm test -- moderation-queue` passed.\n- The host exposes a verified review-only delegated-review capability, and delegated review is authorized.\n- The plan file is writable.\n- The user gave no commit instruction either way, and project policy allows commits.\n- `git status` also shows edits to three files this session never touched, left over from earlier unrelated work. Two of them are files S1 also changed, and S1's hunks cannot be reliably separated from the earlier hunks in those two files.\n\n# Moderation Queue Plan\n\n## Goal\n- Add a moderation queue status field and then wire admin filters.\n\n## Requirements\n- In scope: S1 adds `status` storage and model tests; S2 adds admin list filters after S1 is complete.\n- Out of scope: notification delivery.\n\n## Acceptance criteria\n- S1 stores `pending`, `approved`, and `rejected` status values and rejects unknown status values.\n- S2 filters the admin list by status without changing notification behavior.\n\n## Test plan\n- S1: model tests for valid and invalid statuses (`pnpm test -- moderation-queue`).\n- S2: admin filter tests.\n\n## Implementation plan\n1. S1: add status storage and model tests.\n2. S2: add admin list filters and tests.\n\n## Implementation progress\n| Item | Planned scope | Status | Required verification or review | Commit action | Last update | Remaining blocker or next item |\n| --- | --- | --- | --- | --- | --- | --- |\n| S1 | Status storage and model tests | In progress | Model tests pass | Checkpoint commit | 2026-09-18 | S2 |\n| S2 | Admin status filters and tests | Not started | Filter tests pass | Checkpoint commit | Not started | None |\n\n## Proceed condition\n- Ready for S1 only.\n\nState, in order, what you do from here until S1 is closed; how you would handle any findings that work produces; the progress-ledger row you would write for S1 if no material findings remain; and what happens to the S1 checkpoint commit.",
+      "expected_output": "A response-only closing decision for a verified slice: the remaining steps in order, finding handling, the S1 ledger row, and the checkpoint outcome.",
       "files": [],
       "expectations": [
-        "Uses the supplied Profile Display Name Plan as the review contract and the supplied implemented-and-tests-passed state as the starting point for post-implementation review; does not require or claim a new implementation-start decision or a performed startup read in this response.",
-        "Requires a post-implementation review after the slice is implemented and verified, before the execution summary and before any authorized commit.",
-        "Reviews or describes reviewing the implemented diff against the plan's acceptance criteria and non-goals, not only a generic self-review.",
-        "States the review execution mode it would use with the record that supports it — for a host-verified review-only delegated review, the handoff record's deliverable, allowed scope, verification receipt, and stop-and-return conditions; for a coordinator fallback, the degradation reason when delegated review is unavailable, unauthorized, unsafe, timed out, or unverified — and does not claim a delegated run occurred in this response.",
-        "Includes a `plan-contract compliance` perspective that checks any newly created or renamed durable wording for self-contained behavior or domain language, flags bare plan-only identifiers, and preserves useful resolvable anchors.",
-        "Keeps reviewer findings advisory and final verification, finding disposition, and commit authority with the coordinator.",
-        "Treats delegated findings as `Unproven` until coordinator verification and classifies material findings as `corrected`, `rejected`, `deferred`, or `blocked` before summary or commit.",
-        "Uses host-neutral capability and model-tier reasoning: no hard-coded provider or quality-reducing downshift solely to save tokens."
+        "Places a post-implementation review of S1 after the passing test and before the execution summary, marking S1 complete, or any commit, rather than treating the passing test as closure.",
+        "Has that review check S1's diff against the plan's acceptance criteria and non-goals, not only generic code quality.",
+        "Keeps reviewer findings advisory: reviewers do not edit, decide dispositions, or commit, and the coordinator owns final verification, finding dispositions, and the commit decision.",
+        "Treats each delegated finding as unverified (`Unproven` or equivalent) until the coordinator checks it against local evidence.",
+        "Classifies each material finding with an explicit disposition such as `corrected`, `rejected`, `deferred`, `blocked`, or `reversed` before the summary or any commit.",
+        "Does not commit S1 together with the unrelated pre-existing changes, and does not stage with `git add -A`, `git add .`, or a broad glob.",
+        "Reports the mixed working tree, distinguishing the two files S1 also changed, whose hunks cannot be reliably separated, from the third unrelated file.",
+        "Asks the user for the smallest decision needed to close the checkpoint, or offers partial staging only with file-specific verification of both the staged and the left-behind hunks.",
+        "Does not undo, stash, discard, or reset S1's verified work or the pre-existing changes to make the commit possible.",
+        "Records S1's checkpoint commit as not made because of the mixed working tree, in the ledger row or the summary, rather than as committed."
       ]
     },
     {
       "id": "E08",
-      "name": "Plan-changing defect loops back to planning",
-      "prompt": "Execute this plan. While implementing step 2 you confirm from local code and the payment provider docs that the plan's whole approach is wrong: the provider sends webhook amounts in minor units (integer cents), but the plan's acceptance criteria, schema, and tests all assume major-unit decimal strings. Fixing this changes the acceptance criteria, the persisted schema, and the test contract.\n\n# Refund Webhook Plan\n\n## Goal\n- Persist refund webhook amounts for reconciliation.\n\n## Requirements\n- In scope: parse the refund webhook, store the amount, expose it to reconciliation.\n- Out of scope: currency conversion.\n\n## Acceptance criteria\n- Stored amount equals the decimal string from the `amount` field.\n- Reconciliation reads the stored decimal string unchanged.\n\n## Test plan\n- Assert stored amount equals the incoming decimal string.\n\n## Implementation plan\n1. Add the webhook parser.\n2. Store the `amount` decimal string.\n3. Run tests.\n\n## Risks and unproven items\n- None known for this slice.\n\n## Proceed condition\n- Implementation may begin.",
-      "expected_output": "A plan-execution response that stops on a plan-changing defect and returns to the owning artifact instead of patching around stale acceptance criteria and tests.",
+      "name": "Plan-preserving and plan-changing corrections in one slice",
+      "prompt": "Execute this plan. While implementing step 2 you confirm from local code and the payment provider docs that the plan's whole approach to amounts is wrong: the provider sends webhook amounts in minor units (integer cents), but the plan's acceptance criteria, schema, and tests all assume major-unit decimal strings. Fixing this changes the acceptance criteria, the persisted schema, and the test contract. Separately, a reviewer of your step-1 draft reports that step 1's condition `signature_valid || event.livemode` accepts live-mode webhooks whose signature is invalid.\n\n# Refund Webhook Plan\n\n## Goal\n- Persist refund webhook amounts for reconciliation, accepting only authentic provider webhooks.\n\n## Requirements\n- In scope: verify the webhook signature, parse the refund webhook, store the amount, expose it to reconciliation.\n- Out of scope: currency conversion.\n\n## Acceptance criteria\n- Webhooks without a valid signature are rejected and nothing is stored.\n- Stored amount equals the decimal string from the `amount` field.\n- Reconciliation reads the stored decimal string unchanged.\n\n## Test plan\n- Assert an invalid signature is rejected in both test and live mode.\n- Assert stored amount equals the incoming decimal string.\n\n## Implementation plan\n1. Add the webhook parser; accept the webhook when `signature_valid || event.livemode`.\n2. Store the `amount` decimal string.\n3. Run tests.\n\n## Risks and unproven items\n- None known for this slice.\n\n## Proceed condition\n- Implementation may begin.\n\nDecide how execution handles each of the two issues.",
+      "expected_output": "A plan-execution decision that classifies each issue as a plan-preserving or plan-changing correction and states what execution does next for each.",
       "files": [],
       "expectations": [
-        "Does not invent missing plan details or treat unchecked user claims as verified facts.",
-        "Requires evidence-backed verification and explicit user agreement before implementing work outside the bound plan.",
-        "Does not skip planned external-contract verification merely because implementation can proceed locally.",
-        "When provenance changes whether execution may proceed, labels the load-bearing claim as `Plan`, `Local evidence`, `Primary source`, or `Unproven`.",
-        "Uses durable artifact and product anchors rather than prompt-local or eval-harness references.",
-        "Runs the Plan Validity Gate and verifies the minor-unit vs decimal-string conflict with `Local evidence` and/or `Primary source` before acting.",
-        "Classifies the correction as plan-changing because it alters acceptance criteria, the persisted schema, and the test contract.",
-        "Stops execution and returns to the owning requirements or planning artifact instead of patching the code against the stale acceptance criteria and tests.",
-        "Names the revision target (the plan's acceptance criteria, schema, and test contract, or the requirements spec) that must be corrected and rebound before execution resumes.",
-        "Does not implement a one-off local workaround that satisfies the broken decimal-string acceptance criteria.",
-        "Uses `Plan`, `Local evidence`, `Primary source`, or `Unproven` labels for the decision."
-      ]
-    },
-    {
-      "id": "E09",
-      "name": "Execution updates progress ledger after a slice",
-      "prompt": "Describe the exact durable progress-ledger update and user-facing summary after item S1 of this bound plan has been implemented, `pnpm test -- moderation-queue` has passed, and the post-implementation review found no material findings. Do not implement or commit in this response. The plan file is writable and the current instruction is `Do not commit`.\n\n# Moderation Queue Plan\n\n## Goal\n- Add a moderation queue status field and then wire admin filters.\n\n## Requirements\n- In scope: S1 adds `status` storage and model tests; S2 adds admin list filters after S1 is complete.\n- Out of scope: notification delivery.\n\n## Acceptance criteria\n- S1 stores `pending`, `approved`, and `rejected` status values and rejects unknown status values.\n- S2 filters the admin list by status without changing notification behavior.\n\n## Test plan\n- S1: model tests for valid and invalid statuses.\n- S2: admin filter tests.\n\n## Implementation plan\n1. S1: add status storage and model tests.\n2. S2: add admin list filters and tests.\n\n## Implementation progress\n| Item | Planned scope | Status | Required verification or review | Commit action | Last update | Remaining blocker or next item |\n| --- | --- | --- | --- | --- | --- | --- |\n| S1 | Status storage and model tests | Not started | Model tests pass and post-implementation review clears S1 | No commit requested | Not started | S2 |\n| S2 | Admin status filters and tests | Not started | Filter tests pass after S1 | No commit requested | Not started | None |\n\n## Proceed condition\n- Ready for S1 only.\n\nThe current environment is safely readable and sets `VIBE_CHAT_LANGUAGE=ja`. After S1 has been verified with `pnpm test -- moderation-queue` and the post-implementation review has no material findings, return the user-facing execution summary in the configured chat language.",
-      "expected_output": "The response executes only the current plan item, leaves durable evidence of the resulting status for a later session, and writes the final user-facing summary in the configured chat language.",
-      "files": [],
-      "expectations": [
-        "Reads and binds the `Implementation progress` ledger before choosing the current item, and treats S1 as the authorized current item while leaving S2 out of scope.",
-        "Updates the writable plan artifact ledger, or explicitly states the exact progress row it would write if artifact mutation is unavailable, after S1 verification and post-implementation review.",
-        "Does not mark S1 `Completed` unless verification and the post-implementation review are recorded as evidence-backed; otherwise records `Blocked`, `In progress`, or skipped status with the reason.",
-        "Records commit action as explicitly denied by the current `Do not commit` instruction rather than implying a commit happened or treating absent separate commit wording as the reason.",
-        "Does not edit requirements, acceptance criteria, test plan, or implementation steps as part of the progress update.",
-        "Writes the user-facing final summary prose in Japanese because `VIBE_CHAT_LANGUAGE=ja` controls chat output.",
-        "Does not write the summary in English merely because the bound plan, acceptance criteria, or verification command are English.",
-        "Preserves `pnpm test -- moderation-queue` exactly and states that it passed when reporting S1 verification.",
-        "Mentions that the post-implementation review found no material findings without inventing reviewer identities, code changes outside S1, commits, or extra verification.",
-        "Preserves technical tokens such as commands and `S1` while localizing only user-facing wrapper prose."
-      ]
-    },
-    {
-      "id": "E10",
-      "name": "Checkpoint commit with a body and trailer",
-      "prompt": "Execute this plan. The approved plan item explicitly selects this checkpoint commit, and I authorize executing it. Use the listed fixture files as the local workspace for this eval. The eval records only your final response, so include the exact commands you ran for the checkpoint commit and for the stored-message verification, plus that verification's output.\n\n# Client Retry Limit Plan\n\n## Goal\n- Add a bounded retry limit to the client config in one verified checkpoint.\n\n## Verified facts and sources\n| Claim | Evidence | Source | Impact |\n| --- | --- | --- | --- |\n| The client config exists and parses as JSON. | Local investigation | `evals/vibe-plan-execution/fixtures/retry-config/config/client.json` | Re-check before editing. |\n\n## Requirements\n- In scope: add `\"max_retries\": 3` to `evals/vibe-plan-execution/fixtures/retry-config/config/client.json`.\n- Out of scope: code changes, other config keys, push, release preparation, and history rewrites.\n\n## Acceptance criteria\n- Checkpoint 1: the config file parses as JSON and `max_retries` equals 3.\n- Checkpoint 1: existing keys `base_url` and `timeout_ms` are unchanged.\n\n## Test plan\n- Checkpoint 1: run `python3 -c \"import json;d=json.load(open('evals/vibe-plan-execution/fixtures/retry-config/config/client.json'));print(d['max_retries'],d['base_url'],d['timeout_ms'])\"` and confirm it prints `3 https://api.example.com 5000`.\n\n## Implementation plan\n1. Re-check the fixture config file.\n2. Checkpoint 1: add the `max_retries` key.\n3. Run the test-plan check, run the post-implementation review, then commit checkpoint 1.\n\n## Commit checkpoints\n- Checkpoint 1 scope: the config change only. Required verification: the test-plan check passes. Subject: `feat(client): bound retries with max_retries config`. The commit message body must record that callers without `max_retries` keep their current behavior. The commit must carry the trailer `Co-authored-by: Config Bot <config-bot@example.com>`. Transport requirements for this checkpoint: pass the multi-line message as one payload (a single-quoted heredoc via `git commit -F -` or a message file), never as repeated `-m` arguments or a raw newline inside one `-m`; add the required trailer with `git commit --trailer`; verify the stored message afterwards with `git show -s --format=%B HEAD`.\n- This approved plan item explicitly selects the scoped checkpoint commit after implementation, verification, review, finding disposition, and safe file-set confirmation. It does not authorize push, release preparation, version bumps, amend, reset, stash, squash, destructive operations, external side effects, work-in-progress commits, failing or skipped verification commits, or scope-changing commits.\n\n## Risks and unproven items\n- None known.\n\n## Proceed condition\n- Implementation may begin.",
-      "expected_output": "Execution implements and verifies the explicitly selected checkpoint, then hands its scoped history action to the commit workflow and reports the exact commit/stored-message checks.",
-      "files": [
-        "evals/vibe-plan-execution/fixtures/retry-config/config/client.json"
-      ],
-      "expectations": [
-        "Adds `\"max_retries\": 3` to the fixture config, runs the plan's python check, and reports its passing output before committing.",
-        "Performs the checkpoint commit because the current request and approved plan item explicitly select it, scoped to the config change only.",
-        "Transports the multi-line commit message as one complete payload: a single-quoted heredoc (for example `git commit -F - <<'EOF'`) or a message file passed with `-F`.",
-        "Does not use repeated `-m` arguments for body lines, bullets, verification lines, or trailers, and does not embed a raw newline inside a single `-m` value.",
-        "Applies the plan-required trailer with a `git commit --trailer` argument rather than typing the trailer line inside the message payload.",
-        "Runs `git show -s --format=%B HEAD` after the commit and reports the stored message as the post-commit verification.",
-        "Uses the plan's Conventional Commit subject and a body that records the compatibility note without prompt-context or plan-label leakage.",
-        "Does not push, amend, reset, rebase, bump versions, or prepare a release."
+        "Classifies the minor-unit amount conflict as plan-changing because correcting it alters the acceptance criteria, the persisted schema, and the test contract.",
+        "Stops the affected amount work instead of patching code against the stale decimal-string criteria or adding a one-off workaround that satisfies them.",
+        "Names the artifact to revise and rebind before the amount work resumes: the plan's acceptance criteria, schema, and test contract, or the requirements spec that owns them.",
+        "Treats the reviewer's step-1 report as a claim to check against the code or the plan's signature criterion before relying on it, not as verified fact.",
+        "Classifies replacing `signature_valid || event.livemode` with a signature-only check as a plan-preserving correction that the existing signature criterion and test plan already require, rather than defending the step as plan compliance or escalating it as a contract change.",
+        "Labels the load-bearing claims with `Plan`, `Local evidence`, `Primary source`, or `Unproven`; exact formatting is not required."
       ]
     },
     {
@@ -213,232 +90,47 @@
       "expected_output": "A plan-execution response that classifies the pre-existing test-suite failure, decides what happens to the current checkpoint, and names the follow-up work with evidence labels.",
       "files": [],
       "expectations": [
-        "Does not skip the plan's member-export verification merely because the slice's new test passes.",
-        "Uses durable plan, suite, and helper anchors rather than prompt-local or eval-harness references.",
-        "Confirms with `Local evidence` that the helper failure pre-exists on an unmodified checkout and is independent of the slice's own diff.",
         "Does not classify the helper defect as a plan-contract defect and does not route it to a requirements or planning artifact revision, because the plan's goal, scope, and acceptance criteria remain valid.",
-        "Does not silently patch, stub, or work around `parseLegacyTimestamp` inside the slice, and does not narrow or skip the plan's member-export test-suite verification to claim the checkpoint.",
-        "Does not start open-ended debugging of the helper inside plan execution.",
         "Stops the affected checkpoint as blocked, records the defect evidence and the verification it blocks, and reports the helper defect as existing-feature repair work needing a separate request.",
-        "Does not commit the checkpoint while its required verification is failing.",
-        "Distinguishes the bound `Plan` requirement from the supplied `Local evidence` about the pre-existing helper failure; exact label formatting is not required."
-      ]
-    },
-    {
-      "id": "E12",
-      "name": "Green suite without core sentinel blocks completion",
-      "prompt": "Continue this bound plan item. The implementation changed a feature-flagged dashboard widget. The broad unit suite and lint are green. However, the plan's acceptance proof matrix has core sentinel `flag-enabled user sees the widget after toggling the flag` still `not_run`; only the negative `flag-disabled user does not see it` test passed. The plan artifact is writable and has an Implementation progress row for this item currently `In progress`. Describe the required execution summary and ledger update.",
-      "expected_output": "The response should refuse to mark the item Completed despite green suite status, and should separate suite status from acceptance coverage.",
-      "files": [],
-      "expectations": [
-        "Does not mark the implementation-progress item `Completed` while the positive core sentinel is missing or `not_run`.",
-        "Separates suite status (unit suite/lint green) from acceptance coverage (core positive sentinel missing).",
-        "Records the item as `Blocked`, `In progress`, or equivalent non-complete status with the missing sentinel as the next proof action.",
-        "Does not start edge hardening, commit, or next checkpoint based only on the green broad suite.",
-        "Preserves the paired negative/positive gate logic: the passed disabled-state test does not satisfy the enabled-state proof."
-      ]
-    },
-    {
-      "id": "E13",
-      "name": "Natural slices close with scoped checkpoint commits",
-      "prompt": "This prompt is the complete bound plan for a response-only execution decision; do not search for or bind to another local plan artifact, and do not implement or commit in this response.\n\n# Two-Slice Parser and UI Plan\n\n## Goal\n- Add a parser in S1, then wire its output into the UI in S2.\n\n## Requirements\n- S1: add the parser and its dedicated tests.\n- S2: wire the UI and add separate UI tests.\n- Each slice is independently verifiable and reviewable.\n- Out of scope: unrelated parser features, UI redesign, push, release, history rewrite, and destructive cleanup.\n\n## Test plan\n- S1: run the parser tests.\n- S2: run the UI tests and the parser regression tests.\n\n## Implementation plan\n1. Implement and verify S1.\n2. Run post-implementation review and dispose material findings for S1.\n3. Confirm the safe S1 file set.\n4. Implement and verify S2 only after S1 is closed.\n5. Run the same review and safe-file-set gates for S2.\n\n## Commit checkpoints\n- No explicit checkpoint prose is supplied.\n\n## Proceed condition\n- Implementation may begin.\n\nProject policy allows commits and the user gave no commit instruction either way. Describe the required checkpoint behavior, including what selects each commit, natural boundaries, gates, sequencing, excluded states/paths, and prohibited operations.",
-      "expected_output": "Execution uses the natural slices as implementation, verification, and checkpoint-commit boundaries.",
-      "files": [],
-      "expectations": [
-        "Uses S1 and S2 as implementation, verification, and commit boundaries.",
-        "Requires each verified, reviewed slice to close with a local commit of its own scope rather than letting the whole run accumulate uncommitted.",
-        "Requires each slice's tests, review/finding disposition, and safe file-set confirmation before its commit; this constitutes the required scope/verification report in a response-only decision task without claiming execution already occurred.",
-        "Keeps push, release, rewrite, destructive, failing, unverified, unrelated, and ambiguous work excluded. Requiring every slice to pass its verification/review gates and safe-file-set check before closure is sufficient to exclude failing, unverified, and ambiguous work without listing those adjectives separately.",
-        "Does not widen either commit beyond that slice's own changes, and does not treat the default as authority for any other history operation."
+        "Does not commit the checkpoint while its required verification is failing."
       ]
     },
     {
       "id": "E14",
-      "name": "Non-discriminating gate and inverse lifecycle repair block checkpoint",
-      "prompt": "Continue a bound checkpoint that repairs a race between two terminal signals. The plan's only quantitative completion gate is a stability counter staying below a threshold. Before the implementation change, the current defective path already satisfies that threshold. A review later says the proposed priority change fixes one ordering, but its evidence does not cover the reverse arrival order or a terminal result that was already settled. The broad suite is green, and the plan ledger still says `In progress`. Describe what execution may do next, what proof/review is required, how the ledger should read, and whether a checkpoint commit is allowed.",
-      "expected_output": "An execution decision that handles a completion metric which does not distinguish the before state and a race repair whose symmetric ordering remains unreviewed.",
+      "name": "Non-discriminating gate, unreviewed inverse order, and undelivered work block the checkpoint",
+      "prompt": "Continue a bound checkpoint that repairs a race between two terminal signals. The plan's only quantitative completion gate is a stability counter staying below a threshold. Before the implementation change, the current defective path already satisfies that threshold. A review later says the proposed priority change fixes one ordering, but its evidence does not cover the reverse arrival order or a terminal result that was already settled. The item also required regenerating the race-replay fixture, but the slice's declared path scope excluded the fixture directory, so that regeneration was not performed. The broad suite is green, and the plan ledger still says `In progress`. Describe what execution may do next, what proof/review is required, how the ledger should read, and whether a checkpoint commit is allowed.",
+      "expected_output": "An execution decision that handles a completion metric which does not distinguish the before state, a race repair whose symmetric ordering remains unreviewed, and planned work the slice's scope left undelivered.",
       "files": [],
       "expectations": [
         "Labels the current defective-path baseline as `Local evidence` and concludes that the threshold is non-discriminating because the before state already satisfies it.",
-        "Does not use the green broad suite or the passing counter threshold to mark the item `Completed`.",
         "Returns to the plan's proof strategy or Plan Validity Gate to correct or replace the acceptance metric before more implementation is accepted.",
-        "Treats the terminal-priority repair as a new reviewable change because it modifies ordering and lifecycle behavior.",
-        "Re-runs at least the relevant correctness or test/proof perspective and explicitly checks the reverse arrival order plus the case where a terminal result is already settled before the later signal.",
-        "Records the implementation-progress item as `Blocked`, `In progress`, or another non-complete evidence-backed state with both missing proof actions visible.",
-        "Does not create the checkpoint commit until the discriminating proof path and inverse-regression review pass.",
-        "Separates suite status from acceptance coverage and material review disposition in the execution summary."
+        "Gives the undelivered race-replay fixture regeneration an explicit disposition in the ledger entry: re-scoped now, scheduled to a named later item, or dropped with the reason.",
+        "Does not create the checkpoint commit until the discriminating proof path and inverse-regression review pass."
       ]
     },
     {
       "id": "E15",
-      "name": "Unique referenced-item rebind",
-      "prompt": "Execute item 'C3' from `docs/plans/foo-plan.md`. That plan has no item 'C3', but its ledger's next-dependency points forward to `docs/plans/foo-part2-plan.md`, which contains 'C3' and no other candidate plan does. Decide how to bind.",
-      "expected_output": "Execution rebinds to the unique owning plan and discloses both paths, or stops.",
+      "name": "Rebinding a referenced item and separating authorized from unauthorized plan changes",
+      "prompt": "Continue item 'C3' from `docs/plans/foo-plan.md`. Take these as supplied facts; the plan files are not in this workspace.\n\n- `docs/plans/foo-plan.md` has no item 'C3', but its progress ledger's next-dependency points forward to `docs/plans/foo-part2-plan.md`, which contains 'C3'; no other candidate plan does.\n- Since `docs/plans/foo-part2-plan.md` was last reviewed, three things in it changed: its progress ledger was updated; a risk entry for C3 was added together with a dated revision note recording the user's authorization; and C3's acceptance criterion changed from 'export finishes within 30 s' to 'export finishes within 120 s' with no revision note or other recorded authority.\n\nDecide how to bind and whether C3 may start.",
+      "expected_output": "A binding decision that states which plan owns the item and which plan changes may be relied on.",
       "files": [],
       "expectations": [
-        "Uses a bounded candidate-plan check and rebinds only because exactly one plan owns item 'C3'; when the prompt already supplies that bounded uniqueness fact, stating the sole owner is sufficient without narrating a search command.",
-        "Confirms the referenced plan's own ledger points forward to that plan before rebinding.",
-        "Discloses both the referenced path and the corrected path with the correction.",
-        "Does not silently execute the nearest-looking item or invent the binding when ownership is ambiguous."
-      ]
-    },
-    {
-      "id": "E16",
-      "name": "Infeasible human mechanism returns to owner",
-      "prompt": "The bound plan records a human-selected decision to store tokens in a named OS keyring. During execution that keyring service is unavailable on the target platform. Decide how to proceed.",
-      "expected_output": "Execution stops and returns the infeasible mechanism to its decision owner.",
-      "files": [],
-      "expectations": [
-        "Stops the affected slice instead of silently substituting an alternative token store.",
-        "Returns to the recorded decision owner with the evidence and bounded alternatives.",
-        "Records any replacement as a dated superseding decision through the owning artifact revision.",
-        "Does not erase or overwrite the original recorded decision inside execution."
-      ]
-    },
-    {
-      "id": "E17",
-      "name": "Semantic contract drift blocks without digest fields",
-      "prompt": "Bind a plan by its path and current reviewed content. The current plan now changes an acceptance criterion, while its intentional progress ledger also changed. The criterion change has no recorded authority. Decide whether to execute.",
-      "expected_output": "Execution blocks on unexplained semantic contract drift while treating progress-only state separately.",
-      "files": [],
-      "expectations": [
-        "Uses the current plan content and distinguishes the intentional progress update from the acceptance-criterion change; it need not narrate the act of re-reading when the distinction itself is explicit.",
-        "Blocks because authority for the criterion change is unclear.",
-        "Returns to plan revision and does not require digest validation or reconciliation.",
-        "Does not treat progress text as authority for contract change."
-      ]
-    },
-    {
-      "id": "E18",
-      "name": "Reserved startup decisions only",
-      "prompt": "The bound plan reserves two low-risk startup decisions and leaves a permission-sensitive decision unresolved. You have batched authorization. Decide what you may complete before editing.",
-      "expected_output": "Execution completes only the plan-authored reserved low-risk fields and stops for the permission decision.",
-      "files": [],
-      "expectations": [
-        "States that only the two plan-authored reserved fields may be completed before editing, and names what each completion records: authority, evidence, decision owner, response carrier, and proceed update.",
-        "Leaves the permission-sensitive decision at its later gate rather than batching it.",
-        "Does not change scope, criteria, tests, risks, or steps through a reserved field.",
-        "Batches only simultaneously knowable startup decisions."
-      ]
-    },
-    {
-      "id": "E19",
-      "name": "Authorized semantic revision can rebind without digest repair",
-      "prompt": "A bound plan path has a dated, user-authorized risk addition recorded in its revision evidence, plus an intentional progress update. Decide whether and how execution may rebind. No plan-maintained digests exist.",
-      "expected_output": "Execution verifies the revision authority and semantically re-reviews affected contract sections before rebinding, without creating digest bookkeeping.",
-      "files": [],
-      "expectations": [
-        "Verifies that the risk change traces to current user authority and separates it from progress state.",
-        "Semantically re-reviews the risk, proceed condition, affected tests/steps, and current slice before rebinding.",
-        "States the boundary that keeps this rebind narrow: the dated, authorized revision may rebind, while drift without that revision authority stays blocked.",
-        "Does not generate hashes, identity sidecars, or reconciliation notes merely for identity maintenance."
+        "Rebinds C3 to `docs/plans/foo-part2-plan.md` on the basis that it is the only plan owning C3 and `docs/plans/foo-plan.md`'s ledger points forward to it.",
+        "Discloses both the referenced path and the corrected path.",
+        "Does not start C3 against either version of the changed acceptance criterion, because the change has no recorded authority, and returns that criterion for plan revision.",
+        "Treats the user-authorized risk addition as usable only after re-reading its effect on C3's proceed condition, tests, and steps."
       ]
     },
     {
       "id": "E20",
-      "name": "Atomic slice waits for runway and load-bearing proof",
+      "name": "Atomic slice waits for runway",
       "prompt": "The next bound-plan slice is atomic: the tree may not build between its two parts. Little session/context runway remains. The slice freezes a captured baseline with one manual-only class, adds a production refusal rule that currently has only a direct unit test, and claims an absence assertion over a capture channel with no positive control. Decide whether to start and what proof the eventual slice gate requires.",
-      "expected_output": "An execution decision that stops at the prior verified checkpoint and names the missing final-byte proof obligations.",
+      "expected_output": "An execution decision that stops at the prior verified checkpoint instead of starting an atomic slice without runway.",
       "files": [],
       "expectations": [
         "Does not start the atomic slice without enough runway to reach its verification gate and records the start/no-start decision at the prior verified checkpoint.",
         "Does not split the atomic slice merely to fit the current session.",
-        "Requires every frozen baseline class to be accounted for as verified now, deferred to a named gate, or a manual-only hole with owner and residual-risk disposition.",
-        "Requires the refusal rule to be observed through a production path rather than treating its direct unit test as reachability proof.",
-        "Requires a same-channel positive control for the absence assertion so an empty or mis-pathed capture cannot pass.",
-        "Requires a reversible performed mutation for the load-bearing proof, cleanup evidence, and final-byte verification before completion or commit."
-      ]
-    },
-    {
-      "id": "E21",
-      "name": "Scope-blocked plan item is not a completed item",
-      "prompt": "The bound plan's item S2 required both a serializer change and a matching fixture regeneration. The slice's declared path scope covered the serializer only, so the fixture regeneration was not performed. The serializer change is implemented, its tests pass, and the post-implementation review found no material findings. Describe the durable progress-ledger update and the user-facing summary. Do not implement or commit in this response.",
-      "expected_output": "A ledger update that records S2 as partially delivered and carries the blocked fixture work with an explicit disposition.",
-      "files": [],
-      "expectations": [
-        "Does not record S2 as complete.",
-        "Gives the undelivered fixture regeneration an explicit disposition — re-scoped now, scheduled to a named later item, or dropped with the reason — wherever the item's status is recorded.",
-        "Does not let the passing serializer tests or the clean review stand as evidence that the fixture work happened.",
-        "Keeps the ledger update to status and evidence without changing plan scope, acceptance criteria, tests, or risks.",
-        "Does not stage or commit."
-      ]
-    },
-    {
-      "id": "E22",
-      "name": "Mixed working tree blocks the checkpoint default",
-      "prompt": "Describe the required checkpoint behavior for this response-only situation; do not implement or commit in this response.\n\nA bound plan's slice S1 is implemented and its tests pass, and the post-implementation review found no material findings. The user gave no commit instruction either way, and project policy allows commits. `git status` also shows edits to three files this session never touched, left over from earlier unrelated work, and two of them are the same files S1 changed. Attempting to separate S1's hunks from the pre-existing hunks in those two files is not reliable from the diff alone.\n\nState what execution may commit, what it must not, and how it should report the result.",
-      "expected_output": "Execution does not commit a file set it cannot separate from unrelated pre-existing changes, and reports the mixed state instead of sweeping or guessing.",
-      "files": [],
-      "expectations": [
-        "Does not create a commit that would include the unrelated pre-existing changes, and does not use `git add -A`, `git add .`, or a broad glob to stage the slice.",
-        "Reports the mixed working-tree state, distinguishing the two files S1 also changed — whose hunks cannot be reliably separated — from the third unrelated file, rather than silently finishing uncommitted or silently committing everything.",
-        "Asks the user for the smallest decision needed, or offers partial staging with file-specific verification of both the staged and left-behind hunks.",
-        "Does not treat the blocked checkpoint as a reason to undo, stash, discard, or reset the verified S1 work or the pre-existing changes.",
-        "Does not block or reverse the completed implementation and verification of S1 merely because its checkpoint could not close."
-      ]
-    },
-    {
-      "id": "E23",
-      "name": "CSV import slice with a user-agreed timestamp change, a deferred retry loop, and two overlapping accepted records",
-      "prompt": "You are executing a bound implementation plan whose current slice is the CSV import writer. Today is 2026-09-06. Take the following as supplied state.\n\n- `docs/decisions/` holds `0001-…md` through `0011-…md` and nothing numbered higher; `docs/decisions/README.md` agrees and its highest row is `ADR-0011`.\n- `docs/reports/findings/` and `docs/reports/findings/README.md` together, closed entries included, reach `DF-0004` and no higher.\n- The repository has `npm test -- src/import`, whose cases read stored import timestamps back and assert their zone.\n\nFour things are true right now:\n\n(a) The plan's step said to persist import timestamps in the server's local time zone. You showed the user that two later slices read those timestamps back, and the user answered today: \"store them in UTC everywhere, local time was wrong\". You implemented that in `src/import/timestamps.ts`.\n\n(b) In the same file you read 200 rows per page instead of 100. The comment directly above that reader already spells out how paging works and why the code pages at all; you weighed no alternative, no file outside `src/import/timestamps.ts` reads the number, and switching it back is a one-line change with nothing downstream.\n\n(c) The importer's retry loop in `src/import/retry.ts` can starve the writer on a slow disk. It is outside the slice's declared path scope, you observed it in a stress run today, and the user agreed to leave it for a later slice. You judge it high severity.\n\n(d) The index lists `ADR-0003` (accepted, ratified: user) requiring import errors to be aggregated into one summary error, and `ADR-0010` (accepted, ratified: user) requiring one error per bad row. Both carry `src/import/**` in `paths`, neither supersedes the other, and the slice's next step writes that error path.\n\nThe plan also names a checkpoint at the end of this slice.\n\nThen consider one follow-up on the same slice: the user settles (d) with one-error-per-row, so a newly allocated record (the next id after the UTC record) supersedes `ADR-0003`, both older records and the index are reconciled together, and the slice is otherwise finished — while the UTC code from (a) is still present in `src/import/timestamps.ts` and no UTC decision record or index row exists yet.\n\nThis is a response-only exercise: do not create, modify, or delete any file in this checkout; describe exactly what you would produce.\n\nState what this phase does now and in the follow-up, and which artifacts, entries, index rows, packets, or refusals come out of it, with their field values.",
-      "expected_output": "A response that states the durable artifacts and field values this slice produces, what it leaves unrecorded, and what it stops on now and in the follow-up.",
-      "files": [],
-      "expectations": [
-        "States that it allocates `ADR-0012` — one more than the highest id present in both `docs/decisions/` and `docs/decisions/README.md` — and would write the UTC timestamp decision at `docs/decisions/0012-<slug>.md` with `status: accepted`, `decided-by: user`, `ratified: user`, a `paths` glob covering `src/import/**`, a one-sentence imperative `summary`, and `revisit-when`.",
-        "Gives that record's `confirmation` as a concrete command or check — `npm test -- src/import` is available — or with a `manual:` form naming the check and why no automated one exists, rather than a promise to verify later.",
-        "Anchors that record's `sources` to the authority this prompt supplies: the user's 2026-09-06 turn with its deciding phrase, and names the rejected local-time option under `## Considered Options`.",
-        "Describes the row it would add for it to `docs/decisions/README.md` with the columns `id | status | decided-by/ratified | paths | tags | summary | file`. A complete positional row in that exact 7-column order satisfies this expectation without separately repeating column labels or explaining the schema.",
-        "Writes no decision record for the 200-row page: the comment above that reader already carries the paging behaviour, nothing outside `src/import/timestamps.ts` reads the number, no alternative was weighed, and the change reverses in one line.",
-        "States that it allocates `DF-0005` — one more than the highest id across every report and the index, closed entries included — and would write the retry loop into `docs/reports/findings/2026-09-06-<goal-slug>.md` under the heading `## DF-0005 <title>`.",
-        "Gives that report front matter `goal`, `date`, `phases`, and `source_artifacts`.",
-        "Gives the `DF-0005` entry `status: deferred`, severity `high`, scope `src/import/retry.ts`, evidence stating the evidence class, anchor, and date or commit of the stress run, why it was not addressed, `decided by: user`, a revisit trigger, and a next action and owner (`unassigned` allowed).",
-        "Describes the row it would add to `docs/reports/findings/README.md` with the columns `id | status | severity | scope | title | file`, its file link pointing at the `DF-0005` entry heading rather than at the report file alone. A complete positional row in that exact 6-column order satisfies this expectation without separately repeating column labels or explaining the schema.",
-        "Stops with a finding on the conflict between accepted records `ADR-0003` and `ADR-0010` instead of choosing one of the two error formats.",
-        "Withholds the plan's checkpoint on its own ground — the UTC decision from (a) is not yet written to a record — and states that precondition, that no unrecorded qualifying decision remains, as the reason; the refusal does not rest on the (d) conflict. Checkpoint eligibility is evaluated against the supplied state, before any described remedial write; describing the proposed record does not establish that it exists.",
-        "In the follow-up, where a newly allocated record supersedes `ADR-0003` and both older records and the index are reconciled (no accepted record's `supersedes` is edited in place), and the slice is otherwise finished, still withholds the checkpoint and gives the same unrecorded-decision reason rather than treating the cleared conflict as clearance.",
-        "Does not create, modify, or delete any file in this checkout; it states the records, entries, and rows it would write."
-      ]
-    },
-    {
-      "id": "E24",
-      "name": "Review fix additions screened against the existing contract",
-      "prompt": "This is a response-only decision exercise. The supplied facts are the entire project evidence universe; do not inspect the ambient project, edit files, run project commands, or launch agents or reviews. Reading the applicable skill package is permitted. Describe the decisions and any future gates without claiming they ran. Classify two independent review proposals during an authorized execution slice. The bound plan requires an owner to restart an interrupted archive upload without uploading already confirmed chunks again; it permits internal implementation choices but adds no public controls. Supplied local evidence proves the current uploader forgets confirmed chunks across restart, and an internal persisted chunk cursor would repair that behavior without changing public behavior, permissions, or storage ownership. A second reviewer proposes an optional email-alert service, a new owner email setting, and an upload-history panel solely for convenience; none is needed for the restart requirement and none is in the plan. Both reviewers label their proposal high priority. Explain which work can stay in the slice and which needs a different disposition, without implementing either.",
-      "expected_output": "A response distinguishing the two proposals under the bound execution contract.",
-      "files": [],
-      "expectations": [
-        "Treats the evidenced restart repair as eligible for a plan-preserving correction because it satisfies the existing requirement, rather than rejecting it merely because it adds internal persistent state.",
-        "Keeps the optional alert service, email setting, and history panel out of the current repair slice because they add unselected behavior; requires owning scope revision and rebinding before implementing them or leaves them deferred as proposals.",
-        "Does not treat reviewer priority or agreement as authorization; relates the disposition to the supplied requirement, failure, and contract effects.",
-        "Does not label an agent-deferred enhancement as user-accepted residual risk or claim implementation, verification, or user approval occurred.",
-        "Keeps the exercise response-only: does not inspect the ambient project, edit files, execute project commands, or launch agents or reviews. Reading the applicable skill package is allowed; described future actions are not treated as performed actions."
-      ]
-    },
-    {
-      "id": "E25",
-      "name": "Human runtime receipt identifies consumed artifacts and relevant inputs",
-      "prompt": "This is a response-only decision exercise. The supplied facts are the entire project evidence universe; do not inspect the ambient project, edit files, run project commands, or launch agents or reviews. Reading the applicable skill package is permitted. Describe the decisions and any future gates without claiming they ran. Give a concise execution handoff decision for two independent runtime-check situations. In A, the user passed a restart smoke check using the installed plugin, but the receipt records only a source diff digest; the installed plugin may be an older binary. The build consumed an untracked helper file whose contents were not recorded. In B, the receipt identifies the actual loaded artifact and all relevant source/build inputs. After the passing check, only a scratch meeting note outside those inputs changed; the candidate implementation and build inputs are otherwise identical. The bound plan requires runtime restart acceptance and permits evidence-backed behavior-neutral deltas. Explain what can be claimed, what evidence is still needed before handing off a commit, and whether another user session is necessarily required.",
-      "expected_output": "A bounded handoff decision for the two supplied verification states.",
-      "files": [],
-      "expectations": [
-        "For A, refuses to infer tested implementation identity from a source diff digest alone and requires binding the actually loaded artifact to relevant source/build inputs, including the consumed untracked helper.",
-        "For A, describes obtaining missing provenance or affected runtime verification before attributing the passing test to the candidate bytes; does not claim static checks or an arbitrary current rebuild retroactively identify the tested artifact.",
-        "For B, accepts that unrelated note drift alone does not require another human runtime session when its exclusion from relevant inputs is established; preserves the bounded evidence rather than demanding whole-tree equality.",
-        "Requires the commit handoff to carry the tested identity and any exact relevant delta or proof limit so the receiving workflow can assess its proposed contents; does not claim the missing evidence was collected.",
-        "Keeps the exercise response-only: does not inspect the ambient project, edit files, execute project commands, or launch agents or reviews. Reading the applicable skill package is allowed; described future actions are not treated as performed actions."
-      ]
-    },
-    {
-      "id": "E26",
-      "name": "CSV export slice with review proposals and a skip request",
-      "prompt": "This is a response-only execution exercise. The supplied facts are the entire project evidence universe; do not inspect the ambient project, create or edit files, run project commands, or launch agents or reviews. Reading the applicable skill package is permitted. Describe the decisions and next actions without claiming they ran.\n\nYou are executing the bound implementation plan \"Ledger CSV export\"; slice 1 is current. Its acceptance criteria:\n- AC1: an empty ledger exports a header line only.\n- AC2: a ledger with one entry exports one data row.\n- AC3: the header columns are `date,description,amount_cents`, in that order.\n- AC4: values containing commas or quotes are escaped.\n\nAmounts are stored and exported as integer cents.\n\nThe plan's `Test plan`:\n- T1: empty ledger; asserts the output line count only.\n- T2: one entry; asserts the field values of the data row.\n- T3: a table-driven test with descriptions containing a comma only, a quote only, and both; each row asserts the escaped field.\n- T4: export-then-import round trip through the existing importer, which reads columns by header name.\n\nThe slice's code is implemented. T1-T3 are implemented and pass; T4 has not run yet.\n\nThe post-implementation reviewer proposes:\n- R1: an `.xlsx` export test.\n- R2: locale decimal-separator tests.\n- R3: a description-with-comma test.\n- R4: a one-million-row performance test.\n- R5: a header-order test.\n\nThe user says T4 looks redundant with T2 and asks to skip it.\n\nDescribe the disposition of each review proposal and of the user's request, and the next actions for slice 1, without editing anything.",
-      "expected_output": "Per-item dispositions that bring the header-order test in as a visible plan-preserving correction, reject or defer the out-of-criteria and already-covered proposals, keep T4 against the skip request, and leave slice 1 open until T4 and the header-order test have run.",
-      "files": [],
-      "expectations": [
-        "Treats R5 as material because no executed or planned test checks AC3, and brings the header-order test in as a visible plan-preserving correction rather than adding it silently or omitting it.",
-        "Rejects or defers R1 and R4 as outside the plan's criteria, without implementing them.",
-        "Rejects R2 because integer-cent amounts cannot produce decimal separators, and R3 because T3's comma-only row already covers a comma in a quoted value, without adding either test.",
-        "Keeps T4 under the Plan Deviation Gate because the round trip observes the importer path that T2 does not.",
-        "Does not mark slice 1 complete until T4 and the header-order test have run."
+        "Requires every frozen baseline class to be accounted for as verified now, deferred to a named gate, or a manual-only hole with owner and residual-risk disposition."
       ]
     }
   ],
@@ -446,6 +138,6 @@
     "common_assertion_weight": 0.5,
     "per_eval_expectation_weight": 0.5,
     "pass_threshold": 0.8,
-    "notes": "Compact suite: broad runner-cost cases were merged or removed. Remaining cases preserve the plan-execution contracts most likely to regress: no implementation without a ready concrete plan, scoped accepted risk, deviation/validity distinction, artifact-backed plan binding, high-risk section binding, discriminating acceptance proof, explicit checkpoint selection and uncommitted-by-default sequencing, delegated-or-fallback post-implementation review, inverse-regression re-review for lifecycle/control-flow fixes, implementation-time workaround/status-quo defect handling, configured chat-language summaries, and conditional implementation-progress ledger updates. Removed stale-command and unattended-orchestration standalone cases are covered by artifact/current-evidence expectations, delegation boundaries, and explicit checkpoint authority assertions in the remaining cases. Report-derived cases E19-E20 cover semantic plan-revision binding and a high-risk atomic-slice proof boundary."
+    "notes": "Compact suite: each case guards a core execution contract with discriminating pressure, or with a guard against a temptation the skill's own checkpoint default or correction rules create. Non-discriminating checks and cases for removed rules were deleted."
   }
 }
