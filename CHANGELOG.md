@@ -86,6 +86,8 @@ use `[Repository] - YYYY-MM-DD`.
   confirmation never overrides a conflict stop; an accepted divergence is
   recorded with the confirmed change set; the decision and open-findings
   indexes are checked at phase start.
+- `vibe-brainstorm`: instructions are cut to its modes, delegation
+  honesty, and stop boundaries, with no intended behavior change.
 - Verification: evals were not re-run after this trim, so every behavior
   delta above is `Unproven`. Suite `validate`, `vibe_shared_contract.py check
   --strict` and `audit-names`, and `python3 -m pytest tests` passed. Most eval
