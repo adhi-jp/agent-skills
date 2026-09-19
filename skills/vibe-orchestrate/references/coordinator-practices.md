@@ -50,11 +50,16 @@ Batch optional proposals with impact, remaining effort, and a continue/trim/defe
 recommendation. Ask only for additional scope, cost, or human-risk decisions;
 autonomy does not authorize unlimited optional work or accept residual risk.
 
-A further review after initial review and targeted correction needs a named
-unresolved acceptance/safety defect, changed evidence, or authorized scope.
-Repeated findings in one component call for diagnosis or artifact-owner
-backtracking. On user-reported drift, state removed verification work, surviving
-coverage, and open gaps; changing required proof belongs to the owning artifact.
+Convergence checkpoint: when the review after a correction round finds new
+defects of the same class (a shared failure mechanism or violated invariant,
+not a shared label) in the same component, start no further implementation
+round there; a named defect alone does not justify one. Return to the design
+question or ask the user with what is verified, what the next round adds, and
+its cost. Another adversarial review also needs a named unresolved acceptance
+or safety defect, changed evidence, or authorized scope, and never overrides
+this checkpoint. On user-reported drift, state removed verification
+work, surviving coverage, and open gaps; changing required proof belongs to the
+owning artifact.
 
 ## Coordinator Capability Fit
 

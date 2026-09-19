@@ -36,3 +36,9 @@ After two consecutive repairs under the same cause hypothesis leave the
 acceptance discriminator materially unchanged, stop implementation. Revalidate
 both metric discrimination and the observation regime. Resume only when new
 proof changes the cause model, discriminator, or relevant state-space boundary.
+
+When the review after a correction round finds new defects of the same class (a
+shared failure mechanism or violated invariant, not a shared label) in the same
+component, start no further implementation round there; a named defect alone
+does not justify one. Return to the footprint comparison in `SKILL.md` or
+ask the user with what is verified, what the next round adds, and its cost.

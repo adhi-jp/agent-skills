@@ -135,7 +135,10 @@ file set confirmed safe and separable from unrelated working-tree changes.
    decisions or files. Settle size versus difficulty from a bounded read-only
    inspection of code, tests, tree, and dependencies before the first write
    round and again at each join; when a load-bearing judgment exceeds this
-   seat, stop and hand off instead of continuing.
+   seat, stop and hand off instead of continuing. User instructions on
+   delegation, model mix, or cross-vendor review set how work is done, not how
+   much is built; a repair's envelope plans one external pass at the design
+   decision and one on the final candidate.
 3. Read `references/delegation-contracts.md` when drafting a worker contract or
    reconciling a returned worker report.
    Give one bounded mission, verified facts and anchors, protected evidence,
@@ -152,11 +155,21 @@ file set confirmed safe and separable from unrelated working-tree changes.
    final tree/descendant audit reconcile.
 6. Before accepting a result or launching repair, read
    `references/verification-and-review.md`. Verify the kept bytes in the
-   authoritative environment and disposition material findings before repair.
-   Substantial rounds receive read-only review; findings tied to changed bytes
+   authoritative environment; for a changed tool invocation across a permission
+   or sandbox boundary, that means representative real inputs in the real
+   invocation context, never a proxy harness, so prefer designs that add none.
+   Disposition material findings before repair. Substantial rounds receive
+   read-only review; a correction round gets a narrow verification pass, not a
+   new adversarial review. A further pass, or a round after same-class findings
+   recur in one component, needs the convergence checkpoint in
+   `references/coordinator-practices.md`. Findings tied to changed bytes
    require current-state reinspection.
 7. Close only the integrated, verified round with every contracted item
-   accounted for. Follow the history and durable-record boundaries above.
+   accounted for. A change the user will apply is no exception: when verifying
+   its load-bearing premise is blocked (tool denial, classifier refusal,
+   missing access), it stays blocked; present the premise, its impact if false,
+   and the rollback, and get explicit acceptance before asking the user to
+   install it. Follow the history and durable-record boundaries above.
 
 Read only the references needed for the current step. For direct coordinator
 edits, consult `references/coordinator-practices.md` under Direct Coordinator

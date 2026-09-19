@@ -42,7 +42,9 @@ use `[Repository] - YYYY-MM-DD`.
 - `vibe-coding`: routes from one precedence-ordered table that names each
   row's usual specialist, and routes only to a specialist present in visible
   metadata; for a router-owned row, the finish gate is the report that closes
-  the unit.
+  the unit. A proven repair that would touch a second behavior or
+  integration surface or change an interface another component calls stops
+  after diagnosis and goes to implementation planning or the user.
 - Repository: `scripts/vibe_session_record.py` and its tests are removed.
   `scripts/vibe_shared_contract.py` drops the closing-block, gate and schema
   cap, and appendix checks, treats a block without a bold lead as a shape
@@ -74,11 +76,28 @@ use `[Repository] - YYYY-MM-DD`.
   without an index, it checks the records themselves against the staged
   diff.
 - `vibe-debug`: the debug ledger keeps five core fields, and retest and
-  delegation handoffs drop per-step ledger ids and budget fields.
+  delegation handoffs drop per-step ledger ids and budget fields. Before
+  implementing, it names the smallest repair and its footprint and asks
+  before starting a materially larger candidate, recommending the smaller;
+  consultant agreement does not decide. New same-class defects in the same
+  component after a correction round stop further rounds there. A change the
+  user will install whose load-bearing premise could not be verified stays
+  blocked until the user accepts the stated premise, impact, and rollback; a
+  changed tool invocation across a permission or sandbox boundary needs proof
+  in its real invocation context.
 - `vibe-review`: no longer records a per-unit delegation budget before
   launching reviewers.
 - `vibe-orchestrate`: no longer asks at startup for local-commit
-  confirmation or prescribes a fixed history-authority summary.
+  confirmation or prescribes a fixed history-authority summary. Delegation,
+  model-mix, and cross-vendor review instructions set how work is done, not
+  how much is built: a repair plans one external pass at the design decision
+  and one on the final candidate, and a correction round gets a narrow
+  verification pass. New same-class defects in the same component after a
+  correction round stop further rounds there, even for a named defect, until
+  the design is revisited or the user decides. A user-installed change with
+  an unverified load-bearing premise stays blocked until the user accepts
+  that risk, and a changed tool invocation across a permission or sandbox
+  boundary needs proof in its real invocation context.
 - `vibe-writing`: reference playbooks and examples are cut to the rules
   they illustrate, with no intended behavior change.
 - `vibe-agent-instructions`: the size report gives two measurements (the
@@ -107,11 +126,11 @@ use `[Repository] - YYYY-MM-DD`.
   range. No other contract change.
 - Verification: after the last edit to each package, one codex
   `gpt-5.6-luna` full-suite run (runs=1) scored `with_skill` against
-  `without_skill`: `vibe-coding` 92.8% / 65.3%, `vibe-requirements-spec`
+  `without_skill`: `vibe-coding` 94.1% / 62.1%, `vibe-requirements-spec`
   92.5% / 42.1%, `vibe-planning` 93.7% / 40.6%, `vibe-plan-execution` 84.6% /
   60.7%, `vibe-plan-review` 95.7% / 51.6%, `vibe-commit` 96.4% / 80.2%,
-  `vibe-debug` 92.7% / 67.6%, `vibe-review` 98.0% / 61.5%, `vibe-orchestrate`
-  86.9% / 55.2%, `vibe-writing` 94.0% / 73.9%, `vibe-agent-instructions`
+  `vibe-debug` 95.1% / 74.8%, `vibe-review` 98.0% / 61.5%, `vibe-orchestrate`
+  87.4% / 59.4%, `vibe-writing` 94.0% / 73.9%, `vibe-agent-instructions`
   94.5% / 34.0%, `vibe-brainstorm` 92.9% / 57.0%, `vibe-goal-alignment` 93.0%
   / 63.4%, `vibe-code-research` 95.5% / 80.6%, `skill-quality` 86.1% / 57.4%,
   `skill-eval` 100.0% / 34.1%. The below-baseline cells in

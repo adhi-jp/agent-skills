@@ -27,6 +27,13 @@ and verification path. For that primary symptom, identify the reproduction or
 first failing proof, hypothesis, minimal patch envelope, positive and negative
 sentinels, and last verified checkpoint.
 
+Before implementing, name the smallest repair that closes the reported symptom
+and its footprint: surfaces, interfaces or invocations changed, and new
+components. When another candidate's footprint differs materially, present both
+with impact and ask before starting the larger; recommend the smaller by
+default. Consultant or reviewer agreement informs that question; it does not
+answer it.
+
 ## Effect And Write Boundaries
 
 <!-- shared-contract:class language=none commit=state-changing effect=state-changing -->
@@ -139,8 +146,17 @@ for the evidence-first loop. Load other references at these triggers:
 Pause implementation when a material expected-behavior source, existing-behavior
 dimension, artifact, tool, or observation path is missing and no credible
 alternate proof or explicitly accepted residual resolves it. Explain the user
-impact and ask only the smallest decision needed. For repeated failed repairs,
-apply the stop rule in `references/debug-ledger.md` before another patch.
+impact and ask only the smallest decision needed. For repeated failed repairs or
+same-class review findings after a correction, apply the stop rule in
+`references/debug-ledger.md` before another patch.
+
+This covers a change the user will apply. When verifying its load-bearing
+premise is blocked (tool denial, classifier refusal, missing access), the change
+is `blocked`: present the premise, its impact if false, and the rollback, and get
+explicit acceptance before asking the user to install it. A changed tool
+invocation across a permission or sandbox boundary is proven only with
+representative real inputs in its real invocation context, never a proxy
+harness; prefer a repair that adds none.
 
 ## Finish Gate
 
