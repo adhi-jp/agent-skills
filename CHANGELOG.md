@@ -87,7 +87,8 @@ use `[Repository] - YYYY-MM-DD`.
   optional; a link replacement is previewed by its link target; advance
   confirmation never overrides a conflict stop; an accepted divergence is
   recorded with the confirmed change set; the decision and open-findings
-  indexes are checked at phase start.
+  indexes are checked at phase start; the report names
+  `AGENTS.override.md` as the source of `CLAUDE.local.md`.
 - `vibe-brainstorm`: instructions are cut to its modes, delegation
   honesty, and stop boundaries, with no intended behavior change.
 - `vibe-goal-alignment`: a confirmed deletion, release, or cleanup decision

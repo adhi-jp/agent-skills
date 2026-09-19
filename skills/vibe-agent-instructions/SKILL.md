@@ -133,7 +133,8 @@ The managed block's four lines are literal text; never translate them.
   Git-ignored and starts with a managed block telling a reading agent to read
   `AGENTS.md` first, because Codex loads the override *instead of*
   `AGENTS.md`. `CLAUDE.local.md` is a relative link to it, or the stub
-  `@AGENTS.override.md`.
+  `@AGENTS.override.md`. Name this pair the same way as the shared one:
+  `AGENTS.override.md` is the source and `CLAUDE.local.md` is derived.
 
 ## Workflow
 
