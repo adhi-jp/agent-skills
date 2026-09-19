@@ -177,8 +177,9 @@ replace, or preserve it.
 ## Reflection Into The Plan
 
 After all items, explain the four outcomes from `references/localized-labels.md`,
-state that review is complete but unreflected, exclude review history and chat
-notes from executable content, and ask for explicit reflection confirmation.
+state that review is complete but unreflected, exclude review-history
+annotations, per-item judgment logs, and chat notes from executable content,
+and ask for explicit reflection confirmation.
 General review consent is not reflection consent; `削除` takes effect only after
 confirmation. The reflected plan contains executable content plus held items.
 
