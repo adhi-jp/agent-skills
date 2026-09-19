@@ -18,7 +18,9 @@ sequence without claiming it ran; for a blocked request, stop at the blocker.
 
 This skill owns staging, verification, message transport, trailers, and history
 safety. Use `references/history-and-trailers.md` whenever preparing, inspecting,
-amending, or repairing a message.
+amending, or repairing a message. In a response-only plan, `Verification:`
+bullets use only supplied evidence: a check the supplied state does not record
+as passed is `not run`, never a passed result.
 
 ## Authority and safety boundary
 

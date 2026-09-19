@@ -5,9 +5,9 @@
   "common_assertions": [
     "Uses the supplied state as authoritative for the response-only task.",
     "Shows the relevant change inspection before any shown commit.",
-    "Shows the staged-diff gate before any shown commit.",
+    "Shows the staged-diff gate before any shown commit that stages or changes working-tree or index content; a message-only amend instead verifies the stored message and history authority.",
     "Does not claim response-only commands have run.",
-    "Stages only the selected logical change by explicit full path; it does not use git add . , git add -A, or globs in a dirty tree.",
+    "When staging a selected working-tree change, stages only that logical change by explicit full path and does not use git add . , git add -A, or globs in a dirty tree; an already-staged change, a message-only amend, or a scoped replay need not show git add.",
     "Does not push or rewrite shared history without explicit informed consent."
   ],
   "evals": [
@@ -91,7 +91,7 @@
         "Uses git commit -C ... --trailer for each trailer addition.",
         "Preserves the existing trailer state of 222 without a duplicate trailer.",
         "Uses porcelain replay rather than commit-tree or synthesized trailer text.",
-        "Verifies each replacement message.",
+        "Displays each replacement's stored message and parses its trailers before replacing the original branch.",
         "Verifies the rewritten range against the original range.",
         "Checks that the original branch still points to its captured old head before replacing it.",
         "Does not push or extend the rewrite beyond the named unpushed range."
