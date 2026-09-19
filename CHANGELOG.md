@@ -56,7 +56,8 @@ use `[Repository] - YYYY-MM-DD`.
 - `vibe-planning`: plans drop the optional acceptance-proof matrix and
   quality checklist; delegated plan review records only how each perspective
   ran and any launch failure; a planning-time command notes the question it
-  answers instead of a six-field receipt.
+  answers instead of a six-field receipt; a response-only planning answer
+  reads the planning workflow and core controls references first.
 - `vibe-plan-execution`: a plan-chosen workaround no longer triggers a stop
   just because the underlying behavior looks material, and a chat summary that
   differs from the plan artifact is flagged rather than stopping unless the

@@ -21,11 +21,11 @@
       "expectations": [
         "Uses Japanese for the user-facing summary while keeping artifact headings in English and preserving paths, identifiers, and commands.",
         "Cites `ProfileForm.tsx`, `ProfileForm.test.tsx`, and `schema.sql` as `Local investigation` evidence with concrete facts such as `onSave({ displayName })`, cancel restoration, and nullable `display_name text`.",
-        "Keeps the current slice to display-name editing; avatar upload, username changes, and account deletion remain out of scope.",
+        "Keeps the current slice to display-name editing and names adjacent profile features a later implementer could expand into, including avatar upload and account deletion, as out of scope.",
         "Defines acceptance criteria and tests for saving a nonblank display name, an evidence-backed empty-value policy, existing cancel restoration, and relevant loading/error states.",
         "Does not invent a numeric max-length limit and does not block the bounded display-name slice solely because max-length is unverified; it proves the limit or defers that product decision outside current acceptance criteria.",
-        "Sets `Proceed condition` to implementation-ready only for the bounded display-name slice.",
-        "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
+        "Limits the `Proceed condition` to the bounded display-name slice: ready, or discovery-first or blocked only on named current-slice proof or decisions (such as the unseen `onSave` caller or the empty-value policy), never on max-length or out-of-scope features.",
+        "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice or next proof step, proceed condition (a plain-language equivalent counts), and material blocker or decision.",
         "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
         "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
         "Capability dependencies are recorded only when absence materially changes feasibility, safety, proof, or method; ordinary steps need no routing table, and the implementation handoff binds later work to the plan and its stop conditions.",
@@ -48,7 +48,7 @@
         "Cites resetToken.ts and resetToken.test.ts as Local investigation evidence with substantive fixture facts: expiresAtMs is nowMs + ttlMs, expiry uses nowMs >= token.expiresAtMs, and existing tests cover newly issued acceptance and rejection at expiresAtMs + 1. Does not claim expired-token rejection coverage is absent.",
         "Chooses test-driven or spec-driven + test-driven planning with regression tests for just-issued acceptance, expired-token rejection, and a reproduction-targeted immediate-expiry case.",
         "Includes reproduction or isolation proof before production-code changes and keeps implementation conditional on a proven local cause.",
-        "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
+        "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice or next proof step, proceed condition (a plain-language equivalent counts), and material blocker or decision.",
         "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
         "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
         "Capability dependencies are recorded only when absence materially changes feasibility, safety, proof, or method; ordinary steps need no routing table, and the implementation handoff binds later work to the plan and its stop conditions.",
@@ -66,12 +66,12 @@
       "expectations": [
         "Records `message-polisher` only where absence materially affects commit-message preparation; does not create a universal per-step routing table or `No skill needed` rows.",
         "Treats the user request to verify and commit each slice as explicit checkpoint selection, with bounded scope and required verification.",
-        "Does not commit during planning and preserves push, release, version, rewrite, destructive, failing, and unrelated-path exclusions.",
+        "Does not commit during planning; its checkpoints stay scoped to each slice's verified files and authorize no push, release, version change, or history rewrite.",
         "Keeps workspace-specific implementation facts `Unproven`, records self-review, and uses additional perspectives only if risk warrants them.",
         "Includes an `Implementation progress` ledger that maps each planned slice to a stable item ID, planned scope, initial `Not started` status, required verification or review, last update, and remaining blocker or next item.",
         "The implementation handoff binds the selected plan path and re-reads its current content rather than requiring maintained hashes, digests, or identity sidecar files.",
         "The implementation handoff treats a progress-only ledger update as resumable state only after its claims are verified, and returns to plan revision when requirements, criteria, tests, risks, or steps change without clear authority.",
-        "Writes or names a complete Markdown plan and concise summary with path, current slice, proceed condition, and blocker or decision."
+        "Writes or names a complete Markdown plan and concise summary with path, current slice or next proof step, proceed condition (a plain-language equivalent counts), and blocker or decision."
       ]
     },
     {
@@ -86,7 +86,7 @@
         "Marks workspace-specific implementation surfaces as `Unproven` because no fixture or repository evidence was provided.",
         "Includes concrete discovery steps for the reports page, existing export helpers, and relevant tests, plus CSV export acceptance criteria and tests before implementation.",
         "Sets `Proceed condition` to blocked or discovery-first until local evidence confirms the implementation surface.",
-        "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
+        "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice or next proof step, proceed condition (a plain-language equivalent counts), and material blocker or decision.",
         "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
         "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
         "Capability dependencies are recorded only when absence materially changes feasibility, safety, proof, or method; ordinary steps need no routing table, and the implementation handoff binds later work to the plan and its stop conditions.",
@@ -106,7 +106,7 @@
         "Performs or requires equivalence/recovery analysis anchored to the historical/current inventory.",
         "Defines tests before implementation for existing users with no email_opt_out value remaining enabled and for email_opt_out: true suppressing email, and blocks if required historical contract proof is missing. The absent-field send test also covers the supplied normal enabled path; a separate explicit-false case is not required by the supplied evidence.",
         "Does not suggest a blind revert or rewrite without inspecting the historical contract and surrounding current code.",
-        "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
+        "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice or next proof step, proceed condition (a plain-language equivalent counts), and material blocker or decision.",
         "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
         "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
         "Capability dependencies are recorded only when absence materially changes feasibility, safety, proof, or method; ordinary steps need no routing table, and the implementation handoff binds later work to the plan and its stop conditions.",
@@ -139,7 +139,7 @@
         "Records an investigation-adequacy or equivalent gate covering the form, import writer, result display, tests/fixtures if unavailable, and user-visible feedback/recovery surfaces.",
         "Defines acceptance criteria before implementation steps for preventing accidental bad-contact creation, including preview/review-before-write or an explicitly blocked/decision-needed alternative, post-import result feedback, and error handling.",
         "Includes tests or proof checks before implementation steps for the selected preview/review or safety behavior and failure states.",
-        "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
+        "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice or next proof step, proceed condition (a plain-language equivalent counts), and material blocker or decision.",
         "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
         "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
         "Capability dependencies are recorded only when absence materially changes feasibility, safety, proof, or method; ordinary steps need no routing table, and the implementation handoff binds later work to the plan and its stop conditions.",
@@ -160,7 +160,7 @@
         "Runs or plans a known-bad/current baseline for `diagnostic_overflow_count` before accepting it as a gate, and rejects it as non-discriminating if the current defective implementation already reports 0.",
         "Adds a representation coverage map that separates normal completion, assertion/script failure, connection failure, timeout, and cancellation or explicitly groups any paths only with evidence that their observer, carrier, and required-field availability are identical.",
         "Keeps acceptance criteria and test/proof work before implementation and remains plan-only.",
-        "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice, proceed condition, and material blocker or decision.",
+        "Writes or names a complete Markdown implementation-plan artifact and gives a concise summary with its path, current slice or next proof step, proceed condition (a plain-language equivalent counts), and material blocker or decision.",
         "The artifact records plan depth and rationale, evidence-labeled facts and unknowns, requirements, acceptance criteria, tests, applicable integrity gates, material capability dependencies when applicable, implementation steps, risks, implementation handoff, review, self-review, and proceed condition in a usable order.",
         "Acceptance criteria and tests precede implementation steps; current-slice blockers prevent a ready proceed condition and unsupported implementation facts retain an evidence label and proof path.",
         "Capability dependencies are recorded only when absence materially changes feasibility, safety, proof, or method; ordinary steps need no routing table, and the implementation handoff binds later work to the plan and its stop conditions.",
@@ -233,7 +233,7 @@
       "expectations": [
         "Allows at most one optimistic batch of two bounded review units because numeric remaining capacity is unavailable but recordable task/run evidence exists.",
         "Requires the future plan to record, for each perspective, whether it ran delegated with its task identity or locally, and states that requested batch size or assistant prose alone cannot prove parallel execution.",
-        "On the first thread-limit, capacity, spawn, timeout, or unavailable-capability failure, stops further launches without changing models or probing again and moves unmet perspectives to coordinator fallback or a real blocker.",
+        "On the first thread-limit, capacity, spawn, timeout, or unavailable-capability failure, stops all further delegated launches, with no retry or probing, and moves unmet perspectives to coordinator fallback or a real blocker.",
         "Keeps reviewer findings inert pending coordinator disposition and stays response-only."
       ]
     },

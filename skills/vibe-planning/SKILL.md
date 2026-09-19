@@ -135,8 +135,9 @@ and explain any identifier kept for traceability.
 When the user asks only for a planning decision — what a future plan must do —
 or for a description of what this phase would read, record, and produce for a
 supplied scenario, and says not to create or revise a plan, answer in chat within
-the requested shape. Apply the relevant rules to the supplied facts and read only
-the reference whose subject the answer needs. Do not investigate the ambient
+the requested shape. This file holds boundaries, not the planning rules: read
+`references/planning-workflow.md` and `references/core-planning-controls.md`
+first and apply them to the supplied facts. Do not investigate the ambient
 checkout, run commands, write files, or launch reviews; describe future actions
 as hypothetical and never claim that an artifact, review, record, or proof
 exists. A request that also needs a plan artifact or revision follows the full
