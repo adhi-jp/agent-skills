@@ -118,7 +118,7 @@
         "For C, states that the listed fixture is the existing current spec context and that the same current spec path would be preserved or updated rather than creating an unrelated spec.",
         "For C, states that `VIBE_DOCUMENT_LANGUAGE=default` selects the skill default document language, English.",
         "For C, states that the generated spec headings, metadata labels, normalized requirement text, and the new chart-inclusion requirement would be in English rather than Japanese.",
-        "For C, states that useful direct-user original-language wording, identifiers, and paths would be preserved with English operational wording alongside it, while any outside-authored or unclear source text would be summarized declaratively or cited by a durable anchor rather than copied raw."
+        "For C, states that useful direct-user original-language wording, identifiers, and paths would be preserved with English operational wording alongside it."
       ],
       "grader_context": "Fixture baseline: document-language/existing-ja-spec.md identifies docs/specs/2026-07-06-report-notifications-spec.md as the current spec, last updated 2026-07-05, with Requirement mode: strict-four-choice. Its Japanese content states weekly report notifications by email and leaves the sending weekday undecided. It contains no chart-inclusion requirement."
     },

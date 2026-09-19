@@ -23,9 +23,10 @@ Choose the output mode first:
   write. Write nothing, and close by saying no spec file was written and naming
   the exact user action that would create or update one; name an existing spec
   path as the unchanged target.
-- **No-write fallback:** when writing is unavailable, unsafe, or declined, or the
-  current spec cannot be read. Return the spec content in chat with its intended
-  path and say no file changed; this is not chat-only mode.
+- **No-write fallback:** when writing is unavailable, unsafe, or declined,
+  including a current spec that exists but cannot be read. Return the spec
+  content in chat with its intended path and say no file changed; this is not
+  chat-only mode.
 - **Response-only:** when the user asks to classify situations or only to record
   a finish or handoff. Answer in chat without writing or fully rendering a spec,
   keep every named spec path, and never let one case's artifact stand for others.
@@ -47,8 +48,8 @@ write in the other modes.
    Read an existing target first: update the current spec in place; never
    overwrite unrelated content (suffix a colliding default path, such as `-2`,
    and show it; ask about a colliding user path); never fork a second spec for
-   the same thread. If the current spec is missing or unreadable, keep its path
-   and use the no-write fallback.
+   the same thread. If the named spec does not exist yet, create it at that
+   path; if it exists but cannot be read, use the no-write fallback.
 3. **Classify before asking.** Sort what is known into the template sections. Put
    only behavior the user stated or chose in `Confirmed requirements`; mark
    inferences as assumptions or proposed defaults; keep unchosen ideas in `Ideas
@@ -138,7 +139,8 @@ identifiers where useful.
   alternatives. Keep the last
   evidence-supported behavior; record the request as an unresolved decision and
   the contradiction under `Evidence and constraints`, never as a confirmed
-  requirement, default, out-of-scope rule, or acceptance criterion.
+  requirement, default, out-of-scope rule, or acceptance criterion. The stop
+  still writes the spec in artifact mode.
 - **Mutually exclusive constraints** (migration, compatibility, data
   preservation): list the viable interpretations — such as copy-on-read,
   one-time migration, dual reader, no migration — each with its adoption
@@ -155,7 +157,8 @@ identifiers where useful.
   recovery.
 - **Billing, permission, security, account, recipient, or routing changes.**
   Cover who may change it, what it may target, validation, when a change takes
-  effect (pending and future sends, telling added or removed parties), and
+  effect (pending and future sends, retries or reminders, telling added or
+  removed parties), and
   whether auditability is required; choices affecting access, recipients,
   compliance, or billing are blocking.
 - **Notification channels.** Surface channel-specific consent or opt-in,
