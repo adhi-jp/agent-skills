@@ -1,405 +1,18 @@
 # Eval Runner and Result Contract
 
-Read this reference before executing `run`, diagnosing or reporting an iteration, changing runner-facing proof assumptions, or drafting detailed provider, sandbox, artifact, metric, or grader contracts.
+Read this reference before executing `run` or drafting a run sequence, before relying on what the runner delivers, records, or grades, and before diagnosing or reporting an iteration or comparison.
 
-## Shared Eval CLI
+## Commands
 
-- Use `python3 skills/skill-eval/scripts/eval_runner.py` for repo-level skill eval runs. It has
-  three commands: `validate`, `run`, and `report`.
-- When drafting or executing this command sequence, preserve the runner's
-  documented CLI literally: the suite JSON is positional, provider selection
-  uses `--agent`, configs use `--config`, repetition uses `--runs`, and
-  `--eval-id E01,E03` selects a diagnostic case subset. Do not invent aliases
-  such as `--evals`, `--iteration-dir`, `--configuration`, or `--mode`, and do
-  not translate one bounded matrix into separate role/config runs unless the
-  actual parser exposes that form.
-- Run `eval_runner.py run` only after the current user has explicitly authorized
-  eval execution. `validate` and `report` may support inspection or existing
-  artifact work, but they are not substitutes for a user-authorized run when a
-  fresh behavior claim depends on execution.
-- The runner drives execution itself. `run` executes the bounded matrix end to
-  end: for each eval x config x run it spawns a fresh executor subprocess with
-  the prompt only, then a fresh grader subprocess with a clean environment and
-  the executor output (plus any captured primary artifact), original task,
-  optional bounded grader-only fixture context, and assertions, then aggregates a `with_skill` vs
-  `without_skill` raw pass-rate comparison. No agent hand-runs prompts or
-  hand-records results.
-- The provider selector is a registry. `--agent` selects a registered provider;
-  `claude` and `codex` are built in, and another agent is added as an adapter.
-  The core path (execute, grade, compare, aggregate, report) is provider-neutral
-  and must work on Codex; Claude-only precision such as opt-in metric capture is
-  additive, and other providers skip it.
-- Optional model flags are passed through to the selected provider CLI verbatim
-  (whatever model name that CLI accepts): `--model` is the shared default for
-  both roles, and `--executor-model` / `--grader-model` override it per role, so
-  the executor and grader can run on different models. All three values are
-  validated before any subprocess launches, and the resolved per-role models are
-  recorded as `executor_model`/`grader_model` alongside `model` in the iteration
-  manifest and benchmark. Absence means the provider's default model for that
-  role, never an injected or guessed model id.
-- `validate` and the `run` preflight also print delivery-mode warnings: an
-  expectation that opens with performed-action wording (`Writes`, `Adds`,
-  `Allocates`, `Reads`, `Commits`, and similar) in a case whose prompt carries
-  a response-only marker (`response-only`, `do not create, modify, or delete`,
-  `do not mutate`, `describe exactly what you would produce`). A negated form
-  (`Writes no …`) or an immediate alternative (`Writes or proposes …`) is not
-  flagged. The check is advisory: it matches selected leading verb forms and
-  prompt markers, so it can miss a mismatch or flag a permitted read; review
-  each warning against the case's actual delivery contract. Warnings never
-  fail validation or block a run; they route the expectation wording to the
-  quality owner, because a sandbox cannot satisfy a performed-action predicate
-  the prompt forbids.
-- All input validation runs before any subprocess launches: suite shape,
-  requested eval ids, the authoritative `with_skill` skill source, provider
-  availability, and run bounds. An unknown or empty `--eval-id` selection exits
-  non-zero without creating an iteration or launching subprocesses. Other
-  invalid input also exits non-zero with zero subprocess launches. An empty
-  suite is not an error: it exits 0 with an explicit empty result and zero
-  subprocess launches.
-- For a non-empty Codex run, the runner performs a Codex-only readiness
-  preflight after static validation and before creating an iteration or
-  launching suite cells. It probes an executor-shaped invocation in a
-  disposable Git repository whose setup ignores ambient repository-steering
-  `GIT_*` variables, and a grader-shaped invocation in an atomically created,
-  empty non-Git directory that is not adjacent to the executor repository. It
-  records bounded evidence at
-  `evals/<skill-name>/workspace/codex/preflight.json`, and stops with zero suite
-  executor/grader cells if either probe fails. The grader probe compares its
-  schema-constrained JSON result semantically rather than requiring one exact
-  whitespace serialization, and failed probes retain bounded parsed-output and
-  stderr diagnostics. Claude and other providers do not receive these extra
-  probe launches.
-- Total work is bounded. `--runs` is capped at 1..5 (default 1), `--timeout`
-  bounds each subprocess (default 600s), and `--concurrency` caps concurrent
-  provider subprocesses within one invocation (1..16, default 4); simultaneous
-  invocations add up, so a user-stated concurrency is the total across them
-  unless the user allows more; split the cap between invocations, never the
-  requested configs. A timed-out or failed executor is recorded as a failed run,
-  not a pass, and the grader is skipped for it; there are no retries.
-- Before launching a full matrix whose recent relevant diagnostics or prior
-  runs show material time or token cost, record and surface a pre-run execution
-  receipt. It states the cell count (`selected evals x configs x runs`),
-  requested concurrency as the total across simultaneous invocations,
-  per-subprocess timeout, delivery/workload classes such as full-artifact versus
-  response-only, a wall-time range or lower bound derived from recorded runner
-  durations, the worst recent successful cell and the supported count of
-  similarly expensive cells or an explicit `unknown` pending artifact
-  inspection, the infrastructure stop trigger, and the tested cancellation
-  handle. This is an operational forecast, not a benchmark metric: do not
-  hand-enter it into result artifacts or present it as measured eval output. If
-  it materially exceeds the user's apparent time budget or prior expectation,
-  obtain the user's decision before launch.
-- Start a long run only through a host mechanism with a proven control handle,
-  such as an interactive PTY or a job/session identifier whose interrupt
-  behavior is known. Record the handle before waiting. On cancellation, do not
-  start a replacement or retry, send a graceful interrupt through that handle,
-  wait a bounded interval, and, only when still necessary and authorized,
-  target the exact runner and its children with TERM. Verify both the
-  controlling session's terminal state and the absence of matching child
-  processes before reporting cancellation. Writing Ctrl-C bytes to a non-TTY,
-  broadly killing by process name, or observing that a signal command returned
-  does not prove the run stopped. An interrupted iteration is non-closing. The
-  current runner submits its matrix up front; do not claim cell-level
-  cooperative cancellation unless a separately implemented and tested runner
-  feature provides it.
-- `--eval-id` is for authorized, pre-registered diagnostics while a case's
-  prompt, assertion, fixture, or proof path is still changing. It preserves the
-  requested config matrix but executes only the named eval ids. The runner
-  records selected ids and full-suite size in `iteration_manifest.json` and
-  `benchmark.json`, marks a partial selection `REVIEW REQUIRED`, and labels it
-  diagnostic and non-closing in `benchmark.md`. A partial run must not be
-  reported as the suite's overall result or substitute for a later full-suite
-  closing run after the contract is frozen. Omit `--eval-id` for that closing
-  run. Keep the subcommand boundary literal: only `run` accepts `--eval-id`;
-  `validate` takes the positional suite JSON, and `report` takes the iteration
-  directory. Never copy the filter onto `validate` or `report`, and never spell
-  a closing run as an all-id filtered diagnostic. Freeze the skill, prompt,
-  assertions, fixtures, and proof path, then run the same authorized matrix
-  without `--eval-id` exactly once for closing evidence.
-- Metrics are never hand-typed or estimated. No flag injects a token or duration
-  value. Claude usage comes from its JSON envelope. Codex usage comes from the
-  `turn.completed` JSONL event, while Codex executor duration is measured by the
-  runner around the subprocess. Missing usage fields remain explicitly absent;
-  they are never replaced with placeholder token values.
-- `with_skill` runs must use the authoritative `skills/<skill-name>/SKILL.md`
-  source package. The runner resolves `--skill-path` from the repo root and, for
-  every provider, rejects `.agents/skills` snapshots, `.claude/skills` links,
-  files not named `SKILL.md`, and paths outside `skills/<skill-name>/`. The
-  executor prompt instructs reading that source directly and not substituting a
-  host skill tool, snapshot, link, or cached copy. The runner resolves the
-  suite path and takes the repository root from the nearest ancestor holding
-  both `evals/` and `AGENTS.md`, falling back to the current directory when
-  none does; the skill source and fixtures come from that root, and the
-  default workspace sits next to the suite unless `--workspace` is given. For
-  a base comparison, point the run at the base checkout's own suite path (a
-  clone or worktree at the base commit, outside the working tree, with any
-  copied inputs tracked there). Before using the result as base evidence,
-  confirm that the recorded `skill_path` in `benchmark.json` lies inside that
-  checkout and that the checkout's skill package matches the base commit with
-  no uncommitted changes; a `skill_path` inside the working tree means the
-  candidate was measured.
-- Provider subprocesses run from a per-run sandbox outside the source checkout.
-  Build its contents from the selected case's declared fixture project roots
-  and explicit supporting files, then add the target package only for
-  `with_skill`. Preserve each fixture project's relative layout so imports and
-  discovery of related specifications still work. Do not copy other cases,
-  suite definitions, grading context, previous results, or unrelated packages.
-  An explicitly declared task document may itself be a skill file; deliver
-  that object-of-work exception symmetrically and retain its comparison limit.
-  This is a delivered-input boundary, not proof that the host cannot read an
-  original checkout or globally installed skill.
-  The root `.gitignore` is a symmetric repository scaffold, recorded under
-  `delivery.scaffold_files`, so ignored-addition evidence keeps its meaning.
-  Repository instruction files such as `AGENTS.md` require explicit task-input
-  declaration; they are not automatically copied.
-- `support_files` declares additional repository-relative regular-file inputs
-  needed by the task in both configurations. It does not recursively import
-  arbitrary directories or derive inputs from path strings in the prompt.
-  Reject invalid, missing, escaped, or unavailable declared inputs before
-  provider cells launch. Apply the same delivery policy to non-Git sources,
-  recording their source-copy verification limit.
-- Suite-level `skill_support_files` declares exact external files required by
-  the target skill itself. Deliver these only with `with_skill`, as part of the
-  treatment identity. Use case-level `support_files` for symmetric task evidence;
-  do not use it to give baseline executors the treatment instructions.
-- Git-backed delivery uses tracked current working-tree bytes, so a new fixture
-  must be included in the source's tracked input set before evaluation. Keep
-  symlink-ancestor, opened-file identity, source-root containment, and concurrent
-  replacement checks. Initialize a throwaway Git baseline only after delivery
-  and declared runtime preparation. Record source fixture dirtiness separately;
-  identical copied bytes do not make dirty source a clean-source measurement.
-- `npm_projects` names declared fixture project roots that need an installed
-  test runtime. Such a run requires an explicit `--npm-cache <path>` containing
-  all dependencies selected by the committed package manifests and lockfiles.
-  The runner copies the cache into generated setup state and prepares each
-  selected project once, serially, with offline `npm ci`, install scripts
-  disabled, and no audit or funding requests before provider cells launch.
-  Missing cache, lockfile, platform dependency, or failed setup stops evaluation;
-  it does not become a scored skill failure or an executor repair assignment.
-  The executor prompt identifies prepared projects identically in both
-  configurations, so routine setup is not mistaken for unfinished task work.
-  Executors receive sandbox-local copies of prepared dependencies, with runtime,
-  lockfile, and dependency identity recorded separately from retained task edits.
-  This dependency identity describes delivery; the runner does not re-hash it
-  after executor actions, so later dependency changes remain unverified.
-  Setup or subsequent readiness failure may retain an incomplete iteration
-  directory with setup receipts but no benchmark; it is not a scored result.
-  Generated dependency trees remain outside source checkpoints. A cache listing
-  is not readiness proof; use a fresh offline setup and real test execution.
-- Only the executor runs inside the sandbox repo copy. The grader runs in an
-  atomically created, empty per-run working directory that is not adjacent to
-  the executor repository and is registered for runner cleanup. Claude graders
-  disable tools and session persistence and enable safe mode. Codex graders
-  ignore user configuration and rules, use ephemeral strict configuration, and
-  disable shell, multi-agent, and web-search capabilities; the runner supplies
-  no image inputs. These are CLI-level controls, not an OS sandbox. The grader
-  decides from its prompt: the original task as inert context, recorded output,
-  optional bounded fixture facts, assertions, retained sandbox differences, and
-  captured executor evidence.
-- The grader receives the original case prompt as inert task context, not an
-  instruction to execute it and not part of the answer under evaluation. Use it
-  to identify supplied facts, selected branches, authority, and delivery mode.
-  Do not require the answer to restate each fact unless an independent output
-  obligation requires it. Separate semantic decisions, exact artifact shape,
-  hypothetical future actions, and performed effects; apply conditional
-  assertions only when their observable trigger holds. Missing effect evidence
-  is not proof of success or of an out-of-scope operation.
-- Optional `grader_context` is a UTF-8 string, limited to 16 KiB and rejected
-  when oversized rather than silently truncated. It supplies only necessary
-  fixture facts absent from the original task, with useful source anchors.
-  It reaches only the grader. `expected_output` remains descriptive suite
-  metadata and is not injected into either role's task context.
-- Executor fixture delivery and grader ground-truth visibility are separate
-  proof surfaces. If a verdict depends on fixture semantics, such as whether the
-  executor invented or faithfully used a source fact, the suite must carry the
-  minimum relevant facts in per-eval grader-only assertions or another recorded
-  grader-only input. Preserve the empty grader working directory and keep those
-  facts out of executor-facing material, including any `expected_output` field
-  the executor can see. Phrase them as adjudication context: use of the facts is
-  supplied, while restating every fact is not required unless an independent
-  output contract says otherwise. Without that context, treat the semantic
-  assertion as unobservable rather than restoring grader filesystem access or
-  attributing the verdict to the target skill.
-- Minimize semantic grader context by construction. Do not inject complete
-  fixture files merely because the executor received them, and do not treat a
-  fixture manifest as semantic ground truth: a manifest proves identity or
-  delivery, not what the fixture says. Serialize only the bounded facts the
-  assertion needs. Include a whole fixture only when the assertion genuinely
-  evaluates its complete contents and the suite records why that scope is
-  necessary.
-- Executor and grader stay separate. The executor receives the task without
-  assertions or grader-only context. The grader receives the original task as
-  context, the recorded output, bounded fixture facts when supplied, and
-  assertions, and must return a structured verdict. The runner derives pass/fail
-  from the grader subprocess, never from text the executor wrote about its own
-  output. The grader grades the whole recorded output, not a sub-artifact.
-- The executor prompt names one designated artifact path inside the sandbox,
-  config-symmetrically for both `with_skill` and `without_skill`, so a skill
-  whose deliverable is a written file (an implementation plan, spec, or other
-  primary Markdown artifact) is not scored only on its concise chat summary.
-  After execution the runner copies any file written to that path into
-  `outputs/plan.md` under the run dir and folds its contents into the grader's
-  recorded output under a delimited `Written Plan Artifact` section, capped and
-  with truncation recorded, never silently dropped. Runs whose executor writes no
-  such file (the deliverable is the chat reply) keep the grader prompt unchanged
-  and record `written_artifact.captured = false`. The prompt labels the path as a
-  capture destination rather than an artifact request: executors write it only
-  when the user prompt or the workflow's normal deliverable contract independently
-  requires a file, and otherwise answer in chat. The designated path does not
-  instruct the executor how to structure the artifact, so it adds no
-  target-behavior leakage.
-- The runner records retained net file differences in the sandbox as a
-  `change_manifest`: baseline-relative added, modified, and deleted paths plus
-  non-ignored and ignored additions still present at capture, excluding runner
-  scaffolding and separately recorded prepared dependencies. An empty manifest
-  means no retained changes were recorded, not that no write occurred. It cannot
-  establish transient create/delete or modify/restore operations, external
-  effects, successful reads, or read order.
-  Regular files carry type and hash; symlinks, directories, and other entries
-  carry type only. Every entry carries `ignored`: true for an untracked
-  executor addition that the sandbox reported as ignored at capture time,
-  false for every other entry — including tracked modifications, deletions,
-  and paths the executor staged or committed — so false does not prove that
-  no ignore pattern matches. A path below an unsafe symlink ancestor is recorded as
-  `unsafe-symlink-ancestor` without following or hashing it. Both configurations
-  use the same collection, and grader prompts receive one line-safe inert JSON
-  record per path. Without a sandbox Git baseline, the manifest records
-  `captured = false` and the grader prompt omits the section.
-- The runner also records an executor tool/delegation trace as
-  `executor_evidence`, from one of two sources and with identical collection for
-  both configurations. For Claude runs the record is `source = host`: the runner
-  captures the CLI `session_id`, reads the host transcript under
-  `<CLAUDE_CONFIG_DIR or ~/.claude>/projects/<encoded-cwd>/`, accepts sub-agent
-  records only from layouts bound to that exact executor session, and rejects
-  project-wide aggregate sub-agent directories. It folds only tool names,
-  host-issued tool-use ids, and session-bound host-created sub-agent record ids
-  into the grader prompt under `Executor Tool/Delegation Evidence`. Prompt text,
-  reasoning, and tool results stay redacted, and the record is marked
-  `source = host` because it reads host state outside the sandbox.
-- For Codex runs the same field is `source = runner`: the runner parses the
-  executor's own `codex exec --json` event stream — never the grader's — into
-  one entry per item id, in stream order. `command_execution` records the
-  status, exit code, program names, and conservative path operands, unwrapping
-  shell wrappers such as `/bin/bash -lc` (including behind a launcher, as in
-  `env bash -lc …`) and splitting segments on unquoted `&&`, `||`, `|`, `;`,
-  and `&`, so a quoted `'|'` stays an argument. `file_change` records the
-  changed paths and kinds; `mcp_tool_call` records `server.tool`; `web_search`
-  records only that a search ran.
-- Programs, operands, and file-change paths are best-effort readings of the
-  reported command, and the entry's `parse_error` flag marks the ones the
-  runner could not read confidently: a backslash escape, which it does not
-  interpret and after which it stops reading that command, including one in a
-  launcher or shell option prefix; an unterminated quote, which yields no
-  programs or operands from the failed tokenization, though segments parsed
-  before it are kept; any option on a launcher word (`sudo -u user cat …`,
-  `env --split-string=rm cat x`), since the token after it still looks like the
-  program while the launcher runs something else; a shell option that may
-  consume the next token (`bash --rcfile …`), so the inline command cannot be
-  identified; a program name outside the bounded ASCII shape the runner will
-  record, or a program token outside a plain `[A-Za-z0-9_./-]` shape, since the
-  recorded name is only its basename (`$x/printf`); an item id or tool name that
-  fails validation; a `$` or a backtick anywhere in the command text, quoted or
-  not — command substitution (`$(…)`), parameter expansion (`${…}`, `$x`),
-  arithmetic, and ANSI-C quoting (`$'\x2dv'`) all stand for text the runner
-  never sees, so the program names it read then describe nothing; a `#`, which
-  starts a comment the tokenizer drops and mid-word (`cat x#; rm f`) hides the
-  rest of the line, separator and all; or a newline, which ends a command while
-  the tokenizer reads it as ordinary whitespace, so the next line's `rm` would
-  be read as an argument. `parse_error` drops nothing: the entry is marked, is
-  never `read_only`, and stays listed to the grader, while collection continues
-  and keeps whatever it did read. Read such an entry's names as hints, not as
-  claims.
-- Recorded paths are literal tokens, not resolved paths: the runner does not
-  apply a `cd` from earlier in the command, so a relative operand names what
-  the command asked for rather than where it resolved. A sandbox-absolute path
-  becomes sandbox-relative, a path that is absolute outside the sandbox or
-  home-relative (`~/…`) collapses to `<external-path>`, and a path with a `..`
-  component or over 256 characters is dropped. Neither the collapse nor the
-  drop sets `parse_error`; both are ordinary recording rules. Operands are
-  recognized only in a conservative ASCII path shape, so paths with non-ASCII
-  characters or spaces are simply not recorded. Command lines, command output,
-  message text, reasoning, plan items, and search queries are excluded, and a
-  path operand proves only that the command named that path, not that it was
-  read successfully.
-- Four caps bound the record — 200 entries per run, 8 programs and 16 path
-  operands per command entry, and 32 changes per file-change entry — and each
-  reports as a boolean flag rather than a count: `stream.truncated` for the
-  entry cap and an entry's own `truncated` for the per-entry caps. The `stream`
-  block also reports whether a `turn.completed` event was seen plus the event
-  and malformed-line counts.
-- What reaches the grader is closed by construction, independent of how well the
-  runner read the command. Program names render only from a fixed vocabulary of
-  common tool names; any other program renders as `other`, deduplicated within
-  the entry. Item ids and tool names render only when they match a bounded shape
-  and otherwise render as `invalid` — and a value that fails that check at
-  collection is stored as `invalid` in `run.json` too, never as its raw text.
-  Path operands and file-change paths never reach the prompt at all, and an item
-  the provider never reported as completed is marked `(in_progress)`. The runner
-  source also drops the executor's reads of its own delivered skill package from
-  the rendered list, because that read is how the eval delivers the skill, not
-  work the task asked for, and listing it lets a response-only assertion such as
-  "does not run commands" fail with the skill and pass without it. It drops an
-  entry only when both hold: the collector classified the command `read_only` —
-  recorded on the entry, decided with the whole command in view, and true only
-  when every segment ran a program from the read-only set, named by a token the
-  runner could read whole and carrying no mutating or executing option (`sed
-  -i`, `find -delete`/`-exec`, `sort -o`, …), nothing redirected a stream, and
-  every token after each program was accounted for as an option, as the
-  program's own pattern or script argument, or as a recorded path operand — and
-  every recorded operand lies inside `skills/<skill_name>/`. The read the runner
-  is looking for is a plain one: `sed -n 1,120p skills/<skill_name>/SKILL.md` is
-  omitted, while the same read followed by anything the runner cannot vouch for
-  — a second program, an escape, an expansion — is not. Anything else stays
-  listed: a `parse_error` or truncated entry; one whose operand the runner
-  dropped, could not normalize, or placed outside the sandbox; and one that
-  named a single path outside the package. Listing every command that writes,
-  executes, or deletes is what these rules aim at, not a promise they can make —
-  the runner reads the reported command text and nothing else, so a new way to
-  hide an effect in that text is a new way to be omitted, and what bounds a
-  listed entry's content is the closed rendering vocabulary above rather than
-  the classifier. The runner does not inspect a program's own script argument
-  for effects, so `sed '1e rm f' skills/<skill_name>/SKILL.md` or `awk
-  'BEGIN{system("rm f")}' skills/<skill_name>/SKILL.md` can still be classified
-  read-only and omitted; that limitation is known and recorded, not solved. The
-  test is by path and never consults the configuration, so both configurations
-  get a byte-identical lead-in, the omitted entries stay in `run.json`, and
-  `executor_evidence.grader_omitted_skill_reads` records how many were omitted
-  (0 when none were, including when no trace was captured). The runner source
-  carries its own boundary rule: a listed id establishes only that the provider
-  recorded that item, not that the command succeeded, that a file was read, or
-  that any sub-agent or delegation ran, so a delegation claim needs evidence
-  beyond a command item.
-- When no trace can be built — a provider with neither source, an unreadable
-  host transcript, an empty or unparseable event stream, or a fault in
-  collection itself (recorded as `codex trace collection failed:
-  <ExceptionType>`) — the field records `captured = false` with a reason and
-  the grader prompt omits the section, so absence of a record is never read as
-  disproof and the run is still executed, graded, and persisted.
-- The grader returns a structured, schema-constrained verdict. Verdicts are keyed
-  by the assertion's 1-based `id` (`{"verdicts": [{"id", "passed", "evidence"}]}`),
-  not by an echoed assertion string, so a grader cannot break grading by
-  re-numbering or paraphrasing the assertion text. The runner requests
-  provider-native structured output where the CLI supports it
-  (`codex --output-schema <file>`, `claude --json-schema <schema>`) and carries
-  the same contract in the grader prompt for providers that do not; the legacy
-  text-keyed `{"expectations": [{"text", ...}]}` shape is still accepted. A
-  grader output the runner cannot parse into a verdict list is recorded as
-  `grader_unparseable` with `pass_rate` absent and excluded from the comparison,
-  never scored as a real `0%`.
-- Codex prompts are sent through stdin with a terminal `-`, never as a
-  positional command-line prompt. Codex-owned `--output-last-message` and
-  `--output-schema` paths are absolute, and the adapter explicitly permits the
-  isolated non-Git grader cwd with `--skip-git-repo-check`. The adapter gives
-  only the executor `workspace-write` in its throwaway repository and keeps the
-  grader `read-only`; grader-only strict ephemeral overrides ignore user
-  configuration and rules, disable shell, multi-agent, and web-search
-  capabilities, and receive no image inputs. Claude retains its existing
-  `claude -p <prompt> --output-format json` invocation contract.
-- Failed or timed-out executor/grader invocations persist bounded
-  `outputs/executor_stderr.txt` or `outputs/grader_stderr.txt` diagnostics and a
-  structured `failure` object in `run.json`. Truncation is explicit, and raw
-  unbounded stderr is not embedded in the run record.
-- Standard command sequence after explicit run authorization:
+- `python3 skills/skill-eval/scripts/eval_runner.py` has three commands:
+  `validate <suite-json>`, `run <suite-json> [options]`, and
+  `report <iteration-dir> [--compare <other-iteration-dir>]`. The suite path is
+  positional. `run` options are `--agent`, `--model`, `--executor-model`,
+  `--grader-model`, `--config`, `--eval-id`, `--runs`, `--skill-path`,
+  `--timeout`, `--concurrency`, `--npm-cache`, and `--workspace`. Do not invent
+  aliases such as `--evals`, `--iteration-dir`, `--configuration`, or `--mode`,
+  and do not split one bounded matrix into separate per-config runs.
+- Standard sequence after explicit run authorization:
 
 ```sh
 python3 skills/skill-eval/scripts/eval_runner.py validate evals/vibe-planning/evals.json
@@ -409,131 +22,222 @@ python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/work
 python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/workspace/codex/iteration-2 --compare evals/vibe-planning/workspace/codex/iteration-1
 ```
 
-The first `run` form is a case diagnostic; the second is the full-suite form.
-The diagnostic filter belongs only to `run`; `validate` and `report` do not
-accept it. Do not turn the full-suite form into a filtered enumeration of every
-case.
+  The first `run` is a case diagnostic and the second the full-suite form.
+- `run` drives the whole matrix: for each eval x config x run it spawns a
+  fresh executor subprocess with the prompt only, then a fresh grader
+  subprocess, then aggregates a raw `with_skill` versus `without_skill`
+  comparison. `--agent` selects a registered provider (`claude` and `codex` are
+  built in); the core path is provider-neutral, and Claude-only metric
+  precision is additive.
+- `--model` is passed verbatim to the provider CLI for both roles, and
+  `--executor-model` / `--grader-model` override it per role. The resolved
+  values are recorded as `executor_model` and `grader_model` beside `model` in
+  the manifest and benchmark; absence means the provider's default, never a
+  guessed id.
+- Bounds: `--runs` 1..5 (default 1); `--timeout` per subprocess (default
+  600 s); `--concurrency` 1..16 (default 4) concurrent provider subprocesses
+  per invocation. Simultaneous invocations add up, so a user-stated
+  concurrency is the total across them unless the user allows more: split the
+  cap between invocations, never between the requested configs. A failed or
+  timed-out executor is a failed run, its grader is skipped, and nothing is
+  retried.
+- All input validation (suite shape, eval ids, the `with_skill` source,
+  provider availability, bounds, and declared inputs being git-tracked) runs
+  before any subprocess. Invalid input exits non-zero with zero launches; an
+  unknown or empty `--eval-id` also creates no iteration. An empty suite exits
+  0 with an explicit empty result.
+- A non-empty Codex run first probes an executor-shaped and a grader-shaped
+  invocation, records the evidence at
+  `evals/<skill-name>/workspace/codex/preflight.json`, and stops with zero
+  suite cells if either probe fails.
+- `validate` and the `run` preflight print advisory delivery-mode warnings:
+  an expectation opening with performed-action wording (`Writes`, `Adds`,
+  `Allocates`, `Reads`, `Commits`, and similar) in a case whose prompt carries
+  a response-only marker. Negated (`Writes no …`) and alternative (`Writes or
+  proposes …`) forms are not flagged. The match is heuristic, so review each
+  warning against the case.
 
-- `run` writes `iteration_manifest.json` and, for each run, `prompt.md`,
-  `grader_prompt.md`, `outputs/`, `grading.json`, `metrics.json`, and `run.json`
-  under `evals/<skill-name>/workspace/<agent>/iteration-N/`, plus `benchmark.json`
-  and `benchmark.md` at the iteration root. `run.json` records the external
-  sandbox repo path for audit. `benchmark.json`/`benchmark.md` carry per-eval and
-  overall raw pass rate, the `with_skill`/`without_skill` comparison, the
-  execution-metrics summary, a `sanity_checks` section flagging
-  infrastructure failures, scored-`0%` cells, candidate-below-baseline cells, and
-  dirty declared fixture roots for review, and a `Failed assertions` section
-  listing every scored cell's failed assertions with the grader's evidence and
-  every unscored cell's status. The manifest and benchmark also
-  record suite coverage, and a partial `--eval-id` selection is a sanity signal
-  even when every selected cell scored successfully.
-- `report <iteration-dir>` re-renders `benchmark.md` from `benchmark.json`,
-  including the `Failed assertions` section; `--compare <other-iteration-dir>`
-  appends a per-eval table of this iteration's raw rates beside the other
-  iteration's. Compare recorded delivery, runner, suite/context, treatment,
-  fixture/dependency, model, and coverage identities first: changed inputs are a
-  different measurement series; missing historical identity is unknown. Identity
-  agreement is necessary, not sufficient, for a causal interpretation. Historical
-  aggregates remain unchanged, and comparison never turns a diagnostic
-  reinterpretation into a measured improvement.
-  It does not start a server, open a browser, bind a port, write a PID file, or
-  leave a background process.
-- `grading.json` includes every assertion (`common_assertions` then per-eval
-  `expectations`) exactly once, in order, each with `text`, `passed`, and
-  `evidence`. An assertion the grader omits is recorded as failed.
-- Generated eval workspaces are local `.gitignore` artifacts; do not commit them
-  unless the user explicitly asks.
+## Partial Diagnostics, Closing Runs, And Base Comparisons
 
-## Execution Metrics (executor-only)
+- `--eval-id E01,E03` runs only the named ids with the requested config
+  matrix. Use it only for an authorized, pre-registered diagnostic while a
+  case's prompt, assertion, fixture, or proof path is still changing, and never
+  report its result as the suite's. `SKILL.md` defines its non-closing labels
+  and the freeze before the closing run, which is the same matrix run once
+  without `--eval-id`.
+- The runner takes the repository root from the nearest ancestor of the suite
+  path that holds both `evals/` and `AGENTS.md` (else the current directory)
+  and reads the skill source and fixtures from there; the default workspace
+  sits next to the suite unless `--workspace` is given. For a base comparison,
+  point the run at the base checkout's own suite path (a clone or worktree at
+  the base commit, outside the working tree, with any copied inputs tracked
+  there). Before using the result as base evidence, confirm that the recorded
+  `skill_path` in `benchmark.json` lies inside that checkout and that its skill
+  package matches the base commit with no uncommitted changes; a `skill_path`
+  inside the working tree measured the candidate.
 
-The `run` stdout summary and `benchmark.md` show per-config execution time and
-token usage for at least the claude provider.
+## Long Runs And Failures
 
-- The displayed values are the **executor** subprocess metrics, labeled
-  executor-only so grader scoring cost is excluded and the values are not read as
-  total run cost. The executor is the subprocess that runs the skill
-  (`with_skill` vs `without_skill`), so the executor-only metrics are the skill's
-  own performance signal; the `with_skill` vs `without_skill` delta is the
-  meaningful reading.
-- Aggregation is computed from the existing per-run `metrics`, so `report`
-  re-renders older `benchmark.json` files that predate the metric rows. A
-  per-config mean is shown with `± stddev` only when more than one run captured a
-  numeric value for that metric, so a single captured value or the `--runs 1`
-  default never produces a misleading spread.
-- Uncaptured or partial provider metrics are shown as absent with a reason, never
-  a placeholder. This includes a Claude run whose output was not a JSON envelope,
-  individual missing sub-fields on an otherwise captured run, and a Codex run
-  whose JSONL omitted usage even though runner-measured duration is available.
-  Never read an absent metric as `0`.
+- Before a full matrix that recent runs show to be expensive, tell the user
+  the cell count (evals x configs x runs), total concurrency, per-subprocess
+  timeout, and a wall-time range derived from recorded runner durations, and
+  get their decision when it materially exceeds their apparent budget or
+  expectation. The forecast is operational: never enter it into result
+  artifacts or present it as a measured metric.
+- Launch a long run only through a control handle whose interrupt behavior is
+  known (an interactive PTY or a job or session id), and record the handle
+  before waiting. To cancel: start no replacement or retry, send a graceful
+  interrupt through that handle, wait a bounded interval, and only if still
+  necessary and authorized send TERM to the exact runner and its children.
+  Confirm that the controlling session ended and that no matching child
+  processes remain; Ctrl-C bytes written to a non-TTY, killing by process
+  name, or a signal command's exit status does not prove the run stopped. An
+  interrupted iteration is non-closing. The runner submits its matrix up
+  front and has no cell-level cooperative cancellation.
+- An authorized run is not authorization for unlimited retries. Classify the
+  failed role call first. Once explicit capacity or overload recurs at
+  concurrency 1, raising concurrency is not a remedy; another full run needs a
+  material change (a later service window, an authorized model change, or a
+  changed workload) or a new user decision. A partial diagnostic answers a
+  pre-registered content question; it is not a service-health probe.
+- Classify infrastructure failures only as far as recorded evidence supports:
+  `provider_capacity_explicit` for an exact selected-model capacity response,
+  `provider_overloaded_explicit` for an explicit overload response,
+  `provider_exit_unclassified` for a nonzero exit without enough diagnostics,
+  and `sandbox_or_runtime_initialization` for failure while establishing the
+  provider runtime. Keep `executor_failed` and `grader_failed` apart. Host
+  approval or control failures are not suite-cell results.
 
-## Result Verification and Reporting
+## Delivery And Grading
 
-- An agent that supervises an eval run must verify the result before reporting
-  it. A run that finished without a crash is not the same as a clean result; do
-  not present a `with_skill`/`without_skill` delta as normal completion until the
-  verification below passes.
-- A user-authorized run is not authorization for unlimited retries. Classify
-  the failed role call before choosing another invocation. Once explicit
-  capacity or overload recurs at concurrency 1, increasing concurrency is not a
-  remedy, and another full run requires a material state change or a new
-  explicit user decision after the current evidence is summarized. Material
-  changes include a later service window, an authorized model change, or a
-  changed workload contract. A partial diagnostic may continue only when it
-  answers a pre-registered content question; it must not act as a service-health
-  probe or closing substitute.
-- Keep infrastructure claims role- and evidence-bound. Use categories such as:
-  `provider_capacity_explicit` only when the recorded output contains an exact
-  selected-model capacity response; `provider_overloaded_explicit` only for an
-  explicit overload response; `provider_exit_unclassified` for a nonzero
-  provider exit without enough diagnostic text; and
-  `sandbox_or_runtime_initialization` for failure while establishing the
-  provider runtime. Preserve `executor_failed` versus `grader_failed`.
-  Approval, escalation, or outer host-control failure is not a suite-cell
-  result. One category cannot be inferred from another: report explicit
-  capacity in the counted recorded role calls and keep other failures
-  separately classified or unclassified.
-- After every user-authorized `run`, read the `Sanity checks` status (printed to
-  stdout and written to `benchmark.md`) and the `error_run_count`. Treat these
-  as stop-and-verify conditions, not passes: a `REVIEW REQUIRED` sanity status,
-  `error_run_count > 0`, any
-  `grader_unparseable`/`grader_failed`/`executor_failed`/timeout status, any
-  scored-`0%` cell, any candidate-below-baseline cell, or any dirty
-  source-fixture signal before or after execution. A partial suite selection is
-  also `REVIEW REQUIRED` by construction because it is diagnostic rather than
-  full-suite closing evidence.
-- For each flagged cell, start from its entry under `Failed assertions` in
-  `benchmark.md`, then open the recorded `outputs/output.txt` and
-  `outputs/grader_output.txt` and determine whether the cause is the executor
-  output, the grader verdict, or the runner before attributing it to the skill.
-  A grader-side or runner-side failure must not be reported as a skill score. Fix
-  the cause and re-run, or report the cell as an excluded infrastructure failure
-  with the reason; never silently fold it into the headline number.
-- For a non-exact natural-language assertion, compare the output with the
-  assertion's semantic predicate rather than one preferred phrase. If the
-  response satisfies the behavior through equivalent wording but the grader
-  fails it for omitting an unstated literal, record a lexical grader false
-  negative. Keep the official aggregate unchanged and route any assertion edit
-  to the quality owner; do not add the phrase to the target skill merely to make
-  the grader recognize it.
-- For a candidate-below-baseline cell, compare both configurations' recorded
-  outputs and verdict evidence assertion by assertion under the same semantic
-  predicate. If the candidate is equivalent or stronger on that predicate but
-  fails where the baseline passes because of vocabulary, future-tense
-  realization, or another unstated distinction, record a paired grader
-  inconsistency. Keep the official aggregate unchanged, route the assertion or
-  grader repair to the quality owner, and keep unrelated candidate failures
-  separate rather than promoting the whole cell to a pass.
-- Always report a summary, not just the headline delta. The summary states: agent
-  and model, full or selected suite coverage, configs and runs, scored versus
-  excluded run counts, overall `with_skill`/`without_skill` pass rate and delta,
-  and the sanity-check status with any flagged cells (or an explicit "no
-  anomalies"). If any cell was excluded or re-graded, say so and give the
+- For the `with_skill` source, the runner resolves `--skill-path` from the
+  repository root and rejects
+  `.agents/skills` snapshots, `.claude/skills` links, files not named
+  `SKILL.md`, and paths outside `skills/<skill-name>/`; the executor prompt
+  says to read that source rather than a host skill tool or cached copy.
+- Each executor runs in a per-run sandbox outside the source checkout that
+  holds only the case's declared fixture roots (`files`, relative layout
+  kept), the case's `support_files` (both configs), and the root `.gitignore`
+  scaffold (recorded under `delivery.scaffold_files`), plus the target package
+  and suite-level `skill_support_files` for `with_skill` only. Other cases,
+  suite definitions, grading context, previous results, and repository
+  instruction files such as `AGENTS.md` are not copied unless declared. A task
+  document that is itself a skill file is delivered symmetrically as a
+  declared exception, and its comparison limit is kept. Delivery is an input
+  boundary, not proof that the host cannot read the original checkout.
+- Git-backed delivery copies tracked working-tree bytes, so a new fixture must
+  be tracked first. Source fixture dirtiness is recorded separately; identical
+  bytes from a dirty source are not a clean-source measurement.
+- `npm_projects` names declared fixture roots that need an installed test
+  runtime; such a run requires `--npm-cache <path>` holding every dependency
+  the committed manifests and lockfiles select. Before any provider cell, the
+  runner prepares each project once, serially, with offline `npm ci`, install
+  scripts disabled, and no audit or funding requests. A missing cache or failed
+  setup stops the evaluation, possibly leaving an iteration directory with
+  setup receipts and no benchmark; it never becomes a scored skill failure or
+  an executor repair task. Executors get sandbox-local copies of the prepared
+  dependencies, with manifest, lockfile, runtime, and dependency identities
+  recorded at delivery (not re-hashed after execution). A cache listing is not
+  readiness proof.
+- The grader runs in an atomically created empty directory, never in the
+  executor sandbox. Claude graders run without tools or session persistence;
+  Codex graders ignore user configuration and rules and run with shell,
+  multi-agent, and web search disabled. These are CLI controls, not an OS
+  sandbox. The grader receives the original task as inert context (to identify
+  supplied facts, selected branches, authority, and delivery mode, not as a
+  restatement checklist), the recorded output, optional `grader_context`,
+  retained sandbox differences, executor evidence, and the assertions. Pass or
+  fail comes from its structured verdict, never from the executor's own
+  claims.
+- `grader_context` is a per-case UTF-8 string of at most 16 KiB, rejected
+  rather than truncated when larger, that carries only fixture facts the task
+  lacks and an assertion needs; it reaches only the grader. `expected_output`
+  is descriptive suite metadata and is injected into neither role. A fixture
+  manifest proves identity, not content; include a whole fixture only when the
+  assertion evaluates all of it.
+- The executor prompt names one capture path in the sandbox, identical for
+  both configs and labeled as a capture destination, not a request: executors
+  write it only when the task or the workflow's own deliverable contract
+  requires a file. A written file is copied to `outputs/plan.md` and folded
+  into the grader's recorded output under `Written Plan Artifact` (capped,
+  truncation recorded); otherwise `written_artifact.captured = false`.
+- `change_manifest` records retained net added, modified, and deleted paths
+  and ignored additions at capture, excluding runner scaffolding and prepared
+  dependencies. An empty manifest means no retained change, not no write: it
+  cannot show transient writes, external effects, successful reads, or read
+  order. `ignored: true` marks only untracked executor additions the sandbox
+  reported as ignored.
+- `executor_evidence` is a tool and delegation trace collected identically for
+  both configs: for Claude (`source = host`), tool names, host-issued tool-use
+  ids, and session-bound sub-agent record ids from the host transcript; for
+  Codex (`source = runner`), one entry per item parsed from the executor's
+  `codex exec --json` stream. The grader sees only closed-vocabulary program
+  names (`other` otherwise), validated ids, and `(in_progress)` marks; paths,
+  command text, output, and reasoning never reach it. An entry the runner could
+  not parse confidently carries `parse_error` and reads as a hint. Plain
+  read-only reads of the executor's own delivered skill package are omitted
+  from the grader's list, kept in `run.json`, and counted in
+  `grader_omitted_skill_reads`. A listed id proves only that the provider
+  recorded the item, not that a command succeeded, a file was read, or a
+  delegation ran. When no trace can be built, `captured = false`, the section
+  is omitted, and absence is not disproof.
+- The grader verdict is schema-constrained and keyed by each assertion's
+  1-based `id`. Grader output the runner cannot parse is `grader_unparseable`,
+  excluded from the comparison, and never a scored 0%. Failed or timed-out
+  calls keep bounded `outputs/executor_stderr.txt` or
+  `outputs/grader_stderr.txt` and a `failure` object in `run.json`.
+
+## Artifacts And Metrics
+
+- `run` writes `iteration_manifest.json` and, per run, `prompt.md`,
+  `grader_prompt.md`, `outputs/`, `grading.json`, `metrics.json`, and
+  `run.json` under `evals/<skill-name>/workspace/<agent>/iteration-N/`, plus
+  `benchmark.json` and `benchmark.md` at the iteration root. The benchmark
+  carries per-eval and overall raw pass rates, the `with_skill`/`without_skill`
+  comparison, executor metrics, suite coverage, a `sanity_checks` section
+  (infrastructure failures, scored-0% cells, candidate-below-baseline cells,
+  dirty declared fixture roots, partial selections), and a `Failed assertions`
+  section listing each scored cell's failed assertions with the grader's
+  evidence and each unscored cell's status.
+- `grading.json` lists every assertion (`common_assertions` then per-eval
+  `expectations`) exactly once, in order, with `text`, `passed`, and
+  `evidence`; an assertion the grader omits is recorded as failed.
+- `report <iteration-dir>` re-renders `benchmark.md` from `benchmark.json`;
+  `--compare <other-iteration-dir>` adds the other iteration's raw per-eval
+  rates. Compare recorded delivery, runner, suite, treatment, fixture,
+  dependency, model, and coverage identities first: changed inputs are a
+  different measurement series, missing historical identity is unknown, and
+  agreement is necessary but not sufficient for a causal reading. `report`
+  starts no server or browser, binds no port, writes no PID file, and leaves
+  no background process.
+- Metrics are never hand-typed or estimated, and no flag injects them. Claude
+  usage comes from its JSON envelope, Codex usage from the `turn.completed`
+  event, and Codex executor duration from the runner's own timer. Displayed
+  time and tokens are executor-only (grader cost excluded); `± stddev` appears
+  only when more than one run captured the value. A missing value is shown as
+  absent with a reason, never as `0`.
+
+## Result Verification And Reporting
+
+These rules detail the `SKILL.md` Result Closure steps.
+
+- A finished run is not a clean result. Stop to verify on `REVIEW REQUIRED`,
+  `error_run_count > 0`, any `grader_unparseable`, `grader_failed`,
+  `executor_failed`, or timeout status, any scored-0% or
+  candidate-below-baseline cell, or a dirty source fixture. A partial
+  selection is `REVIEW REQUIRED` by construction.
+- A flagged cell's recorded outputs are `outputs/output.txt` and
+  `outputs/grader_output.txt`. Never report a grader- or runner-side failure
+  as a skill score: fix the cause and rerun, or report the cell as an excluded
+  infrastructure failure with the reason.
+- If a semantically compliant answer failed for lacking a preferred phrase,
+  or a candidate failed where the baseline passed only on vocabulary or tense,
+  record a lexical false negative or a paired grader inconsistency, keep the
+  official aggregate unchanged, and route the assertion repair to the quality
+  owner instead of adding the phrase to the skill.
+- In the report, say when any cell was excluded or re-graded and give the
   corrected reading.
-- Do not claim an improvement, regression, or delta as proven from a run that
-  has flagged anomalies or excluded cells until they are explained or the run is
-  repeated cleanly. Explaining a partial-selection signal does not promote that
-  subset to full-suite proof; it remains non-closing even when every selected
-  result is valid. A rate compared across a changed prompt, assertion, fixture,
-  or skill source is not like-for-like whether or not `report --compare`
-  produced it: say so explicitly, and treat the earlier number as a
-  non-comparator rather than the baseline the new result moved from.
+- Explaining a partial selection does not make it full-suite proof. A rate
+  across a changed prompt, assertion, fixture, or skill source is not
+  like-for-like, whether or not `report --compare` produced it; treat the
+  earlier number as a non-comparator.

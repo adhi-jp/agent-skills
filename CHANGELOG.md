@@ -98,6 +98,9 @@ use `[Repository] - YYYY-MM-DD`.
   atomic, and a non-discriminating assertion is deleted unless it guards a
   harm the skill could induce, is the only remaining guard for a known
   incident, or guards a destructive or consent boundary.
+- `skill-eval`: the runner reference is condensed; the pre-run forecast
+  names cell count, total concurrency, per-subprocess timeout, and a wall-time
+  range. No other contract change.
 - Verification: evals were not re-run after this trim, so every behavior
   delta above is `Unproven`. Suite `validate`, `vibe_shared_contract.py check
   --strict` and `audit-names`, and `python3 -m pytest tests` passed. Most eval

@@ -8,11 +8,26 @@ description: Use when running, grading, aggregating, or reporting repository ski
 
 ## Overview
 
-This skill owns the repository's skill-eval test operation through
-`skills/skill-eval/scripts/eval_runner.py`. The runner keeps executor and grader
-separate, records artifacts and metrics, and aggregates `with_skill` versus
-`without_skill` results. Never hand-run prompts, hand-record results, let one
-agent execute and grade the same answer, or estimate metrics.
+This skill owns the repository's skill-eval operation through
+`skills/skill-eval/scripts/eval_runner.py`: validating, running, grading,
+aggregating, and reporting suites under `evals/<skill-name>/`, and verifying a
+result before it is reported. The runner keeps executor and grader separate
+and records artifacts and metrics. Never hand-run prompts, hand-record
+results, let one agent execute and grade the same answer, or estimate metrics.
+Deciding which skill or eval contract to change from a result belongs to the
+eval-quality workflow, not to this skill.
+
+## Eval Run Authorization
+
+Do not launch `eval_runner.py run`, provider subprocesses, or a new iteration
+unless the current user explicitly asks to run evals, run a benchmark, or
+execute the runner. Editing a skill, inspecting results, validating a suite,
+or proving quality does not implicitly authorize a fresh run.
+
+Without that authorization, use static validation or existing artifacts as
+appropriate, report `evals not run` or an equivalent absence status, and mark
+rerun-dependent improvement, regression, token, timing, and reliability claims
+`Unproven`.
 
 ## Critical CLI Contract
 
@@ -26,119 +41,60 @@ explanation:
 | Full closing run | `run <suite-json> ...` | Omitted; do not enumerate all ids |
 | Existing-result report | `report <iteration-dir>`, optionally `--compare <other-iteration-dir>` | Forbidden |
 
-There is no `--evals` or `--iteration-dir` alias. `validate ... --eval-id` and
-filtered full-suite substitutes are invalid.
+There is no `--evals` or `--iteration-dir` alias.
 
-`validate` also prints delivery-mode warnings: performed-action wording such
-as `Writes …` or `Adds …` in an expectation whose prompt is response-only.
-Warnings never fail validation and never block a run; they are eval-design
+`validate` also prints delivery-mode warnings for performed-action wording
+such as `Writes …` or `Adds …` in an expectation whose prompt is
+response-only, because a sandbox cannot satisfy a write the prompt forbids.
+The warnings neither fail validation nor block a run; they are eval-design
 signals for the quality owner, not skill defects.
 
-A partial diagnostic must remain visibly non-closing: unknown or empty ids fail
+A partial diagnostic stays visibly non-closing: unknown or empty ids fail
 before iteration creation or provider launch; manifests and benchmarks record
-selected ids and full-suite size; `benchmark.md` says `REVIEW REQUIRED`; and the
-skill, prompt, assertions, fixtures, and proof path must be frozen before a
-later unfiltered closing run starts; frozen means no diagnostic that could still
-change them is running or unread. Keep the earlier official aggregate unchanged
-when an artifact-level correction is only diagnostic.
-
-## When To Use
-
-Use this skill for:
-
-- validating, running, grading, aggregating, or reporting a suite under
-  `evals/<skill-name>/`;
-- verifying a comparative result before reporting a delta;
-- deciding runner workspace, provider/model passthrough, run bounds, artifact
-  capture, metric provenance, or executor/grader proof boundaries.
-
-Do not use it for general skill creation or for deciding what skill/eval contract
-to change from a result. This skill owns execution and result verification, not
-the quality-change decision.
-
-## Eval Run Authorization
-
-Do not launch `eval_runner.py run`, provider subprocesses, or a new iteration
-unless the current user explicitly asks to run evals, run a benchmark, or
-execute the runner. Editing a skill, inspecting results, validating a suite, or
-proving quality does not implicitly authorize a fresh run.
-
-When fresh execution is not authorized, use static validation or existing
-artifacts as appropriate and report `evals not run` or an equivalent absence
-status. Mark rerun-dependent improvement, regression, token, timing, and
-reliability claims `Unproven`.
+the selected ids and full-suite size; and `benchmark.md` says `REVIEW
+REQUIRED`. Before a later unfiltered closing run starts, the skill, prompt,
+assertions, fixtures, and proof path must be frozen: no diagnostic that could
+still change them is running or unread.
 
 ## Executor, Grader, And Workspace Invariants
 
 - The executor receives the task and declared inputs without assertions. A
-  fresh grader receives the recorded output, original task as inert context,
-  bounded grader-only fixture facts when supplied, and assertions. Task facts
-  determine applicability; they do not become output-restatement obligations.
-- Use the shared runner so this separation is code-enforced; there is no inline
-  grading shortcut.
-- Keep definitions under `evals/<skill-name>/` and generated runs under
-  `evals/<skill-name>/workspace/<agent>/`.
-- `with_skill` uses the authoritative `skills/<skill-name>/SKILL.md`; never use
+  fresh grader receives the recorded output, the original task as inert
+  context, bounded grader-only fixture facts when supplied, and the
+  assertions. Task facts decide applicability; they do not become
+  output-restatement obligations.
+- `with_skill` uses the authoritative `skills/<skill-name>/SKILL.md`; never
   `.agents/skills`, `.claude/skills`, a host skill tool, or a cached copy.
-- Provider executors run in isolated copied repositories; graders run in
-  separate empty working directories. Do not work around sandbox setup failure
-  by executing in the source checkout.
-- Deliver only the case's fixture roots and explicit supporting files to both
-  configurations with the recorded ignore scaffold. Add the treatment package
-  and its declared external dependencies only for `with_skill`. Declare
-  task-document exceptions explicitly. File delivery does not prove host read
-  isolation, and changed delivery or grading inputs start a different
-  measurement series.
-- Prepare an explicitly declared fixture runtime before provider cells launch,
-  from its lockfile and an explicit complete offline cache. Missing setup blocks
-  execution; it never authorizes the executor to replace runtime acceptance with
-  static checks. See the detailed runner contract for `npm_projects` and
-  `--npm-cache`.
-- A change manifest proves retained net differences at capture, not absence of
-  transient writes or external effects. Partial command categories do not
-  establish successful reads, mutations, or their ordering.
-- Generated workspaces are local artifacts and are not committed unless the user
-  explicitly asks.
+- Executors run in isolated copied sandboxes that hold only the case's
+  declared inputs; graders run in separate empty directories. Never work
+  around a sandbox setup failure by executing in the source checkout, and never
+  let a missing declared runtime become a scored skill failure.
+- Suite definitions live under `evals/<skill-name>/`; generated runs live
+  under `evals/<skill-name>/workspace/<agent>/` and are not committed unless
+  the user explicitly asks.
 
 ## Detailed Runner Contract
 
-Read `references/runner-and-result-contract.md` before:
-
-- executing `run` or drafting a detailed run command sequence;
-- changing or interpreting provider/model, preflight, sandbox, fixture,
-  artifact-capture, change-manifest, grader-output, stderr, or metric behavior;
-- diagnosing `REVIEW REQUIRED`, failed/unparseable/timeout cells, dirty fixtures,
-  scored `0%`, candidate-below-baseline, or missing metrics;
-- reporting a benchmark, corrected reading, exclusion, or comparative claim.
-
-That reference is mandatory when its conditions apply and retains the complete
-runner, artifact, provider, metric, and result-verification contract.
-
-When drafting a full-suite run sequence, the response must preserve the
-reference's literal positional suite path and flags, keep the requested configs
-in one runner invocation, and include the result-verification and reporting
-fields from that reference. Do not reconstruct the CLI or closure checklist from
-memory.
+Read `references/runner-and-result-contract.md` before executing `run` or
+drafting a run sequence; before relying on what the runner delivers, records,
+or grades; and before diagnosing flagged or failed cells or reporting a
+benchmark or comparison. When drafting a run sequence, copy its literal
+command shapes and result-verification fields rather than reconstructing them
+from memory.
 
 ## Result Closure
 
 After every authorized run:
 
-1. Read `benchmark.md`, `benchmark.json`, `error_run_count`, and sanity status.
+1. Read `benchmark.md`, `benchmark.json`, `error_run_count`, and the sanity
+   status.
 2. Start from the `Failed assertions` section of `benchmark.md`, then inspect
    the recorded executor and grader outputs for every flagged cell before
    attributing the failure to the skill.
-3. Keep infrastructure/grader failures and diagnostic corrections separate from
-   the official aggregate.
-4. Report agent and model, full or selected coverage, configs/runs, scored and
-   excluded counts, pass rates/delta, and all anomalies or `no anomalies`.
+3. Keep infrastructure or grader failures and diagnostic corrections separate
+   from the official aggregate.
+4. Report agent and model, full or selected coverage, configs and runs, scored
+   and excluded counts, pass rates and delta, and all anomalies or `no
+   anomalies`.
 5. Do not claim improvement, regression, or a clean delta until flagged
    anomalies are explained and the required closing evidence exists.
-
-## Local Snapshots And Release
-
-Operate on tracked `skills/<skill-name>/` packages. Managed `.agents/skills/`
-and `.claude/skills/` copies are read-only unless the user explicitly requests
-the repository sync workflow. Do not bump skill versions or assign a release
-version during eval work; record notable changes under `## [Unreleased]` until a
-release is explicitly requested.
