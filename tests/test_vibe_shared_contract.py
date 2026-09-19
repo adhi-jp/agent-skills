@@ -14,40 +14,23 @@ from unittest import mock
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = REPO_ROOT / "scripts" / "vibe_shared_contract.py"
 
-PRECEDENCE = "Where a package declares a stricter or narrower rule in its own text, that declaration controls."
-APPLICABILITY = (
-    "A package may state which of its phases this gate applies to; "
-    "it may not change the gate's inputs, outcomes, or fields."
-)
-# The self-scoped sentences the per-package closing block renders: each names the blocks
-# it binds and where they sit, so the body needs no line explaining the lines above it.
-CLOSING_PRECEDENCE = (
-    "For every consolidation block this package carries, here and in its references: "
-    "where this package declares a stricter or narrower rule in its own text, that declaration controls."
-)
-CLOSING_APPLICABILITY = (
-    "For every gate and schema block this package carries, here and in its references: "
-    "this package may state which of its phases the block applies to; "
-    "it may not change the block's inputs, outcomes, or fields."
-)
-# The two rendered closing bodies: precedence alone, and precedence plus applicability
-# for a package carrying a gate or schema block.
-CLOSING_BODY = CLOSING_PRECEDENCE + "\n"
-CLOSING_BODY_GATE = CLOSING_PRECEDENCE + "\n" + CLOSING_APPLICABILITY + "\n"
 CITATION = "shared/vibe-contract.md"
-BODY = "Evidence carries one of four classes.\n" + PRECEDENCE + "\n"
-GATE_BODY = "Observable input: a history-mutating command.\n" + APPLICABILITY + "\n"
 CLASS_LINE = "<!-- shared-contract:class language=none commit=none effect=read-only -->"
 
-# A block in the scannable shape: bold imperative lead, bullets, one exception line.
+# A block in the required shape: bold imperative lead, bullets, one exception line.
 SHAPE_LEAD = "**Never let a delegated claim stand as proof.**"
 SHAPE_BULLETS = (
     "- Verify every load-bearing claim against evidence this phase holds itself.\n"
     "- Keep the finding inert until that verification lands.\n"
 )
 SHAPE_EXCEPTION = "Exception: a claim the current user states directly needs no re-verification.\n"
-NEW_BODY = SHAPE_LEAD + "\n\n" + SHAPE_BULLETS + "\n" + SHAPE_EXCEPTION + PRECEDENCE + "\n"
-NEW_BODY_OPEN = SHAPE_LEAD + "\n\n" + SHAPE_BULLETS + "\n" + SHAPE_EXCEPTION
+BODY = SHAPE_LEAD + "\n\n" + SHAPE_BULLETS
+FULL_BODY = BODY + "\n" + SHAPE_EXCEPTION
+
+
+def body_with(*lines):
+    """A well-shaped block body carrying extra bullet lines after the standard ones."""
+    return BODY + "".join(f"- {line}\n" for line in lines)
 
 
 def words(count, prefix="word"):
@@ -96,19 +79,6 @@ def marked_file(name, block_id, content="", class_line=CLASS_LINE, cite=True, he
     if class_line:
         lines.append(class_line + "\n")
     lines.append(begin_marker(block_id, cite) + "\n")
-    lines.append(content)
-    lines.append(end_marker(block_id) + "\n\nTrailing text.\n")
-    return "".join(lines)
-
-
-def closing_file(name, block_id, content="", closing="", class_line=CLASS_LINE, gap=""):
-    """A package entry file whose class line is followed by the closing block, then one block."""
-    lines = [f"---\nname: {name}\n---\n\n# Skill\n\nIntro text.\n\n"]
-    lines.append(class_line + "\n" + gap)
-    lines.append(begin_marker("closing") + "\n")
-    lines.append(closing)
-    lines.append(end_marker("closing") + "\n\n")
-    lines.append(begin_marker(block_id) + "\n")
     lines.append(content)
     lines.append(end_marker(block_id) + "\n\nTrailing text.\n")
     return "".join(lines)
@@ -205,7 +175,7 @@ class VibeSharedContractTests(unittest.TestCase):
         self.assertEqual(int(skill.stat().st_mtime), stamp)
 
     def test_render_drifted_block_refuses_with_unified_diff(self):
-        drifted = "Evidence carries one of four classes.\nHand-edited line.\n" + PRECEDENCE + "\n"
+        drifted = BODY + "Hand-edited line.\n"
         skill = self.standard_tree(content=drifted)
         before = skill.read_bytes()
         result = self.render(expect=1)
@@ -274,13 +244,12 @@ class VibeSharedContractTests(unittest.TestCase):
         self.standard_tree(content="Different.\n")
         result = self.check(expect=1)
         self.assertIn("block evidence-classes drifted from the source", result.stdout)
-        self.assertIn("-Evidence carries one of four classes.", result.stdout)
+        self.assertIn("-" + SHAPE_LEAD, result.stdout)
 
     def test_check_identical_block_passes(self):
         self.standard_tree(content=BODY)
         result = self.check(expect=0)
-        self.assertIn("0 error(s), 1 warning(s)", result.stdout)
-        self.assertIn("legacy-shape block (no bold lead line)", result.stdout)
+        self.assertIn("0 error(s), 0 warning(s)", result.stdout)
         strict = self.check("--strict", expect=0)
         self.assertIn("0 error(s), 0 warning(s)", strict.stdout)
 
@@ -396,9 +365,9 @@ class VibeSharedContractTests(unittest.TestCase):
 
     def test_check_fenced_marker_example_in_source_block_is_not_a_marker(self):
         body = (
-            "Dependents carry a pair like this:\n\n```markdown\n"
+            SHAPE_LEAD + "\n\nDependents carry a pair like this:\n\n```markdown\n"
             f"{begin_marker('evidence-classes')}\n{end_marker('evidence-classes')}\n"
-            "<!-- shared-contract:endblock evidence-classes -->\n```\n\n" + PRECEDENCE + "\n"
+            "<!-- shared-contract:endblock evidence-classes -->\n```\n\n" + SHAPE_BULLETS
         )
         self.write_source([("evidence-classes", ["vibe-alpha"], body)])
         self.write_package("vibe-alpha", {"SKILL.md": marked_file("vibe-alpha", "evidence-classes", body)})
@@ -507,20 +476,20 @@ class VibeSharedContractTests(unittest.TestCase):
     # --- check: source block content -----------------------------------------
 
     def test_check_heading_inside_source_block_fails(self):
-        body = "## Not allowed\n\nText.\n" + PRECEDENCE + "\n"
+        body = BODY + "\n## Not allowed\n\nText.\n"
         self.write_source([("evidence-classes", ["vibe-alpha"], body)])
         self.write_package("vibe-alpha")
         result = self.check(expect=1)
         self.assertIn("block evidence-classes contains a Markdown heading: ## Not allowed", result.stdout)
 
     def test_check_heading_like_line_inside_fenced_code_is_not_a_heading(self):
-        body = "Example:\n\n```sh\n# a shell comment\n```\n\n" + PRECEDENCE + "\n"
+        body = BODY + "\n```sh\n# a shell comment\n```\n"
         self.write_source([("evidence-classes", ["vibe-alpha"], body)])
         self.write_package("vibe-alpha")
         self.check(expect=0)
 
     def test_check_specialist_name_inside_source_block_fails(self):
-        body = "Hand off to vibe-beta when done.\n" + PRECEDENCE + "\n"
+        body = body_with("Hand off to vibe-beta when done.")
         self.write_source([("evidence-classes", ["vibe-alpha"], body)])
         self.write_package("vibe-alpha")
         self.write_package("vibe-beta")
@@ -528,7 +497,7 @@ class VibeSharedContractTests(unittest.TestCase):
         self.assertIn("block evidence-classes names a vibe-* specialist: vibe-beta", result.stdout)
 
     def test_check_router_package_name_inside_source_block_fails(self):
-        body = "Only vibe-coding may route.\n" + PRECEDENCE + "\n"
+        body = body_with("Only vibe-coding may route.")
         self.write_source([("evidence-classes", ["vibe-alpha"], body)])
         self.write_package("vibe-alpha")
         self.write_package("vibe-coding")
@@ -536,21 +505,21 @@ class VibeSharedContractTests(unittest.TestCase):
         self.assertIn("block evidence-classes names a vibe-* specialist: vibe-coding", result.stdout)
 
     def test_check_non_roster_vibe_token_inside_source_block_passes(self):
-        body = "Records live under `.plans/vibe-sessions/`; vibe-beta is not a package here.\n" + PRECEDENCE + "\n"
+        body = body_with("The `vibe-contract` source and vibe-beta are not packages here.")
         self.write_source([("evidence-classes", ["vibe-alpha"], body)])
         self.write_package("vibe-alpha")
         result = self.check(expect=0)
         self.assertNotIn("specialist", result.stdout)
 
     def test_check_token_extending_past_a_roster_name_is_not_that_name(self):
-        body = "The vibe-alpha-extension label is not a package name.\n" + PRECEDENCE + "\n"
+        body = body_with("The vibe-alpha-extension label is not a package name.")
         self.write_source([("evidence-classes", ["vibe-beta"], body)])
         self.write_package("vibe-alpha")
         self.write_package("vibe-beta")
         self.check(expect=0)
 
     def test_check_digit_bearing_roster_name_inside_source_block_fails(self):
-        body = "Hand off to vibe-x2 when done; vibe-x9 is not a package.\n" + PRECEDENCE + "\n"
+        body = body_with("Hand off to vibe-x2 when done; vibe-x9 is not a package.")
         self.write_source([("evidence-classes", ["vibe-alpha"], body)])
         self.write_package("vibe-alpha")
         self.write_package("vibe-x2")
@@ -559,55 +528,19 @@ class VibeSharedContractTests(unittest.TestCase):
         self.assertNotIn("vibe-x9", result.stdout)
 
     def test_check_source_block_may_cite_the_shared_source_path(self):
-        body = "Edit `shared/vibe-contract.md` and re-render.\n" + PRECEDENCE + "\n"
+        body = body_with("Edit `shared/vibe-contract.md` and re-render.")
         self.write_source([("evidence-classes", ["vibe-alpha"], body)])
         self.write_package("vibe-alpha")
         self.check(expect=0)
 
-    def test_check_consolidation_block_with_wrong_closing_sentence_fails(self):
-        body = "Text.\n" + APPLICABILITY + "\n"
+    def test_check_block_without_a_bold_lead_is_a_shape_finding(self):
+        body = "Evidence carries one of four classes.\n\n" + SHAPE_BULLETS
         self.write_source([("evidence-classes", ["vibe-alpha"], body)])
-        self.write_package("vibe-alpha")
-        result = self.check(expect=1)
-        self.assertIn("consolidation block does not end with its closing sentence", result.stdout)
-        self.assertIn(PRECEDENCE, result.stdout)
-
-    def test_check_gate_block_with_wrong_closing_sentence_fails(self):
-        for block_id in ("history-mutation-gate", "commit-selection-gate", "read-only-phase-write-gate"):
-            with self.subTest(block_id=block_id):
-                body = "Text.\n" + PRECEDENCE + "\n"
-                self.write_source([(block_id, ["vibe-alpha"], body)])
-                self.write_package("vibe-alpha")
-                result = self.check(expect=1)
-                self.assertIn(f"block {block_id}: non-overridable block does not end with its closing sentence", result.stdout)
-                self.assertIn(APPLICABILITY, result.stdout)
-
-    def test_check_schema_block_with_wrong_closing_sentence_fails(self):
-        body = "| Field | Type |\n| --- | --- |\n| `schema_version` | string |\n" + PRECEDENCE + "\n"
-        self.write_source([("session-record-schema", ["vibe-alpha"], body)])
-        self.write_package("vibe-alpha")
-        result = self.check(expect=1)
-        self.assertIn("block session-record-schema: non-overridable block does not end with its closing sentence", result.stdout)
-
-    def test_check_gate_block_with_applicability_sentence_passes(self):
-        self.write_source([("history-mutation-gate", ["vibe-alpha"], GATE_BODY)])
-        self.write_package("vibe-alpha", {"SKILL.md": marked_file("vibe-alpha", "history-mutation-gate", GATE_BODY)})
-        self.check(expect=0)
-
-    def test_check_block_missing_closing_sentence_entirely_fails(self):
-        self.write_source([("evidence-classes", ["vibe-alpha"], "Text without a closing sentence.\n")])
-        self.write_package("vibe-alpha")
-        result = self.check(expect=1)
-        self.assertIn("does not end with its closing sentence", result.stdout)
-
-    def test_check_closing_sentence_with_prefix_on_the_last_line_fails(self):
-        self.write_source([("evidence-classes", ["vibe-alpha"], "Text.\nNote: " + PRECEDENCE + "\n")])
-        self.write_package("vibe-alpha")
-        result = self.check(expect=1)
-        self.assertIn("consolidation block does not end with its closing sentence", result.stdout)
-        self.write_source([("history-mutation-gate", ["vibe-alpha"], "Text.\n" + APPLICABILITY + " Really.\n")])
-        result = self.check(expect=1)
-        self.assertIn("non-overridable block does not end with its closing sentence", result.stdout)
+        self.write_package("vibe-alpha", {"SKILL.md": marked_file("vibe-alpha", "evidence-classes", body)})
+        warned = self.check(expect=0)
+        self.assertIn("warning: vibe-contract.md:5: block evidence-classes: does not open with a bold lead line", warned.stdout)
+        strict = self.check("--strict", expect=1)
+        self.assertIn("error: vibe-contract.md:5: block evidence-classes: does not open with a bold lead line", strict.stdout)
 
     # --- check: warnings, strict, and scoping --------------------------------
 
@@ -616,7 +549,7 @@ class VibeSharedContractTests(unittest.TestCase):
         self.write_package("vibe-alpha")
         result = self.check(expect=0)
         self.assertIn("warning: package vibe-alpha is a listed dependent of block evidence-classes but has no marker", result.stdout)
-        self.assertIn("0 error(s), 2 warning(s)", result.stdout)
+        self.assertIn("0 error(s), 1 warning(s)", result.stdout)
 
     def test_check_tree_with_no_markers_passes_vacuously(self):
         self.write_source([("evidence-classes", ["vibe-alpha"], BODY), ("model-tier-selection", ["vibe-beta"], BODY)])
@@ -787,8 +720,8 @@ class VibeSharedContractTests(unittest.TestCase):
         tokens = [line.rsplit(": ", 1)[1] for line in result.stdout.strip().splitlines()]
         self.assertEqual(tokens, ["vibe-beta", "vibe-gamma", "vibe-beta"])
 
-    def test_audit_names_allows_non_roster_token_such_as_vibe_sessions(self):
-        text = "# alpha\n\nRecords live under `.plans/vibe-sessions/` per `shared/vibe-contract.md`.\n"
+    def test_audit_names_allows_a_non_roster_vibe_token(self):
+        text = "# alpha\n\nNotes live under `.plans/vibe-notes/` per `shared/vibe-contract.md`.\n"
         self.write_package("vibe-alpha", {"SKILL.md": text})
         self.write_package("vibe-beta")
         result = self.run_cli("audit-names", expect=0)
@@ -817,19 +750,19 @@ class VibeSharedContractTests(unittest.TestCase):
 
     # --- list ------------------------------------------------------------------
 
-    def test_list_prints_block_ids_kinds_and_dependents(self):
+    def test_list_prints_block_ids_and_dependents(self):
         self.write_source(
             [
                 ("evidence-classes", ["vibe-alpha", "vibe-beta"], BODY),
-                ("history-mutation-gate", ["vibe-alpha"], GATE_BODY),
+                ("model-tier-selection", ["vibe-alpha"], BODY),
             ]
         )
         result = self.run_cli("list", root=False, expect=0)
         self.assertEqual(
             result.stdout.splitlines(),
             [
-                "evidence-classes\tkind=consolidation\tdependents=vibe-alpha,vibe-beta",
-                "history-mutation-gate\tkind=non-overridable\tdependents=vibe-alpha",
+                "evidence-classes\tdependents=vibe-alpha,vibe-beta",
+                "model-tier-selection\tdependents=vibe-alpha",
             ],
         )
 
@@ -838,31 +771,6 @@ class VibeSharedContractTests(unittest.TestCase):
         result = self.run_cli("list", root=False, expect=1)
         self.assertIn("malformed block marker", result.stdout)
 
-    def test_list_reports_the_shape_state_and_per_package_closing(self):
-        self.write_source(
-            [
-                ("evidence-classes", ["vibe-alpha"], NEW_BODY_OPEN),
-                ("accepted-risk-semantics", ["vibe-alpha"], BODY),
-            ]
-        )
-        result = self.run_cli("list", root=False, expect=0)
-        self.assertEqual(
-            result.stdout.splitlines(),
-            [
-                "evidence-classes\tkind=consolidation\tshape=new\tdependents=vibe-alpha",
-                "accepted-risk-semantics\tkind=consolidation\tdependents=vibe-alpha",
-                "closing=per-package",
-            ],
-        )
-
-    def test_list_omits_the_closing_line_while_the_shape_keeps_its_tails(self):
-        self.write_source([("evidence-classes", ["vibe-alpha"], NEW_BODY)])
-        result = self.run_cli("list", root=False, expect=0)
-        self.assertEqual(
-            result.stdout.splitlines(),
-            ["evidence-classes\tkind=consolidation\tshape=new\tdependents=vibe-alpha"],
-        )
-
     # --- block shape ------------------------------------------------------------
 
     def shape_check(self, body, block_id="evidence-classes", strict=False, expect=1):
@@ -870,21 +778,13 @@ class VibeSharedContractTests(unittest.TestCase):
         self.write_package("vibe-alpha", {"SKILL.md": marked_file("vibe-alpha", block_id, body)})
         return self.check(*(("--strict",) if strict else ()), expect=expect)
 
-    def test_check_new_shape_block_passes_without_a_legacy_warning(self):
-        result = self.shape_check(NEW_BODY, expect=0)
-        self.assertNotIn("legacy-shape", result.stdout)
+    def test_check_well_shaped_block_passes_strict(self):
+        result = self.shape_check(FULL_BODY, expect=0)
         self.assertIn("0 error(s), 0 warning(s)", result.stdout)
-        self.shape_check(NEW_BODY, strict=True, expect=0)
-
-    def test_check_legacy_shape_block_warns_only_outside_strict_and_never_errors(self):
-        warned = self.shape_check(BODY, expect=0)
-        self.assertIn("warning: vibe-contract.md:5: block evidence-classes: legacy-shape block", warned.stdout)
-        strict = self.shape_check(BODY, strict=True, expect=0)
-        self.assertNotIn("legacy-shape", strict.stdout)
-        self.assertIn("0 error(s), 0 warning(s)", strict.stdout)
+        self.shape_check(FULL_BODY, strict=True, expect=0)
 
     def test_check_shape_finding_is_a_warning_by_default_and_an_error_under_strict(self):
-        body = "**Never " + words(28) + ".**\n\n" + SHAPE_BULLETS + PRECEDENCE + "\n"
+        body = "**Never " + words(28) + ".**\n\n" + SHAPE_BULLETS
         warned = self.shape_check(body, expect=0)
         self.assertIn("warning: vibe-contract.md:6: block evidence-classes: bold lead is 29 words (cap 25)", warned.stdout)
         strict = self.shape_check(body, strict=True, expect=1)
@@ -906,12 +806,7 @@ class VibeSharedContractTests(unittest.TestCase):
         }
         for lead, starter in flagged.items():
             with self.subTest(lead=lead):
-                result = self.shape_check(
-                    lead + "\n\n" + SHAPE_BULLETS + PRECEDENCE + "\n",
-                    block_id="sample-block",
-                    strict=True,
-                    expect=1,
-                )
+                result = self.shape_check(lead + "\n\n" + SHAPE_BULLETS, block_id="sample-block", strict=True, expect=1)
                 self.assertIn(f"bold lead does not open with an imperative: {starter!r}", result.stdout)
                 self.assertIn("use 'Never', 'Only', or a verb listed in IMPERATIVE_LEAD_VERBS", result.stdout)
         for lead in (
@@ -921,193 +816,92 @@ class VibeSharedContractTests(unittest.TestCase):
             "**Detect a secret-like literal before it leaves the phase.**",
         ):
             with self.subTest(lead=lead):
-                result = self.shape_check(
-                    lead + "\n\n" + SHAPE_BULLETS + PRECEDENCE + "\n",
-                    block_id="sample-block",
-                    strict=True,
-                    expect=0,
-                )
+                result = self.shape_check(lead + "\n\n" + SHAPE_BULLETS, block_id="sample-block", strict=True, expect=0)
                 self.assertNotIn("imperative", result.stdout)
 
-    def test_every_lead_the_shared_source_carries_opens_with_a_listed_imperative(self):
+    def test_every_block_the_shared_source_carries_passes_the_shape_checks(self):
         module = load_module()
         blocks, findings = module.parse_source(module.DEFAULT_SOURCE)
         self.assertEqual([finding for finding in findings if finding.level == "error"], [])
         for block in blocks:
-            if not block.is_new_shape:
-                continue
             with self.subTest(block=block.block_id):
-                starter = module.lead_starter(block.lead_line)
-                self.assertTrue(
-                    module.lead_opens_imperatively(starter),
-                    f"{block.block_id} lead opens with {starter!r}, which is not a listed imperative",
-                )
+                self.assertTrue(block.has_bold_lead)
+                self.assertTrue(module.lead_opens_imperatively(module.lead_starter(block.lead_line)))
+                self.assertEqual(module.check_block_shape(block, "vibe-contract.md", "error"), [])
 
-    def test_check_bullet_cap_is_forty_words_in_a_consolidation_block(self):
-        passing = SHAPE_LEAD + "\n\n- " + words(40) + "\n" + PRECEDENCE + "\n"
+    def test_check_bullet_cap_is_forty_words(self):
+        passing = SHAPE_LEAD + "\n\n- " + words(40) + "\n"
         self.shape_check(passing, strict=True, expect=0)
-        failing = SHAPE_LEAD + "\n\n- " + words(41) + "\n" + PRECEDENCE + "\n"
+        failing = SHAPE_LEAD + "\n\n- " + words(41) + "\n"
         result = self.shape_check(failing, strict=True, expect=1)
         self.assertIn("bullet is 41 words (cap 40)", result.stdout)
 
-    def test_check_bullet_cap_is_thirty_words_in_a_gate_block(self):
-        passing = SHAPE_LEAD + "\n\n- " + words(30) + "\n" + APPLICABILITY + "\n"
-        self.shape_check(passing, block_id="commit-selection-gate", strict=True, expect=0)
-        failing = SHAPE_LEAD + "\n\n- " + words(31) + "\n" + APPLICABILITY + "\n"
-        result = self.shape_check(failing, block_id="commit-selection-gate", strict=True, expect=1)
-        self.assertIn("bullet is 31 words (cap 30)", result.stdout)
-
     def test_check_sub_bullet_cap_is_thirty_words_and_the_parent_keeps_its_own_cap(self):
-        passing = SHAPE_LEAD + "\n\n- " + words(40) + "\n  - " + words(30) + "\n" + PRECEDENCE + "\n"
+        passing = SHAPE_LEAD + "\n\n- " + words(40) + "\n  - " + words(30) + "\n"
         self.shape_check(passing, strict=True, expect=0)
-        failing = SHAPE_LEAD + "\n\n- " + words(10) + "\n  - " + words(31) + "\n" + PRECEDENCE + "\n"
+        failing = SHAPE_LEAD + "\n\n- " + words(10) + "\n  - " + words(31) + "\n"
         result = self.shape_check(failing, strict=True, expect=1)
         self.assertIn("sub-bullet is 31 words (cap 30)", result.stdout)
         self.assertNotIn("bullet is 31", result.stdout.replace("sub-bullet is 31", ""))
 
     def test_check_at_most_one_prose_paragraph_may_follow_the_bullets(self):
-        body = SHAPE_LEAD + "\n\n" + SHAPE_BULLETS + "\n" + SHAPE_EXCEPTION + "\nA second tail paragraph.\n" + PRECEDENCE + "\n"
+        body = FULL_BODY + "\nA second tail paragraph.\n"
         result = self.shape_check(body, strict=True, expect=1)
         self.assertIn("more than one prose paragraph after the bullets", result.stdout)
         self.assertIn("(at most one exception line is allowed)", result.stdout)
 
     def test_check_exception_line_cap_is_thirty_five_words(self):
-        passing = SHAPE_LEAD + "\n\n" + SHAPE_BULLETS + "\nException: " + words(34) + "\n" + PRECEDENCE + "\n"
+        passing = BODY + "\nException: " + words(34) + "\n"
         self.shape_check(passing, strict=True, expect=0)
-        failing = SHAPE_LEAD + "\n\n" + SHAPE_BULLETS + "\nException: " + words(35) + "\n" + PRECEDENCE + "\n"
+        failing = BODY + "\nException: " + words(35) + "\n"
         result = self.shape_check(failing, strict=True, expect=1)
         self.assertIn("exception line is 36 words (cap 35)", result.stdout)
 
     def test_check_prose_paragraph_cap_is_sixty_words(self):
-        passing = SHAPE_LEAD + "\n\n" + words(60) + "\n\n" + SHAPE_BULLETS + PRECEDENCE + "\n"
+        passing = SHAPE_LEAD + "\n\n" + words(60) + "\n\n" + SHAPE_BULLETS
         self.shape_check(passing, strict=True, expect=0)
-        failing = SHAPE_LEAD + "\n\n" + words(61) + "\n\n" + SHAPE_BULLETS + PRECEDENCE + "\n"
+        failing = SHAPE_LEAD + "\n\n" + words(61) + "\n\n" + SHAPE_BULLETS
         result = self.shape_check(failing, strict=True, expect=1)
         self.assertIn("paragraph is 61 words (cap 60)", result.stdout)
         self.assertNotIn("exception line", result.stdout)
 
-    def test_check_gate_block_total_cap_is_two_hundred_sixty_words(self):
-        bullets = "".join("- " + words(30) + "\n" for _ in range(8))
-        passing = SHAPE_LEAD + "\n\n" + bullets + APPLICABILITY + "\n"
-        self.shape_check(passing, block_id="history-mutation-gate", strict=True, expect=0)
-        failing = SHAPE_LEAD + "\n\n" + bullets + "- " + words(20) + "\n" + APPLICABILITY + "\n"
-        result = self.shape_check(failing, block_id="history-mutation-gate", strict=True, expect=1)
-        self.assertIn("gate block is 268 words (cap 260)", result.stdout)
-
     def test_check_numbered_item_is_capped_like_a_bullet(self):
-        passing = SHAPE_LEAD + "\n\n1. " + words(40) + "\n2. " + words(40) + "\n" + PRECEDENCE + "\n"
+        passing = SHAPE_LEAD + "\n\n1. " + words(40) + "\n2. " + words(40) + "\n"
         self.shape_check(passing, strict=True, expect=0)
-        failing = SHAPE_LEAD + "\n\n1. " + words(40) + "\n2. " + words(41) + "\n" + PRECEDENCE + "\n"
+        failing = SHAPE_LEAD + "\n\n1. " + words(40) + "\n2. " + words(41) + "\n"
         result = self.shape_check(failing, strict=True, expect=1)
         self.assertIn("bullet is 41 words (cap 40)", result.stdout)
         self.assertEqual(result.stdout.count("bullet is"), 1)
-        gate = SHAPE_LEAD + "\n\n1. " + words(31) + "\n" + APPLICABILITY + "\n"
-        result = self.shape_check(gate, block_id="commit-selection-gate", strict=True, expect=1)
-        self.assertIn("bullet is 31 words (cap 30)", result.stdout)
 
     def test_check_indented_items_under_a_numbered_item_are_sub_bullets(self):
-        passing = (
-            SHAPE_LEAD + "\n\n1. " + words(40) + "\n  - " + words(30) + "\n  2. " + words(30) + "\n" + PRECEDENCE + "\n"
-        )
+        passing = SHAPE_LEAD + "\n\n1. " + words(40) + "\n  - " + words(30) + "\n  2. " + words(30) + "\n"
         self.shape_check(passing, strict=True, expect=0)
-        failing = (
-            SHAPE_LEAD + "\n\n1. " + words(10) + "\n  - " + words(31) + "\n  2. " + words(31) + "\n" + PRECEDENCE + "\n"
-        )
+        failing = SHAPE_LEAD + "\n\n1. " + words(10) + "\n  - " + words(31) + "\n  2. " + words(31) + "\n"
         result = self.shape_check(failing, strict=True, expect=1)
         self.assertEqual(result.stdout.count("sub-bullet is 31 words (cap 30)"), 2)
 
-    def test_check_numbering_a_gate_list_does_not_change_its_word_total(self):
-        tail = "- " + words(20) + "\n" + APPLICABILITY + "\n"
-        dashed = SHAPE_LEAD + "\n\n" + "".join("- " + words(30) + "\n" for _ in range(8)) + tail
-        numbered = (
-            SHAPE_LEAD
-            + "\n\n"
-            + "".join(f"{index}. " + words(30) + "\n" for index in range(1, 9))
-            + "9. "
-            + words(20)
-            + "\n"
-            + APPLICABILITY
-            + "\n"
-        )
-        for label, body in (("dashed", dashed), ("numbered", numbered)):
-            with self.subTest(list=label):
-                result = self.shape_check(body, block_id="history-mutation-gate", strict=True, expect=1)
-                self.assertIn("gate block is 268 words (cap 260)", result.stdout)
-
-    def test_check_schema_block_total_cap_is_five_hundred_thirty_words(self):
-        # Synthetic bodies only: the cap must hold independently of the shared source, and
-        # for every id the script classifies as a schema block, not only the first one.
-        bullets = "".join("- " + words(40) + "\n" for _ in range(13)) + "- " + words(2) + "\n"
-        at_cap = SHAPE_LEAD + "\n\n" + bullets + APPLICABILITY + "\n"
-        over_cap = SHAPE_LEAD + "\n\n" + bullets + "- " + words(1) + "\n" + APPLICABILITY + "\n"
-        module = load_module()
-        self.assertEqual(module.SCHEMA_BLOCK_WORD_CAP, 530)
-        self.assertIn("session-record-schema", module.SCHEMA_BLOCK_IDS)
-        for block_id in sorted(module.SCHEMA_BLOCK_IDS):
-            with self.subTest(block_id=block_id):
-                result = self.shape_check(at_cap, block_id=block_id, strict=True, expect=0)
-                self.assertIn("0 error(s), 0 warning(s)", result.stdout)
-                blocks, findings = module.parse_source(self.source)
-                self.assertEqual(findings, [])
-                self.assertEqual(module.block_word_total(blocks[0]), 530)
-                over = self.shape_check(over_cap, block_id=block_id, strict=True, expect=1)
-                self.assertIn(f"block {block_id}: schema block is 531 words (cap 530)", over.stdout)
-        gated = self.shape_check(at_cap, block_id="history-mutation-gate", strict=True, expect=1)
-        self.assertIn("gate block is 530 words (cap 260)", gated.stdout)
-        self.assertNotIn("schema block is", gated.stdout)
-
-    def test_schema_block_ids_are_declared_by_the_shared_source_as_schema_blocks(self):
-        module = load_module()
-        self.assertEqual(
-            set(module.SCHEMA_BLOCK_IDS),
-            {"session-record-schema", "decision-record-schema", "decision-record-index", "deferred-findings-schema"},
-        )
-        blocks, _findings = module.parse_source(module.DEFAULT_SOURCE)
-        by_id = {block.block_id: block for block in blocks}
-        for block_id in sorted(module.SCHEMA_BLOCK_IDS):
-            with self.subTest(block_id=block_id):
-                self.assertIn(block_id, by_id)
-                self.assertLessEqual(module.block_word_total(by_id[block_id]), module.SCHEMA_BLOCK_WORD_CAP)
-                self.assertTrue(by_id[block_id].body.lstrip().startswith("**"))
-
-    def test_check_schema_cap_finding_is_a_warning_outside_strict(self):
-        bullets = "".join("- " + words(40) + "\n" for _ in range(13)) + "- " + words(3) + "\n"
-        body = SHAPE_LEAD + "\n\n" + bullets + APPLICABILITY + "\n"
-        result = self.shape_check(body, block_id="session-record-schema", expect=0)
-        self.assertIn(
-            "warning: vibe-contract.md:5: block session-record-schema: schema block is 531 words (cap 530)",
-            result.stdout,
-        )
-
     def test_check_negative_line_block_must_keep_a_never_or_only_line(self):
-        body = (
-            "**Read the record before the first write.**\n\n"
-            "- Keep the finding inert until verification lands.\n" + PRECEDENCE + "\n"
-        )
+        body = "**Read the record before the first write.**\n\n- Keep the finding inert until verification lands.\n"
         result = self.shape_check(body, block_id="evidence-classes", strict=True, expect=1)
         self.assertIn(
             "block evidence-classes: no lead, bullet, or sub-bullet opens with 'Never' or 'Only'",
             result.stdout,
         )
-        self.assertIn("the pre-rewrite block stated a negative rule and one must survive", result.stdout)
+        self.assertIn("the block states a negative rule and one must survive", result.stdout)
 
     def test_check_never_or_only_survives_in_a_lead_a_bullet_or_a_sub_bullet(self):
         opener = "**Read the record before the first write.**"
-        tail = PRECEDENCE + "\n"
         for label, body in (
-            ("lead", "**Never write a record the phase does not own.**\n\n- Keep it inert.\n" + tail),
-            ("bullet", opener + "\n\n- Never write a record the phase does not own.\n" + tail),
-            ("sub-bullet", opener + "\n\n- Keep it inert.\n  - Only a recorded source selects a commit.\n" + tail),
+            ("lead", "**Never write a record the phase does not own.**\n\n- Keep it inert.\n"),
+            ("bullet", opener + "\n\n- Never write a record the phase does not own.\n"),
+            ("sub-bullet", opener + "\n\n- Keep it inert.\n  - Only a recorded source selects a commit.\n"),
         ):
             with self.subTest(place=label):
                 result = self.shape_check(body, block_id="evidence-classes", strict=True, expect=0)
                 self.assertNotIn("Never' or 'Only", result.stdout)
 
     def test_check_negative_line_rule_skips_a_block_outside_the_derived_set(self):
-        body = (
-            "**Read the record before the first write.**\n\n"
-            "- Keep the finding inert until verification lands.\n" + PRECEDENCE + "\n"
-        )
+        body = "**Read the record before the first write.**\n\n- Keep the finding inert until verification lands.\n"
         result = self.shape_check(body, block_id="sample-block", strict=True, expect=0)
         self.assertNotIn("Never' or 'Only", result.stdout)
 
@@ -1118,30 +912,23 @@ class VibeSharedContractTests(unittest.TestCase):
 
     def test_check_example_lines_are_excluded_from_the_counts_and_capped_at_one(self):
         example = "Example: " + words(80) + "\n"
-        passing = SHAPE_LEAD + "\n\n" + SHAPE_BULLETS + example + APPLICABILITY + "\n"
-        self.shape_check(passing, block_id="history-mutation-gate", strict=True, expect=0)
-        failing = SHAPE_LEAD + "\n\n" + SHAPE_BULLETS + example + example + APPLICABILITY + "\n"
-        result = self.shape_check(failing, block_id="history-mutation-gate", strict=True, expect=1)
+        passing = BODY + example
+        self.shape_check(passing, block_id="sample-block", strict=True, expect=0)
+        failing = BODY + example + example
+        result = self.shape_check(failing, block_id="sample-block", strict=True, expect=1)
         self.assertIn("more than 1 'Example:' lines in the block", result.stdout)
-
-    def test_check_new_shape_block_ending_with_the_other_closing_sentence_fails(self):
-        body = SHAPE_LEAD + "\n\n" + SHAPE_BULLETS + APPLICABILITY + "\n"
-        result = self.shape_check(body, expect=1)
-        self.assertIn("consolidation block ends with the other closing sentence", result.stdout)
 
     def test_check_table_rows_and_fenced_code_inside_a_block_are_not_prose_paragraphs(self):
         body = (
             SHAPE_LEAD
             + "\n\n| Field | Type | Notes |\n| --- | --- | --- |\n| `phase` | string | "
             + words(70)
-            + " |\n\n```json\n{\"phase\": \"review\", \"note\": \""
+            + " |\n\n```markdown\n## DF-NNNN <title>\n- Status: "
             + words(70)
-            + "\"}\n```\n\n"
+            + "\n```\n\n"
             + SHAPE_BULLETS
-            + APPLICABILITY
-            + "\n"
         )
-        self.shape_check(body, block_id="session-record-schema", strict=True, expect=0)
+        self.shape_check(body, block_id="sample-block", strict=True, expect=0)
 
     def test_count_words_drops_markdown_markers_and_punctuation_only_tokens(self):
         module = load_module()
@@ -1149,244 +936,26 @@ class VibeSharedContractTests(unittest.TestCase):
         self.assertEqual(module.count_words("- a bullet marker is not a word"), 7)
         self.assertEqual(module.wc_counts("one two\nthree\n"), (2, 3))
 
-    # --- closing block ----------------------------------------------------------
+    # --- prose outside blocks ---------------------------------------------------
 
-    def test_check_closing_block_is_refused_while_every_source_block_keeps_its_tail(self):
+    def test_prose_outside_every_block_is_ignored_by_list_render_and_check(self):
         self.write_source([("evidence-classes", ["vibe-alpha"], BODY)])
-        self.write_package(
-            "vibe-alpha",
-            {"SKILL.md": closing_file("vibe-alpha", "evidence-classes", BODY, CLOSING_BODY)},
-        )
-        result = self.check(expect=1)
-        self.assertIn(
-            "package vibe-alpha carries a closing block while every source block still ends with its own closing sentence",
-            result.stdout,
-        )
-        refused = self.render(expect=1)
-        self.assertIn("render refused", refused.stdout)
-
-    def test_check_new_shape_block_without_a_tail_needs_no_closing_sentence(self):
-        self.write_source([("evidence-classes", ["vibe-alpha"], NEW_BODY_OPEN)])
-        self.write_package(
-            "vibe-alpha",
-            {"SKILL.md": closing_file("vibe-alpha", "evidence-classes", NEW_BODY_OPEN, CLOSING_BODY)},
-        )
-        result = self.check("--strict", expect=0)
-        self.assertNotIn("closing sentence", result.stdout)
-
-    def test_check_strict_requires_one_closing_block_per_package_once_the_tails_are_gone(self):
-        self.write_source([("evidence-classes", ["vibe-alpha"], NEW_BODY_OPEN)])
-        self.write_package("vibe-alpha", {"SKILL.md": marked_file("vibe-alpha", "evidence-classes", NEW_BODY_OPEN)})
-        warned = self.check(expect=0)
-        self.assertIn("warning: package vibe-alpha has no closing block", warned.stdout)
-        strict = self.check("--strict", expect=1)
-        self.assertIn("error: package vibe-alpha has no closing block", strict.stdout)
-
-    def test_render_fills_a_pristine_closing_block_with_the_precedence_sentence(self):
-        self.write_source([("evidence-classes", ["vibe-alpha"], NEW_BODY_OPEN)])
-        self.write_package(
-            "vibe-alpha",
-            {"SKILL.md": closing_file("vibe-alpha", "evidence-classes", NEW_BODY_OPEN, "")},
-        )
-        result = self.render(expect=0)
-        self.assertIn("rendered skills/vibe-alpha/SKILL.md closing (pristine)", result.stdout)
-        text = (self.root / "vibe-alpha" / "SKILL.md").read_text(encoding="utf-8")
-        self.assertIn(begin_marker("closing") + "\n" + CLOSING_BODY + end_marker("closing"), text)
-        self.assertNotIn(CLOSING_APPLICABILITY, text)
-        self.assertNotIn(APPLICABILITY, text)
-        self.check("--strict", expect=0)
-
-    def test_render_closing_block_adds_the_applicability_sentence_for_a_gate_package(self):
-        gate_body = "**Never rewrite published history without asking.**\n\n- Stop before a matched command and name it.\n"
-        self.write_source(
-            [
-                ("evidence-classes", ["vibe-alpha"], NEW_BODY_OPEN),
-                ("history-mutation-gate", ["vibe-alpha"], gate_body),
-            ]
-        )
-        text = (
-            f"# a\n\n{CLASS_LINE}\n{begin_marker('closing')}\n{end_marker('closing')}\n\n"
-            f"{begin_marker('evidence-classes')}\n{NEW_BODY_OPEN}{end_marker('evidence-classes')}\n\n"
-            f"{begin_marker('history-mutation-gate')}\n{gate_body}{end_marker('history-mutation-gate')}\n"
-        )
-        self.write_package("vibe-alpha", {"SKILL.md": text})
-        self.render(expect=0)
-        rendered = (self.root / "vibe-alpha" / "SKILL.md").read_text(encoding="utf-8")
-        self.assertIn(
-            begin_marker("closing") + "\n" + CLOSING_BODY_GATE + end_marker("closing"),
-            rendered,
-        )
-        self.check("--strict", expect=0)
-
-    def test_check_closing_block_must_sit_directly_below_the_class_line(self):
-        self.write_source([("evidence-classes", ["vibe-alpha"], NEW_BODY_OPEN)])
-        self.write_package(
-            "vibe-alpha",
-            {
-                "SKILL.md": closing_file(
-                    "vibe-alpha", "evidence-classes", NEW_BODY_OPEN, CLOSING_BODY, gap="\n"
-                )
-            },
-        )
-        result = self.check(expect=1)
-        self.assertIn("the closing block must be the line directly below the class declaration", result.stdout)
-        self.assertIn("with no blank line between them", result.stdout)
-
-    def test_check_drifted_closing_block_fails_and_force_render_repairs_it(self):
-        self.write_source([("evidence-classes", ["vibe-alpha"], NEW_BODY_OPEN)])
-        self.write_package(
-            "vibe-alpha",
-            {"SKILL.md": closing_file("vibe-alpha", "evidence-classes", NEW_BODY_OPEN, "Hand-written tail.\n")},
-        )
-        result = self.check(expect=1)
-        self.assertIn("block closing drifted from the source", result.stdout)
-        self.render("--force", expect=0)
-        self.check("--strict", expect=0)
-
-    def test_closing_body_is_one_self_scoped_line_for_a_package_without_a_gate(self):
-        module = load_module()
-        block_map = {
-            "evidence-classes": module.SourceBlock("evidence-classes", ("vibe-alpha",), NEW_BODY_OPEN, 1)
-        }
-        body = module.closing_block_for("vibe-alpha", block_map).body
-        self.assertEqual(body, CLOSING_BODY)
-        self.assertEqual(body.splitlines(), [CLOSING_PRECEDENCE])
-
-    def test_closing_body_is_two_self_scoped_lines_for_a_gate_package(self):
-        module = load_module()
-        block_map = {
-            "evidence-classes": module.SourceBlock("evidence-classes", ("vibe-alpha",), NEW_BODY_OPEN, 1),
-            "history-mutation-gate": module.SourceBlock("history-mutation-gate", ("vibe-alpha",), GATE_BODY, 5),
-        }
-        body = module.closing_block_for("vibe-alpha", block_map).body
-        self.assertEqual(body, CLOSING_BODY_GATE)
-        self.assertEqual(body.splitlines(), [CLOSING_PRECEDENCE, CLOSING_APPLICABILITY])
-
-    def test_closing_sentences_carry_their_own_scope_and_drop_the_scope_line(self):
-        module = load_module()
-        for sentence in (CLOSING_PRECEDENCE, CLOSING_APPLICABILITY):
-            with self.subTest(sentence=sentence[:40]):
-                self.assertTrue(sentence.startswith("For every "))
-                self.assertIn("here and in its references", sentence)
-        self.assertFalse(hasattr(module, "PRECEDENCE_SCOPE_SENTENCE"))
-        self.assertFalse(hasattr(module, "COMBINED_SCOPE_SENTENCE"))
-        self.assertEqual(
-            module.BOILERPLATE_SENTENCES,
-            (PRECEDENCE, APPLICABILITY, CLOSING_PRECEDENCE, CLOSING_APPLICABILITY),
-        )
-
-    def test_check_closing_block_renders_each_owed_sentence_exactly_once(self):
-        self.write_source([("evidence-classes", ["vibe-alpha"], NEW_BODY_OPEN)])
-        self.write_package(
-            "vibe-alpha",
-            {
-                "SKILL.md": closing_file(
-                    "vibe-alpha", "evidence-classes", NEW_BODY_OPEN, CLOSING_BODY + CLOSING_PRECEDENCE + "\n"
-                )
-            },
-        )
-        result = self.check("--strict", expect=1)
-        self.assertIn("block closing renders the precedence sentence 2 time(s), expected 1", result.stdout)
-
-    def test_check_closing_block_missing_an_owed_sentence_names_it(self):
-        gate_body = "**Never rewrite published history without asking.**\n\n- Stop before a matched command and name it.\n"
-        self.write_source(
-            [
-                ("evidence-classes", ["vibe-alpha"], NEW_BODY_OPEN),
-                ("history-mutation-gate", ["vibe-alpha"], gate_body),
-            ]
-        )
-        text = (
-            f"# a\n\n{CLASS_LINE}\n{begin_marker('closing')}\n{CLOSING_BODY}{end_marker('closing')}\n\n"
-            f"{begin_marker('evidence-classes')}\n{NEW_BODY_OPEN}{end_marker('evidence-classes')}\n\n"
-            f"{begin_marker('history-mutation-gate')}\n{gate_body}{end_marker('history-mutation-gate')}\n"
-        )
-        self.write_package("vibe-alpha", {"SKILL.md": text})
-        result = self.check("--strict", expect=1)
-        self.assertIn("block closing renders the applicability sentence 0 time(s), expected 1", result.stdout)
-
-    def test_check_closing_block_carrying_a_per_block_sentence_is_flagged(self):
-        self.write_source([("evidence-classes", ["vibe-alpha"], NEW_BODY_OPEN)])
-        self.write_package(
-            "vibe-alpha",
-            {
-                "SKILL.md": closing_file(
-                    "vibe-alpha", "evidence-classes", NEW_BODY_OPEN, CLOSING_BODY + PRECEDENCE + "\n"
-                )
-            },
-        )
-        result = self.check("--strict", expect=1)
-        self.assertIn(
-            "block closing renders the per-block precedence sentence 1 time(s), expected 0", result.stdout
-        )
-
-    def test_check_a_closing_sentence_inside_another_block_is_flagged(self):
-        for sentence, name in (
-            (CLOSING_PRECEDENCE, "the precedence sentence"),
-            (CLOSING_APPLICABILITY, "the applicability sentence"),
-            (PRECEDENCE, "the per-block precedence sentence"),
-            (APPLICABILITY, "the per-block applicability sentence"),
-        ):
-            with self.subTest(sentence=name):
-                body = SHAPE_LEAD + "\n\n" + SHAPE_BULLETS + "- " + sentence + "\n"
-                self.write_source([("evidence-classes", ["vibe-alpha"], body)])
-                self.write_package(
-                    "vibe-alpha",
-                    {"SKILL.md": closing_file("vibe-alpha", "evidence-classes", body, CLOSING_BODY)},
-                )
-                result = self.check("--strict", expect=1)
-                self.assertIn(f"block evidence-classes carries {name}", result.stdout)
-                self.assertIn("the package renders it once, in its closing block", result.stdout)
-
-    def test_check_a_legacy_block_keeps_its_own_tail_without_a_stray_finding(self):
-        self.write_source(
-            [
-                ("evidence-classes", ["vibe-alpha"], NEW_BODY_OPEN),
-                ("accepted-risk-semantics", ["vibe-alpha"], BODY),
-            ]
-        )
-        text = (
-            f"# a\n\n{CLASS_LINE}\n{begin_marker('closing')}\n{CLOSING_BODY}{end_marker('closing')}\n\n"
-            f"{begin_marker('evidence-classes')}\n{NEW_BODY_OPEN}{end_marker('evidence-classes')}\n\n"
-            f"{begin_marker('accepted-risk-semantics')}\n{BODY}{end_marker('accepted-risk-semantics')}\n"
-        )
-        self.write_package("vibe-alpha", {"SKILL.md": text})
-        result = self.check("--strict", expect=0)
-        self.assertNotIn("renders it once", result.stdout)
-
-    def test_check_source_block_id_closing_is_reserved(self):
-        self.write_source([("closing", ["vibe-alpha"], BODY)])
-        self.write_package("vibe-alpha")
-        result = self.check(expect=1)
-        self.assertIn("block id 'closing' is reserved for the per-package closing block", result.stdout)
-
-    # --- appendix ---------------------------------------------------------------
-
-    def test_appendix_outside_every_block_is_ignored_by_list_render_and_check(self):
-        self.write_source([("evidence-classes", ["vibe-alpha"], BODY)])
-        appendix = (
-            "\n## Appendix: hook contract\n\n"
+        trailer = (
+            "\n## Maintainer notes\n\n"
             "| Field | Type | Notes |\n"
             "| --- | --- | --- |\n"
-            "| `phase` | string | the recorded phase |\n"
-            "| `source` | string | one of the three selecting values |\n\n"
-            "The appendix may show the marker grammar itself:\n\n"
+            "| `phase` | string | the recorded phase |\n\n"
+            "The notes may show the marker grammar itself:\n\n"
             "```markdown\n"
-            "<!-- shared-contract:block appendix-example dependents=vibe-alpha -->\n"
-            "**Never treat this appendix as a block.**\n"
-            "<!-- shared-contract:endblock appendix-example -->\n"
-            "```\n\n"
-            "```json\n"
-            '{"schema_version": "1", "phase": "review", "effect_mode": "read-only"}\n'
+            "<!-- shared-contract:block notes-example dependents=vibe-alpha -->\n"
+            "**Never treat these notes as a block.**\n"
+            "<!-- shared-contract:endblock notes-example -->\n"
             "```\n"
         )
-        self.source.write_text(self.source.read_text(encoding="utf-8") + appendix, encoding="utf-8")
+        self.source.write_text(self.source.read_text(encoding="utf-8") + trailer, encoding="utf-8")
         self.write_package("vibe-alpha", {"SKILL.md": marked_file("vibe-alpha", "evidence-classes", "")})
         listing = self.run_cli("list", root=False, expect=0)
-        self.assertEqual(
-            listing.stdout.splitlines(),
-            ["evidence-classes\tkind=consolidation\tdependents=vibe-alpha"],
-        )
+        self.assertEqual(listing.stdout.splitlines(), ["evidence-classes\tdependents=vibe-alpha"])
         self.render(expect=0)
         self.check("--strict", expect=0)
         self.assertEqual(
@@ -1394,80 +963,15 @@ class VibeSharedContractTests(unittest.TestCase):
             marked_file("vibe-alpha", "evidence-classes", BODY),
         )
 
-    def appendix_source(self, body, appendix):
-        self.write_source([("session-record-schema", ["vibe-alpha"], body)])
-        self.source.write_text(self.source.read_text(encoding="utf-8") + appendix, encoding="utf-8")
-        self.write_package("vibe-alpha", {"SKILL.md": marked_file("vibe-alpha", "session-record-schema", body)})
-
-    def test_check_appendix_citation_without_a_matching_heading_fails(self):
-        body = (
-            "**Never treat the record as authority.**\n\n"
-            "- Read the record-state matrix in Appendix S3 before answering a gate.\n" + APPLICABILITY + "\n"
+    def test_a_leftover_closing_marker_is_an_unknown_block(self):
+        self.write_source([("evidence-classes", ["vibe-alpha"], BODY)])
+        text = (
+            f"# a\n\n{CLASS_LINE}\n{begin_marker('closing')}\nOld tail.\n{end_marker('closing')}\n"
+            f"{begin_marker('evidence-classes')}\n{BODY}{end_marker('evidence-classes')}\n"
         )
-        self.appendix_source(body, "\n## Appendix: hook and record contract\n\n### Appendix S1 — field table\n\nRows.\n")
-        result = self.check("--strict", expect=1)
-        self.assertIn("Appendix S3 is cited but the source declares no '### Appendix S3' heading", result.stdout)
-
-    def test_check_appendix_citation_resolving_to_its_heading_passes(self):
-        body = (
-            "**Never treat the record as authority.**\n\n"
-            "- Read the record-state matrix in Appendix S3 before answering a gate.\n" + APPLICABILITY + "\n"
-        )
-        self.appendix_source(
-            body,
-            "\n## Appendix: hook and record contract\n\n"
-            "### Appendix S3 — record states\n\nRows.\n\n"
-            "### Appendix G1 — commit-selection gate\n\n"
-            "Outcomes follow the matrix in Appendix S3.\n",
-        )
-        result = self.check("--strict", expect=0)
-        self.assertIn("0 error(s), 0 warning(s)", result.stdout)
-
-    def test_check_appendix_citation_outside_a_block_is_checked_too(self):
-        body = "**Never treat the record as authority.**\n\n- Keep it inert.\n" + APPLICABILITY + "\n"
-        self.appendix_source(
-            body,
-            "\n## Appendix: hook and record contract\n\n"
-            "### Appendix S1 — field table\n\nSee Appendix G9 for the hook contract.\n",
-        )
-        result = self.check("--strict", expect=1)
-        self.assertIn("Appendix G9 is cited but the source declares no '### Appendix G9' heading", result.stdout)
-
-    def test_check_block_sending_the_reader_to_a_missing_appendix_fails(self):
-        body = (
-            "**Never treat the record as authority.**\n\n"
-            "- Before the first write, read the field table in the appendix of `shared/vibe-contract.md`.\n"
-            + APPLICABILITY
-            + "\n"
-        )
-        self.appendix_source(body, "")
-        result = self.check("--strict", expect=1)
-        self.assertIn(
-            "block session-record-schema sends the reader to the appendix, but the source has no "
-            "'## Appendix: hook and record contract' heading",
-            result.stdout,
-        )
-        warned = self.check(expect=0)
-        self.assertIn("warning: ", warned.stdout)
-        self.assertIn("sends the reader to the appendix", warned.stdout)
-
-    def test_check_block_appendix_pointer_passes_with_the_section_heading(self):
-        body = (
-            "**Never treat the record as authority.**\n\n"
-            "- Before the first write, read the field table in the appendix of `shared/vibe-contract.md`.\n"
-            + APPLICABILITY
-            + "\n"
-        )
-        self.appendix_source(body, "\n## Appendix: hook and record contract\n\n### Appendix S1 — field table\n\nRows.\n")
-        self.check("--strict", expect=0)
-
-    def test_appendix_cross_references_resolve_in_the_shared_source(self):
-        module = load_module()
-        blocks, _findings = module.parse_source(module.DEFAULT_SOURCE)
-        findings = module.check_appendix_references(
-            module.read_source_text(module.DEFAULT_SOURCE), blocks, "vibe-contract.md", "error"
-        )
-        self.assertEqual([finding.message for finding in findings], [])
+        self.write_package("vibe-alpha", {"SKILL.md": text})
+        result = self.check(expect=1)
+        self.assertIn("unknown block id closing", result.stdout)
 
     # --- measure ----------------------------------------------------------------
 

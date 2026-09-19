@@ -11,6 +11,57 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- `shared/vibe-contract.md`: a push, amend, rebase, HEAD-moving reset (soft,
+  mixed, or hard), `filter-*` rewrite, or scripted multi-commit replay needs
+  the user's explicit authorization for that operation, which a commit request
+  or checkpoint never grants (`commit-selection-state-changing`: `vibe-coding`,
+  `vibe-commit`, `vibe-debug`, `vibe-orchestrate`, `vibe-plan-execution`,
+  `vibe-review`). Write limits cover shell writes as well as file tools
+  (`effect-write-boundaries`). `subagent-permission` asks before the first
+  delegation instead of at every phase start (`vibe-planning`,
+  `vibe-requirements-spec`); `secret-redaction` drops the redaction-count
+  footer (`vibe-code-research`, `vibe-plan-review`, `vibe-review`).
+- `shared/vibe-contract.md`: `decision-records` absorbs
+  `decision-record-schema` and `decision-record-index`, and `deferred-findings`
+  absorbs `deferred-findings-schema`, dropping legacy `unknown`-record
+  indexing, duplicate-id renumbering, and the checkpoint hold for unrecorded
+  decisions. The other blocks are shorter with no intended behavior change.
+  Rendered text changed in all 14 dependents: `vibe-agent-instructions`,
+  `vibe-brainstorm`, `vibe-code-research`, `vibe-coding`, `vibe-commit`,
+  `vibe-debug`, `vibe-goal-alignment`, `vibe-orchestrate`,
+  `vibe-plan-execution`, `vibe-plan-review`, `vibe-planning`,
+  `vibe-requirements-spec`, `vibe-review`, `vibe-writing`.
+- Every `vibe-*` package reads `references/durable-records.md` only when it
+  applies, writes, or hands a record forward instead of at every phase start.
+  Planning, plan execution, debug, review, orchestration, and the
+  `vibe-coding` router-owned rows check both record indexes at start; commit
+  execution checks accepted decision records against the staged diff.
+- `vibe-coding`: routes from one precedence-ordered table that names each
+  row's usual specialist, and routes only to a specialist present in visible
+  metadata; for a router-owned row, the finish gate is the report that closes
+  the unit.
+- Repository: `scripts/vibe_session_record.py` and its tests are removed.
+  `scripts/vibe_shared_contract.py` drops the closing-block, gate and schema
+  cap, and appendix checks, treats a block without a bold lead as a shape
+  finding, and `list` prints each block's dependents.
+- Verification: evals were not re-run after this trim, so every behavior
+  delta above is `Unproven`. Suite `validate`, `vibe_shared_contract.py check
+  --strict` and `audit-names`, and `python3 -m pytest tests` passed. Most eval
+  suites were rewritten to fewer cases, so earlier pass rates are not
+  like-for-like.
+
+### Removed
+
+- **Breaking:** `vibe-coding` no longer writes a session record under
+  `.plans/vibe-sessions/`; routing state stays in the conversation.
+  `shared/vibe-contract.md` drops the `session-record-schema`,
+  `commit-selection-gate`, `history-mutation-gate`, and
+  `read-only-phase-write-gate` blocks, the per-package closing sentences, and
+  the hook and record appendices, so a user-installed hook has no record or
+  gate contract to follow.
+
 ## [vibe-planning 6.1.3] - 2026-09-19
 
 ### Changed

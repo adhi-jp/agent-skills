@@ -39,7 +39,7 @@ acting. Repository contributors must also follow [`AGENTS.md`](AGENTS.md).
 
 | Task | Skill | Important boundary | Package |
 | --- | --- | --- | --- |
-| Route an explicitly invoked, multi-turn coding workflow | `vibe-coding` | Classifies each turn into one row of a decision table after a narrowly triggered goal-alignment gate; routes specialist-owned rows to one visible specialist and preserves its gates; performs the router-owned `direct-implementation` and `maintenance` rows itself under the shared effect and commit boundaries; and keeps routing state in a session record under `.plans/vibe-sessions/` that is a record, not authority, while approvals, proceed decisions, and stop boundaries stay in the conversation | [source](skills/vibe-coding/SKILL.md) · [evals](evals/vibe-coding/) |
+| Route an explicitly invoked, multi-turn coding workflow | `vibe-coding` | Classifies each turn into one row of a precedence-ordered decision table after a narrowly triggered goal-alignment gate; routes specialist-owned rows only to a visible specialist and preserves its gates; performs the router-owned `direct-implementation` and `maintenance` rows itself under the shared effect and commit boundaries; and keeps routing state, approvals, proceed decisions, and stop boundaries in the conversation | [source](skills/vibe-coding/SKILL.md) · [evals](evals/vibe-coding/) |
 | Confirm or correct the agent's understanding before ambiguous or risky work | `vibe-goal-alignment` | Produces an understanding record and stops before action until the user confirms or corrects it | [source](skills/vibe-goal-alignment/SKILL.md) · [evals](evals/vibe-goal-alignment/) |
 | Coordinate bounded subagent research, edits, repairs, or review | `vibe-orchestrate` | The coordinator keeps scope, verification, and consent ownership, treats an explicit external-model request as authorization for its necessary task inputs without repeated transmission consent, bounds optional rounds by the goal and effort envelope, and verifies command effects and tested artifacts; treats worker output as non-authorizing; and selects external write lanes by required effects plus isolation and receipts, with free-text residual risk and report/manifest/Git reconciliation before acceptance; qualifying coordinator decisions that bind later rounds become decision records and dropped or later-round items go to `docs/reports/findings/` | [source](skills/vibe-orchestrate/SKILL.md) · [evals](evals/vibe-orchestrate/) |
 
@@ -107,11 +107,15 @@ of truth when a summary and a detailed contract differ.
   `docs/decisions/` when it is settled, and a defect or
   concern a phase deliberately leaves unaddressed is written to
   `docs/reports/findings/` before the unit closes; a phase that may not write
-  hands both forward as a carry-forward packet. Each package carries the shared
-  obligations in `references/durable-records.md`, together with the record and
-  report formats where the phase reads or writes records.
+  hands both forward as a carry-forward packet. Planning, execution, repair,
+  review, orchestration, and the router-owned `direct-implementation` and
+  `maintenance` rows check both indexes when they start; every package reads
+  the record and report formats in `references/durable-records.md` only when
+  it applies, writes, or hands one forward.
 - Commit selection never implies push, release preparation, versions, tags,
-  history rewriting, destructive cleanup, or unrelated paths.
+  history rewriting, destructive cleanup, or unrelated paths. A push, amend,
+  rebase, HEAD-moving reset, `filter-*` rewrite, or scripted multi-commit
+  replay needs the user's explicit authorization for that operation.
 - Current versions come from each source `SKILL.md`. Released changes and
   in-progress changes are recorded in [`CHANGELOG.md`](CHANGELOG.md); the README
   does not duplicate the version registry or the full skill contracts.
@@ -120,15 +124,9 @@ of truth when a summary and a detailed contract differ.
   copies inside `skills/` sit between `shared-contract` begin and end markers,
   are generated from that source, are never hand-edited, and are verified by
   `python3 scripts/vibe_shared_contract.py check --strict`.
-- The history-mutation, commit-selection, and read-only-phase write gates are
-  enforced at the tool call only by hooks you install in your own host
-  configuration; this repository ships none. Without them the instruction-only
-  wording in [`shared/vibe-contract.md`](shared/vibe-contract.md) is the whole
-  gate, and the family behaves as its prose says. Whether Codex honors a hook's
-  `ask` or `deny` is `Unproven` until it is observed there. Shell write forms
-  such as redirection, `sed -i`, `tee`, a heredoc, `mv`, `cp`, `rm`, or
-  `git checkout --` can bypass an edit-tool matcher on either host, so the
-  read-only-phase write gate is best-effort even with a hook installed.
+- Commit selection, history-rewrite consent, and phase write limits are
+  instruction-only; this repository ships no hook that enforces them at the
+  tool call.
 
 ## Check Shared Contract Blocks
 
@@ -141,63 +139,38 @@ python3 scripts/vibe_shared_contract.py render
 python3 scripts/vibe_shared_contract.py check --strict
 python3 scripts/vibe_shared_contract.py audit-names
 python3 scripts/vibe_shared_contract.py measure
-python3 scripts/vibe_session_record.py check .plans/vibe-sessions/<record-id>.json
 ```
 
 `render` fills empty marker pairs in the dependent packages and refuses a copy
 that drifted from the source unless `--force` is given. `check --strict`
 verifies every rendered copy byte for byte against the source and requires each
 dependent's markers and class declaration to be complete. `audit-names` reports
-any sibling skill name cited outside `skills/vibe-coding/`. The record checker
-reports `accept`, `flag`, or `reject` for one session record, with one reason
-line per finding. `render`, `check`, and `list` accept `--source PATH`
-(default `shared/vibe-contract.md`); `render`, `check`, `audit-names`, and
-`measure` accept `--root R` (default `skills`); `check --strict --package <name>`
-gates one package on its own, and `render --package <name>` fills only that
-package's marker pairs.
+any sibling skill name cited outside `skills/vibe-coding/`. `render`, `check`,
+and `list` accept `--source PATH` (default `shared/vibe-contract.md`);
+`render`, `check`, `audit-names`, and `measure` accept `--root R` (default
+`skills`); `check --strict --package <name>` gates one package on its own, and
+`render --package <name>` fills only that package's marker pairs.
 
-A source block whose first non-empty line is a bold lead (`**…**`) is in the
-scannable shape and is measured against the shape caps: a lead of at most 25
-words opening with `Never`, `Only`, or a listed imperative verb, bullets or
-numbered items of at most 40 words (30 in a gate block) with two-space
-sub-bullets of at most 30, at most one prose paragraph after the bullets and at
-most 35 words long, any prose paragraph at most 60 words, a gate block at most
-260 words in total, and a schema block at most 530. Lines beginning `Example:`
-are excluded from every count and allowed once per block. A block that stated a
-negative rule before the scannable rewrite must still open a lead, bullet, or
-sub-bullet with `Never` or `Only`, and every `Appendix S<n>` or `Appendix G<n>`
-citation in the source must resolve to its own `###` heading, and a block that
-sends the reader to the appendix needs the `## Appendix: hook and record
-contract` heading. `check` reports shape faults as warnings and `check --strict`
-reports them as errors; a block with no bold lead keeps the legacy shape, is
-checked as before, and is reported only as a non-strict `legacy-shape` warning.
-`list` marks a scannable block `shape=new`.
+Every source block must open with a bold lead (`**…**`) and is measured
+against the shape caps: a lead of at most 25 words opening with `Never`,
+`Only`, or a listed imperative verb; bullets or numbered items of at most 40
+words, with indented sub-bullets of at most 30; at most one prose paragraph
+after the bullets, of at most 35 words; and any prose paragraph at most 60
+words. Fenced code and table rows are not counted, and lines beginning
+`Example:` are excluded from every count and allowed once per block. Each of
+the current blocks must keep a lead, bullet, or sub-bullet opening with `Never`
+or `Only`. `check` reports shape faults, including a missing bold lead, as
+warnings and `check --strict` reports them as errors. `list` prints each block
+id with its dependents.
 
-Once a scannable block drops its closing boilerplate, the source closes its
-blocks once per package rather than once per block: the package then carries one
-`closing` block directly below its class line, holding the precedence sentence
-and, for a package with a gate or schema block, the applicability sentence. Each
-sentence names the blocks it binds and where they sit — every consolidation
-block, or every gate and schema block, the package carries in its entry file and
-in its references — so the body is one line or two and no line explains the
-lines above it. `render` fills that pair like any other, `check --strict`
-requires exactly one per package with each owed sentence rendered exactly once
-and no generated block outside it carrying either sentence, and both refuse the
-pair while the source still closes every block.
-Prose outside every block marker — the preamble and any appendix with its
-headings, tables, and fenced examples — belongs to the source file rather than
-to a block; `list` and `render` ignore it, and `check` applies no block-shape
-rule to it while still resolving every `Appendix S<n>` or `Appendix G<n>`
-citation it carries.
+Prose outside every block marker — the preamble and the headings between
+blocks — belongs to the source file; the commands ignore it.
 
 `measure` prints entry-file lines and words, in-block words, and reference words
 per package, then the six routed reading tasks' line and word sums against the
 frozen baselines in [`shared/measure-manifest.json`](shared/measure-manifest.json).
-`measure --strict` exits 1 unless every task is below its baseline words. Four
-tasks currently measure above their baselines — T2, T3, and the two
-durable-records tasks T5 and T6, which were frozen at their introduction size —
-so the strict run exits 1 until the entry files shrink, the baselines are
-re-frozen, or the comparison changes.
+`measure --strict` exits 1 unless every task is below its baseline words; all
+six tasks currently measure below their baselines.
 
 ## Run Skill Evals
 
@@ -235,7 +208,6 @@ artifacts unless the user explicitly requests otherwise.
 | `LICENSE` | MIT license for this repository |
 | `scripts/sync_dev_agent_skills.py` | Managed local snapshot and Claude-link synchronization |
 | `scripts/vibe_shared_contract.py` | Renders, checks, lists, and audits the shared-contract blocks and cross-package name citations |
-| `scripts/vibe_session_record.py` | Checks a workflow session record under `.plans/vibe-sessions/` against the shared schema |
 | `.agents/skills/`, `.claude/skills/` | Managed local copies and links; never the repository source of truth |
 
 Some skill packages also include helper assets or scripts. Follow the routing in

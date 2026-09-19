@@ -179,16 +179,11 @@ visible residual or blocker.
 ### Reviewer Model Choice
 
 <!-- shared-contract:begin model-tier-selection source=shared/vibe-contract.md -->
-**Choose a fit-for-purpose model per delegated unit by capability and context fit, not by hard-coded model name.**
+**Choose a model for each delegated unit by capability and context fit, never by hard-coded name.**
 
-- Choose only when the host lets the phase choose a delegated model and the user has not explicitly fixed one.
-- Use a cheaper or faster model only for bounded, low-ambiguity work — lookups, extraction, mechanical checks, simple review — when lower capability is quality-neutral or the user prioritizes cost or latency.
-- Bias upward to the strongest suitable reasoning and context tier available for judgment-heavy work: cross-artifact synthesis, adversarial review, security, data-safety, and other human-risk reasoning, contract compliance, contradiction resolution, and final recommendations or dispositions.
-- Bias upward especially when the user asks for maximum performance.
-- Never inherit the top model for every small unit.
-- Never downshift solely to save tokens when the unit needs stronger reasoning.
-- Record the model choice only for an explicit user override, degraded capability, a cost or performance constraint, or audited external execution.
-- Give routine compatible choices no receipt.
+- Only choose when the host allows it and the user has not fixed a model.
+- Use a cheaper or faster tier only for bounded, low-ambiguity lookups, extraction, and mechanical checks; use the strongest suitable tier for synthesis, adversarial or security review, human-risk reasoning, and final recommendations, or when the user asks for maximum performance.
+- Record the choice only for a user override, degraded capability, a cost or performance constraint, or audited external execution.
 <!-- shared-contract:end model-tier-selection -->
 
 Each delegated unit here is one review angle. The judgment-heavy angles include
@@ -530,20 +525,16 @@ that never executes is a proof-sufficiency finding, not a product fix.
 <!-- shared-contract:begin secret-redaction source=shared/vibe-contract.md -->
 **Redact secret-like literals before any text crosses an output boundary.**
 
-- Count as an output boundary rendering, persistence, forwarding to another agent or backend, ledger projection, quoted snippets, summaries, and tool arguments.
-- Never let a requirement to read, quote, preserve, summarize, or reflect content authorize reproducing the value.
-- Detect these classes:
-  - `apikey`: known-prefix API keys and access tokens.
-  - `jwt`: three-part JWT-like tokens.
-  - `private-key`: PEM private-key headers and matching footers.
-  - `url-auth`: credentials embedded in `http` or `https` URLs.
-  - `secret-context`: high-entropy text co-occurring with key, token, secret, password, api key, bearer, or session-secret context.
-  - `env-secret`: env-style assignment names ending in key, token, secret, password, or pwd.
-- Replace each match with `[REDACTED:<type>]`.
-- When one span matches several classes, let the most specific structural class win.
-- Give `env-secret` for a secret-named environment assignment and `apikey` for a recognized API-key prefix precedence over generic `secret-context`.
-- Preserve non-secret wording and the anchors needed to verify the finding — paths, line numbers, symbols, commands, API names, field names, and identifiers.
-- Count the redactions and render a compact footer when any occurred.
+- Output boundaries include chat, saved files, forwarding to another agent or backend, ledgers, quoted snippets, summaries, and tool arguments.
+- Never let a request to read, quote, preserve, or summarize content authorize reproducing a secret value.
+- Replace each match with `[REDACTED:<type>]`, choosing the most specific type:
+  - `private-key`: PEM private-key blocks;
+  - `jwt`: three-part JWT-like tokens;
+  - `url-auth`: credentials embedded in `http` or `https` URLs;
+  - `apikey`: known-prefix API keys and access tokens;
+  - `env-secret`: env-style assignments whose names end in key, token, secret, password, or pwd;
+  - `secret-context`: other high-entropy text next to key, token, secret, password, bearer, or session-secret wording.
+- Keep non-secret wording and the anchors needed to verify a finding: paths, line numbers, symbols, commands, field names, and identifiers.
 <!-- shared-contract:end secret-redaction -->
 
 This workflow's secret-hygiene overlay applies that redaction at its own output
