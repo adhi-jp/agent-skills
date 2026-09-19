@@ -122,7 +122,9 @@ Choose artifact language by this precedence:
 
 Artifact language does not follow chat language. Keep what `Chat Language`
 keeps verbatim, plus canonical strings, unless translation or renaming is
-requested.
+requested. Write generated prose in the selected language, but preserve
+original-language source wording where it is a useful quote, term, identifier,
+or evidence anchor.
 
 ### Format And Exactness
 
@@ -134,9 +136,11 @@ required schema with a supported neutral or empty value where permitted.
 
 ## Artifact-Specific Guidance
 
-Read `references/artifact-guidance.md` for artifact-specific rules. It routes
-changelog and commit-message work to their detailed references. Decision records
-and findings reports follow `Durable Records`.
+Read `references/artifact-guidance.md` for artifact-specific rules. Before a
+commit-message draft, transport, or stored-message repair, read
+`references/commit-messages.md`; before changelog work, read
+`references/changelog.md`. Decision records and findings reports follow
+`Durable Records`.
 
 ## Durable References
 

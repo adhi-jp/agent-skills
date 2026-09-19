@@ -87,7 +87,7 @@
       "expectations": [
         "Identifies the Markdown fence bytes as stored-message contamination.",
         "Replaces the private tool-session proof with a durable reference or explicit absence status in the corrected message.",
-        "Provides the corrected message payload without Markdown fences or payload-internal diagnosis.",
+        "Provides the corrected message as raw, unfenced text without payload-internal diagnosis; a `Verification:` line carrying durable proof or an explicit absence status is payload content, not diagnosis.",
         "Attributes the amend to the workflow holding history authority.",
         "Requires a corrected message and repeat `git show -s --format=%B HEAD` inspection before completion."
       ]
