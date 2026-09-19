@@ -60,8 +60,10 @@ transcript-contradicted failure as a skill defect, classify it as one of:
 Fix the owning boundary. Stop tightening skill prose when the evidence points
 elsewhere, when repeated wording-only edits leave the targeted failure
 unchanged, or when the same failure moves to another case after each targeted
-fix; treat a moving failure as one shared mechanism and fix its broad owner
-once.
+fix. A moving failure is one mechanism, not per-case gaps: if repeated runs
+show only low-frequency scatter, classify it as run variance, prompt or runner
+leakage, or measurement noise and stop editing prose; if they show a stable
+mechanism, fix its broad owner once.
 
 Two subtypes recur:
 
@@ -114,8 +116,11 @@ Make the smallest coupled change that closes the contract gap:
   without an explicit release instruction.
 - frontmatter `description`: trigger conditions only, never workflow steps.
 
-Preserve modality, exceptions, exact paths, commands, field names, local
-anchors, absence statuses, and proof boundaries when editing or condensing.
+When moving, condensing, or restating rules, preserve modality, exceptions,
+exact paths, commands, field names, local anchors, absence statuses, and proof
+boundaries; then audit the body, references, evals, README, and changelog for
+duplicate or stale authority, and add eval pressure for the moved rule's
+reachability and for over-compression.
 
 `SKILL.md` size is a quality surface: every always-loaded word costs salience
 and eval tokens. Move conditional detail out when it hides activation, scope,

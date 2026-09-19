@@ -9,7 +9,8 @@ Derive the finding's prohibited predicate before choosing prose:
   can actually enforce the boundary. The analyzer report is `Primary source`
   for what the analyzer alleges, not for its root cause or remedy; verify the
   source-to-sink path in current repository artifacts as `Local
-  investigation`, or keep the root cause `Unproven`.
+  investigation`; keep the root cause `Unproven` only if that path cannot be
+  verified.
 - Distinguish a wording gap from a data-flow, authority, or output-propagation
   gap. Calling content inert, adding an ignore-instructions reminder, or
   redacting only the final display does not close a finding while the same
