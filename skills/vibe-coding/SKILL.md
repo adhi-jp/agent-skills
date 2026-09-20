@@ -1,5 +1,5 @@
 ---
-version: 4.1.0
+version: 5.0.0
 name: vibe-coding
 description: >
   Use when the user explicitly invokes vibe-coding through a host-specific skill

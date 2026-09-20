@@ -11,142 +11,275 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [vibe-coding 5.0.0] - 2026-09-21
+
 ### Changed
 
-- `shared/vibe-contract.md`: a push, amend, rebase, HEAD-moving reset (soft,
-  mixed, or hard), `filter-*` rewrite, or scripted multi-commit replay needs
-  the user's explicit authorization for that operation, which a commit request
-  or checkpoint never grants (`commit-selection-state-changing`: `vibe-coding`,
-  `vibe-commit`, `vibe-debug`, `vibe-orchestrate`, `vibe-plan-execution`,
-  `vibe-review`). Write limits cover shell writes as well as file tools
-  (`effect-write-boundaries`). `subagent-permission` asks before the first
-  delegation instead of at every phase start (`vibe-planning`,
-  `vibe-requirements-spec`); `secret-redaction` drops the redaction-count
-  footer (`vibe-code-research`, `vibe-plan-review`, `vibe-review`).
-- `shared/vibe-contract.md`: `decision-records` absorbs
-  `decision-record-schema` and `decision-record-index`, and `deferred-findings`
-  absorbs `deferred-findings-schema`, dropping legacy `unknown`-record
-  indexing, duplicate-id renumbering, and the checkpoint hold for unrecorded
-  decisions; a finding the phase deferred unasked records `Decided by:
-  agent`. The other blocks are shorter with no intended behavior change.
-  Rendered text changed in all 14 dependents: `vibe-agent-instructions`,
-  `vibe-brainstorm`, `vibe-code-research`, `vibe-coding`, `vibe-commit`,
-  `vibe-debug`, `vibe-goal-alignment`, `vibe-orchestrate`,
-  `vibe-plan-execution`, `vibe-plan-review`, `vibe-planning`,
-  `vibe-requirements-spec`, `vibe-review`, `vibe-writing`.
-- Every `vibe-*` package reads `references/durable-records.md` only when it
-  applies, writes, or hands a record forward instead of at every phase start.
-  Planning, plan execution, debug, review, orchestration, and the
-  `vibe-coding` router-owned rows check both record indexes at start; commit
-  execution checks accepted decision records against the staged diff.
-- `vibe-coding`: routes from one precedence-ordered table that names each
-  row's usual specialist, and routes only to a specialist present in visible
-  metadata; for a router-owned row, the finish gate is the report that closes
-  the unit. A proven repair that would touch a second behavior or
-  integration surface or change an interface another component calls stops
-  after diagnosis and goes to implementation planning or the user.
-- Repository: `scripts/vibe_session_record.py` and its tests are removed.
-  `scripts/vibe_shared_contract.py` drops the closing-block, gate and schema
-  cap, and appendix checks, treats a block without a bold lead as a shape
-  finding, and `list` prints each block's dependents.
-- `vibe-requirements-spec`: an ordinary draft no longer loads the detailed
-  references. A contradiction stop records the request in the spec as an
-  unresolved decision, with the contradiction under `Evidence and
-  constraints`, now one section. The five-option brainstorming cap is gone,
-  and a response-only proxy deferral no longer has to be emitted at once as a
-  complete record.
-- `vibe-planning`: plans drop the optional acceptance-proof matrix and
-  quality checklist; delegated plan review records only how each perspective
-  ran and any launch failure; a planning-time command notes the question it
-  answers instead of a six-field receipt; a response-only planning answer
-  reads the planning workflow and core controls references first.
-- `vibe-plan-execution`: a plan-chosen workaround no longer triggers a stop
-  just because the underlying behavior looks material, and a chat summary that
-  differs from the plan artifact is flagged rather than stopping unless the
-  contract changed without authority. It no longer narrates the proceed
-  condition, runs a durable-language review perspective, records delegation
-  budgets or runtime-evidence receipts, or asks at startup for host commit
-  confirmation; it carries only the tested artifact and its build inputs into
-  the commit handoff.
-- `vibe-plan-review`: checks the decision and open-findings indexes when the
-  walkthrough starts; its instructions are otherwise consolidated with no
-  intended behavior change.
-- `vibe-commit`: no longer renders a detailed message-reconciliation receipt
-  or carries its own stash and merge procedures; when `docs/decisions/` exists
-  without an index, it checks the records themselves against the staged
-  diff.
-- `vibe-debug`: the debug ledger keeps five core fields, and retest and
-  delegation handoffs drop per-step ledger ids and budget fields. Before
-  implementing, it names the smallest repair and its footprint and asks
-  before starting a materially larger candidate, recommending the smaller;
-  consultant agreement does not decide. New same-class defects in the same
-  component after a correction round stop further rounds there. A change the
-  user will install whose load-bearing premise could not be verified stays
-  blocked until the user accepts the stated premise, impact, and rollback; a
-  changed tool invocation across a permission or sandbox boundary needs proof
-  in its real invocation context.
-- `vibe-review`: no longer records a per-unit delegation budget before
-  launching reviewers.
-- `vibe-orchestrate`: no longer asks at startup for local-commit
-  confirmation or prescribes a fixed history-authority summary. Delegation,
-  model-mix, and cross-vendor review instructions set how work is done, not
-  how much is built: a repair plans one external pass at the design decision
-  and one on the final candidate, and a correction round gets a narrow
-  verification pass. New same-class defects in the same component after a
-  correction round stop further rounds there, even for a named defect, until
-  the design is revisited or the user decides. A user-installed change with
-  an unverified load-bearing premise stays blocked until the user accepts
-  that risk, and a changed tool invocation across a permission or sandbox
-  boundary needs proof in its real invocation context.
-- `vibe-writing`: reference playbooks and examples are cut to the rules
-  they illustrate, with no intended behavior change.
-- `vibe-agent-instructions`: the size report gives two measurements (the
-  `AGENTS.md` line count and Codex auto-loaded bytes against
-  `project_doc_max_bytes`); the run report has seven sections, empty ones
-  optional; a link replacement is previewed by its link target; advance
-  confirmation never overrides a conflict stop; an accepted divergence is
-  recorded with the confirmed change set; the decision and open-findings
-  indexes are checked at phase start; the report names
-  `AGENTS.override.md` as the source of `CLAUDE.local.md`.
-- `vibe-brainstorm`: instructions are cut to its modes, delegation
-  honesty, and stop boundaries, with no intended behavior change.
-- `vibe-goal-alignment`: a confirmed deletion, release, or cleanup decision
-  is handed forward and never executed or treated as permission during
-  alignment, and every alignment response ends with one confirmation or
-  correction question.
-- `vibe-code-research`: instructions are cut to evidence binding, anchors,
-  and the output contract, with no intended behavior change.
-- `skill-quality`: sizes eval suites by with/without-skill discrimination
-  evidence. One realistic prompt may combine contracts, assertions stay
-  atomic, and a non-discriminating assertion is deleted unless it guards a
-  harm the skill could induce, is the only remaining guard for a known
-  incident, or guards a destructive or consent boundary.
-- `skill-eval`: the runner reference is condensed; the pre-run forecast
-  names cell count, total concurrency, per-subprocess timeout, and a wall-time
-  range. No other contract change.
-- Verification: after the last edit to each package, one codex
-  `gpt-5.6-luna` full-suite run (runs=1) scored `with_skill` against
-  `without_skill`: `vibe-coding` 94.1% / 62.1%, `vibe-requirements-spec`
-  92.5% / 42.1%, `vibe-planning` 93.7% / 40.6%, `vibe-plan-execution` 84.6% /
-  60.7%, `vibe-plan-review` 95.7% / 51.6%, `vibe-commit` 96.4% / 80.2%,
-  `vibe-debug` 95.1% / 74.8%, `vibe-review` 98.0% / 61.5%, `vibe-orchestrate`
-  87.4% / 59.4%, `vibe-writing` 94.0% / 73.9%, `vibe-agent-instructions`
-  94.5% / 34.0%, `vibe-brainstorm` 92.9% / 57.0%, `vibe-goal-alignment` 93.0%
-  / 63.4%, `vibe-code-research` 95.5% / 80.6%, `skill-quality` 86.1% / 57.4%,
-  `skill-eval` 100.0% / 34.1%. The below-baseline cells in
-  `vibe-plan-execution` and `vibe-commit` were adjudicated as single-run
-  noise. Most suites were rewritten to fewer cases, so earlier pass rates
-  are not like-for-like.
+- **Breaking:** A specialist-owned row routes only to a specialist present in
+  visible metadata, named exactly as that metadata states it; when none is
+  visible the turn reports `matched-but-unavailable`, keeps the phase
+  boundary, and asks before proceeding without it. Classification runs over
+  one precedence-ordered table, and a router-owned row is reported by its row
+  id and ownership.
+- A proven repair that would touch a second behavior or integration surface,
+  or change an interface another component calls, stops after diagnosis and
+  goes to implementation planning or the user instead of being repaired in
+  place.
+- Push, amend, rebase, HEAD-moving reset, `filter-*` rewrite, and scripted
+  multi-commit replay each need the user's authorization for that operation,
+  and the write limits cover shell write forms in every phase rather than
+  read-only ones alone.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, `with_skill`
+  94.1% against `without_skill` 62.1%.
 
 ### Removed
 
-- **Breaking:** `vibe-coding` no longer writes a session record under
-  `.plans/vibe-sessions/`; routing state stays in the conversation.
-  `shared/vibe-contract.md` drops the `session-record-schema`,
-  `commit-selection-gate`, `history-mutation-gate`, and
-  `read-only-phase-write-gate` blocks, the per-package closing sentences, and
-  the hook and record appendices, so a user-installed hook has no record or
-  gate contract to follow.
+- **Breaking:** Routing state is no longer written to
+  `.plans/vibe-sessions/`. The current goal, row, artifact paths, pending
+  decisions, and next route live in the conversation, and the repository no
+  longer ships a checker for those records, so a host that read or validated
+  them has nothing to read and no record or gate contract to enforce.
+
+## [vibe-planning 7.0.0] - 2026-09-21
+
+### Changed
+
+- **Breaking:** The plan artifact no longer carries an acceptance-proof
+  matrix, a binding-and-change-review section, or a quality checklist. Plans
+  that relied on those sections carry the same obligations in acceptance
+  criteria, the test plan, and the plan integrity gates instead.
+- Delegated plan review records only how each perspective ran and any launch
+  failure, and a planning-time command notes the question it answers instead
+  of a six-field receipt.
+- Delegation permission is asked once before the first delegation rather than
+  at every phase start, and the write limits cover shell write forms in every
+  phase.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, `with_skill`
+  93.7% against `without_skill` 40.6%.
+
+## [vibe-plan-execution 7.0.0] - 2026-09-21
+
+### Changed
+
+- **Breaking:** Execution no longer narrates the proceed condition, runs a
+  durable-language review perspective, records delegation budgets or
+  runtime-evidence receipts, or asks at startup for host commit confirmation.
+  The commit handoff carries the tested artifact and its build inputs only.
+- A plan-chosen workaround no longer stops execution merely because the
+  underlying behavior looks material, and a chat summary that differs from
+  the plan artifact is flagged rather than stopped unless the contract
+  changed without authority.
+- Push, amend, rebase, HEAD-moving reset, `filter-*` rewrite, and scripted
+  multi-commit replay each need the user's authorization for that operation,
+  and the write limits cover shell write forms in every phase.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, `with_skill`
+  84.6% against `without_skill` 60.7%; the one below-baseline cell was
+  adjudicated as single-run noise.
+
+## [vibe-plan-review 3.2.0] - 2026-09-21
+
+### Changed
+
+- The walkthrough checks the decision and open-findings indexes when it
+  starts, and applies the record formats only when it applies, writes, or
+  hands one forward.
+- Redacted output no longer carries a redaction-count footer, and the write
+  limits cover shell write forms in every phase.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, `with_skill`
+  95.7% against `without_skill` 51.6%.
+
+## [vibe-requirements-spec 7.0.0] - 2026-09-21
+
+### Changed
+
+- **Breaking:** The spec records evidence in one `Evidence and constraints`
+  section; the `Local evidence`, `External evidence`, and `Unverified facts`
+  subsections are gone. A contradiction stop now records the request there as
+  an unresolved decision. Specs written to the previous template keep their
+  content but no longer match the current shape.
+- **Breaking:** The startup commit-policy question is gone, and the five-option
+  cap on brainstormed options is lifted. A response-only proxy deferral no
+  longer has to be emitted at once as a complete record.
+- An ordinary draft no longer loads the detailed references, delegation
+  permission is asked once before the first delegation rather than at every
+  phase start, and the write limits cover shell write forms in every phase.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, `with_skill`
+  92.5% against `without_skill` 42.1%.
+
+## [vibe-debug 7.0.0] - 2026-09-21
+
+### Changed
+
+- **Breaking:** The debug ledger keeps five fields — symptom, expected versus
+  observed, hypothesis and prior attempts, proof path, and closure status —
+  in place of the previous fourteen, and retest and delegation handoffs no
+  longer carry per-step ledger ids or budget fields.
+- Before implementing, the smallest repair and its footprint are named, and a
+  materially larger candidate is not started without asking; the smaller one
+  is recommended, and consultant agreement does not decide. New same-class
+  defects in the same component after a correction round stop further rounds
+  there.
+- A change the user will install whose load-bearing premise could not be
+  verified stays blocked until the user accepts the premise, impact, and
+  rollback, and a changed tool invocation across a permission or sandbox
+  boundary needs proof in its real invocation context.
+- Push, amend, rebase, HEAD-moving reset, `filter-*` rewrite, and scripted
+  multi-commit replay each need the user's authorization for that operation,
+  and the write limits cover shell write forms in every phase.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, `with_skill`
+  95.1% against `without_skill` 74.8%.
+
+## [vibe-review 4.0.2] - 2026-09-21
+
+### Changed
+
+- Redacted output no longer carries a redaction-count footer, and no per-unit
+  delegation budget is recorded before reviewers are launched.
+- The write limits cover shell write forms in every phase, and push, amend,
+  rebase, HEAD-moving reset, `filter-*` rewrite, and scripted multi-commit
+  replay each need the user's authorization for that operation.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, `with_skill`
+  98.0% against `without_skill` 61.5%.
+
+## [vibe-orchestrate 5.0.0] - 2026-09-21
+
+### Changed
+
+- **Breaking:** The coordinator no longer asks at startup for local-commit
+  confirmation and no longer prescribes a fixed history-authority summary.
+- Delegation, model-mix, and cross-vendor review instructions set how work is
+  done, not how much is built: a repair plans one external pass at the design
+  decision and one on the final candidate, and a correction round gets a
+  narrow verification pass. New same-class defects in the same component
+  after a correction round stop further rounds there, even for a named
+  defect, until the design is revisited or the user decides.
+- A user-installed change whose load-bearing premise is unverified stays
+  blocked until the user accepts that risk, and a changed tool invocation
+  across a permission or sandbox boundary needs proof in its real invocation
+  context.
+- Push, amend, rebase, HEAD-moving reset, `filter-*` rewrite, and scripted
+  multi-commit replay each need the user's authorization for that operation,
+  and the write limits cover shell write forms in every phase.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, `with_skill`
+  87.4% against `without_skill` 59.4%.
+
+## [vibe-goal-alignment 2.2.0] - 2026-09-21
+
+### Changed
+
+- Every alignment response ends with one user-answerable confirmation or
+  correction question. A blocker note, a promise to confirm later, or a
+  proposed next step does not collect the agreement needed to proceed.
+- A confirmed deletion, release, or cleanup decision is handed forward as a
+  decision and is never executed or treated as permission during alignment.
+- The write limits cover shell write forms in every phase.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, `with_skill`
+  93.0% against `without_skill` 63.4%.
+
+## [vibe-commit 4.0.0] - 2026-09-21
+
+### Changed
+
+- **Breaking:** The detailed message-reconciliation receipt is gone, as are
+  this workflow's own stash and merge procedures; concern coverage and drift
+  invalidation remain part of exact-diff message reconciliation.
+- Push, amend, rebase, HEAD-moving reset, `filter-*` rewrite, and scripted
+  multi-commit replay each need the user's authorization for that operation;
+  a commit request or checkpoint never grants it.
+- In a response-only plan, `Verification:` bullets use only supplied
+  evidence: a check the supplied state does not record as passed is reported
+  `not run`. Where `docs/decisions/` exists without an index, accepted
+  records are checked directly against the staged diff.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, `with_skill`
+  96.4% against `without_skill` 80.2%; the one below-baseline cell was
+  adjudicated as single-run noise.
+
+## [vibe-writing 3.1.1] - 2026-09-21
+
+### Changed
+
+- The record formats are read only when this phase applies, writes, or hands
+  a decision or finding forward, and the write limits cover shell write forms
+  in every phase.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, `with_skill`
+  94.0% against `without_skill` 73.9%.
+
+## [vibe-agent-instructions 2.0.0] - 2026-09-21
+
+### Changed
+
+- **Breaking:** The run report has seven sections instead of nine, and empty
+  ones may be omitted. The size report gives two measurements: the
+  `AGENTS.md` line count, and the Codex auto-loaded byte count against
+  `project_doc_max_bytes`.
+- The report names `AGENTS.override.md` as the source of `CLAUDE.local.md`, a
+  link replacement is previewed by its link target, advance confirmation
+  never overrides a conflict stop, and an accepted divergence is recorded with
+  the confirmed change set.
+- The decision and open-findings indexes are checked at phase start, and the
+  write limits cover shell write forms in every phase.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, `with_skill`
+  94.5% against `without_skill` 34.0%.
+
+## [vibe-brainstorm 1.6.2] - 2026-09-21
+
+### Changed
+
+- The record formats are read only when this phase applies, writes, or hands
+  a decision or finding forward. The instructions are otherwise consolidated
+  with no intended behavior change.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, `with_skill`
+  92.9% against `without_skill` 57.0%.
+
+## [vibe-code-research 2.0.2] - 2026-09-21
+
+### Changed
+
+- Redacted output no longer carries a redaction-count footer, and the record
+  formats are read only when this phase applies, writes, or hands a decision
+  or finding forward.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, `with_skill`
+  95.5% against `without_skill` 80.6%.
+
+## [skill-quality 2.8.0] - 2026-09-21
+
+### Changed
+
+- Eval suites are sized by with-skill against without-skill discrimination
+  evidence: one realistic prompt may combine contracts, assertions stay
+  atomic, and a non-discriminating assertion is deleted unless it guards a
+  harm the skill could induce, is the only remaining guard for a known
+  incident, or guards a destructive or consent boundary.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, `with_skill`
+  86.1% against `without_skill` 57.4%.
+
+## [skill-eval 2.1.0] - 2026-09-21
+
+### Changed
+
+- The pre-run forecast names cell count, total concurrency, per-subprocess
+  timeout, and a wall-time range before a run starts.
+- Verification: closing codex `gpt-5.6-luna` full-suite run, `with_skill`
+  100.0% against `without_skill` 34.1%.
+
+## [Repository] - 2026-09-21
+
+### Changed
+
+- Commit selection, history-rewrite consent, and phase write limits are
+  instruction-only; this repository ships no hook that enforces them at the
+  tool call, and `scripts/vibe_session_record.py` and its tests are removed
+  along with the session record itself.
+- `scripts/vibe_shared_contract.py` drops the closing-block, gate and schema
+  cap, and appendix checks, treats a block without a bold lead as a shape
+  finding, and `list` prints each block id with its dependents.
+- Open: most eval suites were rewritten to fewer cases in this cycle, so the
+  pass rates recorded above are not like-for-like with earlier runs.
+- Verification: `python3 -m pytest -q tests` passed 457 tests and 115
+  subtests; `check --strict` and `audit-names` are clean for all 14 packages;
+  `python3 scripts/vibe_shared_contract.py measure --strict` exits 0 with all
+  six reading tasks below their frozen baselines; every released skill's eval
+  suite passes static validation with no warnings.
 
 ## [vibe-planning 6.1.3] - 2026-09-19
 
