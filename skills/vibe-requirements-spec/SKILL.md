@@ -369,11 +369,7 @@ on delegable decisions — preference, wording, priority, low-risk scope
 trimming, convention alignment, option selection, lower-impact defaults —
 before the human is asked; manual sessions keep the active mode's questions.
 Record proxy-backed choices as proposed defaults, assumptions, or
-`Orchestration proxy decision` evidence, never as user confirmation. A proxy
-may defer only a lower-priority unknown inherited from an authoritative source,
-unneeded by the current slice, and outside every human-risk category, recorded
-as `AI-selected deferral` with evidence, impact, and revisit trigger; it is
-never approval, accepted risk, or finish or handoff evidence.
+`Orchestration proxy decision` evidence, never as user confirmation.
 
 ### Human-Risk Decisions
 

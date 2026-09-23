@@ -25,6 +25,10 @@ use `[Repository] - YYYY-MM-DD`.
   or non-conforming disposition as a decision record; decisions that qualify
   under the skill's own recording rules are still recorded. The divergence
   report, its evidence date, and the stale-evidence question are unchanged.
+- `vibe-requirements-spec` no longer lets a trusted orchestration proxy defer
+  a lower-priority unknown on the user's behalf. Proxy-backed choices are
+  still recordable as proposed defaults, assumptions, or proxy-decision
+  evidence, and deferring an unknown is again the user's call.
 
 ## [vibe-coding 5.0.0] - 2026-09-21
 
