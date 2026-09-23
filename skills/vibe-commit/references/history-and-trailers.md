@@ -429,8 +429,7 @@ skill must satisfy these minimums:
   contract that changed — not the editing act.
 - Derive type from the dominant delivered behavior. Derive scope from the
   owning or shared contract, not file count or processing order. Ensure the
-  outcome and body account for every material concern in the exact target patch;
-  split when one honest shared contract cannot do so.
+  outcome and body account for every material concern in the exact target patch.
 - No placeholder commit commands. A `git commit` command is allowed only when
   every subject byte is final. Use supplied semantic intent even when it is
   broad; broad and concrete is better than a template. Paths and status output

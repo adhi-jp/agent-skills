@@ -29,6 +29,9 @@ use `[Repository] - YYYY-MM-DD`.
   a lower-priority unknown on the user's behalf. Proxy-backed choices are
   still recordable as proposed defaults, assumptions, or proxy-decision
   evidence, and deferring an unknown is again the user's call.
+- `vibe-commit` splits a commit only when a single honest shared contract
+  cannot cover the whole patch, and applies that test when selecting the
+  commit's file set rather than only when preparing its message.
 
 ## [vibe-coding 5.0.0] - 2026-09-21
 

@@ -121,7 +121,8 @@ deeper on the judgment calls.
    generated artifacts. A newly selected untracked artifact needs explicit
    tracking intent or a mandatory repository or owning-workflow coupling;
    relevance, placement, same-session creation, or commit permission only makes
-   it a candidate. Split unrelated concerns into separate commits. See
+   it a candidate. Split unrelated concerns into separate commits; split only
+   when a single honest shared contract cannot cover the whole patch. See
    `references/file-selection.md`.
 4. **Exclude deliberately.** Leave generated, scratch, unowned plan/spec, build,
    unrelated lock, agent-state (`.agents/`, `.claude/`, `.codex/`), and secret
