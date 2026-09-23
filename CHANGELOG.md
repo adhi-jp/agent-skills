@@ -21,6 +21,10 @@ use `[Repository] - YYYY-MM-DD`.
   discarded proposals back to the maintainer. Report-writing guidance now
   requires evidence for each recorded failure, an account of what each
   proposal replaces, and a reason for every discarded proposal.
+- `vibe-agent-instructions` no longer records every divergence acknowledgment
+  or non-conforming disposition as a decision record; decisions that qualify
+  under the skill's own recording rules are still recorded. The divergence
+  report, its evidence date, and the stale-evidence question are unchanged.
 
 ## [vibe-coding 5.0.0] - 2026-09-21
 

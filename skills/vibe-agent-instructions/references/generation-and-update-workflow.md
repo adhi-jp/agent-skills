@@ -50,9 +50,6 @@ on it or supply fresher evidence. Fresher evidence the user supplies replaces
 the items it covers; say which. Do not refresh the evidence from the network
 at run time.
 
-Record the user's acceptance of a divergence, or a repository recorded as
-non-conforming, as a decision record written with the confirmed change set.
-
 ## 4. Repository analysis
 
 Every claim in `AGENTS.md` comes from something read in this repository:
