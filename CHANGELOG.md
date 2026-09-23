@@ -11,6 +11,17 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- `skill-quality` treats an improvement report as evidence rather than a
+  change list: each proposal is accepted, narrowed, parked, or rejected on its
+  own, an addition to an always-loaded file names what it replaces or deletes
+  or the evidence that no existing rule covers the failure, an added eval case
+  names the contract no retained case covers, and the answer reports the
+  discarded proposals back to the maintainer. Report-writing guidance now
+  requires evidence for each recorded failure, an account of what each
+  proposal replaces, and a reason for every discarded proposal.
+
 ## [vibe-coding 5.0.0] - 2026-09-21
 
 ### Changed

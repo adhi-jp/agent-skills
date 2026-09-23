@@ -98,6 +98,20 @@ retention reasons. When none applies, remove it, make it risk-conditional, or
 keep it internal, and preserve the underlying safety or correctness invariant
 with a replacement eval or an explicit accepted loss of discrimination.
 
+## Improvement Report Intake
+
+An improvement report from earlier work is evidence, not a change list.
+Accept, narrow, park, or reject each proposal on its own; a proposal without
+a demonstrated failure that a capable agent actually makes is not accepted
+because the report is confident. Apply the contract value test per proposal,
+and prefer editing or replacing an existing rule to adding one. An addition
+to an always-loaded file names what it replaces or deletes, or cites the
+evidence that no existing rule covers the failure; a batch of proposals that
+only adds is itself a signal to consolidate first. Report back which
+proposals were applied, narrowed, parked, or rejected, so the maintainer sees
+the discarded ones. Read `references/improvement-report.md` when writing such
+a report or applying one.
+
 ## Change Selection
 
 Make the smallest coupled change that closes the contract gap:

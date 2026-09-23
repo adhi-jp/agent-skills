@@ -14,6 +14,9 @@ a case barely matters.
   exercises them, such as several flagged cells from one benchmark or several
   pending proposals for one package. Do not build an artificial matrix of
   unrelated scenarios.
+- Adding a case requires naming the contract no retained case covers and why
+  extending an existing case's prompt cannot carry it; prefer extending a case
+  to adding one.
 - Keep each assertion atomic: one gradeable predicate. Many atomic assertions
   in one case are fine; a conjunctive assertion fails more often as its
   conjuncts grow.
