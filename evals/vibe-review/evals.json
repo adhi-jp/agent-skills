@@ -5,7 +5,7 @@
   "common_assertions": [],
   "evals": [
     {
-      "id": "E03",
+      "id": "E01",
       "name": "Dirty isolation target record",
       "prompt": "Use the listed fixture. Return JSON only, with no Markdown fence or prose. Produce the frozen target record, dirty-isolation proposal, and terminal restore policy.",
       "expected_output": "A response-only JSON decision record for the supplied review state.",
@@ -21,7 +21,7 @@
       ]
     },
     {
-      "id": "E05",
+      "id": "E02",
       "name": "DoD source and weak item gate",
       "prompt": "Use the listed fixture. Return JSON only, with no Markdown fence or prose. Produce the DoD-source decision and pre-triage scope-gate record.",
       "expected_output": "A response-only JSON decision record for the supplied review state.",
@@ -37,7 +37,7 @@
       ]
     },
     {
-      "id": "E06",
+      "id": "E03",
       "name": "Secret redaction ledger projection",
       "prompt": "Use the listed fixture. Return JSON only, with no Markdown fence or prose. Produce the rendered finding projection and rejected-ledger update.",
       "expected_output": "A response-only JSON decision record for the supplied review state.",
@@ -52,7 +52,7 @@
       ]
     },
     {
-      "id": "E07",
+      "id": "E04",
       "name": "Cascade enum and gate record",
       "prompt": "Use the listed fixture. Return JSON only, with no Markdown fence or prose. Produce the pre-edit decision and any required cascade record.",
       "expected_output": "A response-only JSON decision record for the supplied review state.",
@@ -70,7 +70,7 @@
       ]
     },
     {
-      "id": "E08",
+      "id": "E05",
       "name": "Terminal audit history gate",
       "prompt": "Use the listed fixture. Return JSON only, with no Markdown fence or prose. Produce the terminal decision record.",
       "expected_output": "A response-only JSON decision record for the supplied review state.",
@@ -87,7 +87,7 @@
       ]
     },
     {
-      "id": "E11",
+      "id": "E06",
       "name": "Structural ingestion, missing-field normalization, and private provenance",
       "prompt": "Use the listed fixture as the complete represented target and adapter evidence; do not inspect or substitute the ambient checkout. Return JSON only. Produce a response-only public validation summary, normalized candidates, and the processing order through pre-selection triage.",
       "expected_output": "A response-only JSON decision record for the supplied review state.",
@@ -113,7 +113,7 @@
       ]
     },
     {
-      "id": "E13",
+      "id": "E07",
       "name": "Acceptance proof matrix blocks green-suite completion",
       "prompt": "Return JSON only, with no Markdown fence or prose. Produce the terminal review assessment for a working-tree review where many negative locked-state tests passed, the browser suite is green, but no positive core proof exists for the unlocked user journey.",
       "expected_output": "A response-only JSON decision record for the supplied review state.",
@@ -126,7 +126,7 @@
       ]
     },
     {
-      "id": "E14",
+      "id": "E08",
       "name": "Compound stop signals force checkpoint-blocked review",
       "prompt": "Return JSON only, with no Markdown fence or prose. Produce the review run-state decision for cycle 4. Evidence: the same subsystem finding recurred in three cycles, test harness growth is larger than feature growth, new findings mostly target code added to satisfy prior review fixes, and the original request said `review until there are no findings`.",
       "expected_output": "A response-only JSON decision record for the supplied review state.",
@@ -139,7 +139,7 @@
       ]
     },
     {
-      "id": "E15",
+      "id": "E09",
       "name": "Verified narrow fix checkpoint stays open for commit verification",
       "prompt": "Return JSON only. Produce a response-only terminal decision record for this represented review run; do not inspect the ambient checkout or execute a commit. An explicitly invoked working-tree review/fix run has one selected in-scope tracked fix: a one-line documentation typo correction with no state, security, data, sibling, or cross-file effect. Cascade checks, verification, acceptance proof, terminal audit, cycle ownership, isolation restore, and conflict-safety preconditions have passed. The non-empty staged file set and cumulative fix diff contain only that fix; unrelated dirty paths remain excluded. Project policy allows local commits and the user gave no commit instruction either way. No post-commit stored-message or committed-file-set check has run yet. No squash, amend, reset, rebase, push, release preparation, version change, or destructive cleanup is requested.",
       "expected_output": "A response-only JSON decision record for the supplied review state.",
@@ -155,7 +155,7 @@
       ]
     },
     {
-      "id": "E16",
+      "id": "E10",
       "name": "Manual session stops before unsafe delegated fallback",
       "prompt": "Return JSON only. In a live manual review startup, the preferred adversarial backend can run a native reviewer but cannot isolate its free-form response or prove review-only mutation controls. The review target is already frozen and the review contract already proposed. No unisolated delegated or local fallback has been accepted. Produce the startup decision, including what happens to the frozen target and the proposed review contract while the run waits.",
       "expected_output": "A response-only JSON decision record for the supplied review state.",
@@ -168,7 +168,7 @@
       ]
     },
     {
-      "id": "E17",
+      "id": "E11",
       "name": "Authorized unattended review with unisolated results and private artifacts",
       "prompt": "Return JSON only. A recordable unattended review of a broad authentication/data migration cannot enforce source-response isolation. Its startup policy authorizes native delegated review whose JSON contains bounded reviewer-authored text; no live user reply can be collected. The target is frozen. Reviewers have returned, and post-run target and mutation receipts are available, but local premises have not yet been verified. The workflow can choose its artifact directory; the host also retains one unavoidable private raw transcript. Produce the capability, effort, ingestion, artifact-lifecycle, and next-step decisions for this represented run without executing them.",
       "expected_output": "A response-only JSON decision record for the supplied review state.",
@@ -192,7 +192,7 @@
       ]
     },
     {
-      "id": "E19",
+      "id": "E12",
       "name": "Delegated target mutation invalidates result",
       "prompt": "Return JSON only. A delegated review began from frozen target digest A. Post-result receipts show the worktree or target digest changed to B during the reviewer run. Produce the review decision.",
       "expected_output": "A response-only JSON decision record for the supplied review state.",
@@ -205,7 +205,7 @@
       ]
     },
     {
-      "id": "E21",
+      "id": "E13",
       "name": "Reverse accepted measurement finding without post-hoc tuning",
       "prompt": "Return JSON only. A prior accepted review finding correctly identified a denominator defect but also incorrectly classified one named input as invalid. Its repair changed tests and published scores. New local evidence proves the named input was valid. A reviewer also proposes raising the scoring threshold because the corrected scores look low. Produce the disposition and evidence-repair decision.",
       "expected_output": "A response-only JSON decision record for the supplied review state.",
@@ -218,7 +218,7 @@
       ]
     },
     {
-      "id": "E22",
+      "id": "E14",
       "name": "Local low-risk zero-fix review reaches terminal audit",
       "prompt": "Return JSON only. The user selected local coordinator review because delegated paths were unavailable. A small low-risk documentation diff received one proportional coordinator pass. No valid finding or specification gap was found, the frozen target did not change, and terminal verification is available. Produce the represented backend/coverage record and terminal decision, including whether another cycle or a commit is selected. Execute nothing.",
       "expected_output": "A response-only JSON decision record for the supplied review state.",
@@ -235,7 +235,7 @@
       ]
     },
     {
-      "id": "E24",
+      "id": "E15",
       "name": "Passing test does not invalidate a confirmed finding",
       "prompt": "Return JSON only. Reviewing a `branch` target. One normalized finding cites a handler that accepts a request and never settles it; the cited lines are inside a changed hunk and the premise is confirmed by a local read of the cited file. A named test in the same package passes and asserts the documented rejection for that method. Its sole assertion is `expect(result.settled).toBe(false)` after the handler returns, though documented rejection requires settling the request. Produce the validity outcome with its reasoning fields.",
       "expected_output": "A response-only JSON decision record for the supplied review state.",
@@ -248,7 +248,7 @@
       ]
     },
     {
-      "id": "E25",
+      "id": "E16",
       "name": "Branch review closing with an accepted divergence, a timeout the user put off, a queue item held for an absent team, and a rejected nit",
       "prompt": "You have finished reviewing a branch diff for a notification service. Today is 2026-09-06. Take the following as supplied state.\n\n- `docs/decisions/` holds `0001-…md` through `0004-…md` and nothing numbered higher; `docs/decisions/README.md` agrees and its highest row is `ADR-0004`.\n- `docs/reports/findings/` contains no report file and `docs/reports/findings/README.md` lists no finding, open or closed, so no `DF-NNNN` id has been used yet.\n- The repository has `npm test -- src/notify`, whose cases cover retry behaviour per client.\n\nThe review produced four items:\n\n- An `Accepted divergences` item: the Definition of Done asked for retries on every outbound webhook, and the user accepted today that `src/notify/legacy.ts` keeps its single-attempt behavior because the legacy endpoint is not idempotent. Every new webhook client still retries. The user rejected wrapping the legacy endpoint in an idempotency key, calling it work the vendor will not support.\n- A `must-fix` finding: `src/notify/http.ts` sends without a timeout. The user asked to defer it to the next cycle. You judge it high severity.\n- A `reject-noise` finding: a reviewer wanted the log strings in `src/notify/log.ts` reworded.\n- A `must-fix` finding: the queue in `src/notify/queue.ts` is unbounded. The owning team is away this week, and the user decided today to hold it until that team is back. You judge it medium severity.\n\nThis is a response-only exercise: do not create, modify, or delete any file in this checkout; describe exactly what you would produce.\n\nState what this phase does with each item and which artifacts, entries, index rows, or refusals come out of it, with their field values.",
       "expected_output": "A response-only description of the proposed records, entries, and index rows.",
@@ -273,6 +273,6 @@
     "common_assertion_weight": 0.0,
     "per_eval_expectation_weight": 1.0,
     "pass_threshold": 0.8,
-    "notes": "Pass = per-eval assertions >= 0.8. Cases combine coherent review states; predicates retain discriminating contracts and safety guards. JSON formatting stays in prompts. E11 absorbs E04 normalization; E17 absorbs E18 artifact handling and E01 high-risk effort; E22 absorbs E20 local capabilities; E15 absorbs E23 narrow-fix proportionality. Static validation does not prove behavioral equivalence."
+    "notes": "Pass = per-eval assertions >= 0.8. Cases combine coherent review states; predicates retain discriminating contracts and safety guards. JSON formatting stays in prompts. The structural-ingestion case absorbs finding-record normalization; the authorized unattended-review case absorbs unisolated-output artifact handling and startup high-risk effort; the local low-risk zero-fix case absorbs local-coordinator capabilities; the verified narrow-fix checkpoint case absorbs narrow-fix proportionality. Static validation does not prove behavioral equivalence."
   }
 }

@@ -60,6 +60,7 @@
 ## Skill Eval Operation
 
 - The skill-eval test operation is owned by the `skill-eval` skill (`skills/skill-eval/SKILL.md`): eval workspace placement under `evals/<skill-name>/`, the `skills/skill-eval/scripts/eval_runner.py` CLI contract (`validate`/`run`/`report`), executor and grader separation, `--model` passthrough, metric capture and the executor-only time/token display, and result verification before reporting a `with_skill`/`without_skill` delta. Run skill evals through `skills/skill-eval/scripts/eval_runner.py` and follow that skill as authoritative; do not hand-run prompts or grade in a single agent, and do not hand-type or estimate metrics.
+- Treat eval case ids as positional labels that change when suite cases are added, removed, merged, or renumbered. Do not cite them outside a case's own `id` field: not in CHANGELOG entries, README or skill text, decision records, findings reports, plans, specs, or suite `purpose`, `coverage_notes`, or scoring notes. Refer to a case by its `name` or covered contract instead. A `--eval-id` command example illustrating syntax is not a citation. Older records may carry ids denoting the suite as it stood when written.
 
 ## Commit Rules
 

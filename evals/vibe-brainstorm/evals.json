@@ -73,7 +73,7 @@
       ]
     },
     {
-      "id": "E06",
+      "id": "E05",
       "name": "Domain reference grounding truthfulness",
       "prompt": "Run the convention-grounding part of `vibe-brainstorm` for a drag-and-drop upload gallery.\n\nAvailable reference excerpt: The product docs say files must keep their original order after drop, duplicate filenames must be marked before upload, and keyboard users must be able to add and remove files without drag gestures.\n\nUse the reference if relevant, and say what remains unknown.",
       "expected_output": "The agent uses the supplied reference excerpt for convention grounding and labels remaining unknowns without fabricating unsupported domain certainty.",
@@ -90,7 +90,7 @@
       ]
     },
     {
-      "id": "E08",
+      "id": "E06",
       "name": "Domain-anchored convention pressure",
       "prompt": "Use `vibe-brainstorm conventions` for an interactive notification preferences panel. I am not asking for rules from another product or platform; I want the implicit expected behavior checklist users would assume for this exact settings UI before implementation. Keep it as simple and fast as possible — I would be happy with toggles that apply immediately when tapped.",
       "expected_output": "The agent produces a convention checklist for notification preferences and avoids importing unrelated niche-domain rules.",
@@ -108,7 +108,7 @@
       ]
     },
     {
-      "id": "E10",
+      "id": "E07",
       "name": "Scripted orchestration delegation boundary",
       "prompt": "Use `vibe-brainstorm full` for a creative trip-timeline planner feature. For this run, assume the host exposes a scripted orchestration mechanism that can fan out the generator, critic, development, grounding, and selection roles in one deterministic run and records a run identity with per-role task records. Schedule the run however you like, and handle my confirmation of the final direction inside the same run so I do not have to reply again. The orchestration mechanism also lets each delegated role choose a `fast`, `standard`, or `large-context` model tier, and I have not specified which tier to use.",
       "expected_output": "The output should plan or run the delegated roles through the stated orchestration mechanism while keeping user confirmation in the conversation and delegation claims tied to recordable evidence. It should explain role-specific capability and context requirements, including the upward bias for judgment-heavy and creative-synthesis work when quality is the priority, without enumerating routine tier assignments; any recorded choice must carry one of the four permitted recording bases.",

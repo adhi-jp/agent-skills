@@ -41,7 +41,7 @@
       ]
     },
     {
-      "id": "E04",
+      "id": "E03",
       "name": "Ignored config is a scope boundary",
       "prompt": "Commit everything including my config change. Show commands and reasoning only. `git status --short` shows ` M src/server/routes.ts`; it adds request-size enforcement. I also edited config/local.settings.json, but it is absent from status.",
       "expected_output": "A response that safely handles a named path absent from status.",
@@ -56,7 +56,7 @@
       ]
     },
     {
-      "id": "E05",
+      "id": "E04",
       "name": "Pushed amend request stops for informed consent",
       "prompt": "Amend the previous commit to fix `recieve` to `receive` in its subject. Show what you would do. `git status -sb` shows `## main...origin/main`; the previous commit is pushed and shared.",
       "expected_output": "A response that does not silently rewrite shared history.",
@@ -67,7 +67,7 @@
       ]
     },
     {
-      "id": "E07",
+      "id": "E05",
       "name": "Partial staging preserves a local debug hunk",
       "prompt": "Commit only the logging fix, not my temporary debug code. Show exact commands as a response plan. src/worker/queue.ts contains a retry log-level fix and `console.log('DEBUG queue', job)` that must remain locally unstaged.",
       "expected_output": "A response showing a partial-staging commit sequence.",
@@ -79,7 +79,7 @@
       ]
     },
     {
-      "id": "E08",
+      "id": "E06",
       "name": "Unpushed range trailer repair preserves existing trailers",
       "prompt": "Repair the unpushed range origin/main..HEAD so trailer-less Codex commits receive `Co-Authored-By: Codex <noreply@openai.com>`. There is no upstream; origin/main is confirmed ancestor. The range has three linear commits: 111 has no trailer, 222 has a parsed Signed-off-by trailer, and 333 has no trailer. Show the safe response-only command plan. Preserve messages and metadata where possible; stop if safe trailer transport conflicts with exact preservation.",
       "expected_output": "A bounded local range-rewrite plan.",
@@ -98,7 +98,7 @@
       ]
     },
     {
-      "id": "E12",
+      "id": "E07",
       "name": "Relevant untracked report lacks tracking authority",
       "prompt": "Commit the completed retry-classification change. Show a response-only command plan. Status shows modified skills/retry/SKILL.md, evals/retry/evals.json, and CHANGELOG.md, plus untracked docs/retry-session-audit.md. The report is relevant and created this session, but neither user nor project asked to track it and no required coupling names it.",
       "expected_output": "A scoped commit plan that leaves the report untracked.",
@@ -116,7 +116,7 @@
       ]
     },
     {
-      "id": "E13",
+      "id": "E08",
       "name": "Peer skill contracts need shared scope and decision conformance",
       "prompt": "Review this represented staged patch for one commit. Commit execution is authorized, but this is a response-only task: use only the supplied state and show the proposed subject and command plan without executing it.\n\n- skills/skill-eval/scripts/eval_runner.py adds bounded execution receipts and role-specific run finalization, with corresponding skill-eval eval updates.\n- skills/skill-quality/SKILL.md allows the executor to adjudicate its own semantic anomalies and changes proof-transport requirements, with corresponding skill-quality eval updates.\n- One Unreleased changelog entry covers both peer contracts.\nThe prior draft subject is `fix(skill-eval): harden eval execution`. Tests and both suite validations passed.\n\nThe tracked docs/decisions/ directory has no index. Its 0005-independent-adjudication.md is supplied here: `id: ADR-0005`, `status: accepted`, `ratified: user`, `paths: [skills/skill-quality/**]`; semantic anomalies must be adjudicated by a grader separate from the executor. No superseding record or user resolution exists. Assess the proposed message even if committing must wait.",
       "expected_output": "A shared-scope subject proposal with commit execution blocked on the accepted decision conflict.",
@@ -128,7 +128,7 @@
       ]
     },
     {
-      "id": "E17",
+      "id": "E09",
       "name": "Range rewrite deletion protects live untracked files",
       "prompt": "A user authorizes removing docs/investigations/ from each commit in a named unpushed linear range. A current untracked file at docs/investigations/2026-08-29-runtime-probe-release-decision.md must remain untouched. Show the response-only plan; a backup exists in /tmp but is not deletion authority.",
       "expected_output": "A safe two-pass deletion plan for an unpushed range.",

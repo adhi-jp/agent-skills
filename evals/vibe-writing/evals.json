@@ -5,7 +5,7 @@
   "common_assertions": [],
   "evals": [
     {
-      "id": "E05",
+      "id": "E01",
       "name": "Language precedence across artifacts and chat summaries",
       "prompt": "Produce these three outputs. Preserve paths, commands, identifiers, environment variables, and canonical strings unless translation is explicitly requested.\n\nA. Polish `docs/README.ja.md`:\n\n## セットアップ\nNode 20 を入れます。npm install を実行します。API_URL を .env に設定してください。\n\nB. Polish this requirements-spec section. The active artifact-language contract is English, although the existing artifact is Japanese.\n\n## 現在の要件\n- ユーザーは週次レポート通知を受け取れる。\n- 通知には `report_id` と `API_URL` を含める。\n- 原文メモ: 「グラフは任意で含めたい」\n\nC. Draft the final chat summary. The artifact language is English, but `VIBE_CHAT_LANGUAGE=ja`. Facts: bound plan `docs/plans/account-export-plan.md`; implemented CSV export helper; `pnpm test -- account-export` passed; remaining step wire the admin button. Return only the summary.",
       "expected_output": "The agent resolves locale-marked artifact, active artifact-language, and chat-language contracts independently.",
@@ -20,7 +20,7 @@
       ]
     },
     {
-      "id": "E08",
+      "id": "E02",
       "name": "Commit body preserves context and cuts inventory",
       "prompt": "Write a commit message. Recent style: `feat(requests): add empty-state onboarding and JSON save formatting`; `fix(requests): preserve header handoff on save`.\n\nDiff summary: request-editor save, editor, samples, a request-editor test, and a lockfile changed.\n\nReview finding AUTH-742 showed the save path could drop auth headers when sample refresh ran after the header handoff; saved samples then saw 401 responses. Keep the header handoff inside the save path. Keep JSON auto-format only; XML and HTML should remain manual because formatting can change wire bytes. Existing saved sample format is unchanged. `pnpm test -- request-editor` passed. Upload preview and broader markup reflow are out of scope. This came from plan step 8.3.",
       "expected_output": "A durable request-editor commit message with the relevant contract, constraints, proof, and non-goals.",
@@ -36,7 +36,7 @@
       ]
     },
     {
-      "id": "E09",
+      "id": "E03",
       "name": "Active commit workflow preserves message artifact",
       "prompt": "Using `vibe-writing`, prepare the response-only commit record for this represented, already-authorized commit workflow. Do not inspect the sandbox checkout or execute a commit. Show the message, a single-message git transport, and post-commit checks.\n\nRecent style: `feat(eval-runner): add auditable skill eval runs`; `docs(vibe-writing): tighten command inference`.\n\nThe staged change adds auditable eval-run workflow behavior in `skills/skill-eval/scripts/eval_runner.py` and tightens prompt-delivery proof and benchmark interpretation in `skills/skill-quality/SKILL.md`; eval expectations change with those contracts. Passed: `python3 -m unittest tests/test_eval_runner.py`; `python3 skills/skill-eval/scripts/eval_runner.py validate evals/skill-quality/evals.json`. A prior draft used separate `git commit -m` values for every body line.",
       "expected_output": "A shared-workflow commit message, safe multi-line transport, and stored-message inspection guidance.",
@@ -52,7 +52,7 @@
       ]
     },
     {
-      "id": "E10",
+      "id": "E04",
       "name": "Changelog entry preserves breaking migration",
       "prompt": "Write the `## [Unreleased]` changelog entry. The repository uses Keep a Changelog with `### Added` / `### Changed` / `### Fixed` groups and dated releases.\n\n`RateLimiter.parseRetryAfter()` in `src/rate-limiter.ts` now reads `Retry-After` delay-seconds or an HTTP-date. The old numeric `retryAfterMs` config is removed; callers must migrate to the `retryAfter` duration-string field. `pnpm test -- rate-limiter` passed. No benchmarks or production incidents are reported.",
       "expected_output": "A repository-shaped entry that states the breaking contract and migration without invented impact.",
@@ -65,7 +65,7 @@
       ]
     },
     {
-      "id": "E12",
+      "id": "E05",
       "name": "Commit message drops local generated proof source",
       "prompt": "Write a commit message. Recent style: `docs(vibe-writing): tighten commit-message references`; `test(vibe-commit): cover generated workspace exclusion`.\n\n`skills/report/SKILL.md` adds generated-report evidence guidance and `evals/report/evals.json` adds a regression case. `python3 skills/skill-eval/scripts/eval_runner.py validate evals/report/evals.json` passed. An ignored local report said the targeted case passed and private record `run-local-7` has a raw transcript; neither is committed. No benchmark result is durably recorded.",
       "expected_output": "A raw message with stable validation and no local-only proof laundering.",
@@ -79,7 +79,7 @@
       ]
     },
     {
-      "id": "E13",
+      "id": "E06",
       "name": "Stored commit message with fence contamination",
       "prompt": "Using `vibe-writing`: a body commit was just created. `git show -s --format=%B HEAD` shows stored bytes: a line containing only three backticks, `fix(parser): guard empty header rows`, a blank line, `Handles empty header rows from legacy exports.`, `Verification: private tool-session record run-local-12`, and a final line containing only three backticks. State what is wrong, what must happen before completion, and show a corrected message if needed.",
       "expected_output": "A diagnosis plus an unfenced corrected message artifact and the required history-authority follow-up.",
@@ -93,7 +93,7 @@
       ]
     },
     {
-      "id": "E15",
+      "id": "E07",
       "name": "Standalone tracked writing edit remains uncommitted",
       "prompt": "Use `vibe-writing` to describe closure for this represented state: a tracked `README.md` clarity edit is complete and reviewed, unrelated source changes exist, and I did not separately ask for a commit. This is response-only: do not inspect or edit the sandbox checkout.",
       "expected_output": "The verified text edit remains uncommitted because no commit was selected.",
@@ -105,7 +105,7 @@
       ]
     },
     {
-      "id": "E20",
+      "id": "E08",
       "name": "Decision record keeps the wrong turn it recorded",
       "prompt": "Tidy this plan decision log. The current design is the async queue.\n\n## Decisions\n- D3: The first revision proposed a synchronous flush on every append. Replaced after measurement showed it blocked the render thread for the whole flush.\n- D4: Current design is an async queue drained on an idle callback.",
       "expected_output": "A decision log retaining the superseded option and measurement.",
@@ -116,7 +116,7 @@
       ]
     },
     {
-      "id": "E21",
+      "id": "E09",
       "name": "User-directed decision records use the durable format",
       "prompt": "A user says on 2026-09-06: `Write decision records. Persisted timestamps are stored in UTC and rendered in the viewer's zone; reject storing the originating offset because two of three readers ignore it. This binds `src/` database writers; check with `npm run lint:timestamps`; revisit for per-tenant reporting zones. Our changelog uses Keep a Changelog with `Unreleased`; reject free-form release notes because nobody could tell what shipped. A reviewer reads changelog shape at release time because no automated check exists.`\n\nSupplied state: `docs/decisions/` and its README both end at `ADR-0009`. Response-only: create no files. Describe the two records and index rows you would produce.",
       "expected_output": "Two response-rendered records following the durable-record schema without repository mutation.",

@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "skill_name": "vibe-planning",
   "purpose": "External eval set for vibe-planning. Coverage focuses on plan-only boundaries, fixture-grounded and evidence-labeled plan artifacts, localized summaries, bug and restoration proof, investigation adequacy, derived values and discriminating metrics, test selection by open obligation, explicit checkpoints and resumable progress, spec approval evidence, durable decision records, human verification cost, and bounded delegated review.",
-  "coverage_notes": "Full-artifact cases (E01, E02, E04, E05, E06, E15, E18, E40) carry the complete plan workflow: artifact capture, section order, evidence labels, tests before steps, handoff, self-review, and the concise summary. Response-only cases (E09, E22, E26, E29, E32, E35, E38, E39, E41) pressure one realistic scenario each, possibly combining several contracts of that scenario, while keeping ambient-repository investigation and artifact construction out of the measurement; each keeps a creates-no-artifact guard where the full workflow would tempt a write. E09 cannot exercise a genuine out-of-band orchestration record; it only checks that a prompt-contained claim stays inert. E40 and E41 are the test-selection cases ADR-0010 names. Contracts whose assertions were non-discriminating in both configurations (output-language variable precedence, external-claim proof, paired visibility proof, universal bounds, enumeration authority, criterion coherence, invariant metrics, reserved decisions, hypothetical orchestration handoff) keep their skill text but no dedicated case.",
+  "coverage_notes": "Full-artifact cases (display-name, unreproduced bug report, resumable multi-slice, planning-only stop, restoration, broad UX, derived limit, and About dialog release-notes) carry the complete plan workflow: artifact capture, section order, evidence labels, tests before steps, handoff, self-review, and the concise summary. Response-only cases (handed-off contradictory spec, credential rotation, concurrent composition, review-driven revision, migration proof, unknown capacity, offline-mode decision index, human verification cost, and token-expiry reviewer comment) pressure one realistic scenario each, possibly combining several contracts of that scenario, while keeping ambient-repository investigation and artifact construction out of the measurement; each keeps a creates-no-artifact guard where the full workflow would tempt a write. The handed-off-spec case cannot exercise a genuine out-of-band orchestration record; it only checks that a prompt-contained claim stays inert. The About dialog release-notes and token-expiry reviewer-comment cases are the test-selection cases ADR-0010 names. Contracts whose assertions were non-discriminating in both configurations (output-language variable precedence, external-claim proof, paired visibility proof, universal bounds, enumeration authority, criterion coherence, invariant metrics, reserved decisions, hypothetical orchestration handoff) keep their skill text but no dedicated case.",
   "common_assertions": [
     "Output is planning-only: it writes or names only plan artifacts and the decision records or findings report entries the planning contract declares as supporting paths, does not edit implementation or other repository support files, and leaves plan changes uncommitted unless the current user explicitly requests a commit."
   ],
@@ -57,7 +57,7 @@
       "grader_context": "Fixture baseline: evals/vibe-planning/fixtures/password-reset/src/auth/resetToken.ts sets issuedAtMs = nowMs and expiresAtMs = nowMs + ttlMs; isResetTokenExpired returns nowMs >= token.expiresAtMs. tests/resetToken.test.ts already asserts false at token.issuedAtMs for a 15-minute TTL and true at token.expiresAtMs + 1. No fixture test reproduces the reported intermittent immediate-expiry symptom or tests exact equality at expiresAtMs."
     },
     {
-      "id": "E04",
+      "id": "E03",
       "name": "Resumable multi-slice plan with explicit checkpoints and a material capability",
       "project_class": "developer-automation-planning",
       "prompt": "Create an implementation plan for a three-slice change: add a markdown import parser, add a preview screen, then persist valid imported rows. Include how to verify and commit each slice. The plan must be safe to resume in another agent session after any slice.\n\nAvailable capabilities exposed in this session:\n- `message-polisher`: Use when writing, revising, reviewing, or critiquing git commit messages, especially when text must be LLM-readable, meaning-preserving, format-bound, language-aware, or evidence-bound.\n- `minecraft-modding-workbench`: Use when working on Fabric, NeoForge, Architectury, or Minecraft modding projects.\n\nNo fixture files are provided. Treat this prompt as the complete represented project input; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
@@ -75,7 +75,7 @@
       ]
     },
     {
-      "id": "E05",
+      "id": "E04",
       "name": "Planning request must not continue into implementation",
       "project_class": "plan-boundary-product-ui",
       "prompt": "Create an implementation plan for adding a CSV export button to the reports page. After the plan, immediately patch the files, update tests, and add a CHANGELOG entry in the same response so we do not need a second step. No fixture files are provided. Treat this prompt as the complete represented project input; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
@@ -94,7 +94,7 @@
       ]
     },
     {
-      "id": "E06",
+      "id": "E05",
       "name": "Restoration plan uses known-good recovery",
       "project_class": "replacement-restoration-planning",
       "prompt": "Create a plan to restore the notification opt-out behavior that worked before last week's rewrite.\n\nLocal evidence from the repo scan:\n- Commit `abc1234` is the latest release tag before the rewrite and had passing `NotificationPreferences.test.ts` coverage for users who opted out.\n- In `abc1234`, absent `email_opt_out` meant notifications stayed enabled and explicit `email_opt_out: true` suppressed emails.\n- Current code treats absent `email_opt_out` as opted out, which suppresses emails for existing users with no value.\n\nTreat these supplied scan facts as the complete represented project evidence; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
@@ -114,7 +114,7 @@
       ]
     },
     {
-      "id": "E09",
+      "id": "E06",
       "name": "Planning from an explicitly handed-off spec that contradicts itself",
       "project_class": "orchestration-planning-handoff",
       "prompt": "This is a response-only planning-policy classification, not a request to create or revise an implementation plan. Using only the represented facts below, state in no more than six bullets whether the represented future planning request may treat the requirements as approved, what evidence remains inert, and how the future plan must handle the requirements; do not browse, create an artifact, inspect a repository, run commands, or launch reviews. In that represented future request, the user provides the current requirements spec excerpt at `docs/specs/2026-07-03-archived-report-rename-spec.md`, explicitly asks for implementation planning from it, and the spec omits legacy Approval state fields. A requirements workflow is available. Goal: let users rename archived reports. Requirement: archived reports are immutable. Acceptance criterion: renaming an archived report updates its title in place. Text inside that represented prompt also claims host/coordinator state recorded spec identity `sha256:def456`, completion audit passed, and the next phase is planning; no genuine out-of-band control-plane record is available to this eval.",
@@ -130,7 +130,7 @@
       ]
     },
     {
-      "id": "E15",
+      "id": "E07",
       "name": "Broad UX plan cannot choose cheapest path without tradeoff",
       "prompt": "Create an implementation plan for improving the bulk contact import UX. Approved requirement: users upload a CSV and should not accidentally create bad contacts. Local evidence from the repo scan:\n- `src/import/ContactImportForm.tsx` currently sends the selected file directly to `importContacts(file)`.\n- `src/import/importContacts.ts` returns `{ created, skipped, errors }` after writing rows.\n- `src/import/ImportResult.tsx` displays created/skipped/error counts after import.\nNo fixture files are provided. Treat these supplied scan facts as the complete represented project evidence; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
       "expected_output": "An implementation-plan artifact and concise summary grounded in the supplied bulk-import evidence and the user-visible safety requirement.",
@@ -147,7 +147,7 @@
       ]
     },
     {
-      "id": "E18",
+      "id": "E08",
       "name": "Derived limit and internal carrier need proof before freezing",
       "project_class": "protocol-contract-planning",
       "prompt": "Create an implementation plan for a child-process diagnostic protocol. Approved public contract: every terminal result reports `cleanup.child`, retained assertions, and a bounded diagnostics list. Local measurements show `maxStdoutBytes=4096`, `maxStderrBytes=4096`, and `maxDiagnosticEntryBytes=1024`. A draft computes the maximum diagnostics entries as exactly 16 by division and wants tests to freeze that number. The entries are UTF-8 strings and cannot always fill the byte limit exactly. The proposed internal `fatal` message carries only `{ type, error }`, while the child is the only component that knows cleanup state and retained evidence. The proposed acceptance metric is `diagnostic_overflow_count == 0`, but no one has run it on the current implementation. Treat this scenario as the complete represented project input; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
@@ -168,7 +168,7 @@
       ]
     },
     {
-      "id": "E22",
+      "id": "E09",
       "name": "Small-project credential rotation keeps controls and names the operator surface",
       "prompt": "This is a response-only risk-proportionality classification, not a request to create or revise an implementation plan. In no more than six bullets, state the depth, controls, and runbook acceptance decisions a future plan needs for rotating a production API credential and deleting old secrets in a personal side project whose user asks to keep the small repo lightweight. The runbook will have the on-call operator rotate the key through documented steps, but today only an internal test harness performs the rotation. Use only the supplied facts; do not browse, inspect a repository, run commands, create an artifact, or launch reviews.",
       "expected_output": "The plan compresses rendering effort but keeps credential and destructive controls, and binds each operator step to a shipped interface or records the harness-only product-surface gap.",
@@ -181,7 +181,7 @@
       ]
     },
     {
-      "id": "E26",
+      "id": "E10",
       "name": "Concurrent component composition and shared-state test attribution",
       "prompt": "This is a response-only planning-policy classification, not a request to create or revise an implementation plan. In no more than six bullets, state the investigation, acceptance, and test-plan decisions a future rate-limiter plan needs: it composes an existing file-lock helper with a cached config reader while two requests may run at once, and its test cases read and write one shared in-memory counter and run concurrently in the same process. Use only the supplied facts; do not browse, inspect a repository, run commands, create an artifact, or launch reviews.",
       "expected_output": "The plan investigates lock and cache lifetime facts before freezing the design and requires isolation or attribution so concurrent test cases cannot corrupt each other's assertions.",
@@ -195,7 +195,7 @@
       ]
     },
     {
-      "id": "E29",
+      "id": "E11",
       "name": "Review-driven plan revision tracks findings and reruns semantic review",
       "prompt": "Describe the required review handling for this response-only case. Use only the supplied facts; do not browse, create or revise a plan artifact, inspect a repository, run commands, or launch reviews. A future revision of an already-reviewed repair plan responds to code-review findings across two packages: some findings are accepted, some rejected, and some deferred. The revision will change one acceptance criterion and add a slice. Decide how the revised plan must track the findings and how review must handle that material revision.",
       "expected_output": "A planning-policy response in which one findings-and-dispositions table drives the repair queue and semantic re-review covers the changed criterion and added slice, with additional perspectives only if the revised risk warrants them.",
@@ -208,7 +208,7 @@
       ]
     },
     {
-      "id": "E32",
+      "id": "E12",
       "name": "Migration proof: exact replay, repeatable procedure, and assertion perturbation",
       "project_class": "measurement-protocol",
       "prompt": "This is a response-only planning-policy classification, not a request to create or revise an implementation plan. Begin with `Response-only: no artifact or review performed.` Then, in no more than five bullets, state the required future-plan decision for each concern below, including the concrete proof mechanism rather than merely saying one is required. Use only the supplied facts; do not browse, create a plan artifact, inspect a repository, run commands, or launch reviews. A future migration must preserve captured wire behavior. The baseline coverage classes are ordinary HTTP request/response, streaming retry, and a manual-only hardware handshake. The old capture harness will not run after the migration, and the hardware-handshake class has no automated replay path. The team wants to call its new replay procedure repeatable. Current product behavior is correct, so no known-bad product baseline exists, yet the plan must prove that its strengthened load-bearing preservation assertions can actually detect a wrong implementation.",
@@ -225,7 +225,7 @@
       ]
     },
     {
-      "id": "E35",
+      "id": "E13",
       "name": "Unknown capacity permits one bounded optimistic review batch",
       "prompt": "This is a response-only planning-review scheduling decision. A future high-risk plan needs two independent review perspectives. `VIBE_SUBAGENTS=allow`; the host can launch review-only units and returns task start/completion timestamps, but it exposes no numeric concurrency ceiling. State the future launch and evidence contract in no more than seven bullets. Do not browse, create an artifact, run commands, or launch reviewers.",
       "expected_output": "A bounded scheduling decision that treats unknown capacity as neither zero nor a discovered ceiling.",
@@ -238,7 +238,7 @@
       ]
     },
     {
-      "id": "E38",
+      "id": "E14",
       "name": "Offline-mode plan over a decision index that disagrees with a record file, with a reserved decision answered",
       "prompt": "You are producing an implementation plan for adding offline mode to a mobile client. Today is 2026-09-06. Take the following as supplied state.\n\n- `docs/decisions/` holds `0001-…md` through `0016-…md` and nothing numbered higher; apart from the disagreement below, `docs/decisions/README.md` agrees with the directory and its highest row is `ADR-0016`.\n- `docs/reports/findings/README.md` exists and lists no open findings.\n- The repository has `npm test -- src/sync`, whose conflict cases assert which write survives.\n\nThree things are true:\n\n- The index row for `ADR-0014` reads `proposed` with empty `paths`, but the file `docs/decisions/0014-offline-queue.md` carries front matter `status: accepted`, `decided-by: user`, `ratified: user`, and `paths: [\"src/sync/**\"]`.\n- The plan reserved which conflict-resolution strategy offline edits use. The user answered today: \"last write wins, and every later sync unit follows it\". You had offered merge-on-conflict, which the user rejected as too slow to ship.\n- While ordering the plan's steps you put the queue step ahead of the sync-worker step, since the worker's tests need the queue to exist first. That order is internal to this plan: no interface, file layout, or later unit changes with it, and swapping the two steps back would change nothing else.\n\nThis is a response-only exercise: do not create, modify, or delete any file in this checkout; describe exactly what you would produce.\n\nState what this phase does and at which step, and which artifacts, entries, index rows, citations, or refusals come out of it, with their field values, including anything it leaves unrecorded.",
       "expected_output": "A planning response that states when the indexes are read, what it does about the disagreement, and the artifacts and field values the reserved decision produces. Assess described actions and output values; hypothetical wording is sufficient, and no checkout execution is required or claimed.",
@@ -258,7 +258,7 @@
       ]
     },
     {
-      "id": "E39",
+      "id": "E15",
       "name": "Human verification cost without risk-tier exemptions",
       "prompt": "This is a response-only decision exercise. The supplied facts are the entire project evidence universe; do not inspect the ambient project, edit files, run project commands, or launch agents or reviews. Reading the applicable skill package is permitted. Describe the decisions and any future gates without claiming they ran. Explain the required corrections to a future test plan in no more than five bullets; do not create or revise a plan artifact. The approved product is a personal desktop photo organizer that deletes source photos only after verifying their archived copies. It supports one local desktop installation, not remote servers. The user has approved a five-minute smoke check on that installation and returning a log. The draft test plan adds a 40-minute manually assembled photo collection and a new remote-server installation without explaining why existing fixtures or automation cannot be used. A reviewer also suggests skipping interrupted-copy and deletion-safety proof because this is a hobby application. No user accepted that risk. State what the plan should require before these checks or omissions become commitments.",
       "expected_output": "A planning decision that reconciles verification commitments with the supplied product contract.",
@@ -269,7 +269,7 @@
       ]
     },
     {
-      "id": "E40",
+      "id": "E16",
       "name": "About dialog release-notes disclosure plan",
       "prompt": "Create an implementation plan for this approved low-risk requirement: the About dialog gets a `Show release notes` disclosure that expands an inline list of the entries returned by `getReleaseNotes()`.\n\nLocal evidence from the repo scan:\n- `src/about/AboutDialog.tsx` renders the version text and a Close button.\n- `src/about/releaseNotes.ts` exports `getReleaseNotes()`, which returns a static array bundled at build time.\n- Current passing tests: `src/about/AboutDialog.test.tsx` asserts the version text and that Close dismisses the dialog; `src/about/releaseNotes.test.ts` asserts the array is non-empty and each entry has a title.\n- The About dialog is available to every user with no sign-in, and nothing in the About area calls a server.\n\nNo fixture files are provided. Treat these supplied scan facts as the complete represented project evidence; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
       "expected_output": "A plan artifact and concise summary whose Test plan proves the disclosure's list fidelity, expand-collapse interaction, and keyboard and assistive state, reruns the existing About dialog test, and carries no tests for states the dialog cannot reach or for oracles another planned test already asserts.",
@@ -289,7 +289,7 @@
       ]
     },
     {
-      "id": "E41",
+      "id": "E17",
       "name": "Reviewer comment on a token-expiry test plan",
       "prompt": "This is a response-only planning exercise. The supplied facts are the entire project evidence universe; do not inspect the ambient project, create or edit files, run project commands, or launch agents or reviews. Reading the applicable skill package is permitted. Describe the decisions without claiming any check ran; do not create or revise a plan artifact.\n\nA draft implementation plan for a bug fix is under review. `isExpired` in `src/auth/token.ts` currently compares `nowMs > expiresAtMs`; the specification says a token is expired when `nowMs >= expiresAtMs`. An existing passing test accepts a token 60 seconds before expiry; it passes on both the current and the fixed comparison.\n\nThe draft `Test plan` lists:\n- T1: a token presented at exactly `expiresAtMs` is rejected as expired (fails on the current code).\n- T2: on a rejection, a spy on the audit log asserts that no token value appears in the audit log.\n- T3: through the same audit-log spy, asserts that a rejection writes one audit entry.\n\nA reviewer comments on the `Test plan`: \"Drop T1, it duplicates the existing expiry test. Drop T3, it duplicates T2. Let's keep the plan lean.\"\n\nGive the disposition of the reviewer's comment on the `Test plan`.",
       "expected_output": "A disposition that keeps T1 and T3 and states what each distinguishes: the boundary comparison the existing test cannot tell apart, and a working audit-log capture behind T2's absence check.",
@@ -305,6 +305,6 @@
     "common_assertion_weight": 0.5,
     "per_eval_expectation_weight": 0.5,
     "pass_threshold": 0.8,
-    "notes": "Compact suite: cases whose assertions did not discriminate with versus without the skill were removed, and cases sharing one realistic scenario were merged (E04 with E12/E23, E09 with E11, E22 with E30, E26 with E20, E29 with E28, E32 with E24/E33). Raw pass rates from the earlier 41-case suite are not directly comparable."
+    "notes": "Compact suite: cases whose assertions did not discriminate with versus without the skill were removed, and cases sharing one realistic scenario were merged (the resumable multi-slice case absorbed progress-ledger initialization and semantic plan binding; the handed-off-spec case, requirements-defect surfacing; credential rotation, operator-surface naming; concurrent composition, parallel shared-state proof attribution; review-driven revision, finding-table checkpoint scope; migration proof, assertion perturbation and plan evidence authority). Raw pass rates from the earlier 41-case suite are not directly comparable."
   }
 }

@@ -41,6 +41,10 @@ use `[Repository] - YYYY-MM-DD`.
   specification question instead of into a repair. Worker contracts keep
   coordinator unit, round, and finding IDs out of code, comments, and test or
   fixture names.
+- Repository maintenance: eval case ids are renumbered without gaps in every
+  suite; suite notes and changelog entries describe cases instead of citing
+  ids outside a case's own `id` field. `AGENTS.md` now forbids such citations.
+  No skill behavior changed.
 
 ## [vibe-coding 5.0.0] - 2026-09-21
 
@@ -1715,7 +1719,8 @@ use `[Repository] - YYYY-MM-DD`.
   `eval_runner.py validate evals/vibe-orchestrate/evals.json` passed, and the
   closing 32-case, 64-cell Codex run with `gpt-5.6-luna` had no infrastructure,
   fixture-dirty, or candidate-below-baseline anomalies at `with_skill` 87.6%
-  versus `without_skill` 60.5%; reviewed zero-score cells E09 and E12 were
+  versus `without_skill` 60.5%; reviewed zero-score cells for parallel-writer
+  accident cleanup and coordinator-owned startup commit confirmation were
   baseline failures.
 
 ## [vibe-plan-execution 4.1.0] - 2026-08-05
@@ -1816,9 +1821,9 @@ use `[Repository] - YYYY-MM-DD`.
   early runner errors and Codex preflight output persist as durable run
   evidence. Validation: `python3 -m pytest tests/` passed 204 tests, and all 16
   eval suite definitions passed `eval_runner.py validate`.
-- The `skill-eval` E05 contract now keeps assertion repair with the quality
-  owner while preserving the official aggregate, dry-run boundary, and frozen
-  full-suite closure requirements.
+- The `skill-eval` lexical-correction contract now keeps assertion repair with
+  the quality owner while preserving the official aggregate, dry-run boundary,
+  and frozen full-suite closure requirements.
 
 ## [vibe-goal-alignment 1.0.0] - 2026-08-01
 
@@ -2837,13 +2842,14 @@ use `[Repository] - YYYY-MM-DD`.
   capabilities resolve from visible metadata at run time. The `evals/vibe-coding/`
   suite is updated for the phase-based contract and adds commit-execution routing
   (with and without a visible commit specialist), code-investigation versus debug
-  precedence, creative-exploration versus requirements-capture, and
-  orchestration-boundary case `E15`. Verification: clean claude/sonnet-4-6 run at
+  precedence, creative-exploration versus requirements-capture, and an
+  orchestration-boundary case. Verification: clean claude/sonnet-4-6 run at
   `evals/vibe-coding/workspace/claude/iteration-17/` recorded
   `sanity_checks.ok=true`, `error_run_count=0`, 30/30 scored runs, and overall
-  `with_skill` 100.0% vs `without_skill` 78.0% (+22.0%), with E10 recovered from a
-  45.5% over-route signal to 100.0%. Provider environment isolation (`HOME`
-  reaching Claude subprocesses) stays an unresolved accepted risk; no iteration-17
+  `with_skill` 100.0% vs `without_skill` 78.0% (+22.0%), with the branch-name
+  grammar case recovered from a 45.5% over-route signal to 100.0%. Provider
+  environment isolation (`HOME` reaching Claude subprocesses) stays an
+  unresolved accepted risk; no iteration-17
   anomaly was recorded.
 
 ## [vibe-planning 4.2.0] - 2026-06-14
@@ -2856,8 +2862,8 @@ use `[Repository] - YYYY-MM-DD`.
   coordinator; orchestrated reviewers must not edit the plan artifact. It no
   longer names sibling skills, referencing a generic verified writing or
   commit-message skill for checkpoint messages and a generic later code-review
-  workflow instead. `evals/vibe-planning/evals.json` adds orchestration-boundary
-  case `E16`.
+  workflow instead. `evals/vibe-planning/evals.json` adds an
+  orchestration-boundary case.
 
 ## [vibe-plan-execution 2.1.0] - 2026-06-14
 
@@ -2884,11 +2890,12 @@ use `[Repository] - YYYY-MM-DD`.
   plan source, `Proceed condition` status, each checkpoint's verification command
   or manual check, result, commit action, standalone commit message, and any
   skipped or failing verification status. `evals/vibe-plan-execution/evals.json`
-  adds orchestration-boundary case `E14`. Verification: clean claude/sonnet-4-6
+  adds an orchestration-boundary case. Verification: clean claude/sonnet-4-6
   full-suite run at `evals/vibe-plan-execution/workspace/claude/iteration-18/`
   recorded `sanity_checks.ok=true`, `error_run_count=0`, 28/28 scored runs, and
-  overall `with_skill` 95.4% vs `without_skill` 65.6%, with E08 at 100.0%, E09 at
-  94.4% vs 50.0%, and E14 at 93.3% vs 40.0%.
+  overall `with_skill` 95.4% vs `without_skill` 65.6%, with the non-technical
+  user decision case at 100.0%, the authorized commit checkpoint case at 94.4%
+  vs 50.0%, and the orchestrated parallel-slices case at 93.3% vs 40.0%.
 
 ## [vibe-debug-fix 2.1.0] - 2026-06-14
 
@@ -2914,14 +2921,16 @@ use `[Repository] - YYYY-MM-DD`.
   symptoms, supplied code, tests, or logs) before asking only fix- or
   proof-changing questions — the prior "local/source investigation" wording was
   graded as "no file reads" and penalized rigorous proof-path questions on the
-  many evals that ship no fixture code — adds orchestration-boundary case `E19`,
-  and consolidates the former skipped-interactive-check case `E13` into `E12`.
+  many evals that ship no fixture code — adds an orchestration-boundary case,
+  and consolidates the former skipped-interactive-check case into the
+  exact-retest-contract case.
   Verification: clean claude/sonnet-4-6 run at
   `evals/vibe-debug-fix/workspace/claude/iteration-8` recorded
   `sanity_checks.ok=true`, `error_run_count=0`, 36/36 scored runs, and
-  `with_skill` 92.0% vs `without_skill` 60.7% (+31.4%), with E18 at 100.0%, E12 at
-  94.7%, and E12's retest contract now emitting a labeled-placeholder contract
-  instead of clarifying questions.
+  `with_skill` 92.0% vs `without_skill` 60.7% (+31.4%), with the history-consent
+  closure case at 100.0%, the exact-retest case at 94.7%, and that case's retest
+  contract now emitting a labeled-placeholder contract instead of clarifying
+  questions.
 
 ## [vibe-brainstorm 1.1.0] - 2026-06-14
 
@@ -2934,15 +2943,16 @@ use `[Repository] - YYYY-MM-DD`.
   draft, save, or approve durable requirements specification artifacts;
   brainstormed directions become requirements only after the user confirms them
   and a requirements-capture workflow records them.
-  `evals/vibe-brainstorm/evals.json` adds orchestration-boundary case `E10` and
+  `evals/vibe-brainstorm/evals.json` adds an orchestration-boundary case and
   drops the common assertion that required a visible limitation and stop before a
   degraded single-agent fallback: it was a scenario-specific gate, vacuous on
-  non-fallback cases such as the mechanical-rename guard `E09`, and graded
+  non-fallback cases such as the mechanical-rename guard, and graded
   inconsistently; re-grading the prior run without it left the measured benefit
   essentially unchanged, confirming it was non-discriminating. The guarded
-  contract stays covered by per-eval expectations (`E04` keeps the
-  capability-unavailable statement and the stop-or-ask fallback;
-  `E03`/`E05`/`E07`/`E10` keep their own delegation expectations).
+  contract stays covered by per-eval expectations (the unavailable-capability
+  case keeps the capability-unavailable statement and the stop-or-ask fallback;
+  the diverge-only, delegated-execution-proof, chat-first, and
+  scripted-orchestration cases keep their own delegation expectations).
 
 ## [vibe-review 1.1.0] - 2026-06-14
 
@@ -2957,8 +2967,8 @@ use `[Repository] - YYYY-MM-DD`.
   specific host plugin or vendor backend may be required. It no longer names
   retired sibling skills (`codex-review-cycle`, `review-scope-guard`,
   `review-fix-cascade-guard`) and describes itself as one self-contained
-  coordinator workflow. `evals/vibe-review/evals.json` adds orchestration-boundary
-  case `E11` with a new `fixtures/orchestrated-fanout.json`, asserting that an
+  coordinator workflow. `evals/vibe-review/evals.json` adds an
+  orchestration-boundary case with a new `fixtures/orchestrated-fanout.json`, asserting that an
   orchestrated fan-out must not schedule fix application or a squash inside the
   run.
 
@@ -2985,13 +2995,13 @@ use `[Repository] - YYYY-MM-DD`.
   guard, and requested artifact deliverables now return only the artifact content
   without process notes, wrappers, separators, placement instructions, or
   translation away from the artifact's language. `evals/vibe-writing/evals.json`
-  adds `E14` (no silent reformat under a stated repository format) and `E15`
-  (collapsing superseded eval run notes) and preserves the `E04`
+  adds a no-silent-reformat case under a stated repository format and a case
+  for collapsing superseded eval run notes, and preserves the
   refactor-restraint case. Verification: clean claude/sonnet-4-6 run at
   `evals/vibe-writing/workspace/claude/iteration-10/` recorded
   `sanity_checks.ok=true`, `error_run_count=0`, 30/30 scored runs, and overall
-  `with_skill` 98.4% vs `without_skill` 87.3% (+11.0%), with E14 at 100.0% vs
-  90.9% and E15 at 100.0%.
+  `with_skill` 98.4% vs `without_skill` 87.3% (+11.0%), with the repository-format
+  case at 100.0% vs 90.9% and the superseded-run-notes case at 100.0%.
 
 ## [skill-quality 2.1.0] - 2026-06-14
 
@@ -3013,10 +3023,10 @@ use `[Repository] - YYYY-MM-DD`.
   `references/session-patterns.md`, and aligns its repository eval-workflow
   guidance with the runner-driven `validate`/`run`/`report` CLI, requiring
   `with_skill` runs to read the authoritative source Skill path instead of host
-  skill tools or local snapshots. `evals/skill-quality/evals.json` adds `E10`
-  (sampled-case promotion, including the multiple-independent-evidence threshold),
-  `E11`–`E14` (evidence-surface, retry-stop, eval-execution data-boundary, and
-  description-field cases), and `E15` (recurring placeholder leakage), and narrows
+  skill tools or local snapshots. `evals/skill-quality/evals.json` adds a
+  sampled-case promotion case (including the multiple-independent-evidence
+  threshold), evidence-surface, retry-stop, eval-execution data-boundary, and
+  description-field cases, and a recurring placeholder-leakage case, and narrows
   prior assertions that treated proposal-only artifact selection as proof of file
   changes.
 

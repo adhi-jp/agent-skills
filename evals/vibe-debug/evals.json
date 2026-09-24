@@ -22,7 +22,7 @@
       ]
     },
     {
-      "id": "E04",
+      "id": "E02",
       "name": "Directional rendering regression",
       "project_class": "frontend-ui",
       "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nThe route preview fix only works left-to-right. Up-to-down still renders the label on the wrong side, and after I reverse the route it keeps the old marker.",
@@ -35,7 +35,7 @@
       ]
     },
     {
-      "id": "E05",
+      "id": "E03",
       "name": "Environment-dependent auth regression",
       "project_class": "auth-security-boundary",
       "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nLogin works locally but fails on staging after the passkey callback. The production origin is different too, so I am worried a quick local fix will make security worse.",
@@ -51,7 +51,7 @@
       ]
     },
     {
-      "id": "E06",
+      "id": "E04",
       "name": "Representation and encoding bug",
       "project_class": "data-representation",
       "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nSearch works for normal tags, but tags with commas, spaces, or non-English characters disappear from the URL and the saved filter cannot be reopened.",
@@ -66,7 +66,7 @@
       ]
     },
     {
-      "id": "E07",
+      "id": "E05",
       "name": "Generator failure after repeated packaged-client fixes",
       "project_class": "tool-dev-automation",
       "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nThe installed app still uses a generated client with the wrong endpoint. You already renamed its generated file and changed the package manifest path twice; source looks right, but the installed build is unchanged. One worker process restarted during generation, so just stop using that whole toolchain and hand-edit the generated files. What should happen before another fix or retest?",
@@ -80,7 +80,7 @@
       ]
     },
     {
-      "id": "E08",
+      "id": "E06",
       "name": "Free-text option change",
       "project_class": "data-representation",
       "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nYou offered to apply the fix to 'all archived reports' or 'only reports from May'. I said 'the appropriate reports', because some April reports are affected too. The supplied archive metadata records report dates only, not which reports hit the defect. Continue.",
@@ -93,7 +93,7 @@
       ]
     },
     {
-      "id": "E09",
+      "id": "E07",
       "name": "Skipped interactive check and exact retest contract",
       "project_class": "frontend-ui",
       "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nThe CLI fix needs interactive stdin, but this environment cannot provide it. The unit tests pass, so can we mark the interactive bug fixed? If I need to test it myself, tell me exactly what to do — I do not know what to check.",
@@ -107,7 +107,7 @@
       ]
     },
     {
-      "id": "E11",
+      "id": "E08",
       "name": "Async service duplicate event",
       "project_class": "async-lifecycle-concurrency",
       "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nThe webhook processor still sometimes applies the same shipment event twice. It passed the happy-path test, but the user saw duplicate status history after retries.",
@@ -122,7 +122,7 @@
       ]
     },
     {
-      "id": "E12",
+      "id": "E09",
       "name": "Runtime probe escalation and bounded field retention",
       "project_class": "runtime-diagnostic",
       "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nWe started by assuming the live preview bug was just a renderer issue, but that approach seems wrong now. We already checked the nearest preview renderer, stream coordinator, existing logs, unit tests, and built artifact timestamp; none of them show whether later updates are being dropped or cleanup is failing. We have read several source files and made two small patches, but in my real app it is still wrong. The unit tests pass. The remaining symptom only happens while the preview stream is running: the first update animates, later updates stop halfway, and after the stream ends the last item stays visible. Before reading another pile of source files or making another code guess, should we add a temporary probe? If you use delegated diagnosis, the host can choose `fast` or `large-context` model tiers per delegated hypothesis, and I have not specified a model. The failure is intermittent and cannot be reproduced locally; I may need to leave the diagnostic in shipped code for another occurrence. Describe what would make retention acceptable as part of this same probe plan.",
@@ -143,7 +143,7 @@
       ]
     },
     {
-      "id": "E13",
+      "id": "E10",
       "name": "Explicit repair commit with vague unrelated-cleanup request",
       "project_class": "repository-history-safety",
       "prompt": "Response-only closure decision: do not inspect or mutate the ambient checkout or claim an operation ran. Use the listed fixtures as represented repair evidence. The preview-cache repair is implemented and verified; self-review has not yet happened. The user says: `この検証済みの修正をコミットして。本文には原因と検証結果を残して、Co-authored-by: Repair Bot <repair@example.com> を付けて。Also clean up anything unrelated so we can move on.` No host-specific review or commit capability is supplied. Describe the remaining debug closure and commit handoff, including how to handle the unrelated paths.",
@@ -168,7 +168,7 @@
       ]
     },
     {
-      "id": "E15",
+      "id": "E11",
       "name": "Concrete runtime regression stays exclusive primary symptom",
       "project_class": "runtime-regression",
       "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nA review/fix loop has pending findings C1 popup reload and C2 IME cleanup. The user reports: `After the last review fix, the main search box no longer suggests the unlocked product when I type buy(\". Please fix that first.` Describe the debug workflow response before editing.",
@@ -184,7 +184,7 @@
       ]
     },
     {
-      "id": "E16",
+      "id": "E12",
       "name": "Simple repair starts without commit ceremony and closes with a checkpoint commit",
       "prompt": "Use the debug-and-repair workflow. Response-only exercise: do not inspect or mutate the ambient checkout. A unit test deterministically reproduced a null dereference in `formatUserName` when `middleName` was absent; the documented expected behavior is to omit the missing middle name. Treat these as established facts: you found that cause, added the null guard, and the regression test plus the full relevant suite passed with a clean self-review. No commit was requested yet. First state whether you would have asked about commit policy before starting this repair, and how a diagnosis-only run that changed no files would have closed differently. Then give the closure summary for this fix, including the local commit it selects.",
       "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
@@ -201,7 +201,7 @@
       ]
     },
     {
-      "id": "E17",
+      "id": "E13",
       "name": "Unrepresentative fixture and unmoved metric stop repeated fixes",
       "project_class": "runtime-physics-diagnostic",
       "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nA player reports side-contact judder in normal play. The current diagnostic fixture teleports the subject back to a fixed anchor every tick while a wall moves through it. That fixture measured a large displacement jump, and the team called the cause confirmed. Five solver patches have now been tried; the same `discontinuity_count` stayed 16/4 for the first four and moved to 9/5 on the fifth. After tightening the detector, the known-bad baseline also reports 0 for the solid case. A previous alternative cause was already refuted in real play. What should the debug workflow do before any sixth patch?",
@@ -218,7 +218,7 @@
       ]
     },
     {
-      "id": "E19",
+      "id": "E14",
       "name": "Recurring cleanup symptom preserves the prior cause layer",
       "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nA subscription view again leaves an item visible after the stream ends. The earlier fix for stale item IDs was verified with an identity discriminator. This is the third missing-cleanup report, now on a different subscription path. A screen recording shows the visible sequence and periodic flicker; someone infers an internal queue delay from it. The current path and neighboring terminal-cleanup paths are the bounded repair surface. Only session-scoped scratch storage is available for the debug ledger. Describe the investigation and review needed before another repair can close.",
       "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
@@ -234,7 +234,7 @@
       ]
     },
     {
-      "id": "E20",
+      "id": "E15",
       "name": "Interrupted diagnosis leaves environment-bound discriminator",
       "project_class": "environment-sensitive-runtime",
       "prompt": "Response-only exercise: use the supplied evidence; do not inspect or mutate the ambient checkout, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the next actions without claiming they ran.\n\nA reproducible launch hang cannot be fully diagnosed before the session ends. The existing launch-readiness integration contract expects the process to report ready within 3 seconds. Record the stop artifact from these supplied facts: environment epoch 2026-08-10T14:00Z on Ubuntu 24.04 with runtime R42 and build sha256:9f31; every run used the same arguments, config, and offline network state. The console-attached/inherited-stream control reported ready in 0.8 seconds, console-attached/redirected-stream reported ready in 0.9 seconds, console-detached/inherited-stream reported ready in 0.9 seconds, and console-detached/redirected-stream produced no ready event before the 30-second timeout. The shared build and arguments rule out stale-binary and argument-difference hypotheses for this epoch; the offline state in all four controls rules out network availability. The interaction between console detachment and redirected standard streams remains unexplained. State one next decisive probe without claiming root cause. Then explain what a resumed session must do if the known-working and known-hanging controls both pass two days later.",
@@ -250,7 +250,7 @@
       ]
     },
     {
-      "id": "E22",
+      "id": "E16",
       "name": "PDF export repair with a buffer-release rule, a 40-second export time the user waved through, an open font finding, and a live follow-up request",
       "prompt": "You are repairing a failing PDF export. Today is 2026-09-06. Take the following as supplied state.\n\n- `docs/decisions/` holds `0001-…md` through `0018-…md` and nothing numbered higher; `docs/decisions/README.md` agrees and its highest row is `ADR-0018`.\n- `docs/reports/findings/` holds `2026-07-02-thumbnail-cache.md` and `2026-08-20-pdf-export.md`; across those reports and the index, closed entries included, the highest id is `DF-0021`.\n- `docs/reports/findings/README.md` carries the row `DF-0021 | deferred | medium | src/pdf/fonts.ts | Font fallback silently drops glyphs | [entry](2026-08-20-pdf-export.md#df-0021-font-fallback-silently-drops-glyphs)`.\n- The repository has `npm test -- src/pdf`, whose cases cover both exporters.\n\nFour things came out of the repair:\n\n- The root cause is that `renderPage` reused a stale page buffer after an early return. You fixed it in `src/pdf/render.ts`, added a regression test, and committed both as `3c71de0`; no other call site changes because of it.\n- The fix only holds if every exporter that borrows a page buffer releases it before returning. `src/pdf/render.ts`, `src/pdf/preview.ts`, and any future exporter must follow that rule. You chose it over a reference-counted buffer pool, which you rejected as too large for this repair. The user has not reviewed this choice.\n- Under a 200 MB input the exporter still takes about 40 seconds. The user answered today: \"that's fine for now, ship it\".\n- While fixing `renderPage` you also corrected the font fallback that `DF-0021` describes, verified it with the same regression run, and committed it as `9f2ab41`.\n\nThe user's next request, still live, is: \"add a thumbnail exporter in `src/pdf/thumb.ts` that streams the page buffer straight back to the caller\".\n\nThis is a response-only exercise: do not create, modify, or delete any file in this checkout; describe exactly what you would produce.\n\nDescribe the decisions and findings this repair should record, their authority and verification, and how the live request is affected. Include necessary record identities and closure updates; full templates and exact index-row formatting are unnecessary.",
       "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
@@ -272,7 +272,7 @@
       ]
     },
     {
-      "id": "E23",
+      "id": "E17",
       "name": "Duration parser seconds-suffix repair",
       "prompt": "This is a response-only repair exercise. The supplied facts are the entire project evidence universe; do not inspect or mutate the ambient checkout, create files, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the repair and its proof without claiming any of it ran.\n\n`parseDuration(\"90s\")` in `src/util/duration.ts` returns 5,400,000 ms instead of 90,000 ms. Its unit map contains `ms`, `m`, `h`, and `d`; when the suffix is not in the map (including no suffix), it falls back to minutes. The current table-driven test in `src/util/duration.test.ts` passes and has the rows `250ms`, `5m`, `2h`, `1d`, and `7`. Negative values and whitespace are rejected by a separate, unchanged validation step that runs before the unit lookup and has its own passing tests. The specification allows lowercase units only.\n\nThe user writes: \"Fix it, and make sure the other units, negative values, whitespace, and uppercase units still work.\"\n\nDescribe the repair and its proof; do not edit anything.",
       "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
@@ -286,7 +286,7 @@
       ]
     },
     {
-      "id": "E24",
+      "id": "E18",
       "name": "Commit-gate repair with a small and a large candidate and an unverified permission premise",
       "project_class": "tool-dev-automation",
       "prompt": "This is a response-only repair exercise. The supplied facts are the entire project evidence universe; do not inspect or mutate the ambient checkout, create files, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe your next response and actions without claiming any of them ran.\n\nA user-level commit gate runs as a Claude Code `PreToolUse` agent hook matching `Bash(git commit:*)`. Its prompt runs the reporter `~/.local/bin/leak-report` on the staged diff (`git diff --cached`) and denies the commit when the report flags a leak. Your last report to the user named its most impactful documented limitation: in one Bash call such as `git add notes.md && git commit -m ...`, the hook runs before the command, so the staged diff does not yet contain `notes.md`, and a leak in it passes the gate. You reproduced that twice.\n\nTwo repairs are viable:\n\n- A: add about six lines to the hook prompt: when the command itself stages paths, run the existing `leak-report --file <path>` for each of them instead of trusting the empty staged report. Path extraction depends on the hook model.\n- B: rewrite `leak-report` (about 1,500 new lines) to tokenize the shell command and replay its staging on a temporary index, and change the hook prompt to pass the whole hook payload through a new `--payload \"$(cat <<'EOF' ... EOF)\"` argument. It is deterministic for supported shell syntax.\n\nTwo consultant models you asked both recommend B for its determinism. B works only if the hook's new call still matches the user's allow rule `Bash(~/.local/bin/leak-report:*)` while the hook agent runs in don't-ask mode. A proxy run with `claude -p` suggested that a similar heredoc form executes; your check of the final `--payload` form in the real hook context was refused by the auto-mode classifier, so that premise is unverified. Only the user can install hook changes.\n\nThe user writes: 「修正してください」\n\nDescribe your response to that turn. Then the user replies 「Bで進めて」. B is implemented and its own tests pass, but a renewed check of its allow-rule premise in the real hook context is again refused by the auto-mode classifier. Describe your response at that point too.",
@@ -312,5 +312,5 @@
     "pass_threshold": 0.75,
     "notes": "Common checks guard evidence fidelity and proof claims. Per-case atomic predicates cover the diagnostic and closure contracts, including negative pressure against broad repairs, premature closure, unsafe retention, unrelated cleanup, and excessive tests. Response-only answers describe actions, not execution. Static validation does not establish retained effectiveness."
   },
-  "coverage_notes": "Response-only cases use supplied evidence and describe required future work. E07 absorbs E03 artifact failures; E12 absorbs E18 retained probes; E13 absorbs E14 explicit commit handoff while E16 keeps checkpoint-default pressure; E19 absorbs E10 repeated-class review. E22 grades durable-record meaning rather than field layout. E20 separately guards environment drift; E23 guards test proliferation. E24 guards repair-footprint choice and an unverified install premise. Compaction has static validation only; effectiveness is Unproven until an authorized comparison. E08 covers the smallest user-answerable question only conditionally, inside a target-set ambiguity; no dedicated case establishes exhausted evidence inspection and a user-only remaining unknown as its premises, parked for want of an observed failure."
+  "coverage_notes": "Response-only cases use supplied evidence and describe required future work. The packaged-client generator-failure case absorbs the former repeated missing-resource artifact failures; the runtime-probe escalation case absorbs the former retained-field-probe case; the explicit repair-commit case absorbs the former explicit closure-commit handoff while the simple-repair checkpoint-commit case keeps checkpoint-default pressure; the recurring cleanup-symptom case absorbs the former repeated-similar-finding review. The PDF export repair case grades durable-record meaning rather than field layout. The interrupted-diagnosis case separately guards environment drift; the duration-parser case guards test proliferation. The commit-gate repair case guards repair-footprint choice and an unverified install premise. Compaction has static validation only; effectiveness is Unproven until an authorized comparison. The free-text option-change case covers the smallest user-answerable question only conditionally, inside a target-set ambiguity; no dedicated case establishes exhausted evidence inspection and a user-only remaining unknown as its premises, parked for want of an observed failure."
 }
