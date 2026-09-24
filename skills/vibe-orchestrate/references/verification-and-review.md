@@ -174,10 +174,14 @@ severity, confidence, and reviewer agreement do not authorize repairs.
 - `reversed`: name the prior disposition and contradicting evidence, retain any
   still-correct part, and rewrite rather than silently delete its proof.
 
-Inspect cited evidence for support, contradiction, or absence instead of voting
-with reviewers. New resources/options/UI/timers warrant a scope check; necessary
-internal means are not automatically optional capability. Low-risk labels and
-fault counts cannot waive concrete safety defects.
+Inspect cited evidence, and the shipped docs, decision records, and
+intent-stating comments or test titles at the anchor, for support,
+contradiction, or absence instead of voting with reviewers; a defect claim
+that documented intent contradicts and no approved requirement establishes is
+`blocked` on that contract's owner, not accepted for repair. New
+resources/options/UI/timers warrant a scope check; necessary internal means are
+not automatically optional capability. Low-risk labels and fault counts cannot
+waive concrete safety defects.
 
 A passing test does not refute a traced finding. Reproduce the behavior at the
 real integration surface and read the test as a specification: an expectation

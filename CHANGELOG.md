@@ -32,6 +32,15 @@ use `[Repository] - YYYY-MM-DD`.
 - `vibe-commit` splits a commit only when a single honest shared contract
   cannot cover the whole patch, and applies that test when selecting the
   commit's file set rather than only when preparing its message.
+- `vibe-orchestrate` recommends deferring optional or agent-found work, with
+  no code or documentation note, unless a user request, report, documented
+  contract, or failure reachable in normal use names the need, and names that
+  source or says none exists. Before accepting a review finding it checks
+  shipped docs, decision records, and intent-stating comments or test titles
+  at the anchor; a finding they contradict goes to that contract's owner as a
+  specification question instead of into a repair. Worker contracts keep
+  coordinator unit, round, and finding IDs out of code, comments, and test or
+  fixture names.
 
 ## [vibe-coding 5.0.0] - 2026-09-21
 

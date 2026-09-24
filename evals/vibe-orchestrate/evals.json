@@ -8,7 +8,7 @@
     {
       "id": "E01",
       "name": "Structured worker contract from vague delegation request",
-      "prompt": "Use `vibe-orchestrate`. I need to hand off a small implementation slice to a coding subagent. The worker should add support for a saved report display-name rename in an existing app. I want a prompt I can send to the worker. Keep it safe: the worker should edit only `src/reports/rename.ts` and `tests/reports/rename.test.ts`; the coordinator will run the full test suite later. Verified local facts: `renameReport(id, displayName)` updates the display name and must preserve the report ID; an old example uses unverified `renameTitle`. Inline these facts rather than asking the worker to browse APIs. If local evidence contradicts them, the worker must report back.",
+      "prompt": "Use `vibe-orchestrate`. I need to hand off a small implementation slice to a coding subagent. The worker should add support for a saved report display-name rename in an existing app. I want a prompt I can send to the worker. Keep it safe: the worker should edit only `src/reports/rename.ts` and `tests/reports/rename.test.ts`; the coordinator will run the full test suite later. Verified local facts: `renameReport(id, displayName)` updates the display name and must preserve the report ID; an old example uses unverified `renameTitle`. Inline these facts rather than asking the worker to browse APIs. If local evidence contradicts them, the worker must report back. My ledger tracks this slice as K7 with work items K7-a and K7-b.",
       "expected_output": "A bounded coordinator decision or contract covering the supplied scenario, with evidence, scope, and stop conditions kept explicit.",
       "files": [],
       "expectations": [
@@ -19,7 +19,8 @@
         "Includes fixed report sections such as `FILES:`, `COMPILE:`, `DECISIONS:`, and `BLOCKERS:`.",
         "States that coordinator-run verification, not worker self-report, is the final proof because the coordinator will run the full suite later.",
         "Inlines the supplied renameReport API and stable-ID invariant while labeling renameTitle unverified.",
-        "Forbids broad API rediscovery and requires a blocker if allowed local evidence contradicts the supplied facts."
+        "Forbids broad API rediscovery and requires a blocker if allowed local evidence contradicts the supplied facts.",
+        "Forbids the worker from citing coordinator ledger IDs such as K7 or K7-a in code, comments, or test names."
       ]
     },
     {
@@ -134,7 +135,7 @@
     {
       "id": "E16",
       "name": "Finding disposition separates evidence from repair authority",
-      "prompt": "Use `vibe-orchestrate`. Three read-only reviewers agree that a required regression test is missing, but their cited artifact may not support that premise. One also proposes a rewrite the bound plan explicitly excludes. The coordinator noticed a separate contract deviation. Give a concise disposition procedure before any repair, including what inspected evidence and repair authority it must record.",
+      "prompt": "Use `vibe-orchestrate`. Three read-only reviewers agree that a required regression test is missing, but their cited artifact may not support that premise. One also proposes a rewrite the bound plan explicitly excludes. The coordinator noticed a separate contract deviation. A fourth reviewer calls it a defect that a status field ignores library changes; the shipped tool reference states that this status is computed only from class and registry signals. Give a concise disposition procedure before any repair, including what inspected evidence and repair authority it must record.",
       "expected_output": "A bounded coordinator decision or contract covering the supplied scenario, with evidence, scope, and stop conditions kept explicit.",
       "files": [],
       "expectations": [
@@ -144,7 +145,8 @@
         "Keeps the missing-test finding unproven until checked, then accepts it only if the required coverage is actually absent.",
         "Rejects or defers the excluded rewrite unless new evidence and owning authority justify revising scope.",
         "Gives the coordinator-noticed deviation its own disposition and rationale.",
-        "Authors bounded repair only for verified accepted findings rather than allowing reviewer output to trigger edits."
+        "Authors bounded repair only for verified accepted findings rather than allowing reviewer output to trigger edits.",
+        "Does not accept the status-field finding for repair; cites the shipped statement that the behavior is intended and blocks the finding on that contract's owner."
       ]
     },
     {
@@ -453,7 +455,7 @@
     {
       "id": "E49",
       "name": "Optional tooling effort checkpoint preserves essential work",
-      "prompt": "This is a response-only orchestration decision exercise. The supplied facts are the entire project evidence universe; do not inspect the ambient project, edit files, run project commands, or launch agents or reviews. Reading the applicable skill package is permitted. Describe decisions and future gates without claiming they ran. Give the next coordinator decision in no more than five bullets. The user requested a local archive utility and authorized autonomous implementation. The planned features and normal-operation checks are complete. Successive additional rounds have focused on a developer-only diagnostic dashboard; the newest suggestions add optional sorting controls and a second presentation format. Their cumulative effort was not included in the plan. A separate verified defect can delete the only copy of an archive after a failed write, violating the approved data-preservation contract. Its already authorized repair worker is mid-slice. The user asks why so much effort is going into the dashboard. No numerical token or round budget was agreed. Explain what proceeds, what stops or changes scope, and what decision belongs to the user.",
+      "prompt": "This is a response-only orchestration decision exercise. The supplied facts are the entire project evidence universe; do not inspect the ambient project, edit files, run project commands, or launch agents or reviews. Reading the applicable skill package is permitted. Describe decisions and future gates without claiming they ran. Give the next coordinator decision in no more than five bullets. The user requested a local archive utility and authorized autonomous implementation. The planned features and normal-operation checks are complete. Successive additional rounds have focused on a developer-only diagnostic dashboard; the newest suggestions add optional sorting controls and a second presentation format. Their cumulative effort was not included in the plan. A separate verified defect can delete the only copy of an archive after a failed write, violating the approved data-preservation contract. Its already authorized repair worker is mid-slice. A worker also noted that the utility cannot open password-protected archives; nothing in the product documents such support, no user asked for it, and such archives already fail with a clear message. The user asks why so much effort is going into the dashboard. No numerical token or round budget was agreed. Explain what proceeds, what stops or changes scope, and what decision belongs to the user.",
       "expected_output": "A scoped orchestration decision for the remaining work.",
       "files": [],
       "expectations": [
@@ -462,6 +464,7 @@
         "Keeps the verified data-loss defect unresolved until its contract-preserving repair and verification are completed, and does not waive it because it is rare or the product is local.",
         "Preserves useful already authorized in-flight repair work rather than discarding it at an invented hard round or token cutoff.",
         "Distinguishes a proposed or agent-deferred optional item from user-accepted residual risk; does not invent user acceptance or report the whole task complete while the data-loss blocker remains.",
+        "Does not recommend building password-protected archive support or adding a documentation note about it.",
         "Keeps the exercise response-only: does not inspect the ambient project, edit files, execute project commands, or launch agents or reviews. Reading the applicable skill package is allowed; described future actions are not treated as performed actions."
       ]
     },

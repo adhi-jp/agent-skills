@@ -46,9 +46,13 @@ At joins, compare progress and cumulative effort with that envelope. Repeated
 findings, an overrun, exhausted tooling allowance, or completed acceptance work
 trigger a scope checkpoint before optional follow-up. Preserve authorized
 in-flight work and essential repairs; budgets never certify broken work.
-Batch optional proposals with impact, remaining effort, and a continue/trim/defer
-recommendation. Ask only for additional scope, cost, or human-risk decisions;
-autonomy does not authorize unlimited optional work or accept residual risk.
+Batch optional proposals, agent-found gaps included, with impact, remaining
+effort, and a continue/trim/defer recommendation that defaults to defer, adding
+neither code nor a documentation note, unless a user request, report,
+documented contract, or failure reachable in normal use names the need; name
+that source or say none exists. Ask only for additional scope, cost, or
+human-risk decisions; autonomy does not authorize unlimited optional work or
+accept residual risk.
 
 Convergence checkpoint: when the review after a correction round finds new
 defects of the same class (a shared failure mechanism or violated invariant,

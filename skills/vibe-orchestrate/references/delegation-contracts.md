@@ -9,7 +9,9 @@ For substantial decomposition and writer isolation, first apply
 Fill only applicable fields, keeping the mandatory boundaries and core report.
 Quote short normative clauses; bind longer sources by path, section, digest,
 binding force, and read/ignore boundaries. Worker paraphrase is not authority.
-Use stable item IDs when practical. If a changed-line budget applies, define
+Use stable item IDs when practical, and have the contract forbid them and
+other unit, round, or finding IDs in code, comments, and test or fixture
+names. If a changed-line budget applies, define
 included/excluded generated/vendor classes and a reproducible per-path count.
 For interleaved checkpoints, assign ownership and reserve shared-file staging
 hunks to the coordinator. Keep protected baselines outside worker-write scope.
