@@ -11,40 +11,84 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [vibe-orchestrate 5.1.0] - 2026-09-25
+
 ### Changed
 
-- `skill-quality` treats an improvement report as evidence rather than a
-  change list: each proposal is accepted, narrowed, parked, or rejected on its
-  own, an addition to an always-loaded file names what it replaces or deletes
-  or the evidence that no existing rule covers the failure, an added eval case
-  names the contract no retained case covers, and the answer reports the
-  discarded proposals back to the maintainer. Report-writing guidance now
-  requires evidence for each recorded failure, an account of what each
-  proposal replaces, and a reason for every discarded proposal.
-- `vibe-agent-instructions` no longer records every divergence acknowledgment
-  or non-conforming disposition as a decision record; decisions that qualify
-  under the skill's own recording rules are still recorded. The divergence
-  report, its evidence date, and the stale-evidence question are unchanged.
-- `vibe-requirements-spec` no longer lets a trusted orchestration proxy defer
-  a lower-priority unknown on the user's behalf. Proxy-backed choices are
-  still recordable as proposed defaults, assumptions, or proxy-decision
-  evidence, and deferring an unknown is again the user's call.
-- `vibe-commit` splits a commit only when a single honest shared contract
-  cannot cover the whole patch, and applies that test when selecting the
-  commit's file set rather than only when preparing its message.
-- `vibe-orchestrate` recommends deferring optional or agent-found work, with
-  no code or documentation note, unless a user request, report, documented
-  contract, or failure reachable in normal use names the need, and names that
-  source or says none exists. Before accepting a review finding it checks
-  shipped docs, decision records, and intent-stating comments or test titles
-  at the anchor; a finding they contradict goes to that contract's owner as a
-  specification question instead of into a repair. Worker contracts keep
-  coordinator unit, round, and finding IDs out of code, comments, and test or
-  fixture names.
-- Repository maintenance: eval case ids are renumbered without gaps in every
-  suite; suite notes and changelog entries describe cases instead of citing
-  ids outside a case's own `id` field. `AGENTS.md` now forbids such citations.
-  No skill behavior changed.
+- The coordinator recommends deferring optional or agent-found work, with no
+  code or documentation note, unless a user request, report, documented
+  contract, or failure reachable in normal use names the need, and it names
+  that source or says none exists.
+- Before accepting a review finding, the coordinator checks shipped docs,
+  decision records, and intent-stating comments or test titles at the
+  finding's anchor. A finding they contradict goes to that contract's owner as
+  a specification question instead of into a repair.
+- Worker contracts keep coordinator unit, round, and finding IDs out of code,
+  comments, and test or fixture names.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 81.9% against `without_skill` 53.5%; two cases fell
+  below baseline, each by one missed assertion in one or two of three runs.
+
+## [vibe-requirements-spec 7.0.1] - 2026-09-25
+
+### Changed
+
+- A trusted orchestration proxy no longer defers a lower-priority unknown on
+  the user's behalf; deferring an unknown is the user's call again.
+  Proxy-backed choices can still be recorded as proposed defaults,
+  assumptions, or proxy-decision evidence.
+- Verification: closing codex `gpt-6-luna` full-suite run, `with_skill`
+  96.0% against `without_skill` 45.1%.
+
+## [vibe-commit 4.0.1] - 2026-09-25
+
+### Changed
+
+- A commit is split only when no single honest shared contract covers the
+  whole patch, and that test now applies when the commit's file set is
+  selected, not only when its message is prepared.
+- Verification: closing codex `gpt-6-luna` full-suite run, `with_skill`
+  99.1% against `without_skill` 67.2%.
+
+## [vibe-agent-instructions 2.0.1] - 2026-09-25
+
+### Changed
+
+- A divergence acknowledgment or non-conforming disposition is no longer
+  recorded as a decision record by default; decisions that qualify under the
+  skill's own recording rules are still recorded. The divergence report, its
+  evidence date, and the stale-evidence question are unchanged.
+- Verification: closing codex `gpt-6-luna` full-suite run, `with_skill`
+  93.5% against `without_skill` 44.1%.
+
+## [skill-quality 2.9.0] - 2026-09-25
+
+### Changed
+
+- An improvement report is evidence, not a change list: each proposal is
+  accepted, narrowed, parked, or rejected on its own; an addition to an
+  always-loaded file names what it replaces or deletes, or the evidence that
+  no existing rule covers the failure; an added eval case names the contract
+  no retained case covers; and the answer reports the discarded proposals
+  back to the maintainer.
+- Report-writing guidance requires evidence for each recorded failure, an
+  account of what each proposal replaces, and a reason for every discarded
+  proposal.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 85.4% against `without_skill` 63.9%.
+
+## [Repository] - 2026-09-25
+
+### Changed
+
+- Eval case ids are numbered without gaps in every suite, and suite notes and
+  changelog entries describe cases instead of citing ids outside a case's own
+  `id` field; `AGENTS.md` now forbids such citations. No skill behavior
+  changed.
+- Verification: `python3 -m pytest -q tests` passed 457 tests and 115
+  subtests; `check --strict` and `audit-names` are clean for all 14 packages;
+  `python3 scripts/vibe_shared_contract.py measure --strict` exits 0; every
+  eval suite passes static validation with no warnings.
 
 ## [vibe-coding 5.0.0] - 2026-09-21
 
