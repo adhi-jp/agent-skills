@@ -29,10 +29,12 @@ sentinels, and last verified checkpoint.
 
 Before implementing, name the smallest repair that closes the reported symptom
 and its footprint: surfaces, interfaces or invocations changed, and new
-components. When another candidate's footprint differs materially, present both
-with impact and ask before starting the larger; recommend the smaller by
-default. Consultant or reviewer agreement informs that question; it does not
-answer it.
+components. Leave out additional guards and fixes unless their case is required,
+reachable in normal use, or a data-loss, security, or core-path risk, naming any
+you leave out in the report. When another candidate's footprint differs
+materially, present both with impact and ask before starting the larger;
+recommend the smaller by default. Consultant or reviewer agreement informs that
+question; it does not answer it.
 
 ## Effect And Write Boundaries
 

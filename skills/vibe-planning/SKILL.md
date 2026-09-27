@@ -268,6 +268,9 @@ These hold for every plan:
   one support current-slice work.
 - Never invent numeric limits, product constants, root causes, or
   external-system behavior.
+- Add handling for a state only when a requirement names it, normal use
+  reaches it, or it risks data, permissions, security, or a core path; a
+  criterion you wrote does not establish that need.
 - Keep human-operated checks visible with their cost. A small or personal
   project compresses the plan's rendering, never its data-safety, security, or
   consent proof.

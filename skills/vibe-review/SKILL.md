@@ -146,7 +146,10 @@ resolve.
 
 Before processing findings, read the remaining
 `references/review-workflow.md` sections for normalization, scope triage,
-cascade containment, acceptance proof, and terminal gates.
+cascade containment, acceptance proof, and terminal gates. A finding whose case
+no confirmed requirement, contract, or normal use reaches, and that shows no
+security, data-loss, or core-path risk, is `reject-noise` at the noise step,
+never `minimal-hygiene`.
 
 For a response-only decision about a represented run, bind to supplied facts,
 not the ambient checkout; execute nothing.

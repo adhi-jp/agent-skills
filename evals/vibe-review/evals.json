@@ -267,6 +267,21 @@
         "Describes both findings rows it would add to `docs/reports/findings/README.md` with the columns `id | status | severity | scope | title | file`, each file link pointing at its own entry heading rather than at the report file alone.",
         "Writes neither a decision record nor a findings entry for the `reject-noise` log-wording item in `src/notify/log.ts`, and does not create, modify, or delete any file in this checkout; it states the records, entries, and rows it would write."
       ]
+    },
+    {
+      "id": "E17",
+      "name": "Scope triage of three findings under a weak out-of-scope item",
+      "prompt": "This is a response-only exercise: do not create, modify, or delete any file in this checkout; describe exactly what you would produce.\n\nYou are reviewing a `branch` target for `ledgerd`, a self-hosted bookkeeping web server. The branch adds a CSV export job; its changed files are `src/export/route.ts`, `src/export/job.ts`, `src/export/writer.ts`, `src/export/batchSeq.ts`, and their tests. The user confirmed this Definition of Done at review start from the approved export issue:\n\n1. Intent: signed-in users export their ledger to a CSV file saved in the server's export directory for later download.\n2. Supported inputs: `POST /api/export` with a `fileName` the user types in the export dialog; ledgers of up to 500,000 rows.\n3. Required features: rows are written in batches of 1,000; the dialog's Cancel button stops a running export.\n4. Explicit out of scope: scheduled exports.\n5. Quality bars: an interrupted export, including one the user cancels, must not drop rows the job has already reported as exported.\n6. Accepted divergences: none.\n\nThe rejected-finding ledger is empty. Three normalized findings passed validity: each cited file is in the target, the cited lines are inside changed hunks, and a local read confirms each premise.\n\n- F1 (reviewer severity: medium), `src/export/batchSeq.ts`: the batch sequence number is a `Uint32Array` element that starts at 0 for each export job and increments once per batch, so it wraps to 0 after 4,294,967,295 batches in one job and two batches would then share a number. The number appears only in progress log lines. The reviewer proposes a three-line fix that throws a `RangeError` when the sequence reaches `0xFFFFFFFF`.\n- F2 (reviewer severity: high), `src/export/route.ts`: the request's `fileName` goes straight into `path.join(EXPORT_DIR, fileName)`, so a signed-in user who submits `../../config/app.env` overwrites that server file with CSV content. The reviewer reproduced this on a local instance and proposes resolving the path and rejecting any result outside `EXPORT_DIR`.\n- F3 (reviewer severity: low), `src/export/writer.ts`: on Cancel, the job counts the in-flight batch as exported before its `flush()` resolves and then closes the stream, discarding the buffer, so the file lacks up to 1,000 rows the job reported as exported. The reviewer reproduced it with a test that cancels during a flush; it happens only when Cancel lands in a flush window of a few milliseconds, which the reviewer estimates at well under 1% of cancelled exports. The reviewer proposes awaiting the flush before counting the batch and closing the stream.\n\nFor each finding, state its scope-triage category, whether its fix is selected for this fix cycle, and the reason.",
+      "expected_output": "A response-only triage decision for the supplied findings.",
+      "files": [],
+      "expectations": [
+        "Classifies F1, the batch-sequence wraparound, as `reject-noise`, not `minimal-hygiene` or `must-fix`.",
+        "Does not select F1's three-line `RangeError` guard for this fix cycle.",
+        "Classifies F2, the `fileName` path traversal, as `must-fix`.",
+        "Classifies F3, the cancel-during-flush row loss, as `must-fix`.",
+        "Does not reject, downgrade, or defer F3 because it is rare or because the reviewer rated it low; low frequency does not outweigh the Definition of Done's interrupted-export quality bar.",
+        "Uses only `must-fix`, `minimal-hygiene`, `reject-out-of-scope`, and `reject-noise` as finding categories, adding no fifth category such as `deferred`, `low-priority`, or `wont-fix`."
+      ]
     }
   ],
   "scoring": {

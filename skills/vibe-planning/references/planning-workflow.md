@@ -103,8 +103,11 @@ Read this reference before drafting or revising the implementation-plan body. It
    - Write observable pass/fail criteria.
    - Include negative cases, permissions, failure states, empty states,
      migration or compatibility expectations, and UX states when the changed
-     code can produce or receive that state; keep a category whose reachability
-     is unknown.
+     code can produce or receive that state; investigate a category whose
+     reachability is unknown, and record it as a deferred decision only when it
+     stays unsupported and risks no data, permission, security, destructive, or
+     core-path effect, never dropping required proof or an unresolved safety
+     decision.
    - For visibility, permission, unlock, feature-flag, and state-transition
      behavior, pair the negative or before-state path with the positive success
      path; a hide/deny test alone does not prove the core criterion.

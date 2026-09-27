@@ -334,7 +334,7 @@ Decision order is must-fix/security, ledger lookup for non-must-fix findings,
 out-of-scope, noise, then minimal-hygiene fall-through. Do not add a fifth
 category.
 
-Before making a finding selectable, classify origin, supported input, product reachability, expected frequency, product impact, fix weight, and architecture expansion in the normalized record. A theoretical or unsupported case with architectural fix weight is not `must-fix` until reachability proof, a user requirement, security evidence, or an explicit product decision makes it part of the review target. Findings whose only origin is the immediately previous review fix are shrink candidates unless they improve original-target acceptance proof or a must-preserve equivalence dimension.
+Before making a finding selectable, classify origin, supported input, product reachability, expected frequency, product impact, fix weight, and architecture expansion in the normalized record. A theoretical or unsupported case is not `must-fix` or `minimal-hygiene` until reachability proof, a confirmed requirement or quality bar, a documented contract, security or data-loss evidence, or an explicit product decision makes it part of the review target; at the noise step it is niche. Findings whose only origin is the immediately previous review fix are shrink candidates unless they improve original-target acceptance proof or a must-preserve equivalence dimension.
 
 ## Acceptance Proof Matrix
 

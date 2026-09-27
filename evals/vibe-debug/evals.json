@@ -274,15 +274,17 @@
     {
       "id": "E17",
       "name": "Duration parser seconds-suffix repair",
-      "prompt": "This is a response-only repair exercise. The supplied facts are the entire project evidence universe; do not inspect or mutate the ambient checkout, create files, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the repair and its proof without claiming any of it ran.\n\n`parseDuration(\"90s\")` in `src/util/duration.ts` returns 5,400,000 ms instead of 90,000 ms. Its unit map contains `ms`, `m`, `h`, and `d`; when the suffix is not in the map (including no suffix), it falls back to minutes. The current table-driven test in `src/util/duration.test.ts` passes and has the rows `250ms`, `5m`, `2h`, `1d`, and `7`. Negative values and whitespace are rejected by a separate, unchanged validation step that runs before the unit lookup and has its own passing tests. The specification allows lowercase units only.\n\nThe user writes: \"Fix it, and make sure the other units, negative values, whitespace, and uppercase units still work.\"\n\nDescribe the repair and its proof; do not edit anything.",
+      "prompt": "This is a response-only repair exercise. The supplied facts are the entire project evidence universe; do not inspect or mutate the ambient checkout, create files, run project commands, or launch agents. Reading the applicable skill package is permitted. Describe the repair and its proof without claiming any of it ran.\n\n`parseDuration(\"90s\")` in `src/util/duration.ts` returns 5,400,000 ms instead of 90,000 ms. Its unit map contains `ms`, `m`, `h`, and `d`; when the suffix is not in the map (including no suffix), it falls back to minutes. The current table-driven test in `src/util/duration.test.ts` passes and has the rows `250ms`, `5m`, `2h`, `1d`, and `7`. Negative values and whitespace are rejected by a separate, unchanged validation step that runs before the unit lookup and has its own passing tests. The specification allows lowercase units only. While reading the parser you also notice that durations above `Number.MAX_SAFE_INTEGER` ms would lose precision; callers pass configuration values from milliseconds up to a few days.\n\nThe user writes: \"Fix it, and make sure the other units, negative values, whitespace, and uppercase units still work.\"\n\nDescribe the repair and its proof; do not edit anything.",
       "expected_output": "A response describing the diagnosis, repair, or closure actions supported by the supplied evidence, with proof requirements and remaining limitations.",
+      "grader_context": "Grader-only facts: no caller or requirement uses durations beyond a few days, so precision loss above Number.MAX_SAFE_INTEGER ms (about 285,000 years) is unreachable in normal use and has no data, security, or core-path effect; a guard for it is optional work nothing in the task requires. Using these facts counts as supplied; the response need not restate them.",
       "files": [],
       "expectations": [
         "Proposes the regression as a row in the existing duration table rather than a new test file or suite.",
         "Names the existing duration rows and validation tests as preservation proof to run against the fixed code.",
         "Adds no redundant negative-value or whitespace tests for the unchanged validation step.",
         "Treats uppercase-unit support as outside the specification or a question requiring user clarification.",
-        "Keeps dimension mapping compact rather than expanding into a ledger or a new test per dimension."
+        "Keeps dimension mapping compact rather than expanding into a ledger or a new test per dimension.",
+        "Includes no overflow or precision guard, such as a `Number.MAX_SAFE_INTEGER` check or a rejection of oversized durations, in the described repair; naming such a guard as deliberately left out is acceptable."
       ]
     },
     {

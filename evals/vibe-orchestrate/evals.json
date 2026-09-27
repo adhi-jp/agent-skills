@@ -20,7 +20,8 @@
         "States that coordinator-run verification, not worker self-report, is the final proof because the coordinator will run the full suite later.",
         "Inlines the supplied renameReport API and stable-ID invariant while labeling renameTitle unverified.",
         "Forbids broad API rediscovery and requires a blocker if allowed local evidence contradicts the supplied facts.",
-        "Forbids the worker from citing coordinator ledger IDs such as K7 or K7-a in code, comments, or test names."
+        "Forbids the worker from citing coordinator ledger IDs such as K7 or K7-a in code, comments, or test names.",
+        "Forbids adding optional features, options, or guards beyond what the work items require, without forbidding implementation the work items need. Grade the contract's meaning, not its wording."
       ]
     },
     {

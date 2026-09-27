@@ -29,6 +29,8 @@ Hard rules:
   beyond that scope; permission to compile does not authorize deployment.
 - Do not ask the user, expand scope, stage, commit, push, release, mutate history,
   or perform destructive, credential, permission, billing, or external actions.
+- Add no feature, option, guard, or fix beyond what the work items require;
+  report candidates under DECISIONS and needed out-of-scope work under BLOCKERS.
 - Run only [verification commands]; report blocked checks as SKIPPED(reason).
   Your report is self-report; coordinator verification is final proof.
 - Stop under BLOCKERS for missing facts, broader access/effects, user decisions,

@@ -82,8 +82,10 @@ relaying a worker's prose as instructions.
 Subagents must not ask the user, expand scope, stage, commit, push, release,
 decide credentials or permissions, accept destructive risk, mutate history, or
 make human-risk choices for the coordinator. Every worker contract states that
-it forbids staging, committing, pushing, releasing, and history mutation;
-history stays with the coordinator.
+it forbids staging, committing, pushing, releasing, history mutation, and
+adding optional features, options, or guards beyond what its work items
+require; needed work outside its paths is a blocker; history stays with the
+coordinator.
 
 ### Human-Risk Decisions
 

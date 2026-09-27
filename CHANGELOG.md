@@ -11,6 +11,25 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+- `vibe-coding` direct implementation, `vibe-plan-execution`, and `vibe-debug`
+  add no feature, option, guard, or fix that nothing binding requires unless
+  it closes a failure reachable in normal use or a data-loss, security,
+  permission, or core-path risk, and name any such addition they leave out in
+  the report instead of in code; a reviewer's suggestion does not make one
+  required.
+- `vibe-review` classifies a finding whose case no confirmed requirement,
+  contract, or normal use reaches, and that shows no security, data-loss, or
+  core-path risk, as `reject-noise` instead of fixing it as hygiene, however
+  small the fix.
+- `vibe-planning` plans handling for a state only when a requirement names it,
+  normal use reaches it, or it risks data, permissions, security, or a core
+  path, and records a category of unknown reachability that stays unsupported
+  after investigation as a deferred decision instead of an acceptance
+  criterion.
+- `vibe-orchestrate` worker contracts forbid adding optional features,
+  options, or guards beyond what the work items require, and send needed work
+  outside the allowed paths back as a blocker.
+
 ## [vibe-orchestrate 5.1.0] - 2026-09-25
 
 ### Changed

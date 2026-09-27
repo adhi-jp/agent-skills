@@ -42,8 +42,10 @@ a likely defect.
 4. With neither proof nor a plan-preserving correction, stop at the blocker;
    never complete a known-defective step because the plan says so.
 
-A review suggestion that repairs an existing requirement can be
-plan-preserving; one that adds optional public behavior needs a revised plan.
+A review suggestion that repairs a verified failure of an existing requirement
+can be plan-preserving; one that adds optional public behavior needs a revised
+plan, and a guard for a case no requirement or normal use reaches, and that
+poses no data-loss, security, permission, or core-path risk, stays out.
 
 ## Existing-Feature Repair Handoff
 

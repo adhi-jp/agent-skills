@@ -117,13 +117,17 @@ load-bearing claims even in responses that edit nothing.
    that blocker and draft no code or tests for the slice. When evidence
    conflicts with a planned step, run the Plan Validity Gate.
 3. **Implement only the current slice**, reusing local conventions and leaving
-   future phases, extras, and adjacent cleanup out. A request to add, skip,
-   narrow, or replace planned work, including planned tests called redundant,
-   is a deviation: run the Plan Deviation Gate before acting on it. Start a
-   slice the plan marks atomic (non-green inside, green at its end) only with
-   enough session and context runway to reach its verification gate;
-   otherwise stop at the preceding verified checkpoint, record the no-start
-   decision there, and do not split the slice to fit the session.
+   out future phases, adjacent cleanup, and — unless it closes a failure
+   reachable in normal use or a data-loss, security, permission, or core-path
+   risk — any feature, option, guard, or fix nothing binding requires, naming
+   any you leave out in the report; a reviewer's suggestion is not binding. A
+   request to add, skip, narrow, or replace planned work, including planned
+   tests called redundant, is a deviation: run the Plan Deviation Gate before
+   acting on it. Start a slice the plan marks atomic (non-green inside, green at
+   its end) only with enough session and context runway to reach its
+   verification gate; otherwise stop at the preceding verified checkpoint,
+   record the no-start decision there, and do not split the slice to fit the
+   session.
 4. **Prove it** with the plan's verification and the repository's relevant
    lint, type, and build checks. A metric is evidence only if it separates the
    required result from the known-bad baseline: record the baseline first, and

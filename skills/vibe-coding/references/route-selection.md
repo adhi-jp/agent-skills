@@ -11,9 +11,12 @@ Establish the surface, the acceptance, and the verification from the request
 or local evidence before editing. When the surface is clear but acceptance or
 verification is not, ask that one question, unless the answer would open a
 second surface; then the work is planning. Make the smallest change that meets
-the acceptance, run the verification, and report the result; create no spec or
-plan. If the edit reveals a defect in existing behavior, a second surface, or
-an unsettled acceptance, stop, report it, and classify the next turn to the row
+the acceptance, adding no feature, option, guard, or fix it does not require
+unless it closes a failure reachable in normal use or prevents data loss, a
+security or permission breach, or a broken core path; run the verification, and
+report the result, naming any addition you left out; create no spec or plan. If
+the edit reveals a defect in existing behavior, a second surface, or an
+unsettled acceptance, stop, report it, and classify the next turn to the row
 that owns it. Read the decision and open-findings indexes before editing, and
 write any qualifying decision record or findings entry before the row closes.
 
