@@ -11,24 +11,92 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
-- `vibe-coding` direct implementation, `vibe-plan-execution`, and `vibe-debug`
-  add no feature, option, guard, or fix that nothing binding requires unless
-  it closes a failure reachable in normal use or a data-loss, security,
-  permission, or core-path risk, and name any such addition they leave out in
-  the report instead of in code; a reviewer's suggestion does not make one
-  required.
-- `vibe-review` classifies a finding whose case no confirmed requirement,
-  contract, or normal use reaches, and that shows no security, data-loss, or
-  core-path risk, as `reject-noise` instead of fixing it as hygiene, however
-  small the fix.
-- `vibe-planning` plans handling for a state only when a requirement names it,
-  normal use reaches it, or it risks data, permissions, security, or a core
-  path, and records a category of unknown reachability that stays unsupported
-  after investigation as a deferred decision instead of an acceptance
-  criterion.
-- `vibe-orchestrate` worker contracts forbid adding optional features,
-  options, or guards beyond what the work items require, and send needed work
-  outside the allowed paths back as a blocker.
+## [vibe-coding 5.0.1] - 2026-09-27
+
+### Changed
+
+- Direct implementation makes only the requested edit: it adds no feature,
+  option, guard, or fix the edit does not require unless it closes a failure
+  reachable in normal use or prevents data loss, a security or permission
+  breach, or a broken core path, and it names any addition it left out in the
+  report instead of in code.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 92.3% against `without_skill` 63.3%.
+
+## [vibe-debug 7.0.1] - 2026-09-27
+
+### Changed
+
+- A repair leaves out additional guards and fixes unless their case is
+  required, reachable in normal use, or a data-loss, security, or core-path
+  risk, and names any it left out in the report instead of in code.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 90.7% against `without_skill` 74.4%.
+
+## [vibe-plan-execution 7.0.1] - 2026-09-27
+
+### Changed
+
+- A slice adds no feature, option, guard, or fix that nothing binding
+  requires unless it closes a failure reachable in normal use or a data-loss,
+  security, permission, or core-path risk, and names any it left out in the
+  report; a reviewer's suggestion does not make one required.
+- A review suggestion is plan-preserving only when it repairs a verified
+  failure of an existing requirement; a guard for a case no requirement or
+  normal use reaches, with no such risk, stays out.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 87.9% against `without_skill` 57.2%; one case fell below
+  baseline by one missed assertion across three runs.
+
+## [vibe-review 4.0.3] - 2026-09-27
+
+### Changed
+
+- A finding whose case no confirmed requirement, contract, or normal use
+  reaches, and that shows no security, data-loss, or core-path risk, is
+  classified `reject-noise` instead of being fixed as hygiene, however small
+  the fix.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 87.3% against `without_skill` 58.4%; two cases fell below
+  baseline, by one and two missed assertions across three runs.
+
+## [vibe-planning 7.0.1] - 2026-09-27
+
+### Changed
+
+- A plan adds handling for a state only when a requirement names it, normal
+  use reaches it, or it risks data, permissions, security, or a core path; a
+  criterion the planner wrote does not establish that need.
+- A state category of unknown reachability is investigated, and one that
+  stays unsupported with no such risk is recorded as a deferred decision
+  instead of an acceptance criterion; required proof and unresolved safety
+  decisions are never dropped.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 89.2% against `without_skill` 41.9%.
+
+## [vibe-orchestrate 5.1.1] - 2026-09-27
+
+### Changed
+
+- Worker contracts forbid adding optional features, options, or guards beyond
+  what the work items require; workers report such candidates as decisions,
+  and needed work outside the allowed paths comes back as a blocker.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 82.0% against `without_skill` 53.8%; one case fell below
+  baseline by one missed assertion in one of three runs.
+
+## [Repository] - 2026-09-27
+
+### Changed
+
+- Open: in response-only eval cases the executor adds no unrequested guard
+  even under the previous skill text, so the suites do not show that the
+  restraint released above in six vibe skills changes behavior; showing it
+  needs an executing case.
+- Verification: `python3 -m pytest -q tests` passed 457 tests and 115
+  subtests; `check --strict` and `audit-names` are clean for all 14 packages;
+  `python3 scripts/vibe_shared_contract.py measure --strict` exits 0; every
+  released skill's eval suite passes static validation with no warnings.
 
 ## [vibe-orchestrate 5.1.0] - 2026-09-25
 
