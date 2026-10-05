@@ -9,9 +9,8 @@ description: Use when the primary task is writing, revising, reviewing, or criti
 ## Overview
 
 Write durable development text for the reader who will use it next. In
-agent-assisted coding work, the default reader is an LLM that needs precise contracts,
-stable anchors, and explicit evidence. Optimize for human readers only when the
-artifact's main reader is human.
+agent-assisted coding work, the default reader is an LLM that needs precise
+contracts, stable anchors, and explicit evidence.
 
 ### Effect And Write Boundaries
 
@@ -128,8 +127,8 @@ or evidence anchor.
 
 ### Format And Exactness
 
-Return an artifact directly, without prompt-only wrapper prose or provenance,
-unless explanation is asked. Preserve required line breaks,
+Return an artifact directly, without a Markdown fence, prompt-only wrapper
+prose, or provenance, unless explanation is asked. Preserve required line breaks,
 commands, and machine-readable structure; exact formats permit no extra prose or
 invented fields. Remove an unsupported claim semantically, while retaining the
 required schema with a supported neutral or empty value where permitted.
@@ -139,7 +138,9 @@ required schema with a supported neutral or empty value where permitted.
 Read `references/artifact-guidance.md` for artifact-specific rules. Before a
 commit-message draft, transport, or stored-message repair, read
 `references/commit-messages.md`; before changelog work, read
-`references/changelog.md`. Decision records and findings reports follow
+`references/changelog.md`. When this phase itself makes a body commit or
+amendment, inspect the stored message and correct malformed bytes before
+reporting completion. Decision records and findings reports follow
 `Durable Records`.
 
 ## Durable References

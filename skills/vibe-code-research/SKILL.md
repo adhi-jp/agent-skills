@@ -26,7 +26,7 @@ it.
 <!-- shared-contract:end effect-write-boundaries -->
 
 Chat is the default. Write only a research report explicitly requested by the
-current user.
+current user, and report no other file write or state change as made.
 
 ### Durable Records
 
@@ -52,7 +52,8 @@ research without a bound target, ask for it.
 ## Core rules
 
 - Use non-mutating inspection only. Report any defect or cleanup as a finding
-  or option; an invitation to clean up is not edit authorization.
+  or option; an invitation to clean up is not edit authorization, so say that
+  the invited edit was not made because this investigation is read-only.
 - Anchor load-bearing claims to paths, lines, or symbols. Do not rely on library
   memory without checking the relevant version, configuration, or local wiring.
 - Reading code proves structure and intent, not runtime performance, timing, or
@@ -64,9 +65,10 @@ research without a bound target, ask for it.
   configuration, tests, data boundaries, and a plausible counterexample. Name
   material surfaces not inspected — other callers or UI surfaces, locales, or
   runtime rendering — rather than one generic limitation. A failed search means
-  only not found where searched, never does not exist.
+  only not found where searched, never does not exist; say where you searched.
 - Keep all checks inside the bound corpus. In closed-corpus output, cite only
-  supplied paths and describe gaps as not supplied or unverified.
+  supplied paths, without linking them into an ambient checkout or sandbox, and
+  describe gaps as not supplied or unverified.
 
 ### Evidence Classes
 
@@ -81,8 +83,8 @@ research without a bound target, ask for it.
 - Never rename or redefine these classes; a package may add its own disjoint labels or freshness qualifiers in its own text.
 <!-- shared-contract:end evidence-classes -->
 
-Inference is allowed when visible. This read-only phase reports uncertainty as
-`Unproven`, not `Accepted risk`.
+Inference is allowed when it is visible as inference. This read-only phase
+reports uncertainty as `Unproven`, not `Accepted risk`.
 
 ### Secret Redaction
 
@@ -111,7 +113,9 @@ Inference is allowed when visible. This read-only phase reports uncertainty as
    as corroboration. For a conclusion that needs it, check plausible
    counter-evidence and downgrade failed verification to `Unproven`.
 4. Lead with the answer, then anchored evidence and limits. State static control
-   flow as structure or an expected branch, not runtime fact.
+   flow as structure or an expected branch, not runtime fact. When the bound
+   corpus cannot settle the question, say so and offer the evidence that would
+   settle it as an optional next step.
 
 ## Delegation
 

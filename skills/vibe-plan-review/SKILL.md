@@ -123,9 +123,8 @@ nothing changed.
 Before the first item, read the plan and any explicitly referenced requirements
 spec. Otherwise look for an obvious same-goal spec in `docs/specs/`, `specs/`,
 or the plan directory; if none exists, continue with limited
-requirement-alignment confidence. Identify items and select persistence only
-when the user requests it, continuation or context loss is likely, or project
-convention requires it.
+requirement-alignment confidence. Identify items, and select persistence only
+as §Review State Persistence allows.
 
 If a corresponding requirements spec exists, it is requirement evidence for
 the review. If the requirements spec and implementation plan conflict, stop the
@@ -177,7 +176,8 @@ replace, or preserve it.
 ## Reflection Into The Plan
 
 After all items, explain the four outcomes from `references/localized-labels.md`,
-state that review is complete but unreflected, exclude review-history
+state that review is complete but unreflected and that deleting a temporary
+review file is a separate question after reflection, exclude review-history
 annotations, per-item judgment logs, and chat notes from executable content,
 and ask for explicit reflection confirmation.
 General review consent is not reflection consent; `削除` takes effect only after
@@ -191,10 +191,11 @@ ownership. Verify the reflected plan.
 
 ## Stop Conditions
 
-Stop for a missing or unreadable plan/spec, plan-spec conflict, missing review
-information, ambiguous items, an unclear review file, an unresolved sensitive
-literal at reflection, or work outside reviewing and reflecting the plan. State
-the blocker, its evidence and effect, and the nearest user decision.
+Stop for a missing or unreadable plan, an identified spec that is missing or
+unreadable, plan-spec conflict, missing review information, ambiguous items, an
+unclear review file, an unresolved sensitive literal at reflection, or work
+outside reviewing and reflecting the plan. State the blocker, its evidence and
+effect, and the nearest user decision.
 
 ## Completion Summary
 

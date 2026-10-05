@@ -42,9 +42,9 @@ for the same file. A stop on one file does not cancel work on the others.
 
 ## 3. Divergence gate
 
-Report DV1-DV5 from `instruction-file-semantics.md` by label, each with its
-consequence, together with the evidence date and whether the evidence is
-current (within six months of that date) or **possibly stale** (older). When
+Report DV1-DV5 from `instruction-file-semantics.md` by label and title, each
+with its consequence, together with the evidence date and whether the evidence
+is current (within six months of that date) or **possibly stale** (older). When
 it is possibly stale, also ask, before applying anything, whether to proceed
 on it or supply fresher evidence. Fresher evidence the user supplies replaces
 the items it covers; say which. Do not refresh the evidence from the network
@@ -88,8 +88,8 @@ them as unverified. Remove nothing silently.
 Create the link with `ln -s AGENTS.md CLAUDE.md`, verify that it resolves, and
 report it. Write the stub instead (exactly `@AGENTS.md`, nothing else) when no
 shell tool is available, link creation fails, or the target repository's
-`core.symlinks` is false; report which trigger held. Never copy content into a
-derived file.
+`core.symlinks` is false; report which trigger held and the observation behind
+it, such as the link command's error. Never copy content into a derived file.
 
 A regular `CLAUDE.md` with content keeps its Claude-specific part: the file
 becomes `@AGENTS.md` as its first non-comment line followed only by that part,

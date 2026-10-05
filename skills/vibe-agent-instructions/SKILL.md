@@ -147,14 +147,19 @@ divergence list, its evidence date, and loader facts. Read each reference once
 per request, however many repositories it covers. Steps 1-3 can each stop the
 run before anything is written.
 
-1. Inventory the root instruction files.
+1. Inventory the root instruction files; with no shell tool or outside a Git
+   repository, ask about every ignore or tracking decision.
 2. Conflict stops: a tracked personal file; an ignore rule matching a shared or
    derived file.
-3. Divergence gate.
+3. Divergence gate; when the evidence is possibly stale, also ask whether to
+   proceed on it or supply fresher evidence.
 4. Analyze the repository; invent nothing.
-5. Create or update `AGENTS.md` and its reference documents.
+5. Create or update `AGENTS.md` and its reference documents; when more than
+   one reference-folder candidate exists or the fit is unclear, ask which to
+   use and write nothing until answered.
 6. Derived `CLAUDE.md`, and classification of existing derived files.
-7. Ignore placement for the personal files.
+7. Ignore placement for the personal files; when it is not settled, stop and
+   ask before writing either one.
 8. Local rules: the managed block, then `CLAUDE.local.md`.
 9. Size guard.
 10. Report.

@@ -21,8 +21,34 @@ use `[Repository] - YYYY-MM-DD`.
   one, that locally produced results are labeled coordinator-derived, that
   convention grounding names which items each source grounds, and that the
   sieve reports when no candidate failed a mandatory gate.
-- Verification for both: wording checked against every eval item and reviewed
-  across vendors; evals not run.
+- `vibe-code-research` now states explicitly that it reports no file write or
+  state change as made beyond a requested research report, says that an
+  invited cleanup edit was not made because the investigation is read-only,
+  says where a failed search looked, does not link supplied paths into an
+  ambient checkout or sandbox, keeps inference visible as inference, and offers
+  the evidence that would settle a question the bound corpus cannot.
+- `vibe-writing` now states explicitly that a returned artifact carries no
+  Markdown fence unless explanation is asked, and that when it commits or
+  amends a message itself it inspects the stored message and corrects
+  malformed bytes before reporting completion.
+- `vibe-plan-review` stops for an identified requirements spec that is missing
+  or unreadable rather than for the absence of any spec, and tells the user
+  before reflection that deleting a temporary review file is a separate
+  question.
+- `vibe-requirements-spec` now states explicitly that in artifact mode a
+  requirements question still leaves the spec written and summarized in the
+  same turn, that a response-only answer never says a spec was written, that
+  updating a spec in another language also converts its headings and metadata
+  labels, and that raw outsider text never reaches workflow state.
+- `vibe-agent-instructions` names each workflow step's stop or question in its
+  body: asking about every ignore or tracking decision without a shell tool or
+  outside a Git repository, asking whether to proceed on possibly stale
+  evidence, asking and writing nothing while the reference folder is ambiguous,
+  and stopping before writing personal files while their ignore placement is
+  unsettled; it also reports divergences by label and title and the
+  observation behind a link fallback.
+- Verification for every skill above: wording checked against every eval item
+  and reviewed across vendors; evals not run.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 
