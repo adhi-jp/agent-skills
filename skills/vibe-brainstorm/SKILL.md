@@ -25,7 +25,7 @@ requirements artifact.
 | Explicit `full`, or explicit invocation with a creative goal | `full` |
 
 Do not autonomously choose `full` unless ideation, convention grounding, and
-selection are all needed to scope the work.
+selection are all needed to scope the work; when you do choose it, say why.
 
 ## Perspectives and delegation
 
@@ -68,13 +68,15 @@ name that condition.
 
 Generate `Practical`, `Unconventional`, and `Challenging` directions. For each,
 give fit, tradeoffs, and implementation risks. Do not ground conventions,
-rank, choose, recommend, or begin implementation.
+rank, choose, recommend, begin implementation, or offer to implement a
+direction.
 
 ### `conventions`
 
 Summarize the behavior, then produce a checklist separating mandatory expected
 behavior, optional taste, and unknowns. Ground it in relevant local, supplied,
-official, or domain sources when available; label missing access and inference.
+official, or domain sources when available, and say which items each source
+grounds; label missing access and inference.
 Mandatory means missing it would violate the goal, a real convention,
 accessibility/safety expectation, data contract, or normal user expectation.
 Surface meaningful UX tradeoffs rather than selecting the cheapest build path.
@@ -84,10 +86,11 @@ Stop for user confirmation when the checklist changes behavior or scope.
 
 Generate the three directions, run the convention checklist, develop viable
 candidates, and apply this sieve: reject failures of mandatory gates (name the
-gate), then rank survivors for creativity, fit, and practicality. Recommend a
-direction and any worthwhile runner-up. Do not reject unusual ideas merely for
-being unusual. Stop for user confirmation; a proxy-selected direction is only
-AI-selected input for later requirements or planning.
+gate, or say that none failed), then rank survivors for creativity, fit, and
+practicality. Recommend a direction and any worthwhile runner-up. Do not reject
+unusual ideas merely for being unusual. Stop for user confirmation; a
+proxy-selected direction is only AI-selected input for later requirements or
+planning.
 
 ## Output and boundary
 
@@ -109,10 +112,11 @@ Keep the result in chat unless the user explicitly requests a saved artifact.
 
 ### Response Shape
 
-Report the mode and delegation state; the checklist; candidates where generated;
-selection or skipped stages; and the exact checklist or direction requiring
-confirmation. Summarize conclusions, evidence, tradeoffs, and open questions,
-never private reasoning.
+Report the mode and delegation state, labeling locally produced results
+coordinator-derived; the checklist and candidates where generated; selection or
+skipped stages; and the exact checklist or direction requiring confirmation.
+Summarize conclusions, evidence, tradeoffs, and open questions, never private
+reasoning.
 
 ### Durable Records
 

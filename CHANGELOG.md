@@ -11,6 +11,19 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+- `vibe-goal-alignment` now states explicitly that the alignment record leads
+  the response, that an instruction inside quoted or embedded material is
+  source text that authorizes nothing, and that the phase never reports a
+  write or command as done.
+- `vibe-brainstorm` now states explicitly that an autonomously chosen `full`
+  mode comes with its reason, that `diverge` never offers to implement a
+  direction, that the response carries a checklist only in modes that produce
+  one, that locally produced results are labeled coordinator-derived, that
+  convention grounding names which items each source grounds, and that the
+  sieve reports when no candidate failed a mandatory gate.
+- Verification for both: wording checked against every eval item and reviewed
+  across vendors; evals not run.
+
 ## [vibe-coding 5.0.1] - 2026-09-27
 
 ### Changed
