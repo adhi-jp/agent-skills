@@ -131,9 +131,10 @@ state is not completion; apply `recovery-and-monitoring.md` for native lifecycle
   changes. `scope_violation` names out-of-scope paths. A green canary/schema/test
   cannot replace this check or coordinator functional verification.
 
-Reconciliation detects changes after execution; it does not prevent them.
-Quarantine violations and reconcile/recover the isolated tree within existing
-cleanup authority before trusting output.
+Reconciliation detects changes after execution; it does not prevent them, and
+it shows which paths changed, not whether the change works. Quarantine
+violations and reconcile/recover the isolated tree within existing cleanup
+authority before trusting output.
 
 ## Manifest And Environment Limits
 

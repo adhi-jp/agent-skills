@@ -105,7 +105,7 @@ Availability Gate. Row ids are classification labels, not route names.
 | `code-investigation` | A read-only question about existing code — how it works, where it lives, data flow, what a change would affect — with no edit, plan, or spec request. | `vibe-code-research` (read-only) | Findings authorize no edit, fix, plan, or commit. |
 | `creative-direction-exploration` | Brainstorming, alternatives, or convention and expected-behavior checks, with no request to save requirements and no edit or plan request. | `vibe-brainstorm` (read-only) | A chosen direction — marked AI-selected when a proxy chose it — is input to requirements or planning, never implementation authority. |
 | `implementation-planning` | An approved spec plus a request to move on; a supplied spec, acceptance criteria, task list, or concrete multi-surface request that needs a plan; creating or revising a plan. | `vibe-planning` (artifact-only) | Stops after the plan and its summary: no implementation and no plan commit in that response. |
-| `direct-implementation` | One concrete edit — a behavior, default, option, or component — whose surface, acceptance, and verification are stated or obvious, with no saved plan and no defect report. | Router (state-changing) | Only the requested edit, adding no optional feature or guard; the verified edit checkpoints through `commit-execution`. |
+| `direct-implementation` | One concrete edit — a behavior, default, option, or component — whose surface, acceptance, and verification are stated or obvious, with no saved plan and no defect report. | Router (state-changing) | Only the requested edit, adding no optional feature or guard; it asks one question first when acceptance or verification is unclear, unless the answer would open a second surface, which makes the work `implementation-planning`; the edit stops and reports a defect in existing behavior, a second surface, or an unsettled acceptance it reveals, and the next turn goes to the row that owns it; the verified edit checkpoints through `commit-execution`. |
 | `maintenance` | Dependency updates, build repairs with no reported defect, test-only edits, release preparation the user explicitly requested, repository chores. | Router (state-changing) | The verified unit checkpoints through `commit-execution`; release, version, tag, and push each stay separately consent-bound. |
 | `requirements-specification` | A new vague, rough, contradictory, creative, non-technical, or underspecified coding goal; revising or approving the current spec; capturing a chosen direction durably. | `vibe-requirements-spec` (artifact-only) | Stops after the spec and its summary; never creates the plan in that response. |
 
@@ -301,8 +301,9 @@ benchmark or session language, a global chat-language default, routing
 metadata, and English row ids do not. If all represented turns share one
 language, use it for the whole response, headings included; if they differ,
 write each turn's block in its own language. A turn made only of an
-invocation, path, command, or identifier is language-neutral. Only an
-explicit output-language instruction in the user's own request overrides this.
+invocation, path, command, or identifier is language-neutral and takes the
+active user's conversational language. Only an explicit output-language
+instruction in the user's own request overrides this.
 Keep skill names, paths, commands, enum values, and identifiers verbatim.
 
 In the route report:

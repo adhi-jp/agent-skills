@@ -140,7 +140,9 @@ file set confirmed safe and separable from unrelated working-tree changes.
    seat, stop and hand off instead of continuing. User instructions on
    delegation, model mix, or cross-vendor review set how work is done, not how
    much is built; a repair's envelope plans one external pass at the design
-   decision and one on the final candidate.
+   decision and one on the final candidate. At a join, repeated findings, an
+   overrun, exhausted tooling allowance, or completed acceptance work trigger
+   that reference's scope checkpoint before any optional follow-up.
 3. Read `references/delegation-contracts.md` when drafting a worker contract or
    reconciling a returned worker report.
    Give one bounded mission, verified facts and anchors, protected evidence,
@@ -149,12 +151,17 @@ file set confirmed safe and separable from unrelated working-tree changes.
 4. Use host-native delegation ordinarily. Read
    `references/external-delegation.md` only for external CLI helpers, their
    profiles, missions, authorization, or receipts. External transport never
-   expands the selected phase's authority.
+   expands the selected phase's authority. A persistent host denial is a
+   reported blocker that no other transport, provider, or model may bypass;
+   ask the user only for an actual unresolved scope or effect decision.
 5. Before a long or write-capable worker starts, read
    `references/recovery-and-monitoring.md` for journals, liveness, cancellation,
    and recovery. A handle-returning forwarder has not completed the work;
    retain writer ownership until terminal status, report retrieval, and the
-   final tree/descendant audit reconcile.
+   final tree/descendant audit reconcile. When quiescence cannot be observed,
+   use named cancellation or user recovery, not a fixed quiet wait, and leave
+   recovery that could terminate the coordinator's environment or session to
+   the user, with a warning.
 6. Before accepting a result or launching repair, read
    `references/verification-and-review.md`. Verify the kept bytes in the
    authoritative environment; for a changed tool invocation across a permission
@@ -176,6 +183,10 @@ file set confirmed safe and separable from unrelated working-tree changes.
 Read only the references needed for the current step. For direct coordinator
 edits, consult `references/coordinator-practices.md` under Direct Coordinator
 Intervention; narrow edits still require disclosure and ordinary verification.
+When a reference names a blocker, stop, or suspended gate, hold the affected
+unit, item, check, or launch until it is resolved as that reference directs,
+and route any unresolved decision it reserves to the user or another owner to
+that party.
 
 ## Output Discipline
 

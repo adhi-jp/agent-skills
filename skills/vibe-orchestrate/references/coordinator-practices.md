@@ -103,8 +103,8 @@ ignored/untracked output roots, private materialized read-only inputs, no shared
 mutable cache or generated path, bounded concurrency, individual receipts,
 private journals/scratch with foreign content a blocker, and tracked-tree clean
 checks at baseline and every batch boundary. Record host-enforced versus
-instruction-only confinement; absent an adequate boundary, use isolation or
-one writer.
+instruction-only confinement; absent an adequate boundary (unknown or
+instruction-only confinement is not one), use isolation or one writer.
 
 Verify an isolated workspace's resolved commit and ref decoration before the
 first unit and after host/isolation/default-base changes. Put the expected base

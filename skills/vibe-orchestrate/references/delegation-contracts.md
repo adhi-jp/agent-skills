@@ -128,9 +128,10 @@ Exclude protected answers/comparison data from delivered inputs and forbid their
 home paths; disclose structural versus instruction-only confinement.
 
 The coordinator owns attempt, iteration, snapshot, terminal, and native
-execution-identity receipts. Corrections must be uniform across comparable
-subjects, tested, disclosed, and followed by replay through the unmodified
-instrument. Subject self-report cannot establish a score.
+execution-identity receipts. Corrections are coordinator-owned and must be
+uniform across comparable subjects, tested, disclosed, and followed by replay
+through the unmodified instrument before scoring. Subject self-report cannot
+establish a score.
 
 ## Read-Only Research Variant
 
@@ -145,9 +146,10 @@ implementation.
 
 Before accepting, reconcile the round snapshot with `FILES:`, allowed effects,
 work items, and the journal. Status alone cannot attribute changes inside
-already-untracked files. Verify load-bearing evidence and method, not merely
-claim wording. Inspect decisions/blockers for premise contradictions and retain
-unresolved ones as blockers.
+already-untracked files, and a `FILES:` list that misses snapshot changes
+weakens trust in the report's other claims. Verify load-bearing evidence and
+method, not merely claim wording. Inspect decisions/blockers for premise
+contradictions and retain unresolved ones as blockers.
 
 Route `DECISION-IMPACT:` to a qualifying decision record; otherwise to the bound
 plan's reserved-decision row preserving owner, authority, and proceed effect.

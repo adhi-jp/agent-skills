@@ -75,6 +75,23 @@ use `[Repository] - YYYY-MM-DD`.
   and that scripted trailer and path-dropping replays cover only a simple
   unpushed linear range and stop on a conflict, metadata gap, duplicate
   trailers, or a moved branch.
+- `vibe-orchestrate` states in its body the scope checkpoint a join triggers
+  before optional follow-up, that a persistent host denial is a reported
+  blocker no other transport, provider, or model may bypass, that recovery
+  without observable quiescence uses named cancellation or user recovery and
+  leaves recovery that could end the coordinator's session to the user, and
+  that a blocker or stop a reference names holds the affected unit; its
+  references now state that unknown or instruction-only confinement is not an
+  adequate writer boundary, that measurement-instrument corrections are
+  coordinator-owned and replayed before scoring, that a `FILES:` list missing
+  snapshot changes weakens trust in the rest of a report, and that
+  reconciliation shows which paths changed, not whether the change works.
+- `vibe-coding` states in the direct-implementation boundary that the router
+  asks one question when acceptance or verification is unclear (an answer that
+  would open a second surface makes the work `implementation-planning`) and
+  stops on a revealed defect, second surface, or unsettled acceptance; a turn
+  made only of an invocation, path, command, or identifier takes the active
+  user's conversational language.
 - Verification for every skill above: wording checked against every eval item
   and reviewed across vendors; evals not run.
 
