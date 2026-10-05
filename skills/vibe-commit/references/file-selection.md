@@ -30,7 +30,7 @@ deliberately untracked ambiguous path in the summary.
 
 A commit is one logical, user-visible change. Group the parts that move together:
 
-- implementation **and** its tests,
+- implementation and its tests,
 - the docs, CHANGELOG, README, or spec the change fulfills,
 - the config or fixture the change requires.
 - dependency manifests and their lockfiles when the dependency is required by

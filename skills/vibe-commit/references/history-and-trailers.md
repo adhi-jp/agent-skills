@@ -31,7 +31,7 @@ unpushed local commit; otherwise stop and report it.
 
 ## Amend vs. new commit
 
-Default to a **new** commit. Reach for `--amend` only to fix the immediately
+Default to a new commit. Reach for `--amend` only to fix the immediately
 preceding commit that has not been pushed:
 
 - New commit — the normal case, and the only option when HEAD has not moved past

@@ -47,6 +47,34 @@ use `[Repository] - YYYY-MM-DD`.
   and stopping before writing personal files while their ignore placement is
   unsettled; it also reports divergences by label and title and the
   observation behind a link fallback.
+- `vibe-planning` ends a planning response by saying that implementation is a
+  separate execution phase bound to the plan and started only when its proceed
+  condition allows, keeps the proceed condition blocked while requirements it
+  found wrong, contradictory, or infeasible await a requirements decision, and
+  states in its body the stops and questions its references own: plan-changing
+  questions only, a non-equivalent preserved behavior reported to the user,
+  recovery stops for a replacement, restoration, rollback, or rewrite, the
+  completion gate for finding-driven plans, and the user's decision before new
+  accounts, devices, installations, or material operator effort.
+- `vibe-plan-execution` states in its body that it asks for each missing
+  consent decision before the operation it gates and stops a slice blocked by
+  a defect in existing behavior the plan does not own.
+- `vibe-debug` states in its body that retained instrumentation needs the
+  user's explicit opt-in and that unsupported privacy or cost claims block it.
+- `vibe-review` states in its body that an unattended run without protections
+  uses only a pre-authorized unisolated or local fallback or reports a blocker,
+  that dirty-path isolation waits for the user to confirm the whole candidate
+  set, and its terminal stops: a failed-gate report, a checkpoint after three
+  timeouts or empty polls from one reviewer or run, `checkpoint_blocked` when
+  two or more material stop signals are active, and terminal audit before end
+  rendering or any history operation.
+- `vibe-commit` states that an amend and a HEAD-moving reset each need the
+  user's explicit authorization, that it says why each excluded path stays
+  out, that a conflict with an accepted decision record is left for the user
+  to resolve, that a stored-message mismatch it may not repair is reported,
+  and that scripted trailer and path-dropping replays cover only a simple
+  unpushed linear range and stop on a conflict, metadata gap, duplicate
+  trailers, or a moved branch.
 - Verification for every skill above: wording checked against every eval item
   and reviewed across vendors; evals not run.
 

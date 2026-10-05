@@ -140,7 +140,15 @@ need separated correctness, scope/specification, and security/data angles,
 adding perspectives only for distinct coverage value. No fixed reviewer count.
 Ask about backend or effort only for customization, unavailable protections
 without an accepted fallback, or a risk-relevant choice local evidence cannot
-resolve.
+resolve. When protections are unavailable in an unattended run, use only a
+pre-authorized unisolated or local fallback; otherwise report a blocker instead
+of waiting for live input.
+
+Isolate out-of-scope dirty paths only after the user confirms the whole
+candidate set. Interrupt for new dirty paths that could contaminate the target,
+evidence, write scope, staging, or recovery; halt a restore on conflict or
+verification failure; and on cancellation or abort before normal termination,
+ask whether to restore isolated files now or leave the stash.
 
 ## Review Workflow Reference
 
@@ -150,6 +158,13 @@ cascade containment, acceptance proof, and terminal gates. A finding whose case
 no confirmed requirement, contract, or normal use reaches, and that shows no
 security, data-loss, or core-path risk, is `reject-noise` at the noise step,
 never `minimal-hygiene`.
+
+When a gate in that reference fails, stop that path and report the blocking
+evidence, affected contract field, and closest plan-preserving next action;
+where the reference requires a user decision, ask for it. Request a checkpoint
+after three consecutive timeouts or empty polls from one reviewer or run, set
+`checkpoint_blocked` when two or more material stop signals are active, and run
+terminal audit before End/residual terminal render or any history operation.
 
 For a response-only decision about a represented run, bind to supplied facts,
 not the ambient checkout; execute nothing.

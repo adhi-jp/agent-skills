@@ -46,9 +46,9 @@ The scope this workflow declares is the commit it executes — that commit's
 index, history, and message — and it makes no source edits.
 
 **Honor `.gitignore` and the agreed scope.** Never `git add -f` an ignored
-path, and never stage files outside the change being committed, unless the
-user explicitly asks to include that ignored path after you have surfaced why
-it is ignored and what risk that creates.
+path unless the user explicitly asks to include that ignored path after you
+have surfaced why it is ignored and what risk that creates. Never stage files
+outside the change being committed.
 
 ### Durable Records
 
@@ -102,6 +102,11 @@ resolved list and require an explicit confirmed stop before any deletion; a
 preview a script can run past is not a gate, and a backup is never deletion
 authority. Follow `references/history-and-trailers.md`.
 
+The scripted trailer-repair and path-dropping replays cover only a simple,
+unpushed, linear range; a merge commit needs a separate plan. A trailer repair
+stops without repointing the original branch on a conflict, a
+metadata-preservation gap, duplicate trailers, or a moved branch.
+
 ## Core workflow: "commit please" → one clean commit
 
 Follow this spine. Each step names the load-bearing command; the references go
@@ -116,7 +121,7 @@ deeper on the judgment calls.
    for untracked ones. Decide what each path *is* before deciding whether it
    belongs.
 3. **Classify and select.** Sort every changed path into (a) the core
-   deliverable that forms ONE logical change — implementation plus its tests and
+   deliverable that forms one logical change — implementation plus its tests and
    the docs/CHANGELOG/spec it fulfills — versus (b) out-of-scope edits or
    generated artifacts. A newly selected untracked artifact needs explicit
    tracking intent or a mandatory repository or owning-workflow coupling;
@@ -126,8 +131,9 @@ deeper on the judgment calls.
    `references/file-selection.md`.
 4. **Exclude deliberately.** Leave generated, scratch, unowned plan/spec, build,
    unrelated lock, agent-state (`.agents/`, `.claude/`, `.codex/`), and secret
-   paths unstaged. A verified requirements or plan artifact named by an owning
-   workflow's scoped checkpoint handoff is owned content, not generic scratch.
+   paths unstaged, and say why each stays out. A verified requirements or plan
+   artifact named by an owning workflow's scoped checkpoint handoff is owned
+   content, not generic scratch.
    A lockfile that records a dependency change needed by the selected commit is
    in-scope with the manifest; do not drop it just because it is a lockfile.
    When unsure whether a path is ignored, `git check-ignore -v <path>`. See
@@ -146,9 +152,10 @@ deeper on the judgment calls.
    the complete final staged patch and map every material concern to the proposed
    type, scope, outcome, body coverage, and one-commit or split decision. Source
    drift requires reconciliation again. If an accepted decision record binds the
-   changed path, stop and report any non-conformance.
-8. **Decide amend vs. new.** Create a NEW commit by default. Only `--amend` to
-   fix the immediately preceding, unpushed commit. See
+   changed path, stop and report any non-conformance for the user to resolve.
+8. **Decide amend vs. new.** Create a new commit by default. Only `--amend` to
+   fix the immediately preceding, unpushed commit, and only with the user's
+   explicit authorization for that amend. See
    `references/history-and-trailers.md`.
 9. **Compose the message.** Conventional Commits `type(scope): summary`
    (imperative, ≤72 chars) naming the outcome, blank line, then a body only when
@@ -163,11 +170,14 @@ deeper on the judgment calls.
    single `-m`. See `references/history-and-trailers.md`.
 11. **Post-verify the stored commit.** Read `git show -s --format=%B HEAD` and
     the committed patch; use `git status --short` to confirm only intended files
-    remain. Repair a mismatch only within existing unpushed-history authority.
+    remain. Repair a mismatch only within existing unpushed-history authority;
+    otherwise stop and report it.
 12. **Recover reversibly if wrong.** Prefer the least-destructive fix:
     `git restore --staged <file>` to unstage, `git reset --soft HEAD~1` to undo
     a commit while keeping changes, `git commit --amend --no-edit --trailer …`
-    to fix a just-made local commit. See `references/staging-and-recovery.md`.
+    to fix a just-made local commit. The HEAD-moving reset and the amend each
+    need the user's explicit authorization first; `git restore --staged` needs
+    none. See `references/staging-and-recovery.md`.
 
 ## When the request is narrower
 

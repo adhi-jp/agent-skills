@@ -109,7 +109,8 @@ load-bearing claims even in responses that edit nothing.
 ## Execution Loop
 
 1. **Bind** the plan under Plan Sources; when the plan or instruction touches
-   consent-bound work, run the Startup Consent Preflight before the first edit.
+   consent-bound work, run the Startup Consent Preflight before the first edit
+   and ask for each missing consent decision before the operation it gates.
 2. **Verify before editing.** Inspect the files, tests, configs, and schemas
    the slice touches; re-check the plan facts and capability dependencies it
    relies on; check external APIs and other unstable facts against official
@@ -147,8 +148,8 @@ load-bearing claims even in responses that edit nothing.
    before its summary, the next slice, or any commit.
 6. **Close the checkpoint**: update an existing `Implementation progress`
    ledger, then select the unit's commit under Commit Selection. When a defect
-   in existing behavior that the plan does not own blocks verification, use
-   the Existing-Feature Repair Handoff.
+   in existing behavior that the plan does not own blocks verification, stop
+   the affected slice as blocked under the Existing-Feature Repair Handoff.
 7. **Report** the bound plan, the slice, the verification and its result (suite
    status and acceptance coverage separately; a skipped check with its reason
    and residual risk), the review mode and finding dispositions, deviations or

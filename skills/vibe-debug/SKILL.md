@@ -52,7 +52,9 @@ question; it does not answer it.
 <!-- shared-contract:end effect-write-boundaries -->
 
 The repair scope is its minimal patch, proof, temporary instrumentation and
-cleanup, and the supporting records below.
+cleanup, and the supporting records below. Retained instrumentation needs the
+user's explicit opt-in, and unsupported privacy or cost claims block it; the
+retention contract is in `references/probe-escalation.md`.
 
 ## Durable Records
 

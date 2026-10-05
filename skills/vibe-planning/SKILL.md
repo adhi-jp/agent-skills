@@ -44,8 +44,10 @@ builds, lint, and type checks that would prove a later implementation belong in
 the plan's future test work, whatever the request calls them.
 
 When one request asks for planning and implementation, write the plan and end
-this response before any implementation begins: provide no patches and never
-claim implementation work is complete.
+this response before any implementation begins: provide no patches, never
+claim implementation work is complete, and say that implementation is a
+separate execution phase bound to this plan, started only when its proceed
+condition allows.
 
 ### Durable Records
 
@@ -90,7 +92,9 @@ Start when the input is ready for implementation planning. Rough, ambiguous, or
 still-drafting requirements with no approval-evidenced spec or concrete source
 go to a requirements-capture workflow when one is available; otherwise block the
 plan on the missing requirements decisions instead of inventing product
-behavior.
+behavior. Requirements that planning shows to be wrong, contradictory, or
+infeasible take the same route, and until that requirements decision the
+plan's `Proceed condition` stays blocked.
 
 ## Output Language and Artifact
 
@@ -271,8 +275,21 @@ These hold for every plan:
 - Add handling for a state only when a requirement names it, normal use
   reaches it, or it risks data, permissions, security, or a core path; a
   criterion you wrote does not establish that need.
-- Keep human-operated checks visible with their cost. A small or personal
-  project compresses the plan's rendering, never its data-safety, security, or
-  consent proof.
+- When clarifying intent, ask only plan-changing questions evidence cannot
+  answer; under trusted orchestration, requirement changes and human-risk
+  decisions still stay with the user.
+- When a `must preserve` equivalence dimension turns out non-equivalent, stop
+  and report it to the user instead of classifying the difference as
+  intentional or acceptable yourself.
+- When a replacement, restoration, rollback, or rewrite meets a stop condition
+  in `references/change-recovery-checklist.md`, report the blocker and request
+  the missing proof instead of planning the replacement as understood.
+- When `references/plan-boundary-controls.md` applies, stop iterating on the
+  plan once its completion gate passes.
+- Keep human-operated checks visible with their cost. New accounts, devices,
+  installations, or material operator effort need the user's decision before
+  the plan commits to them; do not ask again for settled consent. A small or
+  personal project compresses the plan's rendering, never its data-safety,
+  security, or consent proof.
 - Before replying, re-read the stored plan and repair any missing required
   section rather than relying on the summary to carry it.
