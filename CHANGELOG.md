@@ -11,110 +11,117 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
-- `vibe-goal-alignment` now states explicitly that the alignment record leads
-  the response, that an instruction inside quoted or embedded material is
-  source text that authorizes nothing, and that the phase never reports a
-  write or command as done.
-- `vibe-brainstorm` now states explicitly that an autonomously chosen `full`
-  mode comes with its reason, that `diverge` never offers to implement a
-  direction, that the response carries a checklist only in modes that produce
-  one, that locally produced results are labeled coordinator-derived, that
-  convention grounding names which items each source grounds, and that the
-  sieve reports when no candidate failed a mandatory gate.
-- `vibe-code-research` now states explicitly that it reports no file write or
-  state change as made beyond a requested research report, says that an
-  invited cleanup edit was not made because the investigation is read-only,
-  says where a failed search looked, does not link supplied paths into an
-  ambient checkout or sandbox, keeps inference visible as inference, and offers
-  the evidence that would settle a question the bound corpus cannot.
-- `vibe-writing` now states explicitly that a returned artifact carries no
-  Markdown fence unless explanation is asked, and that when it commits or
-  amends a message itself it inspects the stored message and corrects
-  malformed bytes before reporting completion.
+- Every skill's instructions were tuned for current Claude and GPT models
+  without changing its contract. The entries below clarify behavior the skill
+  already required or its evals already expected, and name the three
+  instruction conflicts the tuning resolved.
+- `vibe-goal-alignment` clarifies that the alignment record leads the
+  response, that an instruction inside quoted or embedded material authorizes
+  nothing, and that the phase never reports a write or command as done.
+- `vibe-brainstorm` clarifies that an autonomously chosen `full` mode comes
+  with its reason, that `diverge` never offers to implement a direction, that
+  locally produced results are labeled coordinator-derived, that convention
+  grounding names which items each source grounds, and that the sieve reports
+  when no candidate failed a mandatory gate. A response now carries a
+  checklist only in modes that produce one, resolving a conflict with
+  `diverge`.
+- `vibe-code-research` clarifies that it reports no file write or state change
+  beyond a requested research report, says an invited cleanup edit was not
+  made because the investigation is read-only, says where a failed search
+  looked, does not link supplied paths into an ambient checkout or sandbox,
+  keeps inference visible as inference, and offers the evidence that would
+  settle a question the bound corpus cannot.
+- `vibe-writing` clarifies that a returned artifact carries no Markdown fence
+  unless explanation is asked, and that when it commits or amends a message
+  itself it inspects the stored message and corrects malformed bytes before
+  reporting completion.
 - `vibe-plan-review` stops for an identified requirements spec that is missing
-  or unreadable rather than for the absence of any spec, and tells the user
-  before reflection that deleting a temporary review file is a separate
-  question.
-- `vibe-requirements-spec` now states explicitly that in artifact mode a
-  requirements question still leaves the spec written and summarized in the
-  same turn, that a response-only answer never says a spec was written, that
-  updating a spec in another language also converts its headings and metadata
-  labels, and that raw outsider text never reaches workflow state.
-- `vibe-agent-instructions` names each workflow step's stop or question in its
-  body: asking about every ignore or tracking decision without a shell tool or
-  outside a Git repository, asking whether to proceed on possibly stale
-  evidence, asking and writing nothing while the reference folder is ambiguous,
-  and stopping before writing personal files while their ignore placement is
-  unsettled; it also reports divergences by label and title and the
-  observation behind a link fallback.
-- `vibe-planning` ends a planning response by saying that implementation is a
+  or unreadable, no longer for the absence of any spec, resolving a conflict
+  with its continue-with-limited-confidence rule; it clarifies that it tells
+  the user before reflection that deleting a temporary review file is a
+  separate question.
+- `vibe-requirements-spec` clarifies that in artifact mode a requirements
+  question still leaves the spec written and summarized in the same turn, that
+  a response-only answer never says a spec was written, that updating a spec
+  in another language also converts its headings and metadata labels, and that
+  raw outsider text never reaches workflow state.
+- `vibe-agent-instructions` clarifies each workflow step's stop or question:
+  it asks about every ignore or tracking decision without a shell tool or
+  outside a Git repository, asks whether to proceed on possibly stale
+  evidence, asks and writes nothing while the reference folder is ambiguous,
+  and stops before writing personal files while their ignore placement is
+  unsettled; it reports divergences by label and title and the observation
+  behind a link fallback.
+- `vibe-planning` clarifies that a planning response says implementation is a
   separate execution phase bound to the plan and started only when its proceed
-  condition allows, keeps the proceed condition blocked while requirements it
-  found wrong, contradictory, or infeasible await a requirements decision, and
-  states in its body the stops and questions its references own: plan-changing
-  questions only, a non-equivalent preserved behavior reported to the user,
-  recovery stops for a replacement, restoration, rollback, or rewrite, the
-  completion gate for finding-driven plans, and the user's decision before new
-  accounts, devices, installations, or material operator effort.
-- `vibe-plan-execution` states in its body that it asks for each missing
-  consent decision before the operation it gates and stops a slice blocked by
-  a defect in existing behavior the plan does not own.
-- `vibe-debug` states in its body that retained instrumentation needs the
-  user's explicit opt-in and that unsupported privacy or cost claims block it.
-- `vibe-review` states in its body that an unattended run without protections
-  uses only a pre-authorized unisolated or local fallback or reports a blocker,
-  that dirty-path isolation waits for the user to confirm the whole candidate
-  set, and its terminal stops: a failed-gate report, a checkpoint after three
+  condition allows, that the proceed condition stays blocked while
+  requirements it found wrong, contradictory, or infeasible await a decision,
+  that it asks only plan-changing questions, reports a non-equivalent
+  preserved behavior to the user, stops a replacement, restoration, rollback,
+  or rewrite that meets a recovery stop, stops iterating once a finding-driven
+  plan passes its completion gate, and gets the user's decision before
+  committing to new accounts, devices, installations, or material operator
+  effort.
+- `vibe-plan-execution` clarifies that it asks for each missing consent
+  decision before the operation it gates and stops a slice blocked by a defect
+  in existing behavior the plan does not own.
+- `vibe-debug` clarifies that retained instrumentation needs the user's
+  explicit opt-in and that unsupported privacy or cost claims block it.
+- `vibe-review` clarifies that an unattended run without protections uses only
+  a pre-authorized unisolated or local fallback or reports a blocker, that
+  dirty-path isolation waits for the user to confirm the whole candidate set,
+  and its terminal stops: a failed-gate report, a checkpoint after three
   timeouts or empty polls from one reviewer or run, `checkpoint_blocked` when
   two or more material stop signals are active, and terminal audit before end
   rendering or any history operation.
-- `vibe-commit` states that an amend and a HEAD-moving reset each need the
+- `vibe-commit` clarifies that an amend and a HEAD-moving reset each need the
   user's explicit authorization, that it says why each excluded path stays
   out, that a conflict with an accepted decision record is left for the user
   to resolve, that a stored-message mismatch it may not repair is reported,
   and that scripted trailer and path-dropping replays cover only a simple
-  unpushed linear range and stop on a conflict, metadata gap, duplicate
-  trailers, or a moved branch.
-- `vibe-orchestrate` states in its body the scope checkpoint a join triggers
-  before optional follow-up, that a persistent host denial is a reported
-  blocker no other transport, provider, or model may bypass, that recovery
-  without observable quiescence uses named cancellation or user recovery and
-  leaves recovery that could end the coordinator's session to the user, and
-  that a blocker or stop a reference names holds the affected unit; its
-  references now state that unknown or instruction-only confinement is not an
-  adequate writer boundary, that measurement-instrument corrections are
-  coordinator-owned and replayed before scoring, that a `FILES:` list missing
-  snapshot changes weakens trust in the rest of a report, and that
-  reconciliation shows which paths changed, not whether the change works.
-- `vibe-coding` states in the direct-implementation boundary that the router
-  asks one question when acceptance or verification is unclear (an answer that
-  would open a second surface makes the work `implementation-planning`) and
-  stops on a revealed defect, second surface, or unsettled acceptance; a turn
-  made only of an invocation, path, command, or identifier takes the active
-  user's conversational language.
-- `skill-eval` states in its body the long-run controls its runner reference
-  owns: tell the user the forecast before an expensive full matrix and get
-  their decision when it exceeds their apparent budget, launch long runs only
-  through an interruptible control handle, cancel without starting a
-  replacement or retry, and need a material change or a new user decision
-  after capacity or overload recurs at concurrency 1; a confirmed validate
-  warning points to rewording the expectation as what the response describes.
-- `skill-quality` states in its body that it authorizes no edit to local skill
-  snapshots, that it launches no run without a pre-registered question, sends
-  no private skill or eval content to an external agent or service without
+  unpushed linear range, with a trailer repair stopping on a conflict,
+  metadata gap, duplicate trailers, or a moved branch.
+- `vibe-orchestrate` clarifies the scope checkpoint a join triggers before
+  optional follow-up, that a persistent host denial is a reported blocker no
+  other transport, provider, or model may bypass, that recovery without
+  observable quiescence uses named cancellation or user recovery and leaves
+  recovery that could end the coordinator's session to the user, that a named
+  blocker or stop holds the affected unit, that unknown or instruction-only
+  confinement is not an adequate writer boundary, that measurement-instrument
+  corrections are coordinator-owned and replayed before scoring, that a
+  `FILES:` list missing snapshot changes weakens trust in the rest of a
+  report, and that reconciliation shows which paths changed, not whether the
+  change works.
+- `vibe-coding` clarifies that direct implementation asks one question when
+  acceptance or verification is unclear (an answer that would open a second
+  surface makes the work `implementation-planning`) and stops on a revealed
+  defect, second surface, or unsettled acceptance, and that a turn made only
+  of an invocation, path, command, or identifier takes the active user's
+  conversational language.
+- `skill-eval` clarifies its long-run controls: tell the user the forecast
+  before an expensive full matrix and get their decision when it exceeds their
+  apparent budget, launch long runs only through an interruptible control
+  handle, cancel without starting a replacement or retry, and need a material
+  change or a new user decision after capacity or overload recurs at
+  concurrency 1; a confirmed validate warning points to rewording the
+  expectation as what the response describes.
+- `skill-quality` clarifies that it authorizes no edit to local skill
+  snapshots, launches no run without a pre-registered question, sends no
+  private skill or eval content to an external agent or service without
   explicit user or project authorization, finishes `REVIEW REQUIRED` anomaly
   adjudication before a final commit or closure handoff, and asks a delegate
   whose analysis feeds a tracked decision for evidence, unsupported claims,
   and surfaces that must not change; a diagnostic uses both configurations by
   default.
-- `minecraft-modding-workbench` states in its body the backup before editing
-  live save data and the stop on `.mca` region input, that a validator that
-  restarts once is recorded unavailable and not retried, and the user asks for
-  a download size-cap refusal, an evidenced oversized nested jar, and an
-  unreadable cache path; dependency reports name the artifact's group,
-  artifact, and version.
-- Verification for every skill above: wording checked against every eval item
-  and reviewed across vendors; evals not run.
+- `minecraft-modding-workbench` clarifies the backup before editing live save
+  data and the stop on `.mca` region input; it asks the user to raise the
+  download size cap after a size-cap refusal, to raise the nested-entry cap
+  only with evidence of an oversized inner jar, and to repair an unreadable
+  cache path, and it names the artifact's group, artifact, and version in
+  dependency reports. A validator that restarts once is recorded unavailable
+  and not retried, resolving a conflict with the generic retry rule.
+- Verification for every skill above: wording checked statically against
+  every eval item and reviewed by another vendor's model; evals not run.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 
