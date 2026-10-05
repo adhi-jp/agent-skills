@@ -84,7 +84,8 @@ NeoForge, or another mod dependency.
 
 ## Reporting
 
-Report dependency facts with the artifact and source path:
+Report dependency facts with the artifact coordinates (group, artifact,
+version) and source path:
 
 ```text
 Verified by dependency source jar fallback:

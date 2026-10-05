@@ -651,7 +651,7 @@ Jar-in-Jar shell jars carry `qualityFlags: ["shell-jar"]` and `provenance.nested
 
 ## `get-registry-data`
 
-Runs the server data generator to return structured registry content for **one vanilla Minecraft version**. Use when you need the vanilla-version ID list (blocks, items, biomes, feature keys, …) rather than a best-effort grep across sources. The tool takes `version` / `registry` / limit arguments only — it does not see `projectPath`, loader, mods, dependency jars, or datapacks, so absence from its output is NOT evidence that a modded, dependency-provided, or datapack-defined entry is missing. For modded content, check workspace registration code, generated resources, dependency metadata, and loader/datagen output instead.
+Runs the server data generator to return structured registry content for one vanilla Minecraft version. Use when you need the vanilla-version ID list (blocks, items, biomes, feature keys, …) rather than a best-effort grep across sources. The tool takes `version` / `registry` / limit arguments only — it does not see `projectPath`, loader, mods, dependency jars, or datapacks, so absence from its output is not evidence that a modded, dependency-provided, or datapack-defined entry is missing. For modded content, check workspace registration code, generated resources, dependency metadata, and loader/datagen output instead.
 
 ### List registries with counts only
 

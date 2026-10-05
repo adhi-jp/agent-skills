@@ -102,10 +102,10 @@ a case barely matters.
   clean-source proof, and committing the fixtures afterward does not clean it
   retroactively.
 - While a case contract is still changing, use an authorized `--eval-id`
-  diagnostic with the requested configs; it is non-closing. Then freeze the
-  skill, prompts, assertions, fixtures, and proof path and run the full
-  affected suite once for closing evidence, when authorized. Do not launch a
-  run that has no pre-registered question to answer.
+  diagnostic with the requested configs (both by default); it is non-closing.
+  Then freeze the skill, prompts, assertions, fixtures, and proof path and run
+  the full affected suite once for closing evidence, when authorized. Do not
+  launch a run that has no pre-registered question to answer.
 - Finish `REVIEW REQUIRED` anomaly adjudication before a final commit or
   closure handoff; an earlier checkpoint must keep the anomalies open.
 - Do not send private skill packages, eval content, outputs, or session

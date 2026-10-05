@@ -92,6 +92,27 @@ use `[Repository] - YYYY-MM-DD`.
   stops on a revealed defect, second surface, or unsettled acceptance; a turn
   made only of an invocation, path, command, or identifier takes the active
   user's conversational language.
+- `skill-eval` states in its body the long-run controls its runner reference
+  owns: tell the user the forecast before an expensive full matrix and get
+  their decision when it exceeds their apparent budget, launch long runs only
+  through an interruptible control handle, cancel without starting a
+  replacement or retry, and need a material change or a new user decision
+  after capacity or overload recurs at concurrency 1; a confirmed validate
+  warning points to rewording the expectation as what the response describes.
+- `skill-quality` states in its body that it authorizes no edit to local skill
+  snapshots, that it launches no run without a pre-registered question, sends
+  no private skill or eval content to an external agent or service without
+  explicit user or project authorization, finishes `REVIEW REQUIRED` anomaly
+  adjudication before a final commit or closure handoff, and asks a delegate
+  whose analysis feeds a tracked decision for evidence, unsupported claims,
+  and surfaces that must not change; a diagnostic uses both configurations by
+  default.
+- `minecraft-modding-workbench` states in its body the backup before editing
+  live save data and the stop on `.mca` region input, that a validator that
+  restarts once is recorded unavailable and not retried, and the user asks for
+  a download size-cap refusal, an evidenced oversized nested jar, and an
+  unreadable cache path; dependency reports name the artifact's group,
+  artifact, and version.
 - Verification for every skill above: wording checked against every eval item
   and reviewed across vendors; evals not run.
 

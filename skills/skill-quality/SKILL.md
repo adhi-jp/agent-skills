@@ -10,12 +10,12 @@ description: Use when making evidence-driven quality decisions for a skill packa
 
 Turn observed skill or eval failures into small, testable contract changes,
 and decide what not to change. This skill does not authorize release
-preparation, version bumps, commits, committing generated workspaces, or
-unrelated package rewrites. When another workflow owns the primary deliverable
-(a spec, plan, review, or repair), that workflow keeps authority; apply this
-skill only where evidence becomes future skill behavior, eval pressure, or
-proof requirements. Each reference below is mandatory when its read-when
-condition matches.
+preparation, version bumps, commits, committing generated workspaces, edits to
+local skill snapshots, or unrelated package rewrites. When another workflow
+owns the primary deliverable (a spec, plan, review, or repair), that workflow
+keeps authority; apply this skill only where evidence becomes future skill
+behavior, eval pressure, or proof requirements. Each reference below is
+mandatory when its read-when condition matches.
 
 ## Core Decision Record
 
@@ -85,7 +85,9 @@ Two subtypes recur:
 Read `references/evidence-and-failure-classification.md` when the decision
 depends on session history, relayed or delegated analysis, represented
 workflow state, structured public output, runner affordances, or artifact
-capture.
+capture. When delegated review, extraction, or benchmark analysis feeds a
+tracked decision, ask the delegate for evidence, unsupported claims, and
+surfaces that must not change.
 
 ## Contract Value Test
 
@@ -167,10 +169,16 @@ Always:
 
 - never hand-run and self-grade a cell;
 - never launch a fresh eval run without explicit user authorization;
+- do not launch a run that has no pre-registered question to answer;
+- do not send private skill packages, eval content, outputs, or session
+  excerpts to an external agent or hosted service without explicit user or
+  project authorization;
 - a run predating the latest relevant skill, assertion, prompt, fixture, or
   proof-path edit is not closing evidence for that state;
 - keep the official aggregate unchanged when recording a diagnostic corrected
   reading;
+- finish `REVIEW REQUIRED` anomaly adjudication before a final commit or
+  closure handoff;
 - do not commit generated eval workspaces unless explicitly requested.
 
 ## Diagnostic And Safety Findings

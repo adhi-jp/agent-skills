@@ -31,7 +31,12 @@ working code and assets.
   `batch-symbol-exists`, or `batch-mappings` for fixed shortlists that share
   one resolved artifact or Minecraft version.
 - Covers Forge-style access transformers through `validate-project` (task `access-transformer`) for NeoForge, in addition to Fabric-style access wideners.
-- Use the NBT helpers (`nbt-to-json`, `json-to-nbt`, `nbt-apply-json-patch`) when working with level.dat, chunk, playerdata, or command-driven NBT. Stay in typed JSON while editing and re-encode once at the end.
+- Use the NBT helpers (`nbt-to-json`, `json-to-nbt`, `nbt-apply-json-patch`)
+  when working with level.dat, chunk, playerdata, or command-driven NBT. Stay
+  in typed JSON while editing and re-encode once at the end. Back up the
+  original binary before editing live save data. The helpers read raw NBT
+  payloads, not `.mca` region files: extract the chunk payload with a region
+  tool first, or stop and say the input is unsupported.
 
 ## Default Behavior
 
@@ -79,6 +84,8 @@ visible before giving version-sensitive recommendations:
    recipe, fallback, or task-specific references only when their conditions match.
 5. If a worker restart, timeout, or transport failure occurs, retry once with a
    narrower high-level payload, then switch to the matching fallback playbook.
+   A validator that restarts once is not retried: record it as unavailable for
+   this task and use `references/validator-fallbacks.md`.
 6. For invalid payloads, consult only the relevant `references/mcp-recipes.md`
    recipe, correct the shape once, and retry the same high-level tool before
    changing tools.
@@ -188,7 +195,8 @@ visible:
 - start with the highest-level read-only tool that can answer the fact;
 - inspect callable schema and correct invalid input once before changing tools;
 - retry one narrower high-level request only for bounded transport/restart
-  failures, never an identical deterministic server fault;
+  failures, never an identical deterministic server fault; a validator that
+  restarts once is not retried;
 - keep project version, mapping, artifact, and workspace provenance explicit;
 - mark fallback facts as fallback-verified, not MCP-verified.
 
@@ -197,6 +205,12 @@ visible:
 - Do not silently treat Quilt or legacy Forge as Fabric, NeoForge, or Architectury.
 - For legacy Forge-only or other unsupported loaders, limit help to verified workspace facts, logs, and migration boundaries. Say that full guidance is outside this skill.
 - If MCP is unavailable, misconfigured, or stale, say so immediately, fall back to workspace and log inspection, and keep any fix narrow. The same rule covers version skew: if a tool, task, response-shaping argument, or input shape this skill names (for example, `detail` / `include[]`, `manage-cache` `action: "verify"`, `validate-project` task `access-transformer`, `analyze-symbol` lifecycle range controls, `get-class-source` / `get-class-members` `target.kind`, or the NBT helpers) is rejected as unknown, apply MCP Preflight step 4, including its disabled-tool and post-upgrade checks, before calling it version skew; say which conclusion applies, and route the request through the nearest older-compatible tool or a workspace-only fallback rather than fabricating a different payload shape.
+- On a download size-cap refusal, ask the user to raise
+  `MCP_MAX_DOWNLOAD_BYTES` and restart MCP; ask to raise
+  `MCP_MAX_NESTED_JAR_ENTRY_BYTES` and restart only with evidence that the
+  inner jar is oversized; when `ERR_REPO_FETCH_FAILED` hints name a cache path
+  and errno, ask the user to repair that path's permissions or disk state. Use
+  local fallback meanwhile (`references/mcp-unavailable-fallback.md`).
 - If workspace files contradict the prompt, call out the contradiction and resolve it from checked files before coding.
 - If the request depends on a symbol, event, registry entry, or vanilla hook you cannot verify, say that it is unverified or unsupported instead of inventing it. Offer the closest verified alternative.
 

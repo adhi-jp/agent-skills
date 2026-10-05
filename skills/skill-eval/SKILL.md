@@ -29,6 +29,16 @@ appropriate, report `evals not run` or an equivalent absence status, and mark
 rerun-dependent improvement, regression, token, timing, and reliability claims
 `Unproven`.
 
+Before a full matrix that recent runs show to be expensive, tell the user the
+forecast the runner reference defines and get their decision when it
+materially exceeds their apparent budget or expectation. Launch a long run
+only through a control handle with known interrupt behavior; to cancel, start
+no replacement or retry, interrupt gracefully through it, wait a bounded
+interval, and send TERM to the exact runner and its children only if still
+necessary and authorized. An authorized run is not authorization for
+unlimited retries. Once explicit capacity or overload recurs at concurrency 1,
+another full run needs a material change or a new user decision.
+
 ## Critical CLI Contract
 
 For any command-drafting response, reproduce these exact shapes before adding
@@ -47,7 +57,8 @@ There is no `--evals` or `--iteration-dir` alias.
 such as `Writes …` or `Adds …` in an expectation whose prompt is
 response-only, because a sandbox cannot satisfy a write the prompt forbids.
 The warnings neither fail validation nor block a run; they are eval-design
-signals for the quality owner, not skill defects.
+signals for the quality owner, not skill defects. A warning confirmed against
+the case points to rewording the expectation as what the response describes.
 
 A partial diagnostic stays visibly non-closing: unknown or empty ids fail
 before iteration creation or provider launch; manifests and benchmarks record
