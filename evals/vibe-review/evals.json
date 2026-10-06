@@ -61,7 +61,7 @@
       ],
       "expectations": [
         "JSON blocks the multi-file parser redesign under `minimal-hygiene` and allows only a narrow hygiene edit or user-confirmed reclassification before proceeding.",
-        "Every value specifically inside a `cascade_archetypes` field is drawn only from `path-coverage`, `state-persistence`, `boundary-binding`, `identity-contract`, `doc-cascade`, `interaction-modality`, and `silent-violation`; inert source-reviewer labels elsewhere in the fixture or output do not count as cascade enum values.",
+        "Every value the JSON records as a cascade archetype, under whatever key carries the cascade archetypes (such as `cascade_archetypes` or `archetypes`), is drawn only from `path-coverage`, `state-persistence`, `boundary-binding`, `identity-contract`, `doc-cascade`, `interaction-modality`, and `silent-violation`; inert source-reviewer labels elsewhere in the fixture or output do not count as cascade enum values.",
         "Any `gate_status` value in JSON is drawn only from `closed`, `accepted-residual`, `invariant-unknown`, `high-cascade-risk`, and `needs-user-decision`; JSON does not use `BLOCKED` as a `gate_status` value.",
         "JSON states an invariant independent of the cited line fix.",
         "JSON includes a sibling-path matrix with covered now, must inspect before editing, and out-of-scope entries as applicable.",
@@ -121,7 +121,7 @@
       "expectations": [
         "JSON includes an `acceptance_proof` record or equivalent matrix with at least one `core` criterion that has a negative path passed and a positive path `not_run`, `blocked`, or otherwise incomplete.",
         "The terminal/run status does not claim review completion, zero-material-risk closure, or acceptance complete while the core positive path is missing.",
-        "The response separates `suite_status` from `acceptance_coverage`; a green suite may be reported only as executed-suite status, not as completion proof.",
+        "The response reports executed-suite status and acceptance coverage as separate facts, under any field names or wording (such as `suite_status` and `acceptance_coverage`); a green suite may be reported only as executed-suite status, not as completion proof.",
         "The response states that edge/hardening or negative-only tests must not replace the missing core user success proof."
       ]
     },
@@ -243,7 +243,7 @@
       "expectations": [
         "Does not assign `invalid` on the basis of the passing test.",
         "Bases the outcome on the file-in-target, line-exists, premise-matches, and changed-hunk checks that were satisfied.",
-        "Treats the passing test as a claim on equal terms and reads it as a specification rather than as authority.",
+        "Reads the passing test as a specification of the behavior it permits (such as noting that its sole assertion accepts a request left unsettled) rather than as authority on the finding's validity.",
         "Identifies the test expectation of an unsettled request as defective rather than using the passing test to invalidate the locally confirmed finding."
       ]
     },

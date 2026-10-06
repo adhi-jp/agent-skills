@@ -46,5 +46,5 @@ blocker, decision, policy change, or requested cadence.
 
 Read [commit-messages.md](commit-messages.md) for a commit message, transport,
 or stored-message repair. That reference controls message content, proof, and
-formatting; the workflow holding history authority controls staging, authorization,
-and history mutation.
+formatting; the workflow holding history authority controls staging, signing,
+authorization, and history mutation.

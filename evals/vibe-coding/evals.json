@@ -106,8 +106,8 @@
       "files": [],
       "expectations": [
         "Routes the concrete runtime regression to `vibe-debug`, not continued review.",
-        "States that the original zero-finding/review continuation goal does not keep the workflow in review after a core user journey regression.",
-        "Preserves or records the frozen review target, primary user journey, acceptance sentinels, cycle count, active stop signals, last verified checkpoint, and any unverified shared edits before switching route."
+        "States that continuing the active review loop, such as further review cycles or work toward zero findings, does not keep the workflow in review after a core user journey regression; the prompt states no zero-finding goal, so none needs mentioning, and keeping the workflow in review to finish the loop fails.",
+        "Before switching route, describes preserving or recording the review loop's state: the frozen review target, primary user journey, acceptance sentinels, cycle count, active stop signals, last verified checkpoint, and unverified shared edits, under these or equivalent names. The prompt gives no value for the acceptance sentinels, last verified checkpoint, or unverified shared edits, so naming each as state to carry forward or capture passes without a value. Omitting any of the seven, or clearing review state on the switch, fails."
       ]
     },
     {

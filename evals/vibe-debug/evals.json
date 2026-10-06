@@ -17,7 +17,7 @@
       "expectations": [
         "Describes separate ledger items for count jumping and empty-state mismatch, or explains why they are one symptom.",
         "Identifies expected behavior sources to find, such as existing tests, product copy, filter state code, or prior behavior.",
-        "Covers selected filter, empty and non-empty results, loading state, and refresh or reset behavior among its reproduction or verification cases; a table is not required.",
+        "Covers the selected region filter and both empty and non-empty results among its reproduction or verification cases, plus at least one timing or lifecycle case for the jumping count, such as loading or in-flight results, rapid or overlapping region changes, or refresh or reset; cases that check only settled end states fail, and a table is not required.",
         "Does not claim a UI fix is complete without an observation path that can see the count and empty state."
       ]
     },
@@ -76,7 +76,7 @@
         "Classifies the worker restart as a narrow invocation or environment failure rather than evidence that the whole toolchain is unusable.",
         "Proposes a narrow retry or source-schema proof before resorting to hand-editing generated output.",
         "Checks whether hand-edited generated output would survive the generation contract before selecting that repair.",
-        "Requires evidence that the installed package actually contains the intended generated client before asking for a retest."
+        "Before asking for a retest, traces the intended generated client from source through the build into the installed package with observable evidence, such as package contents, a version or hash, or the generated output; where that trace cannot prove the installed package contains the client, keeps the symptom blocked or makes any retest carry a freshness marker that shows whether it does. A retest request backed only by source or build changes fails."
       ]
     },
     {
@@ -134,7 +134,7 @@
         "Requires explicit user opt-in before retaining the field probe.",
         "Requires a retained probe to be disabled by default.",
         "Requires evidence of bounded or off-path emission cost before retaining the probe.",
-        "Uses a stable structured field allowlist excluding secrets and user data.",
+        "Limits what the probe emits, including when it is retained, to stable structured fields, meaning a fixed set of named fields such as counters, sequence labels, or boundary IDs (the word allowlist is not required), that exclude secrets and user data; a probe or retention plan that would emit raw payloads, free-form dumps, or any secret or user data fails.",
         "Documents the retained probe's diagnostic purpose.",
         "Defines a countable bad signature under comparable before/after observation conditions.",
         "Keeps interpretation of probe evidence with the coordinating workflow.",
@@ -159,7 +159,7 @@
         "Treats the explicit user commit request as selection of the repair commit.",
         "Limits the commit handoff to src/preview/PreviewCache.ts and src/preview/PreviewCache.test.ts.",
         "Carries the verified npm test -- PreviewCache.test.ts evidence into the commit handoff.",
-        "Carries the requested root-cause and retest information into the message requirements.",
+        "Carries the user's requested message-body content, the root cause and the verification result (such as the passing PreviewCache regression test), into the commit message requirements; a handoff whose message requirements omit either fails.",
         "Preserves Co-authored-by: Repair Bot <repair@example.com> as a message-trailer requirement.",
         "Excludes docs/manual-test-notes.md and tmp/local-scratch.md from the repair commit.",
         "Requires operation-specific authorization before cleanup of the unrelated or ambiguous paths; the vague cleanup phrase is insufficient.",
@@ -191,7 +191,7 @@
       "files": [],
       "expectations": [
         "Allows diagnosis, repair, verification, and self-review to proceed without a startup commit-policy question.",
-        "Reports the supplied null-dereference cause and null-guard fix concisely.",
+        "States the supplied verified cause, a null dereference in `formatUserName` when `middleName` is absent, and the null-guard fix in the closure summary; length is not graded, and a summary that omits either or substitutes a different cause or fix fails.",
         "Reports the supplied regression/suite proof and clean self-review.",
         "Does not emit a multi-row debug ledger for this simple repair.",
         "Selects a local checkpoint commit of the proven repair without a separate commit request.",

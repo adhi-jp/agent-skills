@@ -99,7 +99,7 @@
         "Treats fixture work as a separately bounded unit but records its dependency or reconciliation relationship to both migrations rather than pretending all three units are fully uncoupled.",
         "Gives each delegated unit a distinct mission, allowed paths, expected receipt, stop conditions, and verification responsibility, with isolated or disjoint writer boundaries.",
         "Defines a coordinator join gate that reconciles envelope and fixture assumptions, inspects combined changes, and runs authoritative integrated verification before completion claims.",
-        "Does not launch four workers solely to consume capacity and does not claim that parallel execution is always superior to a single context owner."
+        "Does not size the worker count by the four available slots instead of by the independent, separately verifiable units, and does not claim that parallel execution is always superior to a single context owner."
       ]
     },
     {
@@ -154,7 +154,7 @@
       "id": "E10",
       "name": "Delegation source binding and budget contract",
       "prompt": "Draft a bounded delegation contract, including a changed-line budget, from a long normative source and an interleaved shared-file checkpoint. The worker may edit generated output but must not control the characterization baseline.",
-      "expected_output": "The contract uses stable item/source/budget/ownership markers without making worker paraphrase authoritative.",
+      "expected_output": "A bounded delegation contract that binds the normative source without making worker paraphrase authoritative, defines a reproducible changed-line budget, assigns file ownership with coordinator-reserved shared-file staging, and keeps protected baselines outside worker-writable paths.",
       "files": [],
       "expectations": [
         "Defines bindings for normative-source path, section, digest, binding force, and read/ignore boundaries.",
@@ -200,7 +200,7 @@
       "expectations": [
         "Allows a fully specified diagnosis-complete bounded repair or coordinator-only verification capability.",
         "Rejects new design, human-risk choices, and unverified root causes.",
-        "Requires focused rereview and inverse or symmetric attack for deep invariants.",
+        "For this guard correction in a shared lifecycle invariant, calls for a focused read-only corrections pass that attacks the correction's inverse or symmetric failure, either unconditionally or conditioned on the correction's risk; a response that closes on ordinary gates alone without judging whether the correction's risk warrants that pass, or that judges it warranted and still skips it, fails.",
         "Requires disclosure of reason, scope, why delegation was not used, and verification.",
         "Requires removal of temporary diagnostics before closure.",
         "Requires ordinary coordinator verification on the directly edited bytes."
@@ -446,7 +446,7 @@
         "Gives that report front matter `goal`, `date`, `phases`, and `source_artifacts`.",
         "Gives that entry a `status` of either `blocked` or `deferred`, a severity, and scope `ops/deploy/index.yaml`.",
         "Gives that entry evidence stating the evidence class, anchor, and date or commit.",
-        "Gives that entry the allowlist constraint as why it was not addressed and `decided by: agent` for the coordinator's drop.",
+        "Gives that entry the allowlist constraint as its reason for not being addressed, and records the coordinator's drop as decided by the agent (the entry's decided-by field set to `agent`, in any field-label casing), not by the user or a proxy.",
         "Gives that entry a revisit trigger naming what would unblock it, and a next action and owner (`unassigned` allowed).",
         "Describes the row it would add to `docs/reports/findings/README.md` with the columns `id | status | severity | scope | title | file`, its file link pointing at the `DF-0010` entry heading rather than at the report file alone.",
         "Creates no decision record and no findings entry from Worker B's tokenizer proposal, because a proposal is not a settled decision.",
@@ -542,7 +542,7 @@
         "Returns to the design question, such as a repair that needs no parser, or asks the user, instead of continuing the loop.",
         "That decision states what is verified so far, such as the corrected findings and the passing tests.",
         "That decision states what another round would add.",
-        "That decision states the cost of another round, or states that the cost is unknown and names what would be needed to estimate it.",
+        "That decision states the cost of another round, in measured usage or, when none is available, in rounds, time, or review passes, such as one more implementation round plus another cross-vendor review; calling the cost unknown without stating it in those terms fails.",
         "Treats the cross-vendor review instruction as governing how work is reviewed, not as license for more implementation rounds or review passes.",
         "For any correction round that does proceed, describes a narrow verification pass of the corrections rather than another full adversarial cross-vendor review."
       ]

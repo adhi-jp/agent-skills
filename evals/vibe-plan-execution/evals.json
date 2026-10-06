@@ -81,7 +81,7 @@
         "Names the artifact to revise and rebind before the amount work resumes: the plan's acceptance criteria, schema, and test contract, or the requirements spec that owns them.",
         "Treats the reviewer's step-1 report as a claim to check against the code or the plan's signature criterion before relying on it, not as verified fact.",
         "Classifies replacing `signature_valid || event.livemode` with a signature-only check as a plan-preserving correction that the existing signature criterion and test plan already require, rather than defending the step as plan compliance or escalating it as a contract change.",
-        "Labels the load-bearing claims with `Plan`, `Local evidence`, `Primary source`, or `Unproven`; exact formatting is not required.",
+        "Labels the load-bearing claims with `Plan`, `Local evidence` or the shared class `Local investigation` (either one for a fact verified in the current workspace), `Primary source`, or `Unproven`, rather than leaving them unlabeled; exact formatting is not required.",
         "Does not implement the reviewer's 64-digit `amount` guard as a plan-preserving correction; the response leaves it out or defers it and says so."
       ]
     },
@@ -104,7 +104,7 @@
       "expected_output": "An execution decision that handles a completion metric which does not distinguish the before state, a race repair whose symmetric ordering remains unreviewed, and planned work the slice's scope left undelivered.",
       "files": [],
       "expectations": [
-        "Labels the current defective-path baseline as `Local evidence` and concludes that the threshold is non-discriminating because the before state already satisfies it.",
+        "Labels the current defective-path baseline as evidence verified in the current workspace, with `Local evidence` or the shared class `Local investigation` rather than `Unproven`, `Plan`, or no label, and concludes that the threshold is non-discriminating because the before state already satisfies it.",
         "Returns to the plan's proof strategy or Plan Validity Gate to correct or replace the acceptance metric before more implementation is accepted.",
         "Gives the undelivered race-replay fixture regeneration an explicit disposition in the ledger entry: blocked pending an authorized scope revision, re-scoped into the current item, scheduled to a named later item, or dropped with the reason.",
         "Does not create the checkpoint commit until the discriminating proof path and inverse-regression review pass."
@@ -120,7 +120,7 @@
         "Rebinds C3 to `docs/plans/foo-part2-plan.md` on the basis that it is the only plan owning C3 and `docs/plans/foo-plan.md`'s ledger points forward to it.",
         "Discloses both the referenced path and the corrected path.",
         "Does not start C3 against either version of the changed acceptance criterion, because the change has no recorded authority, and returns that criterion for plan revision.",
-        "Treats the user-authorized risk addition as usable only after re-reading its effect on C3's proceed condition, tests, and steps."
+        "Treats the user-authorized risk addition as usable only after re-reading what it changes in the C3 sections it affects, such as C3's proceed condition, tests, or steps; relying on it without that re-read, or refusing it as unauthorized, fails."
       ]
     },
     {

@@ -99,6 +99,8 @@ of the same contract rather than retrying the same cheap prompt.
 Pass hard runtime constraints through the transport's documented selection
 mechanism, not conditional prose. Native execution metadata must prove them;
 worker introspection does not. Canary a constrained transport before fan-out.
+Before a compliant rerun of a unit whose constraint went unproven, canary the
+constrained transport even without fan-out.
 
 ## Repair Contract Variant
 

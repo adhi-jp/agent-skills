@@ -4,17 +4,17 @@
   "purpose": "External eval set for creative direction, perspective diversity, convention grounding, chat-first boundaries, optional delegation, honest delegation evidence, and proxy-selection containment.",
   "common_assertions": [
     "When output uses vibe-brainstorm to produce a direction or expected-behavior checklist, it keeps implementation out of scope until the user confirms that selected direction or checklist.",
-    "Output treats domain conventions and reference access truthfully: it uses available reference material when supplied or accessible, and labels missing reference access instead of fabricating certainty."
+    "When the output states a domain convention, an expected behavior, or a fact attributed to a reference or the domain, it treats conventions and reference access truthfully: it uses available reference material when supplied or accessible, and labels missing reference access instead of fabricating certainty. Output that states none of these passes."
   ],
   "evals": [
     {
       "id": "E01",
       "name": "Explicit full creative pass",
       "prompt": "Use `vibe-brainstorm full` before implementing a collaborative whiteboard feature for a product team. I want creative interaction directions, but I also need the normal expected behavior covered before we choose one.",
-      "expected_output": "The agent runs or requests a full creative pass and returns chat output with idea directions, expected-behavior grounding, selection, recommendation, and a user-confirmation stop.",
+      "expected_output": "The agent runs a full creative pass and returns chat output with idea directions, expected-behavior grounding, selection, recommendation, and a user-confirmation stop.",
       "files": [],
       "expectations": [
-        "Uses `full` mode or explicitly blocks because required delegation capability is unavailable or not authorized.",
+        "Uses `full` mode, with local perspectives as the default; blocking or stopping the creative pass merely because delegation capability is unavailable or not authorized fails.",
         "Separates mandatory expected-behavior gates from optional or unknown expectations when convention grounding runs.",
         "Includes `Practical`, `Unconventional`, and `Challenging` idea directions when the mode can run.",
         "Includes expected-behavior grounding for collaborative whiteboard behavior such as multi-user editing, conflict or presence expectations, save/sync feedback, undo/redo boundaries, or permission expectations.",
@@ -36,7 +36,7 @@
         "Does not produce `Practical` / `Unconventional` / `Challenging` idea generation unless it explains why full mode is necessary.",
         "Builds an expected-behavior checklist for recipe-book behavior, such as ingredient quantities, editing order, validation, save/cancel behavior, duplicate recipes, or step ordering.",
         "Separates mandatory expectations from optional polish or unknowns.",
-        "Uses an end-user or domain-user perspective if delegation is available, or states delegation is unavailable/not authorized.",
+        "Uses an end-user or domain-user perspective on the expected behavior, produced locally by default or through delegation, and reports its delegation state, such as identifying the checklist as coordinator-derived or stating that delegation is unavailable, unused, or not authorized; delegation is not required merely because it is available, and output that gives no delegation state fails.",
         "Stops before implementation and asks the user to confirm or adjust the checklist."
       ]
     },
@@ -116,7 +116,7 @@
       "expectations": [
         "States the `full` mode boundary for the scripted orchestration request.",
         "Treats the stated scripted orchestration mechanism as satisfying the delegation-mechanism check instead of blocking solely because ad-hoc per-role sub-agents were not offered.",
-        "If the orchestrated run is pending, incomplete, or not captured in the current output set, the output still states the `full` mode boundary, scheduled stages, evidence boundary, final-confirmation boundary, and model-tier basis instead of returning only a wait/continuation stub.",
+        "In every state, the output keeps the final direction confirmation in the conversation after the run's results return, stating that it is not folded into the run, and claims delegation only with a host-recorded run identity and per-role task records. When the output cites no such host-recorded records (for example, because the host cannot invoke or record the orchestrated run), it also returns the run plan: the `full` mode boundary, the scheduled stages, and the role-specific capability or model-tier basis, and a reply that only waits for or continues the run fails. A launched run whose results are pending may wait, but it must still keep both boundaries of the first sentence.",
         "Schedules only generator, critic, development, grounding, and selection stages inside the orchestrated run.",
         "Refuses to fold the final direction confirmation into the unattended run and asks for it in the conversation after the run's results return.",
         "When role model selection is represented, the output records model choice only for explicit override, degraded capability, cost/performance constraint, or audited external execution instead of using hard-coded model names or one blanket top-tier or cheapest-tier model for every delegated role."

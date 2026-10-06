@@ -43,7 +43,7 @@
       "files": [],
       "expectations": [
         "Uses a shared subject/body scope covering both peer contracts, or requires the change set to split rather than naming only one peer.",
-        "Uses a medium-density body that summarizes the eval-runner and skill-quality surfaces without a file inventory or feature-by-feature walkthrough.",
+        "Apart from its `Verification:` section, keeps the message body to one to three short paragraphs or a few grouped bullets that summarize the eval-runner and skill-quality surfaces, rather than a file inventory or feature-by-feature walkthrough.",
         "Uses one `Verification:` section with adjacent bullets that preserve both stable commands and their useful scope.",
         "Uses or proposes one complete multi-line message payload, not repeated `git commit -m` arguments.",
         "Names `git show -s --format=%B HEAD` after committing and says malformed stored output must be corrected before completion.",
@@ -75,7 +75,7 @@
         "Includes the validation command in a `Verification:` section.",
         "Does not cite the local report or `run-local-7` as durable proof, measured improvement, or targeted-case proof.",
         "Uses an explicit absence status for the benchmark rather than substituting local evidence.",
-        "Does not use `CHANGELOG.md` or changed-file names as proof of the ignored report."
+        "Does not present any committed file, such as the changed `skills/report/SKILL.md` or `evals/report/evals.json`, as the record or proof of the ignored local report or its targeted-case pass; naming changed files only as contract anchors passes."
       ]
     },
     {

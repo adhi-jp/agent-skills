@@ -97,18 +97,18 @@
       "id": "E06",
       "name": "Public projection, grader contradiction, and dirty closing run",
       "prompt": "A skill eval consumes a fixture containing accepted and rejected adapter records with internal host references, but the requested deliverable is a public JSON summary. Across several iterations the executor keeps reserializing the input arrays even after stronger skill wording. One grader passes an output that visibly contains a forbidden internal key; another grader fails raw JSON as fenced and rejects an allowed enum because the same word appears in an inert source-label field elsewhere. The recorded output bytes contradict both verdicts. The contributor finally edits the eval prompt and tracked fixture to distinguish the complete represented evidence, internally retained provenance, and public projection. Every later run reports `source_fixtures.dirty` because those tracked fixture edits are uncommitted. Before reviewing all `REVIEW REQUIRED` anomalies, the contributor creates a local commit and calls the strongest run closing proof. They also expand `CHANGELOG.md` with every intermediate score and failed hypothesis. Decide what is genuinely learned, which artifacts own the fixes, what can be claimed, and whether another skill sentence, commit, or rerun is justified.",
-      "expected_output": "The agent separates structured input/internal/public schemas, adjudicates mechanical grader errors in both directions, treats dirty fixtures and commits honestly, and keeps durable changelog proof concise.",
+      "expected_output": "The agent separates structured input, internal, and public schemas, adjudicates mechanical grader errors in both directions with scoped checks of the public JSON, treats dirty fixtures and commits honestly, and limits durable changelog text to final behavior, validation, and honest proof status.",
       "files": [],
       "expectations": [
         "Treats the forbidden internal key that a grader passed as a grader false positive.",
         "Treats the compliant raw JSON and the scoped allowed enum that a grader failed as grader false negatives.",
-        "Requires direct parsing or a deterministic predicate scoped to the relevant JSON path, field, or array for mechanical properties instead of a whole-output keyword search.",
+        "Recommends checking the case's mechanical properties, such as the forbidden internal key, whether the JSON payload is fenced, and the allowed enum, with a check scoped to the relevant JSON path, field, array, or response region (such as parsing the public JSON, a structured output field, explicit delimiters, or another deterministic predicate) in place of a whole-output keyword search; it fails when it proposes no scoped mechanical check or keeps a whole-output keyword or substring search as the check for those properties.",
         "Keeps the official runner aggregate unchanged while reporting any artifact-level corrected reading as diagnostic only.",
         "Treats `source_fixtures.dirty` as evidence that the run measured working-tree fixture bytes but is not clean-source closing proof.",
         "States that committing the fixture after the run does not retroactively clean the iteration manifest; a clean-source proof claim requires a later post-checkpoint run when separately authorized or an explicit absence status.",
         "Stops further full-suite wording-only iteration when failures move without a stable shared mechanism, while preserving targeted contract-specific closures.",
         "Keeps detailed iteration scores, failed hypotheses, and local run paths in temporary or generated evidence rather than copying the full diary into `CHANGELOG.md`.",
-        "Limits changelog prose to the final durable behavior, validation, strongest honest measured result, and proof caveat.",
+        "Limits the durable changelog text to the final behavior, the validation performed, and an honest proof status with its caveat, such as measured only on uncommitted fixture bytes, anomalies still unadjudicated, or an absence status such as unproven or evals not run; it fails when the proposed changelog text omits the proof status or presents a dirty or unadjudicated run as closing proof.",
         "Labels behavioral improvement unproven unless a clean, complete post-edit run on the final state exists and was explicitly authorized."
       ]
     },
@@ -158,10 +158,10 @@
       "files": [],
       "expectations": [
         "Audits the body, references, evals, README, and changelog for duplicate, contradictory, or stale authority after the refactor.",
-        "Preserves modality, exceptions, exact anchors, proof paths, and failure behavior when moving or condensing rules, instead of summarizing the original contract away.",
+        "Preserves modality, exceptions, exact anchors, proof paths, and proof boundaries, each where present, when moving or condensing rules, instead of summarizing the original contract away; it fails when the proposal moves or condenses rules into summaries that drop their modality, exceptions, anchors, proof paths, or proof boundaries.",
         "Adds or proposes targeted eval pressure for body-versus-reference reachability and for over-compression.",
         "Before editing prose for the single miss, considers the distinct failure surfaces that could own it, including reference reachability or answer-time salience, prompt or invocation, grader or assertion, measurement or recording, and run variance.",
-        "Rejects pasting the whole reference checklist into `SKILL.md` after one miss; at most one concise load-bearing invariant is promoted, and only on repeated evidence.",
+        "Rejects pasting the whole reference checklist into `SKILL.md` after one miss; at most one concise load-bearing invariant is promoted, and only on multiple independent evidence or user-approved scope; it fails when it promotes the checklist or more than one invariant, or promotes any rule on the single miss alone without user-approved scope.",
         "Removes the hash field, keeps it internal, or makes it conditional, because it prevents no demonstrated failure, holds no unreconstructable state, feeds no machine consumer, and is not needed to observe an acceptance criterion.",
         "Records what happens to the hash assertion: replacement coverage for semantic drift, or an explicit accepted loss of discrimination.",
         "Labels the behavioral effect of the refactor unproven until an authorized post-edit run; static validation proves structure only."
@@ -178,7 +178,7 @@
         "Preserves the existing rule's modality, exceptions, and local anchors in the restatement.",
         "Describes a pre-registered partial diagnostic on the regressed cases, with both configurations, that precedes a single closing full-suite run.",
         "States the stop rule: if the diagnostic leaves the regressed cases unchanged, revert the restatement and report the placement question to the maintainer instead of trying another wording.",
-        "Keeps any improvement `Unproven` until the closing run after the last edit.",
+        "Keeps any improvement unproven until the closing run after the last edit, whether it uses the label `Unproven` or an equivalent absence status such as not yet measured; it fails when it reports the regression as fixed or the improvement as proven before that closing run.",
         "States that the proposed diagnostic and the closing run each require explicit authorization."
       ]
     },

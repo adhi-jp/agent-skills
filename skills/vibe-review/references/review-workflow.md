@@ -537,6 +537,9 @@ operation. It checks:
   metadata (recovery reference such as the stash entry, and its digest)
   verbatim while a restore is pending.
 
+Before asking for operation-specific consent to a history operation, show the
+commits and diff it would produce and its conflict-safety evidence.
+
 A completed fix loop closes under the commit contract in `SKILL.md`, which
 states what selects the commit, what its scope may cover, what suspends it, and
 what stays separately consent-bound: hand the verified cumulative fix scope,

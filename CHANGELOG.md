@@ -17,7 +17,11 @@ use `[Repository] - YYYY-MM-DD`.
   instruction conflicts the tuning resolved.
 - `vibe-goal-alignment` clarifies that the alignment record leads the
   response, that an instruction inside quoted or embedded material authorizes
-  nothing, and that the phase never reports a write or command as done.
+  nothing, that the phase never reports a write or command as done, and that a
+  deletion names authorization and a non-destructive preview of its targets,
+  such as a dry run, target list, or export, as prerequisites and stays
+  blocked until restorability is shown or the user explicitly accepts
+  irreversible loss.
 - `vibe-brainstorm` clarifies that an autonomously chosen `full` mode comes
   with its reason, that `diverge` never offers to implement a direction, that
   locally produced results are labeled coordinator-derived, that convention
@@ -34,7 +38,8 @@ use `[Repository] - YYYY-MM-DD`.
 - `vibe-writing` clarifies that a returned artifact carries no Markdown fence
   unless explanation is asked, and that when it commits or amends a message
   itself it inspects the stored message and corrects malformed bytes before
-  reporting completion.
+  reporting completion; the workflow holding history authority controls
+  signing along with staging, authorization, and history mutation.
 - `vibe-plan-review` stops for an identified requirements spec that is missing
   or unreadable, no longer for the absence of any spec, resolving a conflict
   with its continue-with-limited-confidence rule; it clarifies that it tells
@@ -72,8 +77,9 @@ use `[Repository] - YYYY-MM-DD`.
   dirty-path isolation waits for the user to confirm the whole candidate set,
   and its terminal stops: a failed-gate report, a checkpoint after three
   timeouts or empty polls from one reviewer or run, `checkpoint_blocked` when
-  two or more material stop signals are active, and terminal audit before end
-  rendering or any history operation.
+  two or more material stop signals are active, terminal audit before end
+  rendering or any history operation, and showing the commits, diff, and
+  conflict-safety evidence before asking consent for a history operation.
 - `vibe-commit` clarifies that an amend and a HEAD-moving reset each need the
   user's explicit authorization, that it says why each excluded path stays
   out, that a conflict with an accepted decision record is left for the user
@@ -90,8 +96,9 @@ use `[Repository] - YYYY-MM-DD`.
   confinement is not an adequate writer boundary, that measurement-instrument
   corrections are coordinator-owned and replayed before scoring, that a
   `FILES:` list missing snapshot changes weakens trust in the rest of a
-  report, and that reconciliation shows which paths changed, not whether the
-  change works.
+  report, that reconciliation shows which paths changed, not whether the
+  change works, and that a rerun of a unit whose runtime constraint went
+  unproven canaries the constrained transport first, even without fan-out.
 - `vibe-coding` clarifies that direct implementation asks one question when
   acceptance or verification is unclear (an answer that would open a second
   surface makes the work `implementation-planning`) and stops on a revealed
@@ -122,6 +129,13 @@ use `[Repository] - YYYY-MM-DD`.
   and not retried, resolving a conflict with the generic retry rule.
 - Verification for every skill above: wording checked statically against
   every eval item and reviewed by another vendor's model; evals not run.
+- Repository maintenance: eval items that graded a model habit the skills do
+  not require (a length word, an exact key name or casing, a literal the prompt
+  no longer supplies, ungraded expected-output content) or disagreed with the
+  skill text now grade the behavior the skills state, keeping every
+  destructive, consent, security, credential, data-safety, and history check;
+  case ids, names, prompts, scoring, and assertion counts are unchanged, so
+  comparison with earlier eval iterations starts over at the next run.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 

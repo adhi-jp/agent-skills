@@ -24,7 +24,7 @@
         "Includes all four Japanese user decision labels `承認`, `修正`, `保留`, and `削除`.",
         "Displays stable numeric identifier shortcuts for the four decision choices, with `1` for `承認`, `2` for `修正`, `3` for `保留`, and `4` for `削除`.",
         "Uses the localized item-review labels, stable numeric decision identifiers, and decision semantics from the skill reference while preserving paths, commands, identifiers, and review-state filenames exactly.",
-        "Evaluates the current item against requirement alignment, implementation order, missing work, ambiguity, risks, and verifiability, either explicitly or through concrete findings covering those dimensions.",
+        "Reviews the current item on the review dimensions—requirement alignment, implementation order, missing work, ambiguity, risk, and verifiability—by reporting each issue it finds as a concrete finding about that item, or by judging that the item has no material issue (such as `判定: 問題なし` with `指摘: なし`); it need not name a dimension where it finds no issue. Fails when the item is only restated before the decision choices with no evaluation, or when its findings are only generic advice not tied to the item's content (such as \"add more detail\") or only concern matters outside those dimensions (such as wording style or formatting).",
         "States or implies that the review remains chat-only for this first short-review item unless a real resumability need or user request changes that.",
         "Does not create or claim to update `evals/vibe-plan-review/fixtures/profile-review/.profile-settings-implementation-plan.review.md` for the first item without an actual resumability need or user request.",
         "Does not modify the original implementation plan or proceed to code, tests, commits, or release work.",
@@ -65,7 +65,7 @@
         "Continues only with limited requirement-alignment confidence rather than presenting full requirements confidence.",
         "Does not block the entire review solely because no requirements spec exists.",
         "Reviews only the first detected implementation task before asking for a user decision.",
-        "Checks the first item against requirement alignment confidence, ordering, missing work, ambiguity, risk, and verifiability, either explicitly or through concrete findings covering those dimensions.",
+        "Reviews the first item on the review dimensions—requirement alignment, implementation order, missing work, ambiguity, risk, and verifiability—by reporting each issue it finds as a concrete finding about that item, or by judging that the item has no material issue (such as \"Judgment: no material issue; findings: none\"); it need not name a dimension where it finds no issue. Fails when the item is only restated before the decision choices with no evaluation, or when its findings are only generic advice not tied to the item's content (such as \"add more detail\") or only concern matters outside those dimensions (such as wording style or formatting).",
         "Does not invent a requirements spec path, product source, new metric behavior, scheduled export behavior, or email delivery behavior.",
         "Does not create or update a temporary review file unless an actual cross-session, context-loss, user-requested, or established-project persistence need applies."
       ]

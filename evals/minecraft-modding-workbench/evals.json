@@ -6,7 +6,7 @@
     "Output treats minecraft-modding MCP as the preferred source of truth when available, but does not invent MCP results when tools are missing or failing.",
     "Output records a project profile or explicitly identifies missing profile facts before making version, loader, mapping, or Java-version-sensitive claims.",
     "Output separates `Verified by MCP`, `Verified by workspace/source jar fallback`, `Runtime/user-observed`, and `Unverified` facts when the answer will guide implementation.",
-    "Output uses high-level MCP tools first when they are available and uses fallback references only after preflight, older-MCP detection, or the stated failure budget justifies fallback.",
+    "Output uses high-level MCP tools first when they are available and uses fallback references only after preflight, older-MCP detection, the stated failure budget, or a validator that cannot answer, refuses for runtime-jar context, or returns an approximate verdict justifies fallback.",
     "Output does not treat `./gradlew build` alone as proof for resource codec loading, loader runtime wiring, or client rendering behavior.",
     "Output keeps implementation or debugging fixes narrow and grounded in same-version Minecraft, loader, mapping, workspace, source jar, or runtime log evidence.",
     "Output does not restate unrelated MCP recipes, loader recipes, HUD guidance, GameTest guidance, or fallback playbooks when the task route does not require them."
@@ -34,7 +34,7 @@
       "expected_output": "The agent stops looping validators, records them unavailable for this task, and uses manual owner/name/descriptor/namespace/config/side checks plus narrow Gradle/runtime verification.",
       "files": [],
       "expectations": [
-        "Does not retry the same restarting validators repeatedly.",
+        "Treats one restart as final for each validator in this task: does not call `validate-project` or `validate-mixin` again, neither unchanged nor with a narrower payload.",
         "Records MCP validator output as unavailable rather than successful.",
         "Requires owner FQN, member or method name, JVM descriptor, mapping namespace, and side for the Mixin or AT target.",
         "Checks the mixin config or access transformer declaration in loader metadata.",
@@ -49,7 +49,7 @@
       "expected_output": "The agent uses dependency lookup discipline: inspect Gradle versions, prefer MCP or the exact Architectury API sources jar, fall back to jar listing or javap only if source is missing, report the exact artifact used, and avoid unrelated Minecraft loader references unless module placement affects the change.",
       "files": [],
       "expectations": [
-        "Starts from the workspace's Gradle dependency and `architectury_api_version` rather than online examples.",
+        "Starts from the workspace's declared Architectury API dependency and its configured version (such as the `architectury_api_version` property in `gradle.properties`) rather than online examples.",
         "Prefers MCP or dependency source jar before bytecode inspection.",
         "Uses the dependency-source lookup discipline: prefer the configured dependency source JAR, keep artifact provenance, and use bytecode only when source is unavailable; it need not expose the internal reference filename.",
         "Looks in Gradle module caches for the exact group, artifact, and version.",
@@ -118,7 +118,7 @@
       "expectations": [
         "Records or asks for workspace root, Minecraft version, loader, mapping, Java version, modid, and package before version-sensitive claims.",
         "Runs or plans MCP preflight before MCP-dependent claims and prefers one high-level read-only MCP call when a vanilla/API fact is needed.",
-        "Uses the Simple Block or Item checklist for the requested feature slice.",
+        "Plans the slice with the simple block-or-item checklist's scope: item registration plus its item model, lang key, and recipe, generated through the project's datagen providers instead of hand-written JSON when the project already uses datagen; it need not name the checklist or its reference file.",
         "Uses Architectury placement guidance when workspace inspection shows a multi-loader common module, and uses Fabric-specific guidance only for Fabric project structure, registration, datagen, resources, or common pitfalls that apply to this slice.",
         "Does not restate unrelated Fabric/NeoForge platform-only, HUD, GameTest, validator, dependency-jar, NBT, mod-JAR, or MCP-unavailable fallback guidance.",
         "Keeps loaded/skipped bundled-reference routing internal because no audit or fallback explanation is requested."
