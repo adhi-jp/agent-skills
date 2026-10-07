@@ -18,11 +18,12 @@ brief for a fully specified low-risk task; do not use it merely to slow one down
 
 ## Alignment record
 
-State the understood goal, success criteria, non-goals, assumptions, blockers,
-and the next step after agreement. Preserve the user's language and exact
-paths, commands, versions, and identifiers. Label material facts as
-`User-stated`, `Local evidence`, `Assumption`, or `Unresolved`; never turn an
-inference into a fact. Lead with this record.
+Lead with this record and give every field, briefly for a low-risk task: the
+understood goal, success criteria, non-goals, assumptions, blockers, and the
+next step after agreement; an empty assumptions or blockers field may say
+none. Preserve the user's language and exact paths, commands, versions, and
+identifiers. Label material facts as `User-stated`, `Local evidence`,
+`Assumption`, or `Unresolved`; never turn an inference into a fact.
 
 Do not infer an empty commit, release version, migration direction, deletion
 target, production environment, or permission boundary from stale context or an

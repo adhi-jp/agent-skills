@@ -319,6 +319,12 @@ use `[Repository] - YYYY-MM-DD`.
 - Verification for `vibe-orchestrate` after the changes above: closing codex
   `gpt-6-luna` full-suite run with three runs per case, `with_skill` 83.9%
   against `without_skill` 54.3%.
+- `vibe-goal-alignment` gives every alignment-record field, including
+  non-goals and success criteria, even when the record is brief for a
+  low-risk task.
+- Verification for `vibe-goal-alignment` after the changes above: closing
+  codex `gpt-6-luna` full-suite run with three runs per case, `with_skill`
+  89.4% against `without_skill` 57.7%.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 
