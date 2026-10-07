@@ -310,6 +310,9 @@ use `[Repository] - YYYY-MM-DD`.
 - Verification for `vibe-plan-review` after the changes above: closing codex
   `gpt-6-luna` full-suite run with three runs per case, `with_skill` 94.5%
   against `without_skill` 52.7%.
+- Verification for `vibe-requirements-spec` after the changes above: closing
+  codex `gpt-6-luna` full-suite run with three runs per case, `with_skill`
+  92.3% against `without_skill` 48.7%.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 
