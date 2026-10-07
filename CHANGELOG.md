@@ -128,7 +128,8 @@ use `[Repository] - YYYY-MM-DD`.
   dependency reports. A validator that restarts once is recorded unavailable
   and not retried, resolving a conflict with the generic retry rule.
 - Verification for every skill above: wording checked statically against
-  every eval item and reviewed by another vendor's model; evals not run.
+  every eval item and reviewed by another vendor's model; each skill's closing
+  eval result is recorded at the end of this section.
 - Repository maintenance: eval items that graded a model habit the skills do
   not require (a length word, an exact key name or casing, a literal the prompt
   no longer supplies, ungraded expected-output content) or disagreed with the
@@ -238,8 +239,8 @@ use `[Repository] - YYYY-MM-DD`.
   its own that ends at its phase boundary is not an approval stop. A change that
   adds or widens a stop must name the protected decision, the failure scenario,
   and the condition in its changelog entry. The `vibe-*` eval items were
-  rewritten to the new behavior but not run, so the behavioral effect is
-  unmeasured. The structural checks (`vibe_shared_contract.py check --strict`,
+  rewritten to the new behavior; their closing eval results are recorded at
+  the end of this section. The structural checks (`vibe_shared_contract.py check --strict`,
   `audit-names`, and the test suite) pass.
 - `vibe-commit` folds a fix for an earlier commit's own defect into that commit
   without asking when no remote-tracking ref, tag, other branch, or worktree
@@ -268,7 +269,7 @@ use `[Repository] - YYYY-MM-DD`.
 - Repository maintenance: `AGENTS.md` condition (a) of "Approval Stop Rules"
   now excludes folding a fix into an unpublished commit from the kept
   history-rewrite and squash consents. A new `vibe-commit` eval case covers the
-  fold, but the evals were not run, so the behavioral effect is unmeasured.
+  fold; its closing eval result is recorded at the end of this section.
 - `vibe-coding` starts plan execution when a new user turn asks to proceed with
   or execute a ready bound plan, leaving the plan's proceed condition to the
   execution specialist and asking for no routing record, artifact revision, or
