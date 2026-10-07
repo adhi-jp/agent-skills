@@ -345,6 +345,9 @@ use `[Repository] - YYYY-MM-DD`.
 - Verification for `vibe-agent-instructions` after the changes above: closing
   codex `gpt-6-luna` full-suite run with three runs per case, `with_skill`
   90.0% against `without_skill` 41.9%.
+- Verification for `skill-eval` after the changes above: closing codex
+  `gpt-6-luna` full-suite run with three runs per case, `with_skill` 78.5%
+  against `without_skill` 37.5%.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 
