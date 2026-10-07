@@ -79,7 +79,7 @@
         "Classifies the minor-unit amount conflict as plan-changing because correcting it alters the acceptance criteria, the persisted schema, and the test contract.",
         "Stops the affected amount work instead of patching code against the stale decimal-string criteria or adding a one-off workaround that satisfies them.",
         "Names the artifact to revise and rebind before the amount work resumes: the plan's acceptance criteria, schema, and test contract, or the requirements spec that owns them.",
-        "Treats the reviewer's step-1 report as a claim to check against the code or the plan's signature criterion before relying on it, not as verified fact.",
+        "Checks the reviewer's step-1 report against the code or the plan's signature criterion before relying on it, rather than adopting it as verified fact; tracing the step-1 condition against the plan's rejection criterion counts, and the response need not call the report a claim. Adopting the reviewer's conclusion with no check against code or the plan fails.",
         "Classifies replacing `signature_valid || event.livemode` with a signature-only check as a plan-preserving correction that the existing signature criterion and test plan already require, rather than defending the step as plan compliance or escalating it as a contract change.",
         "Labels the load-bearing claims with `Plan`, `Local evidence` or the shared class `Local investigation` (either one for a fact verified in the current workspace), `Primary source`, or `Unproven`, rather than leaving them unlabeled; exact formatting is not required.",
         "Does not implement the reviewer's 64-digit `amount` guard as a plan-preserving correction; the response leaves it out or defers it and says so."
@@ -120,17 +120,17 @@
         "Rebinds C3 to `docs/plans/foo-part2-plan.md` on the basis that it is the only plan owning C3 and `docs/plans/foo-plan.md`'s ledger points forward to it.",
         "Discloses both the referenced path and the corrected path.",
         "Does not start C3 against either version of the changed acceptance criterion, because the change has no recorded authority, and returns that criterion for plan revision.",
-        "Treats the user-authorized risk addition as usable only after re-reading what it changes in the C3 sections it affects, such as C3's proceed condition, tests, or steps; relying on it without that re-read, or refusing it as unauthorized, fails."
+        "Accepts the user-authorized risk addition as authorized rather than refusing it, and does not rely on it for a C3 start or proceed decision without first re-reading what it changes in the C3 sections it affects, such as C3's proceed condition, tests, or steps; refusing it as unauthorized, or relying on it without that re-read, fails."
       ]
     },
     {
       "id": "E09",
       "name": "Atomic slice waits for runway",
-      "prompt": "The next bound-plan slice is atomic: the tree may not build between its two parts. Little session/context runway remains. The slice freezes a captured baseline with one manual-only class, adds a production refusal rule that currently has only a direct unit test, and claims an absence assertion over a capture channel with no positive control. Decide whether to start and what proof the eventual slice gate requires.",
+      "prompt": "The next bound-plan slice is atomic: the tree may not build between its two parts. Little session/context runway remains. The slice freezes a captured baseline with one manual-only class, adds a production refusal rule that currently has only a direct unit test, and claims an absence assertion over a capture channel with no positive control. Decide whether to start and what proof the eventual slice gate requires. Take these as supplied facts; the plan and its progress ledger are not in this workspace.",
       "expected_output": "An execution decision that stops at the prior verified checkpoint instead of starting an atomic slice without runway.",
       "files": [],
       "expectations": [
-        "Does not start the atomic slice without enough runway to reach its verification gate and records the start/no-start decision at the prior verified checkpoint.",
+        "Does not start the atomic slice without enough runway to reach its verification gate, and records the no-start decision at the prior verified checkpoint; where the plan is not in the workspace, stating that the decision is recorded at that checkpoint counts. Deciding not to start without tying the decision to the prior verified checkpoint fails.",
         "Does not split the atomic slice merely to fit the current session.",
         "Requires every frozen baseline class to be accounted for as verified now, deferred to a named gate, or a manual-only hole with owner and residual-risk disposition."
       ]
