@@ -269,6 +269,16 @@ use `[Repository] - YYYY-MM-DD`.
   now excludes folding a fix into an unpublished commit from the kept
   history-rewrite and squash consents. A new `vibe-commit` eval case covers the
   fold, but the evals were not run, so the behavioral effect is unmeasured.
+- `vibe-coding` starts plan execution when a new user turn asks to proceed with
+  or execute a ready bound plan, leaving the plan's proceed condition to the
+  execution specialist and asking for no routing record, artifact revision, or
+  further request; the routing record is needed only when the router itself
+  continues past a finished phase within one turn. A plan-execution slice
+  checkpoints once it is verified and reviewed, and a delegated unit's handoff
+  says how the worker reaches an auxiliary skill's content.
+- Verification for `vibe-coding` after the changes above: closing codex
+  `gpt-6-luna` full-suite run with three runs per case, `with_skill` 95.6%
+  against `without_skill` 69.8%.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 

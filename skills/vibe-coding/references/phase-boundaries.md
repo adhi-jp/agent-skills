@@ -14,10 +14,13 @@ user's requested outcome needs the next phase, no stop condition in `SKILL.md`
 holds, and the router's own routing record of the finished phase names its
 artifact path with identity or revision, its completion-audit or proceed
 outcome, and the next phase the router starts. That record is the coordinator
-phase invocation the trusted-orchestration contract in `SKILL.md` counts; the
+phase invocation the trusted-orchestration contract in `SKILL.md` counts; when
+the router continues within the same outer turn without a new user turn, the
 user's request authorizes the next phase but is not evidence that a phase
 finished, so without the record stop at the boundary and ask only for what is
-missing. Never use sequencing to accept an unrecorded human-risk decision,
+missing. A new user turn that asks to proceed with or execute a known bound
+plan needs no such record and routes to `plan-execution`, as `SKILL.md` says.
+Never use sequencing to accept an unrecorded human-risk decision,
 bypass a completion audit, invent plan readiness, or implement inside a
 requirements or planning response.
 

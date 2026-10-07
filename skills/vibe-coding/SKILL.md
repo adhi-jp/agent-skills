@@ -104,7 +104,7 @@ Availability Gate. Row ids are classification labels, not route names.
 | `plan-pre-check-walkthrough` | Walking through or pre-checking a saved implementation plan with the user, item by item, before execution. | `vibe-plan-review` (artifact-only) | Stops before implementation; completion is not proceed evidence; reflected changes stay uncommitted. Interactive only: under unattended or delegated operation, report that and stop instead of emulating item decisions. |
 | `commit-execution` | Stage, commit, split, amend, or repair history for current changes; a checkpoint that a bound plan item or a closing verified unit selects. | `vibe-commit` (state-changing); fallback in `references/route-selection.md` | The commit workflow's own file-set, staging, message, and verification gates. |
 | `writing` | A text deliverable — comments, docs, changelog, PR description, UI copy, commit-message text — with no review target and no history action. | `vibe-writing` (artifact-only) | Text edits stay uncommitted unless the user selects a commit. |
-| `plan-execution` | A clear request to execute, apply, or continue a known plan or slice, or the router's continuation toward a requested outcome that needs execution, where the plan is concrete and bound and its proceed condition is ready or its accepted-risk condition is met. | `vibe-plan-execution` (state-changing) | The plan's scope, acceptance, coupling, verification, and review; each verified slice checkpoints through `commit-execution`, never inside execution. |
+| `plan-execution` | A clear request to execute, apply, or continue a known plan or slice, or the router's continuation toward a requested outcome that needs execution, where the plan is concrete and bound and its proceed condition is ready or its accepted-risk condition is met. | `vibe-plan-execution` (state-changing) | The plan's scope, acceptance, coupling, verification, and review; each verified, reviewed slice checkpoints through `commit-execution`, never inside execution. |
 | `code-investigation` | A read-only question about existing code — how it works, where it lives, data flow, what a change would affect — with no edit, plan, or spec request. | `vibe-code-research` (read-only) | Findings authorize no edit, fix, plan, or commit. |
 | `creative-direction-exploration` | Brainstorming, alternatives, or convention and expected-behavior checks, with no request to save requirements and no edit or plan request. | `vibe-brainstorm` (read-only) | A chosen direction — marked AI-selected when a proxy chose it — is input to requirements or planning, never implementation authority. |
 | `implementation-planning` | An approved spec plus a request to move on; a finished spec whose requested outcome needs a plan; a supplied spec, acceptance criteria, task list, or concrete multi-surface request that needs a plan; creating or revising a plan. | `vibe-planning` (artifact-only) | Stops after the plan and its summary: no implementation and no plan commit in that response. The router then routes `plan-execution` when the requested outcome needs it and no stop condition holds. |
@@ -194,11 +194,16 @@ phase started and the next phase the router starts after it: that record is
 the coordinator phase invocation the trusted-orchestration block below counts,
 so a phase the router starts this way runs under trusted top-level
 orchestration from its start. The request authorizes the next phase but never
-shows that one finished: continuing past a phase still needs the record of its
-current artifact path with identity or revision and its completion-audit or
-proceed outcome, as `references/phase-boundaries.md` sets out. Each
-specialist still ends its own response at its boundary; the next phase is a
-separate route in the same outer turn.
+shows that one finished: when the router itself continues past a finished
+phase in the same outer turn, without a new user turn, it still needs the
+record of that phase's current artifact path with identity or revision and its
+completion-audit or proceed outcome, as `references/phase-boundaries.md` sets
+out. Each specialist still ends its own response at its boundary; the next
+phase is a separate route in the same outer turn. A new user turn that asks to
+proceed with or execute a known bound plan is itself the request to start
+`plan-execution`: route it there for the execution specialist to check the
+plan's proceed condition, and ask for no routing record, artifact revision, or
+further request.
 
 ## Commit selection
 
@@ -306,8 +311,9 @@ subordinate to the phase's effect class, artifact, consent, and stop gates;
 route decision, at each phase change, when the domain or the available skills
 change, and on a continuation whose context shows no matching skill loaded.
 Name each skill this check loads in the route report on the turn it loads it.
-A delegated unit that relies on those facts receives the skill in its handoff,
-as `references/delegation-and-proxy.md` sets out.
+A delegated unit that relies on those facts receives in its handoff the skill's
+name and how the worker reaches its content, or the step that obtains it, as
+`references/delegation-and-proxy.md` sets out.
 
 ## Before accepting a handoff or approval
 
