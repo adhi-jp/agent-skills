@@ -296,6 +296,14 @@ use `[Repository] - YYYY-MM-DD`.
 - Verification for `vibe-review` after the changes above: closing codex
   `gpt-6-luna` full-suite run with three runs per case, `with_skill` 92.8%
   against `without_skill` 61.4%.
+- `vibe-planning` describes, in a response-only answer, each decision record,
+  index row, and findings entry it would write in full, instead of a handoff
+  packet for a later phase, and states that re-reviewing a revised plan is a
+  local self-review that adds separated perspectives only when the revised
+  risk calls for them.
+- Verification for `vibe-planning` after the changes above: closing codex
+  `gpt-6-luna` full-suite run with three runs per case, `with_skill` 89.1%
+  against `without_skill` 42.7%.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 

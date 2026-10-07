@@ -145,8 +145,12 @@ the requested shape. This file holds boundaries, not the planning rules: read
 first and apply them to the supplied facts. Do not investigate the ambient
 checkout, run commands, write files, or launch reviews; describe future actions
 as hypothetical and never claim that an artifact, review, record, or proof
-exists. A request that also needs a plan artifact or revision follows the full
-workflow.
+exists. Not writing files here does not make this a phase that may not write:
+describe each decision record, index row or rebuild, and findings entry this
+phase would write to its declared supporting paths, in its full declared shape
+and field values, never as an unpersisted handoff packet, an in-memory-only
+rebuild, or a deferral to a later phase. A request that also needs a plan
+artifact or revision follows the full workflow.
 
 ## Plan Review Subagent Permission
 

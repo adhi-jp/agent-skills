@@ -253,8 +253,9 @@ Read this reference before drafting or revising the implementation-plan body. It
      cited by id.
    - After an authority-bearing change to requirements, criteria, scope, risks,
      tests, or steps, re-read and semantically re-review the changed sections
-     and their dependents; prior review, stable formatting, or matching bytes do
-     not approve changed contract content.
+     and their dependents as the local self-review above, adding separated
+     perspectives only when the revised risk triggers them; prior review, stable
+     formatting, or matching bytes do not approve changed contract content.
 11. **Finish**
    - Leave the reviewed plan in the working tree. Planning invocation, a passed
      review, or tracked status never selects staging or a commit; only an
