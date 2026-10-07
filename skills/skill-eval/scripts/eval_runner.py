@@ -82,7 +82,7 @@ ALLOWED_SCORING_FIELDS = {
     "notes",
 }
 
-DELIVERY_PROTOCOL = "case-inputs-v2"
+DELIVERY_PROTOCOL = "case-inputs-v3"
 GRADER_CONTEXT_MAX_BYTES = 16 * 1024
 
 DEFAULT_CONFIGS = ("with_skill", "without_skill")
@@ -2716,10 +2716,11 @@ def render_executor_prompt(
     lines = ["# Eval Run Prompt", ""]
     if config == "with_skill":
         lines.append(f"- Skill: `{suite.skill_name}`")
+    # The case name stays grader-only: suite names often state the decision the
+    # case expects, which would hand the executor its answer.
     lines.extend(
         [
             f"- Eval id: `{case.eval_id}`",
-            f"- Eval name: {case.name}",
             f"- Configuration: `{config}`",
         ]
     )
@@ -3207,6 +3208,10 @@ class ClaudeProvider(Provider):
         cwd: Path | None = None,
     ) -> Invocation:
         argv = ["claude", "-p", prompt, "--output-format", "json"]
+        if role == "executor":
+            # Executors pass no --mcp-config, so this makes the CLI ignore every
+            # MCP configuration the host would otherwise load for them.
+            argv.append("--strict-mcp-config")
         if role == "grader":
             # Graders consume the runner-built prompt only. Disable tool access,
             # unsafe side effects, and session persistence independently of the
@@ -3294,6 +3299,12 @@ class ClaudeProvider(Provider):
 class CodexProvider(Provider):
     name = "codex"
 
+    def __init__(self, disabled_mcp_servers: Sequence[str] = ()) -> None:
+        # Host MCP servers that discovery listed at run start. Each executor
+        # invocation disables every one of them and the `apps` feature;
+        # graders already ignore user configuration and get neither.
+        self.disabled_mcp_servers = tuple(disabled_mcp_servers)
+
     def available(self) -> bool:
         return shutil.which("codex") is not None
 
@@ -3313,6 +3324,16 @@ class CodexProvider(Provider):
             "codex", "exec", "-s", sandbox_mode, "-o", str(last_message),
             "--json", "--skip-git-repo-check",
         ]
+        if role == "executor":
+            # The default-on `apps` feature exposes account connectors as MCP
+            # tools that `codex mcp list` does not show, so it is disabled even
+            # when discovery found no server. Server overrides use bare keys
+            # only: codex reads a quoted key literally and fails to load its
+            # configuration, so discovery admits no other name. Other user
+            # configuration, such as reasoning effort, still applies.
+            argv += ["--disable", "apps"]
+            for server in self.disabled_mcp_servers:
+                argv += ["-c", f"mcp_servers.{server}.enabled=false"]
         if role == "grader":
             # Command-line strict overrides make the no-tool grader independent
             # of user configuration and command rules. Do not pass image inputs;
@@ -4654,6 +4675,139 @@ def codex_cli_version() -> str | None:
     return text[:512] if text else None
 
 
+def init_disposable_git_repo(path: Path) -> tuple[int | None, str]:
+    """Run ``git init`` in ``path`` with ambient git redirection removed.
+
+    Returns git's exit code, or ``None`` when git could not start, and its
+    stderr text or the start error.
+    """
+    try:
+        result = subprocess.run(
+            ["git", "init", "--quiet"],
+            cwd=path,
+            capture_output=True,
+            text=True,
+            env=sanitized_git_env(),
+            check=False,
+        )
+    except OSError as exc:
+        return None, str(exc)
+    return result.returncode, result.stderr
+
+
+CODEX_MCP_LIST_ARGV = ("codex", "mcp", "list", "--json")
+# The only server names a `-c mcp_servers.<name>.enabled=false` override can
+# target: codex takes a quoted key literally and then fails to load its config.
+CODEX_MCP_SERVER_NAME_RE = re.compile(r"[A-Za-z0-9_-]+")
+
+
+def parse_codex_mcp_listing(stdout: str) -> tuple[list[dict[str, Any]] | None, str | None]:
+    """Return the listed servers, or ``None`` and why the listing is unusable."""
+    try:
+        data = json.loads(stdout)
+    except json.JSONDecodeError:
+        return None, "codex mcp list did not print valid JSON"
+    if not isinstance(data, list):
+        return None, "codex mcp list did not print a JSON array"
+    servers: list[dict[str, Any]] = []
+    for item in data:
+        if (
+            not isinstance(item, dict)
+            or not isinstance(item.get("name"), str)
+            or not isinstance(item.get("enabled"), bool)
+        ):
+            return None, "codex mcp list printed an entry without a string name and a boolean enabled"
+        if not CODEX_MCP_SERVER_NAME_RE.fullmatch(item["name"]):
+            return None, (
+                f"MCP server name {item['name']!r} is not a bare config key "
+                "(letters, digits, '_' or '-'), so no override can disable it"
+            )
+        servers.append({"name": item["name"], "enabled": item["enabled"]})
+    return servers, None
+
+
+def discover_codex_mcp_servers(timeout: float) -> dict[str, Any]:
+    """List the host's codex MCP servers so every executor can disable them.
+
+    Runs ``codex mcp list --json`` once, under the executor environment and from
+    a disposable git repository, so it reads the configuration an executor
+    would load. Only a JSON array of objects with a string ``name`` and a
+    boolean ``enabled`` is usable; an empty array means no server is
+    configured. Every listed server is disabled whatever its ``enabled`` value.
+    Any other outcome, including a name no override can target, returns
+    ``ok: false`` with the reason, and the run must stop before any iteration
+    exists. Servers configured after this listing are not covered.
+    """
+    record: dict[str, Any] = {
+        "command": list(CODEX_MCP_LIST_ARGV),
+        "cwd_shape": "git-backed",
+        "ok": False,
+        "status": "failed",
+        "exit_code": None,
+        "timed_out": False,
+        "reason": None,
+        "discovered": None,
+        "disabled": None,
+    }
+    reason: str | None = None
+    with tempfile.TemporaryDirectory(prefix="eval-runner-codex-mcp-") as tmp:
+        cwd = Path(tmp) / "executor-repo"
+        cwd.mkdir()
+        cwd = cwd.resolve()
+        git_exit, git_stderr = init_disposable_git_repo(cwd)
+        if git_exit != 0:
+            stderr_text, stderr_meta = bounded_utf8_text(git_stderr)
+            record.update(
+                status="setup_failed",
+                exit_code=git_exit,
+                reason="could not initialize the disposable git repository for MCP discovery",
+                stderr={**stderr_meta, "text": stderr_text},
+            )
+            return record
+        invocation = Invocation(
+            argv=list(CODEX_MCP_LIST_ARGV), env=invocation_env(cwd), cwd=str(cwd), stdin=""
+        )
+        try:
+            stdout, stderr, exit_code, timed_out = run_invocation(invocation, min(timeout, 60.0))
+        except OSError as exc:
+            stdout, stderr, exit_code, timed_out = "", str(exc), None, False
+            reason = f"could not start codex mcp list: {type(exc).__name__}"
+    stderr_text, stderr_meta = bounded_utf8_text(stderr)
+    record.update(exit_code=exit_code, timed_out=timed_out, stderr={**stderr_meta, "text": stderr_text})
+    servers: list[dict[str, Any]] | None = None
+    if reason is None:
+        if timed_out:
+            reason = "codex mcp list timed out"
+        elif exit_code != 0:
+            reason = f"codex mcp list exited with status {exit_code}"
+        else:
+            servers, reason = parse_codex_mcp_listing(stdout)
+    if reason is not None or servers is None:
+        record.update(status="timeout" if timed_out else "failed", reason=reason)
+        return record
+    record.update(
+        ok=True,
+        status="ok",
+        discovered=servers,
+        disabled=list(dict.fromkeys(server["name"] for server in servers)),
+    )
+    return record
+
+
+def codex_preflight_report(
+    executor_model: str | None, grader_model: str | None, mcp_discovery: dict[str, Any] | None
+) -> dict[str, Any]:
+    return {
+        "provider": "codex",
+        "attempted_at": utc_now(),
+        "cli_version": codex_cli_version(),
+        "models": {"executor": executor_model, "grader": grader_model},
+        "mcp_discovery": mcp_discovery,
+        "probes": [],
+        "ok": False,
+    }
+
+
 def run_codex_preflight(
     provider: CodexProvider,
     workspace_root: Path,
@@ -4661,44 +4815,24 @@ def run_codex_preflight(
     executor_model: str | None,
     grader_model: str | None,
     timeout: float,
+    mcp_discovery: dict[str, Any] | None = None,
 ) -> bool:
-    report: dict[str, Any] = {
-        "provider": "codex",
-        "attempted_at": utc_now(),
-        "cli_version": codex_cli_version(),
-        "models": {"executor": executor_model, "grader": grader_model},
-        "probes": [],
-        "ok": False,
-    }
+    report = codex_preflight_report(executor_model, grader_model, mcp_discovery)
     with tempfile.TemporaryDirectory(prefix="eval-runner-codex-preflight-") as tmp:
         root = Path(tmp)
         executor_cwd = root / "executor-repo"
         executor_cwd.mkdir()
-        try:
-            git_result = subprocess.run(
-                ["git", "init", "--quiet"],
-                cwd=executor_cwd,
-                capture_output=True,
-                text=True,
-                env=sanitized_git_env(),
-                check=False,
-            )
-        except OSError as exc:
-            stderr_text, stderr_meta = bounded_utf8_text(str(exc))
+        git_exit, git_stderr = init_disposable_git_repo(executor_cwd)
+        if git_exit != 0:
+            stderr_text, stderr_meta = bounded_utf8_text(git_stderr)
             report["probes"].append({
                 "role": "executor", "cwd_shape": "git-backed", "status": "setup_failed",
-                "exit_code": None, "timed_out": False,
-                "reason": "could not start git for the disposable executor repository",
-                "stderr": {**stderr_meta, "text": stderr_text},
-            })
-            write_json(workspace_root / "preflight.json", report)
-            return False
-        if git_result.returncode != 0:
-            stderr_text, stderr_meta = bounded_utf8_text(git_result.stderr)
-            report["probes"].append({
-                "role": "executor", "cwd_shape": "git-backed", "status": "setup_failed",
-                "exit_code": git_result.returncode, "timed_out": False,
-                "reason": "could not initialize disposable git repository",
+                "exit_code": git_exit, "timed_out": False,
+                "reason": (
+                    "could not start git for the disposable executor repository"
+                    if git_exit is None
+                    else "could not initialize disposable git repository"
+                ),
                 "stderr": {**stderr_meta, "text": stderr_text},
             })
             write_json(workspace_root / "preflight.json", report)
@@ -4867,11 +5001,29 @@ def command_run(args: argparse.Namespace) -> int:
         return 0
 
     validate_selected_delivery(suite, repo_root, skill_path, configs)
+    # Discover host MCP servers before npm setup creates the iteration
+    # directory, so a run that cannot disable them leaves no iteration behind.
+    mcp_discovery: dict[str, Any] | None = None
+    if isinstance(provider, CodexProvider):
+        mcp_discovery = discover_codex_mcp_servers(args.timeout)
+        if not mcp_discovery["ok"]:
+            write_json(
+                workspace_root / "preflight.json",
+                codex_preflight_report(executor_model, grader_model, mcp_discovery),
+            )
+            print(
+                f"--agent codex: MCP server discovery failed ({mcp_discovery['reason']}); "
+                f"see {workspace_root / 'preflight.json'}",
+                file=sys.stderr,
+            )
+            return 2
+        provider.disabled_mcp_servers = tuple(mcp_discovery["disabled"])
     npm_templates = prepare_npm_projects(suite, repo_root, iteration_dir, args.npm_cache, args.timeout)
     measurement = measurement_context(suite, agent, executor_model, grader_model)
 
     if isinstance(provider, CodexProvider) and not run_codex_preflight(
-        provider, workspace_root, repo_root, executor_model, grader_model, args.timeout
+        provider, workspace_root, repo_root, executor_model, grader_model, args.timeout,
+        mcp_discovery=mcp_discovery,
     ):
         print(
             f"--agent codex: readiness preflight failed; see {workspace_root / 'preflight.json'}",

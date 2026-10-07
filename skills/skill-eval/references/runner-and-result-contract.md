@@ -46,8 +46,15 @@ python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/work
   before any subprocess. Invalid input exits non-zero with zero launches; an
   unknown or empty `--eval-id` also creates no iteration. An empty suite exits
   0 with an explicit empty result.
-- A non-empty Codex run first probes an executor-shaped and a grader-shaped
-  invocation, records the evidence at
+- A non-empty Codex run first lists the host's MCP servers once with
+  `codex mcp list --json`, under the executor environment from a disposable
+  git directory, before npm setup and before any iteration exists. Only a JSON
+  array of objects with a string `name` and a boolean `enabled` is accepted,
+  and an empty array means no server. A non-zero exit, timeout, unparseable or
+  differently shaped output, or a name that is not a bare config key (letters,
+  digits, `_`, `-`) stops the run with zero suite cells and no iteration. The
+  run then probes an executor-shaped and a grader-shaped invocation, records
+  the discovered and disabled server names and the probe evidence at
   `evals/<skill-name>/workspace/codex/preflight.json`, and stops with zero
   suite cells if either probe fails.
 - `validate` and the `run` preflight print advisory delivery-mode warnings:
@@ -125,6 +132,20 @@ python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/work
   document that is itself a skill file is delivered symmetrically as a
   declared exception, and its comparison limit is kept. Delivery is an input
   boundary, not proof that the host cannot read the original checkout.
+- Codex executors, including the executor-shaped probe, run with every MCP
+  server the run-start listing named disabled through
+  `-c mcp_servers.<name>.enabled=false`, whatever its listed `enabled` state,
+  and with `--disable apps`, even when the listing is empty: the default-on
+  `apps` feature exposes account connectors as MCP tools that the listing does
+  not show. The rest of the user's codex configuration, such as model defaults
+  and reasoning effort, still applies. The isolation covers the servers listed
+  at run start, not MCP configuration changed during the run. Claude executors
+  run with `--strict-mcp-config` and no `--mcp-config`, which makes the CLI
+  ignore every other MCP configuration, claude.ai connectors included. Graders
+  keep their own controls.
+- The executor prompt carries the eval id, the configuration, and the user
+  prompt (outer whitespace trimmed), but not the case `name`, which can state the expected
+  decision; only the grader prompt names the case.
 - Git-backed delivery copies tracked working-tree bytes, so a new fixture must
   be tracked first. Source fixture dirtiness is recorded separately; identical
   bytes from a dirty source are not a clean-source measurement.
@@ -207,7 +228,10 @@ python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/work
   rates. Compare recorded delivery, runner, suite, treatment, fixture,
   dependency, model, and coverage identities first: changed inputs are a
   different measurement series, missing historical identity is unknown, and
-  agreement is necessary but not sufficient for a causal reading. `report`
+  agreement is necessary but not sufficient for a causal reading. Delivery
+  protocol `case-inputs-v3` marks the executor delivery described above,
+  without the case name and with the host MCP controls; an iteration recorded
+  under an earlier protocol is a different measurement series. `report`
   starts no server or browser, binds no port, writes no PID file, and leaves
   no background process.
 - Metrics are never hand-typed or estimated, and no flag injects them. Claude

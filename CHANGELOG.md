@@ -355,6 +355,16 @@ use `[Repository] - YYYY-MM-DD`.
 - Verification for `minecraft-modding-workbench` after the changes above:
   closing codex `gpt-6-luna` full-suite run with three runs per case,
   `with_skill` 92.9% against `without_skill` 63.8%.
+- `skill-eval` executors no longer see the case name, which only the grader
+  prompt carries, and reach no host MCP tools. A Codex run first lists the
+  host's MCP servers and runs every executor with each one and the `apps`
+  connector feature disabled, keeping the rest of the user's codex
+  configuration; when the listing fails, is malformed, or names a server no
+  override can target, the run stops before creating an iteration. Servers
+  added to the configuration during a run are not covered. Claude executors
+  run with `--strict-mcp-config`, which also excludes claude.ai connectors.
+  Iterations record delivery protocol `case-inputs-v3`, so earlier iterations
+  are a different measurement series.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 

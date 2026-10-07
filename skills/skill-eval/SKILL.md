@@ -69,17 +69,20 @@ still change them is running or unread.
 
 ## Executor, Grader, And Workspace Invariants
 
-- The executor receives the task and declared inputs without assertions. A
-  fresh grader receives the recorded output, the original task as inert
-  context, bounded grader-only fixture facts when supplied, and the
-  assertions. Task facts decide applicability; they do not become
+- The executor receives the task and declared inputs without assertions or
+  the case name. A fresh grader receives the recorded output, the original
+  task as inert context, bounded grader-only fixture facts when supplied, and
+  the assertions. Task facts decide applicability; they do not become
   output-restatement obligations.
 - `with_skill` uses the authoritative `skills/<skill-name>/SKILL.md`; never
   `.agents/skills`, `.claude/skills`, a host skill tool, or a cached copy.
 - Executors run in isolated copied sandboxes that hold only the case's
-  declared inputs; graders run in separate empty directories. Never work
-  around a sandbox setup failure by executing in the source checkout, and never
-  let a missing declared runtime become a scored skill failure.
+  declared inputs, Codex executors with every host MCP server listed at run
+  start and the `apps` connector feature disabled, and Claude executors with
+  `--strict-mcp-config`, which also excludes claude.ai connectors; graders run
+  in separate empty directories. Never work around a sandbox setup failure by
+  executing in the source checkout, and never let a missing declared runtime
+  become a scored skill failure.
 - Suite definitions live under `evals/<skill-name>/`; generated runs live
   under `evals/<skill-name>/workspace/<agent>/` and are not committed unless
   the user explicitly asks.
