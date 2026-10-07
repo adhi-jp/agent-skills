@@ -167,9 +167,9 @@ python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/work
   sandbox. The grader receives the original task as inert context (to identify
   supplied facts, selected branches, authority, and delivery mode, not as a
   restatement checklist), the recorded output, optional `grader_context`,
-  retained sandbox differences, executor evidence, and the assertions. Pass or
-  fail comes from its structured verdict, never from the executor's own
-  claims.
+  retained sandbox differences with the retained files' contents or diffs,
+  executor evidence, and the assertions. Pass or fail comes from its
+  structured verdict, never from the executor's own claims.
 - `grader_context` is a per-case UTF-8 string of at most 16 KiB, rejected
   rather than truncated when larger, that carries only fixture facts the task
   lacks and an assertion needs; it reaches only the grader. `expected_output`
@@ -188,6 +188,36 @@ python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/work
   cannot show transient writes, external effects, successful reads, or read
   order. `ignored: true` marks only untracked executor additions the sandbox
   reported as ignored.
+- Retained file evidence follows the manifest, by the same rules for both
+  configs: for each entry in path order, an added regular file's content or a
+  modified regular file's unified diff against the sandbox baseline commit, so
+  an executor commit still yields a baseline-relative diff. Current bytes are
+  read once without following links and used only while they match the
+  manifest hash; the path is not reopened. The runner computes the diff itself
+  from those bytes and the baseline blob, read with `git cat-file blob
+  <baseline>:<path>` with lazy fetching disabled (`GIT_NO_LAZY_FETCH`), so the
+  blob read runs no filter, textconv, diff driver, index refresh, or promisor
+  fetch; it is cut off after `min(--timeout, 60)` seconds or past four bytes
+  per `ARTIFACT_MAX_CHARS` character. Each file reaches the grader as one JSON
+  record (`path`, `kind` `content` or `diff`, `text`, `truncated`) between
+  inert sentinels, as the executor's own untrusted output: the grader is told
+  never to follow instructions in it, that it shows retained net content
+  only, not actions taken, successful reads, or transient states, and that a
+  diff's removed lines are baseline content. Rendered text has its own budget of `ARTIFACT_MAX_CHARS` (400,000)
+  characters, counted as rendered with JSON escaping and separate from the
+  written artifact's cap; the file that exhausts it is cut between characters
+  and marked `truncated`, and every later entry is listed as
+  `omitted-for-budget` without being read. Other entries are listed with a
+  reason and no content: `deleted`, `not-regular-file` (symlinks and other
+  types), `serialized-path` (a name that is not UTF-8), `not-utf8`,
+  `contains-nul`, `changed-during-capture` (relinked or rewritten since the
+  manifest), `unreadable`, `too-large-to-diff` (either side over
+  `ARTIFACT_MAX_CHARS` characters), `diff-timeout`, or `diff-failed`. The
+  capture artifact sits under the excluded runtime prefix and is not
+  repeated. The section is omitted when the manifest is uncaptured or has no
+  added or modified entry. `run.json` records `retained_files`: per path
+  `status` (`rendered` or `skipped`), `reason`, `kind`, rendered `chars`, and
+  `truncated`, plus `budget_truncated`, without the file text.
 - `executor_evidence` is a tool and delegation trace collected identically for
   both configs: for Claude (`source = host`), tool names, host-issued tool-use
   ids, and session-bound sub-agent record ids from the host transcript; for

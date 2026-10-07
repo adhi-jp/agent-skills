@@ -376,6 +376,18 @@ use `[Repository] - YYYY-MM-DD`.
   with no read attempt but an unparsed command is counted as uncertain; neither
   changes the status. A recorded read attempt does not prove a successful read,
   and a flagged run is a review signal, not proof the skill went unread.
+- `skill-eval` graders can now judge the files an executor left behind: each
+  added file's content and each modified file's diff against the sandbox
+  baseline, even after an executor commit, reach the grader as untrusted data
+  it is told never to follow, within a separate budget of 400,000 rendered
+  characters. Files are read without following links and only while they
+  match the recorded hash, and the runner computes each diff from those bytes
+  and the baseline blob without running repository filters, diff drivers, or
+  fetches. Deleted, non-regular, non-UTF-8, NUL-containing, changed,
+  too-large-to-diff, timed-out, and over-budget paths are listed with a reason
+  and no content, and `run.json` records each path's status under
+  `retained_files`. The evidence shows retained net content, not actions taken
+  or transient states.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 

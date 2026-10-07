@@ -71,7 +71,8 @@ still change them is running or unread.
 
 - The executor receives the task and declared inputs without assertions or
   the case name. A fresh grader receives the recorded output, the original
-  task as inert context, bounded grader-only fixture facts when supplied, and
+  task as inert context, bounded grader-only fixture facts when supplied, the
+  executor's retained file contents and diffs as bounded untrusted data, and
   the assertions. Task facts decide applicability; they do not become
   output-restatement obligations.
 - `with_skill` uses the authoritative `skills/<skill-name>/SKILL.md`; never
