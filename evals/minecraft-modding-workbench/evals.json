@@ -15,7 +15,7 @@
     {
       "id": "E01",
       "name": "MCP unavailable preflight",
-      "prompt": "A Fabric 1.21.10 mod workspace is open. The host exposes no minecraft-modding MCP tools when searched. Plan how to inspect `AbstractContainerScreen.render` before changing tooltip behavior.",
+      "prompt": "A Fabric 1.21.10 mod workspace is open. The host exposes no minecraft-modding MCP tools when searched; for this exercise treat them as unavailable even if your own environment lists any, and do not call them. Plan how to inspect `AbstractContainerScreen.render` before changing tooltip behavior.",
       "expected_output": "The agent reports MCP unavailable once, records fallback mode, builds a project profile from workspace files, and plans local same-version source or bytecode inspection without repeatedly guessing MCP tool names.",
       "files": [],
       "expectations": [
