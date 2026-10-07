@@ -339,6 +339,12 @@ use `[Repository] - YYYY-MM-DD`.
 - Verification for `vibe-writing` after the changes above: closing codex
   `gpt-6-luna` full-suite run with three runs per case, `with_skill` 90.8%
   against `without_skill` 65.6%.
+- `vibe-agent-instructions` says, when it stops for a tracked personal
+  instruction file, that personal rules are meant to stay out of shared
+  history.
+- Verification for `vibe-agent-instructions` after the changes above: closing
+  codex `gpt-6-luna` full-suite run with three runs per case, `with_skill`
+  90.0% against `without_skill` 41.9%.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 

@@ -31,9 +31,9 @@ These run right after the inventory and take precedence over every later step
 for the same file. A stop on one file does not cancel work on the others.
 
 - **Tracked personal file.** `AGENTS.override.md` or `CLAUDE.local.md` is
-  tracked: do not write, link, or repair it. Report the path and the reason
-  `tracked` (personal rules belong outside shared history), and ask how to
-  proceed.
+  tracked: do not write, link, or repair it. Report the path, the reason
+  `tracked`, and that personal rules are meant to stay out of shared history,
+  then ask how to proceed.
 - **Ignored shared or derived file.** An ignore rule matches `AGENTS.md`,
   `CLAUDE.md`, or the reference folder (checked again once step 5 chooses the
   folder): do not write it. Report the rule with its source file and line, and
