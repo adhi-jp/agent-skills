@@ -3084,6 +3084,164 @@ class ProviderParserTests(unittest.TestCase):
 
 
 # --------------------------------------------------------------------------- #
+# Skill-read sanity signal: a `with_skill` run whose complete runner trace
+# records no read attempt of the delivered SKILL.md is flagged for review.
+# --------------------------------------------------------------------------- #
+class SkillReadSanityTests(BaseRunnerTest):
+    SKILL_FILE = "skills/demo/SKILL.md"
+
+    @staticmethod
+    def evidence(entries, **stream):
+        return {
+            "captured": True, "source": "runner", "provider": "codex",
+            "stream": {"complete": True, "event_count": 4, "malformed_lines": 0, "truncated": False, **stream},
+            "entries": entries,
+        }
+
+    @staticmethod
+    def command(operands, *, read_only=True, parse_error=False, exit_code=0, programs=("cat",)):
+        entry = {
+            "type": "command_execution", "id": "item_1", "status": "completed",
+            "exit_code": exit_code, "programs": list(programs), "path_operands": list(operands),
+            "read_only": read_only,
+        }
+        if parse_error:
+            entry["parse_error"] = True
+        return entry
+
+    @staticmethod
+    def run_record(evidence, config="with_skill", eval_id="E01", run_number=1):
+        record = {"eval_id": eval_id, "configuration": config, "run_number": run_number,
+                  "scored": True, "status": "ok"}
+        if evidence is not None:
+            record["executor_evidence"] = evidence
+        return record
+
+    def sanity(self, runs):
+        return eval_runner.compute_sanity_checks(
+            ["with_skill", "without_skill"], runs, [], skill_name="demo"
+        )
+
+    def counts(self, sanity):
+        observation = sanity["skill_read_observation"]
+        return (observation["evaluated"], observation["flagged"],
+                observation["uncertain"], observation["not_evaluated"])
+
+    def test_eligible_with_skill_runs_are_flagged_only_without_an_observed_read_attempt(self):
+        skill = self.SKILL_FILE
+        cases = [
+            # (label, entries, flagged, uncertain)
+            ("no entries", [], True, False),
+            ("mixed-operand cat that exits non-zero", [self.command([skill, "task.md"], exit_code=1)], False, False),
+            ("compound command that is not read-only as a whole but cats the file",
+             [self.command([skill], read_only=False, programs=("cat", "pwd", "rg"))], False, False),
+            ("a listing program naming the file", [self.command([skill], programs=("ls",))], False, False),
+            ("only an rm naming the file",
+             [self.command([skill], read_only=False, programs=("rm",))], True, False),
+            ("a read of another package file", [self.command(["skills/demo/references/a.md"])], True, False),
+            ("a parse_error entry naming the file",
+             [self.command([skill], read_only=False, parse_error=True)], False, True),
+            ("a parse_error entry without operands",
+             [self.command([], read_only=False, parse_error=True)], False, True),
+            ("a parse_error entry beside an observed read",
+             [self.command([], read_only=False, parse_error=True), self.command([skill])], False, False),
+        ]
+        for label, entries, flagged, uncertain in cases:
+            with self.subTest(label):
+                result = self.sanity([self.run_record(self.evidence(entries))])
+                self.assertEqual(self.counts(result), (1, int(flagged), int(uncertain), 0))
+                self.assertEqual(result["ok"], not flagged)
+                expected = [{"eval_id": "E01", "configuration": "with_skill", "run_number": 1}] if flagged else []
+                self.assertEqual(result["skill_read_unobserved"], expected)
+                self.assertEqual(result["skill_read_observation"]["skill_file"], skill)
+
+    def test_without_skill_and_incomplete_evidence_are_never_judged(self):
+        cap = eval_runner.EXECUTOR_EVIDENCE_MAX_ENTRIES
+        unrelated = self.command(["task.md"])
+        cases = [
+            ("host-sourced", {"captured": True, "source": "host", "provider": "claude", "entries": []}),
+            ("uncaptured", {**self.evidence([]), "captured": False}),
+            ("incomplete stream", self.evidence([], complete=False)),
+            ("malformed lines", self.evidence([], malformed_lines=1)),
+            ("truncated stream", self.evidence([], truncated=True)),
+            ("entry list at the cap", self.evidence([unrelated] * cap)),
+            ("legacy record without stream fields", {"captured": True, "source": "runner", "entries": []}),
+            ("no evidence recorded", None),
+        ]
+        for field in ("complete", "malformed_lines", "truncated"):
+            evidence = self.evidence([])
+            del evidence["stream"][field]
+            cases.append((f"legacy stream without {field}", evidence))
+        for label, evidence in cases:
+            with self.subTest(label):
+                result = self.sanity([self.run_record(evidence)])
+                self.assertEqual(self.counts(result), (0, 0, 0, 1))
+                self.assertEqual(result["skill_read_unobserved"], [])
+                self.assertTrue(result["ok"])
+        # Positive control: one entry below the cap is judged and flagged.
+        result = self.sanity([self.run_record(self.evidence([unrelated] * (cap - 1)))])
+        self.assertEqual(self.counts(result), (1, 1, 0, 0))
+        # without_skill is outside the judged population even with eligible evidence.
+        result = self.sanity([self.run_record(self.evidence([]), config="without_skill")])
+        self.assertEqual(self.counts(result), (0, 0, 0, 0))
+        self.assertEqual(result["skill_read_unobserved"], [])
+        self.assertTrue(result["ok"])
+
+    def test_benchmark_markdown_renders_flagged_runs_and_counts(self):
+        suite = eval_runner.EvalSuite(
+            path=Path("evals.json"), skill_name="demo", common_assertions=[],
+            evals=[eval_runner.EvalCase("E01", "First", "p", "", None, None, [], ["a"], {})],
+            scoring={}, raw={},
+        )
+        flagged = self.run_record(self.evidence([]), run_number=1)
+        uncertain = self.run_record(
+            self.evidence([self.command([self.SKILL_FILE], read_only=False, parse_error=True)]), run_number=2
+        )
+        unjudged = self.run_record({"captured": False, "source": "host", "entries": []}, run_number=3)
+        for run in (flagged, uncertain, unjudged):
+            run.update({"pass_rate": 1.0, "metrics": {"captured": False}})
+        benchmark = eval_runner.aggregate_runs(
+            suite, ["with_skill", "without_skill"], [flagged, uncertain, unjudged],
+            agent="codex", skill_path=None,
+        )
+        sanity = benchmark["sanity_checks"]
+        self.assertFalse(sanity["ok"])
+        self.assertEqual(self.counts(sanity), (2, 1, 1, 1))
+        md = eval_runner.render_benchmark_markdown(benchmark)
+        self.assertIn("REVIEW REQUIRED", md)
+        self.assertIn("- Skill read unobserved", md)
+        self.assertIn("`skills/demo/SKILL.md`", md)
+        self.assertIn("E01/with_skill run 1", md)
+        self.assertNotIn("run 2", md.split("- Skill read unobserved", 1)[1].split("\n", 1)[0])
+        self.assertIn("2 evaluated, 1 flagged, 1 uncertain, 1 not evaluated", md)
+        # Uncertain and unjudged runs alone keep the status OK and still show the counts.
+        benchmark = eval_runner.aggregate_runs(
+            suite, ["with_skill", "without_skill"], [uncertain, unjudged], agent="codex", skill_path=None,
+        )
+        self.assertTrue(benchmark["sanity_checks"]["ok"])
+        md = eval_runner.render_benchmark_markdown(benchmark)
+        self.assertIn("- Status: OK", md)
+        self.assertIn("1 evaluated, 0 flagged, 1 uncertain, 1 not evaluated", md)
+        self.assertNotIn("- Skill read unobserved", md)
+
+    def test_run_summary_counts_skill_read_unobserved_runs(self):
+        path = self.write_suite(
+            {"skill_name": "demo", "evals": [{"id": "E01", "prompt": "x", "expectations": ["a"]}]}
+        )
+        result = self.run_cli(
+            "run", path, "--agent", "codex", "--config", "with_skill",
+            env=self.fake_codex_env(), check=True,
+        )
+        benchmark = json.loads((self.iteration_dir("codex") / "benchmark.json").read_text())
+        self.assertEqual(
+            benchmark["sanity_checks"]["skill_read_unobserved"],
+            [{"eval_id": "E01", "configuration": "with_skill", "run_number": 1}],
+        )
+        self.assertIn("Sanity checks: REVIEW REQUIRED", result.stdout)
+        self.assertIn("1 skill-read-unobserved run(s)", result.stdout)
+
+
+# --------------------------------------------------------------------------- #
 # Skill source resolution (folded snapshot guard).
 # --------------------------------------------------------------------------- #
 # The verbatim stdout of a real `codex exec --json` executor run, kept as the

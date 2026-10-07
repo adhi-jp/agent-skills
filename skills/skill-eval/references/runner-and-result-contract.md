@@ -217,9 +217,29 @@ python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/work
   carries per-eval and overall raw pass rates, the `with_skill`/`without_skill`
   comparison, executor metrics, suite coverage, a `sanity_checks` section
   (infrastructure failures, scored-0% cells, candidate-below-baseline cells,
-  dirty declared fixture roots, partial selections), and a `Failed assertions`
-  section listing each scored cell's failed assertions with the grader's
-  evidence and each unscored cell's status.
+  dirty declared fixture roots, partial selections, `skill_read_unobserved`
+  runs), and a `Failed assertions` section listing each scored cell's failed
+  assertions with the grader's evidence and each unscored cell's status.
+- `skill_read_unobserved` lists `with_skill` runs whose executor evidence
+  records no read attempt of the delivered `skills/<skill-name>/SKILL.md`: no
+  `command_execution` entry without `parse_error` that runs at least one
+  program from the runner's read-only program set and whose path operands
+  include that file. The command need not be read-only as a whole (a compound
+  `cat <file>; pwd; rg x` counts), other operands beside the file count, and
+  exit status is ignored; a command running only programs outside the set,
+  such as `rm` or `mv`, does not count, while a listing program in the set,
+  such as `ls`, does. Only runner-sourced Codex evidence that was captured, saw
+  the stream complete, had no malformed line, was not truncated, and holds
+  fewer entries than the cap is judged; host-sourced (Claude), uncaptured, and
+  partial evidence, and older records missing any of these fields, are counted
+  as not evaluated, and `without_skill` runs are never judged. Without an observed attempt, any `parse_error`
+  command entry, whatever its operands, counts the run as uncertain, not
+  flagged, because an unparsed command may have read the file. The benchmark
+  records the evaluated, flagged, uncertain, and not-evaluated counts of
+  `with_skill` runs under `skill_read_observation`. Any flagged run makes the
+  status `REVIEW REQUIRED`; uncertain and unjudged runs do not. A recorded read
+  attempt is not proof of a successful read, and its absence in judged
+  evidence is a review signal, not proof that the skill went unread.
 - `grading.json` lists every assertion (`common_assertions` then per-eval
   `expectations`) exactly once, in order, with `text`, `passed`, and
   `evidence`; an assertion the grader omits is recorded as failed.

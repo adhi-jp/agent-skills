@@ -4149,6 +4149,7 @@ def aggregate_runs(
         per_eval,
         source_fixtures=source_fixtures,
         suite_coverage=coverage,
+        skill_name=suite.skill_name,
     )
     return {
         "skill_name": suite.skill_name,
@@ -4175,6 +4176,71 @@ def aggregate_runs(
     }
 
 
+def skill_read_evidence_is_eligible(evidence: Any) -> bool:
+    """Return True when an executor trace is complete enough to judge skill reads.
+
+    Only the runner's own parse of a Codex stream records path operands, and
+    only when that stream finished (``turn.completed`` seen), had no malformed
+    line, was not cut at the entry cap, and holds fewer entries than the cap.
+    Host-sourced, uncaptured, partial, and older records lacking these fields
+    are not judged at all."""
+    if not isinstance(evidence, dict):
+        return False
+    if evidence.get("source") != "runner" or evidence.get("captured") is not True:
+        return False
+    stream = evidence.get("stream")
+    entries = evidence.get("entries")
+    if not isinstance(stream, dict) or not isinstance(entries, list):
+        return False
+    malformed = stream.get("malformed_lines")
+    return (
+        stream.get("complete") is True
+        and isinstance(malformed, int)
+        and not isinstance(malformed, bool)
+        and malformed == 0
+        and stream.get("truncated") is False
+        and len(entries) < EXECUTOR_EVIDENCE_MAX_ENTRIES
+    )
+
+
+def classify_skill_read(evidence: Any, skill_file: str) -> str:
+    """Return ``observed``, ``unobserved``, ``uncertain``, or ``not_evaluated``.
+
+    An observed read attempt is a ``command_execution`` entry without
+    ``parse_error`` that runs at least one program from
+    ``CODEX_READ_ONLY_PROGRAMS`` and whose path operands include
+    ``skill_file``. The command as a whole need not be read-only, so a compound
+    ``cat <skill file>; pwd; rg x`` counts, and other operands beside the file
+    do not matter; neither does the exit status, since a combined ``cat`` can
+    print the skill and still exit non-zero. A command whose programs all lie
+    outside the set, such as ``rm`` or ``mv``, does not count, while a listing
+    program in it, such as ``ls``, does. An attempt is not proof of a
+    successful read, and its absence is not proof that the skill went unread.
+    When no attempt is observed, any ``command_execution`` entry marked
+    ``parse_error`` makes the run ``uncertain`` rather than ``unobserved``,
+    whatever its operands, because an unparsed command may have read the
+    file."""
+    if not skill_read_evidence_is_eligible(evidence):
+        return "not_evaluated"
+    uncertain = False
+    for entry in evidence["entries"]:
+        if not isinstance(entry, dict) or entry.get("type") != "command_execution":
+            continue
+        if entry.get("parse_error"):
+            uncertain = True
+            continue
+        programs = entry.get("programs")
+        operands = entry.get("path_operands")
+        if (
+            isinstance(programs, list)
+            and isinstance(operands, list)
+            and skill_file in operands
+            and any(program in CODEX_READ_ONLY_PROGRAMS for program in programs if isinstance(program, str))
+        ):
+            return "observed"
+    return "uncertain" if uncertain else "unobserved"
+
+
 def compute_sanity_checks(
     configs: list[str],
     runs: list[dict[str, Any]],
@@ -4182,6 +4248,7 @@ def compute_sanity_checks(
     *,
     source_fixtures: dict[str, Any] | None = None,
     suite_coverage: dict[str, Any] | None = None,
+    skill_name: str | None = None,
 ) -> dict[str, Any]:
     """Surface anomalies a supervising reviewer must inspect before reporting a
     run as a clean result. These are deterministic signals derived from the run
@@ -4231,13 +4298,47 @@ def compute_sanity_checks(
     if isinstance(suite_coverage, dict) and suite_coverage.get("partial"):
         partial_selection.append(dict(suite_coverage))
 
+    # Only `with_skill` runs are judged, against the delivered skill file. A
+    # flagged run is a review signal; uncertain and unjudged runs are counted
+    # and never change `ok`.
+    skill_file = f"skills/{skill_name}/SKILL.md" if skill_name else None
+    skill_read_unobserved: list[dict[str, Any]] = []
+    skill_read = {"skill_file": skill_file, "evaluated": 0, "flagged": 0, "uncertain": 0, "not_evaluated": 0}
+    for run in runs:
+        if run.get("configuration") != "with_skill":
+            continue
+        outcome = (
+            classify_skill_read(run.get("executor_evidence"), skill_file)
+            if skill_file
+            else "not_evaluated"
+        )
+        if outcome == "not_evaluated":
+            skill_read["not_evaluated"] += 1
+            continue
+        skill_read["evaluated"] += 1
+        if outcome == "uncertain":
+            skill_read["uncertain"] += 1
+        elif outcome == "unobserved":
+            skill_read["flagged"] += 1
+            skill_read_unobserved.append(
+                {
+                    "eval_id": run.get("eval_id"),
+                    "configuration": run.get("configuration"),
+                    "run_number": run.get("run_number"),
+                }
+            )
+
     return {
-        "ok": not (infra or zero_cells or inversions or source_dirty or partial_selection),
+        "ok": not (
+            infra or zero_cells or inversions or source_dirty or partial_selection or skill_read_unobserved
+        ),
         "infrastructure_failures": infra,
         "zero_scored_cells": zero_cells,
         "candidate_below_baseline": inversions,
         "source_fixture_dirty": source_dirty,
         "partial_suite_selection": partial_selection,
+        "skill_read_unobserved": skill_read_unobserved,
+        "skill_read_observation": skill_read,
     }
 
 
@@ -4255,10 +4356,25 @@ def render_sanity_checks_markdown(sanity: Any) -> list[str]:
     inversions = sanity.get("candidate_below_baseline") or []
     source_dirty = sanity.get("source_fixture_dirty") or []
     partial_selection = sanity.get("partial_suite_selection") or []
-    total = len(infra) + len(zero) + len(inversions) + len(source_dirty) + len(partial_selection)
+    skill_read_unobserved = sanity.get("skill_read_unobserved") or []
+    skill_read = sanity.get("skill_read_observation")
+    total = (
+        len(infra) + len(zero) + len(inversions) + len(source_dirty) + len(partial_selection)
+        + len(skill_read_unobserved)
+    )
+    skill_read_lines: list[str] = []
+    if isinstance(skill_read, dict) and (skill_read.get("evaluated") or skill_read.get("not_evaluated")):
+        skill_read_lines.append(
+            "- Skill read observation (`with_skill` runs, judged only on complete runner-sourced "
+            f"Codex evidence): {skill_read.get('evaluated', 0)} evaluated, "
+            f"{skill_read.get('flagged', 0)} flagged, {skill_read.get('uncertain', 0)} uncertain, "
+            f"{skill_read.get('not_evaluated', 0)} not evaluated; a recorded read attempt is not "
+            "proof of a successful read"
+        )
     lines = ["", "## Sanity checks", ""]
     if total == 0 and sanity.get("ok"):
         lines.append("- Status: OK — no anomalies detected")
+        lines.extend(skill_read_lines)
         return lines
     lines.append(
         f"- Status: REVIEW REQUIRED — {total} anomaly signal(s); do not report this run "
@@ -4296,6 +4412,18 @@ def render_sanity_checks_markdown(sanity: Any) -> list[str]:
             f"{coverage.get('selected_eval_count', 0)}/{coverage.get('suite_eval_count', 0)} evals "
             f"({selected}); diagnostic only, not full-suite closing evidence"
         )
+    if skill_read_unobserved:
+        skill_file = skill_read.get("skill_file") if isinstance(skill_read, dict) else None
+        runs_text = ", ".join(
+            f"{item.get('eval_id')}/{item.get('configuration')} run {item.get('run_number')}"
+            for item in skill_read_unobserved
+        )
+        lines.append(
+            f"- Skill read unobserved (no recorded read attempt of `{skill_file or 'SKILL.md'}` in "
+            "complete executor evidence; inspect the trace, not proof the skill was unread): "
+            f"{runs_text}"
+        )
+    lines.extend(skill_read_lines)
     return lines
 
 
@@ -5133,11 +5261,13 @@ def command_run(args: argparse.Namespace) -> int:
             len(sanity.get("candidate_below_baseline") or []),
             len(sanity.get("source_fixture_dirty") or []),
             len(sanity.get("partial_suite_selection") or []),
+            len(sanity.get("skill_read_unobserved") or []),
         )
         print(
             f"Sanity checks: REVIEW REQUIRED — {counts[0]} infra failure(s), "
             f"{counts[1]} zero-scored cell(s), {counts[2]} candidate-below-baseline cell(s), "
-            f"{counts[3]} source-fixture dirty signal(s), {counts[4]} partial-suite selection(s); "
+            f"{counts[3]} source-fixture dirty signal(s), {counts[4]} partial-suite selection(s), "
+            f"{counts[5]} skill-read-unobserved run(s); "
             f"see Sanity checks in {iteration_dir / 'benchmark.md'}"
         )
     for line in render_metrics_stdout(sorted(configs, key=config_sort_key), runs_records):

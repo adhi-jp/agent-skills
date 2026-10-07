@@ -365,6 +365,17 @@ use `[Repository] - YYYY-MM-DD`.
   run with `--strict-mcp-config`, which also excludes claude.ai connectors.
   Iterations record delivery protocol `case-inputs-v3`, so earlier iterations
   are a different measurement series.
+- `skill-eval` flags, as `skill_read_unobserved`, a `with_skill` run whose
+  complete Codex executor trace records no read attempt of the delivered
+  `SKILL.md`, which makes the sanity status `REVIEW REQUIRED`. A read attempt
+  is a parsed command that names the file and runs at least one read-only
+  program such as `cat`, even as part of a compound command; `rm` or `mv` alone
+  does not count, and `ls` does. Claude runs, runs whose trace is uncaptured,
+  incomplete, malformed, truncated, or at the entry cap, and older records
+  missing the required evidence fields are counted as not evaluated, and a run
+  with no read attempt but an unparsed command is counted as uncertain; neither
+  changes the status. A recorded read attempt does not prove a successful read,
+  and a flagged run is a review signal, not proof the skill went unread.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 
