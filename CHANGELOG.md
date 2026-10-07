@@ -241,6 +241,34 @@ use `[Repository] - YYYY-MM-DD`.
   rewritten to the new behavior but not run, so the behavioral effect is
   unmeasured. The structural checks (`vibe_shared_contract.py check --strict`,
   `audit-names`, and the test suite) pass.
+- `vibe-commit` folds a fix for an earlier commit's own defect into that commit
+  without asking when no remote-tracking ref, tag, other branch, or worktree
+  contains the commit. It amends HEAD, or for an older commit makes a fixup
+  commit and runs a non-interactive autosquash rebase, which needs a clean
+  tree, no merge commit in the range, and a fix that depends on no later
+  commit. Otherwise, or when the fold fails, it adds a new commit and says why,
+  without asking. It reports the pre-fold HEAD so the reflog can recover it.
+  Push, rewriting published history, and destructive resets still need the
+  user's explicit consent.
+- The shared `commit-selection-state-changing` block carries that fold rule and
+  limits the consent for amend, rebase, and squash to operations outside it.
+  Rendered text changed in `vibe-coding`, `vibe-commit`, `vibe-debug`,
+  `vibe-orchestrate`, `vibe-plan-execution`, and `vibe-review`.
+- The shared `human-risk-decisions` block now says a fold into an unpublished
+  commit is not a history-mutation decision. Rendered text changed in
+  `vibe-coding`, `vibe-goal-alignment`, `vibe-orchestrate`,
+  `vibe-plan-execution`, `vibe-planning`, and `vibe-requirements-spec`.
+- `vibe-coding` clarifies that its goal-alignment gate does not fire for a fix
+  that commit selection folds or appends, though real history-scope ambiguity
+  still fires it. `vibe-debug` clarifies that a unit's repair closure may fold
+  the repair into the unpublished commit it fixes, and `vibe-plan-execution`
+  that its startup consent preflight does not ask about such a fold.
+  `vibe-review` asks for operation-specific history consent only when an
+  operation needs it.
+- Repository maintenance: `AGENTS.md` condition (a) of "Approval Stop Rules"
+  now excludes folding a fix into an unpublished commit from the kept
+  history-rewrite and squash consents. A new `vibe-commit` eval case covers the
+  fold, but the evals were not run, so the behavioral effect is unmeasured.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 

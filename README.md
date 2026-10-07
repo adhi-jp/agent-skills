@@ -124,9 +124,13 @@ of truth when a summary and a detailed contract differ.
   the record and report formats in `references/durable-records.md` only when
   it applies, writes, or hands one forward.
 - Commit selection never implies push, release preparation, versions, tags,
-  history rewriting, destructive cleanup, or unrelated paths. A push, amend,
-  rebase, HEAD-moving reset, `filter-*` rewrite, or scripted multi-commit
-  replay needs the user's explicit authorization for that operation.
+  other history rewriting, destructive cleanup, or unrelated paths. A selected fix
+  for an earlier commit's own defect is folded into that commit without asking
+  when no remote-tracking ref, tag, other branch, or worktree contains it;
+  otherwise, or if the fold fails, it is committed separately with the reason
+  stated. Outside that fold, a push, amend, rebase, HEAD-moving reset,
+  `filter-*` rewrite, or scripted multi-commit replay needs the user's explicit
+  authorization for that operation.
 - Current versions come from each source `SKILL.md`. Released changes and
   in-progress changes are recorded in [`CHANGELOG.md`](CHANGELOG.md); the README
   does not duplicate the version registry or the full skill contracts.

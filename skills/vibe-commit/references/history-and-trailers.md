@@ -24,26 +24,43 @@ commit identity created by an authorized commit is a separate output epoch, not
 source drift.
 
 After the commit, compare `git show -s --format=%B HEAD` and the exact committed
-patch, such as `git diff HEAD^ HEAD`, with the reconciliation. `git show --stat HEAD`
+patch, such as `git diff HEAD^ HEAD`, with the reconciliation; after a fold,
+compare the folded target commit instead, whose patch now carries its original
+change plus the fix. `git show --stat HEAD`
 corroborates file scope but cannot prove semantic concern coverage. A mismatch
-is not complete: repair it only when existing authority permits rewriting the
-unpushed local commit; otherwise stop and report it.
+is not complete: repair it only while the commit is eligible to fold (below);
+otherwise stop and report it.
 
-## Amend vs. new commit
+## Fold a fix or add a commit
 
-Default to a new commit. Reach for `--amend` only to fix the immediately
-preceding commit that has not been pushed:
+Fold a fix for an earlier commit's own defect into that commit when it is
+eligible; that needs no user authorization. Otherwise, or when the fold fails,
+add a new commit and say why. A commit is eligible only when all hold:
 
-- New commit — the normal case, and the only option when HEAD has not moved past
-  the branch base (nothing of yours exists to amend).
-- `git commit --amend` — fold a fix into the last commit, reword its subject, or
-  repair its trailer, **when that commit is unpushed**. Amending a pushed commit
-  rewrites shared history; add a follow-up commit instead.
+- The fix corrects that commit's own change, not a separate concern.
+- `git for-each-ref --contains <sha> --format='%(refname)'` lists only the
+  current branch: no remote-tracking ref, tag, or other branch.
+- No other worktree has it checked out (`git worktree list`).
+- The user has not said the work is pushed or shared, and has not asked for
+  separate commits.
 
-Check the amend-vs-new signal with
-`git rev-list --left-right --count <base>...HEAD` — it prints two numbers,
-`<behind>  <ahead>`; the second (right) number, your commits past base, is the
-ahead count, and 0 ahead means amend is not applicable.
+An ahead count against a base does not prove a commit is unpublished. Record the
+pre-fold HEAD (`git rev-parse HEAD`), stage only the fix, then:
+
+- HEAD: run `git commit --amend --no-edit`; edit the message only if the fix
+  changes what it states.
+- Older commit: run `git commit --fixup=<sha>`, then `GIT_SEQUENCE_EDITOR=: git
+  rebase -i --autosquash <sha>^` without `--autostash`; this needs a clean tree,
+  no merge commit in `<sha>^..HEAD`, and a fix that depends on no later commit.
+  Verify the final `HEAD^{tree}` equals the fixup commit's tree, and stop with
+  both SHAs reported if it does not. If the rebase stops or fails, run
+  `git rebase --abort`, verify HEAD is back at the fixup commit, and reword that
+  commit into an ordinary fix commit.
+
+Never disable signing or hooks to make a fold succeed; a failure means a new
+commit. When the folded change needs a trailer the target's message lacks, amend
+HEAD with `--trailer`; for an older target, add a new commit instead. Report the
+pre-fold HEAD SHA so the reflog can recover it.
 
 ## Transport the message without corruption
 
@@ -418,7 +435,7 @@ git show --stat HEAD               # committed file set
 
 If the stored message is wrong — trailer in the body, dropped footer, mangled
 newlines — fix it with `git commit --amend` (re-including trailers) while the
-commit is still local, then verify again.
+commit is still eligible to fold, then verify again.
 
 ## Compact message rules
 

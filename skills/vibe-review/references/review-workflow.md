@@ -539,8 +539,8 @@ operation. It checks:
   metadata (recovery reference such as the stash entry, and its digest)
   verbatim while a restore is pending.
 
-Before asking for operation-specific consent to a history operation, show the
-commits and diff it would produce and its conflict-safety evidence.
+When a history operation needs operation-specific consent, show the commits and
+diff it would produce and its conflict-safety evidence before asking for it.
 
 A completed fix loop closes under the commit contract in `SKILL.md`, which
 states what selects the commit, what its scope may cover, what suspends it, and

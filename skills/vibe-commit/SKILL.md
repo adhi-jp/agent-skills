@@ -73,8 +73,9 @@ reference defines.
 - Stage only the unit: exclude pre-existing changes the workflow did not make and paths outside the unit; if the unit cannot be separated from other changes, report the mixed state and ask.
 - A new file the unit creates and requires, such as source or tests, belongs to it unless it holds a credential or secret; generated output, scratch files, and reports join only on explicit tracking intent or mandatory coupling.
 - Route each selected commit through commit execution with its scope, test and review evidence, exclusions, and any proposed message; that workflow owns staging, diff review, message transport, and post-commit verification.
-- Before a push, amend, rebase, HEAD-moving reset (soft, mixed, or hard), `filter-*` rewrite, or scripted replay of several commits, get the user's explicit authorization for that operation; a commit request or checkpoint never grants it, and published history is shared.
-- Never treat a commit request or checkpoint as consent to release, version changes, tags, stash, squash, destructive cleanup, force-adds, tracking a new artifact outside the unit, or external side effects; each needs its own.
+- Fold a selected fix for an earlier commit's own defect into that commit without asking when no remote-tracking ref, tag, other branch, or worktree contains it; otherwise, or if the fold fails, commit it separately and say why.
+- Outside that fold, get the user's explicit authorization before a push, amend, rebase, HEAD-moving reset (soft, mixed, or hard), `filter-*` rewrite, or scripted multi-commit replay; a commit request or checkpoint never grants it, and published history is shared.
+- Never treat a commit request or checkpoint as consent to release, version changes, tags, stash, squash beyond that fold, destructive cleanup, force-adds, tracking a new artifact outside the unit, or external side effects; each needs its own.
 
 Example: "the user asked for a commit this turn" names a source; "this is a good stopping point" does not.
 
@@ -158,10 +159,15 @@ deeper on the judgment calls.
    type, scope, outcome, body coverage, and one-commit or split decision. Source
    drift requires reconciliation again. If an accepted decision record binds the
    changed path, stop and report any non-conformance for the user to resolve.
-8. **Decide amend vs. new.** Create a new commit by default. Only `--amend` to
-   fix the immediately preceding, unpushed commit, and only with the user's
-   explicit authorization for that amend. See
-   `references/history-and-trailers.md`.
+8. **Fold or add.** Fold a fix for an earlier commit's own defect into that
+   commit when it is eligible: amend it if it is HEAD; if it is older, run
+   `git commit --fixup=<sha>` and a non-interactive `GIT_SEQUENCE_EDITOR=: git
+   rebase -i --autosquash <sha>^`, which needs a clean tree, no autostash, no
+   merge commit in the range, and a fix that depends on no later commit.
+   Otherwise add a new commit and say why. An eligible fold needs no user
+   authorization, keeps the target's message unless the fix changes what it
+   states, and replaces steps 9-10. See `references/history-and-trailers.md`
+   for eligibility and the procedure.
 9. **Compose the message.** Conventional Commits `type(scope): summary`
    (imperative, ≤72 chars) naming the outcome, blank line, then a body only when
    it preserves durable context the diff cannot recover. Detect the repo's
@@ -174,15 +180,18 @@ deeper on the judgment calls.
    the body or a synthesized message payload. Never embed raw newlines in a
    single `-m`. See `references/history-and-trailers.md`.
 11. **Post-verify the stored commit.** Read `git show -s --format=%B HEAD` and
-    the committed patch; use `git status --short` to confirm only intended files
-    remain. Repair a mismatch only within existing unpushed-history authority;
+    the committed patch; after a fold, read the folded target's message and
+    combined patch instead, and confirm later commits and the final tree match
+    the verified state. Use `git status --short` to confirm only intended files
+    remain. Repair a mismatch only while the commit is still eligible to fold;
     otherwise stop and report it.
 12. **Recover reversibly if wrong.** Prefer the least-destructive fix:
     `git restore --staged <file>` to unstage, `git reset --soft HEAD~1` to undo
     a commit while keeping changes, `git commit --amend --no-edit --trailer …`
-    to fix a just-made local commit. The HEAD-moving reset and the amend each
-    need the user's explicit authorization first; `git restore --staged` needs
-    none. See `references/staging-and-recovery.md`.
+    to fix a just-made local commit. The HEAD-moving reset still needs the
+    user's explicit authorization first; an amend of a commit eligible to fold
+    does not, and `git restore --staged` needs none. See
+    `references/staging-and-recovery.md`.
 
 ## When the request is narrower
 

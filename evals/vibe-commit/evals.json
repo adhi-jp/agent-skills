@@ -141,6 +141,23 @@
         "Treats the backup as insufficient deletion authorization.",
         "Confines work to the named unpushed linear range and does not push or force-add paths."
       ]
+    },
+    {
+      "id": "E10",
+      "name": "Defect fix folds into an unpublished commit without asking",
+      "prompt": "Commit execution is authorized, and the user asked to commit the fix for each situation below. This is a response-only task: use only the supplied state, show the command plan without executing it, and do not claim any command ran. Each situation is independent; the tree holds only the fix unless stated otherwise.\n\nSituation A. `git status -sb` shows `## main...origin/main [ahead 1]` with only src/parse.py modified. `git log --oneline` shows `a1b2c3d feat(parse): accept quoted fields` as HEAD above `9f8e7d6 chore: sync origin`. `git for-each-ref --contains a1b2c3d --format='%(refname)'` prints only `refs/heads/main`. `git worktree list` shows one worktree. The modification fixes an off-by-one that a1b2c3d itself introduced, and the user has not asked for separate commits.\n\nSituation B. `git status -sb` shows `## main...origin/main [ahead 2]` with only src/retry.py modified. `git log --oneline` shows `e4f5a6b feat(cli): add --dry-run flag` as HEAD, above `c7d8e9f fix(retry): cap backoff delay`, above `9f8e7d6 chore: sync origin`. `git for-each-ref --contains c7d8e9f --format='%(refname)'` prints only `refs/heads/main`. `git worktree list` shows one worktree, and the range has no merge commit. The modification corrects a defect in c7d8e9f's own change, and it does not depend on e4f5a6b.\n\nSituation C. `git status -sb` shows `## main...origin/main [ahead 1]` with only src/auth.py modified. `git log --oneline` shows `5a6b7c8 feat(ui): add banner` as HEAD above `d1e2f3a fix(auth): reject empty token`. `git for-each-ref --contains d1e2f3a --format='%(refname)'` prints `refs/heads/main` and `refs/remotes/origin/main`. The modification corrects a defect in d1e2f3a's own change.",
+      "expected_output": "A response-only plan that folds the fix into HEAD for A, folds it into the older commit with fixup and autosquash for B, and adds a new commit for C, with no question and no push.",
+      "files": [],
+      "expectations": [
+        "For A, plans `git commit --amend --no-edit` with only the fix staged, and asks no question about amending versus a new commit.",
+        "For B, plans `git commit --fixup=c7d8e9f` followed by a non-interactive `GIT_SEQUENCE_EDITOR=: git rebase -i --autosquash c7d8e9f^` without `--autostash`, and asks no question first.",
+        "For A and B, records or reports the pre-fold HEAD SHA (a1b2c3d for A, e4f5a6b for B) so the reflog can recover it.",
+        "For A and B, verifies the folded target commit afterward (its message and combined patch, not merely HEAD for B) and that the resulting tree matches the verified state.",
+        "For C, adds a new commit of the fix without asking and does not amend, fixup, or rebase, because `refs/remotes/origin/main` contains d1e2f3a.",
+        "For C, says the target commit is published, or contained by a remote-tracking ref, as the reason for a separate commit.",
+        "Does not push in any situation and does not seek or assume push authorization.",
+        "Presents the commands as a plan and does not claim that any represented command ran or produced output."
+      ]
     }
   ]
 }

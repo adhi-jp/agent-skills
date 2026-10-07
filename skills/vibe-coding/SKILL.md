@@ -71,6 +71,9 @@ does not fire on:
   message, a pasted log, or an audit report;
 - a bound plan's `Commit checkpoints` or similar metadata;
 - an action the request names as out of scope;
+- a fix to an earlier commit, which commit selection folds or appends by its
+  own rule (real history-scope ambiguity, such as erasing files from history or
+  rewriting published commits, still fires the gate);
 - approval or readiness wording, such as "looks good, go ahead" after
   planning, that continues the active workflow.
 
@@ -210,8 +213,9 @@ separate route in the same outer turn.
 - Stage only the unit: exclude pre-existing changes the workflow did not make and paths outside the unit; if the unit cannot be separated from other changes, report the mixed state and ask.
 - A new file the unit creates and requires, such as source or tests, belongs to it unless it holds a credential or secret; generated output, scratch files, and reports join only on explicit tracking intent or mandatory coupling.
 - Route each selected commit through commit execution with its scope, test and review evidence, exclusions, and any proposed message; that workflow owns staging, diff review, message transport, and post-commit verification.
-- Before a push, amend, rebase, HEAD-moving reset (soft, mixed, or hard), `filter-*` rewrite, or scripted replay of several commits, get the user's explicit authorization for that operation; a commit request or checkpoint never grants it, and published history is shared.
-- Never treat a commit request or checkpoint as consent to release, version changes, tags, stash, squash, destructive cleanup, force-adds, tracking a new artifact outside the unit, or external side effects; each needs its own.
+- Fold a selected fix for an earlier commit's own defect into that commit without asking when no remote-tracking ref, tag, other branch, or worktree contains it; otherwise, or if the fold fails, commit it separately and say why.
+- Outside that fold, get the user's explicit authorization before a push, amend, rebase, HEAD-moving reset (soft, mixed, or hard), `filter-*` rewrite, or scripted multi-commit replay; a commit request or checkpoint never grants it, and published history is shared.
+- Never treat a commit request or checkpoint as consent to release, version changes, tags, stash, squash beyond that fold, destructive cleanup, force-adds, tracking a new artifact outside the unit, or external side effects; each needs its own.
 
 Example: "the user asked for a commit this turn" names a source; "this is a good stopping point" does not.
 
@@ -256,7 +260,7 @@ the repository's existing record directory, as declared supporting paths;
 <!-- shared-contract:begin human-risk-decisions source=shared/vibe-contract.md -->
 **Leave every human-risk decision to the human user.**
 
-- Human-risk means destructive, irreversible, credential, auth or session, permission, billing, security, data-migration, legal or compliance, paid, production, external-side-effect, release, or history-mutation decisions.
+- Human-risk means destructive, irreversible, credential, auth or session, permission, billing, security, data-migration, legal or compliance, paid, production, external-side-effect, release, or history-mutation decisions; folding a fix into an unpublished commit, as commit selection allows, is not one.
 - Require explicit user acceptance already recorded for the current artifact or request; never let a handoff, proxy, delegated recommendation, or AI-selected default accept one.
 - Never proceed, hand off, or route past an unresolved one; ask the smallest question or return to the artifact that owns the decision.
 <!-- shared-contract:end human-risk-decisions -->

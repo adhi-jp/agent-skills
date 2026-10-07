@@ -71,7 +71,7 @@ git rm --cached -r -- <path>     # unborn repo (no HEAD), or a path NOT yet in H
 git reset --soft HEAD~1          # uncommit, changes stay staged
 git reset HEAD~1                 # uncommit, changes stay in working tree (unstaged)
 
-# 3. Fix a just-made local commit in place (only if unpushed)
+# 3. Fix a just-made local commit in place (only if eligible to fold)
 git commit --amend --no-edit                 # re-stage fix, keep message
 git commit --amend --no-edit --trailer '…'   # add/repair a trailer
 

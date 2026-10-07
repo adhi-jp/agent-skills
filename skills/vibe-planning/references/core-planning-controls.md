@@ -21,7 +21,7 @@ Read this reference before finalizing any implementation plan or plan revision. 
 <!-- shared-contract:begin human-risk-decisions source=shared/vibe-contract.md -->
 **Leave every human-risk decision to the human user.**
 
-- Human-risk means destructive, irreversible, credential, auth or session, permission, billing, security, data-migration, legal or compliance, paid, production, external-side-effect, release, or history-mutation decisions.
+- Human-risk means destructive, irreversible, credential, auth or session, permission, billing, security, data-migration, legal or compliance, paid, production, external-side-effect, release, or history-mutation decisions; folding a fix into an unpublished commit, as commit selection allows, is not one.
 - Require explicit user acceptance already recorded for the current artifact or request; never let a handoff, proxy, delegated recommendation, or AI-selected default accept one.
 - Never proceed, hand off, or route past an unresolved one; ask the smallest question or return to the artifact that owns the decision.
 <!-- shared-contract:end human-risk-decisions -->
