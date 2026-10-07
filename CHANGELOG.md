@@ -348,6 +348,9 @@ use `[Repository] - YYYY-MM-DD`.
 - Verification for `skill-eval` after the changes above: closing codex
   `gpt-6-luna` full-suite run with three runs per case, `with_skill` 78.5%
   against `without_skill` 37.5%.
+- Verification for `skill-quality` after the changes above: closing codex
+  `gpt-6-luna` full-suite run with three runs per case, `with_skill` 87.7%
+  against `without_skill` 65.5%.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 
