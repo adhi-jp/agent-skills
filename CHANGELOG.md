@@ -136,6 +136,111 @@ use `[Repository] - YYYY-MM-DD`.
   destructive, consent, security, credential, data-safety, and history check;
   case ids, names, prompts, scoring, and assertion counts are unchanged, so
   comparison with earlier eval iterations starts over at the next run.
+- `vibe-coding` carries a request through every phase its outcome needs as
+  separate routes, so a build, implement, or fix request goes from spec to plan
+  to execution, review, and the local checkpoint commit of each verified unit
+  without approval questions between phases. It stops for the user only on an
+  unresolved human-risk decision, a blocker, a material departure from the
+  request, or a checkpoint the user asked for, such as "spec only" or "show me
+  the plan first". After planning, "looks good, go ahead" or "continue" starts
+  execution instead of asking whether to revise or execute; after a plan the
+  user asked to stop at, bare praise such as "looks good" ends the workflow at
+  the plan without a question, while "go ahead" still starts execution. An
+  unattended multi-phase run is no longer refused, a blanket skip-approvals
+  instruction still accepts no human-risk decision, delegable questions the
+  phase would have asked are settled as reported AI-selected defaults, and the
+  commit fallback for an unavailable commit specialist runs without asking
+  whether to proceed.
+- `vibe-requirements-spec` finishes requirements when the completion audit
+  passes and the user's instruction or the router's continuation moves past
+  requirements; "OK", "looks good", "go ahead", and "continue" then finish the
+  spec, and while the audit fails they continue drafting. A failing audit first
+  repairs what the phase can settle itself and asks only for the rest. The phase
+  now defers a lower-priority unknown itself, recording it in the spec's open
+  risks and unknowns with its impact and revisit trigger and reporting it as
+  agent-deferred, when the unknown is outside every human-risk category, is not
+  needed by the current slice, and leaves every acceptance criterion intact.
+  This reverses the earlier behavior in which a deferral returned to the user
+  for acceptance. The summary names a user action only when a blocking decision
+  or the turn's question needs one and otherwise names the next phase. Without
+  usable subagents under top-level orchestration the phase settles delegable
+  choices as recorded AI-selected defaults, but neither a proxy nor an
+  AI-selected default settles a choice that changes what gets built, stored,
+  shown, migrated, or integrated, or any high-impact requirements case; those
+  stay with the user.
+- `vibe-planning` now describes its input as a finished spec; planning still
+  requires approval evidence, and requirements finished under top-level
+  orchestration, where the spec's requirements completion audit passed, count as
+  that evidence. Under orchestration it hands off to execution whenever the
+  requested outcome needs implementation, not only when the current turn's
+  wording asks for it. It names the next phase in its summary and asks the user
+  for an action only when a decision is needed, follows a cheaper or faster path
+  the user explicitly chose and labels its tradeoff without waiting unless it
+  involves a human-risk decision, and picks the better path as a recorded
+  AI-selected default when the user chose none.
+- `vibe-brainstorm` hands a conventions checklist that changes no behavior or
+  scope forward as AI-selected input without waiting for confirmation, and says
+  in its report whether the checklist or direction awaits the user or goes
+  forward. A direction chosen in `full` mode, and a checklist that changes
+  behavior or scope, still stop for the user.
+- `vibe-review` applies the recommended fix set, the valid in-scope `must-fix`
+  and narrow `minimal-hygiene` findings, without a selection prompt when the
+  request asks for fixes, and shows the remaining findings for audit. A
+  review-only request reports the findings and the recommended set and edits
+  nothing. Findings that need a user decision, carry high cascade risk, or
+  involve accepted residuals still prompt. Before the commit handoff it no
+  longer asks whether decision records and findings reports are tracked; they
+  join the commit only under the shared decision-records rule.
+- `vibe-agent-instructions` shows every change to an existing path in its report
+  and waits for confirmation only when the write would replace bytes the last
+  commit cannot restore (an untracked or ignored path, a path with uncommitted
+  changes, or a link whose target is such a path) or when the change departs
+  from the request. When ignore placement for the personal files is unsettled,
+  it uses the recommended `.gitignore` entry and reports the exact change, and
+  uses `.git/info/exclude` only when the user chooses it. When the reference
+  folder is unclear or several candidates exist, it chooses the best-fitting
+  existing folder, or `docs/agents/` when none fits, and reports the choice and
+  why instead of asking.
+- The shared `commit-selection-state-changing` block no longer has a workflow
+  ask whether a commit is wanted when nothing selects one; it leaves the changes
+  in the working tree and says so. A new file the unit's own change creates and
+  requires, such as new source or tests, now belongs to the unit unless it holds
+  a credential or secret, while generated output, scratch files, and reports
+  join a commit only on explicit tracking intent or mandatory coupling; an
+  unseparable mixed state is still reported and asked about. Rendered text
+  changed in `vibe-coding`, `vibe-commit`, `vibe-debug`, `vibe-orchestrate`,
+  `vibe-plan-execution`, and `vibe-review`.
+- `vibe-commit` file selection now treats a new source, test, or fixture file
+  that the unit's own change creates and requires as part of the unit unless it
+  holds a credential or secret. Generated output, scratch files, and reports
+  still need explicit tracking intent or another mandatory coupling.
+- The shared `decision-records` block no longer asks once per repository whether
+  decision records and findings reports are committed. A record or findings
+  report joins a checkpoint only when the repository already tracks its
+  directory or the user has said records are committed; otherwise it stays
+  untracked and the summary says so, without asking. Rendered text changed in
+  `vibe-agent-instructions`, `vibe-brainstorm`, `vibe-code-research`,
+  `vibe-coding`, `vibe-commit`, `vibe-debug`, `vibe-goal-alignment`,
+  `vibe-orchestrate`, `vibe-plan-execution`, `vibe-plan-review`,
+  `vibe-planning`, `vibe-requirements-spec`, `vibe-review`, and `vibe-writing`.
+- The shared `subagent-permission` block now has a phase whose `VIBE_SUBAGENTS`
+  value is unset, empty, unreadable, or invalid run its work without subagents
+  and say so instead of asking; an explicit `ask` still asks before the first
+  delegation, and an invalid value still never permits subagents. Rendered text
+  changed in `vibe-planning` and `vibe-requirements-spec`.
+- Repository maintenance: `AGENTS.md` gains "Approval Stop Rules". The `vibe-*`
+  skills and their eval assertions may stop for user input only on an unresolved
+  human-risk decision, a blocker, a material departure from the request, or a
+  checkpoint the user asked for. The human-risk condition also covers every
+  consent the shared contract or a skill keeps, and the checkpoint condition
+  includes a recorded user requirement of a skill. The carry-through of a
+  request across phases is scoped to `vibe-coding`, and a specialist invoked on
+  its own that ends at its phase boundary is not an approval stop. A change that
+  adds or widens a stop must name the protected decision, the failure scenario,
+  and the condition in its changelog entry. The `vibe-*` eval items were
+  rewritten to the new behavior but not run, so the behavioral effect is
+  unmeasured. The structural checks (`vibe_shared_contract.py check --strict`,
+  `audit-names`, and the test suite) pass.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 

@@ -69,10 +69,9 @@ docs, tutorials, a restated README, a file-by-file map, frequently changing
 facts, rules a linter enforces, and every multi-step procedure, which goes to a
 reference document.
 
-Reference folder: reuse a recognizable existing developer-docs location,
-naming it and why; ask when more than one candidate exists or the fit is
-unclear; otherwise use `docs/agents/`. Never move or rewrite existing docs;
-point at them. Each read-when entry gives a relative path and a specific
+Reference folder: reuse the best-fitting recognizable existing developer-docs
+location, or use `docs/agents/` when none fits; report the choice and why.
+Never move or rewrite existing docs; point at them. Each read-when entry gives a relative path and a specific
 trigger ("before changing the release workflow", "when a test fails only in
 the container"). Every listed path exists and holds the procedure it is cited
 for.
@@ -117,15 +116,17 @@ step 7. User content is never discarded.
 `AGENTS.override.md` and `CLAUDE.local.md` stay Git-ignored. Settle the
 placement before writing either one. It is settled when the user chose it, the
 current instruction names it, or the inventory shows both personal paths
-already ignored. Otherwise stop: show the pending personal-file contents and
-both options with the exact ignore-file change, and ask:
+already ignored. Otherwise use the recommended choice and report it with the
+exact ignore-file change:
 
 - a `.gitignore` entry, the recommended choice (team-visible; matches vendor
   guidance);
-- a `.git/info/exclude` entry (this checkout only).
+- a `.git/info/exclude` entry (this checkout only), only when the user
+  chooses it.
 
-Creating an absent `.gitignore` is part of this choice. The personal files and
-the ignore change are previewed, confirmed, and applied as one change set.
+The ignore-file write follows the preview rule; creating an absent
+`.gitignore` is a new-path write. The personal files and the ignore change are
+reported and applied as one change set.
 
 ## 8. Local rules and the managed block
 

@@ -71,8 +71,8 @@ does not fire on:
   message, a pasted log, or an audit report;
 - a bound plan's `Commit checkpoints` or similar metadata;
 - an action the request names as out of scope;
-- approval or readiness wording an active row already settles by asking, such
-  as "looks good, go ahead" after planning.
+- approval or readiness wording, such as "looks good, go ahead" after
+  planning, that continues the active workflow.
 
 When it fires, route to the visible goal-alignment specialist (usually
 `vibe-goal-alignment`) and stop for the user's answer. When none is visible,
@@ -95,19 +95,19 @@ Availability Gate. Row ids are classification labels, not route names.
 
 | Row | Matches | Owner (effect) | Boundary |
 | --- | --- | --- | --- |
-| `workflow-control` | `cancel workflow` or `replace workflow`; an unrelated top-level skill or mode invocation; a specialist's finish gate with no further related instruction; a stale-context clarification; an `unrelated ordinary request`. | Router (writes nothing) | Cancel or replace clears live routing state before anything else is classified; an unrelated request gets ordinary behavior and no routing state. |
+| `workflow-control` | `cancel workflow` or `replace workflow`; an unrelated top-level skill or mode invocation; a specialist's finish gate that completes the requested outcome, with no further related instruction; a stale-context clarification; an `unrelated ordinary request`. | Router (writes nothing) | Cancel or replace clears live routing state before anything else is classified; an unrelated request gets ordinary behavior and no routing state. |
 | `review` | A git-backed diff, working tree, branch, base ref, or git-backed plan or document change to review; a review/fix loop; continuing a review while excluding a finding, path, or package. A new runtime symptom, or a review fix that broke a core user journey, is `debug-and-repair`. | `vibe-review` (state-changing) | Commits only its own verified fixes, never the changes under review; an excluded surface stays non-editable and outside selectable fixes. |
 | `debug-and-repair` | A bug report, regression, failed prior fix, "still broken" feedback, tool, automation, or environment failure, or runtime artifact mismatch. A plan file the report names is context, not execution authority. | `vibe-debug` (state-changing) | A proven repair that would touch a second behavior or integration surface (its own tests and docs do not count) or change an interface another component calls stops after diagnosis and goes to `implementation-planning` or the user; any other proven repair checkpoints its own changes with no startup commit question; a diagnosis with no fix commits nothing. |
 | `plan-pre-check-walkthrough` | Walking through or pre-checking a saved implementation plan with the user, item by item, before execution. | `vibe-plan-review` (artifact-only) | Stops before implementation; completion is not proceed evidence; reflected changes stay uncommitted. Interactive only: under unattended or delegated operation, report that and stop instead of emulating item decisions. |
 | `commit-execution` | Stage, commit, split, amend, or repair history for current changes; a checkpoint that a bound plan item or a closing verified unit selects. | `vibe-commit` (state-changing); fallback in `references/route-selection.md` | The commit workflow's own file-set, staging, message, and verification gates. |
 | `writing` | A text deliverable — comments, docs, changelog, PR description, UI copy, commit-message text — with no review target and no history action. | `vibe-writing` (artifact-only) | Text edits stay uncommitted unless the user selects a commit. |
-| `plan-execution` | A clear request to execute, apply, or continue a known plan or slice, where the plan is concrete and bound and its proceed condition is ready or its accepted-risk condition is met. | `vibe-plan-execution` (state-changing) | The plan's scope, acceptance, coupling, verification, and review; each verified slice checkpoints through `commit-execution`, never inside execution. |
+| `plan-execution` | A clear request to execute, apply, or continue a known plan or slice, or the router's continuation toward a requested outcome that needs execution, where the plan is concrete and bound and its proceed condition is ready or its accepted-risk condition is met. | `vibe-plan-execution` (state-changing) | The plan's scope, acceptance, coupling, verification, and review; each verified slice checkpoints through `commit-execution`, never inside execution. |
 | `code-investigation` | A read-only question about existing code — how it works, where it lives, data flow, what a change would affect — with no edit, plan, or spec request. | `vibe-code-research` (read-only) | Findings authorize no edit, fix, plan, or commit. |
 | `creative-direction-exploration` | Brainstorming, alternatives, or convention and expected-behavior checks, with no request to save requirements and no edit or plan request. | `vibe-brainstorm` (read-only) | A chosen direction — marked AI-selected when a proxy chose it — is input to requirements or planning, never implementation authority. |
-| `implementation-planning` | An approved spec plus a request to move on; a supplied spec, acceptance criteria, task list, or concrete multi-surface request that needs a plan; creating or revising a plan. | `vibe-planning` (artifact-only) | Stops after the plan and its summary: no implementation and no plan commit in that response. |
+| `implementation-planning` | An approved spec plus a request to move on; a finished spec whose requested outcome needs a plan; a supplied spec, acceptance criteria, task list, or concrete multi-surface request that needs a plan; creating or revising a plan. | `vibe-planning` (artifact-only) | Stops after the plan and its summary: no implementation and no plan commit in that response. The router then routes `plan-execution` when the requested outcome needs it and no stop condition holds. |
 | `direct-implementation` | One concrete edit — a behavior, default, option, or component — whose surface, acceptance, and verification are stated or obvious, with no saved plan and no defect report. | Router (state-changing) | Only the requested edit, adding no optional feature or guard; it asks one question first when acceptance or verification is unclear, unless the answer would open a second surface, which makes the work `implementation-planning`; the edit stops and reports a defect in existing behavior, a second surface, or an unsettled acceptance it reveals, and the next turn goes to the row that owns it; the verified edit checkpoints through `commit-execution`. |
 | `maintenance` | Dependency updates, build repairs with no reported defect, test-only edits, release preparation the user explicitly requested, repository chores. | Router (state-changing) | The verified unit checkpoints through `commit-execution`; release, version, tag, and push each stay separately consent-bound. |
-| `requirements-specification` | A new vague, rough, contradictory, creative, non-technical, or underspecified coding goal; revising or approving the current spec; capturing a chosen direction durably. | `vibe-requirements-spec` (artifact-only) | Stops after the spec and its summary; never creates the plan in that response. |
+| `requirements-specification` | A new vague, rough, contradictory, creative, non-technical, or underspecified coding goal; revising or approving the current spec; capturing a chosen direction durably. | `vibe-requirements-spec` (artifact-only) | Stops after the spec and its summary; never creates the plan in that response. The router then routes `implementation-planning` when the requested outcome needs it and no stop condition holds. |
 
 When no row matches, report `no matching specialist`, continue with ordinary
 behavior, and keep no routing state for it.
@@ -115,10 +115,12 @@ behavior, and keep no routing state for it.
 Tie-breaks the order does not settle:
 
 - "Looks good", "ready", "continue", "go ahead", or a finished checklist
-  approves the current spec only when it clearly does, and requests execution
-  only when it clearly asks to execute the known plan. After planning, bare
-  "looks good, go ahead" is neither: ask whether to revise the plan or start
-  execution.
+  continues the workflow unless a stop condition holds: it finishes a spec
+  whose completion audit passes, and after planning, proceed wording such as
+  "go ahead" or "continue" starts `plan-execution` on the known plan. After a
+  plan the user asked to stop at, bare praise such as "looks good" ends the
+  workflow at the plan without a question, while proceed wording still starts
+  `plan-execution` on the known plan.
 - A request that names a plan, supplies a spec, acceptance criteria, or task
   list, or touches more than one surface is not `direct-implementation`, even
   when the user says no plan is needed: it is `implementation-planning`, or
@@ -147,11 +149,53 @@ Tie-breaks the order does not settle:
   broken, even when told to "make it work for now".
 
 Host delegation and scripted orchestration are transport inside one routed
-phase, never a route. When asked for one unattended run across phases, refuse
-that schedule, route only the immediate phase, and say that delegation may
-carry work only inside that phase under its specialist's rules; a blanket
-instruction to skip approvals approves nothing. One outer turn may run separate
-routes in sequence only as `references/phase-boundaries.md` allows.
+phase, never a route: the router chains phases itself, under Continuation And
+Stop Conditions, and delegation carries work only inside a phase under its
+specialist's rules. A request for speed, cost, or one unattended run narrows no
+material investigation (`references/delegation-and-proxy.md`), and a blanket
+instruction to skip approvals accepts no human-risk decision. One outer turn
+may run separate routes in sequence only as `references/phase-boundaries.md`
+allows.
+
+## Continuation And Stop Conditions
+
+A request carries the workflow through every phase its requested outcome
+needs, without routine approval questions: "write a spec" ends at the spec,
+"plan X" at the plan, and "build", "implement", or "fix X" continues through
+execution, review, and the local checkpoint commit of each verified unit. Stop
+and ask the user only when:
+
+- (a) an unresolved human-risk decision (the human-risk block below) is
+  reached, including a new account, device, installation, paid service, or
+  material effort the user must supply;
+- (b) something blocks the work: a contradicted premise; a missing fact, or an
+  `Unproven` item the current work depends on, that proof cannot settle; a
+  verification failure the phase cannot repair inside its scope; a defect in
+  the bound spec or plan; or changes that cannot be separated from the user's
+  own;
+- (c) continuing would add, drop, or change requested behavior or scope, or
+  override an explicit user instruction, including two readings that differ in
+  what gets built, stored, shown, migrated, or integrated when local evidence
+  cannot settle which is meant;
+- (d) the user asked for this stop, such as "spec only" or "show me the plan
+  first", or chose an interactive mode, such as the plan walkthrough, goal
+  alignment, or the requirements specialist's four-choice modes.
+
+Settle everything else — preference, wording, convention, ordering, test
+shape, approach, and a lower-priority unknown that no human-risk category
+covers, the current work does not need, and no acceptance criterion depends on
+— as recorded AI-selected defaults or assumptions, and report them.
+
+Record each phase you start toward the outcome in routing state, naming the
+phase started and the next phase the router starts after it: that record is
+the coordinator phase invocation the trusted-orchestration block below counts,
+so a phase the router starts this way runs under trusted top-level
+orchestration from its start. The request authorizes the next phase but never
+shows that one finished: continuing past a phase still needs the record of its
+current artifact path with identity or revision and its completion-audit or
+proceed outcome, as `references/phase-boundaries.md` sets out. Each
+specialist still ends its own response at its boundary; the next phase is a
+separate route in the same outer turn.
 
 ## Commit selection
 
@@ -159,14 +203,15 @@ routes in sequence only as `references/phase-boundaries.md` allows.
 <!-- shared-contract:begin commit-selection-state-changing source=shared/vibe-contract.md -->
 **Only an explicit user request, a bound plan item, or the workflow's own verified checkpoint selects a commit.**
 
-- Name the source before committing: the current user's request, an approved bound-plan checkpoint, or this workflow's checkpoint default for its own verified unit. With none, do not commit; ask whether a commit is wanted.
+- Name the source before committing: the current user's request, an approved bound-plan checkpoint, or this workflow's checkpoint default for its own verified unit. With none, do not commit; leave the changes in the working tree and say so.
 - Never treat routing, invocation, edit permission, a convenient stopping point, tracked changes, or an available commit workflow as a source. Commit execution has no checkpoint default of its own.
 - Checkpoint default: once a self-contained unit is implemented, verified, reviewed, and its material findings dispositioned, commit exactly that unit locally without waiting for a separate instruction; never let several units pile up uncommitted.
 - Select nothing from discovery-only, blocked, unchanged, failing, unverified, or work-in-progress state.
-- Stage only the unit: exclude pre-existing changes the workflow did not make, paths outside the unit, and any artifact that would become newly tracked; if the unit cannot be separated from other changes, report the mixed state and ask.
+- Stage only the unit: exclude pre-existing changes the workflow did not make and paths outside the unit; if the unit cannot be separated from other changes, report the mixed state and ask.
+- A new file the unit creates and requires, such as source or tests, belongs to it unless it holds a credential or secret; generated output, scratch files, and reports join only on explicit tracking intent or mandatory coupling.
 - Route each selected commit through commit execution with its scope, test and review evidence, exclusions, and any proposed message; that workflow owns staging, diff review, message transport, and post-commit verification.
 - Before a push, amend, rebase, HEAD-moving reset (soft, mixed, or hard), `filter-*` rewrite, or scripted replay of several commits, get the user's explicit authorization for that operation; a commit request or checkpoint never grants it, and published history is shared.
-- Never treat a commit request or checkpoint as consent to release, version changes, tags, stash, squash, destructive cleanup, force-adds, tracking a new artifact, or external side effects; each needs its own.
+- Never treat a commit request or checkpoint as consent to release, version changes, tags, stash, squash, destructive cleanup, force-adds, tracking a new artifact outside the unit, or external side effects; each needs its own.
 
 Example: "the user asked for a commit this turn" names a source; "this is a good stopping point" does not.
 
@@ -233,7 +278,8 @@ with the row, the absent specialist when the table, prompt, or metadata
 identifies it, and the availability source you checked. Keep the phase
 boundary: do not silently emulate the missing specialist, and ask whether to
 proceed without it when that affects risk, artifacts, or what the user
-expects. Router-owned rows are exempt and never report
+expects; the commit fallback in `references/route-selection.md` runs without
+that question. Router-owned rows are exempt and never report
 `matched-but-unavailable`.
 
 ## Auxiliary Capability Check
@@ -316,5 +362,5 @@ In the route report:
   `no matching specialist` in the user-facing summary itself.
 - Give brief rationale when the phase changes, the route is not obvious, or a
   specialist is unavailable; skip ceremony on ordinary same-phase turns.
-- Ask only for decisions that materially affect scope, behavior, data,
-  permissions, verification, or risk and that local evidence cannot settle.
+- Ask only for a decision one of the Continuation And Stop Conditions names,
+  and report the AI-selected defaults you settled instead of asking.

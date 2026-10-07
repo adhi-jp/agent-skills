@@ -37,11 +37,12 @@ decision record or findings entry before the unit closes.
 
 `cancel workflow` clears live routing state; `replace workflow` clears it and
 starts the new goal as a new workflow; an unrelated top-level skill or mode
-invocation, or a specialist's finish gate with no further related instruction,
-ends or suspends `vibe-coding`. A stale-context clarification asks one question
-and routes nothing until it is answered. At the finish gate, report an
-unpersisted carry-forward packet as unpersisted, with the one action that would
-persist it. This row writes nothing.
+invocation, or a specialist's finish gate that completes the requested outcome,
+with no further related instruction, ends or suspends `vibe-coding`. A
+stale-context clarification asks one question and routes nothing until it is
+answered. At the finish gate, report an unpersisted carry-forward packet as
+unpersisted, with the one action that would persist it. This row writes
+nothing.
 
 ## Commit Execution
 
@@ -52,9 +53,9 @@ transport shape. History authority stays with the commit workflow, project
 rules, and explicit user consent.
 
 When no commit-execution specialist is visible, report
-`matched-but-unavailable`. If the user chooses to proceed, run the commit under
-the commit-selection contract yourself, with the same file-set, message, and
-post-commit checks, taking message guidance from a visible `vibe-writing`, or
-otherwise from repository commit rules, recent local history, and any supplied
-checkpoint message. A skill that offers only a commit command may help execute
-that fallback; it is never the primary route.
+`matched-but-unavailable` and run the commit under the commit-selection
+contract yourself, without waiting for the user to choose to proceed, with the
+same file-set, message, and post-commit checks, taking message guidance from a
+visible `vibe-writing`, or otherwise from repository commit rules, recent local
+history, and any supplied checkpoint message. A skill that offers only a commit
+command may help execute that fallback; it is never the primary route.

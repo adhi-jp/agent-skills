@@ -51,6 +51,20 @@
 - A change to `shared/vibe-contract.md` requires one `## [Unreleased]` entry in `CHANGELOG.md` naming the block and every dependent skill whose rendered text changed; the change coupling rules apply to each dependent.
 - Each dependent skill's version is decided at release under the release rules above. A change to the shared source does not itself bump any version.
 
+## Approval Stop Rules
+
+- The `vibe-*` skills run autonomously. Under `vibe-coding`, a request carries work through every phase its outcome needs, including the local checkpoint commit of each verified unit, without routine approval questions.
+- Skill instructions and eval assertions may make an agent stop for user input only when one of these holds:
+  - (a) an unresolved human-risk decision, including a new account, device, installation, paid service, or material effort the user must supply, or any consent the shared contract or a skill keeps: push, history rewrite, release, version, tag, stash, squash, force-add, tracking a new artifact outside the unit, destructive cleanup, external side effects, and credentials;
+  - (b) a blocker: a contradicted premise, a missing fact or depended-on `Unproven` item that proof cannot settle, a verification failure the phase cannot repair inside its scope, a defect in the bound spec or plan, or changes inseparable from the user's own;
+  - (c) a material departure: continuing would add, drop, or change requested behavior or scope, or override an explicit user instruction, including readings that differ in what gets built when local evidence cannot settle which is meant;
+  - (d) a checkpoint the user asked for, in the current request or as a recorded user requirement of the skill (such as the `vibe-agent-instructions` divergence gate), or an interactive mode the user chose.
+- Never treat any of these as a reason to stop: a phase transition; a finished spec or plan; a passing audit or review; a verified unit or clean checkpoint commit; a delegable preference; symmetry with another skill; a model-tuning or large rewrite pass; an eval that failed because the model did not ask; "to be safe"; "the user may want to know". Report instead of asking.
+- When a specialist invoked on its own ends its response at its phase boundary and names the next phase, that is not an approval stop.
+- A change set that adds a user stop, approval, confirmation, consent, or commit question, or widens when one fires, must name in its `CHANGELOG.md` entry the protected decision, the concrete failure scenario, and which condition above it falls under. A new condition category requires the user's explicit instruction. When unsure, add nothing and list the stop for the user as a candidate.
+- An eval assertion may require a stop only where the skill text states that stop.
+- This section relaxes no consent rule: every consent listed under (a) stays explicit.
+
 ## Local Skill Snapshot Rules
 
 - Local skill snapshot paths under `.agents/skills/` and `.claude/skills/` are managed copies, not source. Do not edit, copy into, remove, recreate, stage, or commit them directly, and do not modify them as a side effect of other work. Reading them for reference (for example, to understand a skill that exists only as a snapshot) is allowed.

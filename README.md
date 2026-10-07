@@ -19,8 +19,11 @@ These are representative host syntaxes. `vibe-coding` classifies the
 instruction into one row of its decision table and routes only specialist-owned
 rows to a visible specialist; router-owned rows (workflow control, direct
 implementation, maintenance) run as the router's own behavior under the shared
-contract. It does not run every phase at once or bypass the selected
-specialist's approval, write, verification, or stop rules.
+contract. It carries a request through every phase its outcome needs, one
+separate route at a time, and stops for the user only on a human-risk decision,
+a blocker, a material departure from the request, or a checkpoint the user
+asked for; it never bypasses the selected specialist's approval, write,
+verification, or stop rules.
 The examples assume the host can already see the skill. Host installation is
 environment-specific; `scripts/sync_dev_agent_skills.py` only manages this
 checkout's local `.agents/skills/` snapshots and `.claude/skills/` links.
@@ -39,7 +42,7 @@ acting. Repository contributors must also follow [`AGENTS.md`](AGENTS.md).
 
 | Task | Skill | Important boundary | Package |
 | --- | --- | --- | --- |
-| Route an explicitly invoked, multi-turn coding workflow | `vibe-coding` | Classifies each turn into one row of a precedence-ordered decision table after a narrowly triggered goal-alignment gate; routes specialist-owned rows only to a visible specialist and preserves its gates; performs the router-owned `direct-implementation` and `maintenance` rows itself under the shared effect and commit boundaries; and keeps routing state, approvals, proceed decisions, and stop boundaries in the conversation | [source](skills/vibe-coding/SKILL.md) · [evals](evals/vibe-coding/) |
+| Route an explicitly invoked, multi-turn coding workflow | `vibe-coding` | Classifies each turn into one row of a precedence-ordered decision table after a narrowly triggered goal-alignment gate; routes specialist-owned rows only to a visible specialist and preserves its gates; performs the router-owned `direct-implementation` and `maintenance` rows itself under the shared effect and commit boundaries; chains the phases a request's outcome needs as separate routes, stopping only for human risk, a blocker, a material departure, or a requested checkpoint; and keeps routing state and stop boundaries in the conversation | [source](skills/vibe-coding/SKILL.md) · [evals](evals/vibe-coding/) |
 | Confirm or correct the agent's understanding before ambiguous or risky work | `vibe-goal-alignment` | Produces an understanding record and stops before action until the user confirms or corrects it | [source](skills/vibe-goal-alignment/SKILL.md) · [evals](evals/vibe-goal-alignment/) |
 | Coordinate bounded subagent research, edits, repairs, or review | `vibe-orchestrate` | The coordinator keeps scope, verification, and consent ownership, treats an explicit external-model request as authorization for its necessary task inputs without repeated transmission consent, bounds optional rounds by the goal and effort envelope, recommends deferring optional or agent-found work that no request, report, or documented contract names, sends a finding that contradicts documented intent to that contract's owner instead of repairing it, and verifies command effects and tested artifacts; treats worker output as non-authorizing; and selects external write lanes by required effects plus isolation and receipts, with free-text residual risk and report/manifest/Git reconciliation before acceptance; qualifying coordinator decisions that bind later rounds become decision records and dropped or later-round items go to `docs/reports/findings/` | [source](skills/vibe-orchestrate/SKILL.md) · [evals](evals/vibe-orchestrate/) |
 
@@ -48,7 +51,7 @@ acting. Repository contributors must also follow [`AGENTS.md`](AGENTS.md).
 | Task | Skill | Important boundary | Package |
 | --- | --- | --- | --- |
 | Turn a rough, ambiguous, or contradictory goal into requirements | `vibe-requirements-spec` | Uses adaptive clarification, exposes human verification effort and supported-environment assumptions, keeps high-risk decisions human-owned and outside-authored raw text out of secondary sinks, and stops before planning or implementation | [source](skills/vibe-requirements-spec/SKILL.md) · [evals](evals/vibe-requirements-spec/) |
-| Explore implementation ideas, alternatives, or expected conventions | `vibe-brainstorm` | Returns chat-first multi-perspective directions; delegation is optional, and a selected direction is not implementation approval | [source](skills/vibe-brainstorm/SKILL.md) · [evals](evals/vibe-brainstorm/) |
+| Explore implementation ideas, alternatives, or expected conventions | `vibe-brainstorm` | Returns chat-first multi-perspective directions; delegation is optional, a conventions checklist that changes no behavior or scope is handed forward without waiting, and a selected direction is not implementation approval | [source](skills/vibe-brainstorm/SKILL.md) · [evals](evals/vibe-brainstorm/) |
 | Understand, locate, trace, or assess existing code | `vibe-code-research` | Read-only; direct lookups stay concise, and material negative/architecture/risk conclusions receive a disconfirming check | [source](skills/vibe-code-research/SKILL.md) · [evals](evals/vibe-code-research/) |
 | Create or revise an implementation plan from approved or concrete inputs | `vibe-planning` | Writes concise plan artifacts with explicit human verification costs and supported-operation proof, and stops before implementation; reserved decisions stay authority-bounded, and risk-triggered review uses verified-capacity or one bounded optimistic batch before coordinator fallback | [source](skills/vibe-planning/SKILL.md) · [evals](evals/vibe-planning/) |
 | Walk through a saved implementation plan item by item | `vibe-plan-review` | Interactive pre-check; review state stays in chat unless resumability needs persistence, exact target/state mismatches fail closed, a settled item decision that qualifies becomes a decision record, and it stops before implementation | [source](skills/vibe-plan-review/SKILL.md) · [evals](evals/vibe-plan-review/) |
@@ -61,7 +64,7 @@ acting. Repository contributors must also follow [`AGENTS.md`](AGENTS.md).
 | Task | Skill | Important boundary | Package |
 | --- | --- | --- | --- |
 | Write or revise README/docs, comments, changelog entries, PR text, UI copy, summaries, or commit messages | `vibe-writing` | Preserves facts, modality, exact formats, and language contracts; it does not authorize releases or broader history work | [source](skills/vibe-writing/SKILL.md) · [evals](evals/vibe-writing/) |
-| Create, refresh, or localize a repository's agent instruction files (AGENTS.md, CLAUDE.md, personal local rules) | `vibe-agent-instructions` | Explicit invocation only; AGENTS.md is the source, CLAUDE.md is a relative link, a documented import stub when links are unavailable, or an import-plus-remainder file when Claude-specific content exists, personal rules live in a Git-ignored AGENTS.override.md with a linked CLAUDE.local.md, detailed procedures live in a pointer-referenced docs folder, existing paths are previewed before any write, known divergences are reported before the policy is applied, and it never stages or commits | [source](skills/vibe-agent-instructions/SKILL.md) · [evals](evals/vibe-agent-instructions/) |
+| Create, refresh, or localize a repository's agent instruction files (AGENTS.md, CLAUDE.md, personal local rules) | `vibe-agent-instructions` | Explicit invocation only; AGENTS.md is the source, CLAUDE.md is a relative link, a documented import stub when links are unavailable, or an import-plus-remainder file when Claude-specific content exists, personal rules live in a Git-ignored AGENTS.override.md with a linked CLAUDE.local.md, detailed procedures live in a pointer-referenced docs folder, existing-path writes are shown in the report and wait for confirmation only when the replaced bytes cannot be restored from the last commit, an unsettled ignore placement defaults to `.gitignore`, known divergences are reported and asked about before the policy is applied, and it never stages or commits | [source](skills/vibe-agent-instructions/SKILL.md) · [evals](evals/vibe-agent-instructions/) |
 | Select files, stage, commit, split changes, or repair commit history and message transport | `vibe-commit` | Owns artifact eligibility, commit scope, tested-input versus candidate-content reconciliation when runtime acceptance is a commit prerequisite, exact-diff message reconciliation with concern coverage and drift invalidation, and git safety, including successful historical queries before their results can authorize a rewrite; it does not push or rewrite shared history without explicit consent | [source](skills/vibe-commit/SKILL.md) · [evals](evals/vibe-commit/) |
 
 ### Maintain skills and run evals
@@ -89,16 +92,24 @@ new measurement series; do not interpret older rates as a like-for-like trend.
 The chooser above is intentionally brief. The selected `SKILL.md` is the source
 of truth when a summary and a detailed contract differ.
 
-- A skill owns one workflow phase. Requirements work does not silently become
-  planning, planning does not become implementation, and read-only
-  investigation does not become a fix.
-- Approval, proceed, accepted-risk, and consent gates remain explicit. An
-  AI-selected default or delegated recommendation is not human approval.
+- A skill owns one workflow phase and ends its response at that phase's
+  boundary: requirements work does not silently become planning, planning does
+  not become implementation, and read-only investigation does not become a fix.
+  `vibe-coding` starts the next phase a request's outcome needs as a separate
+  route.
+- Workflows stop for the user only on a human-risk decision, a blocker, a
+  material departure from the request, or a checkpoint the user asked for, and
+  settle everything else as reported AI-selected defaults. Human-risk,
+  accepted-risk, and consent decisions remain explicit; an AI-selected default
+  or delegated recommendation is not human approval.
 - A state-changing workflow closes each verified, reviewed unit of its own
   changes with a scoped local commit, without needing a per-request commit
   instruction; a no-commit instruction or project policy suspends that. The
-  commit covers only that unit — never pre-existing working-tree changes, an
-  artifact whose tracked status would itself be new, or paths outside it.
+  commit covers only that unit, including new files its own change creates and
+  requires, such as source or tests, unless a file holds a credential or secret
+  — never pre-existing working-tree changes, paths outside it, or newly tracked
+  generated output, scratch files, or reports without explicit tracking intent
+  or mandatory coupling.
 - Artifact creation, tracking, staging, commit, release-note inclusion, and
   publishing are separate lifecycle transitions with their own authority.
 - A qualifying decision — one that binds work beyond the current unit and was

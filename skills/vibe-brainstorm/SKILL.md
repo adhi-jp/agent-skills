@@ -7,9 +7,10 @@ description: Use when the user explicitly asks for vibe brainstorming, creative 
 # Vibe Brainstorm
 
 Turn an underspecified creative request into ideas, expected behavior, and a
-direction to confirm. This is a read-only, pre-implementation phase: a
-trusted proxy may select input for later requirements or planning, but it is
-not user confirmation or implementation authorization.
+direction or checklist to carry forward. This is a read-only,
+pre-implementation phase: a trusted proxy may select input for later
+requirements or planning, but it is not user confirmation or implementation
+authorization.
 
 ## Use and mode
 
@@ -114,7 +115,8 @@ Keep the result in chat unless the user explicitly requests a saved artifact.
 
 Report the mode and delegation state, labeling locally produced results
 coordinator-derived; the checklist and candidates where generated; selection or
-skipped stages; and the exact checklist or direction requiring confirmation.
+skipped stages; and the exact checklist or direction, saying whether it awaits
+user confirmation or goes forward as AI-selected input.
 Summarize conclusions, evidence, tradeoffs, and open questions, never private
 reasoning.
 
@@ -126,6 +128,8 @@ records; its packet remains unpersisted until a later writing phase records it.
 
 ## Handoff
 
-Stop at user-confirmed direction or proxy selection. Hand the outcome forward
-as a carry-forward packet; without confirmation, do not implement, edit,
-stage, commit, or call it approved.
+Stop at the user's pick of a `full` direction or a proxy selection, and for
+user confirmation of a checklist that changes behavior or scope; hand any
+other `conventions` checklist forward as AI-selected input without waiting.
+Hand the outcome forward as a carry-forward packet; without user
+confirmation, do not implement, edit, stage, commit, or call it approved.

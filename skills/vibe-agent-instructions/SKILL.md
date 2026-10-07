@@ -37,10 +37,12 @@ for both.
 - **Preview every write to a path that already exists** (regular file,
   symbolic link, reference document, `.gitignore`, `.git/info/exclude`): show
   its diff or its complete new content (for a path replaced by a link, the
-  link target) and wait for confirmation. New paths are written directly and
-  reported, except an absent `.gitignore`, which belongs to the
-  ignore-placement choice. Without a confirmation channel, stop at the first
-  preview and report.
+  link target) in the report. Wait for confirmation only when the write would
+  replace bytes the last commit cannot restore (an untracked or ignored path,
+  a path with uncommitted changes, or a link whose target is such a path) or
+  when the change departs from the request. New paths, including an absent
+  `.gitignore`, are written directly and reported. Without a confirmation
+  channel, stop at the first preview that waits and report.
 - **Advance confirmation** in the user's current instruction authorizes
   exactly the change set then shown. It drops the wait, not the preview: the
   report still shows each change. It never chooses between alternatives, such
@@ -154,12 +156,13 @@ run before anything is written.
 3. Divergence gate; when the evidence is possibly stale, also ask whether to
    proceed on it or supply fresher evidence.
 4. Analyze the repository; invent nothing.
-5. Create or update `AGENTS.md` and its reference documents; when more than
-   one reference-folder candidate exists or the fit is unclear, ask which to
-   use and write nothing until answered.
+5. Create or update `AGENTS.md` and its reference documents; choose the
+   best-fitting existing reference folder, or `docs/agents/` when none fits,
+   and report the choice and why.
 6. Derived `CLAUDE.md`, and classification of existing derived files.
-7. Ignore placement for the personal files; when it is not settled, stop and
-   ask before writing either one.
+7. Ignore placement for the personal files, settled before writing either
+   one; when unsettled, use the recommended `.gitignore` entry, and
+   `.git/info/exclude` only when the user chooses it.
 8. Local rules: the managed block, then `CLAUDE.local.md`.
 9. Size guard.
 10. Report.

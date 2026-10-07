@@ -35,12 +35,14 @@ instead of silently completing the cheaper path.
 
 ## Proxy Decisions
 
-When a routed phase would otherwise ask the user a series of delegable
-questions — preference, wording, ordering, low-risk scope trimming, convention,
-test shape, or implementation approach — use that specialist's proxy-decision
-branch when it has one, with permitted sub-agents as user, domain, or risk
-perspectives. A proxy decision is an AI-selected default, assumption, or
-direction recorded in the specialist's artifact language; it is never human
-approval and never finish, handoff, proceed, accepted-risk, or consent
-evidence. Human-risk decisions (the list in `SKILL.md`) still need explicit
-human-user acceptance. The plan pre-check walkthrough has no proxy branch.
+When a routed phase would otherwise ask the user delegable questions —
+preference, wording, ordering, low-risk scope trimming, convention, test shape,
+or implementation approach — settle them through that specialist's
+proxy-decision branch when it has one, with permitted sub-agents as user,
+domain, or risk perspectives; without permitted sub-agents, the phase settles
+them itself as recorded AI-selected defaults. A proxy decision or AI-selected
+default is a default, assumption, or direction recorded in the specialist's
+artifact language; it is never human approval and never finish, handoff,
+proceed, accepted-risk, or consent evidence. Human-risk decisions (the list in
+`SKILL.md`) still need explicit human-user acceptance. The plan pre-check
+walkthrough has no proxy branch.

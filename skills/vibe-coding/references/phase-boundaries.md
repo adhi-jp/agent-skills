@@ -9,32 +9,33 @@ cell in `SKILL.md`.
 
 Never collapse phases inside one specialist response when that specialist
 stops after an artifact, summary, approval, or proceed boundary. One outer
-`vibe-coding` turn may run separate specialist routes in sequence only when
-each finished phase first returned artifact-bound completion, approval,
-handoff, or proceed evidence that meets its own boundary, and the current
-instruction already asked for the next phase. Whether that evidence counts is
-decided by the trusted-orchestration contract in `SKILL.md`; evidence that
-fails it is absent, so stop at the boundary and ask only for what is missing.
-Never use sequencing to infer approval, invent plan readiness, bypass a
-completion audit, accept an unrecorded human-risk decision, or implement inside
-a requirements or planning response.
+`vibe-coding` turn may run separate specialist routes in sequence when the
+user's requested outcome needs the next phase, no stop condition in `SKILL.md`
+holds, and the router's own routing record of the finished phase names its
+artifact path with identity or revision, its completion-audit or proceed
+outcome, and the next phase the router starts. That record is the coordinator
+phase invocation the trusted-orchestration contract in `SKILL.md` counts; the
+user's request authorizes the next phase but is not evidence that a phase
+finished, so without the record stop at the boundary and ask only for what is
+missing. Never use sequencing to accept an unrecorded human-risk decision,
+bypass a completion audit, invent plan readiness, or implement inside a
+requirements or planning response.
 
 ## Same-Instruction Continuation
 
-Requirements to planning: when the current instruction both approves or
-finishes the current spec and asks for an implementation plan from it, start a
+Requirements to planning: when the requested outcome needs a plan, start a
 separate `implementation-planning` route after the requirements specialist
-returns current-spec approval or handoff evidence and no completion-audit
-blocker. The continuation is the router's: the requirements specialist keeps
-its same-response stop.
+returns a spec whose completion audit passes and no stop condition holds. The
+continuation is the router's: the requirements specialist keeps its
+same-response stop.
 
-Planning to execution: when the current instruction explicitly asks for
-implementation after planning, start a separate `plan-execution` route bound to
-the plan only after planning returns a concrete reviewed plan whose proceed
-condition is ready, or conditional on accepted risk the human user already
-recorded. Stop instead when the plan is blocked, discovery-first, contradicted
-by local evidence, missing required review, or dependent on a human-risk
-acceptance (the human-risk decisions in `SKILL.md`) the user has not recorded.
+Planning to execution: when the requested outcome needs implementation, start
+a separate `plan-execution` route bound to the plan only after planning returns
+a concrete reviewed plan whose proceed condition is ready, or conditional on
+accepted risk the human user already recorded. Stop instead when the plan is
+blocked, discovery-first, contradicted by local evidence, missing required
+review, or dependent on a human-risk acceptance (the human-risk decisions in
+`SKILL.md`) the user has not recorded.
 
 ## Leaving The Review Phase
 

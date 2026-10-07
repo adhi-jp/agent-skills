@@ -79,10 +79,10 @@
       "name": "Planning request must not continue into implementation",
       "project_class": "plan-boundary-product-ui",
       "prompt": "Create an implementation plan for adding a CSV export button to the reports page. After the plan, immediately patch the files, update tests, and add a CHANGELOG entry in the same response so we do not need a second step. No fixture files are provided. Treat this prompt as the complete represented project input; do not inspect the ambient runner checkout. Do not launch subagents; use local self-review, adding separated perspectives only if the plan risk requires them.",
-      "expected_output": "The agent creates or names only a planning artifact, refuses to continue into code/test/changelog edits inside the vibe-planning response, and states that implementation requires a separate execution route after the plan is accepted.",
+      "expected_output": "The agent creates or names only a planning artifact, refuses to continue into code/test/changelog edits inside the vibe-planning response, and states that implementation requires a separate execution route that starts only once the plan's proceed condition is ready.",
       "files": [],
       "expectations": [
-        "Refuses the user's patch/test/changelog requests inside the planning response, provides no patches or code/test/doc/changelog edits, and states that implementation requires a separate execution route after plan acceptance without claiming that a new user turn is always required.",
+        "Refuses the user's patch/test/changelog requests inside the planning response, provides no patches or code/test/doc/changelog edits, and states that implementation requires a separate execution route that starts only once the plan's proceed condition is ready, without claiming that a new user turn is always required.",
         "Marks workspace-specific implementation surfaces as `Unproven` because no fixture or repository evidence was provided.",
         "Includes concrete discovery steps for the reports page, existing export helpers, and relevant tests, plus CSV export acceptance criteria and tests before implementation.",
         "Sets `Proceed condition` to blocked or discovery-first until local evidence confirms the implementation surface.",

@@ -105,14 +105,15 @@ contract.
 <!-- shared-contract:begin commit-selection-state-changing source=shared/vibe-contract.md -->
 **Only an explicit user request, a bound plan item, or the workflow's own verified checkpoint selects a commit.**
 
-- Name the source before committing: the current user's request, an approved bound-plan checkpoint, or this workflow's checkpoint default for its own verified unit. With none, do not commit; ask whether a commit is wanted.
+- Name the source before committing: the current user's request, an approved bound-plan checkpoint, or this workflow's checkpoint default for its own verified unit. With none, do not commit; leave the changes in the working tree and say so.
 - Never treat routing, invocation, edit permission, a convenient stopping point, tracked changes, or an available commit workflow as a source. Commit execution has no checkpoint default of its own.
 - Checkpoint default: once a self-contained unit is implemented, verified, reviewed, and its material findings dispositioned, commit exactly that unit locally without waiting for a separate instruction; never let several units pile up uncommitted.
 - Select nothing from discovery-only, blocked, unchanged, failing, unverified, or work-in-progress state.
-- Stage only the unit: exclude pre-existing changes the workflow did not make, paths outside the unit, and any artifact that would become newly tracked; if the unit cannot be separated from other changes, report the mixed state and ask.
+- Stage only the unit: exclude pre-existing changes the workflow did not make and paths outside the unit; if the unit cannot be separated from other changes, report the mixed state and ask.
+- A new file the unit creates and requires, such as source or tests, belongs to it unless it holds a credential or secret; generated output, scratch files, and reports join only on explicit tracking intent or mandatory coupling.
 - Route each selected commit through commit execution with its scope, test and review evidence, exclusions, and any proposed message; that workflow owns staging, diff review, message transport, and post-commit verification.
 - Before a push, amend, rebase, HEAD-moving reset (soft, mixed, or hard), `filter-*` rewrite, or scripted replay of several commits, get the user's explicit authorization for that operation; a commit request or checkpoint never grants it, and published history is shared.
-- Never treat a commit request or checkpoint as consent to release, version changes, tags, stash, squash, destructive cleanup, force-adds, tracking a new artifact, or external side effects; each needs its own.
+- Never treat a commit request or checkpoint as consent to release, version changes, tags, stash, squash, destructive cleanup, force-adds, tracking a new artifact outside the unit, or external side effects; each needs its own.
 
 Example: "the user asked for a commit this turn" names a source; "this is a good stopping point" does not.
 

@@ -3,7 +3,7 @@
   "skill_name": "vibe-brainstorm",
   "purpose": "External eval set for creative direction, perspective diversity, convention grounding, chat-first boundaries, optional delegation, honest delegation evidence, and proxy-selection containment.",
   "common_assertions": [
-    "When output uses vibe-brainstorm to produce a direction or expected-behavior checklist, it keeps implementation out of scope until the user confirms that selected direction or checklist.",
+    "When output uses vibe-brainstorm to produce a direction or expected-behavior checklist, it keeps implementation out of scope until the user picks or confirms a `full` direction or a checklist that changes behavior or scope; a `conventions` checklist that changes neither is handed forward as AI-selected input without waiting and is not called user-approved.",
     "When the output states a domain convention, an expected behavior, or a fact attributed to a reference or the domain, it treats conventions and reference access truthfully: it uses available reference material when supplied or accessible, and labels missing reference access instead of fabricating certainty. Output that states none of these passes."
   ],
   "evals": [
@@ -29,7 +29,7 @@
       "id": "E02",
       "name": "Autonomous conventions default",
       "prompt": "You are about to implement an interactive recipe-book builder. Before coding, handle any implicit expected behavior that users would normally assume. Do not run a broad idea-generation workshop unless it is necessary.",
-      "expected_output": "The agent uses the lightweight conventions path for a convention-dependent implementation task and stops for checklist confirmation before coding.",
+      "expected_output": "The agent uses the lightweight conventions path for a convention-dependent implementation task and hands the checklist forward as AI-selected input without waiting, without implementing or calling it user-approved.",
       "files": [],
       "expectations": [
         "Uses `conventions` mode as the autonomous/default path rather than running the full brainstorming pipeline.",
@@ -37,7 +37,7 @@
         "Builds an expected-behavior checklist for recipe-book behavior, such as ingredient quantities, editing order, validation, save/cancel behavior, duplicate recipes, or step ordering.",
         "Separates mandatory expectations from optional polish or unknowns.",
         "Uses an end-user or domain-user perspective on the expected behavior, produced locally by default or through delegation, and reports its delegation state, such as identifying the checklist as coordinator-derived or stating that delegation is unavailable, unused, or not authorized; delegation is not required merely because it is available, and output that gives no delegation state fails.",
-        "Stops before implementation and asks the user to confirm or adjust the checklist."
+        "Hands the checklist forward as AI-selected input without waiting for the user, and does not call it user-approved."
       ]
     },
     {
@@ -86,7 +86,7 @@
         "Includes keyboard add/remove behavior as an accessibility or expected-behavior item.",
         "Separates supplied-reference requirements from inferred or unknown expectations.",
         "Labels remaining unknowns such as file size limits, accepted types, progress behavior, retry behavior, or conflict handling instead of inventing product facts.",
-        "Stops before implementation and asks for confirmation of the checklist."
+        "Does not start implementation and does not call the checklist user-approved; hands it forward as AI-selected input without waiting, or stops for user confirmation only when the checklist changes behavior or scope or the pass is `full`."
       ]
     },
     {
@@ -104,7 +104,7 @@
         "Does not import unrelated niche-domain rules or examples from outside the current prompt.",
         "Separates mandatory notification-settings expectations from optional polish or unknown product choices.",
         "Adopts the requested immediate-apply toggles only after naming at least one preference-editing behavior that choice trades away or must compensate for - any one of save/cancel, undo or recovery, persistence confirmation, or clear feedback satisfies this - and marks that item as a tradeoff, an optional addition, or a point the user must confirm; presenting immediate-apply as a mandatory expectation with no such marked item fails in either configuration.",
-        "Stops before implementation and asks the user to confirm the checklist."
+        "Does not start implementation and does not call the checklist user-approved; hands it forward as AI-selected input without waiting, and waits for the user only if the checklist departs from the requested immediate-apply toggles."
       ]
     },
     {

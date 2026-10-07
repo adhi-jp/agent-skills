@@ -427,16 +427,18 @@ out-of-context hardening, and material target growth. Findings that refine the
 immediately previous cycle's accepted text, tests, fixtures, runbooks, or policy
 without a new DoD violation are `reject-noise`, not automatic follow-up work.
 
-## User Selection
+## Fix Selection
 
 After validity and scope triage, show normal findings and lightweight
 specification gaps separately. Invalid, `reject-out-of-scope`, and
 `reject-noise` findings remain visible for audit but are not ordinary
 fix-selection candidates.
 
-Offer a recommended fix set and bulk choices before per-finding selection.
-Recommended sets may include `must-fix` and narrow `minimal-hygiene` findings
-only after validity and scope checks pass. User selection does not authorize
+The recommended fix set is the valid, in-scope `must-fix` and narrow
+`minimal-hygiene` findings once validity and scope checks pass. When the
+request asks for fixes, select that set without a selection prompt and show
+the remaining findings for audit; a review-only request reports the findings
+and the recommended set and edits nothing. Selection does not authorize
 ungated edits; cascade containment still runs first.
 
 ## Cascade Containment
@@ -545,8 +547,9 @@ states what selects the commit, what its scope may cover, what suspends it, and
 what stays separately consent-bound: hand the verified cumulative fix scope,
 terminal audit, isolation status, and conflict-safety evidence to the normal
 commit-execution workflow. Before that handoff, sweep for qualifying decisions
-without a decision record and ask the once-per-repository tracking question
-when the fix scope includes a new decision record or findings report.
+without a decision record; a new decision record or findings report joins the
+handoff only as the decision-records rule in `references/durable-records.md`
+allows.
 
 When the fixes cannot be separated from the pre-existing changes under review,
 keep them uncommitted and say so.

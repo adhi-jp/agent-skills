@@ -75,8 +75,10 @@ Read this reference before drafting or revising the implementation-plan body. It
      interview. Requirement changes and human-risk decisions stay with the user.
    - Do not default to a technically cheap path that a reasonable user would
      notice as worse recovery, clarity, accessibility, performance, data safety,
-     or workflow fit: label the tradeoff, offer the better alternative, and
-     record the user's choice or `Accepted risk`.
+     or workflow fit. When the user explicitly chose the cheaper or faster path,
+     follow it, label the tradeoff, and do not wait, unless it involves a
+     human-risk decision; when the user did not choose, pick the better path as
+     a recorded AI-selected default.
    - For non-technical users, offer concrete choices with consequences in plain
      language and recommend the first slice local evidence supports.
    - A decision deliberately left for a later answer becomes a `Reserved

@@ -54,7 +54,7 @@ Chosen: <option>, because <reason>. <The rule, in imperative form.>
 - Re-propose an option an accepted record rejected only with new evidence, and stop with a finding when two applicable accepted records conflict.
 - Cite the record id from specs, plans, and ledgers instead of restating its rationale. Run applicable `confirmation` checks at review or verification.
 - At commit time, report a diff touching an accepted record's `paths` unless it conforms or the same commit carries the superseding record.
-- Ask the user once per repository, at the first checkpoint that would include a record or findings report, whether they are committed; record the answer as a decision, and until then leave the files untracked and say so.
+- Include a record or findings report in a checkpoint only when the repository already tracks its directory or the user has said records are committed; otherwise leave the files untracked and say so in the summary, without asking.
 - A phase that may not write hands the decision forward in its summary as a packet — decision, rejected alternatives, rationale, provenance, scope, proposed status — marked unpersisted, naming the writing phase that would record it; never call it durable.
 
 Example: choosing UTC for persisted timestamps after rejecting local time is recorded although the rule is visible in the code; one retry added to one call is not.

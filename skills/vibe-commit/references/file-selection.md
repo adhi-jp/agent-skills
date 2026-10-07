@@ -22,9 +22,13 @@ Read new or surprising files before classifying them.
 
 Discovery makes a path a candidate, not commit-authorized. A new untracked file
 needs explicit tracking intent or a mandatory repository/workflow coupling;
-relevance, location, or same-session creation is not enough. Keep required
-tracked tests, docs, and dependency support with their logical change. State any
-deliberately untracked ambiguous path in the summary.
+relevance, location, or same-session creation is not enough. A new source,
+test, or fixture file that the unit's own change creates and requires is such a
+coupling and joins the unit, unless it holds a credential or secret. Generated
+output, scratch files, and reports still need explicit tracking intent or
+another mandatory coupling. Keep required tracked tests, docs, and dependency
+support with their logical change.
+State any deliberately untracked ambiguous path in the summary.
 
 ## Select one logical change
 
