@@ -67,7 +67,10 @@ and `docs/reports/findings/`, or their existing repository equivalents.
 ## Visible Output And Debug Ledger
 
 For one simply reproduced symptom, report symptom, expected behavior, verified
-cause, fix, and proof directly. Use `references/debug-ledger.md` for recurrent,
+cause, fix, and proof directly. When the response precedes a repair, such as a
+diagnosis plan or next actions, name the expected-behavior source to consult, or
+say none is known, and a fast observation that could disprove the preferred
+cause. Use `references/debug-ledger.md` for recurrent,
 multi-symptom, multi-environment, long-running, interrupted, or user/runtime-retest
 diagnosis. Show compact rows for unresolved symptoms, hypotheses, tool failures,
 and closure decisions; a question alone does not replace that record.

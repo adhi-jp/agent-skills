@@ -285,6 +285,12 @@ use `[Repository] - YYYY-MM-DD`.
 - Verification for `vibe-commit` after the changes above: closing codex
   `gpt-6-luna` full-suite run with three runs per case, `with_skill` 98.3%
   against `without_skill` 73.5%.
+- `vibe-debug` names, in a diagnosis plan or next actions that precede a
+  repair, the expected-behavior source to consult, or says none is known, and
+  a fast observation that could disprove the preferred cause.
+- Verification for `vibe-debug` after the changes above: closing codex
+  `gpt-6-luna` full-suite run with three runs per case, `with_skill` 91.9%
+  against `without_skill` 73.6%.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 
