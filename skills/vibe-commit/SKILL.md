@@ -165,9 +165,10 @@ deeper on the judgment calls.
    rebase -i --autosquash <sha>^`, which needs a clean tree, no autostash, no
    merge commit in the range, and a fix that depends on no later commit.
    Otherwise add a new commit and say why. An eligible fold needs no user
-   authorization, keeps the target's message unless the fix changes what it
-   states, and replaces steps 9-10. See `references/history-and-trailers.md`
-   for eligibility and the procedure.
+   authorization, records and reports the pre-fold HEAD for reflog recovery,
+   keeps the target's message unless the fix changes what it states, and
+   replaces steps 9-10. See `references/history-and-trailers.md` for
+   eligibility and the procedure.
 9. **Compose the message.** Conventional Commits `type(scope): summary`
    (imperative, ≤72 chars) naming the outcome, blank line, then a body only when
    it preserves durable context the diff cannot recover. Detect the repo's
@@ -181,10 +182,10 @@ deeper on the judgment calls.
    single `-m`. See `references/history-and-trailers.md`.
 11. **Post-verify the stored commit.** Read `git show -s --format=%B HEAD` and
     the committed patch; after a fold, read the folded target's message and
-    combined patch instead, and confirm later commits and the final tree match
-    the verified state. Use `git status --short` to confirm only intended files
-    remain. Repair a mismatch only while the commit is still eligible to fold;
-    otherwise stop and report it.
+    combined patch under its new SHA instead, and confirm later commits and the
+    final tree match the verified state. Use `git status --short` to confirm
+    only intended files remain. Repair a mismatch only while the commit is still
+    eligible to fold; otherwise stop and report it.
 12. **Recover reversibly if wrong.** Prefer the least-destructive fix:
     `git restore --staged <file>` to unstage, `git reset --soft HEAD~1` to undo
     a commit while keeping changes, `git commit --amend --no-edit --trailer …`

@@ -30,20 +30,20 @@
     {
       "id": "E02",
       "name": "Body message and established Codex trailer transport",
-      "prompt": "Commit the staged rate-limiter fix. Show exact commands only as a response plan. History shows recent Codex commits end with `Co-Authored-By: Codex <noreply@openai.com>`. The author is Codex. The message needs `fix(rate): prevent retry-delay overflow`, two sentences about the failure, and a Verification section with `pytest -q tests/ratelimit` and `ruff check`; explain what each check covers.",
+      "prompt": "Commit the staged rate-limiter fix. Show exact commands only as a response plan. History shows recent Codex commits end with `Co-Authored-By: Codex <noreply@openai.com>`. The author is Codex. The message needs `fix(rate): prevent retry-delay overflow`, two sentences about the failure, and a Verification section with `pytest -q tests/ratelimit` and `ruff check`; explain what each check covers. This is a response-only task: use only the supplied state, show the command plan without executing it, and do not claim any command ran.",
       "expected_output": "A response showing safe multi-line message and trailer transport.",
       "files": [],
       "expectations": [
         "Uses a single-quoted heredoc or git commit -F for the multi-line message, not a single -m with embedded newlines or one -m per bullet.",
         "Uses git commit ... --trailer 'Co-Authored-By: Codex <noreply@openai.com>' and does not duplicate that trailer in the message payload.",
-        "Keeps the supplied checks as adjacent Verification bullets with their review meaning, without local session provenance.",
+        "Keeps the supplied checks as adjacent Verification bullets with their review meaning, without local session provenance such as when, where, or by whom a check ran; marking a check `not run` because the supplied state records no result is allowed and is not provenance.",
         "Shows git show -s --format=%B HEAD and parsed-trailer verification after committing."
       ]
     },
     {
       "id": "E03",
       "name": "Ignored config is a scope boundary",
-      "prompt": "Commit everything including my config change. Show commands and reasoning only. `git status --short` shows ` M src/server/routes.ts`; it adds request-size enforcement. I also edited config/local.settings.json, but it is absent from status.",
+      "prompt": "Commit everything including my config change. Show commands and reasoning only. `git status --short` shows ` M src/server/routes.ts`; it adds request-size enforcement. I also edited config/local.settings.json, but it is absent from status. This is a response-only task: use only the supplied state, show the command plan without executing it, and do not claim any command ran.",
       "expected_output": "A response that safely handles a named path absent from status.",
       "files": [],
       "expectations": [
@@ -69,7 +69,7 @@
     {
       "id": "E05",
       "name": "Partial staging preserves a local debug hunk",
-      "prompt": "Commit only the logging fix, not my temporary debug code. Show exact commands as a response plan. src/worker/queue.ts contains a retry log-level fix and `console.log('DEBUG queue', job)` that must remain locally unstaged.",
+      "prompt": "Commit only the logging fix, not my temporary debug code. Show exact commands as a response plan. src/worker/queue.ts contains a retry log-level fix and `console.log('DEBUG queue', job)` that must remain locally unstaged. This is a response-only task: use only the supplied state, show the command plan without executing it, and do not claim any command ran.",
       "expected_output": "A response showing a partial-staging commit sequence.",
       "files": [],
       "expectations": [
@@ -151,8 +151,8 @@
       "expectations": [
         "For A, plans `git commit --amend --no-edit` with only the fix staged, and asks no question about amending versus a new commit.",
         "For B, plans `git commit --fixup=c7d8e9f` followed by a non-interactive `GIT_SEQUENCE_EDITOR=: git rebase -i --autosquash c7d8e9f^` without `--autostash`, and asks no question first.",
-        "For A and B, records or reports the pre-fold HEAD SHA (a1b2c3d for A, e4f5a6b for B) so the reflog can recover it.",
-        "For A and B, verifies the folded target commit afterward (its message and combined patch, not merely HEAD for B) and that the resulting tree matches the verified state.",
+        "For A and B, records the pre-fold HEAD before the fold, such as by capturing `git rev-parse HEAD` before the amend or the fixup commit, or reports its supplied SHA (a1b2c3d for A, e4f5a6b for B), so the reflog can recover it; naming the SHA value is not required, and capturing only the fixup commit's SHA does not count.",
+        "For A, verifies the amended HEAD afterward through its message and combined patch; for B, verifies the folded target commit afterward through its message and combined patch, not merely HEAD, and that the final `HEAD^{tree}` equals the fixup commit's tree. Locating B's rewritten target by its subject is acceptable.",
         "For C, adds a new commit of the fix without asking and does not amend, fixup, or rebase, because `refs/remotes/origin/main` contains d1e2f3a.",
         "For C, says the target commit is published, or contained by a remote-tracking ref, as the reason for a separate commit.",
         "Does not push in any situation and does not seek or assume push authorization.",

@@ -279,6 +279,12 @@ use `[Repository] - YYYY-MM-DD`.
 - Verification for `vibe-coding` after the changes above: closing codex
   `gpt-6-luna` full-suite run with three runs per case, `with_skill` 95.6%
   against `without_skill` 69.8%.
+- `vibe-commit` captures the fixup commit's SHA before folding into an older
+  commit and verifies the rewritten target under its new SHA, never the
+  pre-rebase one, and its fold report always names the pre-fold HEAD.
+- Verification for `vibe-commit` after the changes above: closing codex
+  `gpt-6-luna` full-suite run with three runs per case, `with_skill` 98.3%
+  against `without_skill` 73.5%.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 

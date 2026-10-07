@@ -49,13 +49,17 @@ pre-fold HEAD (`git rev-parse HEAD`), stage only the fix, then:
 
 - HEAD: run `git commit --amend --no-edit`; edit the message only if the fix
   changes what it states.
-- Older commit: run `git commit --fixup=<sha>`, then `GIT_SEQUENCE_EDITOR=: git
+- Older commit: run `git commit --fixup=<sha>` and capture the fixup commit's
+  SHA (`git rev-parse HEAD`), then `GIT_SEQUENCE_EDITOR=: git
   rebase -i --autosquash <sha>^` without `--autostash`; this needs a clean tree,
   no merge commit in `<sha>^..HEAD`, and a fix that depends on no later commit.
-  Verify the final `HEAD^{tree}` equals the fixup commit's tree, and stop with
-  both SHAs reported if it does not. If the rebase stops or fails, run
-  `git rebase --abort`, verify HEAD is back at the fixup commit, and reword that
-  commit into an ordinary fix commit.
+  The rebase gives the target a new SHA: find it by its subject or position,
+  such as the first line of `git rev-list --reverse <sha>^..HEAD`, never by
+  `<sha>`, which still names the unfolded commit, and inspect its message and
+  combined patch there. Verify the final `HEAD^{tree}` equals the captured
+  fixup commit's tree, and stop with both SHAs reported if it does not. If the
+  rebase stops or fails, run `git rebase --abort`, verify HEAD is back at the
+  fixup commit, and reword that commit into an ordinary fix commit.
 
 Never disable signing or hooks to make a fold succeed; a failure means a new
 commit. When the folded change needs a trailer the target's message lacks, amend
