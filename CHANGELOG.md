@@ -336,6 +336,9 @@ use `[Repository] - YYYY-MM-DD`.
 - Verification for `vibe-code-research` after the changes above: closing
   codex `gpt-6-luna` full-suite run with three runs per case, `with_skill`
   96.4% against `without_skill` 82.0%.
+- Verification for `vibe-writing` after the changes above: closing codex
+  `gpt-6-luna` full-suite run with three runs per case, `with_skill` 90.8%
+  against `without_skill` 65.6%.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 
