@@ -155,7 +155,9 @@ file set confirmed safe and separable from unrelated working-tree changes.
    profiles, missions, authorization, or receipts. External transport never
    expands the selected phase's authority. A persistent host denial is a
    reported blocker that no other transport, provider, or model may bypass;
-   ask the user only for an actual unresolved scope or effect decision.
+   report the rejected action, its reason, and the needed host-side
+   resolution, continue independent work meanwhile, and ask the user only for
+   an actual unresolved scope or effect decision.
 5. Before a long or write-capable worker starts, read
    `references/recovery-and-monitoring.md` for journals, liveness, cancellation,
    and recovery. A handle-returning forwarder has not completed the work;

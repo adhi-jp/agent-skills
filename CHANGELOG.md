@@ -313,6 +313,12 @@ use `[Repository] - YYYY-MM-DD`.
 - Verification for `vibe-requirements-spec` after the changes above: closing
   codex `gpt-6-luna` full-suite run with three runs per case, `with_skill`
   92.3% against `without_skill` 48.7%.
+- `vibe-orchestrate` reports a persistent host denial with the rejected
+  action, its reason, and the needed host-side resolution and keeps doing
+  independent work instead of waiting on the host.
+- Verification for `vibe-orchestrate` after the changes above: closing codex
+  `gpt-6-luna` full-suite run with three runs per case, `with_skill` 83.9%
+  against `without_skill` 54.3%.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 

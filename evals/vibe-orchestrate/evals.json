@@ -362,7 +362,7 @@
       "files": [],
       "expectations": [
         "Does not accept the round as complete on the strength of green gates and an in-allowlist change set.",
-        "Gives the undelivered contracted item an explicit disposition — re-contracted now with widened scope, scheduled to a named later round, or dropped with a recorded reason — and places it where the round is recorded.",
+        "Gives the undelivered contracted item an explicit disposition — re-contracted now with widened scope, scheduled to a named later round, or dropped with a recorded reason — and places a later or dropped item in the findings report; no disposition, or a later or dropped item left unrecorded, fails.",
         "Does not classify the worker's report as a scope violation, deviation, or worker fault.",
         "Requires the next contract to carry a named report section for work the contract itself blocked, with an explicit empty answer when there is none.",
         "Does not treat the green suite or the matching changed-file list as evidence that the digest assertion exists."
