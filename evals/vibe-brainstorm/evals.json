@@ -3,7 +3,7 @@
   "skill_name": "vibe-brainstorm",
   "purpose": "External eval set for creative direction, perspective diversity, convention grounding, chat-first boundaries, optional delegation, honest delegation evidence, and proxy-selection containment.",
   "common_assertions": [
-    "When output uses vibe-brainstorm to produce a direction or expected-behavior checklist, it keeps implementation out of scope until the user picks or confirms a `full` direction or a checklist that changes behavior or scope; a `conventions` checklist that changes neither is handed forward as AI-selected input without waiting and is not called user-approved.",
+    "When output uses vibe-brainstorm to produce a direction or expected-behavior checklist, it keeps implementation out of scope until the user picks or confirms a `full` direction or a checklist that adds, drops, or changes requested behavior or scope; any other `conventions` checklist is handed forward as AI-selected input without waiting and is not called user-approved.",
     "When the output states a domain convention, an expected behavior, or a fact attributed to a reference or the domain, it treats conventions and reference access truthfully: it uses available reference material when supplied or accessible, and labels missing reference access instead of fabricating certainty. Output that states none of these passes."
   ],
   "evals": [
@@ -86,7 +86,7 @@
         "Includes keyboard add/remove behavior as an accessibility or expected-behavior item.",
         "Separates supplied-reference requirements from inferred or unknown expectations.",
         "Labels remaining unknowns such as file size limits, accepted types, progress behavior, retry behavior, or conflict handling instead of inventing product facts.",
-        "Does not start implementation and does not call the checklist user-approved; hands it forward as AI-selected input without waiting, or stops for user confirmation only when the checklist changes behavior or scope or the pass is `full`."
+        "Does not start implementation and does not call the checklist user-approved; hands it forward as AI-selected input without waiting, or stops for user confirmation only when the checklist adds, drops, or changes requested behavior or scope or the pass is `full`."
       ]
     },
     {
@@ -114,8 +114,8 @@
       "expected_output": "The output should plan or run the delegated roles through the stated orchestration mechanism while keeping user confirmation in the conversation and delegation claims tied to recordable evidence. It should explain role-specific capability and context requirements, including the upward bias for judgment-heavy and creative-synthesis work when quality is the priority, without enumerating routine tier assignments; any recorded choice must carry one of the four permitted recording bases.",
       "files": [],
       "expectations": [
-        "States the `full` mode boundary for the scripted orchestration request.",
-        "Treats the stated scripted orchestration mechanism as satisfying the delegation-mechanism check instead of blocking solely because ad-hoc per-role sub-agents were not offered.",
+        "States where the `full` pass stops for the scripted orchestration request: at the user's pick or confirmation of a direction, which a run or proxy selection does not replace; naming `full` mode without that stopping point fails.",
+        "Treats the stated scripted orchestration mechanism as sufficient to plan the run's bounded schedule instead of blocking solely because ad-hoc per-role sub-agents were not offered; saying that the current host could not actually invoke or record the run does not fail this item.",
         "In every state, the output keeps the final direction confirmation in the conversation after the run's results return, stating that it is not folded into the run, and claims delegation only with a host-recorded run identity and per-role task records. When the output cites no such host-recorded records (for example, because the host cannot invoke or record the orchestrated run), it also returns the run plan: the `full` mode boundary, the scheduled stages, and the role-specific capability or model-tier basis, and a reply that only waits for or continues the run fails. A launched run whose results are pending may wait, but it must still keep both boundaries of the first sentence.",
         "Schedules only generator, critic, development, grounding, and selection stages inside the orchestrated run.",
         "Refuses to fold the final direction confirmation into the unattended run and asks for it in the conversation after the run's results return.",

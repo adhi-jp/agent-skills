@@ -325,6 +325,14 @@ use `[Repository] - YYYY-MM-DD`.
 - Verification for `vibe-goal-alignment` after the changes above: closing
   codex `gpt-6-luna` full-suite run with three runs per case, `with_skill`
   89.4% against `without_skill` 57.7%.
+- `vibe-brainstorm` hands forward, without asking, a conventions checklist
+  that only spells out behavior the request implies, and stops only when the
+  checklist adds, drops, or changes requested behavior or scope. When
+  delegation is unavailable, it gives local coordinator-derived perspectives
+  without asking for fallback authorization.
+- Verification for `vibe-brainstorm` after the changes above: closing codex
+  `gpt-6-luna` full-suite run with three runs per case, `with_skill` 92.3%
+  against `without_skill` 64.8%.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 

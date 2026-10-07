@@ -40,11 +40,13 @@ private reasoning. A user-stated scripted orchestration mechanism is sufficient
 to plan its bounded schedule. If a scripted run is available, it may cover
 generation, critique, development, grounding, and selection, but final
 confirmation stays in chat. If the current host cannot actually invoke or record
-that run, do not replace it with coordinator-generated brainstorm results.
-Return the planned stages, role-specific capability-tier basis, required
-run/task evidence, and the post-run conversation confirmation boundary instead.
-For ordinary perspective gathering, give local coordinator-derived perspectives
-unless independence itself is required; then state the limitation.
+that user-stated run, do not replace it with coordinator-generated brainstorm
+results. Return the planned stages, role-specific capability-tier basis,
+required run/task evidence, and the post-run conversation confirmation boundary
+instead. For ordinary perspective gathering, give local coordinator-derived
+perspectives unless independence itself is required; then state the
+limitation. Local coordinator-derived perspectives are the mode's own work and
+need no delegation or fallback authorization.
 
 ### Model Choice
 
@@ -81,7 +83,9 @@ grounds; label missing access and inference.
 Mandatory means missing it would violate the goal, a real convention,
 accessibility/safety expectation, data contract, or normal user expectation.
 Surface meaningful UX tradeoffs rather than selecting the cheapest build path.
-Stop for user confirmation when the checklist changes behavior or scope.
+Hand the checklist forward as AI-selected input; stop for user confirmation
+only when it adds, drops, or changes requested behavior or scope. Spelling out
+behavior the request implies is not such a change.
 
 ### `full`
 
@@ -129,7 +133,8 @@ records; its packet remains unpersisted until a later writing phase records it.
 ## Handoff
 
 Stop at the user's pick of a `full` direction or a proxy selection, and for
-user confirmation of a checklist that changes behavior or scope; hand any
-other `conventions` checklist forward as AI-selected input without waiting.
+user confirmation of a checklist that adds, drops, or changes requested
+behavior or scope; hand any other `conventions` checklist forward as
+AI-selected input without waiting.
 Hand the outcome forward as a carry-forward packet; without user
 confirmation, do not implement, edit, stage, commit, or call it approved.
