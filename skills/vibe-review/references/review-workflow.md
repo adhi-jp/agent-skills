@@ -217,6 +217,7 @@ scope_category: unchecked | must-fix | minimal-hygiene | reject-out-of-scope | r
 specification_gap_status: none | lightweight-gap | needs-user-decision
 cascade_gate_state: not-run | closed | accepted-residual | invariant-unknown | high-cascade-risk | needs-user-decision
 children: []
+contributor_count: <n>
 ```
 
 Keep missing source fields explicit; never borrow severity, location, or

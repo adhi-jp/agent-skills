@@ -14,7 +14,7 @@
       ],
       "expectations": [
         "JSON builds the frozen target diff path list from the frozen branch base and includes `src/import.ts` and `src/import.test.ts` but not `tmp/local-notes.md` or `scratch.json`.",
-        "JSON lists `tmp/local-notes.md` and `scratch.json` as isolation candidates with status, unrelated-task reason, and evidence.",
+        "JSON lists `tmp/local-notes.md` and `scratch.json` as isolation candidates with status and a basis for classifying each as unrelated, such as the user's statement or the path's absence from the frozen diff, in a separate field or within the reason; a candidate with no basis, or one classified as unrelated only because it is untracked, staged, markdown-like, or under `plans/`, fails.",
         "The pending isolation proposal records the pathspec-limited stash transport that will be used only after approval: `--include-untracked`, `--pathspec-from-file=<file>`, `--pathspec-file-nul`, and NUL-separated literal pathspecs, or unambiguous structured equivalents for those exact semantics.",
         "JSON freezes target identity with scope, base/head where applicable, diff file list, working-tree or patch identity sufficient to detect drift, isolation state, and cycle id.",
         "JSON restores isolated paths unstaged at termination and explicitly does not stage them into a final squash."
@@ -79,7 +79,7 @@
       ],
       "expectations": [
         "JSON runs or requires terminal audit before End/residual terminal render and before squash or reset.",
-        "JSON halts because a required high-cascade post-edit note is missing for an applied fix.",
+        "JSON halts End/terminal rendering and the squash because applied finding F3 has no post-edit record (`phase6_note` is null), in any wording; it need not classify F3 as high-cascade, which the supplied state does not say. Letting terminal rendering or the squash proceed while F3's record is missing, or not citing F3's missing record, fails.",
         "JSON halts or pauses because dirty-path isolation restore is pending.",
         "JSON uses retained dirty-isolation metadata and stash recovery path for pending restore and does not replace recovery with generic checkout, reset, or restore commands.",
         "JSON does not treat generic `end and squash it` as sufficient consent while audit preconditions fail.",
@@ -103,7 +103,7 @@
         "Explicitly marks the unlocated reviewer candidate's confidence as missing rather than borrowing it from another record.",
         "Explicitly marks the unlocated reviewer candidate's source finding id as missing rather than borrowing it from another record.",
         "Places normalization before validity and subsequent scope/selection gates.",
-        "Records that opaque host provenance is retained internally.",
+        "Does not discard opaque host provenance: a record that addresses it keeps it internal and out of public output; saying nothing about retention passes, and stating or implying the provenance was dropped fails.",
         "Omits host_source_ref, source_backend_ref, and other adapter-private provenance from the public record.",
         "Rejects Reviewer C using closed validation codes, without a free-form rejection reason.",
         "Does not request, attach, reconstruct, or introduce a fallback channel for the rejected original response.",
@@ -183,7 +183,6 @@
         "Keeps candidate text private and out of public findings, ledgers, later reviewer prompts, and commit text.",
         "Preserves only bounded private source identity and candidate locations/classes for local inspection.",
         "Requires the coordinator to independently verify each premise against the frozen target before authoring a finding.",
-        "Keeps merge, dispositions, and edits under coordinator authority.",
         "Places workflow-controlled artifacts in caller-scoped private storage outside the reviewed worktree, with mode 0700 where supported.",
         "Requires redaction before workflow-authored persistence.",
         "Discloses unavoidable host pre-redaction persistence as residual risk rather than claiming later redaction sanitized it.",
@@ -200,7 +199,7 @@
       "expectations": [
         "Invalidates the delegated result because frozen target identity drifted.",
         "Stops before merge, validity triage, selection, edits, or history operations.",
-        "Records pre/post identity and mutation evidence without choosing the convenient state.",
+        "Records the frozen pre-run identity (A), the post-run identity (B), and the post-result receipt as the mutation evidence, in any wording; evidence beyond what the prompt supplies is not required. Missing either identity, or treating the result as valid for A or for B, fails.",
         "Requires a fresh frozen target and new review run after state reconciliation."
       ]
     },
@@ -225,8 +224,7 @@
       "files": [],
       "expectations": [
         "Records local-coordinator backend, source-response isolation not applicable, local result shape and mutation containment, and single execution mode without claiming delegation occurred.",
-        "Preserves the common DoD/scope, cascade, acceptance, residual, and terminal gates on the local path.",
-        "Keeps public finding authorship with the coordinator and local evidence.",
+        "Does not drop or relax the DoD/scope, cascade, acceptance, residual, or terminal gates because the path is local; listing them is not required. Saying local review exempts the target from any of these gates fails.",
         "Discloses any material required coverage the selected local path leaves unmet; delegation unavailability alone does not establish degradation, and when none is established, omitting a degradation statement passes.",
         "Treats one proportional pass as sufficient for this small unchanged target.",
         "Requires terminal audit and verification before closure.",

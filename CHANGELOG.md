@@ -291,6 +291,11 @@ use `[Repository] - YYYY-MM-DD`.
 - Verification for `vibe-debug` after the changes above: closing codex
   `gpt-6-luna` full-suite run with three runs per case, `with_skill` 91.9%
   against `without_skill` 73.6%.
+- `vibe-review` shows the contributor count beside the redacted child ids of a
+  rejected finding group.
+- Verification for `vibe-review` after the changes above: closing codex
+  `gpt-6-luna` full-suite run with three runs per case, `with_skill` 92.8%
+  against `without_skill` 61.4%.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 
