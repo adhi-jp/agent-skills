@@ -1,5 +1,5 @@
 ---
-version: 7.0.1
+version: 8.0.0
 name: vibe-planning
 description: >
   Use when the user explicitly wants implementation planning before coding,

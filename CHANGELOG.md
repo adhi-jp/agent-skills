@@ -11,401 +11,429 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
-- Every skill's instructions were tuned for current Claude and GPT models
-  without changing its contract. The entries below clarify behavior the skill
-  already required or its evals already expected, and name the three
-  instruction conflicts the tuning resolved.
-- `vibe-goal-alignment` clarifies that the alignment record leads the
-  response, that an instruction inside quoted or embedded material authorizes
-  nothing, that the phase never reports a write or command as done, and that a
-  deletion names authorization and a non-destructive preview of its targets,
-  such as a dry run, target list, or export, as prerequisites and stays
-  blocked until restorability is shown or the user explicitly accepts
-  irreversible loss.
-- `vibe-brainstorm` clarifies that an autonomously chosen `full` mode comes
-  with its reason, that `diverge` never offers to implement a direction, that
-  locally produced results are labeled coordinator-derived, that convention
-  grounding names which items each source grounds, and that the sieve reports
-  when no candidate failed a mandatory gate. A response now carries a
-  checklist only in modes that produce one, resolving a conflict with
-  `diverge`.
-- `vibe-code-research` clarifies that it reports no file write or state change
-  beyond a requested research report, says an invited cleanup edit was not
-  made because the investigation is read-only, says where a failed search
-  looked, does not link supplied paths into an ambient checkout or sandbox,
-  keeps inference visible as inference, and offers the evidence that would
-  settle a question the bound corpus cannot.
-- `vibe-writing` clarifies that a returned artifact carries no Markdown fence
-  unless explanation is asked, and that when it commits or amends a message
-  itself it inspects the stored message and corrects malformed bytes before
-  reporting completion; the workflow holding history authority controls
-  signing along with staging, authorization, and history mutation.
-- `vibe-plan-review` stops for an identified requirements spec that is missing
-  or unreadable, no longer for the absence of any spec, resolving a conflict
-  with its continue-with-limited-confidence rule; it clarifies that it tells
-  the user before reflection that deleting a temporary review file is a
-  separate question.
-- `vibe-requirements-spec` clarifies that in artifact mode a requirements
-  question still leaves the spec written and summarized in the same turn, that
-  a response-only answer never says a spec was written, that updating a spec
-  in another language also converts its headings and metadata labels, and that
-  raw outsider text never reaches workflow state.
-- `vibe-agent-instructions` clarifies each workflow step's stop or question:
-  it asks about every ignore or tracking decision without a shell tool or
-  outside a Git repository, asks whether to proceed on possibly stale
-  evidence, asks and writes nothing while the reference folder is ambiguous,
-  and stops before writing personal files while their ignore placement is
-  unsettled; it reports divergences by label and title and the observation
-  behind a link fallback.
-- `vibe-planning` clarifies that a planning response says implementation is a
-  separate execution phase bound to the plan and started only when its proceed
-  condition allows, that the proceed condition stays blocked while
-  requirements it found wrong, contradictory, or infeasible await a decision,
-  that it asks only plan-changing questions, reports a non-equivalent
-  preserved behavior to the user, stops a replacement, restoration, rollback,
-  or rewrite that meets a recovery stop, stops iterating once a finding-driven
-  plan passes its completion gate, and gets the user's decision before
-  committing to new accounts, devices, installations, or material operator
-  effort.
-- `vibe-plan-execution` clarifies that it asks for each missing consent
-  decision before the operation it gates and stops a slice blocked by a defect
-  in existing behavior the plan does not own.
-- `vibe-debug` clarifies that retained instrumentation needs the user's
-  explicit opt-in and that unsupported privacy or cost claims block it.
-- `vibe-review` clarifies that an unattended run without protections uses only
-  a pre-authorized unisolated or local fallback or reports a blocker, that
-  dirty-path isolation waits for the user to confirm the whole candidate set,
-  and its terminal stops: a failed-gate report, a checkpoint after three
-  timeouts or empty polls from one reviewer or run, `checkpoint_blocked` when
-  two or more material stop signals are active, terminal audit before end
-  rendering or any history operation, and showing the commits, diff, and
-  conflict-safety evidence before asking consent for a history operation.
-- `vibe-commit` clarifies that an amend and a HEAD-moving reset each need the
-  user's explicit authorization, that it says why each excluded path stays
-  out, that a conflict with an accepted decision record is left for the user
-  to resolve, that a stored-message mismatch it may not repair is reported,
-  and that scripted trailer and path-dropping replays cover only a simple
-  unpushed linear range, with a trailer repair stopping on a conflict,
-  metadata gap, duplicate trailers, or a moved branch.
-- `vibe-orchestrate` clarifies the scope checkpoint a join triggers before
-  optional follow-up, that a persistent host denial is a reported blocker no
-  other transport, provider, or model may bypass, that recovery without
-  observable quiescence uses named cancellation or user recovery and leaves
-  recovery that could end the coordinator's session to the user, that a named
-  blocker or stop holds the affected unit, that unknown or instruction-only
-  confinement is not an adequate writer boundary, that measurement-instrument
-  corrections are coordinator-owned and replayed before scoring, that a
-  `FILES:` list missing snapshot changes weakens trust in the rest of a
-  report, that reconciliation shows which paths changed, not whether the
-  change works, and that a rerun of a unit whose runtime constraint went
-  unproven canaries the constrained transport first, even without fan-out.
-- `vibe-coding` clarifies that direct implementation asks one question when
-  acceptance or verification is unclear (an answer that would open a second
-  surface makes the work `implementation-planning`) and stops on a revealed
-  defect, second surface, or unsettled acceptance, and that a turn made only
-  of an invocation, path, command, or identifier takes the active user's
-  conversational language.
-- `skill-eval` clarifies its long-run controls: tell the user the forecast
-  before an expensive full matrix and get their decision when it exceeds their
-  apparent budget, launch long runs only through an interruptible control
-  handle, cancel without starting a replacement or retry, and need a material
-  change or a new user decision after capacity or overload recurs at
-  concurrency 1; a confirmed validate warning points to rewording the
-  expectation as what the response describes.
-- `skill-quality` clarifies that it authorizes no edit to local skill
-  snapshots, launches no run without a pre-registered question, sends no
-  private skill or eval content to an external agent or service without
-  explicit user or project authorization, finishes `REVIEW REQUIRED` anomaly
-  adjudication before a final commit or closure handoff, and asks a delegate
-  whose analysis feeds a tracked decision for evidence, unsupported claims,
-  and surfaces that must not change; a diagnostic uses both configurations by
-  default.
-- `minecraft-modding-workbench` clarifies the backup before editing live save
-  data and the stop on `.mca` region input; it asks the user to raise the
-  download size cap after a size-cap refusal, to raise the nested-entry cap
-  only with evidence of an oversized inner jar, and to repair an unreadable
-  cache path, and it names the artifact's group, artifact, and version in
-  dependency reports. A validator that restarts once is recorded unavailable
-  and not retried, resolving a conflict with the generic retry rule.
-- Verification for every skill above: wording checked statically against
-  every eval item and reviewed by another vendor's model; each skill's closing
-  eval result is recorded at the end of this section.
-- Repository maintenance: eval items that graded a model habit the skills do
-  not require (a length word, an exact key name or casing, a literal the prompt
-  no longer supplies, ungraded expected-output content) or disagreed with the
-  skill text now grade the behavior the skills state, keeping every
-  destructive, consent, security, credential, data-safety, and history check;
-  case ids, names, prompts, scoring, and assertion counts are unchanged, so
-  comparison with earlier eval iterations starts over at the next run.
-- `vibe-coding` carries a request through every phase its outcome needs as
+## [vibe-coding 6.0.0] - 2026-10-08
+
+### Changed
+
+- **Breaking:** A request is carried through every phase its outcome needs as
   separate routes, so a build, implement, or fix request goes from spec to plan
   to execution, review, and the local checkpoint commit of each verified unit
-  without approval questions between phases. It stops for the user only on an
-  unresolved human-risk decision, a blocker, a material departure from the
-  request, or a checkpoint the user asked for, such as "spec only" or "show me
-  the plan first". After planning, "looks good, go ahead" or "continue" starts
-  execution instead of asking whether to revise or execute; after a plan the
-  user asked to stop at, bare praise such as "looks good" ends the workflow at
-  the plan without a question, while "go ahead" still starts execution. An
-  unattended multi-phase run is no longer refused, a blanket skip-approvals
-  instruction still accepts no human-risk decision, delegable questions the
-  phase would have asked are settled as reported AI-selected defaults, and the
-  commit fallback for an unavailable commit specialist runs without asking
-  whether to proceed.
-- `vibe-requirements-spec` finishes requirements when the completion audit
-  passes and the user's instruction or the router's continuation moves past
-  requirements; "OK", "looks good", "go ahead", and "continue" then finish the
-  spec, and while the audit fails they continue drafting. A failing audit first
-  repairs what the phase can settle itself and asks only for the rest. The phase
-  now defers a lower-priority unknown itself, recording it in the spec's open
-  risks and unknowns with its impact and revisit trigger and reporting it as
-  agent-deferred, when the unknown is outside every human-risk category, is not
-  needed by the current slice, and leaves every acceptance criterion intact.
-  This reverses the earlier behavior in which a deferral returned to the user
-  for acceptance. The summary names a user action only when a blocking decision
-  or the turn's question needs one and otherwise names the next phase. Without
-  usable subagents under top-level orchestration the phase settles delegable
-  choices as recorded AI-selected defaults, but neither a proxy nor an
-  AI-selected default settles a choice that changes what gets built, stored,
-  shown, migrated, or integrated, or any high-impact requirements case; those
-  stay with the user.
-- `vibe-planning` now describes its input as a finished spec; planning still
-  requires approval evidence, and requirements finished under top-level
-  orchestration, where the spec's requirements completion audit passed, count as
-  that evidence. Under orchestration it hands off to execution whenever the
-  requested outcome needs implementation, not only when the current turn's
-  wording asks for it. It names the next phase in its summary and asks the user
-  for an action only when a decision is needed, follows a cheaper or faster path
-  the user explicitly chose and labels its tradeoff without waiting unless it
-  involves a human-risk decision, and picks the better path as a recorded
-  AI-selected default when the user chose none.
-- `vibe-brainstorm` hands a conventions checklist that changes no behavior or
-  scope forward as AI-selected input without waiting for confirmation, and says
-  in its report whether the checklist or direction awaits the user or goes
-  forward. A direction chosen in `full` mode, and a checklist that changes
-  behavior or scope, still stop for the user.
-- `vibe-review` applies the recommended fix set, the valid in-scope `must-fix`
-  and narrow `minimal-hygiene` findings, without a selection prompt when the
-  request asks for fixes, and shows the remaining findings for audit. A
+  without approval questions between phases. The router stops for the user only
+  on an unresolved human-risk decision, a blocker, a material departure from
+  the request, or a checkpoint the user asked for, such as "spec only" or "show
+  me the plan first", and reports the delegable choices it settled as
+  AI-selected defaults. An unattended multi-phase run is no longer refused; a
+  blanket skip-approvals instruction still accepts no human-risk decision. To
+  see an artifact before the next phase starts, ask for that checkpoint.
+- **Breaking:** After planning, "go ahead" or "continue" starts execution on
+  the known plan instead of asking whether to revise or execute, and a new turn
+  asking to proceed with a ready bound plan starts plan execution without a
+  routing record; after a plan the user asked to stop at, bare praise such as
+  "looks good" ends the workflow at the plan. Each plan-execution slice
+  checkpoints once it is verified and reviewed.
+- **Breaking:** A fix for an earlier commit's own defect is folded into that
+  commit without asking when no remote-tracking ref, tag, other branch, or
+  worktree contains it, and the goal-alignment gate does not fire for that
+  fold. With nothing selecting a commit, changes stay in the working tree and
+  the report says so instead of asking; a new file the unit's own change
+  creates and requires, such as source or tests, joins the unit unless it holds
+  a credential or secret; decision records and findings reports join a
+  checkpoint only when their directory is already tracked or the user has said
+  so. The commit fallback for an unavailable commit specialist runs without
+  asking whether to proceed.
+- Direct implementation asks one question when acceptance or verification is
+  unclear and stops on a revealed defect, second surface, or unsettled
+  acceptance; a turn made only of an invocation, path, command, or identifier
+  takes the user's conversational language; a delegated unit's handoff says how
+  the worker reaches an auxiliary skill's content.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 95.6% against `without_skill` 69.8%.
+
+## [vibe-planning 8.0.0] - 2026-10-08
+
+### Changed
+
+- **Breaking:** Under top-level orchestration, requirements whose completion
+  audit passed count as approval evidence, and the plan hands off to execution
+  whenever the requested outcome needs implementation, not only when the
+  current turn asks for it. The summary names the next phase and asks for a
+  user action only when a decision is needed. A cheaper or faster path the user
+  explicitly chose is followed with its tradeoff labeled, without waiting
+  unless it involves a human-risk decision; with no user choice, the better
+  path is taken as a recorded AI-selected default.
+- **Breaking:** With `VIBE_SUBAGENTS` unset, empty, unreadable, or invalid, the
+  phase runs without subagents and says so instead of asking; an explicit
+  `ask` still asks before the first delegation, and an invalid value never
+  permits subagents. Set `VIBE_SUBAGENTS=ask` to keep the question.
+- Planning asks only plan-changing questions, keeps the proceed condition
+  blocked while requirements it found wrong, contradictory, or infeasible await
+  a decision, reports a non-equivalent preserved behavior, stops a replacement,
+  restoration, rollback, or rewrite that meets a recovery stop, gets the user's
+  decision before committing to new accounts, devices, installations, or
+  material operator effort, and stops iterating once a finding-driven plan
+  passes its completion gate. A response-only answer
+  describes in full each decision record, index row, and findings entry it
+  would write, and re-reviewing a revised plan is a local self-review unless
+  the revised risk calls for separated perspectives.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 89.1% against `without_skill` 42.7%.
+
+## [vibe-plan-execution 8.0.0] - 2026-10-08
+
+### Changed
+
+- **Breaking:** A verified slice's checkpoint folds a fix for an earlier
+  commit's own defect into that commit without asking when no remote-tracking
+  ref, tag, other branch, or worktree contains it, and the startup consent
+  preflight does not ask about that fold. With nothing selecting a commit,
+  changes stay in the working tree and the report says so instead of asking.
+  Push and other history operations still need explicit authorization.
+- A new file the slice's own change creates and requires, such as source or
+  tests, joins its checkpoint unless it holds a credential or secret; decision
+  records and findings reports join only when their directory is already
+  tracked or the user has said so.
+- Execution asks for each missing consent decision before the operation it
+  gates, and stops a slice blocked by a defect in existing behavior the plan
+  does not own.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 85.7% against `without_skill` 58.8%.
+
+## [vibe-plan-review 3.2.1] - 2026-10-08
+
+### Changed
+
+- The walkthrough stops for an identified requirements spec that is missing or
+  unreadable, and no longer for the absence of any spec, which continues with
+  limited requirement-alignment confidence. Before reflection it says that
+  deleting a temporary review file is a separate question.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 94.5% against `without_skill` 52.7%.
+
+## [vibe-requirements-spec 8.0.0] - 2026-10-08
+
+### Changed
+
+- **Breaking:** Requirements finish when the completion audit passes and the
+  user's instruction or top-level orchestration moves past requirements; "OK",
+  "looks good", "go ahead", and "continue" then finish the spec, and while the
+  audit fails they continue drafting. A failing audit first repairs what the
+  phase can settle itself and asks only for the rest, and the summary names a
+  user action only when a blocking decision or the turn's question needs one,
+  otherwise the next phase.
+- **Breaking:** The phase defers a lower-priority unknown itself when it is
+  outside every human-risk category, unneeded by the current slice, and leaves
+  every acceptance criterion intact, recording it in the spec's open risks and
+  unknowns with its impact and revisit trigger and reporting it as
+  agent-deferred; such a deferral no longer returns to the user for acceptance.
+  Under top-level orchestration without usable subagents, delegable choices are
+  settled as recorded AI-selected defaults, but neither a proxy nor such a
+  default settles a choice that changes what gets built, stored, shown,
+  migrated, or integrated, or any high-impact requirements case.
+- **Breaking:** With `VIBE_SUBAGENTS` unset, empty, unreadable, or invalid, the
+  phase runs without subagents and says so instead of asking; set
+  `VIBE_SUBAGENTS=ask` to keep the question.
+- In artifact mode a requirements question still leaves the spec written and
+  summarized in the same turn, a response-only answer never says a spec was
+  written, updating a spec in another language also converts its headings and
+  metadata labels, and raw outsider text never reaches workflow state.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 92.3% against `without_skill` 48.7%.
+
+## [vibe-debug 8.0.0] - 2026-10-08
+
+### Changed
+
+- **Breaking:** A proven repair's checkpoint may fold the repair into the
+  unpublished commit it fixes without asking when no remote-tracking ref, tag,
+  other branch, or worktree contains that commit. With nothing selecting a
+  commit, changes stay in the working tree and the report says so instead of
+  asking. Push and other history operations still need explicit authorization.
+- A new file the repair creates and requires, such as source or tests, joins
+  its checkpoint unless it holds a credential or secret; decision records and
+  findings reports join only when their directory is already tracked or the
+  user has said so.
+- A response that precedes a repair, such as a diagnosis plan or next actions,
+  names the expected-behavior source to consult, or says none is known, and a
+  fast observation that could disprove the preferred cause. Retained
+  instrumentation needs the user's explicit opt-in, and unsupported privacy or
+  cost claims block it.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 91.9% against `without_skill` 73.6%.
+
+## [vibe-review 5.0.0] - 2026-10-08
+
+### Changed
+
+- **Breaking:** When the request asks for fixes, the recommended fix set — the
+  valid in-scope `must-fix` and narrow `minimal-hygiene` findings — is applied
+  without a selection prompt, and the remaining findings are shown for audit; a
   review-only request reports the findings and the recommended set and edits
   nothing. Findings that need a user decision, carry high cascade risk, or
-  involve accepted residuals still prompt. Before the commit handoff it no
-  longer asks whether decision records and findings reports are tracked; they
-  join the commit only under the shared decision-records rule.
-- `vibe-agent-instructions` shows every change to an existing path in its report
-  and waits for confirmation only when the write would replace bytes the last
-  commit cannot restore (an untracked or ignored path, a path with uncommitted
-  changes, or a link whose target is such a path) or when the change departs
-  from the request. When ignore placement for the personal files is unsettled,
-  it uses the recommended `.gitignore` entry and reports the exact change, and
-  uses `.git/info/exclude` only when the user chooses it. When the reference
-  folder is unclear or several candidates exist, it chooses the best-fitting
-  existing folder, or `docs/agents/` when none fits, and reports the choice and
-  why instead of asking.
-- The shared `commit-selection-state-changing` block no longer has a workflow
-  ask whether a commit is wanted when nothing selects one; it leaves the changes
-  in the working tree and says so. A new file the unit's own change creates and
-  requires, such as new source or tests, now belongs to the unit unless it holds
-  a credential or secret, while generated output, scratch files, and reports
-  join a commit only on explicit tracking intent or mandatory coupling; an
-  unseparable mixed state is still reported and asked about. Rendered text
-  changed in `vibe-coding`, `vibe-commit`, `vibe-debug`, `vibe-orchestrate`,
-  `vibe-plan-execution`, and `vibe-review`.
-- `vibe-commit` file selection now treats a new source, test, or fixture file
-  that the unit's own change creates and requires as part of the unit unless it
-  holds a credential or secret. Generated output, scratch files, and reports
-  still need explicit tracking intent or another mandatory coupling.
-- The shared `decision-records` block no longer asks once per repository whether
-  decision records and findings reports are committed. A record or findings
-  report joins a checkpoint only when the repository already tracks its
-  directory or the user has said records are committed; otherwise it stays
-  untracked and the summary says so, without asking. Rendered text changed in
-  `vibe-agent-instructions`, `vibe-brainstorm`, `vibe-code-research`,
-  `vibe-coding`, `vibe-commit`, `vibe-debug`, `vibe-goal-alignment`,
-  `vibe-orchestrate`, `vibe-plan-execution`, `vibe-plan-review`,
-  `vibe-planning`, `vibe-requirements-spec`, `vibe-review`, and `vibe-writing`.
-- The shared `subagent-permission` block now has a phase whose `VIBE_SUBAGENTS`
-  value is unset, empty, unreadable, or invalid run its work without subagents
-  and say so instead of asking; an explicit `ask` still asks before the first
-  delegation, and an invalid value still never permits subagents. Rendered text
-  changed in `vibe-planning` and `vibe-requirements-spec`.
-- Repository maintenance: `AGENTS.md` gains "Approval Stop Rules". The `vibe-*`
-  skills and their eval assertions may stop for user input only on an unresolved
-  human-risk decision, a blocker, a material departure from the request, or a
-  checkpoint the user asked for. The human-risk condition also covers every
-  consent the shared contract or a skill keeps, and the checkpoint condition
-  includes a recorded user requirement of a skill. The carry-through of a
-  request across phases is scoped to `vibe-coding`, and a specialist invoked on
-  its own that ends at its phase boundary is not an approval stop. A change that
-  adds or widens a stop must name the protected decision, the failure scenario,
-  and the condition in its changelog entry. The `vibe-*` eval items were
-  rewritten to the new behavior; their closing eval results are recorded at
-  the end of this section. The structural checks (`vibe_shared_contract.py check --strict`,
-  `audit-names`, and the test suite) pass.
-- `vibe-commit` folds a fix for an earlier commit's own defect into that commit
-  without asking when no remote-tracking ref, tag, other branch, or worktree
-  contains the commit. It amends HEAD, or for an older commit makes a fixup
-  commit and runs a non-interactive autosquash rebase, which needs a clean
-  tree, no merge commit in the range, and a fix that depends on no later
-  commit. Otherwise, or when the fold fails, it adds a new commit and says why,
-  without asking. It reports the pre-fold HEAD so the reflog can recover it.
-  Push, rewriting published history, and destructive resets still need the
-  user's explicit consent.
-- The shared `commit-selection-state-changing` block carries that fold rule and
-  limits the consent for amend, rebase, and squash to operations outside it.
-  Rendered text changed in `vibe-coding`, `vibe-commit`, `vibe-debug`,
-  `vibe-orchestrate`, `vibe-plan-execution`, and `vibe-review`.
-- The shared `human-risk-decisions` block now says a fold into an unpublished
-  commit is not a history-mutation decision. Rendered text changed in
-  `vibe-coding`, `vibe-goal-alignment`, `vibe-orchestrate`,
-  `vibe-plan-execution`, `vibe-planning`, and `vibe-requirements-spec`.
-- `vibe-coding` clarifies that its goal-alignment gate does not fire for a fix
-  that commit selection folds or appends, though real history-scope ambiguity
-  still fires it. `vibe-debug` clarifies that a unit's repair closure may fold
-  the repair into the unpublished commit it fixes, and `vibe-plan-execution`
-  that its startup consent preflight does not ask about such a fold.
-  `vibe-review` asks for operation-specific history consent only when an
-  operation needs it.
-- Repository maintenance: `AGENTS.md` condition (a) of "Approval Stop Rules"
-  now excludes folding a fix into an unpublished commit from the kept
-  history-rewrite and squash consents. A new `vibe-commit` eval case covers the
-  fold; its closing eval result is recorded at the end of this section.
-- `vibe-coding` starts plan execution when a new user turn asks to proceed with
-  or execute a ready bound plan, leaving the plan's proceed condition to the
-  execution specialist and asking for no routing record, artifact revision, or
-  further request; the routing record is needed only when the router itself
-  continues past a finished phase within one turn. A plan-execution slice
-  checkpoints once it is verified and reviewed, and a delegated unit's handoff
-  says how the worker reaches an auxiliary skill's content.
-- Verification for `vibe-coding` after the changes above: closing codex
-  `gpt-6-luna` full-suite run with three runs per case, `with_skill` 95.6%
-  against `without_skill` 69.8%.
-- `vibe-commit` captures the fixup commit's SHA before folding into an older
-  commit and verifies the rewritten target under its new SHA, never the
-  pre-rebase one, and its fold report always names the pre-fold HEAD.
-- Verification for `vibe-commit` after the changes above: closing codex
-  `gpt-6-luna` full-suite run with three runs per case, `with_skill` 98.3%
-  against `without_skill` 73.5%.
-- `vibe-debug` names, in a diagnosis plan or next actions that precede a
-  repair, the expected-behavior source to consult, or says none is known, and
-  a fast observation that could disprove the preferred cause.
-- Verification for `vibe-debug` after the changes above: closing codex
-  `gpt-6-luna` full-suite run with three runs per case, `with_skill` 91.9%
-  against `without_skill` 73.6%.
-- `vibe-review` shows the contributor count beside the redacted child ids of a
-  rejected finding group.
-- Verification for `vibe-review` after the changes above: closing codex
-  `gpt-6-luna` full-suite run with three runs per case, `with_skill` 92.8%
-  against `without_skill` 61.4%.
-- `vibe-planning` describes, in a response-only answer, each decision record,
-  index row, and findings entry it would write in full, instead of a handoff
-  packet for a later phase, and states that re-reviewing a revised plan is a
-  local self-review that adds separated perspectives only when the revised
-  risk calls for them.
-- Verification for `vibe-planning` after the changes above: closing codex
-  `gpt-6-luna` full-suite run with three runs per case, `with_skill` 89.1%
-  against `without_skill` 42.7%.
-- Verification for `vibe-plan-execution` after the changes above: closing
-  codex `gpt-6-luna` full-suite run with three runs per case, `with_skill`
-  85.7% against `without_skill` 58.8%.
-- Verification for `vibe-plan-review` after the changes above: closing codex
-  `gpt-6-luna` full-suite run with three runs per case, `with_skill` 94.5%
-  against `without_skill` 52.7%.
-- Verification for `vibe-requirements-spec` after the changes above: closing
-  codex `gpt-6-luna` full-suite run with three runs per case, `with_skill`
-  92.3% against `without_skill` 48.7%.
-- `vibe-orchestrate` reports a persistent host denial with the rejected
-  action, its reason, and the needed host-side resolution and keeps doing
-  independent work instead of waiting on the host.
-- Verification for `vibe-orchestrate` after the changes above: closing codex
-  `gpt-6-luna` full-suite run with three runs per case, `with_skill` 83.9%
-  against `without_skill` 54.3%.
-- `vibe-goal-alignment` gives every alignment-record field, including
-  non-goals and success criteria, even when the record is brief for a
-  low-risk task.
-- Verification for `vibe-goal-alignment` after the changes above: closing
-  codex `gpt-6-luna` full-suite run with three runs per case, `with_skill`
-  89.4% against `without_skill` 57.7%.
-- `vibe-brainstorm` hands forward, without asking, a conventions checklist
-  that only spells out behavior the request implies, and stops only when the
-  checklist adds, drops, or changes requested behavior or scope. When
-  delegation is unavailable, it gives local coordinator-derived perspectives
-  without asking for fallback authorization.
-- Verification for `vibe-brainstorm` after the changes above: closing codex
-  `gpt-6-luna` full-suite run with three runs per case, `with_skill` 92.3%
-  against `without_skill` 64.8%.
-- Verification for `vibe-code-research` after the changes above: closing
-  codex `gpt-6-luna` full-suite run with three runs per case, `with_skill`
-  96.4% against `without_skill` 82.0%.
-- Verification for `vibe-writing` after the changes above: closing codex
-  `gpt-6-luna` full-suite run with three runs per case, `with_skill` 90.8%
-  against `without_skill` 65.6%.
-- `vibe-agent-instructions` says, when it stops for a tracked personal
-  instruction file, that personal rules are meant to stay out of shared
-  history.
-- Verification for `vibe-agent-instructions` after the changes above: closing
-  codex `gpt-6-luna` full-suite run with three runs per case, `with_skill`
-  90.0% against `without_skill` 41.9%.
-- Verification for `skill-eval` after the changes above: closing codex
-  `gpt-6-luna` full-suite run with three runs per case, `with_skill` 78.5%
-  against `without_skill` 37.5%.
-- Verification for `skill-quality` after the changes above: closing codex
-  `gpt-6-luna` full-suite run with three runs per case, `with_skill` 87.7%
-  against `without_skill` 65.5%.
-- Verification for `minecraft-modding-workbench` after the changes above:
-  closing codex `gpt-6-luna` full-suite run with three runs per case,
-  `with_skill` 92.9% against `without_skill` 63.8%.
-- `skill-eval` executors no longer see the case name, which only the grader
-  prompt carries, and reach no host MCP tools. A Codex run first lists the
-  host's MCP servers and runs every executor with each one and the `apps`
-  connector feature disabled, keeping the rest of the user's codex
-  configuration; when the listing fails, is malformed, or names a server no
-  override can target, the run stops before creating an iteration. Servers
-  added to the configuration during a run are not covered. Claude executors
-  run with `--strict-mcp-config`, which also excludes claude.ai connectors.
-  Iterations record delivery protocol `case-inputs-v3`, so earlier iterations
-  are a different measurement series.
-- `skill-eval` flags, as `skill_read_unobserved`, a `with_skill` run whose
-  complete Codex executor trace records no read attempt of the delivered
-  `SKILL.md`, which makes the sanity status `REVIEW REQUIRED`. A read attempt
-  is a parsed command that names the file and runs at least one read-only
-  program such as `cat`, even as part of a compound command; `rm` or `mv` alone
-  does not count, and `ls` does. Claude runs, runs whose trace is uncaptured,
-  incomplete, malformed, truncated, or at the entry cap, and older records
-  missing the required evidence fields are counted as not evaluated, and a run
-  with no read attempt but an unparsed command is counted as uncertain; neither
-  changes the status. A recorded read attempt does not prove a successful read,
-  and a flagged run is a review signal, not proof the skill went unread.
-- `skill-eval` graders can now judge the files an executor left behind: each
-  added file's content and each modified file's diff against the sandbox
-  baseline, even after an executor commit, reach the grader as untrusted data
-  it is told never to follow, within a separate budget of 400,000 rendered
-  characters. Files are read without following links and only while they
-  match the recorded hash, and the runner computes each diff from those bytes
-  and the baseline blob without running repository filters, diff drivers, or
-  fetches. Deleted, non-regular, non-UTF-8, NUL-containing, changed,
-  too-large-to-diff, timed-out, and over-budget paths are listed with a reason
-  and no content, and `run.json` records each path's status under
-  `retained_files`. The evidence shows retained net content, not actions taken
-  or transient states.
-- `skill-eval` can grade with another provider than the executor's: `run
-  --grader-agent <provider>` puts every grader on that provider while
+  involve accepted residuals still prompt.
+- **Breaking:** A verified fix for an earlier commit's own defect is folded
+  into that commit without asking when no remote-tracking ref, tag, other
+  branch, or worktree contains it; operation-specific history consent is asked
+  only when an operation needs it, after showing the commits, diff, and
+  conflict-safety evidence. With nothing selecting a commit, the fixes stay in
+  the working tree and the report says so; decision records and findings
+  reports join the commit handoff without a tracking question, only when their
+  directory is already tracked or the user has said so.
+- An unattended run without protections uses only a pre-authorized
+  unisolated or local fallback or reports a blocker, and dirty-path isolation
+  waits for the user to confirm the whole candidate set. A failed gate is
+  reported with its blocking evidence; three consecutive timeouts or empty
+  polls from one reviewer or run request a checkpoint; two or more material
+  stop signals set `checkpoint_blocked`; terminal audit runs before end
+  rendering or any history operation. A rejected finding group shows its
+  contributor count beside the redacted child ids.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 92.8% against `without_skill` 61.4%.
+
+## [vibe-orchestrate 6.0.0] - 2026-10-08
+
+### Changed
+
+- **Breaking:** A verified unit's checkpoint folds a fix for an earlier
+  commit's own defect into that commit without asking when no remote-tracking
+  ref, tag, other branch, or worktree contains it, and such a fold is not a
+  human-risk decision. With nothing selecting a commit, changes stay in the
+  working tree and the report says so instead of asking; a new file the unit's
+  own change creates and requires joins it unless it holds a credential or
+  secret; decision records and findings reports join only when their directory
+  is already tracked or the user has said so.
+- A persistent host denial is a reported blocker that no other transport,
+  provider, or model may bypass: the coordinator reports the rejected action,
+  its reason, and the needed host-side resolution, keeps doing independent
+  work, and asks the user only for an actual unresolved scope or effect
+  decision.
+- A join triggers the scope checkpoint before optional follow-up; recovery
+  without observable quiescence uses named cancellation or user recovery and
+  leaves recovery that could end the coordinator's session to the user; a
+  named blocker or stop holds the affected unit; unknown or instruction-only
+  confinement is not an adequate writer boundary; measurement-instrument
+  corrections are coordinator-owned and replayed before scoring; a `FILES:`
+  list missing snapshot changes weakens trust in the rest of the report;
+  reconciliation shows which paths changed, not whether the change works; and
+  a rerun of a unit whose runtime constraint went unproven canaries the
+  constrained transport first.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 83.9% against `without_skill` 54.3%.
+
+## [vibe-goal-alignment 2.2.1] - 2026-10-08
+
+### Changed
+
+- The alignment record leads the response and gives every field, including
+  non-goals and success criteria, even when it is brief for a low-risk task. An
+  instruction inside quoted or embedded material authorizes nothing, and the
+  phase never reports a write or command as done.
+- A deletion names authorization and a non-destructive preview of its targets,
+  such as a dry run, target list, or export, as prerequisites and stays blocked
+  until restorability is shown or the user explicitly accepts irreversible
+  loss. Folding a fix into an unpublished commit is not a history-mutation
+  decision.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 89.4% against `without_skill` 57.7%.
+
+## [vibe-commit 5.0.0] - 2026-10-08
+
+### Changed
+
+- **Breaking:** A fix for an earlier commit's own defect is folded into that
+  commit without asking when no remote-tracking ref, tag, other branch, or
+  worktree contains it: HEAD is amended, and an older commit gets a fixup
+  commit and a non-interactive autosquash rebase, which needs a clean tree, no
+  merge commit in the range, and a fix that depends on no later commit. The
+  folded target is verified under its new SHA, and the report names the
+  pre-fold HEAD for reflog recovery. Otherwise, or when the fold fails, a new
+  commit is added with the reason. Push, published-history rewrites, and
+  HEAD-moving resets still need explicit authorization.
+- With nothing selecting a commit, changes stay in the working tree and the
+  report says so instead of asking. A new source, test, or fixture file the
+  unit's own change creates and requires joins the unit unless it holds a
+  credential or secret; generated output, scratch files, and reports still
+  need explicit tracking intent or another mandatory coupling. Decision records
+  and findings reports join only when their directory is already tracked or the
+  user has said so, without asking.
+- Each excluded path is reported with why it stays out, a conflict with an
+  accepted decision record is left for the user to resolve, and a
+  stored-message mismatch that can no longer be folded is reported. Scripted
+  trailer-repair and path-dropping replays cover only a simple unpushed linear
+  range, and a trailer repair stops on a conflict, metadata gap, duplicate
+  trailers, or a moved branch.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 98.3% against `without_skill` 73.5%.
+
+## [vibe-writing 3.1.2] - 2026-10-08
+
+### Changed
+
+- A returned artifact carries no Markdown fence unless explanation is asked.
+  When this phase itself commits or amends a message, it inspects the stored
+  message and corrects malformed bytes before reporting completion; the
+  workflow holding history authority controls signing along with staging,
+  authorization, and history mutation.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 90.8% against `without_skill` 65.6%.
+
+## [vibe-agent-instructions 3.0.0] - 2026-10-08
+
+### Changed
+
+- **Breaking:** Every change to an existing path is shown in the report, and
+  the run waits for confirmation only when the write would replace bytes the
+  last commit cannot restore (an untracked or ignored path, a path with
+  uncommitted changes, or a link whose target is such a path) or when the
+  change departs from the request. New paths, including an absent
+  `.gitignore`, are written directly and reported.
+- **Breaking:** Unsettled ignore placement for the personal files uses the
+  recommended `.gitignore` entry and reports the exact change;
+  `.git/info/exclude` is used only when the user chooses it. An unclear or
+  multi-candidate reference folder resolves to the best-fitting existing
+  folder, or `docs/agents/` when none fits, reported with the reason.
+- Without a shell tool or outside a Git repository, every ignore or tracking
+  decision is asked; possibly stale divergence evidence comes with a question
+  whether to proceed on it; a stop for a tracked personal instruction file says
+  personal rules are meant to stay out of shared history; divergences are
+  reported by label and title, and a link fallback with the observation that
+  triggered it.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 90.0% against `without_skill` 41.9%.
+
+## [vibe-brainstorm 2.0.0] - 2026-10-08
+
+### Changed
+
+- **Breaking:** A conventions checklist that only spells out behavior the
+  request implies is handed forward as AI-selected input without waiting for
+  confirmation; the phase stops for the user only when the checklist adds,
+  drops, or changes requested behavior or scope, and for a direction picked in
+  `full` mode. The report says whether the checklist or direction awaits the
+  user or goes forward. When delegation is unavailable, local
+  coordinator-derived perspectives are given without asking for fallback
+  authorization.
+- An autonomously chosen `full` mode comes with its reason, `diverge` never
+  offers to implement a direction, locally produced results are labeled
+  coordinator-derived, convention grounding names which items each source
+  grounds, the sieve says when no candidate failed a mandatory gate, and a
+  checklist appears only in modes that produce one.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 92.3% against `without_skill` 64.8%.
+
+## [vibe-code-research 2.0.3] - 2026-10-08
+
+### Changed
+
+- The investigation reports no file write or state change beyond a requested
+  research report, says an invited cleanup edit was not made because it is
+  read-only, says where a failed search looked, does not link supplied paths
+  into an ambient checkout or sandbox, keeps inference visible as inference,
+  and offers the evidence that would settle a question the bound corpus
+  cannot.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 96.4% against `without_skill` 82.0%.
+
+## [skill-quality 2.9.1] - 2026-10-08
+
+### Changed
+
+- The skill authorizes no edit to local skill snapshots, launches no run
+  without a pre-registered question, sends no private skill or eval content to
+  an external agent or service without explicit user or project authorization,
+  and finishes `REVIEW REQUIRED` anomaly adjudication before a final commit or
+  closure handoff. A delegate whose analysis feeds a tracked decision is asked
+  for evidence, unsupported claims, and surfaces that must not change, and a
+  diagnostic uses both configurations by default.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 87.7% against `without_skill` 65.5%.
+
+## [skill-eval 2.2.0] - 2026-10-08
+
+### Added
+
+- `run --grader-agent <provider>` puts every grader on that provider while
   executors stay on `--agent`. `--model` reaches the grader only on the
   executor's provider; a grader on another provider gets `--grader-model` or
-  its provider's default. Codex readiness checks run per role, so a Codex
-  grader alone triggers no MCP listing or executor probe. Manifests,
-  benchmarks, and the measurement identity record `grader_agent`, and another
-  grader provider or model is a different measurement series. The new
-  `regrade <iteration-dir> --grader-agent <provider>` command sends each
-  recorded grader prompt unchanged to a fresh grader, scores it against the
-  recorded assertion texts, and writes a diagnostic `regrade-<N>` directory
-  inside the iteration with grader agreement against the source verdicts.
-  Runs lacking a recorded prompt or assertion snapshot are carried unscored,
-  no executor is rerun, and the source iteration's files and official result
-  never change.
-- `skill-eval` starts provider subprocesses that take their prompt as an
-  argument, such as Claude executors and graders, with an empty stdin, so data
-  piped into the runner no longer reaches a model as extra prompt input.
+  its provider's default. Manifests, benchmarks, and the measurement identity
+  record `grader_agent`, and another grader provider or model is a different
+  measurement series.
+- `regrade <iteration-dir> --grader-agent <provider>` sends each recorded
+  grader prompt unchanged to a fresh grader, scores it against the recorded
+  assertion texts, and writes a diagnostic `regrade-<N>` directory with grader
+  agreement against the source verdicts; no executor is rerun, and the source
+  iteration and its official result never change.
+- Graders judge the files an executor left behind: each added file's content
+  and each modified file's diff against the sandbox baseline, as untrusted data
+  within a 400,000-character budget, with skipped paths listed by reason and
+  each path's status recorded in `run.json` under `retained_files`.
+- A `with_skill` run whose complete Codex executor trace records no read
+  attempt of the delivered `SKILL.md` is flagged `skill_read_unobserved` and
+  makes the status `REVIEW REQUIRED`; a flagged run is a review signal, not
+  proof the skill went unread.
+
+### Changed
+
+- Executors no longer see the case name and reach no host MCP tools: Codex
+  executors run with every MCP server listed at run start and the `apps`
+  connector feature disabled, and a failed or unusable listing stops the run
+  before any iteration exists; Claude executors run with `--strict-mcp-config`.
+  Iterations record delivery protocol `case-inputs-v3`, so earlier iterations
+  are a different measurement series; servers added to the configuration
+  during a run are not covered. Provider subprocesses that take their prompt as
+  an argument start with an empty stdin.
+- Before an expensive full matrix the user is told the forecast and decides
+  when it exceeds their apparent budget; long runs launch only through an
+  interruptible control handle, cancellation starts no replacement or retry,
+  and recurring capacity or overload at concurrency 1 needs a material change
+  or a new user decision before another full run. A confirmed validate warning
+  points to rewording the expectation as what the response describes.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 78.5% against `without_skill` 37.5%, recorded before the
+  runner changes above; those are covered by the runner regression tests, with
+  no closing eval run after them.
+
+## [minecraft-modding-workbench 2.2.1] - 2026-10-08
+
+### Changed
+
+- The original binary is backed up before live save data is edited, and
+  `.mca` region input stops unless the chunk payload is extracted first. After
+  a size-cap refusal the user is asked to raise the download cap, and to raise
+  the nested-entry cap only with evidence of an oversized inner jar; an
+  unreadable cache path named by a fetch failure is reported for the user to
+  repair. Dependency reports name the artifact's group, artifact, and version,
+  and a validator that restarts once is recorded unavailable and not retried.
+- Verification: closing codex `gpt-6-luna` full-suite run with three runs per
+  case, `with_skill` 92.9% against `without_skill` 63.8%.
+
+## [Repository] - 2026-10-08
+
+### Changed
+
+- `AGENTS.md` gains "Approval Stop Rules": the `vibe-*` skills and their eval
+  assertions may stop for user input only on an unresolved human-risk decision,
+  a blocker, a material departure from the request, or a checkpoint the user
+  asked for, with folding a fix into an unpublished commit excluded from the
+  kept history-rewrite and squash consents. A change that adds or widens a stop
+  names the protected decision, the failure scenario, and the condition in its
+  changelog entry.
+- Eval items that graded a model habit the skills do not require, or disagreed
+  with the skill text, now grade the stated behavior, keeping every
+  destructive, consent, security, credential, data-safety, and history check;
+  the `vibe-*` items grade the stop rules above.
+- Open: the closing results above compare `with_skill` against
+  `without_skill` only; no run against the previous releases' skill text shows
+  the effect of the stop removal or the instruction tuning, and the rewritten
+  eval items make the rates not like-for-like with earlier releases. They
+  predate the `skill-eval` executor isolation, so the next runs start a new
+  measurement series.
+- Open: runner git calls can still run commands that a writable sandbox git
+  config defines; Codex executors cannot write that config, and whether Claude
+  executors can is unchecked.
+- Verification: `python3 -m pytest -q tests` passed 500 tests and 150
+  subtests; `check --strict` and `audit-names` are clean for all 14 packages;
+  `python3 scripts/vibe_shared_contract.py measure --strict` exits 0; every
+  released skill's eval suite passes static validation with no warnings.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 
