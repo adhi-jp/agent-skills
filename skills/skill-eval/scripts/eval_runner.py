@@ -91,7 +91,7 @@ ALLOWED_SCORING_FIELDS = {
     "notes",
 }
 
-DELIVERY_PROTOCOL = "case-inputs-v3"
+DELIVERY_PROTOCOL = "case-inputs-v4"
 GRADER_CONTEXT_MAX_BYTES = 16 * 1024
 
 DEFAULT_CONFIGS = ("with_skill", "without_skill")
@@ -3594,8 +3594,10 @@ class ClaudeProvider(Provider):
         argv = ["claude", "-p", prompt, "--output-format", "json"]
         if role == "executor":
             # Executors pass no --mcp-config, so this makes the CLI ignore every
-            # MCP configuration the host would otherwise load for them.
-            argv.append("--strict-mcp-config")
+            # MCP configuration the host would otherwise load for them. Safe mode
+            # keeps the user's CLAUDE.md, skills, plugins, and hooks out of the
+            # measured session while auth and model selection still work.
+            argv += ["--strict-mcp-config", "--safe-mode"]
         if role == "grader":
             # Graders consume the runner-built prompt only. Disable tool access,
             # unsafe side effects, and session persistence independently of the
@@ -3685,8 +3687,9 @@ class CodexProvider(Provider):
 
     def __init__(self, disabled_mcp_servers: Sequence[str] = ()) -> None:
         # Host MCP servers that discovery listed at run start. Each executor
-        # invocation disables every one of them and the `apps` feature;
-        # graders already ignore user configuration and get neither.
+        # invocation disables every one of them, the `apps` feature, and the
+        # user's hooks and plugins; graders already ignore user configuration
+        # and get none of these.
         self.disabled_mcp_servers = tuple(disabled_mcp_servers)
 
     def available(self) -> bool:
@@ -3718,6 +3721,8 @@ class CodexProvider(Provider):
             argv += ["--disable", "apps"]
             for server in self.disabled_mcp_servers:
                 argv += ["-c", f"mcp_servers.{server}.enabled=false"]
+            # The rest of config.toml stays, as noted above.
+            argv += list(CODEX_EXECUTOR_FEATURE_OVERRIDES)
         if role == "grader":
             # Command-line strict overrides make the no-tool grader independent
             # of user configuration and command rules. Do not pass image inputs;
@@ -5297,7 +5302,13 @@ def init_disposable_git_repo(path: Path) -> tuple[int | None, str]:
     return result.returncode, result.stderr
 
 
-CODEX_MCP_LIST_ARGV = ("codex", "mcp", "list", "--json")
+# The user's hooks and plugins (and the skills plugins carry) are host
+# customizations, not part of the measured agent. Executors run without them,
+# and MCP discovery lists servers under the same switches, so every override
+# names a server the executor's configuration defines; codex refuses to load a
+# configuration whose override names an undefined server.
+CODEX_EXECUTOR_FEATURE_OVERRIDES = ("-c", "features.hooks=false", "-c", "features.plugins=false")
+CODEX_MCP_LIST_ARGV = ("codex", *CODEX_EXECUTOR_FEATURE_OVERRIDES, "mcp", "list", "--json")
 # The only server names a `-c mcp_servers.<name>.enabled=false` override can
 # target: codex takes a quoted key literally and then fails to load its config.
 CODEX_MCP_SERVER_NAME_RE = re.compile(r"[A-Za-z0-9_-]+")
@@ -5331,9 +5342,9 @@ def parse_codex_mcp_listing(stdout: str) -> tuple[list[dict[str, Any]] | None, s
 def discover_codex_mcp_servers(timeout: float) -> dict[str, Any]:
     """List the host's codex MCP servers so every executor can disable them.
 
-    Runs ``codex mcp list --json`` once, under the executor environment and from
-    a disposable git repository, so it reads the configuration an executor
-    would load. Only a JSON array of objects with a string ``name`` and a
+    Runs ``codex mcp list --json`` once, under the executor environment, its
+    hooks and plugins switches, and from a disposable git repository, so it
+    reads the configuration an executor would load. Only a JSON array of objects with a string ``name`` and a
     boolean ``enabled`` is usable; an empty array means no server is
     configured. Every listed server is disabled whatever its ``enabled`` value.
     Any other outcome, including a name no override can target, returns

@@ -80,9 +80,11 @@ still change them is running or unread.
   `.agents/skills`, `.claude/skills`, a host skill tool, or a cached copy.
 - Executors run in isolated copied sandboxes that hold only the case's
   declared inputs, Codex executors with every host MCP server listed at run
-  start and the `apps` connector feature disabled, and Claude executors with
-  `--strict-mcp-config`, which also excludes claude.ai connectors; graders run
-  in separate empty directories. Never work around a sandbox setup failure by
+  start, the `apps` connector feature, and the user's hooks and plugins
+  disabled, and Claude executors with `--strict-mcp-config`, which also
+  excludes claude.ai connectors, and `--safe-mode`, which drops the user's
+  CLAUDE.md, skills, plugins, and hooks; graders run in separate empty
+  directories. Never work around a sandbox setup failure by
   executing in the source checkout, and never let a missing declared runtime
   become a scored skill failure.
 - Suite definitions live under `evals/<skill-name>/`; generated runs live

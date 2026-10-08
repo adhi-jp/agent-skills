@@ -154,6 +154,10 @@ if sys.argv[1:] == ["--version"]:
     print("codex-test 1.0")
     raise SystemExit(0)
 args = sys.argv[1:]
+global_overrides = []
+while args[:1] == ["-c"]:
+    global_overrides += args[:2]
+    args = args[2:]
 if args[:2] == ["mcp", "list"]:
     if args != ["mcp", "list", "--json"]:
         raise SystemExit(26)
@@ -161,7 +165,8 @@ if args[:2] == ["mcp", "list"]:
     if mcp_log_path:
         with open(mcp_log_path, "a", encoding="utf-8") as handle:
             handle.write(json.dumps({
-                "argv": args, "cwd": os.getcwd(), "pwd": os.environ.get("PWD"),
+                "argv": args, "overrides": global_overrides,
+                "cwd": os.getcwd(), "pwd": os.environ.get("PWD"),
                 "git_repo": os.path.isdir(".git"),
             }) + "\\n")
     time.sleep(float(os.environ.get("FAKE_CODEX_MCP_SLEEP", "0")))
@@ -582,6 +587,10 @@ class FailFastTests(BaseRunnerTest):
                 calls = [json.loads(line) for line in mcp_log.read_text().splitlines()]
                 self.assertEqual(len(calls), 1)
                 self.assertEqual(calls[0]["argv"], ["mcp", "list", "--json"])
+                # Discovery lists what an executor loads, with its hooks and plugins off.
+                self.assertEqual(
+                    calls[0]["overrides"], ["-c", "features.hooks=false", "-c", "features.plugins=false"]
+                )
                 self.assertTrue(calls[0]["git_repo"])
                 self.assertEqual(calls[0]["pwd"], calls[0]["cwd"])
                 self.assertFalse(eval_runner.path_is_relative_to(Path(calls[0]["cwd"]), self.root))
@@ -610,12 +619,13 @@ class FailFastTests(BaseRunnerTest):
                     self.assertIn("--disable", item["argv"])
                     apps_index = item["argv"].index("--disable")
                     self.assertEqual(item["argv"][apps_index:apps_index + 2], ["--disable", "apps"])
+                    self.assertEqual(item["argv"][-5:-1], ["-c", "features.hooks=false", "-c", "features.plugins=false"])
                     if expected:
                         self.assertIn(expected[1], item["argv"])
                         start = item["argv"].index("-c")
                         self.assertEqual(item["argv"][start:start + len(expected)], expected)
                     else:
-                        self.assertNotIn("-c", item["argv"])
+                        self.assertEqual(mcp_overrides, [])
 
     def test_codex_mcp_discovery_failure_stops_run_before_iteration(self):
         path = self.write_suite(
@@ -688,7 +698,10 @@ class FailFastTests(BaseRunnerTest):
         self.assertEqual((record["discovered"], record["disabled"]), ([], []))
         invocation, timeout = launch.call_args.args
         self.assertEqual(timeout, 60.0)
-        self.assertEqual(invocation.argv, ["codex", "mcp", "list", "--json"])
+        self.assertEqual(
+            invocation.argv,
+            ["codex", "-c", "features.hooks=false", "-c", "features.plugins=false", "mcp", "list", "--json"],
+        )
         self.assertEqual(invocation.env["PWD"], invocation.cwd)
         with mock.patch.object(eval_runner, "run_invocation", side_effect=FileNotFoundError("codex")):
             record = eval_runner.discover_codex_mcp_servers(600)
@@ -2315,11 +2328,15 @@ class ModelSelectionTests(BaseRunnerTest):
             "prompt", run_dir=self.root, role="executor", model="claude-sonnet-4-6"
         )
         self.assertEqual(with_model.argv[-2:], ["--model", "claude-sonnet-4-6"])
-        # Executors ignore every host MCP configuration; graders keep their flags.
+        # Executors ignore every host MCP configuration and start in safe mode
+        # so no user CLAUDE.md, skill, plugin, or hook reaches them; graders
+        # keep their flags.
         self.assertEqual(
-            without.argv, ["claude", "-p", "prompt", "--output-format", "json", "--strict-mcp-config"]
+            without.argv,
+            ["claude", "-p", "prompt", "--output-format", "json", "--strict-mcp-config", "--safe-mode"],
         )
         self.assertIn("--strict-mcp-config", with_model.argv)
+        self.assertIn("--safe-mode", with_model.argv)
         self.assertNotIn("--mcp-config", with_model.argv)
         grader = provider.build_invocation(
             "prompt", run_dir=self.root, role="grader", model="claude-sonnet-4-6"
@@ -2341,8 +2358,10 @@ class ModelSelectionTests(BaseRunnerTest):
         self.assertEqual(grader.argv[grader.argv.index("--tools") + 1], "")
         self.assertIn("--safe-mode", grader.argv)
         self.assertIn("--no-session-persistence", grader.argv)
-        for control in ("--tools", "--safe-mode", "--no-session-persistence"):
+        for control in ("--tools", "--no-session-persistence"):
             self.assertNotIn(control, executor.argv)
+        # Both roles start in safe mode; only the grader loses its tools.
+        self.assertEqual(executor.argv.count("--safe-mode"), 1)
 
     def test_codex_build_invocation_uses_stdin_and_passes_model(self):
         provider = eval_runner.CodexProvider()
@@ -2362,15 +2381,18 @@ class ModelSelectionTests(BaseRunnerTest):
         self.assertEqual(with_model.argv[model_index + 1], "gpt-5.3-codex-spark")
 
         # A verified-empty discovery adds no server override, but executors
-        # always disable the `apps` feature that exposes account connectors.
+        # always disable the `apps` feature that exposes account connectors
+        # and the user's hooks and plugins.
         self.assertEqual(
             without.argv,
             [
                 "codex", "exec", "-s", "workspace-write",
                 "-o", str((self.root / "executor_codex_last.txt").resolve()),
-                "--json", "--skip-git-repo-check", "--disable", "apps", "-",
+                "--json", "--skip-git-repo-check", "--disable", "apps",
+                "-c", "features.hooks=false", "-c", "features.plugins=false", "-",
             ],
         )
+        self.assertNotIn("--ignore-user-config", without.argv)
         empty = eval_runner.CodexProvider(disabled_mcp_servers=())
         self.assertEqual(
             empty.build_invocation("the prompt", run_dir=self.root, role="executor").argv, without.argv
@@ -2451,9 +2473,13 @@ class ModelSelectionTests(BaseRunnerTest):
         self.assertNotIn("--output-schema", ex.argv)
         self.assertEqual(ex.argv[ex.argv.index("-s") + 1], "workspace-write")
         for control in (
-            "--strict-config", "--ephemeral", "--ignore-user-config", "--ignore-rules", "-c"
+            "--strict-config", "--ephemeral", "--ignore-user-config", "--ignore-rules"
         ):
             self.assertNotIn(control, ex.argv)
+        executor_overrides = [
+            ex.argv[index + 1] for index, value in enumerate(ex.argv[:-1]) if value == "-c"
+        ]
+        self.assertEqual(executor_overrides, ["features.hooks=false", "features.plugins=false"])
 
     def test_codex_fake_accepts_large_stdin_and_isolated_grader(self):
         provider = eval_runner.CodexProvider()
@@ -5831,7 +5857,7 @@ class CaseInputDeliveryTests(BaseRunnerTest):
         self.assertEqual(manifest["measurement_identity"], benchmark["measurement_identity"])
         identity = benchmark["measurement_identity"]
         self.assertTrue(identity["complete"])
-        self.assertEqual(identity["delivery_protocol"], "case-inputs-v3")
+        self.assertEqual(identity["delivery_protocol"], "case-inputs-v4")
         self.assertEqual(len(identity["delivered_inputs"]), 2)
         self.assertIn("do not prove OS isolation", (self.iteration_dir() / "benchmark.md").read_text())
 
@@ -6095,6 +6121,8 @@ class GraderAgentTests(MixedProviderTest):
         for item in launches:
             self.assertEqual(item["argv"][item["argv"].index("--disable"):][:2], ["--disable", "apps"])
             self.assertIn("mcp_servers.alpha.enabled=false", item["argv"])
+            self.assertIn("features.hooks=false", item["argv"])
+            self.assertIn("features.plugins=false", item["argv"])
         preflight = json.loads((self.root / "evals/demo/workspace/codex/preflight.json").read_text())
         self.assertTrue(preflight["ok"])
         self.assertEqual([probe["role"] for probe in preflight["probes"]], ["executor"])

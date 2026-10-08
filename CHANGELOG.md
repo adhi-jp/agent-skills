@@ -11,6 +11,19 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- skill-eval: Executors run without the user's hooks and plugins. Claude
+  executors start with `--safe-mode`, so the user's CLAUDE.md, skills,
+  plugins, and hooks stay out, and nested `CLAUDE.md` files in delivered
+  fixtures no longer load as instructions. Codex executors, and the MCP
+  listing taken for them, run with hooks and plugins disabled; the rest of the
+  user's codex setup, including `config.toml` model and reasoning effort,
+  exec-policy rules, a user-global `AGENTS.md`, and user skills, still
+  applies. Iterations record delivery protocol `case-inputs-v4`, so earlier
+  iterations are a different measurement series. Whether Claude safe mode
+  keeps the user's effort setting is not established.
+
 ## [vibe-coding 6.0.0] - 2026-10-08
 
 ### Changed

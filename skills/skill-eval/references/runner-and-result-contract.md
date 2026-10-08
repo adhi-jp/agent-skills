@@ -57,20 +57,21 @@ python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/work
   unknown or empty `--eval-id` also creates no iteration. An empty suite exits
   0 with an explicit empty result.
 - Codex readiness is checked per role. A non-empty run with a Codex executor
-  first lists the host's MCP servers once with
-  `codex mcp list --json`, under the executor environment from a disposable
-  git directory, before npm setup and before any iteration exists. Only a JSON
-  array of objects with a string `name` and a boolean `enabled` is accepted,
-  and an empty array means no server. A non-zero exit, timeout, unparseable or
-  differently shaped output, or a name that is not a bare config key (letters,
-  digits, `_`, `-`) stops the run with zero suite cells and no iteration. The
-  run then probes an executor-shaped invocation, in a disposable git
-  repository created only for that probe, when the executor is Codex, and a
-  grader-shaped invocation when the grader is Codex; a Codex grader alone
-  triggers no MCP listing, repository setup, or executor probe. It records the
-  discovered and disabled server names and the evidence of only the probes
-  run at `evals/<skill-name>/workspace/<agent>/preflight.json`, and stops with
-  zero suite cells if any probe fails.
+  first lists the host's MCP servers once with `codex mcp list --json`, under
+  the executor environment and the executors' hooks and plugins switches from
+  a disposable git directory, before npm setup and before any iteration
+  exists. Only a JSON array of objects with a string `name` and a boolean
+  `enabled` is accepted, and an empty array means no server. A non-zero exit,
+  timeout, unparseable or differently shaped output, or a name that is not a
+  bare config key (letters, digits, `_`, `-`) stops the run with zero suite
+  cells and no iteration. The run then probes an executor-shaped invocation,
+  in a disposable git repository created only for that probe, when the
+  executor is Codex, and a grader-shaped invocation when the grader is Codex;
+  a Codex grader alone triggers no MCP listing, repository setup, or executor
+  probe. It records the discovered and disabled server names and the evidence
+  of only the probes run at
+  `evals/<skill-name>/workspace/<agent>/preflight.json`, and stops with zero
+  suite cells if any probe fails.
 - `validate` and the `run` preflight print advisory delivery-mode warnings:
   an expectation opening with performed-action wording (`Writes`, `Adds`,
   `Allocates`, `Reads`, `Commits`, and similar) in a case whose prompt carries
@@ -151,12 +152,21 @@ python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/work
   `-c mcp_servers.<name>.enabled=false`, whatever its listed `enabled` state,
   and with `--disable apps`, even when the listing is empty: the default-on
   `apps` feature exposes account connectors as MCP tools that the listing does
-  not show. The rest of the user's codex configuration, such as model defaults
-  and reasoning effort, still applies. The isolation covers the servers listed
-  at run start, not MCP configuration changed during the run. Claude executors
-  run with `--strict-mcp-config` and no `--mcp-config`, which makes the CLI
-  ignore every other MCP configuration, claude.ai connectors included. Graders
-  keep their own controls.
+  not show. They also run with `-c features.hooks=false` and
+  `-c features.plugins=false`, so the user's hooks and plugins, and the skills
+  plugins carry, stay out. The rest of the user's codex setup still applies:
+  `config.toml` settings such as model defaults and reasoning effort,
+  exec-policy rules, a user-global `AGENTS.md`, and the skills in codex's own
+  skill directories, including the ones codex ships. The isolation covers
+  the servers listed at run start, not MCP configuration changed during the
+  run. Claude executors run with `--strict-mcp-config` and no `--mcp-config`,
+  which makes the CLI ignore every other MCP configuration, claude.ai
+  connectors included, and with `--safe-mode`, which drops the user's
+  CLAUDE.md, skills, plugins, hooks, and custom commands and agents while auth
+  and model selection still work. Safe mode also stops nested `CLAUDE.md`
+  files inside delivered fixtures from loading as instructions; they stay
+  readable as files. Whether safe mode keeps the user's effort setting is not
+  established. Graders keep their own controls.
 - The executor prompt carries the eval id, the configuration, and the user
   prompt (outer whitespace trimmed), but not the case `name`, which can state the expected
   decision; only the grader prompt names the case.
@@ -294,8 +304,9 @@ python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/work
   different measurement series, missing historical identity is unknown, and
   agreement is necessary but not sufficient for a causal reading; a changed
   grader provider or model is a changed measurement identity. Delivery
-  protocol `case-inputs-v3` marks the executor delivery described above,
-  without the case name and with the host MCP controls; an iteration recorded
+  protocol `case-inputs-v4` marks the executor delivery described above,
+  without the case name, with the host MCP controls, and without the user's
+  hooks, plugins, and (for Claude) CLAUDE.md and skills; an iteration recorded
   under an earlier protocol is a different measurement series. `report`
   starts no server or browser, binds no port, writes no PID file, and leaves
   no background process.
