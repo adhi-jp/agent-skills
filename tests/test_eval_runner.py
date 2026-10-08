@@ -142,14 +142,14 @@ class BaseRunnerTest(unittest.TestCase):
 
     def fake_codex_env(
         self, *, fail=False, log=None, pretty_json=False, preflight_executor_output=None,
-        mcp_output=None, mcp_exit=None, mcp_sleep=None, mcp_log=None,
+        mcp_output=None, mcp_exit=None, mcp_sleep=None, mcp_log=None, grader_verdicts=None,
     ):
         bin_dir = self.root / "fake-bin"
         bin_dir.mkdir(exist_ok=True)
         fake = bin_dir / "codex"
         fake.write_text(
             """#!/usr/bin/env python3
-import json, os, re, sys, time
+import hashlib, json, os, re, sys, time
 if sys.argv[1:] == ["--version"]:
     print("codex-test 1.0")
     raise SystemExit(0)
@@ -171,15 +171,19 @@ if len(args) < 2 or args[0] != "exec" or args[-1] != "-":
     raise SystemExit(20)
 if "--skip-git-repo-check" not in args:
     raise SystemExit(21)
-prompt = sys.stdin.read()
+raw_stdin = sys.stdin.buffer.read()
+prompt = raw_stdin.decode("utf-8").replace("\\r\\n", "\\n").replace("\\r", "\\n")
 if not prompt:
     raise SystemExit(22)
+kind = "preflight" if "PREFLIGHT" in prompt or "Return exactly" in prompt else "suite"
 log_path = os.environ.get("FAKE_CODEX_LOG")
 if log_path:
     role = "grader" if "--output-schema" in args else "executor"
-    kind = "preflight" if "PREFLIGHT" in prompt or "Return exactly" in prompt else "suite"
     with open(log_path, "a", encoding="utf-8") as handle:
-        handle.write(json.dumps({"role": role, "kind": kind, "cwd": os.getcwd(), "argv": args}) + "\\n")
+        handle.write(json.dumps({
+            "role": role, "kind": kind, "cwd": os.getcwd(), "argv": args,
+            "stdin_sha256": hashlib.sha256(raw_stdin).hexdigest(),
+        }) + "\\n")
 out = args[args.index("-o") + 1]
 if not os.path.isabs(out):
     raise SystemExit(23)
@@ -191,6 +195,9 @@ if "--output-schema" in args:
     message = json.dumps({"verdicts": [
         {"id": i, "passed": True, "evidence": "fake"} for i, _ in enumerate(assertions, 1)
     ]}, indent=2 if os.environ.get("FAKE_CODEX_PRETTY_JSON") == "1" else None)
+    scripted = os.environ.get("FAKE_CODEX_GRADER_VERDICTS")
+    if scripted is not None and kind == "suite":
+        message = json.dumps({"verdicts": json.loads(scripted)})
 else:
     if "CODEX_PREFLIGHT_EXECUTOR" in prompt:
         message = os.environ.get(
@@ -230,6 +237,8 @@ print(json.dumps({"type": "turn.completed", "usage": {
             env["FAKE_CODEX_MCP_SLEEP"] = str(mcp_sleep)
         if mcp_log is not None:
             env["FAKE_CODEX_MCP_LOG"] = str(mcp_log)
+        if grader_verdicts is not None:
+            env["FAKE_CODEX_GRADER_VERDICTS"] = json.dumps(grader_verdicts)
         return env
 
     def init_git_baseline(self):
@@ -5955,3 +5964,589 @@ class DeliveryRegressionTests(BaseRunnerTest):
         self.assertIn("not tracked", result.stderr)
         self.assertFalse(log.exists())
         self.assertFalse(self.iteration_dir().exists())
+
+
+# --------------------------------------------------------------------------- #
+# Grader provider per run: executors use --agent, graders --grader-agent.
+# --------------------------------------------------------------------------- #
+def tree_bytes(root):
+    return {
+        path.relative_to(root).as_posix(): path.read_bytes()
+        for path in sorted(Path(root).rglob("*"))
+        if path.is_file() and not path.is_symlink()
+    }
+
+
+def read_jsonl(path):
+    return [json.loads(line) for line in Path(path).read_text().splitlines()]
+
+
+class MixedProviderTest(BaseRunnerTest):
+    def mixed_env(self, spec, *, stub_log=None, **codex_kwargs):
+        env = self.fake_codex_env(**codex_kwargs)
+        env.update(self.stub_env(spec, log=stub_log))
+        env["PATH"] = self.fake_codex_env(**codex_kwargs)["PATH"]
+        return env
+
+    def run_record(self, agent, config="with_skill", eval_dir="eval-first-eval", number=1):
+        return json.loads(
+            (self.iteration_dir(agent, number) / eval_dir / config / "run-1" / "run.json").read_text()
+        )
+
+
+class GraderAgentTests(MixedProviderTest):
+    def test_codex_grader_under_a_stub_executor_grades_and_records_the_grader_provider(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        log = self.root / "codex.jsonl"
+        mcp_log = self.root / "mcp.jsonl"
+        self.run_cli(
+            "run", path, "--agent", "stub", "--grader-agent", "codex", "--config", "with_skill",
+            env=self.mixed_env(spec, log=log, mcp_log=mcp_log), check=True,
+        )
+        record = self.run_record("stub")
+        self.assertEqual(record["executor_invocation"]["argv"][:2], [sys.executable, "-c"])
+        grader_argv = record["grader_invocation"]["argv"]
+        self.assertEqual(grader_argv[:2], ["codex", "exec"])
+        for flag in ("--strict-config", "--ignore-user-config", "--output-schema"):
+            self.assertIn(flag, grader_argv)
+        self.assertNotIn("--disable", grader_argv)
+        self.assertEqual(record["status"], "ok")
+        self.assertFalse(mcp_log.exists())
+        launches = read_jsonl(log)
+        self.assertEqual(
+            [(item["kind"], item["role"]) for item in launches],
+            [("preflight", "grader"), ("suite", "grader"), ("suite", "grader")],
+        )
+        preflight = json.loads((self.root / "evals/demo/workspace/stub/preflight.json").read_text())
+        self.assertTrue(preflight["ok"])
+        self.assertEqual([probe["role"] for probe in preflight["probes"]], ["grader"])
+        self.assertIsNone(preflight["mcp_discovery"])
+        manifest = json.loads((self.iteration_dir("stub") / "iteration_manifest.json").read_text())
+        benchmark = json.loads((self.iteration_dir("stub") / "benchmark.json").read_text())
+        identity = benchmark["measurement_identity"]
+        self.assertEqual(manifest["grader_agent"], "codex")
+        self.assertEqual(benchmark["grader_agent"], "codex")
+        self.assertEqual(identity["grader_agent"], "codex")
+        self.assertEqual(manifest["measurement_identity"], identity)
+        markdown = (self.iteration_dir("stub") / "benchmark.md").read_text()
+        self.assertIn("- Executor model: provider default", markdown)
+        self.assertIn("- Grader model: provider default (grader agent `codex`)", markdown)
+        context = {
+            key: value for key, value in identity.items()
+            if key not in eval_runner.MEASUREMENT_IDENTITY_DERIVED_KEYS
+        }
+        runs = benchmark["runs"]
+        self.assertEqual(eval_runner.measurement_identity(context, runs)["sha256"], identity["sha256"])
+        other_grader = {**context, "grader_agent": "stub"}
+        self.assertNotEqual(eval_runner.measurement_identity(other_grader, runs)["sha256"], identity["sha256"])
+
+    def test_stub_grader_under_a_codex_executor_keeps_executor_isolation_and_probe_only(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        log = self.root / "codex.jsonl"
+        mcp_log = self.root / "mcp.jsonl"
+        stub_log = self.root / "stub.log"
+        listing = [{"name": "alpha", "enabled": True}]
+        self.run_cli(
+            "run", path, "--agent", "codex", "--grader-agent", "stub", "--config", "with_skill",
+            env=self.mixed_env(
+                spec, stub_log=stub_log, log=log, mcp_log=mcp_log, mcp_output=json.dumps(listing)
+            ),
+            check=True,
+        )
+        self.assertEqual(len(read_jsonl(mcp_log)), 1)
+        launches = read_jsonl(log)
+        self.assertEqual(
+            [(item["kind"], item["role"]) for item in launches],
+            [("preflight", "executor"), ("suite", "executor"), ("suite", "executor")],
+        )
+        for item in launches:
+            self.assertEqual(item["argv"][item["argv"].index("--disable"):][:2], ["--disable", "apps"])
+            self.assertIn("mcp_servers.alpha.enabled=false", item["argv"])
+        preflight = json.loads((self.root / "evals/demo/workspace/codex/preflight.json").read_text())
+        self.assertTrue(preflight["ok"])
+        self.assertEqual([probe["role"] for probe in preflight["probes"]], ["executor"])
+        self.assertEqual(preflight["mcp_discovery"]["disabled"], ["alpha"])
+        record = self.run_record("codex")
+        self.assertEqual(record["executor_invocation"]["argv"][:2], ["codex", "exec"])
+        self.assertEqual(record["grader_invocation"]["argv"][:2], [sys.executable, "-c"])
+        self.assertEqual(record["grader_invocation"]["argv"][-1], "grader")
+        self.assertEqual(record["executor_evidence"]["source"], "runner")
+        self.assertEqual(record["metrics"]["usage_captured"], True)
+        stub_events = stub_log.read_text()
+        self.assertEqual(stub_events.count("enter grader"), 2)
+        self.assertNotIn("executor", stub_events)
+
+    def test_explicit_grader_agent_equal_to_agent_matches_omitting_it(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        for agent in ("stub", "codex"):
+            with self.subTest(agent):
+                env = self.mixed_env(spec)
+                self.run_cli("run", path, "--agent", agent, "--model", "m-1", env=env, check=True)
+                self.run_cli(
+                    "run", path, "--agent", agent, "--grader-agent", agent, "--model", "m-1",
+                    env=env, check=True,
+                )
+                for eval_dir in ("eval-first-eval", "eval-second-eval"):
+                    for config in ("with_skill", "without_skill"):
+                        omitted = self.run_record(agent, config, eval_dir, 1)
+                        explicit = self.run_record(agent, config, eval_dir, 2)
+                        for role in ("executor_invocation", "grader_invocation"):
+                            normalized = json.loads(
+                                json.dumps(explicit[role]["argv"]).replace("iteration-2", "iteration-1")
+                            )
+                            self.assertEqual(normalized, omitted[role]["argv"])
+                        self.assertIn("m-1", explicit["grader_invocation"]["argv"])
+                markdowns = [
+                    (self.iteration_dir(agent, number) / "benchmark.md").read_text() for number in (1, 2)
+                ]
+                lines = [
+                    [line for line in text.splitlines() if "odel" in line] for text in markdowns
+                ]
+                self.assertEqual(lines[0], ["- Model: `m-1`"])
+                self.assertEqual(lines[0], lines[1])
+
+    def test_model_never_crosses_into_another_grader_provider(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        cases = [
+            (["--model", "x-1"], "x-1", None),
+            (["--model", "x-1", "--grader-model", "y-1"], "x-1", "y-1"),
+        ]
+        for number, (flags, executor_model, grader_model) in enumerate(cases, start=1):
+            with self.subTest(flags):
+                self.run_cli(
+                    "run", path, "--agent", "stub", "--grader-agent", "codex", "--config", "with_skill",
+                    *flags, env=self.mixed_env(spec), check=True,
+                )
+                record = self.run_record("stub", number=number)
+                self.assertEqual(record["executor_invocation"]["argv"][-1], executor_model)
+                grader_argv = record["grader_invocation"]["argv"]
+                if grader_model is None:
+                    self.assertNotIn("--model", grader_argv)
+                    self.assertNotIn("x-1", grader_argv)
+                else:
+                    self.assertEqual(grader_argv[grader_argv.index("--model") + 1], grader_model)
+                manifest = json.loads((self.iteration_dir("stub", number) / "iteration_manifest.json").read_text())
+                benchmark = json.loads((self.iteration_dir("stub", number) / "benchmark.json").read_text())
+                for recorded in (manifest, benchmark, benchmark["measurement_identity"]):
+                    self.assertEqual(recorded["executor_model"], executor_model)
+                    self.assertIsNone(recorded["grader_model"]) if grader_model is None else \
+                        self.assertEqual(recorded["grader_model"], grader_model)
+        self.run_cli("run", path, "--agent", "stub", "--config", "with_skill", "--model", "x-1",
+                     env=self.stub_env(spec), check=True)
+        self.assertEqual(self.run_record("stub", number=3)["grader_invocation"]["argv"][-1], "x-1")
+
+    def test_unknown_or_unavailable_grader_provider_exits_before_any_launch(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        stub_log = self.root / "stub.log"
+        result = self.run_cli(
+            "run", path, "--agent", "stub", "--grader-agent", "imaginary",
+            env=self.stub_env(spec, log=stub_log),
+        )
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertIn("--grader-agent 'imaginary': unknown provider", result.stderr)
+        self.assertFalse(stub_log.exists())
+        self.assertFalse(self.iteration_dir("stub").exists())
+        log = self.root / "codex.jsonl"
+        mcp_log = self.root / "mcp.jsonl"
+        env = self.fake_codex_env(log=log, mcp_log=mcp_log)
+        env.pop("EVAL_RUNNER_STUB_FILE", None)
+        result = self.run_cli("run", path, "--agent", "codex", "--grader-agent", "stub", env=env)
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertIn("--grader-agent stub: provider CLI is not available", result.stderr)
+        self.assertFalse(log.exists())
+        self.assertFalse(mcp_log.exists())
+        self.assertFalse(self.iteration_dir("codex").exists())
+
+    def test_grader_only_codex_readiness_skips_executor_setup_and_discovery(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        with mock.patch.dict(os.environ, self.mixed_env(spec), clear=False), \
+                mock.patch.object(eval_runner, "init_disposable_git_repo", return_value=(1, "forced")) as setup, \
+                mock.patch.object(eval_runner, "discover_codex_mcp_servers", side_effect=AssertionError) as discovery:
+            code = eval_runner.main(
+                ["run", str(path), "--agent", "stub", "--grader-agent", "codex", "--config", "with_skill"]
+            )
+        self.assertEqual(code, 0)
+        setup.assert_not_called()
+        discovery.assert_not_called()
+        preflight = json.loads((self.root / "evals/demo/workspace/stub/preflight.json").read_text())
+        self.assertTrue(preflight["ok"])
+        self.assertEqual([probe["role"] for probe in preflight["probes"]], ["grader"])
+        self.assertEqual(preflight["models"], {"grader": None})
+
+    def test_failing_codex_grader_probe_under_a_stub_executor_runs_no_suite_cell(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        stub_log = self.root / "stub.log"
+        log = self.root / "codex.jsonl"
+        result = self.run_cli(
+            "run", path, "--agent", "stub", "--grader-agent", "codex",
+            env=self.mixed_env(spec, stub_log=stub_log, log=log, fail=True),
+        )
+        self.assertEqual(result.returncode, 2, result.stderr)
+        self.assertIn("--grader-agent codex: readiness preflight failed", result.stderr)
+        self.assertFalse(stub_log.exists())
+        self.assertEqual([(item["kind"], item["role"]) for item in read_jsonl(log)], [("preflight", "grader")])
+        self.assertEqual(list((self.root / "evals/demo/workspace").rglob("run.json")), [])
+        preflight = json.loads((self.root / "evals/demo/workspace/stub/preflight.json").read_text())
+        self.assertFalse(preflight["ok"])
+        self.assertEqual([probe["role"] for probe in preflight["probes"]], ["grader"])
+
+
+# --------------------------------------------------------------------------- #
+# Regrade: recorded grader prompts re-graded into a diagnostic directory.
+# --------------------------------------------------------------------------- #
+class RegradeTests(MixedProviderTest):
+    SUITE = {
+        "schema_version": "1.0.0",
+        "skill_name": "demo",
+        "common_assertions": ["common assertion"],
+        "evals": [
+            {"id": "E01", "name": "First eval", "prompt": "Do the thing.",
+             "files": ["evals/demo/fixtures/input.txt"], "expectations": ["first check", "second check"]},
+            {"id": "E02", "name": "Second eval", "prompt": "Do another thing.", "expectations": ["third check"]},
+        ],
+    }
+    # Out of order on purpose, each with its own evidence, so a verdict
+    # attached to the wrong assertion shows up as a wrong text or evidence.
+    SCRIPTED = [
+        {"id": 2, "passed": False, "evidence": "ev-two"},
+        {"id": 1, "passed": True, "evidence": "ev-one"},
+        {"id": 3, "passed": True, "evidence": "ev-three"},
+    ]
+
+    def source_iteration(self, *extra, spec=None, agent="stub", configs="without_skill,with_skill"):
+        path = self.write_suite(json.loads(json.dumps(self.SUITE)))
+        spec_path = self.write_stub_spec(spec)
+        self.run_cli(
+            "run", path, "--agent", agent, "--config", configs, *extra,
+            env=self.mixed_env(spec_path), check=True,
+        )
+        workspace = self.root / "evals/demo/workspace" / agent
+        newest = max(int(child.name.split("-")[1]) for child in workspace.glob("iteration-*"))
+        return path, self.iteration_dir(agent, newest)
+
+    def regrade_env(self, spec=None, *, stub_log=None, **codex_kwargs):
+        spec_path = self.root / "regrade_spec.json"
+        spec_path.write_text(json.dumps(spec or {"grading": {
+            "with_skill": {"pass": True}, "without_skill": {"pass": True}}}), encoding="utf-8")
+        return self.mixed_env(spec_path, stub_log=stub_log, **codex_kwargs)
+
+    def test_regrade_attaches_scripted_verdicts_to_recorded_assertions_and_leaves_the_source_untouched(self):
+        path, iteration = self.source_iteration()
+        workspace = self.root / "evals/demo/workspace"
+        source_benchmark = json.loads((iteration / "benchmark.json").read_text())
+        before = tree_bytes(workspace)
+        log = self.root / "codex.jsonl"
+        env = self.regrade_env(log=log, grader_verdicts=self.SCRIPTED)
+        result = self.run_cli("regrade", iteration, "--grader-agent", "codex", "--grader-model", "g-1", env=env)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        after_first = tree_bytes(workspace)
+        for rel, data in before.items():
+            self.assertEqual(after_first.get(rel), data, rel)
+        regrade_rel = iteration.relative_to(workspace).as_posix() + "/regrade-1/"
+        for rel in set(after_first) - set(before):
+            self.assertTrue(rel.startswith(regrade_rel), rel)
+        regrade = iteration / "regrade-1"
+        cells = sorted(p.parent.relative_to(regrade).as_posix() for p in regrade.rglob("run.json"))
+        self.assertEqual(cells, sorted(
+            f"{eval_dir}/{config}/run-1"
+            for eval_dir in ("eval-first-eval", "eval-second-eval")
+            for config in ("with_skill", "without_skill")
+        ))
+        for cell in cells:
+            for name in ("grading.json", "outputs/grader_output.txt", "grader_schema.json", "grader_codex_last.txt"):
+                self.assertTrue((regrade / cell / name).is_file(), f"{cell}/{name}")
+        launches = read_jsonl(log)
+        self.assertEqual(
+            sorted((item["kind"], item["role"]) for item in launches),
+            [("preflight", "grader")] + [("suite", "grader")] * 4,
+        )
+        self.assertEqual(json.loads((regrade / "preflight.json").read_text())["ok"], True)
+
+        benchmark = json.loads((regrade / "benchmark.json").read_text())
+        self.assertEqual(benchmark["configs"], ["without_skill", "with_skill"])
+        self.assertEqual([entry["eval_id"] for entry in benchmark["evals"]], ["E01", "E02"])
+        self.assertEqual(benchmark["suite_coverage"], source_benchmark["suite_coverage"])
+        self.assertEqual(benchmark["agent"], "stub")
+        self.assertEqual((benchmark["grader_agent"], benchmark["grader_model"]), ("codex", "g-1"))
+        identity = benchmark["measurement_identity"]
+        source_identity = source_benchmark["measurement_identity"]
+        self.assertEqual((identity["grader_agent"], identity["grader_model"]), ("codex", "g-1"))
+        self.assertEqual(identity["delivered_inputs"], source_identity["delivered_inputs"])
+        self.assertEqual(identity["runner_sha256"], source_identity["runner_sha256"])
+        self.assertNotEqual(identity["sha256"], source_identity["sha256"])
+        section = benchmark["regrade"]
+        self.assertEqual(section["source_iteration"], str(iteration.resolve()))
+        self.assertEqual((section["source_grader_agent"], section["source_grader_model"]), ("stub", None))
+        self.assertEqual((section["grader_agent"], section["grader_model"]), ("codex", "g-1"))
+        self.assertEqual(section["source_measurement_sha256"], source_identity["sha256"])
+
+        # Source: with_skill passes everything, without_skill fails everything.
+        # Regrade: id 1 passes, id 2 fails, id 3 passes (E02 has no id 3).
+        first = json.loads((regrade / "eval-first-eval/with_skill/run-1/grading.json").read_text())
+        self.assertEqual(
+            [(item["text"], item["passed"], item["evidence"]) for item in first["expectations"]],
+            [("common assertion", True, "ev-one"), ("first check", False, "ev-two"),
+             ("second check", True, "ev-three")],
+        )
+        agreement = section["agreement"]
+        self.assertEqual(agreement["by_configuration"], {
+            "without_skill": {"agree": 2, "disagree": 3},
+            "with_skill": {"agree": 3, "disagree": 2},
+        })
+        found = {
+            (item["eval_id"], item["configuration"], item["run_number"], item["assertion"]):
+                (item["source_passed"], item["regrade_passed"], item["regrade_evidence"])
+            for item in agreement["disagreements"]
+        }
+        self.assertEqual(found, {
+            ("E01", "with_skill", 1, "first check"): (True, False, "ev-two"),
+            ("E02", "with_skill", 1, "third check"): (True, False, "ev-two"),
+            ("E01", "without_skill", 1, "common assertion"): (False, True, "ev-one"),
+            ("E01", "without_skill", 1, "second check"): (False, True, "ev-three"),
+            ("E02", "without_skill", 1, "common assertion"): (False, True, "ev-one"),
+        })
+        for item in agreement["disagreements"]:
+            self.assertEqual(item["source_evidence"], "stub")
+
+        # A changed suite file does not change what a later regrade grades against.
+        changed = json.loads(json.dumps(self.SUITE))
+        changed["common_assertions"] = ["rewritten common assertion"]
+        changed["evals"][0]["expectations"] = ["rewritten check"]
+        path.write_text(json.dumps(changed), encoding="utf-8")
+        result = self.run_cli("regrade", iteration, "--grader-agent", "codex", env=env)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        after_second = tree_bytes(workspace)
+        for rel, data in after_first.items():
+            self.assertEqual(after_second.get(rel), data, rel)
+        second_rel = iteration.relative_to(workspace).as_posix() + "/regrade-2/"
+        for rel in set(after_second) - set(after_first):
+            self.assertTrue(rel.startswith(second_rel), rel)
+        second = iteration / "regrade-2"
+        self.assertEqual(len(list(second.rglob("run.json"))), 4)
+        second_benchmark = json.loads((second / "benchmark.json").read_text())
+        self.assertEqual(second_benchmark["run_count"], 4)
+        regraded = json.loads((second / "eval-first-eval/with_skill/run-1/grading.json").read_text())
+        self.assertEqual(
+            [item["text"] for item in regraded["expectations"]],
+            ["common assertion", "first check", "second check"],
+        )
+        self.assertEqual(second_benchmark["regrade"]["agreement"], agreement)
+
+    def test_regrade_sends_the_recorded_prompt_bytes_unchanged(self):
+        _, iteration = self.source_iteration()
+        prompt_path = iteration / "eval-first-eval/with_skill/run-1/grader_prompt.md"
+        recorded = (
+            "  \r\n leading space, 日本語 and é\r\nLF line\nlone CR\r"
+            + prompt_path.read_text(encoding="utf-8") + "\r\n\t trailing  \r\n\n"
+        ).encode("utf-8")
+        prompt_path.write_bytes(recorded)
+        log = self.root / "codex.jsonl"
+        result = self.run_cli("regrade", iteration, "--grader-agent", "codex",
+                              env=self.regrade_env(log=log))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        sent = sorted(item["stdin_sha256"] for item in read_jsonl(log) if item["kind"] == "suite")
+        self.assertEqual(len(sent), 4)
+        self.assertIn(eval_runner.hashlib.sha256(recorded).hexdigest(), sent)
+        record = json.loads((iteration / "regrade-1/eval-first-eval/with_skill/run-1/run.json").read_text())
+        self.assertEqual(record["grader_invocation"]["stdin"].encode("utf-8"), recorded)
+
+    def test_runs_without_a_prompt_or_assertion_snapshot_are_carried_unscored(self):
+        # An executor failure records no grader prompt.
+        _, failed_source = self.source_iteration(spec={
+            "executor_output": "answer", "executor_exit": 3,
+            "grading": {"with_skill": {"pass": True}, "without_skill": {"pass": True}},
+        })
+        stub_log = self.root / "stub.log"
+        result = self.run_cli("regrade", failed_source, "--grader-agent", "stub",
+                              env=self.regrade_env(stub_log=stub_log))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        benchmark = json.loads((failed_source / "regrade-1/benchmark.json").read_text())
+        carried = [run for run in benchmark["runs"] if run["configuration"] == "with_skill"]
+        self.assertEqual(len(carried), 2)
+        for run in carried:
+            self.assertEqual(run["status"], "executor_failed")
+            self.assertFalse(run["scored"])
+            self.assertIsNone(run["pass_rate"])
+            self.assertIsNone(run["grader_invocation"])
+            self.assertEqual(run["regrade_reason"], "source run has no recorded grader prompt")
+        self.assertEqual(
+            sorted(run["status"] for run in benchmark["runs"] if run["configuration"] == "without_skill"),
+            ["ok", "ok"],
+        )
+        self.assertEqual(stub_log.read_text().count("enter grader"), 2)
+        self.assertNotIn("executor", stub_log.read_text())
+
+        # A runner error after the prompt was written leaves no assertion
+        # snapshot; a failed original grading still has both and is regraded.
+        path = self.write_suite(json.loads(json.dumps(self.SUITE)))
+        spec = self.write_stub_spec({"executor_output": "answer", "grading": {
+            "with_skill": {"pass": True}, "without_skill": {"pass": True}}, "grader_exit": 3})
+        original = eval_runner.summarize_grading
+        calls = []
+
+        def fail_first(*args):
+            calls.append(args)
+            if len(calls) == 1:
+                raise RuntimeError("boom")
+            return original(*args)
+
+        with mock.patch.dict(os.environ, self.stub_env(spec), clear=False), \
+                mock.patch.object(eval_runner, "summarize_grading", side_effect=fail_first):
+            code = eval_runner.main(["run", str(path), "--agent", "stub", "--concurrency", "1"])
+        self.assertEqual(code, 0)
+        source = self.iteration_dir("stub", 2)
+        source_runs = {
+            (run["eval_id"], run["configuration"]): run
+            for run in json.loads((source / "benchmark.json").read_text())["runs"]
+        }
+        self.assertEqual(source_runs[("E01", "with_skill")]["status"], "runner_error")
+        self.assertTrue((source / "eval-first-eval/with_skill/run-1/grader_prompt.md").is_file())
+        self.assertEqual(source_runs[("E02", "with_skill")]["status"], "grader_failed")
+        stub_log.unlink()
+        result = self.run_cli("regrade", source, "--grader-agent", "stub",
+                              env=self.regrade_env(stub_log=stub_log))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        runs = {
+            (run["eval_id"], run["configuration"]): run
+            for run in json.loads((source / "regrade-1/benchmark.json").read_text())["runs"]
+        }
+        self.assertEqual(runs[("E01", "with_skill")]["status"], "runner_error")
+        self.assertFalse(runs[("E01", "with_skill")]["scored"])
+        self.assertEqual(runs[("E01", "with_skill")]["regrade_reason"],
+                         "source run has no recorded assertion snapshot")
+        self.assertEqual(runs[("E02", "with_skill")]["status"], "ok")
+        self.assertEqual(runs[("E02", "with_skill")]["source_status"], "grader_failed")
+        self.assertEqual(runs[("E02", "with_skill")]["pass_rate"], 1.0)
+        self.assertEqual(stub_log.read_text().count("enter grader"), 3)
+        # The regraded cell whose original grading failed has no scored source
+        # verdicts, so it adds nothing to agreement even though its regrade
+        # succeeded; only the scored without_skill cells (3 + 2 assertions) count.
+        agreement = json.loads((source / "regrade-1/benchmark.json").read_text())["regrade"]["agreement"]
+        self.assertEqual(agreement, {
+            "by_configuration": {
+                "with_skill": {"agree": 0, "disagree": 0},
+                "without_skill": {"agree": 5, "disagree": 0},
+            },
+            "disagreements": [],
+        })
+
+    def test_regrade_grader_failures_keep_their_status_and_stay_out_of_agreement(self):
+        _, iteration = self.source_iteration()
+        stub_log = self.root / "stub.log"
+        result = self.run_cli("regrade", iteration, "--grader-agent", "stub", env=self.regrade_env({
+            "grading": {"with_skill": {"pass": True}, "without_skill": {"unparseable": True}},
+            "grader_exit": 3, "grader_stderr": "grader broke",
+        }, stub_log=stub_log))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        benchmark = json.loads((iteration / "regrade-1/benchmark.json").read_text())
+        statuses = {(run["eval_id"], run["configuration"]): run for run in benchmark["runs"]}
+        for (eval_id, config), run in statuses.items():
+            expected = "grader_failed" if config == "with_skill" else "grader_unparseable"
+            self.assertEqual(run["status"], expected)
+            self.assertFalse(run["scored"])
+            self.assertIsNone(run["pass_rate"])
+            self.assertEqual(run["failure"]["status"], expected)
+        self.assertEqual(benchmark["error_run_count"], 4)
+        self.assertEqual(benchmark["regrade"]["agreement"], {
+            "by_configuration": {
+                "without_skill": {"agree": 0, "disagree": 0},
+                "with_skill": {"agree": 0, "disagree": 0},
+            },
+            "disagreements": [],
+        })
+        log = stub_log.read_text()
+        self.assertEqual(log.count("enter grader"), 4)
+        self.assertNotIn("executor", log)
+        stderr = iteration / "regrade-1/eval-first-eval/with_skill/run-1/outputs/grader_stderr.txt"
+        self.assertEqual(stderr.read_text(), "grader broke")
+
+    def test_regrade_of_a_partial_codex_source_carries_executor_side_records(self):
+        _, iteration = self.source_iteration("--eval-id", "E01", agent="codex")
+        source = json.loads((iteration / "benchmark.json").read_text())
+        self.assertTrue(source["suite_coverage"]["partial"])
+        self.assertEqual(source["runs"][0]["executor_evidence"]["source"], "runner")
+        result = self.run_cli("regrade", iteration, "--grader-agent", "stub", env=self.regrade_env())
+        self.assertEqual(result.returncode, 0, result.stderr)
+        benchmark = json.loads((iteration / "regrade-1/benchmark.json").read_text())
+        self.assertEqual(benchmark["suite_coverage"], source["suite_coverage"])
+        self.assertEqual(benchmark["source_fixtures"], source["source_fixtures"])
+        self.assertEqual(
+            benchmark["sanity_checks"]["skill_read_observation"],
+            source["sanity_checks"]["skill_read_observation"],
+        )
+        self.assertEqual(
+            benchmark["sanity_checks"]["partial_suite_selection"],
+            source["sanity_checks"]["partial_suite_selection"],
+        )
+        identity, source_identity = benchmark["measurement_identity"], source["measurement_identity"]
+        self.assertEqual(identity["delivered_inputs"], source_identity["delivered_inputs"])
+        self.assertEqual(identity["complete"], source_identity["complete"])
+        self.assertEqual(identity["selected_eval_ids"], ["E01"])
+        for run, source_run in zip(benchmark["runs"], source["runs"]):
+            for field in ("executor_evidence", "metrics", "sandbox", "executor_invocation"):
+                self.assertEqual(run[field], source_run[field], field)
+        markdown = (iteration / "regrade-1/benchmark.md").read_text()
+        self.assertIn("- Grader model: provider default (grader agent `stub`)", markdown)
+        self.assertIn("diagnostic subset", markdown)
+
+    def test_static_refusals_create_no_regrade_directory_and_launch_nothing(self):
+        stub_log = self.root / "stub.log"
+        log = self.root / "codex.jsonl"
+        empty = self.root / "evals/demo/workspace/stub/iteration-9"
+        empty.mkdir(parents=True)
+        result = self.run_cli("regrade", empty, "--grader-agent", "stub",
+                              env=self.regrade_env(stub_log=stub_log))
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("no benchmark.json", result.stderr)
+        self.assertEqual(list(empty.iterdir()), [])
+
+        _, failed_source = self.source_iteration(configs="with_skill", spec={
+            "executor_output": "answer", "executor_exit": 3, "grading": {}})
+        before = tree_bytes(failed_source)
+        result = self.run_cli("regrade", failed_source, "--grader-agent", "stub",
+                              env=self.regrade_env(stub_log=stub_log))
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("no source run has both", result.stderr)
+        self.assertEqual(tree_bytes(failed_source), before)
+        self.assertEqual(list(failed_source.glob("regrade-*")), [])
+
+        _, iteration = self.source_iteration()
+        result = self.run_cli("regrade", iteration, "--grader-agent", "imaginary",
+                              env=self.regrade_env(stub_log=stub_log))
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("unknown provider", result.stderr)
+        self.assertEqual(list(iteration.glob("regrade-*")), [])
+        self.assertFalse(stub_log.exists())
+
+        result = self.run_cli("regrade", iteration, "--grader-agent", "codex",
+                              env=self.regrade_env(log=log, fail=True))
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("readiness preflight failed", result.stderr)
+        self.assertEqual(sorted(p.name for p in (iteration / "regrade-1").iterdir()), ["preflight.json"])
+        preflight = json.loads((iteration / "regrade-1/preflight.json").read_text())
+        self.assertEqual([probe["role"] for probe in preflight["probes"]], ["grader"])
+        self.assertEqual([(item["kind"], item["role"]) for item in read_jsonl(log)], [("preflight", "grader")])
+
+    def test_report_re_renders_the_regrade_as_diagnostic_with_agreement(self):
+        _, iteration = self.source_iteration()
+        result = self.run_cli("regrade", iteration, "--grader-agent", "codex",
+                              env=self.regrade_env(grader_verdicts=self.SCRIPTED))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        regrade = iteration / "regrade-1"
+        written = (regrade / "benchmark.md").read_text()
+        (regrade / "benchmark.md").unlink()
+        report = self.run_cli("report", regrade, check=True)
+        self.assertEqual(report.stdout, written)
+        self.assertIn("This regrade is diagnostic; the source iteration remains the official result.", written)
+        self.assertIn("- `with_skill`: 3 agree, 2 disagree", written)
+        self.assertIn("- `without_skill`: 2 agree, 3 disagree", written)
+        self.assertIn("- E01 (`with_skill`, run 1): first check", written)
+        self.assertIn("  - regrade failed: ev-two", written)
+        self.assertIn("- Grader model: provider default (grader agent `codex`)", written)

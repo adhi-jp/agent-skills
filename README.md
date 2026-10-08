@@ -217,7 +217,7 @@ artifacts unless the user explicitly requests otherwise.
 | `shared/vibe-contract.md` | Single source of the contract blocks the `vibe-*` skills share; rendered into each dependent package as marked generated blocks that are never hand-edited |
 | `shared/measure-manifest.json` | Frozen size baselines for the six routed reading tasks that `python3 scripts/vibe_shared_contract.py measure` reports against; the two durable-records tasks were frozen at their introduction |
 | `evals/<skill-name>/` | Repository eval definitions, fixtures, and scoring notes |
-| `skills/skill-eval/scripts/eval_runner.py` | Shared `validate` / `run` / `report` CLI |
+| `skills/skill-eval/scripts/eval_runner.py` | Shared `validate` / `run` / `report` / `regrade` CLI |
 | `CHANGELOG.md` | Keep a Changelog history and the current `Unreleased` buffer |
 | `AGENTS.md` | Mandatory repository operating, release, coupling, snapshot, eval, and commit rules |
 | `LICENSE` | MIT license for this repository |

@@ -1,15 +1,18 @@
 # Eval Runner and Result Contract
 
-Read this reference before executing `run` or drafting a run sequence, before relying on what the runner delivers, records, or grades, and before diagnosing or reporting an iteration or comparison.
+Read this reference before executing `run` or `regrade` or drafting a run sequence, before relying on what the runner delivers, records, or grades, and before diagnosing or reporting an iteration or comparison.
 
 ## Commands
 
-- `python3 skills/skill-eval/scripts/eval_runner.py` has three commands:
-  `validate <suite-json>`, `run <suite-json> [options]`, and
-  `report <iteration-dir> [--compare <other-iteration-dir>]`. The suite path is
-  positional. `run` options are `--agent`, `--model`, `--executor-model`,
-  `--grader-model`, `--config`, `--eval-id`, `--runs`, `--skill-path`,
-  `--timeout`, `--concurrency`, `--npm-cache`, and `--workspace`. Do not invent
+- `python3 skills/skill-eval/scripts/eval_runner.py` has four commands:
+  `validate <suite-json>`, `run <suite-json> [options]`,
+  `report <iteration-dir> [--compare <other-iteration-dir>]`, and
+  `regrade <iteration-dir> --grader-agent <provider> [--grader-model <model>]
+  [--timeout <seconds>] [--concurrency <n>]`. The suite path is
+  positional. `run` options are `--agent`, `--grader-agent`, `--model`,
+  `--executor-model`, `--grader-model`, `--config`, `--eval-id`, `--runs`,
+  `--skill-path`, `--timeout`, `--concurrency`, `--npm-cache`, and
+  `--workspace`. Do not invent
   aliases such as `--evals`, `--iteration-dir`, `--configuration`, or `--mode`,
   and do not split one bounded matrix into separate per-config runs.
 - Standard sequence after explicit run authorization:
@@ -28,12 +31,18 @@ python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/work
   subprocess, then aggregates a raw `with_skill` versus `without_skill`
   comparison. `--agent` selects a registered provider (`claude` and `codex` are
   built in); the core path is provider-neutral, and Claude-only metric
-  precision is additive.
-- `--model` is passed verbatim to the provider CLI for both roles, and
-  `--executor-model` / `--grader-model` override it per role. The resolved
-  values are recorded as `executor_model` and `grader_model` beside `model` in
-  the manifest and benchmark; absence means the provider's default, never a
-  guessed id.
+  precision is additive. Executors always use `--agent`; graders use
+  `--grader-agent` when given, otherwise `--agent`. The workspace stays keyed
+  by the executor's provider (`workspace/<agent>/`).
+- `--model` is passed verbatim to the executor and, only when the grader uses
+  the executor's provider, to the grader; a grader on another provider gets
+  `--grader-model` or its provider's default, so a model id never crosses
+  into another provider. `--executor-model` / `--grader-model` override per
+  role. The resolved values are recorded as `executor_model` and
+  `grader_model` beside `model`, and the grader's provider as `grader_agent`,
+  in the manifest and benchmark; absence means the provider's default, never
+  a guessed id. The grader provider and model are part of the measurement
+  series: the same outputs graded by another grader are a different series.
 - Bounds: `--runs` 1..5 (default 1); `--timeout` per subprocess (default
   600 s); `--concurrency` 1..16 (default 4) concurrent provider subprocesses
   per invocation. Simultaneous invocations add up, so a user-stated
@@ -42,21 +51,26 @@ python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/work
   timed-out executor is a failed run, its grader is skipped, and nothing is
   retried.
 - All input validation (suite shape, eval ids, the `with_skill` source,
-  provider availability, bounds, and declared inputs being git-tracked) runs
-  before any subprocess. Invalid input exits non-zero with zero launches; an
+  availability of both role providers, bounds, and declared inputs being
+  git-tracked) runs before any subprocess; an unknown or unavailable
+  `--grader-agent` exits 2. Invalid input exits non-zero with zero launches; an
   unknown or empty `--eval-id` also creates no iteration. An empty suite exits
   0 with an explicit empty result.
-- A non-empty Codex run first lists the host's MCP servers once with
+- Codex readiness is checked per role. A non-empty run with a Codex executor
+  first lists the host's MCP servers once with
   `codex mcp list --json`, under the executor environment from a disposable
   git directory, before npm setup and before any iteration exists. Only a JSON
   array of objects with a string `name` and a boolean `enabled` is accepted,
   and an empty array means no server. A non-zero exit, timeout, unparseable or
   differently shaped output, or a name that is not a bare config key (letters,
   digits, `_`, `-`) stops the run with zero suite cells and no iteration. The
-  run then probes an executor-shaped and a grader-shaped invocation, records
-  the discovered and disabled server names and the probe evidence at
-  `evals/<skill-name>/workspace/codex/preflight.json`, and stops with zero
-  suite cells if either probe fails.
+  run then probes an executor-shaped invocation, in a disposable git
+  repository created only for that probe, when the executor is Codex, and a
+  grader-shaped invocation when the grader is Codex; a Codex grader alone
+  triggers no MCP listing, repository setup, or executor probe. It records the
+  discovered and disabled server names and the evidence of only the probes
+  run at `evals/<skill-name>/workspace/<agent>/preflight.json`, and stops with
+  zero suite cells if any probe fails.
 - `validate` and the `run` preflight print advisory delivery-mode warnings:
   an expectation opening with performed-action wording (`Writes`, `Adds`,
   `Allocates`, `Reads`, `Commits`, and similar) in a case whose prompt carries
@@ -278,7 +292,8 @@ python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/work
   rates. Compare recorded delivery, runner, suite, treatment, fixture,
   dependency, model, and coverage identities first: changed inputs are a
   different measurement series, missing historical identity is unknown, and
-  agreement is necessary but not sufficient for a causal reading. Delivery
+  agreement is necessary but not sufficient for a causal reading; a changed
+  grader provider or model is a changed measurement identity. Delivery
   protocol `case-inputs-v3` marks the executor delivery described above,
   without the case name and with the host MCP controls; an iteration recorded
   under an earlier protocol is a different measurement series. `report`
@@ -291,6 +306,55 @@ python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/work
   only when more than one run captured the value. A missing value is shown as
   absent with a reason, never as `0`.
 
+## Regrade (Diagnostic)
+
+- `regrade <iteration-dir> --grader-agent <provider>` re-grades an existing
+  iteration's recorded runs with the chosen grader without rerunning any
+  executor. It selects source runs from the iteration's `benchmark.json` run
+  records, never from earlier `regrade-*` directories, and sends each run's
+  recorded `grader_prompt.md`, read as bytes and decoded as UTF-8 with no
+  newline translation or trimming, to a fresh grader of that provider in a
+  new empty directory with that provider's grader controls. The grader gets
+  `--grader-model` when given, otherwise its provider's default; there is no
+  `--model`. `--timeout` (default 600 s) and `--concurrency` (1..16, default
+  4) bound the grader calls as in `run`, and nothing is retried.
+- Verdicts are scored against the run's recorded `grading.json` assertion
+  texts, in order, never against the current suite file. A run without a
+  recorded grader prompt (such as an executor failure) or without a recorded
+  assertion snapshot (such as a `runner_error` record) is carried unscored
+  with its original status and a `regrade_reason`, and is not sent to a
+  grader; a run whose original grading failed but has both is regraded.
+- Missing `benchmark.json`, no regradable run, an unknown or unavailable
+  grader provider, or invalid bounds exit non-zero with no launch and no
+  regrade directory. A Codex grader is then probed with a grader-shaped
+  invocation only; the report goes to `regrade-<N>/preflight.json`, and a
+  failed probe exits 2 with no suite-cell grader call.
+- Everything is written under a new `<iteration-dir>/regrade-<N>/` (N one above
+  the highest existing), mirroring the source cell layout: per cell
+  `grading.json`, `outputs/grader_output.txt`, the provider's own files, and a
+  `run.json` with the status, grader invocation, failure, `source_status`, and
+  `source_run_dir`; carried runs get only `run.json`. `benchmark.json` and
+  `benchmark.md` keep the `run` shape. Every file of the source iteration,
+  earlier regrades included, stays byte-identical.
+- The regrade benchmark keeps the source's case and configuration order,
+  suite coverage, source fixture status, executor metrics and evidence, and
+  delivery and dependency identities, and recomputes every grading-dependent
+  value. Its measurement identity is the source's measurement context with
+  the grader provider and model replaced. Its `regrade` section records the
+  source iteration path, the source and regrade grader providers and models,
+  the source measurement identity hash, and grader agreement: per
+  configuration, how many assertions agree and disagree where both the source
+  and the regrade run were scored, and each disagreement with its eval id,
+  configuration, run number, assertion text, and both verdicts and evidence.
+  Unscored runs on either side are left out.
+- A regrade is diagnostic. `benchmark.md` says so, the source iteration
+  remains the official result and its aggregate never changes, and
+  `report <regrade-dir>` re-renders the regrade. Disagreement between two
+  graders does not by itself separate grader effects from a grader's own
+  run-to-run variation, and a regrade sees only what the recorded prompt
+  carried, so evidence added to grader prompts later is absent from older
+  runs.
+
 ## Result Verification And Reporting
 
 These rules detail the `SKILL.md` Result Closure steps.
@@ -301,9 +365,12 @@ These rules detail the `SKILL.md` Result Closure steps.
   candidate-below-baseline cell, or a dirty source fixture. A partial
   selection is `REVIEW REQUIRED` by construction.
 - A flagged cell's recorded outputs are `outputs/output.txt` and
-  `outputs/grader_output.txt`. Never report a grader- or runner-side failure
-  as a skill score: fix the cause and rerun, or report the cell as an excluded
-  infrastructure failure with the reason.
+  `outputs/grader_output.txt`. For a regrade cell, the executor output lives
+  in the source cell named by its `source_run_dir`, and the regrade cell
+  holds `outputs/grader_output.txt`, `grading.json`, and `run.json`. Never
+  report a grader- or runner-side failure as a skill score: fix the cause and
+  rerun, or report the cell as an excluded infrastructure failure with the
+  reason.
 - If a semantically compliant answer failed for lacking a preferred phrase,
   or a candidate failed where the baseline passed only on vocabulary or tense,
   record a lexical false negative or a paired grader inconsistency, keep the

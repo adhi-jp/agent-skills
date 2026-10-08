@@ -388,6 +388,21 @@ use `[Repository] - YYYY-MM-DD`.
   and no content, and `run.json` records each path's status under
   `retained_files`. The evidence shows retained net content, not actions taken
   or transient states.
+- `skill-eval` can grade with another provider than the executor's: `run
+  --grader-agent <provider>` puts every grader on that provider while
+  executors stay on `--agent`. `--model` reaches the grader only on the
+  executor's provider; a grader on another provider gets `--grader-model` or
+  its provider's default. Codex readiness checks run per role, so a Codex
+  grader alone triggers no MCP listing or executor probe. Manifests,
+  benchmarks, and the measurement identity record `grader_agent`, and another
+  grader provider or model is a different measurement series. The new
+  `regrade <iteration-dir> --grader-agent <provider>` command sends each
+  recorded grader prompt unchanged to a fresh grader, scores it against the
+  recorded assertion texts, and writes a diagnostic `regrade-<N>` directory
+  inside the iteration with grader agreement against the source verdicts.
+  Runs lacking a recorded prompt or assertion snapshot are carried unscored,
+  no executor is rerun, and the source iteration's files and official result
+  never change.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 

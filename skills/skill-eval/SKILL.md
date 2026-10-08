@@ -50,6 +50,7 @@ explanation:
 | Partial diagnostic | `run <suite-json> ... --eval-id E17` | Allowed |
 | Full closing run | `run <suite-json> ...` | Omitted; do not enumerate all ids |
 | Existing-result report | `report <iteration-dir>`, optionally `--compare <other-iteration-dir>` | Forbidden |
+| Diagnostic regrade | `regrade <iteration-dir> --grader-agent <provider>`, optionally `--grader-model <model>` | Forbidden |
 
 There is no `--evals` or `--iteration-dir` alias.
 
@@ -91,11 +92,11 @@ still change them is running or unread.
 ## Detailed Runner Contract
 
 Read `references/runner-and-result-contract.md` before executing `run` or
-drafting a run sequence; before relying on what the runner delivers, records,
-or grades; and before diagnosing flagged or failed cells or reporting a
-benchmark or comparison. When drafting a run sequence, copy its literal
-command shapes and result-verification fields rather than reconstructing them
-from memory.
+`regrade` or drafting a run sequence; before relying on what the runner
+delivers, records, or grades; and before diagnosing flagged or failed cells or
+reporting a benchmark or comparison. When drafting a run sequence, copy its
+literal command shapes and result-verification fields rather than
+reconstructing them from memory.
 
 ## Result Closure
 

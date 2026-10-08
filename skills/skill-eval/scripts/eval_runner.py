@@ -21,12 +21,18 @@ readable usage in its CLI output the runner captures it and stores it with its
 source; absence is recorded as absence, never a placeholder number.
 
 The provider selector is a registry, so adding another agent CLI is a new
-adapter rather than a hard-coded branch. Optional model flags are passed
+adapter rather than a hard-coded branch. Graders use ``--agent`` unless
+``--grader-agent`` names another provider. Optional model flags are passed
 through to the selected provider CLI verbatim (whatever model name that CLI
-accepts): ``--model`` is the shared default for both roles, and
-``--executor-model`` / ``--grader-model`` override it per role. When a role has
-no resolved model each provider uses its own default model. This script is
-stdlib-only.
+accepts): ``--model`` is the shared default for the executor and for a grader
+on the executor's provider, and ``--executor-model`` / ``--grader-model``
+override it per role. When a role has no resolved model each provider uses its
+own default model.
+
+``regrade`` re-grades an existing iteration's recorded grader prompts with a
+chosen grader into a diagnostic ``regrade-<N>`` directory inside that
+iteration, leaving the iteration's own files and official result unchanged.
+This script is stdlib-only.
 """
 
 from __future__ import annotations
@@ -1308,10 +1314,16 @@ def deliver_npm_projects(sandbox_root: Path, case: EvalCase | None, templates: d
     return receipts
 
 
-def measurement_context(suite: EvalSuite, agent: str, executor_model: str | None, grader_model: str | None) -> dict[str, Any]:
+def measurement_context(
+    suite: EvalSuite, agent: str, executor_model: str | None, grader_model: str | None,
+    grader_agent: str | None = None,
+) -> dict[str, Any]:
+    # The grader provider and model are part of the measurement series: grading
+    # the same outputs with another grader is a different measurement.
     return {"delivery_protocol": DELIVERY_PROTOCOL, "runner_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
             "suite_sha256": digest_json(suite.raw), "selected_eval_ids": [case.eval_id for case in suite.evals],
-            "agent": agent, "executor_model": executor_model, "grader_model": grader_model}
+            "agent": agent, "grader_agent": grader_agent or agent,
+            "executor_model": executor_model, "grader_model": grader_model}
 
 
 def measurement_identity(context: dict[str, Any], runs: list[dict[str, Any]]) -> dict[str, Any]:
@@ -3965,6 +3977,26 @@ def get_provider(name: str) -> Provider:
     return factory()
 
 
+def resolve_grader_provider(
+    grader_agent: str, agent: str | None = None, executor_provider: Provider | None = None
+) -> Provider | None:
+    """Return the grader's provider, reusing ``executor_provider`` when the
+    grader uses the executor's provider. An unknown or unavailable provider is
+    reported on stderr and returns None, before anything is launched."""
+    if executor_provider is not None and grader_agent == agent:
+        return executor_provider
+    factory = PROVIDERS.get(grader_agent)
+    if factory is None:
+        known = ", ".join(sorted(PROVIDERS))
+        print(f"--grader-agent {grader_agent!r}: unknown provider; known providers: {known}", file=sys.stderr)
+        return None
+    provider = factory()
+    if not provider.available():
+        print(f"--grader-agent {grader_agent}: provider CLI is not available on this system", file=sys.stderr)
+        return None
+    return provider
+
+
 # --------------------------------------------------------------------------- #
 # Subprocess execution and grading
 # --------------------------------------------------------------------------- #
@@ -4184,6 +4216,103 @@ class RunTask:
     run_dir: Path
 
 
+@dataclass
+class GraderOutcome:
+    status: str
+    grading: dict[str, Any] | None
+    grader_error: str | None
+    failure: dict[str, Any] | None
+    invocation: Invocation
+    cleanup: dict[str, str] | None
+
+
+def grade_recorded_output(
+    provider: Provider,
+    grader_prompt: str,
+    *,
+    run_dir: Path,
+    model: str | None,
+    timeout: float,
+    forbidden_roots: Sequence[Path],
+) -> GraderOutcome:
+    """Run one fresh grader on ``grader_prompt`` and classify the result.
+
+    The grader runs in a new empty working directory outside
+    ``forbidden_roots``, which is removed afterwards. Its output is written to
+    ``run_dir/outputs/grader_output.txt``; a timeout, provider error, non-zero
+    exit, or unparseable verdict becomes the matching status with a failure
+    record and bounded stderr. There are no retries. ``run`` and ``regrade``
+    both grade through this function."""
+    outputs_dir = run_dir / "outputs"
+    grader_cwd = grader_working_dir(run_dir, forbidden_roots=forbidden_roots)
+    try:
+        grader_inv = provider.build_invocation(
+            grader_prompt,
+            run_dir=run_dir,
+            role="grader",
+            model=model,
+            schema=grader_schema(),
+            cwd=grader_cwd,
+        )
+        g_stdout, g_stderr, g_exit, g_timeout = run_invocation(grader_inv, timeout)
+    finally:
+        grader_cleanup = cleanup_grader_working_dir(grader_cwd)
+    grader_output, grader_metrics = provider.parse(
+        run_dir=run_dir, stdout=g_stdout, stderr=g_stderr, exit_code=g_exit, role="grader"
+    )
+    write_text(outputs_dir / "grader_output.txt", grader_output)
+    status = "ok"
+    grading: dict[str, Any] | None = None
+    grader_error: str | None = None
+    failure: dict[str, Any] | None = None
+    if g_timeout:
+        status = "grader_timeout"
+        reason = provider_failure_reason("grader provider invocation timed out", g_stderr)
+        failure = failure_record(
+            "grader", status, g_exit, True, reason,
+            persist_failure_stderr(outputs_dir, "grader", g_stderr),
+        )
+    elif grader_metrics.get("error"):
+        status = "grader_failed"
+        grader_error = f"grader provider error: {grader_metrics['error']}"
+        reason = provider_failure_reason(grader_error, g_stderr)
+        failure = failure_record(
+            "grader", status, g_exit, False, reason,
+            persist_failure_stderr(outputs_dir, "grader", g_stderr),
+        )
+    elif g_exit not in (0, None):
+        status = "grader_failed"
+        grader_error = f"grader provider exited with code {g_exit}"
+        reason = provider_failure_reason(grader_error, g_stderr)
+        failure = failure_record(
+            "grader", status, g_exit, False, reason,
+            persist_failure_stderr(outputs_dir, "grader", g_stderr),
+        )
+    else:
+        grading, grader_error = parse_grader_output(grader_output)
+        if grading is None:
+            status = "grader_unparseable"
+            reason = provider_failure_reason(
+                grader_error or "grader output was not parseable", g_stderr
+            )
+            failure = failure_record(
+                "grader", status, g_exit, False, reason,
+                persist_failure_stderr(outputs_dir, "grader", g_stderr),
+            )
+    return GraderOutcome(status, grading, grader_error, failure, grader_inv, grader_cleanup)
+
+
+def invocation_record(invocation: Invocation | None) -> dict[str, Any] | None:
+    if invocation is None:
+        return None
+    return {
+        "argv": invocation.argv,
+        "env_keys": sorted(invocation.env),
+        "cwd": invocation.cwd,
+        "stdin": invocation.stdin,
+    }
+
+
 def execute_run(
     suite: EvalSuite,
     provider: Provider,
@@ -4193,7 +4322,11 @@ def execute_run(
     executor_model: str | None = None,
     grader_model: str | None = None,
     npm_templates: dict[str, Any] | None = None,
+    grader_provider: Provider | None = None,
 ) -> dict[str, Any]:
+    """Execute one cell with ``provider`` and grade it with ``grader_provider``
+    (``provider`` when omitted). Executor metrics and trace follow the executor
+    provider only."""
     case, config, run_number, run_dir = task.case, task.config, task.run_number, task.run_dir
     outputs_dir = run_dir / "outputs"
     assertions = assertions_for_case(suite, case)
@@ -4310,60 +4443,18 @@ def execute_run(
             retained_files=retained_files,
         )
         write_text(run_dir / "grader_prompt.md", grader_prompt)
-        grader_cwd = grader_working_dir(
-            run_dir,
+        outcome = grade_recorded_output(
+            grader_provider or provider,
+            grader_prompt,
+            run_dir=run_dir,
+            model=grader_model,
+            timeout=timeout,
             forbidden_roots=(source_repo_root, sandbox.repo_root),
         )
-        try:
-            grader_inv = provider.build_invocation(
-                grader_prompt,
-                run_dir=run_dir,
-                role="grader",
-                model=grader_model,
-                schema=grader_schema(),
-                cwd=grader_cwd,
-            )
-            g_stdout, g_stderr, g_exit, g_timeout = run_invocation(grader_inv, timeout)
-        finally:
-            grader_cleanup = cleanup_grader_working_dir(grader_cwd)
-        grader_output, grader_metrics = provider.parse(
-            run_dir=run_dir, stdout=g_stdout, stderr=g_stderr, exit_code=g_exit, role="grader"
+        status, grading, grader_error, failure = (
+            outcome.status, outcome.grading, outcome.grader_error, outcome.failure
         )
-        write_text(outputs_dir / "grader_output.txt", grader_output)
-        if g_timeout:
-            status = "grader_timeout"
-            reason = provider_failure_reason("grader provider invocation timed out", g_stderr)
-            failure = failure_record(
-                "grader", status, g_exit, True, reason,
-                persist_failure_stderr(outputs_dir, "grader", g_stderr),
-            )
-        elif grader_metrics.get("error"):
-            status = "grader_failed"
-            grader_error = f"grader provider error: {grader_metrics['error']}"
-            reason = provider_failure_reason(grader_error, g_stderr)
-            failure = failure_record(
-                "grader", status, g_exit, False, reason,
-                persist_failure_stderr(outputs_dir, "grader", g_stderr),
-            )
-        elif g_exit not in (0, None):
-            status = "grader_failed"
-            grader_error = f"grader provider exited with code {g_exit}"
-            reason = provider_failure_reason(grader_error, g_stderr)
-            failure = failure_record(
-                "grader", status, g_exit, False, reason,
-                persist_failure_stderr(outputs_dir, "grader", g_stderr),
-            )
-        else:
-            grading, grader_error = parse_grader_output(grader_output)
-            if grading is None:
-                status = "grader_unparseable"
-                reason = provider_failure_reason(
-                    grader_error or "grader output was not parseable", g_stderr
-                )
-                failure = failure_record(
-                    "grader", status, g_exit, False, reason,
-                    persist_failure_stderr(outputs_dir, "grader", g_stderr),
-                )
+        grader_inv, grader_cleanup = outcome.invocation, outcome.cleanup
 
     summary = summarize_grading(grading, assertions)
     write_json(run_dir / "grading.json", summary)
@@ -4404,22 +4495,8 @@ def execute_run(
             "excluded_untracked_count": sandbox.excluded_untracked_count,
             "excluded_untracked_sample": sandbox.excluded_untracked_sample,
         },
-        "executor_invocation": {
-            "argv": executor_inv.argv,
-            "env_keys": sorted(executor_inv.env),
-            "cwd": executor_inv.cwd,
-            "stdin": executor_inv.stdin,
-        },
-        "grader_invocation": (
-            {
-                "argv": grader_inv.argv,
-                "env_keys": sorted(grader_inv.env),
-                "cwd": grader_inv.cwd,
-                "stdin": grader_inv.stdin,
-            }
-            if grader_inv
-            else None
-        ),
+        "executor_invocation": invocation_record(executor_inv),
+        "grader_invocation": invocation_record(grader_inv),
         "grader_error": grader_error,
         "grader_cleanup": grader_cleanup,
         "failure": failure,
@@ -4454,6 +4531,7 @@ def aggregate_runs(
     source_fixtures: dict[str, Any] | None = None,
     suite_coverage: dict[str, Any] | None = None,
     measurement: dict[str, Any] | None = None,
+    grader_agent: str | None = None,
 ) -> dict[str, Any]:
     rates_by_eval_config: dict[tuple[str, str], list[float]] = {}
     runs_by_eval_config: dict[tuple[str, str], list[dict[str, Any]]] = {}
@@ -4530,6 +4608,7 @@ def aggregate_runs(
         "skill_name": suite.skill_name,
         "measurement_identity": measurement_identity(measurement, runs) if measurement else None,
         "agent": agent,
+        "grader_agent": grader_agent or agent,
         "model": model,
         "executor_model": executor_model,
         "grader_model": grader_model,
@@ -4956,10 +5035,19 @@ def render_model_lines(benchmark: dict[str, Any]) -> list[str]:
     """Render the benchmark model line(s). Per-role keys fall back to the
     legacy shared ``model`` key so older ``benchmark.json`` files keep their
     current single-line rendering; a two-line executor/grader form appears only
-    when the resolved role models differ."""
+    when the resolved role models differ. When the grader ran on another
+    provider than the executor, the two-line form always appears and names the
+    grader provider, even when both models are equal or both are defaults."""
     model = benchmark.get("model")
     executor_model = benchmark.get("executor_model", model)
     grader_model = benchmark.get("grader_model", model)
+    agent = benchmark.get("agent")
+    grader_agent = benchmark.get("grader_agent", agent)
+    if grader_agent != agent:
+        return [
+            f"- Executor model: {format_model_value(executor_model)}",
+            f"- Grader model: {format_model_value(grader_model)} (grader agent `{grader_agent}`)",
+        ]
     if executor_model == grader_model:
         return [f"- Model: {format_model_value(executor_model)}"]
     return [
@@ -5095,6 +5183,11 @@ def render_benchmark_markdown(
         f"{error_run_count} infrastructure failures excluded from pass rate)",
         f"- Metrics captured: {'yes' if benchmark.get('metrics_captured') else 'no'}",
     ]
+    if isinstance(benchmark.get("regrade"), dict):
+        lines.append(
+            "- Regrade: diagnostic re-grade of recorded grader prompts; the source iteration "
+            "remains the official result."
+        )
     coverage = benchmark.get("suite_coverage")
     if isinstance(coverage, dict):
         selected = coverage.get("selected_eval_ids") or []
@@ -5141,6 +5234,8 @@ def render_benchmark_markdown(
         cells = [format_percent(entry["configs"].get(c, {}).get("pass_rate")) for c in sorted_configs]
         lines.append(f"| {entry['eval_id']} {entry['eval_name']} | " + " | ".join(cells) + " |")
     lines.extend(render_failed_assertions_markdown(list(benchmark.get("runs", []) or [])))
+    if isinstance(benchmark.get("regrade"), dict):
+        lines.extend(render_regrade_markdown(benchmark["regrade"]))
     if compare is not None:
         lines.extend(render_comparison_markdown(benchmark, compare, compare_label))
     return "\n".join(lines) + "\n"
@@ -5297,14 +5392,12 @@ def discover_codex_mcp_servers(timeout: float) -> dict[str, Any]:
     return record
 
 
-def codex_preflight_report(
-    executor_model: str | None, grader_model: str | None, mcp_discovery: dict[str, Any] | None
-) -> dict[str, Any]:
+def codex_preflight_report(models: dict[str, str | None], mcp_discovery: dict[str, Any] | None) -> dict[str, Any]:
     return {
         "provider": "codex",
         "attempted_at": utc_now(),
         "cli_version": codex_cli_version(),
-        "models": {"executor": executor_model, "grader": grader_model},
+        "models": models,
         "mcp_discovery": mcp_discovery,
         "probes": [],
         "ok": False,
@@ -5319,13 +5412,24 @@ def run_codex_preflight(
     grader_model: str | None,
     timeout: float,
     mcp_discovery: dict[str, Any] | None = None,
+    *,
+    executor: bool = True,
+    grader: bool = True,
 ) -> bool:
-    report = codex_preflight_report(executor_model, grader_model, mcp_discovery)
+    """Probe the Codex roles this run uses: an executor-shaped invocation in a
+    disposable git repository when ``executor``, and a grader-shaped invocation
+    in an empty directory when ``grader``. The repository is set up only for
+    the executor probe. The report lists only the probes run."""
+    models = {role: model for role, model, used in (
+        ("executor", executor_model, executor), ("grader", grader_model, grader)) if used}
+    report = codex_preflight_report(models, mcp_discovery)
     with tempfile.TemporaryDirectory(prefix="eval-runner-codex-preflight-") as tmp:
         root = Path(tmp)
         executor_cwd = root / "executor-repo"
-        executor_cwd.mkdir()
-        git_exit, git_stderr = init_disposable_git_repo(executor_cwd)
+        git_exit, git_stderr = 0, ""
+        if executor:
+            executor_cwd.mkdir()
+            git_exit, git_stderr = init_disposable_git_repo(executor_cwd)
         if git_exit != 0:
             stderr_text, stderr_meta = bounded_utf8_text(git_stderr)
             report["probes"].append({
@@ -5361,6 +5465,7 @@ def run_codex_preflight(
                 '{"verdicts": []}',
             ),
         ]
+        probe_specs = [spec for spec in probe_specs if spec[0] in models]
         for role, cwd, cwd_shape, model, schema, prompt, expected in probe_specs:
             run_dir = root / f"{role}-artifacts"
             run_dir.mkdir()
@@ -5447,9 +5552,14 @@ def command_run(args: argparse.Namespace) -> int:
         print_validation_warnings(report, stream=sys.stderr)
 
     agent = validate_agent_label(args.agent)
+    grader_agent = (args.grader_agent or "").strip() or agent
     model = validate_model_label(args.model)
     executor_model = validate_model_label(args.executor_model, "--executor-model") or model
-    grader_model = validate_model_label(args.grader_model, "--grader-model") or model
+    # `--model` never crosses into another provider: a grader on a different
+    # provider gets only `--grader-model`, else its provider's default.
+    grader_model = validate_model_label(args.grader_model, "--grader-model") or (
+        model if grader_agent == agent else None
+    )
     configs = parse_csv_values(args.config, DEFAULT_CONFIGS)
 
     runs = args.runs
@@ -5473,6 +5583,11 @@ def command_run(args: argparse.Namespace) -> int:
     if not provider.available():
         print(f"--agent {agent}: provider CLI is not available on this system", file=sys.stderr)
         return 2
+    grader_provider = resolve_grader_provider(grader_agent, agent, provider)
+    if grader_provider is None:
+        return 2
+    codex_executor = isinstance(provider, CodexProvider)
+    codex_grader = isinstance(grader_provider, CodexProvider)
 
     if args.workspace:
         workspace_root = Path(args.workspace)
@@ -5497,6 +5612,7 @@ def command_run(args: argparse.Namespace) -> int:
             grader_model=grader_model,
             source_fixtures=source_fixtures,
             suite_coverage=suite_coverage,
+            grader_agent=grader_agent,
         )
         write_json(iteration_dir / "benchmark.json", benchmark)
         write_text(iteration_dir / "benchmark.md", render_benchmark_markdown(benchmark))
@@ -5506,13 +5622,18 @@ def command_run(args: argparse.Namespace) -> int:
     validate_selected_delivery(suite, repo_root, skill_path, configs)
     # Discover host MCP servers before npm setup creates the iteration
     # directory, so a run that cannot disable them leaves no iteration behind.
+    # Discovery serves Codex executors only; a Codex grader ignores user
+    # configuration and needs none.
     mcp_discovery: dict[str, Any] | None = None
-    if isinstance(provider, CodexProvider):
+    if codex_executor:
         mcp_discovery = discover_codex_mcp_servers(args.timeout)
         if not mcp_discovery["ok"]:
+            models = {"executor": executor_model}
+            if codex_grader:
+                models["grader"] = grader_model
             write_json(
                 workspace_root / "preflight.json",
-                codex_preflight_report(executor_model, grader_model, mcp_discovery),
+                codex_preflight_report(models, mcp_discovery),
             )
             print(
                 f"--agent codex: MCP server discovery failed ({mcp_discovery['reason']}); "
@@ -5522,14 +5643,18 @@ def command_run(args: argparse.Namespace) -> int:
             return 2
         provider.disabled_mcp_servers = tuple(mcp_discovery["disabled"])
     npm_templates = prepare_npm_projects(suite, repo_root, iteration_dir, args.npm_cache, args.timeout)
-    measurement = measurement_context(suite, agent, executor_model, grader_model)
+    measurement = measurement_context(suite, agent, executor_model, grader_model, grader_agent)
 
-    if isinstance(provider, CodexProvider) and not run_codex_preflight(
-        provider, workspace_root, repo_root, executor_model, grader_model, args.timeout,
-        mcp_discovery=mcp_discovery,
+    # Readiness is probed per role: the executor probe only for a Codex
+    # executor, the grader probe only for a Codex grader.
+    if (codex_executor or codex_grader) and not run_codex_preflight(
+        provider if codex_executor else grader_provider,
+        workspace_root, repo_root, executor_model, grader_model, args.timeout,
+        mcp_discovery=mcp_discovery, executor=codex_executor, grader=codex_grader,
     ):
+        flag = "--agent" if codex_executor else "--grader-agent"
         print(
-            f"--agent codex: readiness preflight failed; see {workspace_root / 'preflight.json'}",
+            f"{flag} codex: readiness preflight failed; see {workspace_root / 'preflight.json'}",
             file=sys.stderr,
         )
         return 2
@@ -5540,6 +5665,7 @@ def command_run(args: argparse.Namespace) -> int:
         {
             "skill_name": suite.skill_name,
             "agent": agent,
+            "grader_agent": grader_agent,
             "model": model,
             "executor_model": executor_model,
             "grader_model": grader_model,
@@ -5565,7 +5691,8 @@ def command_run(args: argparse.Namespace) -> int:
     with concurrent.futures.ThreadPoolExecutor(max_workers=args.concurrency) as pool:
         future_to_index = {
             pool.submit(
-                execute_run, suite, provider, task, skill_path, args.timeout, executor_model, grader_model, npm_templates
+                execute_run, suite, provider, task, skill_path, args.timeout, executor_model, grader_model, npm_templates,
+                grader_provider,
             ): index
             for index, task in enumerate(tasks)
         }
@@ -5611,6 +5738,7 @@ def command_run(args: argparse.Namespace) -> int:
         source_fixtures=source_fixtures,
         suite_coverage=suite_coverage,
         measurement=measurement,
+        grader_agent=grader_agent,
     )
     manifest_path = iteration_dir / "iteration_manifest.json"
     manifest = read_json(manifest_path)
@@ -5678,6 +5806,323 @@ def command_report(args: argparse.Namespace) -> int:
 
 
 # --------------------------------------------------------------------------- #
+# Regrade: re-grade an iteration's recorded grader prompts as a diagnostic.
+# --------------------------------------------------------------------------- #
+REGRADE_DIR_RE = re.compile(r"regrade-(\d+)")
+# Keys measurement_identity derives from the run records; the rest of a
+# recorded identity is the measurement context it was computed from.
+MEASUREMENT_IDENTITY_DERIVED_KEYS = ("delivered_inputs", "sha256", "complete", "input_drift", "limits")
+
+
+@dataclass
+class RecordedCell:
+    source: dict[str, Any]
+    cell: Path
+    prompt: str | None = None
+    snapshot: list[dict[str, Any]] | None = None
+    reason: str | None = None
+
+
+def next_regrade_number(iteration_dir: Path) -> int:
+    numbers = [
+        int(match.group(1))
+        for child in iteration_dir.iterdir()
+        if (match := REGRADE_DIR_RE.fullmatch(child.name))
+    ]
+    return max(numbers) + 1 if numbers else 1
+
+
+def recorded_cell(iteration_dir: Path, source: dict[str, Any]) -> RecordedCell:
+    """Locate a source run's cell below the iteration and read what a regrade
+    needs: the recorded grader prompt and the recorded assertion snapshot (the
+    ``grading.json`` expectation texts, in order). A cell lacking either keeps
+    a reason and is carried unscored."""
+    # The recorded run_dir may be relative to wherever the run started; the
+    # cell is always <eval dir>/<config>/run-<n> below the iteration.
+    cell = Path(*Path(str(source.get("run_dir", ""))).parts[-3:])
+    source_dir = iteration_dir / cell
+    prompt_path = source_dir / "grader_prompt.md"
+    if not prompt_path.is_file():
+        return RecordedCell(source, cell, reason="source run has no recorded grader prompt")
+    grading_path = source_dir / "grading.json"
+    try:
+        grading = read_json(grading_path) if grading_path.is_file() else None
+    except CommandError:
+        grading = None
+    snapshot = grading.get("expectations") if isinstance(grading, dict) else None
+    if not isinstance(snapshot, list) or not all(
+        isinstance(item, dict) and isinstance(item.get("text"), str) for item in snapshot
+    ):
+        return RecordedCell(source, cell, reason="source run has no recorded assertion snapshot")
+    # Bytes decoded as UTF-8, never read_text: newline translation would change
+    # the prompt the grader receives.
+    prompt = prompt_path.read_bytes().decode("utf-8")
+    return RecordedCell(source, cell, prompt=prompt, snapshot=snapshot)
+
+
+def regrade_recorded_cell(
+    provider: Provider,
+    recorded: RecordedCell,
+    iteration_dir: Path,
+    regrade_dir: Path,
+    model: str | None,
+    timeout: float,
+    forbidden_roots: Sequence[Path],
+) -> dict[str, Any]:
+    run_dir = regrade_dir / recorded.cell
+    run_dir.mkdir(parents=True, exist_ok=True)
+    outcome = grade_recorded_output(
+        provider, str(recorded.prompt), run_dir=run_dir, model=model, timeout=timeout,
+        forbidden_roots=forbidden_roots,
+    )
+    summary = summarize_grading(outcome.grading, [item["text"] for item in recorded.snapshot or []])
+    write_json(run_dir / "grading.json", summary)
+    scored = outcome.status == "ok"
+    record = {
+        **recorded.source,
+        "status": outcome.status,
+        "scored": scored,
+        "passed": summary["passed"],
+        "failed": summary["failed"],
+        "total": summary["total"],
+        "pass_rate": summary["pass_rate"] if scored else None,
+        "expectations": summary["expectations"],
+        "grader_invocation": invocation_record(outcome.invocation),
+        "grader_error": outcome.grader_error,
+        "grader_cleanup": outcome.cleanup,
+        "failure": outcome.failure,
+        "source_status": recorded.source.get("status"),
+        "source_run_dir": str(iteration_dir / recorded.cell),
+        "run_dir": str(run_dir),
+    }
+    write_json(run_dir / "run.json", record)
+    return record
+
+
+def grader_agreement(configs: list[str], pairs: list[tuple[RecordedCell, dict[str, Any]]]) -> dict[str, Any]:
+    """Compare source and regrade verdicts assertion by assertion, only where
+    both sides were scored."""
+    by_configuration = {config: {"agree": 0, "disagree": 0} for config in configs}
+    disagreements: list[dict[str, Any]] = []
+    for recorded, regraded in pairs:
+        if recorded.source.get("scored") is not True or regraded.get("scored") is not True:
+            continue
+        config = str(regraded.get("configuration"))
+        counts = by_configuration.setdefault(config, {"agree": 0, "disagree": 0})
+        for before, after in zip(recorded.snapshot or [], regraded["expectations"]):
+            source_passed = before.get("passed") is True
+            if source_passed == after["passed"]:
+                counts["agree"] += 1
+                continue
+            counts["disagree"] += 1
+            disagreements.append({
+                "eval_id": regraded.get("eval_id"),
+                "configuration": config,
+                "run_number": regraded.get("run_number"),
+                "assertion": after["text"],
+                "source_passed": source_passed,
+                "source_evidence": before.get("evidence") if isinstance(before.get("evidence"), str) else "",
+                "regrade_passed": after["passed"],
+                "regrade_evidence": after["evidence"],
+            })
+    return {"by_configuration": by_configuration, "disagreements": disagreements}
+
+
+def render_regrade_markdown(regrade: dict[str, Any]) -> list[str]:
+    agreement = regrade.get("agreement") or {}
+    lines = [
+        "",
+        "## Regrade (diagnostic)",
+        "",
+        "- This regrade is diagnostic; the source iteration remains the official result.",
+        f"- Source iteration: `{regrade.get('source_iteration')}`",
+        f"- Source grader: agent `{regrade.get('source_grader_agent')}`, "
+        f"model {format_model_value(regrade.get('source_grader_model'))}",
+        f"- Regrade grader: agent `{regrade.get('grader_agent')}`, "
+        f"model {format_model_value(regrade.get('grader_model'))}",
+        f"- Source measurement identity: `{regrade.get('source_measurement_sha256')}`",
+        "",
+        "### Grader agreement",
+        "",
+        "Counted only where both the source and the regrade cell were scored.",
+        "",
+    ]
+    for config, counts in (agreement.get("by_configuration") or {}).items():
+        lines.append(f"- `{config}`: {counts.get('agree', 0)} agree, {counts.get('disagree', 0)} disagree")
+    disagreements = agreement.get("disagreements") or []
+    lines.extend(["", "### Disagreements", ""])
+    if not disagreements:
+        lines.append("- none")
+    for item in disagreements:
+        lines.append(
+            f"- {item.get('eval_id')} (`{item.get('configuration')}`, run {item.get('run_number')}): "
+            f"{one_line(item.get('assertion'))}"
+        )
+        for side in ("source", "regrade"):
+            verdict = "passed" if item.get(f"{side}_passed") else "failed"
+            lines.append(f"  - {side} {verdict}: {one_line(item.get(f'{side}_evidence'))}")
+    return lines
+
+
+def command_regrade(args: argparse.Namespace) -> int:
+    # ---- Static validation: nothing is launched and no regrade directory is
+    # created until every check passes. ----
+    if args.timeout <= 0:
+        print(f"--timeout {args.timeout}: must be greater than 0", file=sys.stderr)
+        return 2
+    if args.concurrency < 1 or args.concurrency > MAX_CONCURRENCY:
+        print(f"--concurrency {args.concurrency}: must be between 1 and {MAX_CONCURRENCY}", file=sys.stderr)
+        return 2
+    iteration_dir = Path(args.iteration_dir)
+    benchmark_path = iteration_dir / "benchmark.json"
+    if not benchmark_path.is_file():
+        raise CommandError(f"{benchmark_path}: no benchmark.json; regrade needs a finished iteration")
+    source = read_json(benchmark_path)
+    if not isinstance(source, dict) or not isinstance(source.get("runs"), list):
+        raise CommandError(f"{benchmark_path}: expected a benchmark object with run records")
+    grader_agent = args.grader_agent.strip()
+    grader_model = validate_model_label(args.grader_model, "--grader-model")
+    grader_provider = resolve_grader_provider(grader_agent)
+    if grader_provider is None:
+        return 2
+    cells = [recorded_cell(iteration_dir, run) for run in source["runs"]]
+    if not any(cell.reason is None for cell in cells):
+        raise CommandError(
+            f"{iteration_dir}: no source run has both a recorded grader prompt and an assertion snapshot"
+        )
+
+    regrade_dir = iteration_dir / f"regrade-{next_regrade_number(iteration_dir)}"
+    regrade_dir.mkdir()
+    repo_root = find_repo_root(iteration_dir)
+    if isinstance(grader_provider, CodexProvider) and not run_codex_preflight(
+        grader_provider, regrade_dir, repo_root, None, grader_model, args.timeout, executor=False,
+    ):
+        print(
+            f"--grader-agent codex: readiness preflight failed; see {regrade_dir / 'preflight.json'}",
+            file=sys.stderr,
+        )
+        return 2
+
+    # ---- Bounded grading: one fresh grader per eligible cell, no retries, no
+    # executor. ----
+    forbidden_roots = (repo_root, iteration_dir)
+    results: list[dict[str, Any] | None] = [None] * len(cells)
+    with concurrent.futures.ThreadPoolExecutor(max_workers=args.concurrency) as pool:
+        future_to_index = {
+            pool.submit(
+                regrade_recorded_cell, grader_provider, cell, iteration_dir, regrade_dir,
+                grader_model, args.timeout, forbidden_roots,
+            ): index
+            for index, cell in enumerate(cells)
+            if cell.reason is None
+        }
+        for future in concurrent.futures.as_completed(future_to_index):
+            index = future_to_index[future]
+            cell = cells[index]
+            try:
+                results[index] = future.result()
+            except Exception as exc:  # one crashing cell must not discard the rest
+                results[index] = {
+                    **cell.source,
+                    "status": "runner_error",
+                    "scored": False,
+                    "passed": 0,
+                    "failed": len(cell.snapshot or []),
+                    "total": len(cell.snapshot or []),
+                    "pass_rate": None,
+                    "expectations": [],
+                    "grader_invocation": None,
+                    "grader_error": f"runner error: {exc}",
+                    "grader_cleanup": None,
+                    "failure": None,
+                    "source_status": cell.source.get("status"),
+                    "source_run_dir": str(iteration_dir / cell.cell),
+                    "run_dir": str(regrade_dir / cell.cell),
+                }
+                persist_runner_error_record(regrade_dir / cell.cell, results[index])
+    for index, cell in enumerate(cells):
+        if cell.reason is None:
+            continue
+        # Carried unscored with its original status; no grader is launched.
+        results[index] = {
+            **cell.source,
+            "scored": False,
+            "pass_rate": None,
+            "grader_invocation": None,
+            "grader_cleanup": None,
+            "regrade_reason": cell.reason,
+            "source_status": cell.source.get("status"),
+            "source_run_dir": str(iteration_dir / cell.cell),
+            "run_dir": str(regrade_dir / cell.cell),
+        }
+        write_json(regrade_dir / cell.cell / "run.json", results[index])
+    runs_records = [record for record in results if record is not None]
+
+    # ---- Aggregate in the source's shape. Executor-side records, coverage,
+    # fixture status, and delivery identities come from the source; every
+    # grading-dependent value is recomputed. ----
+    configs = list(source.get("configs") or [])
+    suite = EvalSuite(
+        path=benchmark_path,
+        skill_name=str(source.get("skill_name")),
+        common_assertions=[],
+        evals=[
+            EvalCase(
+                eval_id=entry["eval_id"], name=entry.get("eval_name", ""), prompt="", expected_output="",
+                project_class=None, archetype=None, files=[], expectations=[], raw={},
+            )
+            for entry in source.get("evals") or []
+        ],
+        scoring={},
+        raw={},
+    )
+    source_identity = source.get("measurement_identity")
+    measurement: dict[str, Any] | None = None
+    if isinstance(source_identity, dict):
+        measurement = {
+            key: value for key, value in source_identity.items() if key not in MEASUREMENT_IDENTITY_DERIVED_KEYS
+        }
+        measurement.update(grader_agent=grader_agent, grader_model=grader_model)
+    source_agent = source.get("agent")
+    source_model = source.get("model")
+    benchmark = aggregate_runs(
+        suite,
+        configs,
+        runs_records,
+        agent=source_agent,
+        skill_path=source.get("skill_path"),
+        model=source_model,
+        executor_model=source.get("executor_model", source_model),
+        grader_model=grader_model,
+        source_fixtures=source.get("source_fixtures"),
+        suite_coverage=source.get("suite_coverage"),
+        measurement=measurement,
+        grader_agent=grader_agent,
+    )
+    benchmark["regrade"] = {
+        "source_iteration": str(iteration_dir.resolve()),
+        "source_grader_agent": source.get("grader_agent", source_agent),
+        "source_grader_model": source.get("grader_model", source_model),
+        "grader_agent": grader_agent,
+        "grader_model": grader_model,
+        "source_measurement_sha256": source_identity.get("sha256") if isinstance(source_identity, dict) else None,
+        "agreement": grader_agreement(
+            configs,
+            [(cell, record) for cell, record in zip(cells, results) if cell.reason is None and record is not None],
+        ),
+    }
+    write_json(regrade_dir / "benchmark.json", benchmark)
+    write_text(regrade_dir / "benchmark.md", render_benchmark_markdown(benchmark))
+
+    regraded = sum(1 for cell in cells if cell.reason is None)
+    print(f"Regraded {regraded} of {len(cells)} runs into {regrade_dir}")
+    for config, counts in benchmark["regrade"]["agreement"]["by_configuration"].items():
+        print(f"Grader agreement `{config}`: {counts['agree']} agree, {counts['disagree']} disagree")
+    print("Diagnostic only; the source iteration remains the official result.")
+    return 0
+
+
+# --------------------------------------------------------------------------- #
 # CLI
 # --------------------------------------------------------------------------- #
 def build_parser() -> argparse.ArgumentParser:
@@ -5694,11 +6139,17 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("evals_json", help="Path to an evals.json suite.")
     run.add_argument("--agent", default=DEFAULT_AGENT, help=f"Provider to run (default: {DEFAULT_AGENT}).")
     run.add_argument(
+        "--grader-agent",
+        default=None,
+        help="Provider for the grader subprocesses (default: --agent). Executors always use --agent.",
+    )
+    run.add_argument(
         "--model",
         default=None,
         help="Model name passed through to the provider CLI verbatim "
         "(e.g. `claude-sonnet-4-6`, `gpt-5.3-codex-spark`). Shared default for the "
-        "executor and grader; omit to use the provider's default model.",
+        "executor and, when it uses the executor's provider, the grader; a grader on "
+        "another provider takes only --grader-model. Omit to use the provider's default model.",
     )
     run.add_argument(
         "--executor-model",
@@ -5748,6 +6199,32 @@ def build_parser() -> argparse.ArgumentParser:
         "per eval (raw rates; not like-for-like when the suite or skill changed).",
     )
     report.set_defaults(func=command_report)
+
+    regrade = subcommands.add_parser(
+        "regrade",
+        help="Re-grade an iteration's recorded grader prompts with a chosen grader into a "
+        "diagnostic <iteration>/regrade-<N> directory; executors are not rerun.",
+    )
+    regrade.add_argument("iteration_dir", help="Iteration directory containing benchmark.json.")
+    regrade.add_argument("--grader-agent", required=True, help="Provider for the regrade graders.")
+    regrade.add_argument(
+        "--grader-model",
+        default=None,
+        help="Model for the regrade graders; omit to use the provider's default model.",
+    )
+    regrade.add_argument(
+        "--timeout",
+        type=float,
+        default=DEFAULT_TIMEOUT_SECONDS,
+        help="Per-subprocess timeout in seconds.",
+    )
+    regrade.add_argument(
+        "--concurrency",
+        type=int,
+        default=DEFAULT_CONCURRENCY,
+        help=f"Max concurrent provider subprocesses (1..{MAX_CONCURRENCY}).",
+    )
+    regrade.set_defaults(func=command_regrade)
 
     return parser
 
