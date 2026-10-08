@@ -157,7 +157,12 @@ python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/work
   plugins carry, stay out. The rest of the user's codex setup still applies:
   `config.toml` settings such as model defaults and reasoning effort,
   exec-policy rules, a user-global `AGENTS.md`, and the skills in codex's own
-  skill directories, including the ones codex ships. The isolation covers
+  skill directories, including the ones codex ships. Each executor also marks
+  its own working directory trusted for that invocation only, through an
+  inline-table `-c projects={...}` override, because codex otherwise writes a
+  `trust_level = "trusted"` entry for every new sandbox into the user's
+  `config.toml`; a dotted `projects."<path>"` override is accepted but not
+  applied. The isolation covers
   the servers listed at run start, not MCP configuration changed during the
   run. Claude executors run with `--strict-mcp-config` and no `--mcp-config`,
   which makes the CLI ignore every other MCP configuration, claude.ai

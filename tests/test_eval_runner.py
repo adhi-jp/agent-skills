@@ -15,6 +15,7 @@ import signal
 import subprocess
 import sys
 import tempfile
+import tomllib
 import unittest
 from pathlib import Path
 from unittest import mock
@@ -628,7 +629,14 @@ class FailFastTests(BaseRunnerTest):
                     self.assertIn("--disable", item["argv"])
                     apps_index = item["argv"].index("--disable")
                     self.assertEqual(item["argv"][apps_index:apps_index + 2], ["--disable", "apps"])
-                    self.assertEqual(item["argv"][-5:-1], ["-c", "features.hooks=false", "-c", "features.plugins=false"])
+                    self.assertEqual(item["argv"][-7:-3], ["-c", "features.hooks=false", "-c", "features.plugins=false"])
+                    # The executor's own working directory is trusted for this
+                    # invocation only, so codex writes no trust entry.
+                    self.assertEqual(item["argv"][-3], "-c")
+                    self.assertEqual(
+                        tomllib.loads(item["argv"][-2]),
+                        {"projects": {item["cwd"]: {"trust_level": "trusted"}}},
+                    )
                     if expected:
                         self.assertIn(expected[1], item["argv"])
                         start = item["argv"].index("-c")
@@ -2392,13 +2400,15 @@ class ModelSelectionTests(BaseRunnerTest):
         # A verified-empty discovery adds no server override, but executors
         # always disable the `apps` feature that exposes account connectors
         # and the user's hooks and plugins.
+        trust = "projects={" + json.dumps(without.cwd) + '={trust_level="trusted"}}'
         self.assertEqual(
             without.argv,
             [
                 "codex", "exec", "-s", "workspace-write",
                 "-o", str((self.root / "executor_codex_last.txt").resolve()),
                 "--json", "--skip-git-repo-check", "--disable", "apps",
-                "-c", "features.hooks=false", "-c", "features.plugins=false", "-",
+                "-c", "features.hooks=false", "-c", "features.plugins=false",
+                "-c", trust, "-",
             ],
         )
         self.assertNotIn("--ignore-user-config", without.argv)
@@ -2445,6 +2455,22 @@ class ModelSelectionTests(BaseRunnerTest):
             self.assertEqual(grader.argv, expected_grader)
             self.assertNotIn("--disable", grader.argv)
 
+    def test_codex_executor_trust_override_is_valid_toml_for_any_cwd(self):
+        provider = eval_runner.CodexProvider()
+        odd = self.root / 'odd dir "q" \\ 日本語' / "repo"
+        odd.mkdir(parents=True)
+        for cwd in (odd, None):
+            with self.subTest(cwd=cwd):
+                inv = provider.build_invocation("p", run_dir=self.root, role="executor", cwd=cwd)
+                values = [inv.argv[i + 1] for i, v in enumerate(inv.argv[:-1]) if v == "-c"]
+                trust = [value for value in values if value.startswith("projects=")]
+                self.assertEqual(len(trust), 1)
+                self.assertEqual(
+                    tomllib.loads(trust[0]), {"projects": {inv.cwd: {"trust_level": "trusted"}}}
+                )
+        grader = provider.build_invocation("p", run_dir=self.root, role="grader", cwd=odd)
+        self.assertFalse(any(token.startswith("projects=") for token in grader.argv))
+
     def test_codex_grader_invocation_writes_schema_file(self):
         provider = eval_runner.CodexProvider()
         run_dir = self.root / "rd"
@@ -2488,7 +2514,12 @@ class ModelSelectionTests(BaseRunnerTest):
         executor_overrides = [
             ex.argv[index + 1] for index, value in enumerate(ex.argv[:-1]) if value == "-c"
         ]
-        self.assertEqual(executor_overrides, ["features.hooks=false", "features.plugins=false"])
+        self.assertEqual(executor_overrides[:2], ["features.hooks=false", "features.plugins=false"])
+        self.assertEqual(
+            tomllib.loads(executor_overrides[2]),
+            {"projects": {ex.cwd: {"trust_level": "trusted"}}},
+        )
+        self.assertEqual(len(executor_overrides), 3)
 
     def test_codex_fake_accepts_large_stdin_and_isolated_grader(self):
         provider = eval_runner.CodexProvider()
@@ -6353,8 +6384,12 @@ class GraderAgentTests(MixedProviderTest):
                         omitted = self.run_record(agent, config, eval_dir, 1)
                         explicit = self.run_record(agent, config, eval_dir, 2)
                         for role in ("executor_invocation", "grader_invocation"):
+                            # Each run has its own sandbox, which a Codex executor
+                            # names in its trust override.
                             normalized = json.loads(
-                                json.dumps(explicit[role]["argv"]).replace("iteration-2", "iteration-1")
+                                json.dumps(explicit[role]["argv"])
+                                .replace("iteration-2", "iteration-1")
+                                .replace(explicit["sandbox"]["repo_root"], omitted["sandbox"]["repo_root"])
                             )
                             self.assertEqual(normalized, omitted[role]["argv"])
                         self.assertIn("m-1", explicit["grader_invocation"]["argv"])

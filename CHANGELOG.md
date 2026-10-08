@@ -22,6 +22,9 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- skill-eval: Codex executor runs no longer add a trusted-project entry for
+  each sandbox to the user's codex `config.toml`; each executor is trusted for
+  its own invocation only, with the same effect on the run.
 - skill-eval: Executors run without the user's hooks and plugins. Claude
   executors start with `--safe-mode`, so the user's CLAUDE.md, skills,
   plugins, and hooks stay out, and nested `CLAUDE.md` files in delivered

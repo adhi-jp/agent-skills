@@ -3739,6 +3739,15 @@ class ClaudeProvider(Provider):
         return output, metrics
 
 
+def codex_trusted_project_override(path: Path) -> str:
+    """Return a ``-c`` value that trusts ``path`` for one codex invocation.
+
+    The project key must be an inline table: codex accepts a dotted
+    ``projects."<path>".trust_level`` override without error but does not apply
+    it. A JSON string is valid TOML basic-string syntax for the key."""
+    return "projects={" + json.dumps(str(path), ensure_ascii=False) + '={trust_level="trusted"}}'
+
+
 class CodexProvider(Provider):
     name = "codex"
 
@@ -3763,6 +3772,7 @@ class CodexProvider(Provider):
         cwd: Path | None = None,
     ) -> Invocation:
         last_message = (run_dir / f"{role}_codex_last.txt").resolve()
+        resolved_cwd = (cwd or find_repo_root(run_dir)).resolve()
         sandbox_mode = "workspace-write" if role == "executor" else "read-only"
         argv = [
             "codex", "exec", "-s", sandbox_mode, "-o", str(last_message),
@@ -3780,6 +3790,11 @@ class CodexProvider(Provider):
                 argv += ["-c", f"mcp_servers.{server}.enabled=false"]
             # The rest of config.toml stays, as noted above.
             argv += list(CODEX_EXECUTOR_FEATURE_OVERRIDES)
+            # On every thread start codex persists `trust_level = "trusted"`
+            # for a writable cwd it has no trust for into the user's
+            # config.toml, one entry per sandbox. Trusting the cwd for this
+            # invocation only keeps the same trust without the write.
+            argv += ["-c", codex_trusted_project_override(resolved_cwd)]
         if role == "grader":
             # Command-line strict overrides make the no-tool grader independent
             # of user configuration and command rules. Do not pass image inputs;
@@ -3807,7 +3822,6 @@ class CodexProvider(Provider):
             write_text(schema_path, json.dumps(schema, indent=2) + "\n")
             argv += ["--output-schema", str(schema_path)]
         argv.append("-")
-        resolved_cwd = (cwd or find_repo_root(run_dir)).resolve()
         return Invocation(
             argv=argv,
             env=invocation_env(resolved_cwd),
