@@ -3704,6 +3704,37 @@ class ProviderParserTests(unittest.TestCase):
         self.assertEqual(benchmark["overall_pass_rate"]["with_skill"], 1.0)
         self.assertEqual(benchmark["comparison"]["delta"], 1.0)
 
+    def run_invocation_in_child(self, stdin):
+        """Run eval_runner.run_invocation in a child whose own stdin carries data."""
+        script = (
+            "import sys\n"
+            f"sys.path.insert(0, {str(SCRIPT.parent)!r})\n"
+            "import eval_runner\n"
+            "inv = eval_runner.Invocation(\n"
+            "    argv=[sys.executable, '-c',\n"
+            "          'import sys; sys.stdout.write(repr(sys.stdin.read()))'],\n"
+            "    env=dict(__import__('os').environ), cwd='.',\n"
+            f"    stdin={stdin!r})\n"
+            "out, err, code, timed_out = eval_runner.run_invocation(inv, 30)\n"
+            "sys.stdout.write(out)\n"
+        )
+        return subprocess.run(
+            [sys.executable, "-c", script],
+            input="PIPED-RUNNER-STDIN", capture_output=True, text=True, timeout=60,
+        )
+
+    def test_provider_without_stdin_never_reads_the_runner_stdin(self):
+        result = self.run_invocation_in_child(None)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, repr(""))
+        self.assertNotIn("PIPED-RUNNER-STDIN", result.stdout)
+
+    def test_provider_with_stdin_still_receives_exactly_its_prompt(self):
+        result = self.run_invocation_in_child("PROMPT-BYTES")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(result.stdout, repr("PROMPT-BYTES"))
+        self.assertNotIn("PIPED-RUNNER-STDIN", result.stdout)
+
 
 # --------------------------------------------------------------------------- #
 # Skill-read sanity signal: a `with_skill` run whose complete runner trace

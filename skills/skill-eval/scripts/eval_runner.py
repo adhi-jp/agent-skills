@@ -4001,12 +4001,16 @@ def resolve_grader_provider(
 # Subprocess execution and grading
 # --------------------------------------------------------------------------- #
 def run_invocation(invocation: Invocation, timeout: float) -> tuple[str, str, int | None, bool]:
+    # A provider with no stdin gets an empty one, not the runner's own stdin.
+    stdin_args: dict[str, Any] = (
+        {"input": invocation.stdin} if invocation.stdin is not None else {"stdin": subprocess.DEVNULL}
+    )
     try:
         completed = subprocess.run(
             invocation.argv,
             env=invocation.env,
             cwd=invocation.cwd,
-            input=invocation.stdin,
+            **stdin_args,
             capture_output=True,
             text=True,
             timeout=timeout,

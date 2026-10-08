@@ -403,6 +403,9 @@ use `[Repository] - YYYY-MM-DD`.
   Runs lacking a recorded prompt or assertion snapshot are carried unscored,
   no executor is rerun, and the source iteration's files and official result
   never change.
+- `skill-eval` starts provider subprocesses that take their prompt as an
+  argument, such as Claude executors and graders, with an empty stdin, so data
+  piped into the runner no longer reaches a model as extra prompt input.
 
 ## [vibe-coding 5.0.1] - 2026-09-27
 
