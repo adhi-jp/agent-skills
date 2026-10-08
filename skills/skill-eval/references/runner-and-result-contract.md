@@ -272,8 +272,9 @@ python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/work
   comparison, executor metrics, suite coverage, a `sanity_checks` section
   (infrastructure failures, scored-0% cells, candidate-below-baseline cells,
   dirty declared fixture roots, partial selections, `skill_read_unobserved`
-  runs), and a `Failed assertions` section listing each scored cell's failed
-  assertions with the grader's evidence and each unscored cell's status.
+  runs, `external_path_access` runs), and a `Failed assertions` section
+  listing each scored cell's failed assertions with the grader's evidence and
+  each unscored cell's status.
 - `skill_read_unobserved` lists `with_skill` runs whose executor evidence
   records no read attempt of the delivered `skills/<skill-name>/SKILL.md`: no
   `command_execution` entry without `parse_error` that runs at least one
@@ -294,6 +295,27 @@ python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/work
   status `REVIEW REQUIRED`; uncertain and unjudged runs do not. A recorded read
   attempt is not proof of a successful read, and its absence in judged
   evidence is a review signal, not proof that the skill went unread.
+- `external_path_access` lists runs, in either configuration, whose executor
+  named a host path outside the sandbox that could carry state the case did
+  not deliver. When the Codex trace collapses an operand or file-change path
+  to `<external-path>`, run.json records its kind under the entry's
+  `external_path_kinds`: `device` (`/dev`), `system` (`/usr`, `/bin`,
+  `/sbin`, `/lib*`, `/etc`, `/proc`, `/sys`), `home` (`~`, the runner's home
+  directory, `/home`, `/root`), `temp` (`/tmp` and the temp directory, where
+  other runs' sandboxes live), or `other`; the path itself is not kept, and
+  the grader sees neither paths nor kinds. A run with a `home`, `temp`, or
+  `other` kind is listed with its kinds and makes the status `REVIEW
+  REQUIRED`; `device` and `system` alone are not listed. Only complete
+  runner-sourced Codex evidence whose record marks
+  `classifies_external_paths` is judged; host-sourced (Claude), uncaptured,
+  and partial evidence, and records from before the classification, count as
+  not evaluated under `external_path_observation`, which records the
+  evaluated, flagged, and not-evaluated counts. A listed run is a
+  contamination signal to inspect, not proof of a read. An evaluated run that
+  is not listed is not proof that no host path was read: the trace does not
+  see a path behind shell expansion such as `$HOME` (the entry is marked
+  `parse_error`), a path reached after `cd`, a bare `~`, a quoted path with
+  spaces, a path longer than the trace keeps, or a `..`-relative escape.
 - `grading.json` lists every assertion (`common_assertions` then per-eval
   `expectations`) exactly once, in order, with `text`, `passed`, and
   `evidence`; an assertion the grader omits is recorded as failed.

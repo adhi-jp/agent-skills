@@ -11,6 +11,15 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Added
+
+- skill-eval: A run whose Codex executor named a path in the user's home, the
+  shared temp directory, or elsewhere outside its sandbox is listed under the
+  `external_path_access` sanity check with the kinds of path it named, and
+  makes the status `REVIEW REQUIRED`; device and system paths such as
+  `/dev/null` are not listed. Paths stay out of the record and the grader
+  prompt, and Claude executor evidence, which carries no paths, is not judged.
+
 ### Changed
 
 - skill-eval: Executors run without the user's hooks and plugins. Claude

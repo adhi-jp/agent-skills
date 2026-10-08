@@ -143,6 +143,7 @@ class BaseRunnerTest(unittest.TestCase):
     def fake_codex_env(
         self, *, fail=False, log=None, pretty_json=False, preflight_executor_output=None,
         mcp_output=None, mcp_exit=None, mcp_sleep=None, mcp_log=None, grader_verdicts=None,
+        executor_command=None,
     ):
         bin_dir = self.root / "fake-bin"
         bin_dir.mkdir(exist_ok=True)
@@ -215,6 +216,12 @@ if os.environ.get("FAKE_CODEX_FAIL") == "1":
     raise SystemExit(25)
 with open(out, "w", encoding="utf-8") as handle:
     handle.write(message)
+executor_command = os.environ.get("FAKE_CODEX_EXECUTOR_COMMAND")
+if executor_command and kind == "suite" and "--output-schema" not in args:
+    print(json.dumps({"type": "item.completed", "item": {
+        "id": "item_cmd", "type": "command_execution", "command": executor_command,
+        "aggregated_output": "", "exit_code": 0, "status": "completed",
+    }}))
 print(json.dumps({"type": "item.completed", "item": {"type": "agent_message", "text": message}}))
 print(json.dumps({"type": "turn.completed", "usage": {
     "input_tokens": 11, "cached_input_tokens": 3, "output_tokens": 7,
@@ -242,6 +249,8 @@ print(json.dumps({"type": "turn.completed", "usage": {
             env["FAKE_CODEX_MCP_SLEEP"] = str(mcp_sleep)
         if mcp_log is not None:
             env["FAKE_CODEX_MCP_LOG"] = str(mcp_log)
+        if executor_command is not None:
+            env["FAKE_CODEX_EXECUTOR_COMMAND"] = executor_command
         if grader_verdicts is not None:
             env["FAKE_CODEX_GRADER_VERDICTS"] = json.dumps(grader_verdicts)
         return env
@@ -3918,6 +3927,197 @@ class SkillReadSanityTests(BaseRunnerTest):
         )
         self.assertIn("Sanity checks: REVIEW REQUIRED", result.stdout)
         self.assertIn("1 skill-read-unobserved run(s)", result.stdout)
+
+
+class HostPathAccessTests(BaseRunnerTest):
+    @staticmethod
+    def evidence(entries, *, classified=True, **stream):
+        evidence = SkillReadSanityTests.evidence(entries, **stream)
+        if classified:
+            evidence["classifies_external_paths"] = True
+        return evidence
+
+    @staticmethod
+    def command(kinds):
+        entry = SkillReadSanityTests.command([eval_runner.CODEX_EXTERNAL_PATH_MARKER], read_only=False)
+        if kinds:
+            entry["external_path_kinds"] = list(kinds)
+        return entry
+
+    def sanity(self, runs):
+        return eval_runner.compute_sanity_checks(
+            ["with_skill", "without_skill"], runs, [], skill_name="demo"
+        )
+
+    @staticmethod
+    def stream(*items):
+        return "\n".join([*items, json.dumps({"type": "turn.completed"})])
+
+    def test_codex_trace_records_the_kind_of_each_collapsed_path(self):
+        home = os.path.expanduser("~")
+        cases = [
+            ("find . -name x 2>/dev/null", ["device"]),
+            ("ls /usr/bin/node", ["system"]),
+            ("cat /etc/os-release", ["system"]),
+            ("ls ~/.codex/sessions", ["home"]),
+            (f"cat {home}/notes.md", ["home"]),
+            ("cat /home/someone/notes.md", ["home"]),
+            ("ls /tmp/eval-runner-sandboxes/other-run/repo", ["temp"]),
+            ("rg foo /srv/data", ["other"]),
+            ("cat /dev/null /srv/data ~/x /srv/more", ["device", "other", "home"]),
+            ("ls /sbin/ip /lib64/ld.so /proc/1/status /sys/class", ["system"]),
+            ("cat /root/.bashrc", ["home"]),
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "repo"
+            root.mkdir()
+            for command, kinds in cases:
+                with self.subTest(command):
+                    record = eval_runner.collect_codex_executor_trace(
+                        self.stream(CodexExecutorTraceTests.command_event("item_1", f"/bin/bash -lc '{command}'")),
+                        root,
+                    )
+                    self.assertIs(record["classifies_external_paths"], True)
+                    entry = record["entries"][0]
+                    self.assertIn(eval_runner.CODEX_EXTERNAL_PATH_MARKER, entry["path_operands"])
+                    self.assertEqual(entry["external_path_kinds"], kinds)
+            # A path inside the sandbox stays relative and carries no kind.
+            record = eval_runner.collect_codex_executor_trace(
+                self.stream(CodexExecutorTraceTests.command_event("item_1", f"cat {root}/task.md")), root
+            )
+            self.assertEqual(record["entries"][0]["path_operands"], ["task.md"])
+            self.assertNotIn("external_path_kinds", record["entries"][0])
+            # A file change outside the sandbox is classified as well.
+            change = json.dumps({"type": "item.completed", "item": {
+                "id": "item_2", "type": "file_change", "status": "completed",
+                "changes": [{"path": "/tmp/scratch.txt", "kind": "add"}, {"path": f"{root}/a.md", "kind": "add"}],
+            }})
+            record = eval_runner.collect_codex_executor_trace(self.stream(change), root)
+            self.assertEqual(record["entries"][0]["external_path_kinds"], ["temp"])
+            # A change past the listing cap is not listed but its kind still counts.
+            cap = eval_runner.CODEX_TRACE_MAX_FILE_CHANGES
+            changes = [{"path": f"{root}/f{index}.md", "kind": "add"} for index in range(cap + 1)]
+            changes.append({"path": "/home/someone/.codex/x", "kind": "add"})
+            many = json.dumps({"type": "item.completed", "item": {
+                "id": "item_3", "type": "file_change", "status": "completed", "changes": changes,
+            }})
+            entry = eval_runner.collect_codex_executor_trace(self.stream(many), root)["entries"][0]
+            self.assertTrue(entry["truncated"])
+            self.assertEqual(len(entry["changes"]), cap)
+            self.assertEqual(entry["external_path_kinds"], ["home"])
+
+    def test_home_and_temp_follow_the_runner_environment(self):
+        with mock.patch.dict(os.environ, {"HOME": "/srv/fakehome"}), \
+                mock.patch.object(tempfile, "tempdir", "/var/scratchtmp"):
+            for token, kind in (
+                ("/srv/fakehome/notes.md", "home"),
+                ("/var/scratchtmp/run-2/repo/a.md", "temp"),
+                ("/srv/other/notes.md", "other"),
+            ):
+                with self.subTest(token):
+                    self.assertEqual(eval_runner.codex_external_path_kind(token), kind)
+
+    def test_runs_naming_home_temp_or_other_paths_are_flagged_in_both_configurations(self):
+        cases = [
+            # (label, kinds, flagged)
+            ("home", ["home"], True),
+            ("temp", ["temp"], True),
+            ("other", ["other"], True),
+            ("device and system only", ["device", "system"], False),
+            ("no collapsed path", [], False),
+        ]
+        for config in ("with_skill", "without_skill"):
+            for label, kinds, flagged in cases:
+                with self.subTest(config=config, case=label):
+                    run = SkillReadSanityTests.run_record(self.evidence([self.command(kinds)]), config=config)
+                    result = self.sanity([run])
+                    observation = result["external_path_observation"]
+                    self.assertEqual(
+                        (observation["evaluated"], observation["flagged"], observation["not_evaluated"]),
+                        (1, int(flagged), 0),
+                    )
+                    expected = (
+                        [{"eval_id": "E01", "configuration": config, "run_number": 1,
+                          "kinds": sorted(set(kinds) & {"home", "temp", "other"})}]
+                        if flagged else []
+                    )
+                    self.assertEqual(result["external_path_access"], expected)
+                    if config == "without_skill":
+                        self.assertEqual(result["ok"], not flagged)
+
+    def test_unclassified_partial_and_host_evidence_is_not_evaluated(self):
+        flagged_entry = self.command(["home"])
+        cases = [
+            ("legacy record without the classification marker", self.evidence([flagged_entry], classified=False)),
+            ("incomplete stream", self.evidence([flagged_entry], complete=False)),
+            ("host-sourced", {"captured": True, "source": "host", "provider": "claude", "entries": []}),
+            ("uncaptured", {**self.evidence([]), "captured": False}),
+            ("no evidence recorded", None),
+        ]
+        for label, evidence in cases:
+            with self.subTest(label):
+                result = self.sanity([SkillReadSanityTests.run_record(evidence, config="without_skill")])
+                observation = result["external_path_observation"]
+                self.assertEqual(
+                    (observation["evaluated"], observation["flagged"], observation["not_evaluated"]), (0, 0, 1)
+                )
+                self.assertEqual(result["external_path_access"], [])
+                self.assertTrue(result["ok"])
+
+    def test_grader_prompt_carries_no_kinds_or_outside_paths(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp) / "repo"
+            root.mkdir()
+            record = eval_runner.collect_codex_executor_trace(
+                self.stream(CodexExecutorTraceTests.command_event("item_1", "cat /srv/secret-dir/notes.md ~/.codex/x")),
+                root,
+            )
+        self.assertEqual(record["entries"][0]["external_path_kinds"], ["other", "home"])
+        prompt = CodexExecutorTraceTests.render_with_evidence(record)
+        self.assertIn("item_1", prompt)
+        for forbidden in ("external_path_kinds", "/srv/secret-dir", "~/.codex/x", "<external-path>"):
+            self.assertNotIn(forbidden, prompt)
+
+    def test_benchmark_and_run_summary_report_host_path_access(self):
+        path = self.write_suite(
+            {"skill_name": "demo", "evals": [{"id": "E01", "prompt": "x", "expectations": ["a"]}]}
+        )
+        result = self.run_cli(
+            "run", path, "--agent", "codex", "--config", "without_skill",
+            env=self.fake_codex_env(executor_command="/bin/bash -lc 'ls ~/.codex/sessions'"), check=True,
+        )
+        iteration = self.iteration_dir("codex")
+        benchmark = json.loads((iteration / "benchmark.json").read_text())
+        sanity = benchmark["sanity_checks"]
+        self.assertFalse(sanity["ok"])
+        self.assertEqual(
+            sanity["external_path_access"],
+            [{"eval_id": "E01", "configuration": "without_skill", "run_number": 1, "kinds": ["home"]}],
+        )
+        self.assertEqual(sanity["external_path_observation"], {"evaluated": 1, "flagged": 1, "not_evaluated": 0})
+        md = (iteration / "benchmark.md").read_text()
+        self.assertIn("REVIEW REQUIRED", md)
+        self.assertIn("- Host path access", md)
+        self.assertIn("E01/without_skill run 1 (home)", md)
+        self.assertIn("1 evaluated, 1 flagged, 0 not evaluated", md)
+        self.assertIn("1 host-path-access run(s)", result.stdout)
+
+    def test_device_paths_leave_the_run_unlisted_end_to_end(self):
+        path = self.write_suite(
+            {"skill_name": "demo", "evals": [{"id": "E01", "prompt": "x", "expectations": ["a"]}]}
+        )
+        result = self.run_cli(
+            "run", path, "--agent", "codex", "--config", "without_skill",
+            env=self.fake_codex_env(executor_command="/bin/bash -lc 'find . -name x 2>/dev/null'"), check=True,
+        )
+        iteration = self.iteration_dir("codex")
+        run = json.loads(next(iteration.glob("*/without_skill/run-1/run.json")).read_text())
+        self.assertEqual(run["executor_evidence"]["entries"][0]["external_path_kinds"], ["device"])
+        sanity = json.loads((iteration / "benchmark.json").read_text())["sanity_checks"]
+        self.assertTrue(sanity["ok"])
+        self.assertEqual(sanity["external_path_access"], [])
+        self.assertEqual(sanity["external_path_observation"], {"evaluated": 1, "flagged": 0, "not_evaluated": 0})
+        self.assertIn("Sanity checks: OK", result.stdout)
 
 
 # --------------------------------------------------------------------------- #

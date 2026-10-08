@@ -2324,6 +2324,13 @@ CODEX_TRACE_MAX_FILE_CHANGES = 32
 CODEX_TRACE_MAX_PATH_CHARS = 256
 CODEX_TRACE_MAX_WRAPPER_DEPTH = 3
 CODEX_EXTERNAL_PATH_MARKER = "<external-path>"
+# The kind of host location a collapsed operand named, kept in run.json only so
+# a read of the user's files is told apart from `/dev/null` or `/usr/bin` without
+# recording the host layout. The grader never sees kinds.
+CODEX_SYSTEM_PATH_PREFIXES = (
+    "/usr", "/bin", "/sbin", "/lib", "/lib32", "/lib64", "/libx32", "/etc", "/proc", "/sys",
+)
+CODEX_REVIEW_PATH_KINDS = frozenset({"home", "temp", "other"})
 CODEX_SHELL_WRAPPERS = frozenset({"bash", "sh", "zsh"})
 # Launchers that precede the real program. They are skipped so the recorded name
 # is the thing that ran, but only while their own options stay unambiguous.
@@ -2545,6 +2552,34 @@ def normalize_codex_path(token: str, sandbox_root: Path) -> str | None:
     return CODEX_EXTERNAL_PATH_MARKER
 
 
+def codex_external_path_kind(token: str) -> str:
+    """Name the kind of host location a collapsed operand points at.
+
+    ``device`` and ``system`` cover paths every command may touch (``/dev/null``,
+    ``/usr/bin/env``); ``home`` covers the user's files, ``temp`` the shared temp
+    directory where other runs' sandboxes also live, and ``other`` everything
+    else. Only the kind is kept, never the path."""
+
+    def under(path: str, root: str) -> bool:
+        root = root.rstrip("/")
+        return bool(root) and (path == root or path.startswith(root + "/"))
+
+    if token.startswith("~"):
+        return "home"
+    if under(token, "/dev"):
+        return "device"
+    if any(under(token, prefix) for prefix in CODEX_SYSTEM_PATH_PREFIXES):
+        return "system"
+    home = os.path.expanduser("~")
+    if home != "~" and under(token, home):
+        return "home"
+    if under(token, "/home") or under(token, "/root"):
+        return "home"
+    if under(token, "/tmp") or under(token, tempfile.gettempdir()):
+        return "temp"
+    return "other"
+
+
 def codex_text_has_unquoted_redirection(text: str) -> bool:
     """Return True when the command text may redirect a stream.
 
@@ -2623,9 +2658,13 @@ def codex_read_only_option_is_mutating(program: str, token: str) -> bool:
 
 
 def codex_command_shape(
-    command: Any, sandbox_root: Path
+    command: Any, sandbox_root: Path, external_kinds: list[str] | None = None
 ) -> tuple[list[str], list[str], bool, bool, bool]:
     """Return (programs, path operands, parse_error, truncated, read_only).
+
+    When ``external_kinds`` is given, the kind of each operand collapsed to
+    ``<external-path>`` is appended to it once (see
+    ``codex_external_path_kind``).
 
     Backslash escapes are not interpreted. A backslash means the runner cannot
     tell how the shell would regroup the words, so the entry is marked
@@ -2787,6 +2826,12 @@ def codex_command_shape(
                 "/" in token or token.endswith(CODEX_PATH_OPERAND_SUFFIXES)
             ):
                 normalized = normalize_codex_path(token, sandbox_root)
+            if (
+                normalized == CODEX_EXTERNAL_PATH_MARKER
+                and external_kinds is not None
+                and (kind := codex_external_path_kind(token)) not in external_kinds
+            ):
+                external_kinds.append(kind)
             if normalized is None or normalized == CODEX_EXTERNAL_PATH_MARKER:
                 # Dropped, or placed outside the sandbox: an operand the runner
                 # did not record cannot be shown to lie inside any directory.
@@ -2847,9 +2892,10 @@ def codex_trace_entry(
     item_type = item.get("type")
     entry: dict[str, Any] | None = None
     parse_error = False
+    external_kinds: list[str] = []
     if item_type == "command_execution":
         programs, operands, parse_error, truncated, read_only = codex_command_shape(
-            item.get("command"), sandbox_root
+            item.get("command"), sandbox_root, external_kinds
         )
         exit_code = item.get("exit_code")
         if isinstance(exit_code, bool) or not isinstance(exit_code, int):
@@ -2879,9 +2925,15 @@ def codex_trace_entry(
                 normalized = normalize_codex_path(path, sandbox_root)
                 if normalized is None:
                     continue
+                if normalized == CODEX_EXTERNAL_PATH_MARKER:
+                    path_kind = codex_external_path_kind(path)
+                    if path_kind not in external_kinds:
+                        external_kinds.append(path_kind)
                 if len(changes) >= CODEX_TRACE_MAX_FILE_CHANGES:
+                    # Past the cap a change is no longer listed, but its path
+                    # kind still counts, as it does for command operands.
                     truncated = True
-                    break
+                    continue
                 kind = change.get("kind")
                 changes.append(
                     {"path": normalized, "kind": kind if isinstance(kind, str) else None}
@@ -2904,6 +2956,8 @@ def codex_trace_entry(
         entry = {"type": "web_search", "id": item_id, "status": status}
     if entry is None:
         return None
+    if external_kinds:
+        entry["external_path_kinds"] = external_kinds
     if parse_error or invalid_value:
         entry["parse_error"] = True
     return entry
@@ -2982,6 +3036,9 @@ def collect_codex_executor_trace(stdout: str, sandbox_root: Path) -> dict[str, A
         "source": "runner",
         "provider": "codex",
         "note": CODEX_TRACE_NOTE,
+        # Marks entries as carrying `external_path_kinds` when they collapsed an
+        # operand; records without it predate the classification.
+        "classifies_external_paths": True,
         "stream": {
             "complete": complete,
             "event_count": event_count,
@@ -4791,9 +4848,44 @@ def compute_sanity_checks(
                 }
             )
 
+    # Both configurations are judged on complete runner-sourced Codex evidence
+    # that classified its outside-sandbox paths; a run naming a home, temp, or
+    # other host path is a review signal for contamination, not proof of a read.
+    external_path_access: list[dict[str, Any]] = []
+    external_paths = {"evaluated": 0, "flagged": 0, "not_evaluated": 0}
+    for run in runs:
+        evidence = run.get("executor_evidence")
+        if not (
+            skill_read_evidence_is_eligible(evidence)
+            and evidence.get("classifies_external_paths") is True
+        ):
+            external_paths["not_evaluated"] += 1
+            continue
+        external_paths["evaluated"] += 1
+        kinds = sorted(
+            {
+                kind
+                for entry in evidence["entries"]
+                if isinstance(entry, dict) and isinstance(entry.get("external_path_kinds"), list)
+                for kind in entry["external_path_kinds"]
+                if kind in CODEX_REVIEW_PATH_KINDS
+            }
+        )
+        if kinds:
+            external_paths["flagged"] += 1
+            external_path_access.append(
+                {
+                    "eval_id": run.get("eval_id"),
+                    "configuration": run.get("configuration"),
+                    "run_number": run.get("run_number"),
+                    "kinds": kinds,
+                }
+            )
+
     return {
         "ok": not (
             infra or zero_cells or inversions or source_dirty or partial_selection or skill_read_unobserved
+            or external_path_access
         ),
         "infrastructure_failures": infra,
         "zero_scored_cells": zero_cells,
@@ -4802,6 +4894,8 @@ def compute_sanity_checks(
         "partial_suite_selection": partial_selection,
         "skill_read_unobserved": skill_read_unobserved,
         "skill_read_observation": skill_read,
+        "external_path_access": external_path_access,
+        "external_path_observation": external_paths,
     }
 
 
@@ -4821,9 +4915,11 @@ def render_sanity_checks_markdown(sanity: Any) -> list[str]:
     partial_selection = sanity.get("partial_suite_selection") or []
     skill_read_unobserved = sanity.get("skill_read_unobserved") or []
     skill_read = sanity.get("skill_read_observation")
+    external_access = sanity.get("external_path_access") or []
+    external_observation = sanity.get("external_path_observation")
     total = (
         len(infra) + len(zero) + len(inversions) + len(source_dirty) + len(partial_selection)
-        + len(skill_read_unobserved)
+        + len(skill_read_unobserved) + len(external_access)
     )
     skill_read_lines: list[str] = []
     if isinstance(skill_read, dict) and (skill_read.get("evaluated") or skill_read.get("not_evaluated")):
@@ -4833,6 +4929,15 @@ def render_sanity_checks_markdown(sanity: Any) -> list[str]:
             f"{skill_read.get('flagged', 0)} flagged, {skill_read.get('uncertain', 0)} uncertain, "
             f"{skill_read.get('not_evaluated', 0)} not evaluated; a recorded read attempt is not "
             "proof of a successful read"
+        )
+    if isinstance(external_observation, dict) and (
+        external_observation.get("evaluated") or external_observation.get("not_evaluated")
+    ):
+        skill_read_lines.append(
+            "- Host path observation (both configurations, judged only on complete runner-sourced "
+            f"Codex evidence): {external_observation.get('evaluated', 0)} evaluated, "
+            f"{external_observation.get('flagged', 0)} flagged, "
+            f"{external_observation.get('not_evaluated', 0)} not evaluated"
         )
     lines = ["", "## Sanity checks", ""]
     if total == 0 and sanity.get("ok"):
@@ -4885,6 +4990,17 @@ def render_sanity_checks_markdown(sanity: Any) -> list[str]:
             f"- Skill read unobserved (no recorded read attempt of `{skill_file or 'SKILL.md'}` in "
             "complete executor evidence; inspect the trace, not proof the skill was unread): "
             f"{runs_text}"
+        )
+    if external_access:
+        runs_text = ", ".join(
+            f"{item.get('eval_id')}/{item.get('configuration')} run {item.get('run_number')} "
+            f"({', '.join(item.get('kinds') or [])})"
+            for item in external_access
+        )
+        lines.append(
+            "- Host path access (the executor named a path in the user's home, the shared temp "
+            "directory, or elsewhere outside the sandbox; inspect for contamination, not proof "
+            f"of a read): {runs_text}"
         )
     lines.extend(skill_read_lines)
     return lines
@@ -5780,12 +5896,13 @@ def command_run(args: argparse.Namespace) -> int:
             len(sanity.get("source_fixture_dirty") or []),
             len(sanity.get("partial_suite_selection") or []),
             len(sanity.get("skill_read_unobserved") or []),
+            len(sanity.get("external_path_access") or []),
         )
         print(
             f"Sanity checks: REVIEW REQUIRED — {counts[0]} infra failure(s), "
             f"{counts[1]} zero-scored cell(s), {counts[2]} candidate-below-baseline cell(s), "
             f"{counts[3]} source-fixture dirty signal(s), {counts[4]} partial-suite selection(s), "
-            f"{counts[5]} skill-read-unobserved run(s); "
+            f"{counts[5]} skill-read-unobserved run(s), {counts[6]} host-path-access run(s); "
             f"see Sanity checks in {iteration_dir / 'benchmark.md'}"
         )
     for line in render_metrics_stdout(sorted(configs, key=config_sort_key), runs_records):
