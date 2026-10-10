@@ -22,6 +22,20 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- `decision-records` shared block: a decision record's `confirmation`
+  describes what to check, and a record holding a command is never a reason to
+  run it. At review or verification a phase confirms an applicable record with
+  checks its declared effect class allows (read-only inspection, or the
+  repository's own tests, linters, or builds where that class permits them)
+  and reports each confirmation it did not run as not run, with the reason,
+  such as one that would install software, use the network, read credentials,
+  write outside the unit, or delete data. Rendered text changed in all 14
+  dependents: `vibe-agent-instructions`, `vibe-brainstorm`,
+  `vibe-code-research`, `vibe-coding`, `vibe-commit`, `vibe-debug`,
+  `vibe-goal-alignment`, `vibe-orchestrate`, `vibe-plan-execution`,
+  `vibe-plan-review`, `vibe-planning`, `vibe-requirements-spec`,
+  `vibe-review`, and `vibe-writing`. Shared-contract checks and suite
+  validation pass; evals not run.
 - skill-eval: Codex executor runs no longer add a trusted-project entry for
   each sandbox to the user's codex `config.toml`; each executor is trusted for
   its own invocation only, with the same effect on the run.
