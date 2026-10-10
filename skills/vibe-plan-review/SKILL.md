@@ -131,8 +131,10 @@ the review. If the requirements spec and implementation plan conflict, stop the
 review, state the conflict, and ask whether the requirements or the plan should
 be corrected. Do not continue item review while the conflict controls the item.
 
-If the plan lacks information needed to review it, stop the review, state what
-is missing, and ask how to complete the plan. Do not invent missing behavior,
+If the plan as a whole lacks information needed to review it, stop the review,
+state what is missing, and ask how to complete the plan. A gap or ambiguity
+within an item is a finding in that item's review, not a reason to stop the
+review or to review several items at once. Do not invent missing behavior,
 requirements, acceptance criteria, test paths, data handling, or user
 experience.
 
@@ -175,13 +177,14 @@ replace, or preserve it.
 
 ## Reflection Into The Plan
 
-After all items, explain the four outcomes from `references/localized-labels.md`,
-state that review is complete but unreflected and that deleting a temporary
-review file is a separate question after reflection, exclude review-history
-annotations, per-item judgment logs, and chat notes from executable content,
-and ask for explicit reflection confirmation.
-General review consent is not reflection consent; `削除` takes effect only after
-confirmation. The reflected plan contains executable content plus held items.
+After all items, show the §Review Binding Output and ask for explicit
+reflection confirmation. In that request, state what reflection does with each
+of the four outcomes as `references/localized-labels.md` defines them; that
+the reflected plan keeps executable content plus held items and leaves out
+review-history annotations, per-item judgment logs, and chat notes; that
+review is complete but unreflected; and that deleting a temporary review file
+is a separate question after reflection. General review consent is not
+reflection consent; `削除` takes effect only after confirmation.
 
 Apply §Sensitive Content Handling before any original-plan write.
 
@@ -192,10 +195,10 @@ ownership. Verify the reflected plan.
 ## Stop Conditions
 
 Stop for a missing or unreadable plan, an identified spec that is missing or
-unreadable, plan-spec conflict, missing review information, ambiguous items, an
-unclear review file, an unresolved sensitive literal at reflection, or work
-outside reviewing and reflecting the plan. State the blocker, its evidence and
-effect, and the nearest user decision.
+unreadable, plan-spec conflict, missing plan-level review information,
+ambiguous item boundaries, an unclear review file, an unresolved sensitive
+literal at reflection, or work outside reviewing and reflecting the plan.
+State the blocker, its evidence and effect, and the nearest user decision.
 
 ## Completion Summary
 

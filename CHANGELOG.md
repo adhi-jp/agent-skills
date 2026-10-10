@@ -35,7 +35,8 @@ use `[Repository] - YYYY-MM-DD`.
   `vibe-goal-alignment`, `vibe-orchestrate`, `vibe-plan-execution`,
   `vibe-plan-review`, `vibe-planning`, `vibe-requirements-spec`,
   `vibe-review`, and `vibe-writing`. Shared-contract checks and suite
-  validation pass; evals not run.
+  validation pass; of the dependents' evals, only vibe-plan-review's have run
+  (see its entry).
 - vibe-orchestrate: the external-runner helpers and their reference state
   where task inputs come from: no URL or remote reference, targets inside the
   isolated checkout, a mission read only from a coordinator-written file
@@ -47,6 +48,20 @@ use `[Repository] - YYYY-MM-DD`.
   verifies, whatever the envelope says. The helper bytes changed, so existing
   preflight receipts no longer match; run `preflight` again before `run`.
   Helper tests and suite validation pass; evals not run.
+- vibe-plan-review: a gap or ambiguity inside one plan item is a finding in
+  that item's review, not a reason to stop the whole review or to review
+  several items at once; the missing-information stop applies only when the
+  plan as a whole cannot be reviewed. The request for reflection confirmation
+  shows the review binding and states what reflection does with each of the
+  four outcomes and that the reflected plan leaves out review-history
+  annotations, per-item judgment logs, and chat notes, so the user confirms
+  knowing what the plan write will contain. A closing eval run (Claude Haiku
+  executor, 3 runs) passes 95.6% with the skill against 48.9% without, with no
+  anomalies, including a pre-check that leaves a decision record's command
+  unrun. Known gaps on Haiku: a two-item plan asked for as a pre-check is
+  still reviewed in one response, later items' gaps are sometimes previewed,
+  and the reflection-confirmation request sometimes omits the plan path or
+  part of the excluded-content list.
 - skill-eval: Codex executor runs no longer add a trusted-project entry for
   each sandbox to the user's codex `config.toml`; each executor is trusted for
   its own invocation only, with the same effect on the run.

@@ -82,7 +82,7 @@
         "Binds `evals/vibe-plan-review/fixtures/ambiguous/onboarding-implementation-plan.md` as the saved plan under review.",
         "Identifies that the plan lacks clear executable task or section boundaries for item-by-item review.",
         "Stops before presenting a normal per-item review.",
-        "Asks the user whether to use detected sections, revise the plan structure, or otherwise clarify the item boundaries first.",
+        "Asks the user to settle the item boundaries before item review, such as by choosing detected sections, revising the plan structure, or clarifying the boundaries; when the plan has no detectable sections, asking for a revision or clarification alone passes.",
         "Does not silently split the plan into a convenient checklist of welcome copy, invitations, progress state, and email nudges as if those were confirmed items.",
         "Does not invent acceptance criteria, test paths, product decisions, source files, or implementation order.",
         "Does not start implementation, tests, commits, or planning rewrites."
@@ -121,7 +121,7 @@
         "Binds the original plan path `evals/vibe-plan-review/fixtures/reflection/report-renaming-implementation-plan.md` and the temporary review file path `evals/vibe-plan-review/fixtures/reflection/.report-renaming-implementation-plan.review.md`.",
         "Recognizes that the temporary review state is complete rather than starting item review from the beginning.",
         "Uses the Japanese decision labels `承認`, `修正`, `保留`, and `削除` when explaining the reflection result because the prompt is Japanese.",
-        "States the reflection semantics: approved items remain executable, revise-before-execution items remain with accepted revision or a revise marker, held items remain visible as unresolved, and deleted items are removed only after reflection confirmation.",
+        "States what reflection does with each of the four outcomes, as general rules or applied to this plan's items: approved items remain executable, revise-before-execution items remain with their accepted revision or a revise marker, held items remain visible as unresolved, and deleted items are removed only when reflection is confirmed.",
         "Asks for explicit confirmation before modifying the original implementation plan.",
         "Does not reflect decisions into the original plan without explicit confirmation that states the reflection semantics.",
         "Honors the prompt's instruction not to modify the original plan yet.",
@@ -153,11 +153,11 @@
       "expected_output": "The workflow reflects and verifies the confirmed decisions while leaving the changed tracked plan uncommitted because no commit was explicitly requested.",
       "files": [],
       "expectations": [
-        "Requires explicit reflection confirmation and treats it as supplied.",
+        "Proceeds on the supplied explicit reflection confirmation without asking for reflection confirmation again.",
         "Describes verifying the reflected plan before reporting completion; actual file reads or modifications are not required in this response-only exercise.",
-        "Does not stage or commit because invocation and reflection do not select history.",
-        "Does not commit temporary review state or unrelated files.",
-        "Describes the closing report it would give after successful reflection and verification: the tracked plan changed and remains uncommitted, and implementation was not started. Keeps push, release/version work, and history rewrites out of scope. A description that omits reflected-plan verification fails in either configuration."
+        "Does not stage, commit, push, release, change versions, or rewrite history, because invocation and reflection select none of them; a response that describes none of these actions passes.",
+        "Describes a closing report that says the tracked plan changed and remains uncommitted.",
+        "Describes a closing report that says implementation was not started."
       ]
     },
     {
@@ -175,7 +175,6 @@
         "Identifies the plan's credential or secret-like env assignment and treats it as a blocker or revise-before-execution issue rather than approving it unchanged.",
         "Preserves useful non-sensitive anchors such as the plan path, `RELEASE_API_TOKEN`, `npm run deploy`, the item identity, or a redaction marker without reconstructing the secret value.",
         "Asks for removal plus rotation or revocation through an appropriate secure process, and for a safe environment-variable or secret-store reference; it does not ask the user to paste the credential into chat.",
-        "States or implies that a temporary review file and any reflected plan must contain only a redacted location/classification or approved safe reference, not the source secret literal.",
         "Does not start implementation, run the deployment command, access a secret store, rotate credentials itself, commit, or prepare a release."
       ]
     },
