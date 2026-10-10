@@ -167,10 +167,12 @@ check the base to separate introduced/aggravated/pre-existing defects. Origin,
 severity, confidence, and reviewer agreement do not authorize repairs.
 
 - `accepted`: evidence-backed and authorized for bounded repair.
-- `rejected`: unsupported, contradicted, duplicate, or excluded; give the reason.
+- `rejected`: unsupported, contradicted by verified behavior or an approved
+  requirement, duplicate, or excluded; give the reason.
 - `deferred`: valid outside this slice; record impact and revisit trigger.
 - `blocked`: requirement, plan, safety, proof, or user decision must be resolved
-  by its owner before affected edits.
+  by its owner before affected edits, including a defect claim that documented
+  intent contradicts and no approved requirement establishes.
 - `reversed`: name the prior disposition and contradicting evidence, retain any
   still-correct part, and rewrite rather than silently delete its proof.
 

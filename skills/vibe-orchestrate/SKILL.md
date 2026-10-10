@@ -148,7 +148,9 @@ file set confirmed safe and separable from unrelated working-tree changes.
 3. Read `references/delegation-contracts.md` when drafting a worker contract or
    reconciling a returned worker report.
    Give one bounded mission, verified facts and anchors, protected evidence,
-   read/write paths, command effects, stop conditions, and a report contract.
+   read/write paths, command effects, stop conditions, and a report contract
+   that returns the report through the runner's result interface; a report
+   file the worker writes is only an optional copy.
    Missing facts or contradicted premises are blockers, not permission to guess.
 4. Use host-native delegation ordinarily. Read
    `references/external-delegation.md` only for external CLI helpers, their

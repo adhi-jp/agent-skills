@@ -35,8 +35,8 @@ use `[Repository] - YYYY-MM-DD`.
   `vibe-goal-alignment`, `vibe-orchestrate`, `vibe-plan-execution`,
   `vibe-plan-review`, `vibe-planning`, `vibe-requirements-spec`,
   `vibe-review`, and `vibe-writing`. Shared-contract checks and suite
-  validation pass; of the dependents' evals, only vibe-plan-review's have run
-  (see its entry).
+  validation pass; of the dependents, only vibe-plan-review's evals cover the
+  change (see its entry).
 - vibe-orchestrate: the external-runner helpers and their reference state
   where task inputs come from: no URL or remote reference, targets inside the
   isolated checkout, a mission read only from a coordinator-written file
@@ -47,7 +47,18 @@ use `[Repository] - YYYY-MM-DD`.
   reports, or other material; worker output stays a claim the coordinator
   verifies, whatever the envelope says. The helper bytes changed, so existing
   preflight receipts no longer match; run `preflight` again before `run`.
-  Helper tests and suite validation pass; evals not run.
+  Helper tests and suite validation pass; the vibe-orchestrate closing eval
+  run below covers this text.
+- vibe-orchestrate: a review finding that documented intent contradicts and
+  no approved requirement establishes is dispositioned `blocked` on that
+  contract's owner; `rejected` covers findings contradicted by verified
+  behavior or an approved requirement. A worker contract returns its report
+  through the runner's result interface, and a report file the worker writes
+  is only an optional copy. A closing eval run (Claude Haiku executor, 3 runs)
+  passes 89.2% with the skill against 54.4% without; its two review signals
+  were inspected and are not skill regressions. Known gap: Haiku often answers
+  from `SKILL.md` alone and then misses rules that live only in a reference,
+  most often the isolated-workspace base checks.
 - vibe-plan-review: a gap or ambiguity inside one plan item is a finding in
   that item's review, not a reason to stop the whole review or to review
   several items at once; the missing-information stop applies only when the
