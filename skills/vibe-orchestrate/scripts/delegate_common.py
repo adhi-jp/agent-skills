@@ -33,7 +33,7 @@ EXTERNAL_TARGET_PATTERN = re.compile(
 )
 # Child-process environment allowlist: the worker CLI inherits only what it
 # needs to run and authenticate. Everything else (cloud credentials, tokens,
-# agent state) stays invisible to a possibly injection-influenced worker.
+# agent state) stays out of the worker's environment.
 ENV_PASSTHROUGH_NAMES = frozenset(
     {
         "PATH",

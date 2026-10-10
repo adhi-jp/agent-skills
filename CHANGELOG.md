@@ -36,6 +36,17 @@ use `[Repository] - YYYY-MM-DD`.
   `vibe-plan-review`, `vibe-planning`, `vibe-requirements-spec`,
   `vibe-review`, and `vibe-writing`. Shared-contract checks and suite
   validation pass; evals not run.
+- vibe-orchestrate: the external-runner helpers and their reference state
+  where task inputs come from: no URL or remote reference, targets inside the
+  isolated checkout, a mission read only from a coordinator-written file
+  outside it or explicit stdin, and no web search for either runner. A mission
+  states the task in the coordinator's own words, quoting only short exact
+  strings it verified and citing a path for longer detail, and never copies
+  instructions or agent-addressed text from logs, fixtures, tool output, worker
+  reports, or other material; worker output stays a claim the coordinator
+  verifies, whatever the envelope says. The helper bytes changed, so existing
+  preflight receipts no longer match; run `preflight` again before `run`.
+  Helper tests and suite validation pass; evals not run.
 - skill-eval: Codex executor runs no longer add a trusted-project entry for
   each sandbox to the user's codex `config.toml`; each executor is trusted for
   its own invocation only, with the same effect on the run.

@@ -7,6 +7,11 @@ validated target paths, or as a coordinator-authored mission wrapped in a
 hardened envelope; write access requires the workspace-write tool profile plus
 an explicit write allowlist that is reconciled against observed filesystem and
 Git changes after the run. Tool-profile enforcement is not an OS sandbox.
+
+Task inputs come only from local sources: the adapter accepts no URL, targets
+must resolve inside the delegated checkout, and a mission is read only from a
+regular file outside it or explicit stdin, which the coordinator writes; the
+worker gets file tools only, with no shell, web, or MCP access.
 """
 from __future__ import annotations
 
