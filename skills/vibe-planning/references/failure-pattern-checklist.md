@@ -87,7 +87,14 @@ buries the real blockers.
 
 ### A.10. Plan drift and dependency baseline
 
-**Apply when**: the plan spans multiple phases, depends on a particular dependency version, or has imported scope from review feedback.
+**Apply when**: the plan spans multiple phases, depends on a particular dependency version, adds or upgrades dependencies under a dependency or licence policy, or has imported scope from review feedback.
 
-- Planning question: Are the assumptions made in earlier phases still true at the point this phase executes? Has any dependency version baseline shifted silently? Has any scope item entered the plan without a recorded user request?
-- Evidence needed to clear: `Local investigation` of dependency baseline (lockfile, manifest, or vendor metadata in the current workspace) and a walk of recent additions through `plan-boundary-controls.md`; review-driven scope additions must clear the success-criteria freeze.
+- Planning question: Are the assumptions made in earlier phases still true at the point this phase executes? Has any dependency version baseline shifted silently? Has any scope item entered the plan without a recorded user request? When a dependency or licence policy applies, does its check cover the whole resolved dependency graph of every shipped artifact, including dependencies already in the lockfile and their transitive dependencies, rather than only the dependencies this change adds and their subtrees?
+- Evidence needed to clear: `Local investigation` of dependency baseline (lockfile, manifest, or vendor metadata in the current workspace), a policy check over that full resolved graph when a policy applies, and a walk of recent additions through `plan-boundary-controls.md`; review-driven scope additions must clear the success-criteria freeze.
+
+### A.11. Local disk footprint
+
+**Apply when**: the plan runs parallel workspaces or extra checkouts that build, generates large fixtures or caches, or moves where a build writes its output (a new workspace root, a moved package, a changed output-directory setting).
+
+- Planning question: What peak disk use does the plan add on each volume (per build root times concurrent roots, plus fixtures and the main build directory's growth), and does that volume return freed space to its host (a WSL2 ext4.vhdx or a Docker Desktop or VM disk image does not)? At which step is each workspace and build root removed, and which old output root does a moved build leave behind?
+- Evidence needed to clear: `Local investigation` from an existing measurement of the applicable build, fixture, or cache output, plus the volume's free space and type; a measurement the plan only schedules stays `Unproven`, with its proof step before the first allocation that depends on it, such as the second build root. The plan names the step that removes each workspace and output root it creates; that removal is an ordinary planned step, not a human-risk decision. It lists any output root the change orphans, with its measured size or a size-proof step, for the user's deletion decision. On a volume that does not return freed space, it reuses a finished workspace's build root instead of creating one while another is in use, unless the user stated a disk budget the projected peak fits.

@@ -42,7 +42,8 @@ checklist for every plan.
   made after success criteria were written.
 - `references/failure-pattern-checklist.md` — high-risk surfaces such as
   lifecycle ordering, shared state, persisted config, trust boundaries,
-  counters, build or release paths, tool capabilities, and multi-phase drift;
+  counters, build or release paths, parallel workspaces or moved build output,
+  tool capabilities, dependency or licence policies, and multi-phase drift;
   apply only the matching sections.
 
 ## Accepted-Risk Semantics

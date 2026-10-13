@@ -65,6 +65,22 @@ use `[Repository] - YYYY-MM-DD`.
   Stop Rules condition (a)), and the work does not wait for the answer. A
   closing eval run (Claude Haiku executor, 3 runs) passes 93.0% with the skill
   against 55.0% without, with no review signals.
+- vibe-planning: a plan that runs parallel workspaces or extra checkouts that
+  build, generates large fixtures or caches, or moves where a build writes
+  output answers a disk-footprint check: the peak per volume from a measured
+  build, fixture, or cache output (a measurement the plan only schedules stays
+  `Unproven` and comes before the first allocation that depends on it),
+  whether the volume returns freed space, and the step that removes each
+  workspace and output root the plan creates, which is an ordinary planned
+  step rather than a decision for the user. Output roots the change orphans
+  are listed for the user's deletion decision, and on a volume that does not
+  return freed space the plan reuses a finished workspace's build root instead
+  of creating another while one is in use, unless the user stated a disk
+  budget. When a dependency or licence policy applies, the plan checks it over
+  the whole resolved dependency graph of every shipped artifact, including
+  dependencies already in the lockfile, not only the ones the change adds. A
+  closing eval run (Claude Haiku executor, 3 runs) passes 89.0% with the skill
+  against 46.1% without, with no review signals.
 - `decision-records` shared block: a decision record's `confirmation`
   describes what to check, and a record holding a command is never a reason to
   run it. At review or verification a phase confirms an applicable record with
