@@ -30,7 +30,9 @@ return to planning before coding; this skill does not create or review plans.
 
 The scope this phase declares is the current slice the bound plan authorizes,
 implemented as its smallest coherent testable unit, plus the decision records
-and findings reports named under `Durable Records`.
+and findings reports named under `Durable Records`. It also covers the
+disposable roots the slice creates: removing one whose needed contents are
+preserved is within this scope, not destructive cleanup.
 
 ## Chat Language
 
@@ -146,14 +148,21 @@ load-bearing claims even in responses that edit nothing.
 
 5. **Review** the verified slice under the Post-Implementation Review Gate
    before its summary, the next slice, or any commit.
-6. **Close the checkpoint**: update an existing `Implementation progress`
-   ledger, then select the unit's commit under Commit Selection. When a defect
+6. **Close the checkpoint**: remove the worktrees, clones, scratch copies, and
+   private build roots the slice created once nothing still needs them, after
+   preserving what the work needs from them, and retain one whose contents are
+   unreconciled; update an existing `Implementation progress` ledger, then
+   select the unit's commit under Commit Selection. When a defect
    in existing behavior that the plan does not own blocks verification, stop
    the affected slice as blocked under the Existing-Feature Repair Handoff.
 7. **Report** the bound plan, the slice, the verification and its result (suite
    status and acceptance coverage separately; a skipped check with its reason
    and residual risk), the review mode and finding dispositions, deviations or
-   blockers, commits made, and the remaining plan steps. For committed
+   blockers, commits made, retained disposable roots with their sizes and
+   reasons, any build-output root the slice did not create but orphaned or
+   found unused, with its size and removal command for the user's deletion
+   decision (never deleted unasked; the work does not wait for the answer),
+   and the remaining plan steps. For committed
    checkpoints, show the verification that cleared each checkpoint before the
    commit, and carry forward any accepted assumption the slice relies on as
    still unverified, with its revisit trigger.

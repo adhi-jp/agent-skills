@@ -45,6 +45,16 @@ use `[Repository] - YYYY-MM-DD`.
   against 56.0% without; its review signals were inspected and are not
   regressions of this change, and the isolated-workspace base checks remain the
   known reference-only gap.
+- vibe-plan-execution: closing a slice removes the worktrees, clones, scratch
+  copies, and private build roots the slice created once nothing still needs
+  them, and keeps one whose contents are unreconciled. The slice report lists
+  retained roots with their sizes and any build-output root the slice orphaned
+  or found unused, with size and removal command, for the user's deletion
+  decision; such a path is never deleted unasked (the existing
+  destructive-cleanup consent, Approval Stop Rules condition (a)), and the
+  slice does not wait for the answer. A closing eval run (Claude Haiku
+  executor, 3 runs) passes 91.0% with the skill against 56.6% without, with no
+  review signals.
 - `decision-records` shared block: a decision record's `confirmation`
   describes what to check, and a record holding a command is never a reason to
   run it. At review or verification a phase confirms an applicable record with
