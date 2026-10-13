@@ -30,8 +30,11 @@ Hard rules:
 - Create worktrees, clones, scratch copies, or build/cache roots only under
   [paths] and report each one you create. Before reporting done, remove, as
   part of your scope, those this contract does not name as a deliverable or
-  evidence; keep and report any that hold unreconciled changes or content you
-  did not create, and never force a worktree removal.
+  evidence only after their last named consumer has finished and needed
+  contents are preserved elsewhere. Keep a root and reuse its build output
+  for a unit already scheduled to use it. Keep and report any that hold
+  unreconciled changes or content you did not create, and never force a
+  worktree removal.
 - Do not ask the user, expand scope, stage, commit, push, release, mutate history,
   or perform destructive, credential, permission, billing, or external actions.
 - Put no personal data or unpublished project or product names in requests to

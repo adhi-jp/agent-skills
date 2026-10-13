@@ -26,6 +26,8 @@ use `[Repository] - YYYY-MM-DD`.
   the worktrees, clones, helper and review checkouts, scratch copies, and
   private build roots it created once their last consumer has finished and
   what the work needs from them is preserved, instead of keeping idle lanes;
+  a unit already scheduled to use a root counts as its consumer, so that root
+  is kept and its build output reused rather than rebuilt;
   worktrees go through `git worktree remove` without force and keep their
   branches, and a root with unreconciled contents is kept and reported rather
   than asked about. Before a second build root it measures one and projects
@@ -38,22 +40,29 @@ use `[Repository] - YYYY-MM-DD`.
   deleted unasked; that deletion stays under the existing destructive-cleanup
   consent (Approval Stop Rules condition (a)), which protects pre-existing and
   unreconciled data, and no new question is asked: the work does not wait for
-  the answer. Worker contracts report and clean up the roots they create;
-  requests to services a task does not target carry no personal data or
-  unpublished names; mutation proofs rebuild from the restored bytes. A
-  closing eval run (Claude Haiku executor, 3 runs) passes 88.1% with the skill
-  against 56.0% without; its review signals were inspected and are not
-  regressions of this change, and the isolated-workspace base checks remain the
-  known reference-only gap.
+  the answer. Worker contracts report the roots they create and remove them
+  only after their last named consumer has finished and needed contents are
+  preserved elsewhere; roots reserved for already scheduled units are kept
+  with their build output for reuse. Named deliverables and evidence remain
+  exempt, and foreign or unreconciled contents are kept and reported.
+  Requests to services a task does not target carry no personal data or
+  unpublished names; mutation proofs rebuild from the restored bytes. A full
+  closing eval run (Claude Haiku executor, Codex gpt-6.1-sol grader, 3 runs)
+  scores 87.5% with the skill against 53.9% without (33.6 percentage points),
+  with no infrastructure failures. Review signals were inspected;
+  isolated-workspace base checks remain the known reference-only gap, and
+  this sample still has occasional cleanup, delivery, and extra-stop misses.
+  The correction's causal benefit remains Unproven.
 - vibe-plan-execution: closing a slice removes the worktrees, clones, scratch
   copies, and private build roots the slice created once nothing still needs
-  them, and keeps one whose contents are unreconciled. The slice report lists
+  them, keeping one that a later slice the plan schedules will use and one
+  whose contents are unreconciled. The slice report lists
   retained roots with their sizes and any build-output root the slice orphaned
   or found unused, with size and removal command, for the user's deletion
   decision; such a path is never deleted unasked (the existing
   destructive-cleanup consent, Approval Stop Rules condition (a)), and the
   slice does not wait for the answer. A closing eval run (Claude Haiku
-  executor, 3 runs) passes 91.0% with the skill against 56.6% without, with no
+  executor, 3 runs) passes 90.5% with the skill against 57.7% without, with no
   review signals.
 - vibe-coding: the router-owned `direct-implementation` and `maintenance` rows
   remove the clones, scratch copies, and private build roots an edit created

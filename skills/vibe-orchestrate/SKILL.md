@@ -203,8 +203,10 @@ file set confirmed safe and separable from unrelated working-tree changes.
    install it. Follow the history and durable-record boundaries above.
    At each join and before closing, remove each disposable root this workflow
    created (a worktree, clone, helper checkout, scratch copy, or private build
-   or cache root) whose last consumer has finished, after preserving what the
-   work needs from it, as `references/coordinator-practices.md` directs;
+   or cache root) whose last consumer has finished (a unit already scheduled
+   to use it still counts; a merely possible one does not), after preserving
+   what the work needs from it, as `references/coordinator-practices.md`
+   directs;
    retain one whose contents are unreconciled and report why instead of asking.
    Never delete the main checkout's build directory, a build-output root a
    change orphaned, or any other path the workflow did not create without the

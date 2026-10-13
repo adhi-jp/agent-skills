@@ -149,9 +149,11 @@ load-bearing claims even in responses that edit nothing.
 5. **Review** the verified slice under the Post-Implementation Review Gate
    before its summary, the next slice, or any commit.
 6. **Close the checkpoint**: remove the worktrees, clones, scratch copies, and
-   private build roots the slice created once nothing still needs them, after
-   preserving what the work needs from them, and retain one whose contents are
-   unreconciled; update an existing `Implementation progress` ledger, then
+   private build roots the slice created once nothing still needs them (a later
+   slice the plan schedules to use one still needs it; a merely possible one
+   does not), after preserving what the work needs from them, and retain one
+   whose contents are unreconciled; update an existing
+   `Implementation progress` ledger, then
    select the unit's commit under Commit Selection. When a defect
    in existing behavior that the plan does not own blocks verification, stop
    the affected slice as blocked under the Existing-Feature Repair Handoff.

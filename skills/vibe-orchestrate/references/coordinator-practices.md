@@ -146,10 +146,13 @@ the join report.
 Remove a disposable root with its build outputs once its last named consumer
 has finished (terminal status, no live descendants) and the commits, patches,
 evidence, and receipt identity the work needs from it are preserved elsewhere.
-Waiting for a possible later unit is not a consumer; recreate the root when a
-unit is assigned. Remove a worktree with `git worktree remove`, never forced,
-and keep its branch; retain a root with unreconciled or foreign contents and
-report why. Failed, cancelled, and abandoned attempts follow the same rule.
+A unit the plan or round already schedules to run in the root counts as a
+consumer: keep the root and reuse its build output for that unit rather than
+removing and rebuilding it. A merely possible later unit does not count;
+recreate the root if one is assigned later. Remove a worktree with
+`git worktree remove`, never forced, and keep its branch; retain a root with
+unreconciled or foreign contents and report why. Failed, cancelled, and
+abandoned attempts follow the same rule.
 
 A change that moves where a build writes output (a new workspace root, a moved
 package, a changed output-directory setting) orphans the old root, and a
