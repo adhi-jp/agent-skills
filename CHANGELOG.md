@@ -55,6 +55,16 @@ use `[Repository] - YYYY-MM-DD`.
   slice does not wait for the answer. A closing eval run (Claude Haiku
   executor, 3 runs) passes 91.0% with the skill against 56.6% without, with no
   review signals.
+- vibe-coding: the router-owned `direct-implementation` and `maintenance` rows
+  remove the clones, scratch copies, and private build roots an edit created
+  once nothing needs them, keeping one whose contents are unreconciled. When an
+  edit moves where a build writes output, such as adding a workspace root or
+  moving a package or its output directory, the old output root is reported
+  with its size and removal command for the user's deletion decision; it is
+  never deleted unasked (the existing destructive-cleanup consent, Approval
+  Stop Rules condition (a)), and the work does not wait for the answer. A
+  closing eval run (Claude Haiku executor, 3 runs) passes 93.0% with the skill
+  against 55.0% without, with no review signals.
 - `decision-records` shared block: a decision record's `confirmation`
   describes what to check, and a record holding a command is never a reason to
   run it. At review or verification a phase confirms an applicable record with

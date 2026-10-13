@@ -33,6 +33,17 @@ line, is part of the unit. A defect the edit reveals makes the next turn
 `debug-and-repair`. Read both indexes before the edit, and write any qualifying
 decision record or findings entry before the unit closes.
 
+## Disposable And Orphaned Roots
+
+In both edit rows, removing the clones, scratch copies, and private build roots
+the edit created, once nothing needs them and their needed contents are
+preserved, is part of the row's scope and is not destructive cleanup; keep one
+whose contents are unreconciled and report why. When the edit moves where a
+build writes output, such as adding a workspace root or moving a package or its
+output directory, report the old output root with its size and removal command
+for the user's deletion decision and continue; never delete it or the main
+build directory unasked.
+
 ## Workflow Control
 
 `cancel workflow` clears live routing state; `replace workflow` clears it and
