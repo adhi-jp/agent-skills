@@ -15,6 +15,8 @@ import signal
 import subprocess
 import sys
 import tempfile
+import threading
+import time
 import tomllib
 import unittest
 from pathlib import Path
@@ -25,6 +27,16 @@ SCRIPT = Path(__file__).resolve().parents[1] / "skills" / "skill-eval" / "script
 sys.path.insert(0, str(SCRIPT.parent))
 
 import eval_runner  # noqa: E402
+
+# Runs the CLI with per-run path disposal disabled, for tests that inspect what
+# a run delivered into its sandbox after the run has finished.
+KEEP_SANDBOXES_MAIN = (
+    "import sys\n"
+    "sys.path.insert(0, sys.argv.pop(1))\n"
+    "import eval_runner\n"
+    "eval_runner.dispose_run_paths = lambda run_dir, **_: {}\n"
+    "sys.exit(eval_runner.main(sys.argv[1:]))\n"
+)
 
 
 class PathAndProviderEnvironmentTests(unittest.TestCase):
@@ -128,9 +140,10 @@ class BaseRunnerTest(unittest.TestCase):
             env["EVAL_RUNNER_STUB_TIMEOUT"] = str(timeout)
         return env
 
-    def run_cli(self, *args, env=None, check=False):
+    def run_cli(self, *args, env=None, check=False, keep_sandboxes=False):
+        launcher = ["-c", KEEP_SANDBOXES_MAIN, str(SCRIPT.parent)] if keep_sandboxes else [str(SCRIPT)]
         result = subprocess.run(
-            [sys.executable, str(SCRIPT), *map(str, args)],
+            [sys.executable, *launcher, *map(str, args)],
             cwd=self.root,
             text=True,
             capture_output=True,
@@ -841,7 +854,7 @@ class SeparationTests(BaseRunnerTest):
     def test_executor_runs_in_sandbox_and_grader_is_isolated(self):
         path = self.write_suite()
         spec = self.write_stub_spec()
-        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True, keep_sandboxes=True)
         run_dir = self.iteration_dir() / "eval-first-eval" / "with_skill" / "run-1"
         record = json.loads((run_dir / "run.json").read_text())
 
@@ -871,7 +884,7 @@ class SeparationTests(BaseRunnerTest):
     def test_executor_writes_stay_in_sandbox(self):
         path = self.write_suite()
         spec = self.write_stub_spec({"executor_output": "answer", "touch_cwd": "pollution.txt"})
-        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True, keep_sandboxes=True)
         run_dir = self.iteration_dir() / "eval-first-eval" / "with_skill" / "run-1"
         record = json.loads((run_dir / "run.json").read_text())
         sandbox_root = Path(record["sandbox"]["repo_root"])
@@ -887,7 +900,7 @@ class SeparationTests(BaseRunnerTest):
         untracked.write_text("leftover\n", encoding="utf-8")
         spec = self.write_stub_spec()
 
-        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True, keep_sandboxes=True)
         sandbox_root, record = self.sandbox_for_first_run()
 
         self.assertFalse((sandbox_root / "docs" / "specs" / "leftover.md").exists())
@@ -910,7 +923,7 @@ class SeparationTests(BaseRunnerTest):
         fixture.write_text("modified fixture\n", encoding="utf-8")
         spec = self.write_stub_spec()
 
-        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True, keep_sandboxes=True)
         sandbox_root, _record = self.sandbox_for_first_run()
 
         self.assertEqual(
@@ -925,7 +938,7 @@ class SeparationTests(BaseRunnerTest):
         skill.write_text("# Modified Demo Skill\n", encoding="utf-8")
         spec = self.write_stub_spec()
 
-        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True, keep_sandboxes=True)
         sandbox_root, _record = self.sandbox_for_first_run()
 
         self.assertEqual(
@@ -945,7 +958,7 @@ class SeparationTests(BaseRunnerTest):
         deleted.unlink()
         spec = self.write_stub_spec()
 
-        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True, keep_sandboxes=True)
         sandbox_root, _record = self.sandbox_for_first_run()
 
         self.assertFalse((sandbox_root / "evals" / "demo" / "fixtures" / "input.txt").exists())
@@ -1041,7 +1054,7 @@ raise SystemExit(1)
         self.init_git_baseline()
         spec = self.write_stub_spec()
 
-        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True, keep_sandboxes=True)
         sandbox_root, _record = self.sandbox_for_first_run()
 
         self.assertFalse((sandbox_root / ".agents").exists())
@@ -1051,7 +1064,7 @@ raise SystemExit(1)
         path = self.write_suite()
         spec = self.write_stub_spec()
 
-        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True, keep_sandboxes=True)
         sandbox_root, record = self.sandbox_for_first_run()
 
         self.assertFalse((sandbox_root / "AGENTS.md").exists())
@@ -1062,7 +1075,8 @@ raise SystemExit(1)
 
     def test_git_metadata_without_git_executable_fails_loudly(self):
         (self.root / ".git").mkdir()
-        with mock.patch.object(eval_runner.shutil, "which", return_value=None):
+        with mock.patch.object(eval_runner.shutil, "which", return_value=None), \
+                mock.patch.dict(os.environ, {"EVAL_RUNNER_SANDBOX_ROOT": str(self.sandbox_root)}):
             with self.assertRaises(eval_runner.CommandError) as raised:
                 eval_runner.create_run_sandbox(self.root, self.root / "run", None)
         self.assertIn("refusing contaminated copytree fallback", str(raised.exception))
@@ -1221,7 +1235,7 @@ raise SystemExit(1)
         data["evals"][0]["support_files"] = ["docs/reports/preexisting.md"]
         path = self.write_suite(data)
         spec = self.write_stub_spec()
-        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True, keep_sandboxes=True)
 
         record = json.loads(
             (self.iteration_dir() / "eval-first-eval" / "with_skill" / "run-1" / "run.json").read_text()
@@ -1427,7 +1441,7 @@ if result != ("changed-during-scan", None):
             },
             "commit_changes": {"with_skill": True},
         })
-        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True, keep_sandboxes=True)
 
         record = json.loads(
             (self.iteration_dir() / "eval-first-eval" / "with_skill" / "run-1" / "run.json").read_text()
@@ -1613,7 +1627,7 @@ class RetainedFileEvidenceTests(BaseRunnerTest):
             },
             "commit_changes": {"with_skill": True},
         })
-        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True, keep_sandboxes=True)
 
         record = json.loads((self.run_dir("with_skill") / "run.json").read_text())
         sandbox_root = Path(record["sandbox"]["repo_root"])
@@ -3800,6 +3814,474 @@ class ProviderParserTests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertEqual(result.stdout, repr("PROMPT-BYTES"))
         self.assertNotIn("PIPED-RUNNER-STDIN", result.stdout)
+
+
+# --------------------------------------------------------------------------- #
+# Executor confinement (/mnt hidden from Claude executors, own PID namespace)
+# and disposal of each run's sandbox and Claude session paths.
+# --------------------------------------------------------------------------- #
+BWRAP_ARGV = [
+    "/usr/bin/bwrap", "--dev-bind", "/", "/", "--tmpfs", "/mnt",
+    "--unshare-pid", "--proc", "/proc", "--die-with-parent",
+]
+RESOLVER_CHECK = "test -r /etc/resolv.conf || exit 97"
+
+
+def live_processes(argv_head):
+    """PIDs of live (non-zombie) processes whose argv starts with ``argv_head``."""
+    found = []
+    for entry in Path("/proc").iterdir():
+        if not entry.name.isdigit():
+            continue
+        try:
+            argv = (entry / "cmdline").read_bytes().split(b"\0")
+            state = (entry / "stat").read_text().rsplit(")", 1)[1].split()[0]
+        except (OSError, IndexError):
+            continue
+        if argv[: len(argv_head)] == argv_head and state != "Z":
+            found.append(int(entry.name))
+    return found
+
+
+class ExecutorConfinementTests(BaseRunnerTest):
+    BWRAP = {"mode": "bwrap-hide-mnt", "resolver_rebound": False, "bwrap_argv": BWRAP_ARGV}
+
+    def host(self, *, resolv_real="/etc/resolv.conf", resolv_readable=True):
+        """Patch what the probe reads about /etc/resolv.conf on the host."""
+        real_realpath, real_access = os.path.realpath, os.access
+
+        def realpath(path, *args, **kwargs):
+            return resolv_real if path == "/etc/resolv.conf" else real_realpath(path, *args, **kwargs)
+
+        def access(path, mode, *args, **kwargs):
+            return resolv_readable if path == "/etc/resolv.conf" else real_access(path, mode, *args, **kwargs)
+
+        return mock.patch.object(eval_runner.os.path, "realpath", side_effect=realpath), \
+            mock.patch.object(eval_runner.os, "access", side_effect=access)
+
+    def probe(self, *, platform="linux", which="/usr/bin/bwrap", mnt=True, canary=0, **host):
+        calls = []
+
+        def run(argv, **kwargs):
+            calls.append(argv)
+            if isinstance(canary, BaseException):
+                raise canary
+            return subprocess.CompletedProcess(argv, canary, b"", b"")
+
+        realpath_patch, access_patch = self.host(**host)
+        with mock.patch.object(eval_runner.sys, "platform", platform), \
+                mock.patch.object(eval_runner.shutil, "which", return_value=which), \
+                mock.patch.object(eval_runner.os.path, "isdir", return_value=mnt), \
+                mock.patch.object(eval_runner.subprocess, "run", side_effect=run), \
+                realpath_patch, access_patch:
+            return eval_runner.probe_executor_confinement(), calls
+
+    def test_resolver_directory_is_rebound_only_when_resolv_conf_lies_under_mnt(self):
+        cases = {
+            "/mnt/wsl/resolv.conf": "/mnt/wsl",
+            "/mnt/wsl/nested/resolv.conf": "/mnt/wsl/nested",
+            "/run/systemd/resolve/stub-resolv.conf": None,
+            "/etc/resolv.conf": None,
+            "/mntx/resolv.conf": None,
+        }
+        for real, expected in cases.items():
+            with self.subTest(real):
+                realpath_patch, access_patch = self.host(resolv_real=real)
+                with realpath_patch, access_patch:
+                    self.assertEqual(eval_runner.resolver_rebind_dir(), expected)
+        self.assertEqual(eval_runner.bwrap_hide_mnt_argv("/usr/bin/bwrap", None), BWRAP_ARGV)
+        self.assertEqual(
+            eval_runner.bwrap_hide_mnt_argv("/usr/bin/bwrap", "/mnt/wsl"),
+            [*BWRAP_ARGV[:6], "--ro-bind", "/mnt/wsl", "/mnt/wsl", *BWRAP_ARGV[6:]],
+        )
+
+    def test_probe_selects_bwrap_when_linux_bwrap_mnt_and_canary_hold(self):
+        result, calls = self.probe()
+        self.assertEqual(result, self.BWRAP)
+        self.assertEqual(calls, [[*BWRAP_ARGV, "--", "sh", "-c", RESOLVER_CHECK]])
+        rebound, calls = self.probe(resolv_real="/mnt/wsl/resolv.conf")
+        rebound_argv = [*BWRAP_ARGV[:6], "--ro-bind", "/mnt/wsl", "/mnt/wsl", *BWRAP_ARGV[6:]]
+        self.assertEqual(rebound, {"mode": "bwrap-hide-mnt", "resolver_rebound": True, "bwrap_argv": rebound_argv})
+        self.assertEqual(calls, [[*rebound_argv, "--", "sh", "-c", RESOLVER_CHECK]])
+        self.assertEqual(
+            eval_runner.ClaudeProvider(confinement=rebound).executor_confinement(),
+            {"mode": "bwrap-hide-mnt", "resolver_rebound": True},
+        )
+        # A resolver file the host cannot read either imposes no requirement.
+        _result, calls = self.probe(resolv_readable=False)
+        self.assertEqual(calls, [[*BWRAP_ARGV, "--", "sh", "-c", "true"]])
+
+    def test_probe_falls_back_to_unconfined_with_a_reason(self):
+        cases = {
+            "not Linux": dict(platform="darwin"),
+            "bwrap missing": dict(which=None),
+            "no /mnt": dict(mnt=False),
+            "resolver directly in /mnt": dict(resolv_real="/mnt/resolv.conf"),
+            "resolver hidden": dict(canary=97),
+            "canary exit": dict(canary=1),
+            "canary timeout": dict(canary=subprocess.TimeoutExpired(["bwrap"], 10)),
+        }
+        reasons = {
+            "not Linux": "platform darwin is not Linux",
+            "bwrap missing": "bwrap is not on PATH",
+            "no /mnt": "/mnt is not a directory",
+            "resolver directly in /mnt": "/etc/resolv.conf resolves directly inside /mnt",
+            "resolver hidden": "/etc/resolv.conf is unreadable inside bwrap",
+            "canary exit": "bwrap canary exited with code 1",
+            "canary timeout": "bwrap canary failed: TimeoutExpired",
+        }
+        unwrapped = eval_runner.ClaudeProvider().build_invocation("prompt", run_dir=self.root, role="executor")
+        for label, kwargs in cases.items():
+            with self.subTest(label):
+                result, calls = self.probe(**kwargs)
+                self.assertEqual(result, {"mode": "none", "reason": reasons[label]})
+                if label in ("not Linux", "bwrap missing", "no /mnt", "resolver directly in /mnt"):
+                    self.assertEqual(calls, [])
+                provider = eval_runner.ClaudeProvider(confinement=result)
+                executor = provider.build_invocation("prompt", run_dir=self.root, role="executor")
+                self.assertEqual(executor.argv, unwrapped.argv)
+                self.assertEqual(provider.executor_confinement(), result)
+
+    def test_claude_executor_is_wrapped_and_graders_and_codex_are_not(self):
+        provider = eval_runner.ClaudeProvider(confinement=dict(self.BWRAP))
+        cwd = self.root.resolve()
+        executor = provider.build_invocation("prompt", run_dir=self.root, role="executor", cwd=cwd)
+        unwrapped = eval_runner.ClaudeProvider().build_invocation("prompt", run_dir=self.root, role="executor", cwd=cwd)
+        prefix = [*BWRAP_ARGV, "--chdir", str(cwd), "--"]
+        self.assertEqual(executor.argv[: len(prefix)], prefix)
+        self.assertEqual(executor.argv[len(prefix):], unwrapped.argv)
+        self.assertEqual(executor.cwd, str(cwd))
+        self.assertEqual(provider.executor_confinement(), {"mode": "bwrap-hide-mnt", "resolver_rebound": False})
+        grader = provider.build_invocation(
+            "prompt", run_dir=self.root, role="grader", schema=eval_runner.grader_schema(), cwd=cwd
+        )
+        self.assertEqual(grader.argv[0], "claude")
+        self.assertNotIn("/usr/bin/bwrap", grader.argv)
+        codex = eval_runner.CodexProvider()
+        for role in ("executor", "grader"):
+            self.assertEqual(codex.build_invocation("prompt", run_dir=self.root, role=role).argv[0], "codex")
+        self.assertEqual(
+            codex.executor_confinement(), {"mode": "none", "reason": "not applied to codex executors"}
+        )
+
+    def live_prefix(self):
+        confinement = eval_runner.probe_executor_confinement()
+        if confinement["mode"] != "bwrap-hide-mnt":
+            self.skipTest(confinement["reason"])
+        provider = eval_runner.ClaudeProvider(confinement=confinement)
+        invocation = provider.build_invocation("prompt", run_dir=self.root, role="executor", cwd=self.root)
+        return invocation.argv[: invocation.argv.index("--") + 1], invocation.cwd
+
+    def test_wrapped_executor_sees_only_the_resolver_under_mnt_in_its_own_pid_namespace(self):
+        prefix, cwd = self.live_prefix()
+        stdout, stderr, code, timed_out = eval_runner.run_invocation(
+            eval_runner.Invocation(
+                argv=[*prefix, "sh", "-c",
+                      "ls -A /mnt; cat /proc/1/comm; test -r /etc/resolv.conf && echo resolver-readable; pwd"],
+                env=dict(os.environ), cwd=cwd,
+            ),
+            30,
+        )
+        self.assertEqual((code, timed_out), (0, False), stderr)
+        resolver_dir = eval_runner.resolver_rebind_dir()
+        expected = [Path(resolver_dir).relative_to("/mnt").parts[0]] if resolver_dir else []
+        expected.append("bwrap")
+        if os.access("/etc/resolv.conf", os.R_OK):
+            expected.append("resolver-readable")
+        expected.append(str(self.root.resolve()))
+        self.assertEqual(stdout.splitlines(), expected)
+
+    def test_setsid_background_process_ends_when_the_wrapped_command_times_out(self):
+        prefix, cwd = self.live_prefix()
+        marker = [b"sleep", b"613"]
+        self.addCleanup(lambda: [os.kill(pid, 9) for pid in live_processes(marker)])
+        seen = threading.Event()
+        done = threading.Event()
+
+        def watch():
+            while not done.is_set() and not seen.is_set():
+                if live_processes(marker):
+                    seen.set()
+                time.sleep(0.05)
+
+        watcher = threading.Thread(target=watch)
+        watcher.start()
+        try:
+            _stdout, stderr, code, timed_out = eval_runner.run_invocation(
+                eval_runner.Invocation(
+                    argv=[*prefix, "sh", "-c", "setsid sleep 613 </dev/null >/dev/null 2>&1 & sleep 100"],
+                    env=dict(os.environ), cwd=cwd,
+                ),
+                3,
+            )
+        finally:
+            done.set()
+            watcher.join()
+        self.assertEqual((code, timed_out), (None, True), stderr)
+        self.assertTrue(seen.is_set(), "the setsid background process never started")
+        deadline = time.monotonic() + 10
+        while live_processes(marker) and time.monotonic() < deadline:
+            time.sleep(0.05)
+        self.assertEqual(live_processes(marker), [])
+
+    def test_stub_run_records_no_confinement_and_removes_its_sandboxes(self):
+        path = self.write_suite()
+        spec = self.write_stub_spec()
+        self.run_cli("run", path, "--agent", "stub", "--runs", "1", env=self.stub_env(spec), check=True)
+        expected = {"mode": "none", "reason": "not applied to stub executors"}
+        record = json.loads(
+            (self.iteration_dir() / "eval-first-eval" / "with_skill" / "run-1" / "run.json").read_text()
+        )
+        self.assertEqual(record["executor_confinement"], expected)
+        sandbox_root = Path(record["sandbox"]["repo_root"]).parent
+        self.assertEqual(
+            record["sandbox_cleanup"], {"sandbox_root": {"path": str(sandbox_root), "status": "removed"}}
+        )
+        self.assertFalse(sandbox_root.exists())
+        self.assertEqual(list(self.sandbox_root.iterdir()), [])
+        manifest = json.loads((self.iteration_dir() / "iteration_manifest.json").read_text())
+        self.assertEqual(manifest["measurement_context"]["executor_confinement"], expected)
+        self.assertIn(
+            "- Executor confinement: `none` (not applied to stub executors)",
+            (self.iteration_dir() / "benchmark.md").read_text(),
+        )
+
+
+@unittest.skipUnless(sys.platform == "linux", "names observed on Linux")
+class ClaudeRunPathNamingTests(unittest.TestCase):
+    def test_derived_names_match_the_observed_claude_directories(self):
+        # Observed for an executor whose cwd was this sandbox: its session
+        # directory under the config home and its background-task directory.
+        cwd = Path("/tmp/eval-runner-sandboxes/run-3-38fc8d3d0c465345/repo")
+        name = eval_runner.encode_claude_project_dir(cwd)
+        self.assertEqual(name, "-tmp-eval-runner-sandboxes-run-3-38fc8d3d0c465345-repo")
+        with mock.patch.dict(os.environ, {"HOME": "/home/user"}), \
+                mock.patch.object(eval_runner.tempfile, "gettempdir", return_value="/tmp"), \
+                mock.patch.object(eval_runner.os, "getuid", return_value=1000):
+            os.environ.pop("CLAUDE_CONFIG_DIR", None)
+            self.assertEqual(
+                eval_runner.claude_config_dir() / "projects" / name,
+                Path("/home/user/.claude/projects/-tmp-eval-runner-sandboxes-run-3-38fc8d3d0c465345-repo"),
+            )
+            self.assertEqual(
+                eval_runner.claude_temp_base_dir() / name,
+                Path("/tmp/claude-1000/-tmp-eval-runner-sandboxes-run-3-38fc8d3d0c465345-repo"),
+            )
+        self.assertRegex(eval_runner.sandbox_root_name(Path("/work/run-3")), r"^run-3-[0-9a-f]{16}$")
+
+
+class RunPathDisposalTests(BaseRunnerTest):
+    def setUp(self):
+        super().setUp()
+        self.config_dir = self.root / "claude-home"
+        self.temp_base = self.root / "system-temp" / "claude-1000"
+        patches = [
+            mock.patch.dict(os.environ, {
+                "EVAL_RUNNER_SANDBOX_ROOT": str(self.sandbox_root),
+                "CLAUDE_CONFIG_DIR": str(self.config_dir),
+            }),
+            mock.patch.object(eval_runner, "claude_temp_base_dir", return_value=self.temp_base),
+        ]
+        for patch in patches:
+            patch.start()
+            self.addCleanup(patch.stop)
+
+    def run_paths(self, run_dir):
+        cwd = eval_runner.external_sandbox_repo_root(run_dir)
+        name = eval_runner.encode_claude_project_dir(cwd)
+        return cwd, cwd.parent, self.config_dir / "projects" / name, self.temp_base / name
+
+    def populate(self, *dirs):
+        for directory in dirs:
+            directory.mkdir(parents=True, exist_ok=True)
+            (directory / "kept-or-removed.txt").write_text("x\n", encoding="utf-8")
+
+    def test_disposal_removes_exactly_the_three_derived_paths(self):
+        run_dir = self.root / "iteration-1" / "eval-first-eval" / "with_skill" / "run-1"
+        cwd, sandbox_root, session_dir, temp_dir = self.run_paths(run_dir)
+        self.populate(cwd, session_dir / "session-1" / "subagents", temp_dir / "session-1" / "tasks")
+        other_cwd, *other_paths = self.run_paths(run_dir.parent / "run-2")
+        neighbours = [
+            other_cwd, *other_paths,
+            self.config_dir / "projects" / "-home-user-project",
+            self.temp_base / "-home-user-project",
+            self.config_dir / "projects" / f"{session_dir.name}-extra",
+        ]
+        self.populate(*neighbours)
+
+        outcome = eval_runner.dispose_run_paths(run_dir, claude_executor=True)
+
+        self.assertEqual(outcome, {
+            "sandbox_root": {"path": str(sandbox_root), "status": "removed"},
+            "claude_session_dir": {"path": str(session_dir), "status": "removed"},
+            "claude_temp_dir": {"path": str(temp_dir), "status": "removed"},
+        })
+        for removed in (sandbox_root, session_dir, temp_dir):
+            self.assertFalse(removed.exists(), removed)
+        for kept in neighbours:
+            self.assertTrue((kept / "kept-or-removed.txt").is_file(), kept)
+        again = eval_runner.dispose_run_paths(run_dir, claude_executor=True)
+        self.assertEqual({entry["status"] for entry in again.values()}, {"absent"})
+        self.assertEqual(list(eval_runner.dispose_run_paths(run_dir, claude_executor=False)), ["sandbox_root"])
+
+    def test_refuses_paths_outside_the_base_with_another_name_or_behind_a_symlink(self):
+        base = self.root / "base"
+        outside = self.root / "elsewhere" / "run-name"
+        other_name = base / "other-name"
+        nested = base / "deeper" / "run-name"
+        victim = self.root / "victim" / "run-name"
+        link = base / "run-name"
+        self.populate(outside, other_name, nested, victim)
+        link.symlink_to(victim, target_is_directory=True)
+        cases = {
+            "outside": (outside, "not directly inside"),
+            "other name": (other_name, "name does not match this run"),
+            "nested": (nested, "not directly inside"),
+            "symlink": (link, "path is a symlink"),
+        }
+        for label, (path, reason) in cases.items():
+            with self.subTest(label):
+                outcome = eval_runner.remove_run_owned_dir(path, base, "run-name")
+                self.assertEqual(outcome["status"], "refused")
+                self.assertIn(reason, outcome["reason"])
+                self.assertTrue(os.path.lexists(path))
+        self.assertTrue((victim / "kept-or-removed.txt").is_file())
+        self.assertEqual(
+            eval_runner.remove_run_owned_dir(base / "missing", base, "missing"),
+            {"path": str(base / "missing"), "status": "absent"},
+        )
+
+    def test_symlinked_session_dir_is_refused_while_the_rest_is_removed(self):
+        run_dir = self.root / "run-1"
+        cwd, sandbox_root, session_dir, temp_dir = self.run_paths(run_dir)
+        victim = self.root / "user-data" / session_dir.name
+        self.populate(cwd, temp_dir, victim)
+        session_dir.parent.mkdir(parents=True)
+        session_dir.symlink_to(victim, target_is_directory=True)
+
+        outcome = eval_runner.dispose_run_paths(run_dir, claude_executor=True)
+
+        self.assertEqual(outcome["claude_session_dir"]["status"], "refused")
+        self.assertEqual(outcome["sandbox_root"]["status"], "removed")
+        self.assertEqual(outcome["claude_temp_dir"]["status"], "removed")
+        self.assertTrue((victim / "kept-or-removed.txt").is_file())
+
+    def test_repo_replaced_by_a_symlink_never_redirects_disposal_to_another_project(self):
+        run_dir = self.root / "run-1"
+        cwd, sandbox_root, session_dir, temp_dir = self.run_paths(run_dir)
+        other = self.root / "other-project"
+        self.populate(other)
+        other_name = eval_runner.encode_claude_project_dir(other)
+        other_dirs = [self.config_dir / "projects" / other_name, self.temp_base / other_name]
+        self.populate(session_dir, temp_dir, *other_dirs)
+        # The executor swapped its own working directory for a link to
+        # another project before the run finished.
+        sandbox_root.mkdir(parents=True)
+        cwd.symlink_to(other, target_is_directory=True)
+
+        outcome = eval_runner.dispose_run_paths(run_dir, claude_executor=True)
+
+        self.assertEqual(outcome, {
+            "sandbox_root": {"path": str(sandbox_root), "status": "removed"},
+            "claude_session_dir": {"path": str(session_dir), "status": "removed"},
+            "claude_temp_dir": {"path": str(temp_dir), "status": "removed"},
+        })
+        for kept in (other, *other_dirs):
+            self.assertTrue((kept / "kept-or-removed.txt").is_file(), kept)
+
+    def fake_claude(self, *, executor_timeout=False):
+        """run_invocation stand-in: a Claude executor that leaves a transcript
+        and background-task output keyed by its cwd, and a passing grader."""
+        def run(invocation, timeout):
+            if "--json-schema" in invocation.argv:
+                verdicts = [{"id": 1, "passed": True, "evidence": "ok"}]
+                return json.dumps({"result": "", "structured_output": {"verdicts": verdicts}}), "", 0, False
+            name = eval_runner.encode_claude_project_dir(Path(invocation.cwd))
+            session_id = "session-1"
+            transcript = self.config_dir / "projects" / name / f"{session_id}.jsonl"
+            transcript.parent.mkdir(parents=True)
+            transcript.write_text(json.dumps({"message": {"content": [
+                {"type": "tool_use", "id": "toolu_1", "name": "Bash"}]}}) + "\n", encoding="utf-8")
+            self.populate(self.temp_base / name / session_id / "tasks")
+            if executor_timeout:
+                return "", "", None, True
+            return json.dumps({"result": "answer", "session_id": session_id}), "", 0, False
+        return run
+
+    def one_case_suite(self):
+        return self.write_suite({
+            "skill_name": "demo",
+            "evals": [{"id": "E01", "name": "First eval", "prompt": "Do the thing.", "expectations": ["a"]}],
+        })
+
+    def test_claude_run_records_confinement_and_disposes_after_reading_the_transcript(self):
+        path = self.one_case_suite()
+        with mock.patch.object(eval_runner.ClaudeProvider, "available", return_value=True), \
+                mock.patch.object(eval_runner, "probe_executor_confinement",
+                                  return_value=dict(ExecutorConfinementTests.BWRAP)), \
+                mock.patch.object(eval_runner, "run_invocation", side_effect=self.fake_claude()):
+            code = eval_runner.main(["run", str(path), "--agent", "claude", "--concurrency", "1"])
+        self.assertEqual(code, 0)
+        iteration = self.iteration_dir("claude")
+        for config in ("with_skill", "without_skill"):
+            with self.subTest(config):
+                record = json.loads((iteration / "eval-first-eval" / config / "run-1" / "run.json").read_text())
+                self.assertEqual(record["status"], "ok")
+                self.assertEqual(record["executor_confinement"], {"mode": "bwrap-hide-mnt", "resolver_rebound": False})
+                cwd = record["executor_invocation"]["cwd"]
+                self.assertEqual(
+                    record["executor_invocation"]["argv"][: len(BWRAP_ARGV) + 5],
+                    [*BWRAP_ARGV, "--chdir", cwd, "--", "claude", "-p"],
+                )
+                self.assertEqual(record["grader_invocation"]["argv"][:2], ["claude", "-p"])
+                # The transcript trace was read before its directory was removed.
+                self.assertTrue(record["executor_evidence"]["captured"])
+                self.assertEqual([entry["id"] for entry in record["executor_evidence"]["entries"]], ["toolu_1"])
+                name = eval_runner.encode_claude_project_dir(Path(cwd))
+                expected = {
+                    "sandbox_root": str(Path(cwd).parent),
+                    "claude_session_dir": str(self.config_dir / "projects" / name),
+                    "claude_temp_dir": str(self.temp_base / name),
+                }
+                self.assertEqual(
+                    record["sandbox_cleanup"],
+                    {kind: {"path": value, "status": "removed"} for kind, value in expected.items()},
+                )
+                for value in expected.values():
+                    self.assertFalse(Path(value).exists(), value)
+        manifest = json.loads((iteration / "iteration_manifest.json").read_text())
+        benchmark = json.loads((iteration / "benchmark.json").read_text())
+        recorded = {"mode": "bwrap-hide-mnt", "resolver_rebound": False}
+        self.assertEqual(manifest["measurement_context"]["executor_confinement"], recorded)
+        self.assertEqual(benchmark["measurement_identity"]["executor_confinement"], recorded)
+        self.assertIn("- Executor confinement: `bwrap-hide-mnt`", (iteration / "benchmark.md").read_text())
+
+    def test_timed_out_claude_executor_still_disposes_its_paths(self):
+        suite = eval_runner.load_eval_suite(self.one_case_suite())
+        task = eval_runner.RunTask(suite.evals[0], "without_skill", 1, self.root / "run-timeout")
+        with mock.patch.object(eval_runner, "run_invocation", side_effect=self.fake_claude(executor_timeout=True)):
+            record = eval_runner.execute_run(suite, eval_runner.ClaudeProvider(), task, None, timeout=5)
+        self.assertEqual(record["status"], "executor_timeout")
+        self.assertEqual(record["executor_confinement"], {"mode": "none", "reason": "confinement was not probed"})
+        self.assertEqual({entry["status"] for entry in record["sandbox_cleanup"].values()}, {"removed"})
+        self.assertEqual(len(record["sandbox_cleanup"]), 3)
+        persisted = json.loads((self.root / "run-timeout" / "run.json").read_text())
+        self.assertEqual(persisted["sandbox_cleanup"], record["sandbox_cleanup"])
+
+    def test_crashed_cell_still_removes_its_sandbox(self):
+        path = self.one_case_suite()
+        spec = self.write_stub_spec()
+        with mock.patch.dict(os.environ, self.stub_env(spec)), \
+                mock.patch.object(eval_runner, "collect_sandbox_change_manifest", side_effect=RuntimeError("boom")):
+            code = eval_runner.main(["run", str(path), "--agent", "stub", "--concurrency", "1"])
+        self.assertEqual(code, 0)
+        record = json.loads(
+            (self.iteration_dir() / "eval-first-eval" / "with_skill" / "run-1" / "run.json").read_text()
+        )
+        self.assertEqual(record["status"], "runner_error")
+        self.assertEqual(record["executor_confinement"], {"mode": "none", "reason": "not applied to stub executors"})
+        self.assertEqual(record["sandbox_cleanup"]["sandbox_root"]["status"], "removed")
+        self.assertEqual(list(self.sandbox_root.iterdir()), [])
 
 
 # --------------------------------------------------------------------------- #
@@ -6219,7 +6701,7 @@ class DeliveryRegressionTests(BaseRunnerTest):
         path = self.one_case()
         self.init_git_baseline()
         spec = self.write_stub_spec()
-        self.run_cli("run", path, "--agent", "stub", env=self.stub_env(spec), check=True)
+        self.run_cli("run", path, "--agent", "stub", env=self.stub_env(spec), check=True, keep_sandboxes=True)
         benchmark = json.loads((self.iteration_dir() / "benchmark.json").read_text())
         for run in benchmark["runs"]:
             sandbox = Path(run["sandbox"]["repo_root"])

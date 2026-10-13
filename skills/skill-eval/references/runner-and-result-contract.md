@@ -172,6 +172,48 @@ python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/work
   files inside delivered fixtures from loading as instructions; they stay
   readable as files. Whether safe mode keeps the user's effort setting is not
   established. Graders keep their own controls.
+- Claude executors run with `/mnt` hidden when the host allows it. At `run`
+  start, on Linux with `bwrap` on `PATH` and `/mnt` a directory, the runner
+  builds the prefix
+  `bwrap --dev-bind / / --tmpfs /mnt [--ro-bind <dir> <dir>] --unshare-pid --proc /proc --die-with-parent`,
+  where `<dir>` is the parent of the real path of `/etc/resolv.conf` when
+  that lies under `/mnt` (on WSL2, `/mnt/wsl`), so name resolution keeps
+  working. A canary shell under the prefix must exit 0 and, when the host
+  can read `/etc/resolv.conf`, must be able to read it too. Each Claude
+  executor then starts as
+  `<prefix> --chdir <sandbox> -- claude ...`: `/mnt`, where WSL2 mounts the
+  Windows drives, is empty apart from the resolver directory, and the
+  executor runs in its own PID namespace, so every process it started,
+  including one in its own session, ends when it exits or is killed at the
+  timeout. Every other path stays as the host has it; this is not an OS
+  sandbox. When any condition fails, including a resolver file that lies
+  directly in `/mnt`, Claude executors run unconfined. Codex executors are not
+  wrapped, because Codex's own Linux sandbox fails to start inside bwrap, and
+  graders are never wrapped. `run.json` records `executor_confinement`:
+  `mode` `bwrap-hide-mnt` with `resolver_rebound` (true when the resolver
+  directory was bound back), or `none` with a `reason` such as
+  `bwrap is not on PATH`, `/etc/resolv.conf is unreadable inside bwrap`, or
+  `not applied to codex executors`. The same value is part of the
+  measurement context in `iteration_manifest.json` and `benchmark.json`, and
+  `benchmark.md` shows it.
+- Once a run's output, written artifact, change manifest, retained files, and
+  executor evidence are recorded, whatever the executor's status and before
+  grading, the runner deletes that run's sandbox root (the parent of the
+  recorded `sandbox.repo_root`) and, for a Claude executor, the session
+  directory `<Claude config>/projects/<encoded cwd>` and the temp directory
+  `<temp dir>/claude-<uid>/<encoded cwd>`, where the encoded cwd is the
+  sandbox path the executor was launched at, taken without following links
+  the executor may have created, with every non-alphanumeric character
+  replaced by `-`. A cell that ends as `runner_error` gets the same disposal
+  and also records `executor_confinement`. A path is deleted only
+  when it resolves to that name directly inside its base and is not a
+  symlink; otherwise it is refused and kept, and nothing else is deleted.
+  `run.json` records `sandbox_cleanup` per path (`sandbox_root`,
+  `claude_session_dir`, `claude_temp_dir`) with `path` and a `status` of
+  `removed`, `absent`, `refused` (with `reason`), or `failed` (with
+  `error`). After the run, `run.json` and the run directory are the record:
+  the sandbox is gone, and `executor_evidence.transcript_path` and sub-agent
+  `record_path` name deleted files.
 - The executor prompt carries the eval id, the configuration, and the user
   prompt (outer whitespace trimmed), but not the case `name`, which can state the expected
   decision; only the grader prompt names the case.
@@ -330,11 +372,12 @@ python3 skills/skill-eval/scripts/eval_runner.py report evals/vibe-planning/work
   dependency, model, and coverage identities first: changed inputs are a
   different measurement series, missing historical identity is unknown, and
   agreement is necessary but not sufficient for a causal reading; a changed
-  grader provider or model is a changed measurement identity. Delivery
-  protocol `case-inputs-v4` marks the executor delivery described above,
-  without the case name, with the host MCP controls, and without the user's
-  hooks, plugins, and (for Claude) CLAUDE.md and skills; an iteration recorded
-  under an earlier protocol is a different measurement series. `report`
+  grader provider or model, or a changed executor confinement, is a changed
+  measurement identity. Delivery protocol `case-inputs-v4` marks the executor
+  delivery described above, without the case name, with the host MCP
+  controls, and without the user's hooks, plugins, and (for Claude)
+  CLAUDE.md and skills; an iteration recorded under an earlier protocol is a
+  different measurement series. `report`
   starts no server or browser, binds no port, writes no PID file, and leaves
   no background process.
 - Metrics are never hand-typed or estimated, and no flag injects them. Claude

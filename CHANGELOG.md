@@ -119,6 +119,24 @@ use `[Repository] - YYYY-MM-DD`.
   applies. Iterations record delivery protocol `case-inputs-v4`, so earlier
   iterations are a different measurement series. Whether Claude safe mode
   keeps the user's effort setting is not established.
+- skill-eval: On Linux hosts where bwrap passes a canary at run start, Claude
+  executors run with `/mnt` replaced by an empty directory, except that the
+  directory holding the real `/etc/resolv.conf` is bound back read-only when
+  it lies there, as on WSL2, so a filesystem-wide scan no longer reaches the
+  Windows drives WSL2 mounts there while name resolution keeps working. Each
+  Claude executor also runs in its own PID namespace, so every process it
+  started, including one in its own session, ends when it exits or is killed
+  at the timeout. When the canary fails, including when the resolver file
+  would be unreadable inside, Claude executors run unconfined. Each run
+  records which in `executor_confinement`, which is also part of the
+  measurement identity. Codex executors and graders are not wrapped. Once a
+  run's evidence is recorded, the runner deletes that run's sandbox and the
+  Claude executor's session and temp directories, refuses any path that does
+  not resolve to the run's own name directly inside its expected base, and
+  records each outcome in `sandbox_cleanup`; the sandbox is no longer
+  available for inspection after the run. Runner tests pass, and a real
+  diagnostic run on a WSL2 host recorded the confinement with the resolver
+  re-bound and left no sandbox, session, or temp directory behind.
 
 ## [vibe-coding 6.0.0] - 2026-10-08
 

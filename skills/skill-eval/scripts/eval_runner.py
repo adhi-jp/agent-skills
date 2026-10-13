@@ -103,6 +103,15 @@ DEFAULT_CONCURRENCY = 4
 MAX_CONCURRENCY = 16
 STDERR_MAX_BYTES = 64 * 1024
 SANDBOX_ROOT_ENV = "EVAL_RUNNER_SANDBOX_ROOT"
+# Claude executors start under bwrap with /mnt replaced by an empty tmpfs when
+# the host allows it: on WSL2 /mnt holds the Windows drives, which an executor's
+# stray `find /` walked for minutes. They also get their own PID namespace, so
+# every process an executor started ends when it exits or is killed. Codex
+# executors stay unwrapped because their own Linux sandbox fails to start
+# inside bwrap.
+BWRAP_CANARY_TIMEOUT_SECONDS = 10.0
+# Canary exit status for a resolver file the host can read but bwrap hid.
+BWRAP_RESOLVER_UNREADABLE_EXIT = 97
 AGENT_LABEL_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 # A model name is whatever the selected provider CLI accepts. Stay permissive
 # enough for vendor ids like `claude-sonnet-4-6`, `gpt-5.3-codex-spark`, or
@@ -1316,14 +1325,16 @@ def deliver_npm_projects(sandbox_root: Path, case: EvalCase | None, templates: d
 
 def measurement_context(
     suite: EvalSuite, agent: str, executor_model: str | None, grader_model: str | None,
-    grader_agent: str | None = None,
+    grader_agent: str | None = None, executor_confinement: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     # The grader provider and model are part of the measurement series: grading
-    # the same outputs with another grader is a different measurement.
+    # the same outputs with another grader is a different measurement. So is
+    # the executors' OS confinement.
     return {"delivery_protocol": DELIVERY_PROTOCOL, "runner_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
             "suite_sha256": digest_json(suite.raw), "selected_eval_ids": [case.eval_id for case in suite.evals],
             "agent": agent, "grader_agent": grader_agent or agent,
-            "executor_model": executor_model, "grader_model": grader_model}
+            "executor_model": executor_model, "grader_model": grader_model,
+            "executor_confinement": executor_confinement}
 
 
 def measurement_identity(context: dict[str, Any], runs: list[dict[str, Any]]) -> dict[str, Any]:
@@ -1454,11 +1465,16 @@ def sandbox_base_dir() -> Path:
     return (Path(tempfile.gettempdir()) / "eval-runner-sandboxes").resolve()
 
 
-def external_sandbox_repo_root(run_dir: Path) -> Path:
+def sandbox_root_name(run_dir: Path) -> str:
+    """Name of the run's sandbox root directly under ``sandbox_base_dir()``."""
     resolved_run_dir = run_dir.resolve()
     digest = hashlib.sha256(str(resolved_run_dir).encode("utf-8")).hexdigest()[:16]
     slug = re.sub(r"[^A-Za-z0-9_.-]+", "-", resolved_run_dir.name).strip("-") or "run"
-    return (sandbox_base_dir() / f"{slug}-{digest}" / "repo").resolve()
+    return f"{slug}-{digest}"
+
+
+def external_sandbox_repo_root(run_dir: Path) -> Path:
+    return (sandbox_base_dir() / sandbox_root_name(run_dir) / "repo").resolve()
 
 
 def grader_working_dir(run_dir: Path, *, forbidden_roots: Sequence[Path]) -> Path:
@@ -1514,6 +1530,58 @@ def cleanup_grader_working_dir(grader_dir: Path) -> dict[str, str] | None:
             "error": f"{type(exc).__name__}: {exc}",
         }
     return None
+
+
+def remove_run_owned_dir(path: Path, base: Path, expected_name: str) -> dict[str, Any]:
+    """Remove ``path`` only when it resolves to ``base/expected_name`` itself.
+
+    A symlink, a path that resolves elsewhere (outside ``base`` or deeper in
+    it), or another name is refused and kept; the outcome is returned for
+    run.json, never raised."""
+    outcome: dict[str, Any] = {"path": str(path)}
+    if not os.path.lexists(path):
+        return {**outcome, "status": "absent"}
+    try:
+        resolved_base = base.resolve(strict=True)
+        resolved = path.resolve(strict=True)
+    except (OSError, RuntimeError) as exc:
+        return {**outcome, "status": "refused", "reason": f"cannot resolve: {type(exc).__name__}"}
+    if path.is_symlink():
+        return {**outcome, "status": "refused", "reason": "path is a symlink"}
+    if resolved.name != expected_name:
+        return {**outcome, "status": "refused", "reason": f"name does not match this run: {resolved.name}"}
+    if resolved.parent != resolved_base:
+        return {**outcome, "status": "refused", "reason": f"not directly inside {resolved_base}"}
+    try:
+        shutil.rmtree(resolved)
+    except FileNotFoundError:
+        return {**outcome, "status": "absent"}
+    except OSError as exc:
+        return {**outcome, "status": "failed", "error": f"{type(exc).__name__}: {exc}"}
+    return {**outcome, "status": "removed"}
+
+
+def dispose_run_paths(run_dir: Path, *, claude_executor: bool) -> dict[str, dict[str, Any]]:
+    """Remove the paths this run alone created outside its run directory.
+
+    That is the sandbox root and, for a Claude executor, the session and temp
+    directories Claude Code keys by the sandbox cwd. Call it only once every
+    piece of evidence read from them is recorded. Each path is derived from
+    ``run_dir`` and checked by ``remove_run_owned_dir``; nothing else is
+    touched."""
+    sandbox_name = sandbox_root_name(run_dir)
+    targets = [("sandbox_root", sandbox_base_dir(), sandbox_name)]
+    if claude_executor:
+        # The executor controls `repo` and everything below it and may have
+        # replaced it with a link to another project, so the launch cwd is
+        # rebuilt from the runner-owned base without resolving it. The runner
+        # created `<base>/<name>/repo` itself and launched the executor there.
+        cwd_name = claude_project_dir_name(sandbox_base_dir() / sandbox_name / "repo")
+        targets.append(("claude_session_dir", claude_config_dir() / "projects", cwd_name))
+        temp_base = claude_temp_base_dir()
+        if temp_base is not None:
+            targets.append(("claude_temp_dir", temp_base, cwd_name))
+    return {kind: remove_run_owned_dir(base / name, base, name) for kind, base, name in targets}
 
 
 def capture_written_artifact(
@@ -2148,12 +2216,27 @@ def claude_config_dir() -> Path:
     return Path.home() / ".claude"
 
 
+def claude_temp_base_dir() -> Path | None:
+    """Parent of Claude Code's per-cwd temp directories (background task
+    output): ``<temp dir>/claude-<uid>``, entries named like the project
+    directories. None where the platform has no uid."""
+    getuid = getattr(os, "getuid", None)
+    if getuid is None:
+        return None
+    return Path(tempfile.gettempdir()) / f"claude-{getuid()}"
+
+
 def encode_claude_project_dir(cwd: Path) -> str:
     """Claude Code stores a session transcript under
     ``<config>/projects/<encoded-cwd>/<session_id>.jsonl``, where the project
     directory name is the absolute cwd with every non-alphanumeric character
     replaced by ``-``."""
-    return re.sub(r"[^A-Za-z0-9]", "-", str(cwd.resolve()))
+    return claude_project_dir_name(cwd.resolve())
+
+
+def claude_project_dir_name(path: Path) -> str:
+    """The project-directory encoding of ``path`` as given, following no link."""
+    return re.sub(r"[^A-Za-z0-9]", "-", str(path))
 
 
 def find_claude_transcript(session_id: str, cwd: Path) -> Path | None:
@@ -3631,12 +3714,79 @@ class Provider:
     def parse(self, *, run_dir: Path, stdout: str, stderr: str, exit_code: int | None, role: str) -> tuple[str, dict[str, Any]]:  # pragma: no cover
         raise NotImplementedError
 
+    def executor_confinement(self) -> dict[str, Any]:
+        """OS confinement of this provider's executors, recorded per run."""
+        return {"mode": "none", "reason": f"not applied to {self.name} executors"}
+
+
+def resolver_rebind_dir() -> str | None:
+    """Directory to re-bind read-only over the hidden /mnt so name resolution
+    keeps working: the parent of /etc/resolv.conf's real path when that lies
+    under /mnt (WSL2 links it to /mnt/wsl/resolv.conf), else None."""
+    resolved = Path(os.path.realpath("/etc/resolv.conf"))
+    if resolved != Path("/mnt") and path_is_lexically_relative_to(resolved, Path("/mnt")):
+        return str(resolved.parent)
+    return None
+
+
+def bwrap_hide_mnt_argv(bwrap: str, resolver_dir: str | None) -> list[str]:
+    argv = [bwrap, "--dev-bind", "/", "/", "--tmpfs", "/mnt"]
+    if resolver_dir is not None:
+        argv += ["--ro-bind", resolver_dir, resolver_dir]
+    return argv + ["--unshare-pid", "--proc", "/proc", "--die-with-parent"]
+
+
+def probe_executor_confinement() -> dict[str, Any]:
+    """Decide once per `run` whether Claude executors can start with /mnt
+    hidden. Any unmet condition leaves them unconfined with the reason; it never
+    stops the run."""
+    if sys.platform != "linux":
+        return {"mode": "none", "reason": f"platform {sys.platform} is not Linux"}
+    bwrap = shutil.which("bwrap")
+    if bwrap is None:
+        return {"mode": "none", "reason": "bwrap is not on PATH"}
+    if not os.path.isdir("/mnt"):
+        return {"mode": "none", "reason": "/mnt is not a directory"}
+    resolver_dir = resolver_rebind_dir()
+    if resolver_dir == "/mnt":
+        return {"mode": "none", "reason": "/etc/resolv.conf resolves directly inside /mnt"}
+    bwrap_argv = bwrap_hide_mnt_argv(os.path.abspath(bwrap), resolver_dir)
+    # A resolver file the host can read must stay readable inside, or the
+    # executor cannot reach its API.
+    check = (
+        f"test -r /etc/resolv.conf || exit {BWRAP_RESOLVER_UNREADABLE_EXIT}"
+        if os.access("/etc/resolv.conf", os.R_OK)
+        else "true"
+    )
+    try:
+        canary = subprocess.run(
+            [*bwrap_argv, "--", "sh", "-c", check],
+            stdin=subprocess.DEVNULL,
+            capture_output=True,
+            timeout=BWRAP_CANARY_TIMEOUT_SECONDS,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        return {"mode": "none", "reason": f"bwrap canary failed: {type(exc).__name__}"}
+    if canary.returncode == BWRAP_RESOLVER_UNREADABLE_EXIT:
+        return {"mode": "none", "reason": "/etc/resolv.conf is unreadable inside bwrap"}
+    if canary.returncode != 0:
+        return {"mode": "none", "reason": f"bwrap canary exited with code {canary.returncode}"}
+    return {"mode": "bwrap-hide-mnt", "resolver_rebound": resolver_dir is not None, "bwrap_argv": bwrap_argv}
+
 
 class ClaudeProvider(Provider):
     name = "claude"
 
+    def __init__(self, confinement: dict[str, Any] | None = None) -> None:
+        # `run` sets this from probe_executor_confinement() before any executor
+        # starts; an unprobed instance builds unwrapped executor invocations.
+        self.confinement = confinement or {"mode": "none", "reason": "confinement was not probed"}
+
     def available(self) -> bool:
         return shutil.which("claude") is not None
+
+    def executor_confinement(self) -> dict[str, Any]:
+        return {key: value for key, value in self.confinement.items() if key != "bwrap_argv"}
 
     def build_invocation(
         self,
@@ -3669,6 +3819,12 @@ class ClaudeProvider(Provider):
         if schema is not None:
             argv += ["--json-schema", json.dumps(schema)]
         resolved_cwd = (cwd or find_repo_root(run_dir)).resolve()
+        if role == "executor" and self.confinement.get("mode") == "bwrap-hide-mnt":
+            # Everything stays where it is except /mnt, empty apart from the
+            # resolver directory, and the executor's own PID namespace ends
+            # every process it started when it exits or is killed. Graders are
+            # never wrapped.
+            argv = [*self.confinement["bwrap_argv"], "--chdir", str(resolved_cwd), "--", *argv]
         return Invocation(
             argv=argv,
             env=invocation_env(resolved_cwd),
@@ -4485,6 +4641,10 @@ def execute_run(
             for entry in (executor_evidence.get("entries") or [])
             if is_skill_package_read(entry, skill_package_dir)
         )
+    # Output, artifact, change manifest, retained files, and the transcript
+    # trace are all recorded by now, whatever the executor's status, and the
+    # grader reads none of these paths, so this run's own paths go here.
+    sandbox_cleanup = dispose_run_paths(run_dir, claude_executor=isinstance(provider, ClaudeProvider))
 
     status = "ok"
     grader_inv: Invocation | None = None
@@ -4575,10 +4735,12 @@ def execute_run(
             "excluded_untracked_count": sandbox.excluded_untracked_count,
             "excluded_untracked_sample": sandbox.excluded_untracked_sample,
         },
+        "executor_confinement": provider.executor_confinement(),
         "executor_invocation": invocation_record(executor_inv),
         "grader_invocation": invocation_record(grader_inv),
         "grader_error": grader_error,
         "grader_cleanup": grader_cleanup,
+        "sandbox_cleanup": sandbox_cleanup,
         "failure": failure,
         "run_dir": str(run_dir),
     }
@@ -5195,6 +5357,15 @@ def render_model_lines(benchmark: dict[str, Any]) -> list[str]:
     ]
 
 
+def render_confinement_lines(benchmark: dict[str, Any]) -> list[str]:
+    confinement = (benchmark.get("measurement_identity") or {}).get("executor_confinement")
+    if not isinstance(confinement, dict):
+        return []
+    detail = confinement.get("reason") or ("resolver directory re-bound" if confinement.get("resolver_rebound") else "")
+    suffix = f" ({one_line(detail)})" if detail else ""
+    return [f"- Executor confinement: `{confinement.get('mode', 'unknown')}`{suffix}"]
+
+
 def one_line(value: Any) -> str:
     return " ".join(str(value if value is not None else "").split())
 
@@ -5316,6 +5487,7 @@ def render_benchmark_markdown(
         f"- Agent: `{benchmark.get('agent', 'unknown')}`",
         *render_model_lines(benchmark),
         f"- Delivery protocol: {(benchmark.get('measurement_identity') or {}).get('delivery_protocol', 'unknown (legacy result)')}; copied inputs and CLI controls do not prove OS isolation.",
+        *render_confinement_lines(benchmark),
         f"- Generated: {benchmark.get('generated_at', 'unknown')}",
         f"- Runs: {benchmark.get('run_count', 0)} "
         f"({benchmark.get('scored_run_count', 0)} scored, "
@@ -5788,7 +5960,12 @@ def command_run(args: argparse.Namespace) -> int:
             return 2
         provider.disabled_mcp_servers = tuple(mcp_discovery["disabled"])
     npm_templates = prepare_npm_projects(suite, repo_root, iteration_dir, args.npm_cache, args.timeout)
-    measurement = measurement_context(suite, agent, executor_model, grader_model, grader_agent)
+    if isinstance(provider, ClaudeProvider):
+        provider.confinement = probe_executor_confinement()
+    measurement = measurement_context(
+        suite, agent, executor_model, grader_model, grader_agent,
+        executor_confinement=provider.executor_confinement(),
+    )
 
     # Readiness is probed per role: the executor probe only for a Codex
     # executor, the grader probe only for a Codex grader.
@@ -5861,11 +6038,20 @@ def command_run(args: argparse.Namespace) -> int:
                     "pass_rate": None,
                     "expectations": [],
                     "metrics": metrics_absent(agent, "runner error before metrics capture"),
+                    "executor_confinement": provider.executor_confinement(),
                     "executor_invocation": None,
                     "grader_invocation": None,
                     "grader_error": f"runner error: {exc}",
                     "run_dir": str(task.run_dir),
                 }
+                # A crashed cell may have left its sandbox and session paths;
+                # they go by the same rules as a finished run's.
+                try:
+                    results[index]["sandbox_cleanup"] = dispose_run_paths(
+                        task.run_dir, claude_executor=isinstance(provider, ClaudeProvider)
+                    )
+                except Exception as cleanup_exc:  # noqa: BLE001 - keep the matrix going
+                    results[index]["sandbox_cleanup"] = {"error": f"{type(cleanup_exc).__name__}: {cleanup_exc}"}
                 persist_runner_error_record(task.run_dir, results[index])
 
     runs_records = [record for record in results if record is not None]

@@ -82,11 +82,16 @@ still change them is running or unread.
   declared inputs, Codex executors with every host MCP server listed at run
   start, the `apps` connector feature, and the user's hooks and plugins
   disabled, and Claude executors with `--strict-mcp-config`, which also
-  excludes claude.ai connectors, and `--safe-mode`, which drops the user's
-  CLAUDE.md, skills, plugins, and hooks; graders run in separate empty
-  directories. Never work around a sandbox setup failure by
-  executing in the source checkout, and never let a missing declared runtime
-  become a scored skill failure.
+  excludes claude.ai connectors, `--safe-mode`, which drops the user's
+  CLAUDE.md, skills, plugins, and hooks, and, when the host passes a bwrap
+  canary, `/mnt` hidden apart from the resolver directory and a PID namespace
+  of their own, so every process they start ends with them (otherwise
+  unconfined, with the reason recorded); graders run in separate empty
+  directories. Once a run's evidence is recorded, the runner deletes that
+  run's sandbox and the Claude executor's session and temp directories.
+  Never work around a sandbox setup failure by executing in the source
+  checkout, and never let a missing declared runtime become a scored skill
+  failure.
 - Suite definitions live under `evals/<skill-name>/`; generated runs live
   under `evals/<skill-name>/workspace/<agent>/` and are not committed unless
   the user explicitly asks.
