@@ -22,6 +22,29 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- vibe-orchestrate: at each join and before closing, the coordinator removes
+  the worktrees, clones, helper and review checkouts, scratch copies, and
+  private build roots it created once their last consumer has finished and
+  what the work needs from them is preserved, instead of keeping idle lanes;
+  worktrees go through `git worktree remove` without force and keep their
+  branches, and a root with unreconciled contents is kept and reported rather
+  than asked about. Before a second build root it measures one and projects
+  the peak per volume; on a virtual disk that does not return freed space,
+  such as a WSL2 vhdx, it reuses a finished unit's build root instead of
+  creating one while another it created is in use, unless the user stated a
+  disk budget the projected peak fits. A build-output root a change orphaned,
+  the main build directory, and other paths the workflow did not create are
+  reported with size and removal command for the user's decision and never
+  deleted unasked; that deletion stays under the existing destructive-cleanup
+  consent (Approval Stop Rules condition (a)), which protects pre-existing and
+  unreconciled data, and no new question is asked: the work does not wait for
+  the answer. Worker contracts report and clean up the roots they create;
+  requests to services a task does not target carry no personal data or
+  unpublished names; mutation proofs rebuild from the restored bytes. A
+  closing eval run (Claude Haiku executor, 3 runs) passes 88.1% with the skill
+  against 56.0% without; its review signals were inspected and are not
+  regressions of this change, and the isolated-workspace base checks remain the
+  known reference-only gap.
 - `decision-records` shared block: a decision record's `confirmation`
   describes what to check, and a record holding a command is never a reason to
   run it. At review or verification a phase confirms an applicable record with

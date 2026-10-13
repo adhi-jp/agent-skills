@@ -36,7 +36,9 @@ Do not use for a direct answer with no delegation.
 
 The scope this workflow declares is the round it integrates: the paths each
 worker contract's edit allowlist authorizes, the coordinator's narrow disclosed
-direct edits, and the records under `Durable Records`.
+direct edits, and the records under `Durable Records`. It also covers the
+disposable roots the workflow creates: removing one whose needed contents are
+preserved is within this scope, not destructive cleanup.
 
 ## Durable Records
 
@@ -87,6 +89,14 @@ adding optional features, options, or guards beyond what its work items
 require; needed work outside its paths is a blocker; history stays with the
 coordinator.
 
+Requests the coordinator or a worker sends to services the task does not
+itself target, such as package-registry, API, or web lookups, carry no
+personal data (names, email addresses, usernames, home paths) and no
+unpublished project or product name in headers such as User-Agent, URLs, or
+bodies; they use a generic client identifier, and a contract whose work may
+send them says so. Requests the task targets and task material an authorized
+external delegation needs are exempt.
+
 ### Human-Risk Decisions
 
 <!-- shared-contract:begin human-risk-decisions source=shared/vibe-contract.md -->
@@ -133,7 +143,13 @@ file set confirmed safe and separable from unrelated working-tree changes.
    attributable tree snapshot before each write round, including relevant
    untracked and non-text outputs.
 2. For substantial work, read `references/coordinator-practices.md` to choose
-   the work graph, capability fit, effort envelope, and writer isolation.
+   the work graph, capability fit, effort envelope, writer isolation, and the
+   disk footprint of isolated workspaces and build roots. Before creating a
+   second build root, measure one and project the peak against the volume's
+   free space. On a disk that does not return freed space to its host, such as
+   a WSL2 virtual disk, reuse a finished unit's build root instead of creating
+   one while another the workflow created is in use, unless the user has stated
+   a disk budget the projected peak fits; record the choice in the join report.
    Keep the immediate blocker local unless delegation is the safest next step;
    parallelize independent, separately verifiable units, not tightly coupled
    decisions or files. Settle size versus difficulty from a bounded read-only
@@ -185,6 +201,15 @@ file set confirmed safe and separable from unrelated working-tree changes.
    missing access), it stays blocked; present the premise, its impact if false,
    and the rollback, and get explicit acceptance before asking the user to
    install it. Follow the history and durable-record boundaries above.
+   At each join and before closing, remove each disposable root this workflow
+   created (a worktree, clone, helper checkout, scratch copy, or private build
+   or cache root) whose last consumer has finished, after preserving what the
+   work needs from it, as `references/coordinator-practices.md` directs;
+   retain one whose contents are unreconciled and report why instead of asking.
+   Never delete the main checkout's build directory, a build-output root a
+   change orphaned, or any other path the workflow did not create without the
+   user's consent: report each one found reclaimable with its size and removal
+   command, and continue without waiting for an answer.
 
 Read only the references needed for the current step. For direct coordinator
 edits, consult `references/coordinator-practices.md` under Direct Coordinator
@@ -198,9 +223,11 @@ that party.
 
 Report delegated units, the coordinator-observed changed files, verification
 commands and results, material finding dispositions, direct interventions,
-record IDs/paths, and remaining blockers or unverified scope. Bound each proof
-claim by its actual paths, targets, environment, fixtures, and modes; distinguish
-worker self-report from coordinator verification.
+record IDs/paths, disposable roots removed or retained (each retained one with
+its size and the consumer or reason that keeps it), paths left for the user's
+deletion decision with their sizes, and remaining blockers or unverified scope.
+Bound each proof claim by its actual paths, targets, environment, fixtures, and
+modes; distinguish worker self-report from coordinator verification.
 
 For measured workers, also report instrument immutability, subject blockers,
 uniform disclosed corrections, and replay evidence with attempt, terminal,

@@ -1,6 +1,6 @@
 # Coordinator Practices
 
-Read this reference before selecting delegated model tiers, judging the coordinator's own capability fit, decomposing substantial work, setting or revisiting the goal and effort envelope, writing or auditing worker contracts, inlining facts and protected evidence, directly intervening, or handling multiple/overlapping writers.
+Read this reference before selecting delegated model tiers, judging the coordinator's own capability fit, decomposing substantial work, setting or revisiting the goal and effort envelope, writing or auditing worker contracts, inlining facts and protected evidence, directly intervening, creating or removing isolated workspaces, clones, or build roots, or handling multiple/overlapping writers.
 
 ## Frontier Coordinator And Model-Tier Loops
 
@@ -117,10 +117,48 @@ unless the coordinator materializes that input.
 
 Keep temporary worktrees outside the repository: recursive gates may traverse
 a duplicate tree. While one remains inside, suspend authoritative repository-wide
-gates and do not attribute their failures to a slice. Remove temporary worktrees
-promptly after extracting and verifying their work, within cleanup authority.
-Use explicit command workdir or `git -C`, not the host's primary cwd; verify
-checkout identity after host re-seating.
+gates and do not attribute their failures to a slice. Remove temporary
+worktrees under Disk Footprint And Disposal below. Use explicit command workdir
+or `git -C`, not the host's primary cwd; verify checkout identity after host
+re-seating.
+
+## Disk Footprint And Disposal
+
+Disposable roots are the worktrees, clones, helper and review checkouts,
+private build, cache, and dependency roots, fixtures, and mutation or scratch
+copies the workflow creates, on any volume; the session scratch directory
+often shares the repository's disk. Note each in the round ledger or journal
+when it is created, and have workers report the ones they create.
+
+Isolation multiplies build output. Before creating a second root that builds,
+measure the first after a representative build and test run with a bounded
+`du -s` of that root, project the added peak on each volume (per-root size
+times concurrent roots, plus fixtures and the main build directory's growth)
+against its free space, and reduce concurrency until it fits. Re-measure at
+each join and when profiles, features, or target triples change. On a virtual
+disk that does not return freed space to its host, such as a WSL2 ext4.vhdx or
+a Docker Desktop or VM disk image, the peak stays charged after deletion:
+reuse a finished unit's build root, or wait until one is free, instead of
+creating a build root while another one the workflow created is in use, unless
+the user has stated a disk budget the projected peak fits; record the choice in
+the join report.
+
+Remove a disposable root with its build outputs once its last named consumer
+has finished (terminal status, no live descendants) and the commits, patches,
+evidence, and receipt identity the work needs from it are preserved elsewhere.
+Waiting for a possible later unit is not a consumer; recreate the root when a
+unit is assigned. Remove a worktree with `git worktree remove`, never forced,
+and keep its branch; retain a root with unreconciled or foreign contents and
+report why. Failed, cancelled, and abandoned attempts follow the same rule.
+
+A change that moves where a build writes output (a new workspace root, a moved
+package, a changed output-directory setting) orphans the old root, and a
+worker report or inspection may reveal one. Verify that nothing writes to it,
+measure it, and report its path, size, and removal command as reclaimable.
+Delete it, the main checkout's build directory, or any other path the workflow
+did not create only with the user's consent, and continue without waiting for
+the answer. After a round that built heavily into the main build directory,
+report its growth.
 
 ## Worker Contract Minimums
 

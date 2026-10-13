@@ -194,4 +194,6 @@ the change without relaxing scope, constraints, or a host denial.
 Retention is caller-owned: mission and receipt artifacts may be sensitive;
 never attach them to chat/commits by default. Before removing temporary receipts,
 retain load-bearing method and native execution identity in the owning plan or
-qualifying decision record.
+qualifying decision record. The delegated checkout and its build outputs are
+disposable roots: remove them once the receipt is verified and that identity
+retained, as `coordinator-practices.md` directs.

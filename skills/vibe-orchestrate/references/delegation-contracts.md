@@ -27,8 +27,17 @@ Hard rules:
   output destinations, forbidden unsafe forms and verified alternatives].
 - Formatters, fixers, generators, codemods, and dependency tools must not write
   beyond that scope; permission to compile does not authorize deployment.
+- Create worktrees, clones, scratch copies, or build/cache roots only under
+  [paths] and report each one you create. Before reporting done, remove, as
+  part of your scope, those this contract does not name as a deliverable or
+  evidence; keep and report any that hold unreconciled changes or content you
+  did not create, and never force a worktree removal.
 - Do not ask the user, expand scope, stage, commit, push, release, mutate history,
   or perform destructive, credential, permission, billing, or external actions.
+- Put no personal data or unpublished project or product names in requests to
+  services the task does not target (headers such as User-Agent, URLs,
+  bodies); use a generic client identifier. Task material an authorized
+  external delegation needs is exempt.
 - Add no feature, option, guard, or fix beyond what the work items require;
   report candidates under DECISIONS and needed out-of-scope work under BLOCKERS.
 - Run only [verification commands]; report blocked checks as SKIPPED(reason).
@@ -151,7 +160,10 @@ work items, and the journal. Status alone cannot attribute changes inside
 already-untracked files, and a `FILES:` list that misses snapshot changes
 weakens trust in the report's other claims. Verify load-bearing evidence and
 method, not merely claim wording. Inspect decisions/blockers for premise
-contradictions and retain unresolved ones as blockers.
+contradictions and retain unresolved ones as blockers. Add each root a worker
+reports creating, and any orphaned or stale output root a report mentions, to
+the disposal list under Disk Footprint And Disposal in
+`coordinator-practices.md`; a mention in a report is not a disposition.
 
 Route `DECISION-IMPACT:` to a qualifying decision record; otherwise to the bound
 plan's reserved-decision row preserving owner, authority, and proceed effect.

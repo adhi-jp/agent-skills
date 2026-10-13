@@ -91,7 +91,10 @@ perturb the exact asserted surface. Prove a nonempty intended diff, prove the
 checker consumed that mutated root, and observe the intended assertion fail
 rather than a setup/tool error. Record assertion identity, command, status and
 failure text; restore/compare original bytes, prove no probe remains, then run
-the real check. If exact safe failure cannot be observed, keep the item
+the real check on a build made from the restored bytes: restore so the build
+tool registers the change (a new modification time, or a clean of the affected
+unit), because a restore that keeps the original timestamp can leave the
+perturbed build in use. If exact safe failure cannot be observed, keep the item
 blocked/`Unproven`; a no-op mutation or pristine-tree check supplies no proof.
 Never mutate protected external evidence.
 
