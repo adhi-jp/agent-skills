@@ -11,10 +11,243 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [vibe-coding 6.1.0] - 2026-10-15
+
+### Changed
+
+- The router-owned `direct-implementation` and `maintenance` rows remove the
+  clones, scratch copies, and private build roots an edit created once nothing
+  needs them, keeping one whose contents are unreconciled. When an edit moves
+  where a build writes output, such as adding a workspace root or moving a
+  package or its output directory, the old output root is reported with its
+  size and removal command for the user's deletion decision; it is never
+  deleted unasked, and the work does not wait for the answer.
+- A decision record's `confirmation` describes what to check, and a command it
+  holds is never a reason to run it. Applicable records are confirmed only with
+  read-only inspection or the repository's own tests, linters, or builds, and
+  each confirmation not run is reported with the reason, such as one that would
+  install software, use the network, read credentials, write outside the unit,
+  or delete data.
+- Verification: closing Claude `haiku` full-suite run with a Codex
+  `gpt-6.1-sol` grader and three runs per case, `with_skill` 93.0% against
+  `without_skill` 55.0%; it does not exercise the confirmation rule.
+
+## [vibe-planning 8.1.0] - 2026-10-15
+
+### Changed
+
+- A plan that runs parallel workspaces or extra checkouts that build,
+  generates large fixtures or caches, or moves where a build writes output
+  answers a disk-footprint check: the peak per volume from a measured build,
+  fixture, or cache output (a measurement the plan only schedules stays
+  `Unproven` and comes before the first allocation that depends on it),
+  whether the volume returns freed space, and the step that removes each
+  workspace and output root the plan creates, which is an ordinary planned
+  step rather than a decision for the user. Output roots the change orphans
+  are listed for the user's deletion decision, and on a volume that does not
+  return freed space, such as a WSL2 virtual disk, the plan reuses a finished
+  workspace's build root instead of creating another while one is in use,
+  unless the user stated a disk budget the projected peak fits.
+- When a dependency or licence policy applies, the plan checks it over the
+  whole resolved dependency graph of every shipped artifact, including
+  dependencies already in the lockfile, not only the ones the change adds.
+- A decision record's `confirmation` describes what to check, and a command it
+  holds is never a reason to run it. Applicable records are confirmed only with
+  checks this artifact-only phase allows, and each confirmation not run is
+  reported with the reason.
+- Verification: closing Claude `haiku` full-suite run with a Codex
+  `gpt-6.1-sol` grader and three runs per case, `with_skill` 89.0% against
+  `without_skill` 46.1%; it does not exercise the confirmation rule.
+
+## [vibe-plan-execution 8.1.0] - 2026-10-15
+
+### Changed
+
+- Closing a slice removes the worktrees, clones, scratch copies, and private
+  build roots the slice created once nothing still needs them, keeping one
+  that a later slice the plan schedules will use and one whose contents are
+  unreconciled. The slice report lists retained roots with their sizes and
+  reasons, and any build-output root the slice orphaned or found unused, with
+  its size and removal command, for the user's deletion decision; such a path
+  is never deleted unasked, and the slice does not wait for the answer.
+- A decision record's `confirmation` describes what to check, and a command it
+  holds is never a reason to run it. Applicable records are confirmed only with
+  read-only inspection or the repository's own tests, linters, or builds, and
+  each confirmation not run is reported with the reason.
+- Verification: closing Claude `haiku` full-suite run with a Codex
+  `gpt-6.1-sol` grader and three runs per case, `with_skill` 90.5% against
+  `without_skill` 57.7%; it does not exercise the confirmation rule.
+
+## [vibe-plan-review 3.2.2] - 2026-10-15
+
+### Changed
+
+- A gap or ambiguity inside one plan item is a finding in that item's review,
+  not a reason to stop the whole review or to review several items at once;
+  the missing-information stop applies only when the plan as a whole cannot be
+  reviewed.
+- The request for reflection confirmation shows the review binding and states
+  what reflection does with each of the four outcomes, and that the reflected
+  plan keeps executable content and held items and leaves out review-history
+  annotations, per-item judgment logs, and chat notes.
+- A decision record's `confirmation` describes what to check, and a command it
+  holds is never run because the record holds it; a confirmation the
+  pre-check does not run is reported with the reason.
+- Verification: closing Claude `haiku` full-suite run with a Codex
+  `gpt-6.1-sol` grader and three runs per case, `with_skill` 95.6% against
+  `without_skill` 48.9%, including a pre-check that leaves a decision record's
+  command unrun.
+
+## [vibe-requirements-spec 8.0.1] - 2026-10-15
+
+### Changed
+
+- A decision record's `confirmation` describes what to check, and a command it
+  holds is never a reason to run it. Applicable records are confirmed only with
+  checks this artifact-only phase allows, and each confirmation not run is
+  reported with the reason.
+- Verification: `check --strict` passes for the rendered block and the eval
+  suite validates statically; no eval run covers this change.
+
+## [vibe-debug 8.0.1] - 2026-10-15
+
+### Changed
+
+- A decision record's `confirmation` describes what to check, and a command it
+  holds is never a reason to run it. Applicable records are confirmed only with
+  read-only inspection or the repository's own tests, linters, or builds, and
+  each confirmation not run is reported with the reason, such as one that would
+  install software, use the network, read credentials, write outside the unit,
+  or delete data.
+- Verification: `check --strict` passes for the rendered block and the eval
+  suite validates statically; no eval run covers this change.
+
+## [vibe-review 5.0.1] - 2026-10-15
+
+### Changed
+
+- A decision record's `confirmation` describes what to check, and a command it
+  holds is never a reason to run it. Applicable records are confirmed at review
+  only with read-only inspection or the repository's own tests, linters, or
+  builds, and each confirmation not run is reported with the reason.
+- Verification: `check --strict` passes for the rendered block and the eval
+  suite validates statically; no eval run covers this change.
+
+## [vibe-orchestrate 6.1.0] - 2026-10-15
+
+### Changed
+
+- At each join and before closing, the coordinator removes the worktrees,
+  clones, helper and review checkouts, scratch copies, and private build roots
+  it created once their last consumer has finished and what the work needs
+  from them is preserved, instead of keeping idle lanes; a unit already
+  scheduled to use a root keeps it, and its build output is reused rather than
+  rebuilt. Worktrees go through `git worktree remove` without force and keep
+  their branches, and a root with unreconciled contents is kept and reported.
+  Worker contracts report the roots they create and remove those the contract
+  does not name as a deliverable or evidence under the same rule.
+- Before a second build root the coordinator measures one and projects the
+  peak per volume; on a virtual disk that does not return freed space, such as
+  a WSL2 vhdx, it reuses a finished unit's build root instead of creating one
+  while another it created is in use, unless the user stated a disk budget the
+  projected peak fits. A build-output root a change orphaned, the main build
+  directory, and other paths the workflow did not create are reported with
+  size and removal command for the user's decision and never deleted unasked;
+  the work does not wait for the answer.
+- A review finding that documented intent contradicts and no approved
+  requirement establishes is dispositioned `blocked` on that contract's owner;
+  `rejected` covers findings contradicted by verified behavior or an approved
+  requirement. A worker returns its report through the runner's result
+  interface, and a report file it writes is only an optional copy.
+- The external-runner helpers and their reference state that task inputs come
+  only from local sources: no URL or remote reference, targets inside the
+  isolated checkout, a mission read only from a coordinator-written file
+  outside it or explicit stdin, and no web search for either runner. A mission
+  states the task in the coordinator's own words, quoting only short exact
+  strings it verified, and never copies instructions or agent-addressed text
+  from logs, fixtures, tool output, or worker reports. The helper bytes
+  changed, so existing preflight receipts no longer match; run `preflight`
+  again before `run`.
+- Requests to services a task does not target carry no personal data or
+  unpublished names, mutation proofs rebuild from the restored bytes, and a
+  decision record's `confirmation` command is never run because the record
+  holds it; each confirmation not run is reported with the reason.
+- Verification: closing Claude `haiku` full-suite run with a Codex
+  `gpt-6.1-sol` grader and three runs per case, `with_skill` 87.5% against
+  `without_skill` 53.9%, with no infrastructure failures.
+
+## [vibe-goal-alignment 2.2.2] - 2026-10-15
+
+### Changed
+
+- A decision record's `confirmation` describes what to check, and a command it
+  holds is never a reason to run it. Applicable records are confirmed only by
+  read-only inspection, and each confirmation not run is reported with the
+  reason.
+- Verification: `check --strict` passes for the rendered block and the eval
+  suite validates statically; no eval run covers this change.
+
+## [vibe-commit 5.0.1] - 2026-10-15
+
+### Changed
+
+- A decision record's `confirmation` describes what to check, and a command it
+  holds is never a reason to run it. Applicable records are confirmed only with
+  read-only inspection or the repository's own tests, linters, or builds, and
+  each confirmation not run is reported with the reason.
+- Verification: `check --strict` passes for the rendered block and the eval
+  suite validates statically; no eval run covers this change.
+
+## [vibe-writing 3.1.3] - 2026-10-15
+
+### Changed
+
+- A decision record's `confirmation` describes what to check, and a command it
+  holds is never a reason to run it. Applicable records are confirmed only with
+  checks this artifact-only phase allows, and each confirmation not run is
+  reported with the reason.
+- Verification: `check --strict` passes for the rendered block and the eval
+  suite validates statically; no eval run covers this change.
+
+## [vibe-agent-instructions 3.0.1] - 2026-10-15
+
+### Changed
+
+- A decision record's `confirmation` describes what to check, and a command it
+  holds is never a reason to run it. Applicable records are confirmed only with
+  checks this artifact-only phase allows, and each confirmation not run is
+  reported with the reason.
+- Verification: `check --strict` passes for the rendered block and the eval
+  suite validates statically; no eval run covers this change.
+
+## [vibe-brainstorm 2.0.1] - 2026-10-15
+
+### Changed
+
+- A decision record's `confirmation` describes what to check, and a command it
+  holds is never a reason to run it. Applicable records are confirmed only by
+  read-only inspection, and each confirmation not run is reported with the
+  reason.
+- Verification: `check --strict` passes for the rendered block and the eval
+  suite validates statically; no eval run covers this change.
+
+## [vibe-code-research 2.0.4] - 2026-10-15
+
+### Changed
+
+- A decision record's `confirmation` describes what to check, and a command it
+  holds is never a reason to run it. Applicable records are confirmed only by
+  read-only inspection, and each confirmation not run is reported with the
+  reason.
+- Verification: `check --strict` passes for the rendered block and the eval
+  suite validates statically; no eval run covers this change.
+
+## [skill-eval 2.3.0] - 2026-10-15
+
 ### Added
 
-- skill-eval: A run whose Codex executor named a path in the user's home, the
-  shared temp directory, or elsewhere outside its sandbox is listed under the
+- A run whose Codex executor named a path in the user's home, the shared temp
+  directory, or elsewhere outside its sandbox is listed under the
   `external_path_access` sanity check with the kinds of path it named, and
   makes the status `REVIEW REQUIRED`; device and system paths such as
   `/dev/null` are not listed. Paths stay out of the record and the grader
@@ -22,157 +255,62 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
-- vibe-orchestrate: at each join and before closing, the coordinator removes
-  the worktrees, clones, helper and review checkouts, scratch copies, and
-  private build roots it created once their last consumer has finished and
-  what the work needs from them is preserved, instead of keeping idle lanes;
-  a unit already scheduled to use a root counts as its consumer, so that root
-  is kept and its build output reused rather than rebuilt;
-  worktrees go through `git worktree remove` without force and keep their
-  branches, and a root with unreconciled contents is kept and reported rather
-  than asked about. Before a second build root it measures one and projects
-  the peak per volume; on a virtual disk that does not return freed space,
-  such as a WSL2 vhdx, it reuses a finished unit's build root instead of
-  creating one while another it created is in use, unless the user stated a
-  disk budget the projected peak fits. A build-output root a change orphaned,
-  the main build directory, and other paths the workflow did not create are
-  reported with size and removal command for the user's decision and never
-  deleted unasked; that deletion stays under the existing destructive-cleanup
-  consent (Approval Stop Rules condition (a)), which protects pre-existing and
-  unreconciled data, and no new question is asked: the work does not wait for
-  the answer. Worker contracts report the roots they create and remove them
-  only after their last named consumer has finished and needed contents are
-  preserved elsewhere; roots reserved for already scheduled units are kept
-  with their build output for reuse. Named deliverables and evidence remain
-  exempt, and foreign or unreconciled contents are kept and reported.
-  Requests to services a task does not target carry no personal data or
-  unpublished names; mutation proofs rebuild from the restored bytes. A full
-  closing eval run (Claude Haiku executor, Codex gpt-6.1-sol grader, 3 runs)
-  scores 87.5% with the skill against 53.9% without (33.6 percentage points),
-  with no infrastructure failures. Review signals were inspected;
-  isolated-workspace base checks remain the known reference-only gap, and
-  this sample still has occasional cleanup, delivery, and extra-stop misses.
-  The correction's causal benefit remains Unproven.
-- vibe-plan-execution: closing a slice removes the worktrees, clones, scratch
-  copies, and private build roots the slice created once nothing still needs
-  them, keeping one that a later slice the plan schedules will use and one
-  whose contents are unreconciled. The slice report lists
-  retained roots with their sizes and any build-output root the slice orphaned
-  or found unused, with size and removal command, for the user's deletion
-  decision; such a path is never deleted unasked (the existing
-  destructive-cleanup consent, Approval Stop Rules condition (a)), and the
-  slice does not wait for the answer. A closing eval run (Claude Haiku
-  executor, 3 runs) passes 90.5% with the skill against 57.7% without, with no
-  review signals.
-- vibe-coding: the router-owned `direct-implementation` and `maintenance` rows
-  remove the clones, scratch copies, and private build roots an edit created
-  once nothing needs them, keeping one whose contents are unreconciled. When an
-  edit moves where a build writes output, such as adding a workspace root or
-  moving a package or its output directory, the old output root is reported
-  with its size and removal command for the user's deletion decision; it is
-  never deleted unasked (the existing destructive-cleanup consent, Approval
-  Stop Rules condition (a)), and the work does not wait for the answer. A
-  closing eval run (Claude Haiku executor, 3 runs) passes 93.0% with the skill
-  against 55.0% without, with no review signals.
-- vibe-planning: a plan that runs parallel workspaces or extra checkouts that
-  build, generates large fixtures or caches, or moves where a build writes
-  output answers a disk-footprint check: the peak per volume from a measured
-  build, fixture, or cache output (a measurement the plan only schedules stays
-  `Unproven` and comes before the first allocation that depends on it),
-  whether the volume returns freed space, and the step that removes each
-  workspace and output root the plan creates, which is an ordinary planned
-  step rather than a decision for the user. Output roots the change orphans
-  are listed for the user's deletion decision, and on a volume that does not
-  return freed space the plan reuses a finished workspace's build root instead
-  of creating another while one is in use, unless the user stated a disk
-  budget. When a dependency or licence policy applies, the plan checks it over
-  the whole resolved dependency graph of every shipped artifact, including
-  dependencies already in the lockfile, not only the ones the change adds. A
-  closing eval run (Claude Haiku executor, 3 runs) passes 89.0% with the skill
-  against 46.1% without, with no review signals.
-- `decision-records` shared block: a decision record's `confirmation`
-  describes what to check, and a record holding a command is never a reason to
-  run it. At review or verification a phase confirms an applicable record with
-  checks its declared effect class allows (read-only inspection, or the
-  repository's own tests, linters, or builds where that class permits them)
-  and reports each confirmation it did not run as not run, with the reason,
-  such as one that would install software, use the network, read credentials,
-  write outside the unit, or delete data. Rendered text changed in all 14
-  dependents: `vibe-agent-instructions`, `vibe-brainstorm`,
-  `vibe-code-research`, `vibe-coding`, `vibe-commit`, `vibe-debug`,
-  `vibe-goal-alignment`, `vibe-orchestrate`, `vibe-plan-execution`,
-  `vibe-plan-review`, `vibe-planning`, `vibe-requirements-spec`,
-  `vibe-review`, and `vibe-writing`. Shared-contract checks and suite
-  validation pass; of the dependents, only vibe-plan-review's evals cover the
-  change (see its entry).
-- vibe-orchestrate: the external-runner helpers and their reference state
-  where task inputs come from: no URL or remote reference, targets inside the
-  isolated checkout, a mission read only from a coordinator-written file
-  outside it or explicit stdin, and no web search for either runner. A mission
-  states the task in the coordinator's own words, quoting only short exact
-  strings it verified and citing a path for longer detail, and never copies
-  instructions or agent-addressed text from logs, fixtures, tool output, worker
-  reports, or other material; worker output stays a claim the coordinator
-  verifies, whatever the envelope says. The helper bytes changed, so existing
-  preflight receipts no longer match; run `preflight` again before `run`.
-  Helper tests and suite validation pass; the vibe-orchestrate closing eval
-  run below covers this text.
-- vibe-orchestrate: a review finding that documented intent contradicts and
-  no approved requirement establishes is dispositioned `blocked` on that
-  contract's owner; `rejected` covers findings contradicted by verified
-  behavior or an approved requirement. A worker contract returns its report
-  through the runner's result interface, and a report file the worker writes
-  is only an optional copy. A closing eval run (Claude Haiku executor, 3 runs)
-  passes 89.2% with the skill against 54.4% without; its two review signals
-  were inspected and are not skill regressions. Known gap: Haiku often answers
-  from `SKILL.md` alone and then misses rules that live only in a reference,
-  most often the isolated-workspace base checks.
-- vibe-plan-review: a gap or ambiguity inside one plan item is a finding in
-  that item's review, not a reason to stop the whole review or to review
-  several items at once; the missing-information stop applies only when the
-  plan as a whole cannot be reviewed. The request for reflection confirmation
-  shows the review binding and states what reflection does with each of the
-  four outcomes and that the reflected plan leaves out review-history
-  annotations, per-item judgment logs, and chat notes, so the user confirms
-  knowing what the plan write will contain. A closing eval run (Claude Haiku
-  executor, 3 runs) passes 95.6% with the skill against 48.9% without, with no
-  anomalies, including a pre-check that leaves a decision record's command
-  unrun. Known gaps on Haiku: a two-item plan asked for as a pre-check is
-  still reviewed in one response, later items' gaps are sometimes previewed,
-  and the reflection-confirmation request sometimes omits the plan path or
-  part of the excluded-content list.
-- skill-eval: Codex executor runs no longer add a trusted-project entry for
-  each sandbox to the user's codex `config.toml`; each executor is trusted for
-  its own invocation only, with the same effect on the run.
-- skill-eval: Executors run without the user's hooks and plugins. Claude
-  executors start with `--safe-mode`, so the user's CLAUDE.md, skills,
-  plugins, and hooks stay out, and nested `CLAUDE.md` files in delivered
-  fixtures no longer load as instructions. Codex executors, and the MCP
-  listing taken for them, run with hooks and plugins disabled; the rest of the
-  user's codex setup, including `config.toml` model and reasoning effort,
-  exec-policy rules, a user-global `AGENTS.md`, and user skills, still
-  applies. Iterations record delivery protocol `case-inputs-v4`, so earlier
-  iterations are a different measurement series. Whether Claude safe mode
-  keeps the user's effort setting is not established.
-- skill-eval: On Linux hosts where bwrap passes a canary at run start, Claude
-  executors run with `/mnt` replaced by an empty directory, except that the
-  directory holding the real `/etc/resolv.conf` is bound back read-only when
-  it lies there, as on WSL2, so a filesystem-wide scan no longer reaches the
-  Windows drives WSL2 mounts there while name resolution keeps working. Each
-  Claude executor also runs in its own PID namespace, so every process it
-  started, including one in its own session, ends when it exits or is killed
-  at the timeout. When the canary fails, including when the resolver file
-  would be unreadable inside, Claude executors run unconfined. Each run
-  records which in `executor_confinement`, which is also part of the
-  measurement identity. Codex executors and graders are not wrapped. Once a
-  run's evidence is recorded, the runner deletes that run's sandbox and the
-  Claude executor's session and temp directories, refuses any path that does
-  not resolve to the run's own name directly inside its expected base, and
-  records each outcome in `sandbox_cleanup`; the sandbox is no longer
-  available for inspection after the run. Runner tests verify disposal before
-  grading while preserving captured retained file contents; a real diagnostic
-  run on a WSL2 host recorded the confinement with the resolver
-  re-bound and left no sandbox, session, or temp directory behind.
+- Executors run without the user's hooks and plugins. Claude executors start
+  with `--safe-mode`, so the user's CLAUDE.md, skills, plugins, and hooks stay
+  out, and nested `CLAUDE.md` files in delivered fixtures no longer load as
+  instructions; whether safe mode keeps the user's effort setting is not
+  established. Codex executors, and the MCP listing taken for them, run with
+  hooks and plugins disabled; the rest of the user's codex setup, including
+  `config.toml` model and reasoning effort, exec-policy rules, a user-global
+  `AGENTS.md`, and user skills, still applies. Codex executor runs no longer
+  add a trusted-project entry for each sandbox to the user's codex
+  `config.toml`.
+- On Linux hosts where a bwrap canary passes at run start, Claude executors
+  run with `/mnt` replaced by an empty directory, except that the directory
+  holding the real `/etc/resolv.conf` is bound back read-only when it lies
+  there, as on WSL2, and each runs in its own PID namespace, so every process
+  it started ends when it exits or is killed at the timeout. When the canary
+  fails, Claude executors run unconfined; Codex executors and graders are not
+  wrapped. Each run records which in `executor_confinement`, which is part of
+  the measurement identity.
+- Once a run's evidence is recorded, the runner deletes that run's sandbox and
+  the Claude executor's session and temp directories, refuses any path that
+  does not resolve to the run's own name directly inside its expected base,
+  and records each outcome in `sandbox_cleanup`; the sandbox and the Claude
+  executor transcript are no longer available for inspection after the run.
+  Retained file contents reach only the grader prompt, so a run that is not
+  graded, such as an executor timeout or failure, keeps only the per-path
+  status in `run.json`, not the contents.
+- Iterations record delivery protocol `case-inputs-v4`, so earlier iterations
+  are a different measurement series.
+- Verification: runner regression tests cover these changes, including
+  disposal before grading with captured retained file contents preserved for
+  the grader; a
+  diagnostic run on a WSL2 host recorded the confinement with the resolver
+  re-bound and left no sandbox, session, or temp directory behind. No closing
+  eval run of the skill-eval suite follows these changes.
+
+## [Repository] - 2026-10-15
+
+### Changed
+
+- Open: the closing results above use Claude `haiku` executors with a Codex
+  `gpt-6.1-sol` grader under the new executor isolation, so they start a new
+  measurement series and are not comparable with the earlier releases' Codex
+  `gpt-6-luna` results; the causal benefit of each correction is Unproven.
+- Open: the closing samples still show sporadic misses: vibe-orchestrate
+  cleanup, delivery, and extra-stop omissions, and isolated-workspace base
+  checks missed when Haiku answers from `SKILL.md` alone; vibe-plan-review
+  reviewing a two-item pre-check in one response, previewing later items'
+  gaps, or omitting the plan path or part of the excluded-content list from
+  the reflection request.
+- Open: whether the skills.sh analyzer warnings for vibe-orchestrate and
+  vibe-plan-review have cleared is unproven until the published packages are
+  rescanned.
+- Verification: `python3 -m pytest -q tests` passed 523 tests and 199
+  subtests; `check --strict` and `audit-names` are clean for all 14 packages;
+  `python3 scripts/vibe_shared_contract.py measure --strict` exits 0; every
+  released skill's eval suite passes static validation with no warnings.
 
 ## [vibe-coding 6.0.0] - 2026-10-08
 
