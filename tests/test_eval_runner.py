@@ -4191,12 +4191,26 @@ class RunPathDisposalTests(BaseRunnerTest):
 
     def fake_claude(self, *, executor_timeout=False):
         """run_invocation stand-in: a Claude executor that leaves a transcript
-        and background-task output keyed by its cwd, and a passing grader."""
+        and retained file, then a grader that checks disposal and capture."""
+        executor_paths = ()
+        retained_text = "RETAINED_BEFORE_DISPOSAL_SENTINEL\n"
+
         def run(invocation, timeout):
+            nonlocal executor_paths
             if "--json-schema" in invocation.argv:
+                self.assertEqual(len(executor_paths), 3)
+                for path in executor_paths:
+                    self.assertFalse(path.exists(), f"path still present at grader entry: {path}")
+                self.assertIn(json.dumps({
+                    "path": "retained.txt", "kind": "content", "text": retained_text,
+                    "truncated": False,
+                }, separators=(",", ":")), invocation.argv[invocation.argv.index("-p") + 1])
                 verdicts = [{"id": 1, "passed": True, "evidence": "ok"}]
                 return json.dumps({"result": "", "structured_output": {"verdicts": verdicts}}), "", 0, False
-            name = eval_runner.encode_claude_project_dir(Path(invocation.cwd))
+            cwd = Path(invocation.cwd)
+            name = eval_runner.encode_claude_project_dir(cwd)
+            executor_paths = (cwd.parent, self.config_dir / "projects" / name, self.temp_base / name)
+            (cwd / "retained.txt").write_text(retained_text, encoding="utf-8")
             session_id = "session-1"
             transcript = self.config_dir / "projects" / name / f"{session_id}.jsonl"
             transcript.parent.mkdir(parents=True)
@@ -4215,7 +4229,11 @@ class RunPathDisposalTests(BaseRunnerTest):
         })
 
     def test_claude_run_records_confinement_and_disposes_after_reading_the_transcript(self):
-        path = self.one_case_suite()
+        path = self.write_suite({
+            "skill_name": "demo",
+            "evals": [{"id": "E01", "name": "First eval", "prompt": "Do the thing.",
+                       "files": ["evals/demo/fixtures/input.txt"], "expectations": ["a"]}],
+        })
         with mock.patch.object(eval_runner.ClaudeProvider, "available", return_value=True), \
                 mock.patch.object(eval_runner, "probe_executor_confinement",
                                   return_value=dict(ExecutorConfinementTests.BWRAP)), \
@@ -4226,7 +4244,7 @@ class RunPathDisposalTests(BaseRunnerTest):
         for config in ("with_skill", "without_skill"):
             with self.subTest(config):
                 record = json.loads((iteration / "eval-first-eval" / config / "run-1" / "run.json").read_text())
-                self.assertEqual(record["status"], "ok")
+                self.assertEqual(record["status"], "ok", record.get("grader_error"))
                 self.assertEqual(record["executor_confinement"], {"mode": "bwrap-hide-mnt", "resolver_rebound": False})
                 cwd = record["executor_invocation"]["cwd"]
                 self.assertEqual(

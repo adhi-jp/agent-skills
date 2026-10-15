@@ -169,8 +169,9 @@ use `[Repository] - YYYY-MM-DD`.
   Claude executor's session and temp directories, refuses any path that does
   not resolve to the run's own name directly inside its expected base, and
   records each outcome in `sandbox_cleanup`; the sandbox is no longer
-  available for inspection after the run. Runner tests pass, and a real
-  diagnostic run on a WSL2 host recorded the confinement with the resolver
+  available for inspection after the run. Runner tests verify disposal before
+  grading while preserving captured retained file contents; a real diagnostic
+  run on a WSL2 host recorded the confinement with the resolver
   re-bound and left no sandbox, session, or temp directory behind.
 
 ## [vibe-coding 6.0.0] - 2026-10-08
