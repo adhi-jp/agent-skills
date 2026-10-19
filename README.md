@@ -34,7 +34,7 @@ complete contract.
 
 For AI agents, this README is navigation rather than executable policy. Read the
 selected source `SKILL.md` completely and follow its required references before
-acting. Repository contributors must also follow [`AGENTS.md`](AGENTS.md).
+acting.
 
 ## Choose a Skill
 
