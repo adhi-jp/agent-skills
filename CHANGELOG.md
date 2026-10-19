@@ -28,6 +28,19 @@ use `[Repository] - YYYY-MM-DD`.
   user-side resolution, any other suspected cause marked unverified, while
   independent work continues; no user stop is added. Verified by a full-suite
   eval run with a Claude sonnet executor, three runs per configuration.
+- vibe-commit: the staged-set check before a commit still reads the staged
+  hunks by default. An earlier read stands in only for a staged path whose
+  full patch the committing agent read itself earlier in the same turn, and
+  only once it proves that path's staged patch, metadata included, identical
+  on the same base, such as by comparing a hash of the staged patch with one
+  retained from that read; every other staged path's hunks are read. File
+  counts, hashes of other or incomplete patches, reviewer reads, test results,
+  and claims that the correction round left the path alone never qualify. The
+  gate output is read before commit is invoked, and hooks or exit-status
+  checks do not replace that read. The message reconciliation accepts the same
+  proof only for the proven paths. No user stop is added. Verified by a
+  full-suite eval run with a Claude sonnet executor, three runs per
+  configuration.
 
 ## [vibe-coding 6.1.0] - 2026-10-15
 

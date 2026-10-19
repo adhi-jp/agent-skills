@@ -20,7 +20,11 @@ git status --short              # what remains unstaged, and is that intentional
 ```
 
 The file list alone is not enough: read the staged diff. A rename, partial hunk,
-or accidental deletion appears there, not in the names.
+or accidental deletion appears there, not in the names. Skip that read only for
+a path whose full patch you read yourself earlier this turn and whose staged
+patch, metadata included, you then prove identical on the same base (`SKILL.md`
+step 6). Read the gate output before invoking `git commit`; hooks or
+exit-status checks never replace that read.
 
 When the final command will use pathspecs, `--only`, or another option that
 could change what `git commit` records, add a command-shape dry run after the

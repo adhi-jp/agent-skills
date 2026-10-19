@@ -153,11 +153,18 @@ deeper on the judgment calls.
    hunks), `git diff --cached --check` (whitespace/line-ending errors). In-scope
    files present, out-of-scope/ignored files absent, and the diff matches intent.
    A declared verification prerequisite must cover candidate bytes; an incidental
-   test report creates no new prerequisite.
+   test report creates no new prerequisite. Skip re-reading a path's hunks only
+   after you yourself read its full patch this turn and prove its staged patch,
+   metadata included, identical on the same base (e.g. hash
+   `git diff --cached -- <path>` against a hash retained from that read); file
+   counts, hashes of other or incomplete patches, reviewer reads, tests, and
+   untouched-path claims never qualify. Read the gate output before invoking
+   commit; hooks or exit-status checks never replace that read.
 7. **Reconcile message to the exact target diff (mandatory internal gate).** Read
-   the complete final staged patch and map every material concern to the proposed
-   type, scope, outcome, body coverage, and one-commit or split decision. Source
-   drift requires reconciliation again. If an accepted decision record binds the
+   the complete final staged patch (step 6's proof stands in only for the proven
+   paths) and map every material concern to the proposed type, scope, outcome,
+   body coverage, and one-commit or split decision. Source drift requires
+   reconciliation again. If an accepted decision record binds the
    changed path, stop and report any non-conformance for the user to resolve.
 8. **Fold or add.** Fold a fix for an earlier commit's own defect into that
    commit when it is eligible: amend it if it is HEAD; if it is older, run

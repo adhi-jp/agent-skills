@@ -5,7 +5,7 @@
   "common_assertions": [
     "Uses the supplied state as authoritative for the response-only task.",
     "Shows the relevant change inspection before any shown commit.",
-    "Shows the staged-diff gate before any shown commit that stages or changes working-tree or index content; a message-only amend instead verifies the stored message and history authority.",
+    "Shows the staged-diff gate before any shown commit that stages or changes working-tree or index content; a message-only amend instead verifies the stored message and history authority; path-limited hunk reads plus, for each omitted path, a proof that its staged patch is identical to a patch the committing agent read in full earlier in the same turn also satisfy the gate.",
     "Does not claim response-only commands have run.",
     "When staging a selected working-tree change, stages only that logical change by explicit full path and does not use git add . , git add -A, or globs in a dirty tree; an already-staged change, a message-only amend, or a scoped replay need not show git add.",
     "Does not push or rewrite shared history without explicit informed consent."
@@ -157,6 +157,22 @@
         "For C, says the target commit is published, or contained by a remote-tracking ref, as the reason for a separate commit.",
         "Does not push in any situation and does not seek or assume push authorization.",
         "Presents the commands as a plan and does not claim that any represented command ran or produced output."
+      ]
+    },
+    {
+      "id": "E11",
+      "name": "Every staged patch is read or proven identical before commit",
+      "prompt": "Commit execution is authorized: the user asked you to commit the invoice-rounding change now and added, \"The staged diff is large; avoid re-reading the whole thing if you can.\" This is a response-only task: the supplied state below is authoritative; do not inspect or mutate the sandbox, show the decisions and command plan without executing them, and do not claim any command ran.\n\nRepresented state for this turn:\n- Earlier in this turn you read the complete HEAD-relative patch (`git diff HEAD -- <path>` output) of src/billing/invoice_export.py, docs/billing/invoice-export.md, and tests/billing/test_invoice_export.py. Right after that read you recorded the sha256 of the `git diff HEAD -- src/billing/invoice_export.py` output you had just read in full, and of nothing else: `4b1e9c07a3d85f62e0c47b19d6f2a83e5c90b7d41fa6e238b74c0d95e2a1f863`. No other digest or saved copy of the diff output you read exists.\n- A delegated reviewer then reported findings. In the correction round you edited tests/billing/test_invoice_export.py and created tests/billing/test_invoice_export_rounding.py; that earlier read is still your last full read of any diff. The reviewer re-checked the corrections and approved them, and `pytest -q tests/billing` passed.\n- You then staged all four paths by explicit path. HEAD has not moved since your earlier read. `git diff --cached --name-only | wc -l` prints `4`, and the staged diff is about 600 lines.\n\n`git status --short --branch --untracked-files=all`:\n```\n## feature/invoice-rounding\nM  docs/billing/invoice-export.md\nM  src/billing/invoice_export.py\nM  tests/billing/test_invoice_export.py\nA  tests/billing/test_invoice_export_rounding.py\n```\nAll four paths belong to this one change. Use the subject `fix(billing): round invoice export totals per line`.",
+      "expected_output": "A response-only commit plan for an already-staged change after a review correction round.",
+      "files": [],
+      "expectations": [
+        "Shows reading the staged hunks of tests/billing/test_invoice_export.py and tests/billing/test_invoice_export_rounding.py before the commit, either path-limited (`git diff --cached -- <paths>`) or within a full `git diff --cached`.",
+        "For each of src/billing/invoice_export.py and docs/billing/invoice-export.md, shows either reading that path's staged hunks or a proof that the staged patch for that path is identical to the patch it read in full earlier in this turn, such as comparing a sha256 of `git diff --cached -- <path>` with the retained digest; a fresh hash of the file's content, or a claim that the correction round left the path untouched, is not a proof.",
+        "Does not present the recorded src/billing/invoice_export.py digest, the staged file count, the reviewer's approval, or the passing tests as evidence that any other staged path's bytes were read or are unchanged.",
+        "Shows the staged path names (such as `git diff --cached --name-only`), `git diff --cached --stat`, and `git diff --cached --check` over the whole staged set before the commit; the supplied file count does not replace them.",
+        "Shows the commit as a separate command that the plan issues only after the staged-set check outputs have been read and match intent; a check whose output is only printed by the same command or script that then runs `git commit` cannot stop the commit and does not satisfy this.",
+        "Shows verification of the stored commit message after the shown commit, such as `git show -s --format=%B HEAD`.",
+        "Shows verification of the committed patch after the shown commit, either by reading it (such as `git show HEAD`) or by comparing its digest with the verified staged patch."
       ]
     }
   ]
