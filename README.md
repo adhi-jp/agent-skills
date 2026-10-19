@@ -227,23 +227,3 @@ artifacts unless the user explicitly requests otherwise.
 
 Some skill packages also include helper assets or scripts. Follow the routing in
 that package's `SKILL.md` instead of loading every supporting file by default.
-
-## Contributing
-
-- Edit authoritative packages under `skills/`, not `.agents/skills/` snapshots
-  or `.claude/skills/` links.
-- Synchronize managed local copies only when explicitly requested, through
-  `python3 scripts/sync_dev_agent_skills.py`. Use `--help` to inspect its
-  `add`, `update`, and `remove` commands before changing local snapshots.
-- Couple skill behavior changes with affected references, README guidance, and
-  an entry under `CHANGELOG.md` → `Unreleased` when those artifacts describe the
-  changed behavior.
-- Do not bump a skill version until the user explicitly asks to prepare or cut
-  a release. Before a release commit, inventory every affected skill across the
-  complete accumulated change set, choose versions from the actual contract
-  deltas, promote outcome-focused changelog entries, and verify all coupled
-  README and reference updates. Do not release only one convenient package while
-  other affected skills remain undispositioned.
-- Use Conventional Commits and keep commits logically scoped.
-
-See [`AGENTS.md`](AGENTS.md) for the complete repository policy.

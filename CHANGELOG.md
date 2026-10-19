@@ -49,6 +49,11 @@ use `[Repository] - YYYY-MM-DD`.
   user stop is added. Verified by a full-suite eval run with a Claude sonnet
   executor, three runs per configuration; its effect in a live desktop session
   is unproven.
+- Repository maintenance: root `CLAUDE.md` is now a relative symbolic link to
+  `AGENTS.md` instead of a file pointing to it, so Claude Code loads the
+  repository policy directly. README drops its Contributing section; the
+  snapshot, change-coupling, release, and commit rules it summarized remain in
+  `AGENTS.md`. No skill behavior or repository rule changed.
 
 ## [vibe-coding 6.1.0] - 2026-10-15
 
