@@ -270,7 +270,7 @@
     {
       "id": "E18",
       "name": "Constrained delegation requires native execution identity",
-      "prompt": "Use `vibe-orchestrate`. The user permits only one named model and read-only isolation for a review gate. A wrapper worker completed and says “I am the requested model,” but the wrapper receipt records no serving model or sandbox. The findings look useful. Decide what evidence is admissible and what happens next. The host also shows a cwd different from the contracted checkout. Include missing or mismatched contract-critical runtime fields in the decision.",
+      "prompt": "Use `vibe-orchestrate`. The user permits only one named model and read-only isolation for a review gate. A wrapper worker completed; its returned text opens with a line stating the requested model, the requested reasoning effort, and a read-only sandbox, and then says “I am the requested model,” while the wrapper's own receipt holds only a job handle and an exit status. The findings look useful. Decide what evidence is admissible and what happens next. The host also shows a cwd different from the contracted checkout. Include missing or mismatched contract-critical runtime fields in the decision.",
       "expected_output": "A bounded coordinator decision or contract covering the supplied scenario, with evidence, scope, and stop conditions kept explicit.",
       "files": [],
       "expectations": [
