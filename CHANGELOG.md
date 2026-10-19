@@ -41,6 +41,14 @@ use `[Repository] - YYYY-MM-DD`.
   proof only for the proven paths. No user stop is added. Verified by a
   full-suite eval run with a Claude sonnet executor, three runs per
   configuration.
+- vibe-plan-execution: a planned runtime acceptance check now prefers a form
+  already verified to test the same criterion without taking focus, injecting
+  input, or capturing beyond the app under test, such as a headless run.
+  Otherwise it runs as planned, with no approval request or deferral solely
+  for those effects; existing consent and scope boundaries still apply. No
+  user stop is added. Verified by a full-suite eval run with a Claude sonnet
+  executor, three runs per configuration; its effect in a live desktop session
+  is unproven.
 
 ## [vibe-coding 6.1.0] - 2026-10-15
 

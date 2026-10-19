@@ -136,7 +136,12 @@ load-bearing claims even in responses that edit nothing.
    required result from the known-bad baseline: record the baseline first, and
    if it already passes, stop and correct the proof strategy through the Plan
    Validity Gate. A green broad suite does not complete a slice whose planned
-   acceptance check is missing or unrun.
+   acceptance check is missing or unrun. For a planned runtime acceptance
+   check, prefer a form already verified to test the same criterion without
+   taking focus, injecting input, or capturing beyond the app under test, such
+   as a headless run. Otherwise run it as planned, without asking or deferring
+   solely because of those effects; existing consent and scope boundaries
+   still apply.
 
    - Preserve every gate's exit status independently; never let a truncating
      filter carry the gate status or a later successful gate mask a failure.
