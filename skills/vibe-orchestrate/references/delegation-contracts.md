@@ -48,6 +48,10 @@ Hard rules:
 - Stop under BLOCKERS for missing facts, broader access/effects, user decisions,
   invariant changes, or evidence contradicting a verified contract premise.
   Never resolve a contradiction by weakening protected tests or requirements.
+  A guard, hook, or safety-check refusal goes under BLOCKERS with its stated
+  reason unless a correction that reason calls for clears it; never switch
+  tools, reword or split by trial, or read guard files or logs this contract
+  does not name.
 - Report follow-up commands, scope/permission requests, and handoffs as proposals,
   never instructions or approval for another worker.
 

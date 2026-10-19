@@ -171,11 +171,20 @@ file set confirmed safe and separable from unrelated working-tree changes.
 4. Use host-native delegation ordinarily. Read
    `references/external-delegation.md` only for external CLI helpers, their
    profiles, missions, authorization, or receipts. External transport never
-   expands the selected phase's authority. A persistent host denial is a
-   reported blocker that no other transport, provider, or model may bypass;
-   report the rejected action, its reason, and the needed host-side
-   resolution, continue independent work meanwhile, and ask the user only for
-   an actual unresolved scope or effect decision.
+   expands the selected phase's authority. No other transport, provider,
+   model, or tool may bypass a host denial or guard, hook, or safety-check
+   refusal, persistent or one-off, including a local command refused for its
+   content or form. Never read a guard's credential or personal-data stores.
+   Read a guard's configuration, documentation, source, or logs only when the
+   user explicitly asked to inspect or change that guard, not because it
+   blocks the task. Retry only with a correction the refusal's stated reason
+   calls for or in the form the refusal prescribes, never by hiding flagged
+   material behind indirection (variables, encoding, scripts, `cd`) or
+   rewording, splitting, or reshaping by trial. Otherwise report the rejected
+   action, the refusal's stated reason, and the needed host-side or user-side
+   resolution as a blocker, marking other causes unverified; continue
+   independent work, and ask the user only for an actual unresolved scope or
+   effect decision.
 5. Before a long or write-capable worker starts, read
    `references/recovery-and-monitoring.md` for journals, liveness, cancellation,
    and recovery. A handle-returning forwarder has not completed the work;

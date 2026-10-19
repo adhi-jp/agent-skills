@@ -11,6 +11,24 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- vibe-orchestrate: a guard, hook, or safety-check refusal of a coordinator or
+  worker action, including a one-off refusal of a local command for its
+  content or form, now binds like a persistent host denial. The coordinator
+  and its workers retry only with a correction the refusal's stated reason
+  calls for or in the form the refusal prescribes, and never get past it
+  through indirection, trial rewording, splitting, or reshaping, or another
+  tool, transport, provider, or model. A guard's credential or personal-data
+  stores are never read; its configuration, documentation, source, or logs
+  are read only when the user explicitly asked to inspect or change that
+  guard, not because it blocks the task, and by a worker only when its
+  contract names them. A refusal no such correction clears is reported as a
+  blocker with the refusal's stated reason and the needed host-side or
+  user-side resolution, any other suspected cause marked unverified, while
+  independent work continues; no user stop is added. Verified by a full-suite
+  eval run with a Claude sonnet executor, three runs per configuration.
+
 ## [vibe-coding 6.1.0] - 2026-10-15
 
 ### Changed
