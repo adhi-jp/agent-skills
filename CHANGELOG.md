@@ -49,6 +49,16 @@ use `[Repository] - YYYY-MM-DD`.
   user stop is added. Verified by a full-suite eval run with a Claude sonnet
   executor, three runs per configuration; its effect in a live desktop session
   is unproven.
+- minecraft-modding-workbench: a Minecraft delegation handoff now gives the
+  subagent the Minecraft `artifactId` and `mapping` from an MCP lookup the
+  coordinator ran before delegating, or states that MCP was unavailable, and
+  has the subagent reuse that `artifactId` for Minecraft source, member, and
+  search reads while keeping `projectPath` for facts that need workspace
+  resolution. The handoff, and any plan or contract it points the subagent
+  to, gives MCP targets rather than jar paths, names a local jar only for a
+  fact MCP could not answer, and never points the subagent at the MCP
+  server's cache directories. Verified by a full-suite eval run with a Claude
+  sonnet executor, three runs per configuration.
 - Repository maintenance: root `CLAUDE.md` is now a relative symbolic link to
   `AGENTS.md` instead of a file pointing to it, so Claude Code loads the
   repository policy directly. README drops its Contributing section; the
