@@ -8,10 +8,14 @@ description: Use when debugging or repairing existing features from rough agent-
 
 ## Overview
 
-Turn rough reports about existing features into verified repairs. Preserve the
-user's wording as evidence of experience, not proof of root cause. This workflow
-is self-contained; use available specialist capabilities only when helpful.
-Greenfield work, pure review, and history-only operations belong elsewhere.
+Turn rough reports about existing features into verified repairs. Reports,
+corrections, and retest results come from the user directing this session, in
+the conversation or in files they point to; keep their wording as evidence of
+experience, not proof of root cause, and take every other fact from the
+repository, its runtime, or an authoritative source named in
+`references/source-routing.md`. This workflow is self-contained; use available
+specialist capabilities only when helpful. Greenfield work, pure review, and
+history-only operations belong elsewhere.
 
 ## Core Rule
 
@@ -75,8 +79,9 @@ multi-symptom, multi-environment, long-running, interrupted, or user/runtime-ret
 diagnosis. Show compact rows for unresolved symptoms, hypotheses, tool failures,
 and closure decisions; a question alone does not replace that record.
 
-If the reported artifact or tool is absent, use prompt evidence and name the
-blocker; do not substitute a nearby fixture based on a shared domain term.
+If the reported artifact or tool is absent, use the evidence the user supplied
+and name the blocker; do not substitute a nearby fixture based on a shared
+domain term.
 
 ## Delegated Diagnosis
 

@@ -9,7 +9,7 @@ of an external contract, permission, data shape, packaging, or tool behavior.
 | --- | --- |
 | Expected behavior | User requirement, spec, acceptance criteria, tests, known-good behavior |
 | Local behavior | Code, tests, schema/config, logs, artifacts, reproduction |
-| External API/framework/protocol | Official docs, upstream source/spec, vendor changelog, supplied source material |
+| External API/framework/protocol | Official docs, upstream source/spec, vendor changelog, user-provided source material |
 | Tool semantics | `--help`, man page, official docs, wrapper source, logs, minimal dry run |
 | Artifact the user tested | Build/version metadata, package contents, process/cache/migration state, runtime logs |
 

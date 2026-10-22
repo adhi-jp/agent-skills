@@ -59,6 +59,16 @@ use `[Repository] - YYYY-MM-DD`.
   fact MCP could not answer, and never points the subagent at the MCP
   server's cache directories. Verified by a full-suite eval run with a Claude
   sonnet executor, three runs per configuration.
+- vibe-debug: the skill now states where its inputs come from. Reports,
+  corrections, and retest results come from the user directing the session, in
+  the conversation or in files they point to, and stay evidence of experience
+  rather than proof of root cause; every other fact comes from the repository,
+  its runtime, or an authoritative source such as official docs, upstream
+  source or spec, a vendor changelog, or user-provided material. No behavior
+  changed; a full-suite eval run with a Claude sonnet executor, three runs per
+  configuration, showed no miss tied to the changed text. Whether the
+  skills.sh Snyk warning clears is unproven until the pushed package is
+  rescanned.
 - Repository maintenance: root `CLAUDE.md` is now a relative symbolic link to
   `AGENTS.md` instead of a file pointing to it, so Claude Code loads the
   repository policy directly. README drops its Contributing section; the

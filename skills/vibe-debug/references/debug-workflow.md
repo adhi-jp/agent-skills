@@ -35,8 +35,8 @@ checks live in `continuity-and-recurrence.md`; output and scope rules live in
    tests, existing logs, artifacts, and expected-behavior source. Before changing
    unfamiliar external, protocol, or permission behavior, name its authoritative
    source (official docs, upstream spec or source, local contract code, or
-   supplied material); read `source-routing.md` for how to find it and for tool
-   failures. If
+   user-provided material); read `source-routing.md` for how to find it and for
+   tool failures. If
    triage leaves multiple live-state hypotheses, sprawling static investigation,
    a contradicted approach, or another source-only guess, read
    `probe-escalation.md`. For repeated failures use `debug-ledger.md` before
