@@ -69,6 +69,16 @@ use `[Repository] - YYYY-MM-DD`.
   configuration, showed no miss tied to the changed text. Whether the
   skills.sh Snyk warning clears is unproven until the pushed package is
   rescanned.
+- vibe-requirements-spec: evidence for a spec now comes from the repository
+  and from material the user supplied or named; the phase reads no other
+  outside source on its own, and a fact that would need one stays marked
+  unverified. Each decision-affecting fact cites its repository path or the
+  source the user gave, and text the user pastes, quotes, or forwards, or that
+  is read from a source the user named, stays outside-authored evidence. A
+  full-suite eval run with a Claude sonnet executor, three runs per
+  configuration, showed no miss tied to the changed text. Whether the
+  skills.sh Snyk warning clears is unproven until the pushed package is
+  rescanned.
 - Repository maintenance: root `CLAUDE.md` is now a relative symbolic link to
   `AGENTS.md` instead of a file pointing to it, so Claude Code loads the
   repository policy directly. README drops its Contributing section; the

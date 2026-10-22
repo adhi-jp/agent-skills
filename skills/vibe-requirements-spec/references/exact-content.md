@@ -13,9 +13,10 @@ acceptance.
 
 - **Direct current-user text** (the complete bytes typed by the current user)
   may be embedded in the spec or cited by a durable repository anchor.
-- **Everything else** — assistant- or proxy-generated options, pasted or
-  forwarded text, retrieved or attributed sources, and bytes of unclear
-  authorship — is referenced only: an already-existing, readable repository
+- **Everything else** — assistant- or proxy-generated options, pasted,
+  forwarded, or attributed text, text read from a source the user named, and
+  bytes of unclear authorship — is referenced only: an already-existing,
+  readable repository
   artifact plus an exact item anchor. Never embed or reconstruct its raw bytes,
   even when the user approves it or calls it exact, literal, or inert.
 - A chat label (`D4`, "the third version"), ordinal, description, thumbnail,
