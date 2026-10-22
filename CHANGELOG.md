@@ -11,79 +11,116 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [vibe-plan-execution 8.1.1] - 2026-10-23
+
 ### Changed
 
-- vibe-orchestrate: a guard, hook, or safety-check refusal of a coordinator or
-  worker action, including a one-off refusal of a local command for its
-  content or form, now binds like a persistent host denial. The coordinator
-  and its workers retry only with a correction the refusal's stated reason
-  calls for or in the form the refusal prescribes, and never get past it
-  through indirection, trial rewording, splitting, or reshaping, or another
-  tool, transport, provider, or model. A guard's credential or personal-data
-  stores are never read; its configuration, documentation, source, or logs
-  are read only when the user explicitly asked to inspect or change that
-  guard, not because it blocks the task, and by a worker only when its
-  contract names them. A refusal no such correction clears is reported as a
-  blocker with the refusal's stated reason and the needed host-side or
-  user-side resolution, any other suspected cause marked unverified, while
-  independent work continues; no user stop is added. Verified by a full-suite
-  eval run with a Claude sonnet executor, three runs per configuration.
-- vibe-commit: the staged-set check before a commit still reads the staged
-  hunks by default. An earlier read stands in only for a staged path whose
-  full patch the committing agent read itself earlier in the same turn, and
-  only once it proves that path's staged patch, metadata included, identical
-  on the same base, such as by comparing a hash of the staged patch with one
-  retained from that read; every other staged path's hunks are read. File
-  counts, hashes of other or incomplete patches, reviewer reads, test results,
-  and claims that the correction round left the path alone never qualify. The
-  gate output is read before commit is invoked, and hooks or exit-status
-  checks do not replace that read. The message reconciliation accepts the same
-  proof only for the proven paths. No user stop is added. Verified by a
-  full-suite eval run with a Claude sonnet executor, three runs per
-  configuration.
-- vibe-plan-execution: a planned runtime acceptance check now prefers a form
-  already verified to test the same criterion without taking focus, injecting
-  input, or capturing beyond the app under test, such as a headless run.
-  Otherwise it runs as planned, with no approval request or deferral solely
-  for those effects; existing consent and scope boundaries still apply. No
-  user stop is added. Verified by a full-suite eval run with a Claude sonnet
-  executor, three runs per configuration; its effect in a live desktop session
-  is unproven.
-- minecraft-modding-workbench: a Minecraft delegation handoff now gives the
-  subagent the Minecraft `artifactId` and `mapping` from an MCP lookup the
-  coordinator ran before delegating, or states that MCP was unavailable, and
-  has the subagent reuse that `artifactId` for Minecraft source, member, and
-  search reads while keeping `projectPath` for facts that need workspace
-  resolution. The handoff, and any plan or contract it points the subagent
-  to, gives MCP targets rather than jar paths, names a local jar only for a
-  fact MCP could not answer, and never points the subagent at the MCP
-  server's cache directories. Verified by a full-suite eval run with a Claude
-  sonnet executor, three runs per configuration.
-- vibe-debug: the skill now states where its inputs come from. Reports,
-  corrections, and retest results come from the user directing the session, in
-  the conversation or in files they point to, and stay evidence of experience
-  rather than proof of root cause; every other fact comes from the repository,
-  its runtime, or an authoritative source such as official docs, upstream
-  source or spec, a vendor changelog, or user-provided material. No behavior
-  changed; a full-suite eval run with a Claude sonnet executor, three runs per
-  configuration, showed no miss tied to the changed text. Whether the
-  skills.sh Snyk warning clears is unproven until the pushed package is
-  rescanned.
-- vibe-requirements-spec: evidence for a spec now comes from the repository
-  and from material the user supplied or named; the phase reads no other
-  outside source on its own, and a fact that would need one stays marked
-  unverified. Each decision-affecting fact cites its repository path or the
-  source the user gave, and text the user pastes, quotes, or forwards, or that
-  is read from a source the user named, stays outside-authored evidence. A
-  full-suite eval run with a Claude sonnet executor, three runs per
-  configuration, showed no miss tied to the changed text. Whether the
-  skills.sh Snyk warning clears is unproven until the pushed package is
-  rescanned.
-- Repository maintenance: root `CLAUDE.md` is now a relative symbolic link to
-  `AGENTS.md` instead of a file pointing to it, so Claude Code loads the
-  repository policy directly. README drops its Contributing section; the
-  snapshot, change-coupling, release, and commit rules it summarized remain in
-  `AGENTS.md`. No skill behavior or repository rule changed.
+- A planned runtime acceptance check prefers a form already verified to test
+  the same criterion without taking focus, injecting input, or capturing
+  beyond the app under test, such as a headless run. Otherwise it runs as
+  planned, with no approval request or deferral solely for those effects;
+  existing consent and scope boundaries still apply.
+- Verification: full-suite eval run with a Claude `sonnet` executor and three
+  runs per configuration; the effect in a live desktop session is unproven.
+
+## [vibe-requirements-spec 8.0.2] - 2026-10-23
+
+### Changed
+
+- Evidence for a spec comes from the repository and from material the user
+  supplied or named; the phase reads no other outside source on its own, and
+  a fact that would need one stays marked unverified. Each decision-affecting
+  fact cites its repository path or the source the user gave, and text the
+  user pastes, quotes, or forwards, or that is read from a source the user
+  named, stays outside-authored evidence.
+- Verification: full-suite eval run with a Claude `sonnet` executor and three
+  runs per configuration showed no miss tied to the changed text.
+
+## [vibe-debug 8.0.2] - 2026-10-23
+
+### Changed
+
+- The skill states where its inputs come from: reports, corrections, and
+  retest results come from the user directing the session, in the
+  conversation or in files they point to, and stay evidence of experience
+  rather than proof of root cause; every other fact comes from the
+  repository, its runtime, or an authoritative source such as official docs,
+  upstream source or spec, a vendor changelog, or user-provided material.
+  Repair behavior is unchanged.
+- Verification: full-suite eval run with a Claude `sonnet` executor and three
+  runs per configuration showed no miss tied to the changed text.
+
+## [vibe-orchestrate 6.1.1] - 2026-10-23
+
+### Changed
+
+- A guard, hook, or safety-check refusal of a coordinator or worker action,
+  including a one-off refusal of a local command for its content or form,
+  binds like a persistent host denial. The coordinator and its workers retry
+  only with a correction the refusal's stated reason calls for or in the form
+  the refusal prescribes, and never get past it through indirection, trial
+  rewording, splitting, or reshaping, or another tool, transport, provider,
+  or model. A guard's credential or personal-data stores are never read; its
+  configuration, documentation, source, or logs are read only when the user
+  explicitly asked to inspect or change that guard, not because it blocks the
+  task, and by a worker only when its contract names them. A refusal no such
+  correction clears is reported as a blocker with its stated reason and the
+  needed host-side or user-side resolution, any other suspected cause marked
+  unverified, while independent work continues.
+- Verification: full-suite eval run with a Claude `sonnet` executor and three
+  runs per configuration.
+
+## [vibe-commit 5.0.2] - 2026-10-23
+
+### Changed
+
+- The staged-set check before a commit reads the staged hunks by default. An
+  earlier read stands in only for a staged path whose full patch the
+  committing agent read itself earlier in the same turn, and only once it
+  proves that path's staged patch, metadata included, identical on the same
+  base, such as by comparing a hash of the staged patch with one retained
+  from that read; file counts, hashes of other or incomplete patches,
+  reviewer reads, test results, and claims that the correction round left the
+  path alone never qualify. The gate output is read before commit is invoked,
+  and hooks or exit-status checks do not replace that read. Message
+  reconciliation accepts the same proof only for the proven paths.
+- Verification: full-suite eval run with a Claude `sonnet` executor and three
+  runs per configuration.
+
+## [minecraft-modding-workbench 2.2.2] - 2026-10-23
+
+### Changed
+
+- A Minecraft delegation handoff gives the subagent the Minecraft
+  `artifactId` and `mapping` from an MCP lookup the coordinator ran before
+  delegating, or states that MCP was unavailable, and has the subagent reuse
+  that `artifactId` for Minecraft source, member, and search reads while
+  keeping `projectPath` for facts that need workspace resolution. The
+  handoff, and any plan or contract it points the subagent to, gives MCP
+  targets rather than jar paths, names a local jar only for a fact MCP could
+  not answer, and never points the subagent at the MCP server's cache
+  directories.
+- Verification: full-suite eval run with a Claude `sonnet` executor and three
+  runs per configuration.
+
+## [Repository] - 2026-10-23
+
+### Changed
+
+- Root `CLAUDE.md` is a relative symbolic link to `AGENTS.md` instead of a
+  file pointing to it, so Claude Code loads the repository policy directly.
+  README drops its Contributing section and its pointer to `AGENTS.md`; the
+  snapshot, change-coupling, release, and commit rules it summarized remain
+  in `AGENTS.md`. No skill behavior or repository rule changed.
+- Open: the eval runs above use Claude `sonnet` executors, so they are not
+  comparable with the previous release's Claude `haiku` series.
+- Open: whether the skills.sh Snyk warnings for vibe-debug and
+  vibe-requirements-spec have cleared is unproven until the published
+  packages are rescanned.
+- Verification: `python3 -m pytest -q tests` passed 523 tests and 199
+  subtests; `check --strict` and `audit-names` are clean for all 14 packages;
+  `python3 scripts/vibe_shared_contract.py measure --strict` exits 0; every
+  released skill's eval suite passes static validation with no warnings.
 
 ## [vibe-coding 6.1.0] - 2026-10-15
 
