@@ -25,7 +25,9 @@ use `[Repository] - YYYY-MM-DD`.
   `haiku` executor the unchanged text already kept and traced the
   consequential finding, and the restraint checks (no handling for a
   harmless case, no question to the user) varied from run to run on both
-  texts, so the effect is unproven. The closing full-suite run is pending.
+  texts, so the effect is unproven. A full-suite closing run with a Claude
+  `sonnet` executor and three runs per configuration showed no miss tied to
+  the changed text.
 - vibe-plan-execution: work a slice leaves out because its case is rare is
   reported with what happens when the case occurs, and a review finding
   rejected or deferred as rare first traces that consequence. A data-loss,
@@ -42,7 +44,10 @@ use `[Repository] - YYYY-MM-DD`.
   non-goals. Single-run diagnostics of the check's first wording, before
   review narrowed its limits, avoided a per-hit re-parse that the unchanged
   text kept, with Claude `haiku` and Codex `gpt-6-luna` executors; the rarity
-  rule's effect is unproven. The closing full-suite run is pending.
+  rule's effect is unproven. A full-suite closing run with a Claude `sonnet`
+  executor and three runs per configuration showed no miss tied to the
+  changed text, and the per-hit re-parse was avoided in two of three runs
+  with the skill and in none without it.
 
 ## [vibe-plan-execution 8.1.1] - 2026-10-23
 
