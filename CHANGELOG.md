@@ -11,6 +11,26 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- vibe-plan-execution: work a slice leaves out because its case is rare is
+  reported with what happens when the case occurs, and a review finding
+  rejected or deferred as rare first traces that consequence. A data-loss,
+  security, permission, or core-path consequence the slice's own code causes
+  is corrected in the slice when the fix is plan-preserving; any other such
+  finding is recorded in the findings report with its consequence, so no
+  user stop or question is added. The post-implementation review also checks
+  hot-path code the slice adds or changes (per frame, tick, request, or
+  chunk, or per item of a loop whose length depends on user input) for
+  unnecessary repeated copies, parses, reads, or rebuilds of data the
+  operation already holds, and removes the ones the slice introduces; an
+  optional cache that outlives the operation, a new index, or a new API that
+  other code must adopt needs a measured benefit and must fit the plan's
+  non-goals. Single-run diagnostics of the check's first wording, before
+  review narrowed its limits, avoided a per-hit re-parse that the unchanged
+  text kept, with Claude `haiku` and Codex `gpt-6-luna` executors; the rarity
+  rule's effect is unproven. The closing full-suite run is pending.
+
 ## [vibe-plan-execution 8.1.1] - 2026-10-23
 
 ### Changed

@@ -33,11 +33,27 @@ non-goals; the review running is not a pass.
   slice boundaries, approved deviations, scope leakage). Add
   `correctness/regression risk` and `test/proof adequacy` when capacity allows;
   otherwise pick the more relevant one.
+- When the slice adds or changes hot-path code — code that runs per frame,
+  tick, request, or chunk, or per item of a loop whose length depends on user
+  input — also check it for unnecessary repeated work: a copy, parse, read, or
+  rebuild of data the same operation already holds, where no ownership,
+  freshness, validation, or snapshot reason calls for a fresh one. Remove such
+  repetition the slice introduces. An optional performance mechanism — a cache
+  that outlives the operation, a new index, or a new API that code outside the
+  slice must adopt — needs a measured benefit and must fit the plan's
+  non-goals; name any you leave out in the report.
 - Reviewers only report: they do not edit, ask the user, decide deviations,
   classify findings, or commit, and tests they run are not proof. Verify each
   delegated finding before relying on it, then classify every material finding
   as `corrected`, `rejected`, `deferred`, `blocked`, or `reversed`; record
   `deferred` and `blocked` findings in the findings report.
+- A finding `rejected` or `deferred` because its case is rare first records
+  what happens when the case occurs, traced from source or a runtime check;
+  evidence that the case cannot occur is enough instead. Rarity alone never
+  dismisses a data-loss, security, permission, or core-path consequence the
+  slice's own code causes: correct it in the slice when the fix is
+  plan-preserving. Record any other such finding in the findings report with
+  its traced consequence, or `Unproven` and its fastest proof path.
 - A correction that changes control flow, ordering, lifecycle, concurrency,
   priority, timeout, fallback, or first-winner behavior is a new change: re-run
   at least the perspective that found the issue and check the inverse or

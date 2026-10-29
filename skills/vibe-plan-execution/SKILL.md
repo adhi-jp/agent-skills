@@ -121,10 +121,12 @@ load-bearing claims even in responses that edit nothing.
    conflicts with a planned step, run the Plan Validity Gate.
 3. **Implement only the current slice**, reusing local conventions and leaving
    out future phases, adjacent cleanup, and — unless it closes a failure
-   reachable in normal use or a data-loss, security, permission, or core-path
-   risk — any feature, option, guard, or fix nothing binding requires, naming
-   any you leave out in the report; a reviewer's suggestion is not binding. A
-   request to add, skip, narrow, or replace planned work, including planned
+   reachable in normal use or, however rare, a data-loss, security,
+   permission, or core-path risk — any feature, option, guard, or fix nothing
+   binding requires. Name each one you leave out in the report, and when
+   rarity is the reason, what happens when its case occurs; a reviewer's
+   suggestion is not binding. A request to add, skip, narrow, or replace
+   planned work, including planned
    tests called redundant, is a deviation: run the Plan Deviation Gate before
    acting on it. Start a slice the plan marks atomic (non-green inside, green at
    its end) only with enough session and context runway to reach its
@@ -151,8 +153,9 @@ load-bearing claims even in responses that edit nothing.
      empirical gate on final bytes or record the exact delta; static reruns
      do not extend empirical proof.
 
-5. **Review** the verified slice under the Post-Implementation Review Gate
-   before its summary, the next slice, or any commit.
+5. **Review** the verified slice under the Post-Implementation Review Gate,
+   including its repeated-work check for hot-path code the slice adds or
+   changes, before its summary, the next slice, or any commit.
 6. **Close the checkpoint**: remove the worktrees, clones, scratch copies, and
    private build roots the slice created once nothing still needs them (a later
    slice the plan schedules to use one still needs it; a merely possible one
