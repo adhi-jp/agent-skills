@@ -1,0 +1,8 @@
+{
+  "name": "region-overlay-fixture",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test src/app/*.test.ts"
+  }
+}

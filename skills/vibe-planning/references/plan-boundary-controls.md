@@ -55,7 +55,8 @@ as a bounded input:
 
 Keep one authoritative `Review findings and dispositions` table in a
 finding-driven plan: accepted rows are the repair queue, and rejected, deferred,
-and blocked rows keep their closing evidence. Derive checkpoint scope from the
+and blocked rows keep their closing evidence, one finding per row, with its
+traced consequence when rarity is the reason. Derive checkpoint scope from the
 accepted rows; never keep a second repair or checkpoint list that can drift.
 
 ## Completion Gate

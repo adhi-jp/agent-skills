@@ -280,8 +280,9 @@ These hold for every plan:
 - Never invent numeric limits, product constants, root causes, or
   external-system behavior.
 - Add handling for a state only when a requirement names it, normal use
-  reaches it, or it risks data, permissions, security, or a core path; a
-  criterion you wrote does not establish that need.
+  reaches it, or, however rare, it risks data, permissions, security, or a
+  core path; a criterion you wrote does not establish that need, and before
+  leaving a state out as rare, trace what happens when it occurs.
 - When clarifying intent, ask only plan-changing questions evidence cannot
   answer; under trusted orchestration, requirement changes and human-risk
   decisions still stay with the user.

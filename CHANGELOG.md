@@ -13,6 +13,19 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- vibe-planning: before a state or a review finding is left out because its
+  case is rare, the plan records what happens when the case occurs, traced
+  from source or a runtime check, or the evidence that it cannot occur. A
+  data-loss, security, permission, or core-path consequence in the planned
+  change is no longer dismissed as rare: it gets an acceptance criterion and
+  a test, or a test that exercises the case when the consequence cannot be
+  settled, and a finding outside the planned change goes to the findings
+  report with its consequence. Each review-disposition row holds one finding.
+  No user stop or question is added. In single-run diagnostics with a Claude
+  `haiku` executor the unchanged text already kept and traced the
+  consequential finding, and the restraint checks (no handling for a
+  harmless case, no question to the user) varied from run to run on both
+  texts, so the effect is unproven. The closing full-suite run is pending.
 - vibe-plan-execution: work a slice leaves out because its case is rare is
   reported with what happens when the case occurs, and a review finding
   rejected or deferred as rare first traces that consequence. A data-loss,

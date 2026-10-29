@@ -251,6 +251,15 @@ Read this reference before drafting or revising the implementation-plan body. It
      before closure. A disposition that sets a standing rule is a decision
      record; a material deferred finding goes to the findings report and is
      cited by id.
+   - A finding `rejected` or `deferred` because its case is rare first
+     records what happens when the case occurs, traced from source or a
+     runtime check; evidence that the case cannot occur is enough instead.
+     Rarity alone never dismisses a data-loss, security, permission, or
+     core-path consequence in the planned change: give it a criterion and a
+     test, or a test that exercises the case when the evidence cannot settle
+     the consequence. A finding outside the planned change goes to the
+     findings report with its traced consequence, or `Unproven` and its
+     fastest proof path.
    - After an authority-bearing change to requirements, criteria, scope, risks,
      tests, or steps, re-read and semantically re-review the changed sections
      and their dependents as the local self-review above, adding separated
