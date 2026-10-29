@@ -17,16 +17,19 @@ Read this reference before shaping or retrying detailed MCP calls, relying on MC
   - `nbt-to-json`, `json-to-nbt`, `nbt-apply-json-patch`: typed-JSON round-trip and RFC6902-style in-place edits for Java Edition NBT payloads.
   - `verify-mixin-target`: one-call Mixin owner/member existence check with
     `@Shadow`, `@Accessor`, and `@Invoker` advice; set `autoRemap: true`
-    when readable owner/member names must be translated against a version
-    target.
+    when readable owner/member names must be translated against a target
+    that resolves a Minecraft version (a `version` target or a workspace that
+    resolves one).
   - `batch-class-source`, `batch-class-members`, `batch-symbol-exists`, and
     `batch-mappings`: fixed 1..50-entry read-only shortlists with per-entry
     status and aggregate `summary`; use them when entries share one resolved
     artifact or Minecraft version, not for dependent discovery chains.
 - Drop to low-level tools only for exact code, exact descriptors, raw registry bodies, detailed validator output, or direct JAR/remap control.
-- Use the current MCP response contract when shaping expert or batch responses:
-  prefer `detail: "summary" | "standard" | "full"` plus `include[]`; treat
-  `compact` as an old-shape migration hint, not a current expert-tool argument.
+- Use the current MCP response contract when shaping lookup or `batch-*`
+  responses (the lookup tools are listed under Shared Defaults in
+  `references/mcp-recipes.md`): prefer `detail: "summary" | "standard" |
+  "full"` plus `include[]`; treat `compact` as an old-shape migration hint, not
+  a current argument of those tools.
 - Read current MCP response paths directly. A tool answers `{ result, meta }`
   on success and `{ error, meta }` on failure, with `meta.requestId` on both.
   `inspect-minecraft` request echo lives at `result.subject.requested` /
@@ -76,8 +79,7 @@ Read this reference before shaping or retrying detailed MCP calls, relying on MC
   `projection: "names"` or `"signatures"` only for existence/signature triage
   where losing descriptors and annotation metadata is acceptable.
 - With `mapping` omitted, `get-class-members` and `batch-class-members`
-  inherit the resolved artifact's mapping, even though the advertised schema
-  text still says the default is obfuscated. Read the returned namespace
+  inherit the resolved artifact's mapping. Read the returned namespace
   (`context.mappingNamespace` / `returnedNamespace`) before trusting member
   names, and pass an explicit `mapping` when the namespace matters; an explicit
   value always wins. `batch-class-members` entries carry `context` only at

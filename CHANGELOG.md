@@ -48,6 +48,27 @@ use `[Repository] - YYYY-MM-DD`.
   executor and three runs per configuration showed no miss tied to the
   changed text, and the per-hit re-parse was avoided in two of three runs
   with the skill and in none without it.
+- minecraft-modding-workbench: the skill follows the current
+  `minecraft-modding` MCP surface. Cache maintenance uses `delete`, after
+  which the next call that needs the entry rebuilds it, instead of a
+  `manage-cache` `rebuild` action the server rejects. A missing
+  `verify-mixin-target` or `batch-*` tool is classified like any other
+  unknown tool (an older or version-skewed MCP), with `validate-project` /
+  `validate-mixin` or single-entry lookups as the substitute, not explained
+  as disabled on the server. `detail` / `include[]` shaping applies only to
+  the named lookup tools and the `batch-*` tools. `verify-mixin-target`
+  `autoRemap` may be used with any target that resolves a Minecraft
+  version, including a workspace. A `detail: "summary"` search returns
+  counts or at most five sampled hits, and following its cursor at summary
+  skips the unsampled hits, so the same subject, limit, and cursor are
+  repeated at `detail: "standard"`. Indexed text search matches whole
+  tokens without splitting camelCase, so a whole identifier or
+  `queryMode: "literal"` is tried before a fragment miss is read as
+  absence. Single-run diagnostics with Claude `haiku` and Codex
+  `gpt-6-luna` executors showed the unchanged text missing both search
+  readings and the changed text supplying them. A full-suite closing run
+  with a Claude `sonnet` executor and three runs per configuration scored
+  `with_skill` 94.4% against `without_skill` 65.2%, with no anomalies.
 
 ## [vibe-plan-execution 8.1.1] - 2026-10-23
 

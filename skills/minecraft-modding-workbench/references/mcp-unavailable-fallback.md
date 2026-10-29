@@ -15,12 +15,8 @@ skill recipes expect, stale, timing out, or repeatedly restarting.
 - If a tool, argument, or response-shaping field that `SKILL.md` names is
   rejected as unknown, classify the installed MCP as older than the MCP surface
   the recipes target or version-skewed, then use an older-compatible tool or
-  local fallback.
-- Exception: if only `verify-mixin-target` or the `batch-*` tools are missing
-  or rejected as unknown, the server may have them disabled
-  (`VERIFY_MIXIN_TARGET_OFF`, `BATCH_TOOLS_OFF`) rather than being older. Say
-  so, use `validate-project` / `validate-mixin` or single-entry lookups
-  instead, and do not classify the rest of the MCP as skewed.
+  local fallback; for a missing `verify-mixin-target` or `batch-*` tool, that
+  path is `validate-project` / `validate-mixin` or single-entry lookups.
 - If a high-level call restarts or times out, retry once with a narrower
   high-level payload. If that fails, stop using that tool for the current task.
 - If `validate-project` returns `ERR_TOOL_TIMEOUT`, read `meta.timeout` for

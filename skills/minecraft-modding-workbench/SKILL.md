@@ -108,11 +108,11 @@ Run this once near the start of a Minecraft modding task, before the first MCP-d
    `minecraft-modding MCP unavailable` once and switch to
    `references/mcp-unavailable-fallback.md`.
 4. If a tool or argument this skill names is rejected as unknown, first rule
-   out server-disabled `verify-mixin-target` / `batch-*` tools and a failed
-   start after an MCP upgrade (`references/mcp-unavailable-fallback.md`);
-   otherwise treat the installed MCP as older than the MCP surface these
-   recipes target or version-skewed and use the nearest older-compatible path
-   or workspace fallback. Do not keep guessing tool names.
+   out a failed start after an MCP upgrade
+   (`references/mcp-unavailable-fallback.md`); otherwise treat the installed
+   MCP as older than the MCP surface these recipes target or version-skewed
+   and use the nearest older-compatible path or workspace fallback. Do not
+   keep guessing tool names.
 5. If MCP is available, prefer project-aware calls with `projectPath`,
    `preferProjectVersion`, and `preferProjectMapping` when the current tool
    accepts those fields.
@@ -204,7 +204,7 @@ visible:
 
 - Do not silently treat Quilt or legacy Forge as Fabric, NeoForge, or Architectury.
 - For legacy Forge-only or other unsupported loaders, limit help to verified workspace facts, logs, and migration boundaries. Say that full guidance is outside this skill.
-- If MCP is unavailable, misconfigured, or stale, say so immediately, fall back to workspace and log inspection, and keep any fix narrow. The same rule covers version skew: if a tool, task, response-shaping argument, or input shape this skill names (for example, `detail` / `include[]`, `manage-cache` `action: "verify"`, `validate-project` task `access-transformer`, `analyze-symbol` lifecycle range controls, `get-class-source` / `get-class-members` `target.kind`, or the NBT helpers) is rejected as unknown, apply MCP Preflight step 4, including its disabled-tool and post-upgrade checks, before calling it version skew; say which conclusion applies, and route the request through the nearest older-compatible tool or a workspace-only fallback rather than fabricating a different payload shape.
+- If MCP is unavailable, misconfigured, or stale, say so immediately, fall back to workspace and log inspection, and keep any fix narrow. The same rule covers version skew: if a tool, task, response-shaping argument, or input shape this skill names (for example, `detail` / `include[]`, `manage-cache` `action: "verify"`, `validate-project` task `access-transformer`, `analyze-symbol` lifecycle range controls, `get-class-source` / `get-class-members` `target.kind`, or the NBT helpers) is rejected as unknown, apply MCP Preflight step 4, including its post-upgrade check, before calling it version skew; say which conclusion applies, and route the request through the nearest older-compatible tool or a workspace-only fallback rather than fabricating a different payload shape.
 - On a download size-cap refusal, ask the user to raise
   `MCP_MAX_DOWNLOAD_BYTES` and restart MCP; ask to raise
   `MCP_MAX_NESTED_JAR_ENTRY_BYTES` and restart only with evidence that the

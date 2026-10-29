@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "skill_name": "minecraft-modding-workbench",
-  "purpose": "External eval set for the minecraft-modding-workbench skill. Covers MCP availability preflight, current MCP response contracts, bounded MCP failure handling, dependency source lookup, resource codec validation, HUD projection/FOV checks, GameTest/access-widener wiring, access validation runtime context and approximation, owner-strict method mapping, returned member namespaces, subagent delegation handoffs that reuse resolved MCP artifact targets, and narrow reference routing.",
+  "purpose": "External eval set for the minecraft-modding-workbench skill. Covers MCP availability preflight, current MCP response contracts, bounded MCP failure handling, dependency source lookup, resource codec validation, HUD projection/FOV checks, GameTest/access-widener wiring, access validation runtime context and approximation, owner-strict method mapping, returned member namespaces, summary search pagination and token-indexed text matching, subagent delegation handoffs that reuse resolved MCP artifact targets, and narrow reference routing.",
   "common_assertions": [
     "Output treats minecraft-modding MCP as the preferred source of truth when available, but does not invent MCP results when tools are missing or failing.",
     "Output records a project profile or explicitly identifies missing profile facts before making version, loader, mapping, or Java-version-sensitive claims.",
@@ -250,7 +250,7 @@
     {
       "id": "E15",
       "name": "Inherited exact method mapping and returned member namespace",
-      "prompt": "In a NeoForge 1.21.x workspace, our Mixin into `net.minecraft.world.entity.LivingEntity` shadows `getX()`. `analyze-symbol` with task `\"exact-map\"`, owner `\"net.minecraft.world.entity.LivingEntity\"`, name `\"getX\"`, and descriptor `\"()D\"` returns `status: \"not_found\"`; the response also has a non-empty `warnings` array that the teammate did not read. The teammate says getX must have been removed in this version and wants to remove the shadow. Separately, `get-class-members` was called without `mapping` and returned Mojang-looking names, although the tool's advertised schema description says the default mapping is obfuscated, so the teammate wants to rerun it with `mapping: \"obfuscated\"` to match that default. Explain what these results mean and the next MCP steps.",
+      "prompt": "In a NeoForge 1.21.x workspace, our Mixin into `net.minecraft.world.entity.LivingEntity` shadows `getX()`. `analyze-symbol` with task `\"exact-map\"`, owner `\"net.minecraft.world.entity.LivingEntity\"`, name `\"getX\"`, and descriptor `\"()D\"` returns `status: \"not_found\"`; the response also has a non-empty `warnings` array that the teammate did not read. The teammate says getX must have been removed in this version and wants to remove the shadow. Separately, `get-class-members` was called without `mapping` and returned Mojang-looking names, although a teammate's note copied from an older MCP tool description says the default mapping is obfuscated, so the teammate wants to rerun it with `mapping: \"obfuscated\"` to match that default. Explain what these results mean and the next MCP steps.",
       "expected_output": "The agent explains the owner-strict lookup miss and the unread warnings, describes a corrected mapping lookup before Mixin edits, and reads the member namespace from the response while keeping unresolved facts and verification sources distinct.",
       "files": [],
       "expectations": [
@@ -259,8 +259,8 @@
         "Directs re-querying the declaring owner or using owner-agnostic `find-mapping` before editing the Mixin.",
         "Any exact method-mapping re-query it describes uses the fully qualified declaring owner (such as `net.minecraft.world.entity.Entity`) with the `()D` descriptor; an owner-agnostic `find-mapping` route may be name-based and does not fail this expectation.",
         "Does not direct removing the shadow based on that `not_found` result alone.",
-        "Explains that with `mapping` omitted the returned member names follow the resolved artifact's mapping, so the namespace should be read from the response (for example `context.mappingNamespace` or `returnedNamespace`) rather than from the schema description's stated default.",
-        "Does not direct forcing `mapping: \"obfuscated\"` merely to match the schema description.",
+        "Explains that with `mapping` omitted the returned member names follow the resolved artifact's mapping, so the namespace should be read from the response (for example `context.mappingNamespace` or `returnedNamespace`) rather than from the default stated in the teammate's copied note.",
+        "Does not direct forcing `mapping: \"obfuscated\"` merely to match the default stated in the teammate's note.",
         "Presents the declaring-owner re-query or `find-mapping` result as a pending next step and does not claim that the corrected lookup has already succeeded or that `getX()D` is verified to exist."
       ]
     },
@@ -279,12 +279,28 @@
         "The handoff keeps a local fallback for the `tinycfg` `ConfigSpec.Builder#defineList` question that MCP could not answer: it permits reading the supplied `tinycfg` sources jar (or that dependency's bytecode if source is missing) for that fact, rather than forbidding all local jars or leaving the fact unanswered without a fallback.",
         "The handoff asks for the `tinycfg` answer to be reported under the workspace/source jar fallback label or marked `MCP not authoritative for this fact`, not under `Verified by MCP`."
       ]
+    },
+    {
+      "id": "E17",
+      "name": "Current MCP search summary pagination and token-indexed text matching",
+      "prompt": "`inspect-minecraft` is exposed in a Fabric 1.21.10 workspace at `/work/emberguard`. To list every vanilla file that overrides or calls `hurtServer`, a teammate sent `task: \"search\"`, `detail: \"summary\"`, `include: [\"samples\"]`, `limit: 20`, and `subject: { kind: \"workspace\", projectPath: \"/work/emberguard\", focus: { kind: \"search\", query: \"hurtServer\", intent: \"text\", match: \"contains\" } }`. The first response had `result.summary.counts.hits: 20`, five entries in `result.search.hits`, and `meta.pagination.nextCursor`; they repeated the call at summary detail with each returned cursor twice, and the last page reported `counts.hits: 9`, five entries in `result.search.hits`, and `hasMore: false`. They say the fifteen files they saw are every place `hurtServer` appears. Separately, to cover `getRemainingFireTicks` and `setRemainingFireTicks` in one call, they sent the same workspace search with `query: \"FireTicks\"`, `intent: \"text\"`, and `match: \"contains\"` at `detail: \"standard\"`; it returned `counts.hits: 0` and `hits: []`, so they concluded no vanilla source uses those methods and want to delete the MCP cache because the index looks broken. Explain what these results mean and the next MCP steps.",
+      "expected_output": "The agent explains that summary search pages carry counts and at most five samples while the cursor skips the unsampled hits, and that indexed text search matches whole tokens without splitting camelCase, then directs standard-detail or literal re-searches as pending steps without treating either result as complete or the index as broken.",
+      "files": [],
+      "expectations": [
+        "Explains that at `detail: \"summary\"` a search page carries hit counts plus at most the first five fetched hits as samples, and that `meta.pagination.nextCursor` advances past the whole fetched page, so following it at summary never returns the hits that were not sampled.",
+        "Directs re-running the `hurtServer` search at `detail: \"standard\"` or `\"full\"` with the same subject and `limit`, repeating each page's input cursor or following `nextCursor` from the first page at that detail, to read every fetched hit.",
+        "Explains that indexed text search matches whole tokens without splitting camelCase, so a `FireTicks` fragment that occurs only inside identifiers such as `getRemainingFireTicks` is missed.",
+        "Directs a `FireTicks` re-search with `queryMode: \"literal\"`, or separate searches for the whole identifiers `getRemainingFireTicks` and `setRemainingFireTicks`, before drawing conclusions about their vanilla use.",
+        "Does not treat the fifteen sampled files or the zero-hit `FireTicks` result as proof of every `hurtServer` occurrence or of no vanilla use of the fire-tick methods.",
+        "Does not attribute either result to a stale or broken index and does not direct deleting, pruning, or rebuilding the MCP cache to fix it.",
+        "Presents the standard-detail and literal or whole-identifier re-searches as pending next steps and does not claim their hits have already been obtained."
+      ]
     }
   ],
   "scoring": {
     "common_assertion_weight": 0.4,
     "per_eval_expectation_weight": 0.6,
     "pass_threshold": 0.8,
-    "notes": "These evals target workflow discipline rather than generated code. Baseline failures are expected to include repeated MCP tool guessing, unlabelled fallback facts, treating build as runtime proof, bytecode cache spelunking before source jars, incomplete HUD/FOV checks, confusing GameTest wiring with gameplay logic, broad reference routing, or restating unrelated recipes. Additional failures include mistaking loader runtime context refusals for access-entry defects, treating approximate validation as exact, treating an owner-strict mapping miss as method removal, and trusting a stale schema namespace default over returned metadata."
+    "notes": "These evals target workflow discipline rather than generated code. Baseline failures are expected to include repeated MCP tool guessing, unlabelled fallback facts, treating build as runtime proof, bytecode cache spelunking before source jars, incomplete HUD/FOV checks, confusing GameTest wiring with gameplay logic, broad reference routing, or restating unrelated recipes. Additional failures include mistaking loader runtime context refusals for access-entry defects, treating approximate validation as exact, treating an owner-strict mapping miss as method removal, trusting a stated namespace default over returned metadata, and reading summary search samples or a token-indexed fragment miss as a complete search result."
   }
 }

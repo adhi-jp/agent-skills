@@ -33,9 +33,13 @@ These are starting points, not mandatory templates. Keep the first pass small an
 
 - Start with `detail: "summary"` unless you already know you need expanded blocks.
 - Add `include` only for the exact blocks you need in the same response.
-- Expert and batch tools use the same response-shaping vocabulary:
-  `detail: "summary" | "standard" | "full"` plus `include[]`. Treat
-  `compact` only as an old-shape migration clue.
+- The lookup tools `resolve-artifact`, `find-mapping`,
+  `resolve-method-mapping-exact`, `resolve-workspace-symbol`,
+  `check-symbol-exists`, `get-class-source`, `get-class-members`,
+  `search-class-source`, and `list-artifact-files`, and the `batch-*` tools,
+  share one response-shaping vocabulary: `detail: "summary" | "standard" |
+  "full"` plus `include[]`. Treat `compact` only as an old-shape migration
+  clue.
 - Use batch tools for fixed 1..50-entry shortlists that share one resolved artifact or Minecraft version; keep dependent discovery chains sequential.
 - Treat `ERR_CLASS_NOT_FOUND.didYouMean[]` as candidate hints that require verification, not as proof that a candidate exists or is the right migration.
 - Prefer workspace-aware calls when a real mod workspace exists.
@@ -181,7 +185,7 @@ jar, or Gradle fallback playbook just because a fallback gate is named.
 
 | Old or risky shape | Current shape |
 | --- | --- |
-| expert or batch `compact: true` / `compact: false` | `detail: "summary"` / `detail: "full"` plus `include[]` for specific field groups |
+| lookup or batch tool `compact: true` / `compact: false` | `detail: "summary"` / `detail: "full"` plus `include[]` for specific field groups |
 | `target: "1.21.1"` | `subject: { "kind": "version", "version": "1.21.1", ... }` where the tool supports a version subject |
 | flat artifact `target` under `inspect-minecraft` | `subject: { "kind": "artifact", "artifact": { "type": "resolve-target", "target": { "kind": "jar", "value": "/path.jar" } } }` |
 | bare class name passed as the whole subject | `subject: { "kind": "class", "className": "<fqcn>" }` or the workspace `focus: { "kind": "class", "className": "<fqcn>" }` form |
@@ -326,6 +330,19 @@ The `subject.kind: "artifact"` form requires the nested `artifact: { type, ... }
   }
 }
 ```
+
+At `detail: "summary"`, `task: "search"` returns hit counts only, or up to the
+first five fetched hits with `include: ["samples"]`, and following `nextCursor`
+at summary skips the fetched hits it did not sample; to see every hit or to
+page, repeat the same subject, limit, and cursor with `detail: "standard"` (or
+`"full"`). `task: "list-files"` samples up to ten paths the same way and
+returns them at summary only with `include: ["files"]`. Indexed
+`intent: "text"` search (`queryMode` `"auto"`, the default, or `"token"`)
+matches whole tokens and does not split camelCase (with `match: "prefix"`,
+only the last query word may match the start of a token), so a fragment from
+inside a longer identifier is missed without a warning; before treating a miss
+as absence, search a whole identifier or set `queryMode: "literal"` on the
+search `focus` (or a `search` subject).
 
 If a workspace `subject.focus` string is rejected, read the returned
 `error.exampleCalls[]`, fill any `<...>` placeholders, and choose the class, search, or file object shape that matches
@@ -483,7 +500,7 @@ Use this for a single owner/member probe before writing or repairing a Mixin `@S
 }
 ```
 
-Set `autoRemap: true` only when a version-based target lets the tool translate readable owner/member names into the artifact namespace. If the probe says an accessor or invoker shape is needed, still verify the mixin member name and descriptor against the workspace's mapping namespace before editing.
+Set `autoRemap: true` only when a target that resolves a Minecraft version (a `version` target or a workspace that resolves one) lets the tool translate readable owner/member names into the artifact namespace. If the probe says an accessor or invoker shape is needed, still verify the mixin member name and descriptor against the workspace's mapping namespace before editing.
 
 ## `validate-project`
 
@@ -682,7 +699,7 @@ No parameters. Read counters and latency snapshots when cache, search, or index 
 {}
 ```
 
-Pair with `manage-cache` to decide whether to `prune`, `rebuild`, `verify`, or take no action. Do not run `get-runtime-metrics` in parallel with mutating cache actions, since the metrics include in-flight work.
+Pair with `manage-cache` to decide whether to `prune`, `verify`, `delete` (the next call that needs a deleted entry rebuilds it), or take no action. Do not run `get-runtime-metrics` in parallel with mutating cache actions, since the metrics include in-flight work.
 
 ## NBT Helpers
 
@@ -787,7 +804,7 @@ Tag edits on a compound root use paths under `/root/value/...` because the docum
 }
 ```
 
-Switch to `executionMode: "apply"` only after the preview output is what you expected. After `delete` or `prune` apply, read `warnings` and the removed counts: a download-cache entry the tool could not remove (for example a locked or read-only file) returns a warning and is not counted, while a removal failure on other file-backed cache kinds can fail the operation with an error. Keep mutating actions (`delete`, `prune`, `rebuild`) serial with any other call that reads the same `artifactId`, `projectPath`, or `jarPath`.
+Switch to `executionMode: "apply"` only after the preview output is what you expected. After `delete` or `prune` apply, read `warnings` and the removed counts: a download-cache entry the tool could not remove (for example a locked or read-only file) returns a warning and is not counted, while a removal failure on other file-backed cache kinds can fail the operation with an error. Keep mutating actions (`delete`, `prune`) serial with any other call that reads the same `artifactId`, `projectPath`, or `jarPath`.
 
 ## Recovery Moves
 
