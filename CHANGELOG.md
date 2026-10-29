@@ -11,6 +11,15 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+### Changed
+
+- Repository: `AGENTS.md` keeps maintainer-facing open items, such as an
+  unattributed eval result or a pending maintainer decision, out of every
+  release section, `## [Repository]` included, and leaves them in the
+  findings report; a release adds a `## [Repository]` section only when it
+  has repository-wide maintenance entries. Policy text only; no skill
+  behavior changed.
+
 ## [vibe-planning 8.2.0] - 2026-10-29
 
 ### Changed
