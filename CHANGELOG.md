@@ -11,64 +11,68 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [vibe-planning 8.2.0] - 2026-10-29
+
 ### Changed
 
-- vibe-planning: before a state or a review finding is left out because its
-  case is rare, the plan records what happens when the case occurs, traced
-  from source or a runtime check, or the evidence that it cannot occur. A
-  data-loss, security, permission, or core-path consequence in the planned
-  change is no longer dismissed as rare: it gets an acceptance criterion and
-  a test, or a test that exercises the case when the consequence cannot be
-  settled, and a finding outside the planned change goes to the findings
-  report with its consequence. Each review-disposition row holds one finding.
-  No user stop or question is added. In single-run diagnostics with a Claude
-  `haiku` executor the unchanged text already kept and traced the
-  consequential finding, and the restraint checks (no handling for a
-  harmless case, no question to the user) varied from run to run on both
-  texts, so the effect is unproven. A full-suite closing run with a Claude
-  `sonnet` executor and three runs per configuration showed no miss tied to
-  the changed text.
-- vibe-plan-execution: work a slice leaves out because its case is rare is
-  reported with what happens when the case occurs, and a review finding
-  rejected or deferred as rare first traces that consequence. A data-loss,
-  security, permission, or core-path consequence the slice's own code causes
-  is corrected in the slice when the fix is plan-preserving; any other such
-  finding is recorded in the findings report with its consequence, so no
-  user stop or question is added. The post-implementation review also checks
-  hot-path code the slice adds or changes (per frame, tick, request, or
-  chunk, or per item of a loop whose length depends on user input) for
-  unnecessary repeated copies, parses, reads, or rebuilds of data the
-  operation already holds, and removes the ones the slice introduces; an
-  optional cache that outlives the operation, a new index, or a new API that
-  other code must adopt needs a measured benefit and must fit the plan's
-  non-goals. Single-run diagnostics of the check's first wording, before
-  review narrowed its limits, avoided a per-hit re-parse that the unchanged
-  text kept, with Claude `haiku` and Codex `gpt-6-luna` executors; the rarity
-  rule's effect is unproven. A full-suite closing run with a Claude `sonnet`
-  executor and three runs per configuration showed no miss tied to the
-  changed text, and the per-hit re-parse was avoided in two of three runs
-  with the skill and in none without it.
-- minecraft-modding-workbench: the skill follows the current
-  `minecraft-modding` MCP surface. Cache maintenance uses `delete`, after
-  which the next call that needs the entry rebuilds it, instead of a
-  `manage-cache` `rebuild` action the server rejects. A missing
-  `verify-mixin-target` or `batch-*` tool is classified like any other
-  unknown tool (an older or version-skewed MCP), with `validate-project` /
-  `validate-mixin` or single-entry lookups as the substitute, not explained
-  as disabled on the server. `detail` / `include[]` shaping applies only to
-  the named lookup tools and the `batch-*` tools. `verify-mixin-target`
-  `autoRemap` may be used with any target that resolves a Minecraft
-  version, including a workspace. A `detail: "summary"` search returns
-  counts or at most five sampled hits, and following its cursor at summary
-  skips the unsampled hits, so the same subject, limit, and cursor are
-  repeated at `detail: "standard"`. Indexed text search matches whole
-  tokens without splitting camelCase, so a whole identifier or
-  `queryMode: "literal"` is tried before a fragment miss is read as
-  absence. Single-run diagnostics with Claude `haiku` and Codex
-  `gpt-6-luna` executors showed the unchanged text missing both search
-  readings and the changed text supplying them. A full-suite closing run
-  with a Claude `sonnet` executor and three runs per configuration scored
-  `with_skill` 94.4% against `without_skill` 65.2%, with no anomalies.
+- Before a state or a review finding is left out because its case is rare,
+  the plan records what happens when the case occurs, traced from source or a
+  runtime check, or the evidence that it cannot occur. A data-loss, security,
+  permission, or core-path consequence in the planned change is not dismissed
+  as rare: it gets an acceptance criterion and a test, or a test that
+  exercises the case when the consequence cannot be settled, and a finding
+  outside the planned change goes to the findings report with its
+  consequence. Each review-disposition row holds one finding. No user stop or
+  question is added.
+- Verification: full-suite eval run with a Claude `sonnet` executor and three
+  runs per configuration showed no miss tied to the changed text; the rule's
+  effect is unproven.
+
+## [vibe-plan-execution 8.2.0] - 2026-10-29
+
+### Changed
+
+- Work a slice leaves out because its case is rare is reported with what
+  happens when the case occurs, and a review finding rejected or deferred as
+  rare first traces that consequence. A data-loss, security, permission, or
+  core-path consequence the slice's own code causes is corrected in the slice
+  when the fix is plan-preserving; any other such finding is recorded in the
+  findings report with its consequence, and no user stop or question is
+  added.
+- The post-implementation review checks hot-path code the slice adds or
+  changes (per frame, tick, request, or chunk, or per item of a loop whose
+  length depends on user input) for unnecessary repeated copies, parses,
+  reads, or rebuilds of data the operation already holds, and removes the
+  ones the slice introduces. An optional cache that outlives the operation, a
+  new index, or a new API that other code must adopt needs a measured benefit
+  and must fit the plan's non-goals.
+- Verification: full-suite eval run with a Claude `sonnet` executor and three
+  runs per configuration showed no miss tied to the changed text; the rarity
+  rule's effect is unproven.
+
+## [minecraft-modding-workbench 2.3.0] - 2026-10-29
+
+### Changed
+
+- The skill follows the current `minecraft-modding` MCP surface. Cache
+  maintenance uses `delete`, after which the next call that needs the entry
+  rebuilds it, instead of a `manage-cache` `rebuild` action the server
+  rejects. A missing `verify-mixin-target` or `batch-*` tool is classified
+  like any other unknown tool (an older or version-skewed MCP), with
+  `validate-project` / `validate-mixin` or single-entry lookups as the
+  substitute, not explained as disabled on the server. `detail` / `include[]`
+  shaping applies only to the named lookup tools and the `batch-*` tools, and
+  `verify-mixin-target` `autoRemap` may be used with any target that resolves
+  a Minecraft version, including a workspace.
+- A `detail: "summary"` search returns counts or at most five sampled hits,
+  and following its cursor at summary skips the unsampled hits, so the same
+  subject, limit, and cursor are repeated at `detail: "standard"`. Indexed
+  text search matches whole tokens without splitting camelCase, so a whole
+  identifier or `queryMode: "literal"` is tried before a fragment miss is read
+  as absence.
+- Verification: full-suite eval run with a Claude `sonnet` executor and three
+  runs per configuration, `with_skill` 94.4% against `without_skill` 65.2%,
+  with no runner anomalies.
 
 ## [vibe-plan-execution 8.1.1] - 2026-10-23
 
