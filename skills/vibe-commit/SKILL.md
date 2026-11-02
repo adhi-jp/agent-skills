@@ -18,9 +18,12 @@ sequence without claiming it ran; for a blocked request, stop at the blocker.
 
 This skill owns staging, verification, message transport, trailers, and history
 safety. Use `references/history-and-trailers.md` whenever preparing, inspecting,
-amending, or repairing a message. In a response-only plan, `Verification:`
-bullets use only supplied evidence: a check the supplied state does not record
-as passed is `not run`, never a passed result.
+amending, or repairing a message. Routine verification — commands run, checks
+or suites passed, test counts, reviewer or model credits — is not
+commit-message content; report it instead. When a user or repository rule
+requires a verification section, follow it, and in a response-only plan use
+only supplied evidence: a check the supplied state does not record as passed is
+`not run`, never a passed result.
 
 ## Authority and safety boundary
 
@@ -177,9 +180,12 @@ deeper on the judgment calls.
    replaces steps 9-10. See `references/history-and-trailers.md` for
    eligibility and the procedure.
 9. **Compose the message.** Conventional Commits `type(scope): summary`
-   (imperative, ≤72 chars) naming the outcome, blank line, then a body only when
-   it preserves durable context the diff cannot recover. Detect the repo's
-   trailer convention first: `git log -5 --format='%H%n%B'`.
+   (imperative, ≤72 chars) naming the outcome, blank line, then a body whenever
+   the subject and diff do not carry why the change exists, reason first, even
+   under a rule that allows subject-only messages. Keep routine verification
+   out as above; `references/history-and-trailers.md` (Compact message rules)
+   lists the verification facts a body may state. Detect the repo's trailer
+   convention first: `git log -5 --format='%H%n%B'`.
 10. **Transport the message safely.** For any multi-line body, use a heredoc
    (`git commit -F - <<'EOF' … EOF`, single-quoted delimiter) or `git commit -F
    <file>`. Add or repair authorship trailers with a `git commit ... --trailer

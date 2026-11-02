@@ -139,14 +139,14 @@ Rules that prevent the common corruptions:
   the value `Name <email>` including angle brackets. `Co-authored` or a missing
   `<…>` is not recognized by git, `git blame`, or hosting platforms.
 - **No stray `Key: value` ending the body.** A final single line like
-  `Verification: passed` right before the trailers gets folded into the trailer
-  block and corrupts parsing. End the body with bullets/prose and a blank line,
-  then the trailers. If you have a verification section, make it a labeled block
-  with bullets, not a one-liner:
+  `Not verified: Windows paths` right before the trailers gets folded into the
+  trailer block and corrupts parsing. End the body with bullets/prose and a
+  blank line, then the trailers. If a user or repository rule requires a
+  labeled section, make it a labeled block with bullets, not a one-liner:
 
   ```text
-  Verification:
-  - `pytest -q` passed.
+  Not verified:
+  - Windows path handling (no Windows host).
 
   Co-Authored-By: Name <email>
   ```
@@ -462,39 +462,43 @@ skill must satisfy these minimums:
   heredoc whose subject contains angle-bracket text, unresolved-marker words, or
   instructions to fill the subject later is a shown placeholder command even if
   surrounding prose says not to execute it.
-- Body only when it adds durable value the diff cannot recover: the triggering
-  failure or review finding, the public/CLI/schema contract, a rejected
-  alternative, an accepted risk or non-goal, or verification that changes review
-  confidence. Use a medium-density shape for body-worthy commits: usually one
-  to three short paragraphs or 2-5 bullets grouped by durable surface,
-  constraint, risk, or non-goal before `Verification:`. Split or summarize when
-  the body turns into a feature walkthrough, file inventory, helper list,
-  assertion list, or manual-test transcript. Do not collapse unrelated surfaces
-  into one abstract paragraph that hides what changed. Skip file-by-file
-  inventories.
-- Verification lines are selected proof, not a session command transcript. Keep
-  exact commands when they are useful rerun or audit anchors such as tests,
-  builds, type/lint checks, schema or metadata validation, migration dry runs,
-  security/privacy/data-loss checks, release/package checks, or checks tied to a
-  changed public contract. Summarize long ad hoc predicates or groups of
-  equivalent probes when their durable meaning is clearer than the exact bytes.
-  Omit search/string-presence probes, file-list checks, and metadata checks that
-  only restate diff-visible changes unless they prove a non-obvious cross-file,
-  generated, packaging, release, or registration contract. When enough
-  information is available, make each kept bullet explain what the proof means:
-  `- <evidence> passed; covers <changed contract/risk/scope>.` Use explicit
-  absence statuses such as `not run`, `not measured`, or `benchmark not durably
-  recorded` instead of inventing coverage. Omit the coverage phrase only when
-  available evidence is too thin to say what the run covers, and state the
-  absence instead; a command or suite name that matches the changed path is not
-  the coverage by itself — say what contract, risk, or scope the run covers,
-  without claiming more coverage than the available evidence supports.
-- Small/mechanical changes (lock bumps, generated syncs) are often
-  subject-only.
-- Keep durable references (issue IDs, error codes, commands, committed paths,
-  SHAs); drop local-only provenance (private branch names, temp paths, session
-  labels). Git-unmanaged local generated artifacts, ignored result files,
-  temporary run output, local-only run IDs, and private tool-session records are
-  not durable proof. Translate them into a stable command, durable outcome, or
-  explicit absence status such as `raw local report not committed`, `benchmark
-  not durably recorded`, or `not measured`.
+- A commit-message rule the user or repository writes, including one in the
+  request, overrides the body shape below: its length limits and required
+  sections bind, its allowance for subject-only messages applies only when
+  subject and diff already carry the why, and within a limit the why comes
+  first. Fill a required verification section only from evidence that exists;
+  an unrecorded check is `not run`. Recent history's habits set subject and
+  trailer style, not message content. The body rules below govern a message
+  being composed or reworded; a fold, trailer repair, or other history edit
+  keeps existing body text apart from the defect it fixes.
+- Write a body whenever subject and diff do not carry why the change exists:
+  the trigger or cause; each behavior bundled beyond the subject and why it was
+  not split; a contract, migration, or stored-data effect; a constraint,
+  non-goal, accepted risk, or rejected alternative; an external ID such as an
+  advisory or issue; what remains unverified. The why comes first; an
+  unverified note never replaces it. Subject-only fits mechanical changes (lock
+  bumps, generated syncs) and changes whose diff itself states the why, such as
+  a changelog entry, code comment, or test names. Size follows content: usually
+  one to three short paragraphs or a few grouped bullets. Cut file inventories,
+  walkthroughs, helper or assertion lists, and restated diff. Do not collapse
+  unrelated surfaces into one abstract paragraph that hides what changed.
+- Routine verification (commands run, checks or suites passed, test counts,
+  reviewer or model credits) is not message content under any heading or
+  label, in prose, or in any language; it belongs in the workflow's report or
+  PR. Test and review evidence a handoff carries proves readiness to commit; it
+  is not message content. Verification enters a body only as a fact about this
+  change: what was not or could not be verified; a measurement the commit's
+  claim rests on, with its conditions and comparison, or an explicit absence
+  such as `not measured` or `benchmark not durably recorded`; or a non-routine
+  check that is itself the proof, such as a packaging build for a dependency
+  bump, never a rerun of the usual suites. A regression shown failing before
+  the fix is not body content by default. Credit a reviewer or model only in
+  trailers the repository convention uses.
+- Keep durable references (issue IDs, error codes, commands the change affects,
+  committed paths, SHAs); drop local-only provenance (private branch names,
+  temp paths, session labels). Git-unmanaged local generated artifacts, ignored
+  result files, temporary run output, local-only run IDs, and private
+  tool-session records are not durable proof. Translate them into a durable
+  outcome or an explicit absence status such as `raw local report not
+  committed`, `benchmark not durably recorded`, or `not measured`, never into a
+  check record.

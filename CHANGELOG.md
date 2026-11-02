@@ -13,6 +13,26 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- vibe-commit: commit messages leave routine verification out — commands
+  run, checks or suites passed, test counts, and reviewer or model credits,
+  under any heading or in prose — and the reference no longer offers a
+  `Verification:` section or a "passed; covers" bullet as a body shape. A
+  body states verification only as what was not verified, a measurement with
+  its conditions and comparison, or a non-routine check that is itself the
+  proof. A body is written whenever the subject and diff do not carry why the
+  change exists — the trigger, each bundled change and why it was not split, a
+  contract or stored-data effect, a constraint, non-goal, accepted risk, or
+  rejected alternative, an external ID, what remains unverified — reason
+  first, also under a rule that allows subject-only messages. A written user
+  or repository rule's limits and required sections, including a required
+  verification section, still bind, and folds and trailer repairs keep the
+  existing body. No user stop or question is added. In single-run
+  diagnostics with a Codex `gpt-6.1-terra` and a Claude `sonnet` executor,
+  messages written under the previous text recorded routine check passes and
+  a review credit, and messages under the new text did not. A full-suite run
+  with a Claude `opus` executor and three runs per configuration passed the
+  new message-content case in every run with the skill; the edit's effect
+  under that model is unproven.
 - Repository: `AGENTS.md` keeps maintainer-facing open items, such as an
   unattributed eval result or a pending maintainer decision, out of every
   release section, `## [Repository]` included, and leaves them in the
