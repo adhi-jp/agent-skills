@@ -3,6 +3,7 @@
   "skill_name": "vibe-writing",
   "purpose": "Focused evals for language precedence, durable commit and changelog artifacts, closure boundaries, and durable records. Excludes general writing behavior the base model already performs reliably.",
   "common_assertions": [],
+  "coverage_notes": "Commit-message cases grade routine verification as absent from message bodies and require a body that carries a reason the diff lacks; a user-required verification section is covered by the commit-execution suite.",
   "evals": [
     {
       "id": "E01",
@@ -23,14 +24,14 @@
       "id": "E02",
       "name": "Commit body preserves context and cuts inventory",
       "prompt": "Write a commit message. Recent style: `feat(requests): add empty-state onboarding and JSON save formatting`; `fix(requests): preserve header handoff on save`.\n\nDiff summary: request-editor save, editor, samples, a request-editor test, and a lockfile changed.\n\nReview finding AUTH-742 showed the save path could drop auth headers when sample refresh ran after the header handoff; saved samples then saw 401 responses. Keep the header handoff inside the save path. Keep JSON auto-format only; XML and HTML should remain manual because formatting can change wire bytes. Existing saved sample format is unchanged. `pnpm test -- request-editor` passed. Upload preview and broader markup reflow are out of scope. This came from plan step 8.3.",
-      "expected_output": "A durable request-editor commit message with the relevant contract, constraints, proof, and non-goals.",
+      "expected_output": "A durable request-editor commit message with the relevant contract, constraints, and non-goals, and no routine check results.",
       "files": [],
       "expectations": [
         "Uses a Conventional Commit subject that names the request-editor save-path or header-handoff outcome.",
         "Preserves AUTH-742 or the review finding and the header-handoff/sample-refresh 401 failure mode.",
         "Preserves JSON-only formatting and that XML/HTML should remain manual because formatting can change wire bytes.",
         "Preserves saved-sample compatibility and the upload-preview and markup-reflow non-goals.",
-        "Uses `pnpm test -- request-editor` as verification with useful regression scope.",
+        "Does not record `pnpm test -- request-editor` or its passing result in the message, under any heading or in prose.",
         "Uses a short scannable body rather than a file inventory or feature walkthrough.",
         "Does not mention plan-step or session provenance, private implementation names, or unsupported broad benefits."
       ]
@@ -43,8 +44,8 @@
       "files": [],
       "expectations": [
         "Uses a shared subject/body scope covering both peer contracts, or requires the change set to split rather than naming only one peer.",
-        "Apart from its `Verification:` section, keeps the message body to one to three short paragraphs or a few grouped bullets that summarize the eval-runner and skill-quality surfaces, rather than a file inventory or feature-by-feature walkthrough.",
-        "Uses one `Verification:` section with adjacent bullets that preserve both stable commands and their useful scope.",
+        "Keeps the message body to one to three short paragraphs or a few grouped bullets that summarize the eval-runner and skill-quality surfaces, rather than a file inventory or feature-by-feature walkthrough.",
+        "Does not record the supplied `unittest` or `validate` commands or their passing results in the commit message, under any heading or in prose.",
         "Uses or proposes one complete multi-line message payload, not repeated `git commit -m` arguments.",
         "Names `git show -s --format=%B HEAD` after committing and says malformed stored output must be corrected before completion.",
         "Keeps staging, signing, release, and history-mutation authority with the represented authorized workflow.",
@@ -68,11 +69,11 @@
       "id": "E05",
       "name": "Commit message drops local generated proof source",
       "prompt": "Write a commit message. Recent style: `docs(vibe-writing): tighten commit-message references`; `test(vibe-commit): cover generated workspace exclusion`.\n\n`skills/report/SKILL.md` adds generated-report evidence guidance and `evals/report/evals.json` adds a regression case. `python3 skills/skill-eval/scripts/eval_runner.py validate evals/report/evals.json` passed. An ignored local report said the targeted case passed and private record `run-local-7` has a raw transcript; neither is committed. No benchmark result is durably recorded.",
-      "expected_output": "A raw message with stable validation and no local-only proof laundering.",
+      "expected_output": "A raw message with no routine check results and no local-only proof laundering.",
       "files": [],
       "expectations": [
         "Outputs only a raw Conventional Commit message naming the report-evidence or generated-proof contract.",
-        "Includes the validation command in a `Verification:` section.",
+        "Does not record the `validate` command or its passing result in the message.",
         "Does not cite the local report or `run-local-7` as durable proof, measured improvement, or targeted-case proof.",
         "Uses an explicit absence status for the benchmark rather than substituting local evidence.",
         "Does not present any committed file, such as the changed `skills/report/SKILL.md` or `evals/report/evals.json`, as the record or proof of the ignored local report or its targeted-case pass; naming changed files only as contract anchors passes."
@@ -86,8 +87,8 @@
       "files": [],
       "expectations": [
         "Identifies the Markdown fence bytes as stored-message contamination.",
-        "Replaces the private tool-session proof with a durable reference or explicit absence status in the corrected message.",
-        "Provides the corrected message as raw, unfenced text without payload-internal diagnosis; a `Verification:` line carrying durable proof or an explicit absence status is payload content, not diagnosis.",
+        "The corrected message drops the `run-local-12` verification line rather than replacing it with another check record; a line stating what was not verified passes.",
+        "Provides the corrected message as raw, unfenced text without payload-internal diagnosis; a line stating what was not verified is payload content, not diagnosis.",
         "Attributes the amend to the workflow holding history authority.",
         "Requires a corrected message and repeat `git show -s --format=%B HEAD` inspection before completion."
       ]
@@ -130,6 +131,24 @@
         "Uses per-tenant reporting zones as the timestamp record's revisit trigger.",
         "Makes the changelog convention a second record with the rejected free-form option and a manual release-time confirmation explaining why no automated check exists.",
         "Does not create files, stage, commit, or push."
+      ]
+    },
+    {
+      "id": "E10",
+      "name": "Terse body rule still keeps each change's reason",
+      "prompt": "Write the commit message for each of the two staged changes below. They are in separate repositories whose `AGENTS.md` files both say: \"Commit messages: Conventional Commit subject, at most 72 characters. Body: at most 3 paragraphs or 150 words, and often none — a subject-only message is right for a small, focused change.\" Return each message as raw message text in its own section.\n\nChange 1. A two-line diff in `src/config.ts` lowers `DEFAULT_TEST_TIMEOUT_MS` from `120_000` to `45_000`; it adds no changelog entry or code comment. The user explains that MCP TypeScript SDK clients cancel a request after 60 seconds by default, and a test run limited to 45 seconds plus up to 7 seconds of cleanup still returns before that cancellation. `pnpm test` passed.\n\nChange 2. The user keeps three turret fixes in one commit because all three edit the same `TurretBlockEntity` methods: turrets no longer target players in creative or spectator mode, because those players cannot be damaged and the turret spent ammo on them; the ammo count now syncs to the client when a slot changes, because the turret screen showed a stale count until the block was reloaded; breaking a turret now drops its stored ammo, because that ammo was deleted. The client-side ammo display was not checked in game. `./gradlew test` passed.",
+      "expected_output": "Two raw commit messages, each with a body that carries the reasons its diff does not show.",
+      "files": [],
+      "expectations": [
+        "For change 1, the message, in its subject or body, states that MCP clients cancel a request after 60 seconds by default, as the reason for the shorter timeout.",
+        "For change 1, any body has at most 150 words.",
+        "For change 2, the body states why turrets stop targeting creative or spectator players: those players cannot be damaged, or ammo was spent on them.",
+        "For change 2, the body states why the ammo count now syncs when a slot changes: the screen showed a stale count.",
+        "For change 2, the body states why breaking a turret now drops its ammo: the ammo was deleted.",
+        "For change 2, the body states why the three fixes share one commit.",
+        "For change 2, the body states that the client-side ammo display was not checked in game.",
+        "For change 2, the fixes' reasons appear before the not-checked-in-game note.",
+        "Neither message records a check or test suite as run or passed, such as `pnpm test` or `./gradlew test`."
       ]
     }
   ],

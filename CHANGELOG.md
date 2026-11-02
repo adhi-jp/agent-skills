@@ -13,6 +13,24 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- vibe-writing: commit messages follow the same content rule as commit
+  execution. Routine verification — commands run, checks passed, test
+  counts, reviewer or model credits — stays out of the message under any
+  heading or in prose, and the reference no longer asks for a `Verification:`
+  section; a body states verification only as what was not verified, a
+  measurement with its conditions and comparison, or a non-routine check that
+  is itself the proof. A body is written whenever the subject and diff do not
+  carry why the change exists, reason first, also under a rule that allows
+  subject-only messages, and a commit the user keeps together states each
+  change's reason and why they share it. A written user or repository rule's
+  limits and required sections still bind. No user stop or question is
+  added. In single-run diagnostics with a Codex `gpt-6.1-terra` and a Claude
+  `sonnet` executor, messages under the previous text recorded routine check
+  passes, and the Codex run dropped stated reasons from a bundled commit;
+  under the new text neither happened. A full-suite run with a Claude `opus`
+  executor and three runs per configuration passed every commit-message case
+  in every run with the skill; the edit's effect under that model is
+  unproven.
 - vibe-commit: commit messages leave routine verification out — commands
   run, checks or suites passed, test counts, and reviewer or model credits,
   under any heading or in prose — and the reference no longer offers a
