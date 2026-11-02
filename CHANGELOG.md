@@ -13,6 +13,20 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- vibe-plan-execution: the shared `unpublished-behavior` block now also
+  applies to plan execution. When the bound plan changes behavior no consumer
+  owns, such as a format an earlier local slice introduced, the slice updates
+  or deletes in place only the assertions that pinned it, deletes a test only
+  when it checks nothing else, and adds no compatibility reader, alias,
+  migration, marker, or parity test; that update is part of the planned
+  change, not a deviation, while a test failing on behavior the plan does not
+  change stays a regression. The rule is read at binding, before the consent
+  preflight and before any compatibility code or test. No user stop or
+  question is added. In single-run diagnostics with a Codex `gpt-6.1-terra`
+  and a Claude `sonnet` executor, the new case passed with and without the
+  skill on both the previous and the new text, so the edit's effect is
+  unproven; a full-suite run with a Claude `opus` executor and three runs per
+  configuration showed no miss tied to the changed text.
 - vibe-planning: a new shared block, `unpublished-behavior` in
   `shared/vibe-contract.md`, owes compatibility only to a consumer of the old
   behavior: a published release, tag, or package, a deployment, an external

@@ -110,7 +110,10 @@ load-bearing claims even in responses that edit nothing.
 
 ## Execution Loop
 
-1. **Bind** the plan under Plan Sources; when the plan or instruction touches
+1. **Bind** the plan under Plan Sources. When the plan changes existing
+   behavior, read Unpublished Behavior in
+   `references/execution-workflow-and-quality.md` before the preflight and
+   before any compatibility code or test. When the plan or instruction touches
    consent-bound work, run the Startup Consent Preflight before the first edit
    and ask for each missing consent decision before the operation it gates.
 2. **Verify before editing.** Inspect the files, tests, configs, and schemas
@@ -220,9 +223,10 @@ implementing the slice it supports.
 
 ## References
 
-- `references/execution-workflow-and-quality.md` (proof rules,
-  Post-Implementation Review Gate, progress ledger): read when
-  proving, reviewing, or closing a slice.
+- `references/execution-workflow-and-quality.md` (proof rules, Unpublished
+  Behavior, Post-Implementation Review Gate, progress ledger): read when
+  proving, reviewing, or closing a slice, and at binding when the plan changes
+  existing behavior.
 - `references/execution-gates-and-delegation.md` (Plan Deviation Gate, Plan
   Validity Gate, Existing-Feature Repair Handoff, Startup Consent Preflight,
   delegation): read before deviating from or correcting the plan, handling a

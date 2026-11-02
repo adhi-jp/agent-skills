@@ -13,7 +13,11 @@ plan item, the evidence, the impact, the closest plan-preserving alternative,
 and the decision needed. Follow the plan unless evidence proves it wrong,
 stale, unsafe, impossible, or already satisfied; a request alone is not that
 proof. A plan-preserving correction under the Plan Validity Gate is not a
-deviation.
+deviation. Updating or deleting only the assertions that pin old behavior the
+plan itself changes, when no consumer owns it
+(`execution-workflow-and-quality.md`, Unpublished Behavior), is part of the
+planned change: neither a deviation nor a plan-changing correction; every
+other planned test and assertion stays under this gate.
 
 ## Plan Validity Gate
 

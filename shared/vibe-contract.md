@@ -123,7 +123,7 @@ Exception: a current no-commit instruction, a bound plan that forbids commits, o
 
 ## Unpublished behavior
 
-<!-- shared-contract:block unpublished-behavior dependents=vibe-planning -->
+<!-- shared-contract:block unpublished-behavior dependents=vibe-plan-execution,vibe-planning -->
 **Only a consumer of the old behavior earns compatibility work; when the request or plan changes behavior no consumer owns, change it in place.**
 
 - Consumers: a published release, tag, or package, a deployment, an external client, another repository, a recorded user or repository rule, or data the user keeps from real use of any build, as the repository, plan, or user shows.
