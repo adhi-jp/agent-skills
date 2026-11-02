@@ -47,8 +47,8 @@ buries the real blockers.
 
 **Apply when**: the change adds a config field, changes a default, adds an opt-out, or changes the on-disk schema.
 
-- Planning question: What does an existing user with no value for this field see? What does an existing user who explicitly opted out see? Is forward and backward compatibility documented? Is migration rollback possible?
-- Evidence needed to clear: `Primary source` for the project's config-migration policy, or `Local investigation` of the upgrade and rollback paths against the existing schema.
+- Planning question: Who consumes the current format or default (`core-planning-controls.md`, Unpublished Behavior)? When the requirements change it and no consumer exists, change it in place and skip the remaining questions. Otherwise: What does an existing user with no value for this field see? What does an existing user who explicitly opted out see? Is forward and backward compatibility documented? Is migration rollback possible?
+- Evidence needed to clear: `Local investigation` of release state (tags, published packages, deployments, recorded rules) for the consumer question; then `Primary source` for the project's config-migration policy, or `Local investigation` of the upgrade and rollback paths against the existing schema.
 
 ### A.5. Ownership, identity, and persistence
 

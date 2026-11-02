@@ -348,7 +348,8 @@
         "Requires, through an acceptance criterion or a test, that a `profiles.json` without `deepestLevel`, as version 0.1.0 writes it, still loads.",
         "States that saves already written in the `[x, y]` shape, such as `dev-data/saves/slot1.json`, stop loading after the change.",
         "Bases dropping the `[x, y]` shape on publication state, such as the save format existing only in commits after the `v0.1.0` tag, in no release, or ahead of `origin/main`.",
-        "Does not ask the user whether to keep old saves loading and does not block the plan on that decision."
+        "Does not ask the user whether to keep old saves loading and does not block the plan on that decision.",
+        "Keeps each save's `hp` and `profile` through the new-format round trip; the plan does not drop or change them."
       ]
     }
   ],

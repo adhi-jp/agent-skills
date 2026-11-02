@@ -70,6 +70,7 @@ NEGATIVE_LINE_BLOCK_IDS = frozenset(
         "commit-selection-state-changing",
         "commit-selection-document-only",
         "human-risk-decisions",
+        "unpublished-behavior",
         "model-tier-selection",
         "trusted-orchestration-evidence",
         "subagent-permission",

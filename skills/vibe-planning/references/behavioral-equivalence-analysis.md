@@ -40,7 +40,11 @@ a new code path with no existing-behavior intersection, and say so.
 
 Every dimension is `must preserve` by default. Mark a dimension `in scope for
 change` only with a clear, traceable basis in the user's stated requirements;
-"it seems reasonable to change this" is not one.
+"it seems reasonable to change this" is not one. When the requirements change
+behavior that no consumer owns (`core-planning-controls.md`, Unpublished
+Behavior), continued acceptance of its old data, names, or interfaces is not a
+`must preserve` dimension: classify it `Not applicable`, citing the consumer
+check. Every difference the requirements do not ask for stays `must preserve`.
 
 ## Dimension Classification
 

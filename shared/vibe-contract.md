@@ -121,6 +121,27 @@ Exception: a current no-commit instruction, a bound plan that forbids commits, o
 - Never proceed, hand off, or route past an unresolved one; ask the smallest question or return to the artifact that owns the decision.
 <!-- shared-contract:endblock human-risk-decisions -->
 
+## Unpublished behavior
+
+<!-- shared-contract:block unpublished-behavior dependents=vibe-planning -->
+**Only a consumer of the old behavior earns compatibility work; when the request or plan changes behavior no consumer owns, change it in place.**
+
+- Consumers: a published release, tag, or package, a deployment, an external client, another repository, a recorded user or repository rule, or data the user keeps from real use of any build, as the repository, plan, or user shows.
+- Check tags, published packages, deployments, recorded rules, the plan, and the user's statements; with none showing a consumer, record that as `Local investigation`; keep the old behavior, reported as an assumption, only when a relevant source is unreadable.
+- Once that check shows no consumer, these are non-consumers; shown consumer use outweighs unpublished provenance:
+  - behavior only unpublished commits carry, including earlier slices of this work;
+  - development or test data an unpublished build wrote;
+  - a local tag or version bump nobody received, or a push alone; tags and pushes still count as published for history rewrites;
+  - a constraint whose only source is an agent's brief, note, or earlier plan for this work.
+- With no consumer, update or delete the tests that pinned the changed behavior; add no compatibility reader, alias, migration, old-data default, version or legacy marker, or old-versus-new parity test.
+- Never treat a difference the request or plan did not ask for as a no-consumer change; it stays a regression.
+- Never treat data no consumer keeps that stops loading as a data-loss, destructive, or data-migration consequence; report which data stops loading and from which builds as an assumption, and ask nothing about it.
+
+Example: a command-line flag added three local commits ago is renamed without an alias, while a flag the published version accepts keeps working.
+
+Exception: an approved spec, or the plan an execution phase is bound to, that names the old behavior as preserved still binds; follow it and report that no consumer was found.
+<!-- shared-contract:endblock unpublished-behavior -->
+
 ## Model-tier selection
 
 <!-- shared-contract:block model-tier-selection dependents=vibe-brainstorm,vibe-code-research,vibe-coding,vibe-debug,vibe-orchestrate,vibe-plan-execution,vibe-planning,vibe-requirements-spec,vibe-review -->

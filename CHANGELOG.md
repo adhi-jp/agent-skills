@@ -13,6 +13,33 @@ use `[Repository] - YYYY-MM-DD`.
 
 ### Changed
 
+- vibe-planning: a new shared block, `unpublished-behavior` in
+  `shared/vibe-contract.md`, owes compatibility only to a consumer of the old
+  behavior: a published release, tag, or package, a deployment, an external
+  client, another repository, a recorded user or repository rule, or data
+  kept from real use of any build. Behavior only unpublished commits carry,
+  including earlier slices of the same work, development data an unpublished
+  build wrote, a local tag or version bump nobody received, a push alone, and
+  a constraint only an agent's brief or earlier plan states are not
+  consumers; when the repository, plan, and user show no consumer, the plan
+  records that and proceeds. When the requirements change such behavior, the
+  plan changes it in place and updates or deletes the tests that pinned it,
+  with no compatibility reader, alias, migration, marker, or parity test;
+  continued acceptance of the old form is no longer a `must preserve`
+  dimension, and the persisted-config check asks the consumer question
+  first. A difference
+  nobody asked for stays a regression, an approved spec that names the old
+  behavior still binds, and data that stops loading is reported, not
+  treated as data loss. No user stop or question is added. In single-run
+  diagnostics, a Codex `gpt-6.1-terra` plan under the previous text kept the
+  old format loading through a reader or migration and asked the user, and a
+  Claude `sonnet` plan asked to confirm the publication state; under the new
+  text both changed the format in place and kept the released file loading.
+  A full-suite run with a Claude `opus` executor and three runs per
+  configuration passed the new case in every run with and without the
+  skill, so that model does not show the edit's effect.
+- Repository: `scripts/vibe_shared_contract.py` applies its negative-line
+  check to the `unpublished-behavior` block.
 - vibe-writing: commit messages follow the same content rule as commit
   execution. Routine verification — commands run, checks passed, test
   counts, reviewer or model credits — stays out of the message under any

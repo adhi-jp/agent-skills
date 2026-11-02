@@ -104,8 +104,9 @@ Read this reference before drafting or revising the implementation-plan body. It
 5. **Define acceptance criteria**
    - Write observable pass/fail criteria.
    - Include negative cases, permissions, failure states, empty states,
-     migration or compatibility expectations, and UX states when the changed
-     code can produce or receive that state; investigate a category whose
+     migration or compatibility expectations for a consumer
+     (`core-planning-controls.md`, Unpublished Behavior), and UX states when the
+     changed code can produce or receive that state; investigate a category whose
      reachability is unknown, and record it as a deferred decision only when it
      stays unsupported and risks no data, permission, security, destructive, or
      core-path effect, never dropping required proof or an unresolved safety
