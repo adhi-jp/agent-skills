@@ -11,93 +11,107 @@ use `[Repository] - YYYY-MM-DD`.
 
 ## [Unreleased]
 
+## [vibe-planning 8.3.0] - 2026-11-03
+
 ### Changed
 
-- vibe-plan-execution: the shared `unpublished-behavior` block now also
-  applies to plan execution. When the bound plan changes behavior no consumer
-  owns, such as a format an earlier local slice introduced, the slice updates
-  or deletes in place only the assertions that pinned it, deletes a test only
-  when it checks nothing else, and adds no compatibility reader, alias,
-  migration, marker, or parity test; that update is part of the planned
-  change, not a deviation, while a test failing on behavior the plan does not
-  change stays a regression. The rule is read at binding, before the consent
-  preflight and before any compatibility code or test. No user stop or
-  question is added. In single-run diagnostics with a Codex `gpt-6.1-terra`
-  and a Claude `sonnet` executor, the new case passed with and without the
-  skill on both the previous and the new text, so the edit's effect is
-  unproven; a full-suite run with a Claude `opus` executor and three runs per
-  configuration showed no miss tied to the changed text.
-- vibe-planning: a new shared block, `unpublished-behavior` in
-  `shared/vibe-contract.md`, owes compatibility only to a consumer of the old
-  behavior: a published release, tag, or package, a deployment, an external
+- Compatibility work is planned only for a consumer of the old behavior: a
+  published release, tag, or package, a deployment, an external client,
+  another repository, a recorded user or repository rule, or data kept from
+  real use of any build. Behavior only unpublished commits carry, including
+  earlier slices of the same work, development data an unpublished build
+  wrote, a local tag or version bump nobody received, a push alone, and a
+  constraint only an agent's brief or earlier plan states are not consumers.
+  When the repository, plan, and user show no consumer, the plan records that
+  and changes the behavior in place, updating or deleting the tests that
+  pinned it, with no compatibility reader, alias, migration, marker, or parity
+  test; old behavior is kept, as a reported assumption, only when a relevant
+  source cannot be read. Continued acceptance of such an old form is no longer
+  a `must preserve` dimension, and a config, default, or on-disk schema change
+  first asks who consumes the current form. A difference nobody asked for
+  stays a regression, an approved spec that names the old behavior still
+  binds, and data that stops loading is reported, not treated as data loss.
+  No user stop or question is added.
+- Verification: full-suite eval run with a Claude `opus` executor and three
+  runs per configuration showed no miss tied to the changed text; the edit's
+  effect is shown only in single-run diagnostics.
+
+## [vibe-plan-execution 8.3.0] - 2026-11-03
+
+### Changed
+
+- Execution builds compatibility only for a consumer of the old behavior,
+  such as a published release, tag, or package, a deployment, an external
   client, another repository, a recorded user or repository rule, or data
-  kept from real use of any build. Behavior only unpublished commits carry,
-  including earlier slices of the same work, development data an unpublished
-  build wrote, a local tag or version bump nobody received, a push alone, and
-  a constraint only an agent's brief or earlier plan states are not
-  consumers; when the repository, plan, and user show no consumer, the plan
-  records that and proceeds. When the requirements change such behavior, the
-  plan changes it in place and updates or deletes the tests that pinned it,
-  with no compatibility reader, alias, migration, marker, or parity test;
-  continued acceptance of the old form is no longer a `must preserve`
-  dimension, and the persisted-config check asks the consumer question
-  first. A difference
-  nobody asked for stays a regression, an approved spec that names the old
-  behavior still binds, and data that stops loading is reported, not
-  treated as data loss. No user stop or question is added. In single-run
-  diagnostics, a Codex `gpt-6.1-terra` plan under the previous text kept the
-  old format loading through a reader or migration and asked the user, and a
-  Claude `sonnet` plan asked to confirm the publication state; under the new
-  text both changed the format in place and kept the released file loading.
-  A full-suite run with a Claude `opus` executor and three runs per
-  configuration passed the new case in every run with and without the
-  skill, so that model does not show the edit's effect.
-- Repository: `scripts/vibe_shared_contract.py` applies its negative-line
-  check to the `unpublished-behavior` block.
-- vibe-writing: commit messages follow the same content rule as commit
-  execution. Routine verification — commands run, checks passed, test
-  counts, reviewer or model credits — stays out of the message under any
-  heading or in prose, and the reference no longer asks for a `Verification:`
-  section; a body states verification only as what was not verified, a
-  measurement with its conditions and comparison, or a non-routine check that
-  is itself the proof. A body is written whenever the subject and diff do not
-  carry why the change exists, reason first, also under a rule that allows
-  subject-only messages, and a commit the user keeps together states each
-  change's reason and why they share it. A written user or repository rule's
-  limits and required sections still bind. No user stop or question is
-  added. In single-run diagnostics with a Codex `gpt-6.1-terra` and a Claude
-  `sonnet` executor, messages under the previous text recorded routine check
-  passes, and the Codex run dropped stated reasons from a bundled commit;
-  under the new text neither happened. A full-suite run with a Claude `opus`
-  executor and three runs per configuration passed every commit-message case
-  in every run with the skill; the edit's effect under that model is
-  unproven.
-- vibe-commit: commit messages leave routine verification out — commands
-  run, checks or suites passed, test counts, and reviewer or model credits,
-  under any heading or in prose — and the reference no longer offers a
-  `Verification:` section or a "passed; covers" bullet as a body shape. A
-  body states verification only as what was not verified, a measurement with
-  its conditions and comparison, or a non-routine check that is itself the
-  proof. A body is written whenever the subject and diff do not carry why the
-  change exists — the trigger, each bundled change and why it was not split, a
-  contract or stored-data effect, a constraint, non-goal, accepted risk, or
-  rejected alternative, an external ID, what remains unverified — reason
+  kept from real use of any build. When the bound plan changes behavior no
+  consumer owns, such as a format an earlier local slice introduced, the
+  slice updates or deletes in place only the assertions that pinned it,
+  deletes a test only when it checks nothing else, and adds no compatibility
+  reader, alias, migration, marker, or parity test; that update is part of
+  the planned change, not a deviation, while a test failing on behavior the
+  plan does not change stays a regression. The consumer check happens when
+  the plan is bound, before the consent preflight and any compatibility code
+  or test, and a bound plan that names the old behavior as preserved still
+  binds. No user stop or question is added.
+- Verification: full-suite eval run with a Claude `opus` executor and three
+  runs per configuration showed no miss tied to the changed text; the edit's
+  effect is unproven.
+
+## [vibe-commit 5.0.3] - 2026-11-03
+
+### Changed
+
+- Commit messages leave routine verification out — commands run, checks or
+  suites passed, test counts, and reviewer or model credits — under any
+  heading or in prose, and no longer carry a `Verification:` section or a
+  "passed; covers" bullet. A body states verification only as what was not
+  verified, a measurement with its conditions and comparison, or a
+  non-routine check that is itself the proof. A body is written whenever the
+  subject and diff do not carry why the change exists, such as the trigger,
+  why bundled changes were not split, a contract or stored-data effect, a
+  constraint, non-goal, or accepted risk, or what remains unverified, reason
   first, also under a rule that allows subject-only messages. A written user
   or repository rule's limits and required sections, including a required
   verification section, still bind, and folds and trailer repairs keep the
-  existing body. No user stop or question is added. In single-run
-  diagnostics with a Codex `gpt-6.1-terra` and a Claude `sonnet` executor,
-  messages written under the previous text recorded routine check passes and
-  a review credit, and messages under the new text did not. A full-suite run
-  with a Claude `opus` executor and three runs per configuration passed the
-  new message-content case in every run with the skill; the edit's effect
-  under that model is unproven.
-- Repository: `AGENTS.md` keeps maintainer-facing open items, such as an
-  unattributed eval result or a pending maintainer decision, out of every
-  release section, `## [Repository]` included, and leaves them in the
-  findings report; a release adds a `## [Repository]` section only when it
-  has repository-wide maintenance entries. Policy text only; no skill
-  behavior changed.
+  existing body. No user stop or question is added.
+- Verification: full-suite eval run with a Claude `opus` executor and three
+  runs per configuration showed no miss tied to the changed text; the edit's
+  effect is shown only in single-run diagnostics.
+
+## [vibe-writing 3.1.4] - 2026-11-03
+
+### Changed
+
+- Commit messages follow the same content rule as commit execution: routine
+  verification — commands run, checks passed, test counts, reviewer or model
+  credits — stays out under any heading or in prose, and no `Verification:`
+  section is requested. A body states verification only as what was not
+  verified, a measurement with its conditions and comparison, or a
+  non-routine check that is itself the proof. A body is written whenever the
+  subject and diff do not carry why the change exists, reason first, also
+  under a rule that allows subject-only messages, and a commit the user keeps
+  together states each change's reason and why they share it. A written user
+  or repository rule's limits and required sections still bind. No user stop
+  or question is added.
+- Verification: full-suite eval run with a Claude `opus` executor and three
+  runs per configuration showed no miss tied to the changed text; the edit's
+  effect is shown only in single-run diagnostics.
+
+## [Repository] - 2026-11-03
+
+### Changed
+
+- `AGENTS.md` keeps maintainer-facing open items, such as an unattributed
+  eval result or a pending maintainer decision, out of every release section,
+  `## [Repository]` included, and leaves them in the findings report; a
+  release adds a `## [Repository]` section only when it has repository-wide
+  maintenance entries. Policy text only; no skill behavior changed.
+- `scripts/vibe_shared_contract.py` applies its negative-line check to the
+  new `unpublished-behavior` block.
+- Verification: `python3 -m pytest -q tests` passed 523 tests and 200
+  subtests; `check --strict` and `audit-names` are clean for all 14 packages;
+  `python3 scripts/vibe_shared_contract.py measure --strict` exits 0; every
+  released skill's eval suite passes static validation with no warnings.
 
 ## [vibe-planning 8.2.0] - 2026-10-29
 
